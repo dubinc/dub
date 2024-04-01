@@ -24,4 +24,3 @@ export * from "./gettimeseriesanalytics";
 export * from "./gettoplinks";
 export * from "./gettopurls";
 export * from "./getworkspace";
-export * from "./getworkspaces";

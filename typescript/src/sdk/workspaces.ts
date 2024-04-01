@@ -8,8 +8,10 @@ import * as enc$ from "../lib/encodings";
 import { HTTPClient } from "../lib/http";
 import * as schemas$ from "../lib/schemas";
 import { ClientSDK, RequestOptions } from "../lib/sdks";
+import * as components from "../models/components";
 import * as errors from "../models/errors";
 import * as operations from "../models/operations";
+import * as z from "zod";
 
 export class Workspaces extends ClientSDK {
     private readonly options$: SDKOptions & { hooks?: SDKHooks };
@@ -44,7 +46,7 @@ export class Workspaces extends ClientSDK {
      * @remarks
      * Retrieve a list of workspaces for the authenticated user.
      */
-    async getWorkspaces(options?: RequestOptions): Promise<operations.GetWorkspacesResponse> {
+    async getWorkspaces(options?: RequestOptions): Promise<Array<components.WorkspaceSchema>> {
         const headers$ = new Headers();
         headers$.set("user-agent", SDK_METADATA.userAgent);
         headers$.set("Accept", "application/json");
@@ -109,10 +111,7 @@ export class Workspaces extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.GetWorkspacesResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        WorkspaceSchemas: val$,
-                    });
+                    return z.array(components.WorkspaceSchema$.inboundSchema).parse(val$);
                 },
                 "Response validation failed"
             );
@@ -235,7 +234,8 @@ export class Workspaces extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -248,7 +248,7 @@ export class Workspaces extends ClientSDK {
     async createWorkspace(
         input: operations.CreateWorkspaceRequestBody | undefined,
         options?: RequestOptions
-    ): Promise<operations.CreateWorkspaceResponse> {
+    ): Promise<components.WorkspaceSchema> {
         const headers$ = new Headers();
         headers$.set("user-agent", SDK_METADATA.userAgent);
         headers$.set("Content-Type", "application/json");
@@ -324,10 +324,7 @@ export class Workspaces extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.CreateWorkspaceResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        WorkspaceSchema: val$,
-                    });
+                    return components.WorkspaceSchema$.inboundSchema.parse(val$);
                 },
                 "Response validation failed"
             );
@@ -450,7 +447,8 @@ export class Workspaces extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -463,7 +461,7 @@ export class Workspaces extends ClientSDK {
     async getWorkspace(
         idOrSlug: string,
         options?: RequestOptions
-    ): Promise<operations.GetWorkspaceResponse> {
+    ): Promise<components.WorkspaceSchema> {
         const input$: operations.GetWorkspaceRequest = {
             idOrSlug: idOrSlug,
         };
@@ -545,10 +543,7 @@ export class Workspaces extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.GetWorkspaceResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        WorkspaceSchema: val$,
-                    });
+                    return components.WorkspaceSchema$.inboundSchema.parse(val$);
                 },
                 "Response validation failed"
             );
@@ -671,7 +666,8 @@ export class Workspaces extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 }

@@ -10,6 +10,7 @@ import * as schemas$ from "../lib/schemas";
 import { ClientSDK, RequestOptions } from "../lib/sdks";
 import * as errors from "../models/errors";
 import * as operations from "../models/operations";
+import * as z from "zod";
 
 export enum GetQRCodeAcceptEnum {
     applicationJson = "application/json",
@@ -52,7 +53,7 @@ export class QRCodes extends ClientSDK {
     async getQRCode(
         input: operations.GetQRCodeRequest,
         options?: RequestOptions & { acceptHeaderOverride?: GetQRCodeAcceptEnum }
-    ): Promise<operations.GetQRCodeResponse> {
+    ): Promise<string> {
         const headers$ = new Headers();
         headers$.set("user-agent", SDK_METADATA.userAgent);
 
@@ -145,10 +146,7 @@ export class QRCodes extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.GetQRCodeResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        res: val$,
-                    });
+                    return z.string().parse(val$);
                 },
                 "Response validation failed"
             );
@@ -271,7 +269,8 @@ export class QRCodes extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 }

@@ -8,8 +8,10 @@ import * as enc$ from "../lib/encodings";
 import { HTTPClient } from "../lib/http";
 import * as schemas$ from "../lib/schemas";
 import { ClientSDK, RequestOptions } from "../lib/sdks";
-import * as  errors from "../models/errors";
+import * as components from "../models/components";
+import * as errors from "../models/errors";
 import * as operations from "../models/operations";
+import * as z from "zod";
 
 export class Links extends ClientSDK {
     private readonly options$: SDKOptions & { hooks?: SDKHooks };
@@ -47,7 +49,7 @@ export class Links extends ClientSDK {
     async getLinks(
         input: operations.GetLinksRequest,
         options?: RequestOptions
-    ): Promise<operations.GetLinksResponse> {
+    ): Promise<Array<components.LinkSchema>> {
         const headers$ = new Headers();
         headers$.set("user-agent", SDK_METADATA.userAgent);
         headers$.set("Accept", "application/json");
@@ -142,10 +144,7 @@ export class Links extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.GetLinksResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        LinkSchemas: val$,
-                    });
+                    return z.array(components.LinkSchema$.inboundSchema).parse(val$);
                 },
                 "Response validation failed"
             );
@@ -268,7 +267,8 @@ export class Links extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -282,7 +282,7 @@ export class Links extends ClientSDK {
         workspaceId: string,
         requestBody?: operations.CreateLinkRequestBody | undefined,
         options?: RequestOptions
-    ): Promise<operations.CreateLinkResponse> {
+    ): Promise<components.LinkSchema> {
         const input$: operations.CreateLinkRequest = {
             workspaceId: workspaceId,
             requestBody: requestBody,
@@ -367,10 +367,7 @@ export class Links extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.CreateLinkResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        LinkSchema: val$,
-                    });
+                    return components.LinkSchema$.inboundSchema.parse(val$);
                 },
                 "Response validation failed"
             );
@@ -493,7 +490,8 @@ export class Links extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -506,7 +504,7 @@ export class Links extends ClientSDK {
     async getLinksCount(
         input: operations.GetLinksCountRequest,
         options?: RequestOptions
-    ): Promise<operations.GetLinksCountResponse> {
+    ): Promise<Array<components.LinkSchema>> {
         const headers$ = new Headers();
         headers$.set("user-agent", SDK_METADATA.userAgent);
         headers$.set("Accept", "application/json");
@@ -603,10 +601,7 @@ export class Links extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.GetLinksCountResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        LinkSchemas: val$,
-                    });
+                    return z.array(components.LinkSchema$.inboundSchema).parse(val$);
                 },
                 "Response validation failed"
             );
@@ -729,7 +724,8 @@ export class Links extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -744,7 +740,7 @@ export class Links extends ClientSDK {
         domain: string,
         key: string,
         options?: RequestOptions
-    ): Promise<operations.GetLinkInfoResponse> {
+    ): Promise<components.LinkSchema> {
         const input$: operations.GetLinkInfoRequest = {
             workspaceId: workspaceId,
             domain: domain,
@@ -831,10 +827,7 @@ export class Links extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.GetLinkInfoResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        LinkSchema: val$,
-                    });
+                    return components.LinkSchema$.inboundSchema.parse(val$);
                 },
                 "Response validation failed"
             );
@@ -957,7 +950,8 @@ export class Links extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -972,7 +966,7 @@ export class Links extends ClientSDK {
         workspaceId: string,
         requestBody?: operations.EditLinkRequestBody | undefined,
         options?: RequestOptions
-    ): Promise<operations.EditLinkResponse> {
+    ): Promise<components.LinkSchema> {
         const input$: operations.EditLinkRequest = {
             linkId: linkId,
             workspaceId: workspaceId,
@@ -1064,10 +1058,7 @@ export class Links extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.EditLinkResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        LinkSchema: val$,
-                    });
+                    return components.LinkSchema$.inboundSchema.parse(val$);
                 },
                 "Response validation failed"
             );
@@ -1190,7 +1181,8 @@ export class Links extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -1204,7 +1196,7 @@ export class Links extends ClientSDK {
         linkId: string,
         workspaceId: string,
         options?: RequestOptions
-    ): Promise<operations.DeleteLinkResponse> {
+    ): Promise<components.LinkSchema> {
         const input$: operations.DeleteLinkRequest = {
             linkId: linkId,
             workspaceId: workspaceId,
@@ -1294,10 +1286,7 @@ export class Links extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.DeleteLinkResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        LinkSchema: val$,
-                    });
+                    return components.LinkSchema$.inboundSchema.parse(val$);
                 },
                 "Response validation failed"
             );
@@ -1420,7 +1409,8 @@ export class Links extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -1434,7 +1424,7 @@ export class Links extends ClientSDK {
         workspaceId: string,
         requestBody?: Array<operations.RequestBody> | undefined,
         options?: RequestOptions
-    ): Promise<operations.BulkCreateLinksResponse> {
+    ): Promise<Array<components.LinkSchema>> {
         const input$: operations.BulkCreateLinksRequest = {
             workspaceId: workspaceId,
             requestBody: requestBody,
@@ -1519,10 +1509,7 @@ export class Links extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.BulkCreateLinksResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        LinkSchemas: val$,
-                    });
+                    return z.array(components.LinkSchema$.inboundSchema).parse(val$);
                 },
                 "Response validation failed"
             );
@@ -1645,7 +1632,8 @@ export class Links extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 }

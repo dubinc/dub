@@ -42,7 +42,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetTagsResponse](../../models/operations/gettagsresponse.md)>**
+**Promise<[components.TagSchema[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -98,7 +98,7 @@ run();
 
 ### Response
 
-**Promise<[operations.CreateTagResponse](../../models/operations/createtagresponse.md)>**
+**Promise<[components.TagSchema](../../models/components/tagschema.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |

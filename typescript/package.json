@@ -1,6 +1,6 @@
 {
   "name": "dub-node",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "author": "Speakeasy",
   "main": "./index.js",
   "sideEffects": false,

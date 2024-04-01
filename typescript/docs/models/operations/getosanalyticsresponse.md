@@ -1,9 +1,0 @@
-# GetOSAnalyticsResponse
-
-
-## Fields
-
-| Field                                                                                            | Type                                                                                             | Required                                                                                         | Description                                                                                      |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `httpMeta`                                                                                       | [components.HTTPMetadata](../../models/components/httpmetadata.md)                               | :heavy_check_mark:                                                                               | N/A                                                                                              |
-| `responseBodies`                                                                                 | [operations.GetOSAnalyticsResponseBody](../../models/operations/getosanalyticsresponsebody.md)[] | :heavy_minus_sign:                                                                               | The top OS by number of clicks                                                                   |

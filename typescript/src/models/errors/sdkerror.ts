@@ -3,14 +3,19 @@
  */
 
 export class SDKError extends Error {
+    public readonly statusCode: number;
+
     constructor(
         message: string,
-        public readonly httpMeta: {
-            response: Response;
-            request: Request;
-        }
+        public readonly rawResponse: Response,
+        public readonly body: string = ""
     ) {
-        super(`${message}: Status ${httpMeta.response.status}`);
+        const statusCode = rawResponse.status;
+        const bodyString = body.length > 0 ? `\n${body}` : "";
+
+        super(`${message}: Status ${statusCode}${bodyString}`);
+
+        this.statusCode = statusCode;
 
         this.name = "SDKError";
     }

@@ -5,8 +5,8 @@ management:
   docVersion: 0.0.1
   speakeasyVersion: 1.228.1
   generationVersion: 2.292.0
-  releaseVersion: 0.0.1
-  configChecksum: 311e495168ab88327327d83c51cd5f08
+  releaseVersion: 0.0.3
+  configChecksum: bfebd3bc3685b5a3b374d68db107f563
 features:
   typescript:
     acceptHeaders: 2.81.1
@@ -47,6 +47,19 @@ generatedFiles:
   - src/types/operations.ts
   - src/types/rfcdate.ts
   - tsconfig.json
+  - src/models/components/linkschema.ts
+  - src/models/components/tagschema.ts
+  - src/models/components/workspaceschema.ts
+  - src/models/components/security.ts
+  - src/models/errors/fourhundred.ts
+  - src/models/errors/fourhundredandone.ts
+  - src/models/errors/fourhundredandthree.ts
+  - src/models/errors/fourhundredandfour.ts
+  - src/models/errors/fourhundredandnine.ts
+  - src/models/errors/fourhundredandten.ts
+  - src/models/errors/fourhundredandtwentytwo.ts
+  - src/models/errors/fourhundredandtwentynine.ts
+  - src/models/errors/fivehundred.ts
   - src/models/operations/getlinks.ts
   - src/models/operations/createlink.ts
   - src/models/operations/getlinkscount.ts
@@ -65,123 +78,16 @@ generatedFiles:
   - src/models/operations/getrefereranalytics.ts
   - src/models/operations/gettoplinks.ts
   - src/models/operations/gettopurls.ts
-  - src/models/operations/getworkspaces.ts
   - src/models/operations/createworkspace.ts
   - src/models/operations/getworkspace.ts
   - src/models/operations/gettags.ts
   - src/models/operations/createtag.ts
-  - src/models/components/linkschema.ts
-  - src/models/components/tagschema.ts
-  - src/models/components/httpmetadata.ts
-  - src/models/components/workspaceschema.ts
-  - src/models/components/security.ts
-  - src/models/errors/fourhundred.ts
-  - src/models/errors/fourhundredandone.ts
-  - src/models/errors/fourhundredandthree.ts
-  - src/models/errors/fourhundredandfour.ts
-  - src/models/errors/fourhundredandnine.ts
-  - src/models/errors/fourhundredandten.ts
-  - src/models/errors/fourhundredandtwentytwo.ts
-  - src/models/errors/fourhundredandtwentynine.ts
-  - src/models/errors/fivehundred.ts
   - src/models/errors/index.ts
-  - src/models/operations/index.ts
   - src/models/components/index.ts
-  - docs/models/operations/queryparamtagids.md
-  - docs/models/operations/sort.md
-  - docs/models/operations/getlinksrequest.md
-  - docs/models/operations/getlinksresponse.md
-  - docs/models/operations/tagids.md
-  - docs/models/operations/createlinkrequestbody.md
-  - docs/models/operations/createlinkrequest.md
-  - docs/models/operations/createlinkresponse.md
-  - docs/models/operations/getlinkscountqueryparamtagids.md
-  - docs/models/operations/two.md
-  - docs/models/operations/one.md
-  - docs/models/operations/groupby.md
-  - docs/models/operations/getlinkscountrequest.md
-  - docs/models/operations/getlinkscountresponse.md
-  - docs/models/operations/getlinkinforequest.md
-  - docs/models/operations/getlinkinforesponse.md
-  - docs/models/operations/editlinktagids.md
-  - docs/models/operations/editlinkrequestbody.md
-  - docs/models/operations/editlinkrequest.md
-  - docs/models/operations/editlinkresponse.md
-  - docs/models/operations/deletelinkrequest.md
-  - docs/models/operations/deletelinkresponse.md
-  - docs/models/operations/bulkcreatelinkstagids.md
-  - docs/models/operations/requestbody.md
-  - docs/models/operations/bulkcreatelinksrequest.md
-  - docs/models/operations/bulkcreatelinksresponse.md
-  - docs/models/operations/level.md
-  - docs/models/operations/getqrcoderequest.md
-  - docs/models/operations/getqrcoderesponse.md
-  - docs/models/operations/interval.md
-  - docs/models/operations/country.md
-  - docs/models/operations/getclicksanalyticsrequest.md
-  - docs/models/operations/getclicksanalyticsresponse.md
-  - docs/models/operations/queryparaminterval.md
-  - docs/models/operations/queryparamcountry.md
-  - docs/models/operations/gettimeseriesanalyticsrequest.md
-  - docs/models/operations/responsebody.md
-  - docs/models/operations/gettimeseriesanalyticsresponse.md
-  - docs/models/operations/getcountryanalyticsqueryparaminterval.md
-  - docs/models/operations/getcountryanalyticsqueryparamcountry.md
-  - docs/models/operations/getcountryanalyticsrequest.md
-  - docs/models/operations/getcountryanalyticscountry.md
-  - docs/models/operations/getcountryanalyticsresponsebody.md
-  - docs/models/operations/getcountryanalyticsresponse.md
-  - docs/models/operations/getcityanalyticsqueryparaminterval.md
-  - docs/models/operations/getcityanalyticsqueryparamcountry.md
-  - docs/models/operations/getcityanalyticsrequest.md
-  - docs/models/operations/getcityanalyticscountry.md
-  - docs/models/operations/getcityanalyticsresponsebody.md
-  - docs/models/operations/getcityanalyticsresponse.md
-  - docs/models/operations/getdeviceanalyticsqueryparaminterval.md
-  - docs/models/operations/getdeviceanalyticsqueryparamcountry.md
-  - docs/models/operations/getdeviceanalyticsrequest.md
-  - docs/models/operations/getdeviceanalyticsresponsebody.md
-  - docs/models/operations/getdeviceanalyticsresponse.md
-  - docs/models/operations/getbrowseranalyticsqueryparaminterval.md
-  - docs/models/operations/getbrowseranalyticsqueryparamcountry.md
-  - docs/models/operations/getbrowseranalyticsrequest.md
-  - docs/models/operations/getbrowseranalyticsresponsebody.md
-  - docs/models/operations/getbrowseranalyticsresponse.md
-  - docs/models/operations/getosanalyticsqueryparaminterval.md
-  - docs/models/operations/getosanalyticsqueryparamcountry.md
-  - docs/models/operations/getosanalyticsrequest.md
-  - docs/models/operations/getosanalyticsresponsebody.md
-  - docs/models/operations/getosanalyticsresponse.md
-  - docs/models/operations/getrefereranalyticsqueryparaminterval.md
-  - docs/models/operations/getrefereranalyticsqueryparamcountry.md
-  - docs/models/operations/getrefereranalyticsrequest.md
-  - docs/models/operations/getrefereranalyticsresponsebody.md
-  - docs/models/operations/getrefereranalyticsresponse.md
-  - docs/models/operations/gettoplinksqueryparaminterval.md
-  - docs/models/operations/gettoplinksqueryparamcountry.md
-  - docs/models/operations/gettoplinksrequest.md
-  - docs/models/operations/gettoplinksresponsebody.md
-  - docs/models/operations/gettoplinksresponse.md
-  - docs/models/operations/gettopurlsqueryparaminterval.md
-  - docs/models/operations/gettopurlsqueryparamcountry.md
-  - docs/models/operations/gettopurlsrequest.md
-  - docs/models/operations/gettopurlsresponsebody.md
-  - docs/models/operations/gettopurlsresponse.md
-  - docs/models/operations/getworkspacesresponse.md
-  - docs/models/operations/createworkspacerequestbody.md
-  - docs/models/operations/createworkspaceresponse.md
-  - docs/models/operations/getworkspacerequest.md
-  - docs/models/operations/getworkspaceresponse.md
-  - docs/models/operations/gettagsrequest.md
-  - docs/models/operations/gettagsresponse.md
-  - docs/models/operations/color.md
-  - docs/models/operations/createtagrequestbody.md
-  - docs/models/operations/createtagrequest.md
-  - docs/models/operations/createtagresponse.md
+  - src/models/operations/index.ts
   - docs/models/components/linkschema.md
   - docs/models/components/color.md
   - docs/models/components/tagschema.md
-  - docs/models/components/httpmetadata.md
   - docs/models/components/plan.md
   - docs/models/components/role.md
   - docs/models/components/users.md
@@ -215,6 +121,74 @@ generatedFiles:
   - docs/models/errors/fivehundredcode.md
   - docs/models/errors/fivehundrederror.md
   - docs/models/errors/fivehundred.md
+  - docs/models/operations/queryparamtagids.md
+  - docs/models/operations/sort.md
+  - docs/models/operations/getlinksrequest.md
+  - docs/models/operations/tagids.md
+  - docs/models/operations/createlinkrequestbody.md
+  - docs/models/operations/createlinkrequest.md
+  - docs/models/operations/getlinkscountqueryparamtagids.md
+  - docs/models/operations/two.md
+  - docs/models/operations/one.md
+  - docs/models/operations/groupby.md
+  - docs/models/operations/getlinkscountrequest.md
+  - docs/models/operations/getlinkinforequest.md
+  - docs/models/operations/editlinktagids.md
+  - docs/models/operations/editlinkrequestbody.md
+  - docs/models/operations/editlinkrequest.md
+  - docs/models/operations/deletelinkrequest.md
+  - docs/models/operations/bulkcreatelinkstagids.md
+  - docs/models/operations/requestbody.md
+  - docs/models/operations/bulkcreatelinksrequest.md
+  - docs/models/operations/level.md
+  - docs/models/operations/getqrcoderequest.md
+  - docs/models/operations/interval.md
+  - docs/models/operations/country.md
+  - docs/models/operations/getclicksanalyticsrequest.md
+  - docs/models/operations/queryparaminterval.md
+  - docs/models/operations/queryparamcountry.md
+  - docs/models/operations/gettimeseriesanalyticsrequest.md
+  - docs/models/operations/responsebody.md
+  - docs/models/operations/getcountryanalyticsqueryparaminterval.md
+  - docs/models/operations/getcountryanalyticsqueryparamcountry.md
+  - docs/models/operations/getcountryanalyticsrequest.md
+  - docs/models/operations/getcountryanalyticscountry.md
+  - docs/models/operations/getcountryanalyticsresponsebody.md
+  - docs/models/operations/getcityanalyticsqueryparaminterval.md
+  - docs/models/operations/getcityanalyticsqueryparamcountry.md
+  - docs/models/operations/getcityanalyticsrequest.md
+  - docs/models/operations/getcityanalyticscountry.md
+  - docs/models/operations/getcityanalyticsresponsebody.md
+  - docs/models/operations/getdeviceanalyticsqueryparaminterval.md
+  - docs/models/operations/getdeviceanalyticsqueryparamcountry.md
+  - docs/models/operations/getdeviceanalyticsrequest.md
+  - docs/models/operations/getdeviceanalyticsresponsebody.md
+  - docs/models/operations/getbrowseranalyticsqueryparaminterval.md
+  - docs/models/operations/getbrowseranalyticsqueryparamcountry.md
+  - docs/models/operations/getbrowseranalyticsrequest.md
+  - docs/models/operations/getbrowseranalyticsresponsebody.md
+  - docs/models/operations/getosanalyticsqueryparaminterval.md
+  - docs/models/operations/getosanalyticsqueryparamcountry.md
+  - docs/models/operations/getosanalyticsrequest.md
+  - docs/models/operations/getosanalyticsresponsebody.md
+  - docs/models/operations/getrefereranalyticsqueryparaminterval.md
+  - docs/models/operations/getrefereranalyticsqueryparamcountry.md
+  - docs/models/operations/getrefereranalyticsrequest.md
+  - docs/models/operations/getrefereranalyticsresponsebody.md
+  - docs/models/operations/gettoplinksqueryparaminterval.md
+  - docs/models/operations/gettoplinksqueryparamcountry.md
+  - docs/models/operations/gettoplinksrequest.md
+  - docs/models/operations/gettoplinksresponsebody.md
+  - docs/models/operations/gettopurlsqueryparaminterval.md
+  - docs/models/operations/gettopurlsqueryparamcountry.md
+  - docs/models/operations/gettopurlsrequest.md
+  - docs/models/operations/gettopurlsresponsebody.md
+  - docs/models/operations/createworkspacerequestbody.md
+  - docs/models/operations/getworkspacerequest.md
+  - docs/models/operations/gettagsrequest.md
+  - docs/models/operations/color.md
+  - docs/models/operations/createtagrequestbody.md
+  - docs/models/operations/createtagrequest.md
   - docs/sdks/dub/README.md
   - docs/sdks/links/README.md
   - docs/sdks/qrcodes/README.md

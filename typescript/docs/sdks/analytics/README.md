@@ -50,7 +50,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetClicksAnalyticsResponse](../../models/operations/getclicksanalyticsresponse.md)>**
+**Promise<[number](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -102,7 +102,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetTimeseriesAnalyticsResponse](../../models/operations/gettimeseriesanalyticsresponse.md)>**
+**Promise<[operations.ResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -154,7 +154,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetCountryAnalyticsResponse](../../models/operations/getcountryanalyticsresponse.md)>**
+**Promise<[operations.GetCountryAnalyticsResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -206,7 +206,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetCityAnalyticsResponse](../../models/operations/getcityanalyticsresponse.md)>**
+**Promise<[operations.GetCityAnalyticsResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -258,7 +258,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetDeviceAnalyticsResponse](../../models/operations/getdeviceanalyticsresponse.md)>**
+**Promise<[operations.GetDeviceAnalyticsResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -310,7 +310,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetBrowserAnalyticsResponse](../../models/operations/getbrowseranalyticsresponse.md)>**
+**Promise<[operations.GetBrowserAnalyticsResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -362,7 +362,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetOSAnalyticsResponse](../../models/operations/getosanalyticsresponse.md)>**
+**Promise<[operations.GetOSAnalyticsResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -414,7 +414,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetRefererAnalyticsResponse](../../models/operations/getrefereranalyticsresponse.md)>**
+**Promise<[operations.GetRefererAnalyticsResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -466,7 +466,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetTopLinksResponse](../../models/operations/gettoplinksresponse.md)>**
+**Promise<[operations.GetTopLinksResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -518,7 +518,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetTopURLsResponse](../../models/operations/gettopurlsresponse.md)>**
+**Promise<[operations.GetTopURLsResponseBody[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |

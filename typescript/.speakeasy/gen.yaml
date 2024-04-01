@@ -12,7 +12,7 @@ generation:
   auth:
     oAuth2ClientCredentialsEnabled: false
 typescript:
-  version: 0.0.1
+  version: 0.0.3
   additionalDependencies:
     dependencies: {}
     devDependencies: {}
@@ -32,5 +32,5 @@ typescript:
   maxMethodParams: 4
   outputModelSuffix: output
   packageName: dub-node
-  responseFormat: envelope-http
+  responseFormat: flat
   templateVersion: v2

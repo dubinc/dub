@@ -8,8 +8,10 @@ import * as enc$ from "../lib/encodings";
 import { HTTPClient } from "../lib/http";
 import * as schemas$ from "../lib/schemas";
 import { ClientSDK, RequestOptions } from "../lib/sdks";
+import * as components from "../models/components";
 import * as errors from "../models/errors";
 import * as operations from "../models/operations";
+import * as z from "zod";
 
 export class Tags extends ClientSDK {
     private readonly options$: SDKOptions & { hooks?: SDKHooks };
@@ -47,7 +49,7 @@ export class Tags extends ClientSDK {
     async getTags(
         workspaceId: string,
         options?: RequestOptions
-    ): Promise<operations.GetTagsResponse> {
+    ): Promise<Array<components.TagSchema>> {
         const input$: operations.GetTagsRequest = {
             workspaceId: workspaceId,
         };
@@ -130,10 +132,7 @@ export class Tags extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.GetTagsResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        TagSchemas: val$,
-                    });
+                    return z.array(components.TagSchema$.inboundSchema).parse(val$);
                 },
                 "Response validation failed"
             );
@@ -256,7 +255,8 @@ export class Tags extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 
@@ -270,7 +270,7 @@ export class Tags extends ClientSDK {
         workspaceId: string,
         requestBody?: operations.CreateTagRequestBody | undefined,
         options?: RequestOptions
-    ): Promise<operations.CreateTagResponse> {
+    ): Promise<components.TagSchema> {
         const input$: operations.CreateTagRequest = {
             workspaceId: workspaceId,
             requestBody: requestBody,
@@ -355,10 +355,7 @@ export class Tags extends ClientSDK {
             const result = schemas$.parse(
                 responseBody,
                 (val$) => {
-                    return operations.CreateTagResponse$.inboundSchema.parse({
-                        ...responseFields$,
-                        TagSchema: val$,
-                    });
+                    return components.TagSchema$.inboundSchema.parse(val$);
                 },
                 "Response validation failed"
             );
@@ -481,7 +478,8 @@ export class Tags extends ClientSDK {
             );
             throw result;
         } else {
-            throw new errors.SDKError("Unexpected API response", { response, request });
+            const responseBody = await response.text();
+            throw new errors.SDKError("Unexpected API response", response, responseBody);
         }
     }
 }

@@ -1,9 +1,0 @@
-# GetRefererAnalyticsResponse
-
-
-## Fields
-
-| Field                                                                                                      | Type                                                                                                       | Required                                                                                                   | Description                                                                                                |
-| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `httpMeta`                                                                                                 | [components.HTTPMetadata](../../models/components/httpmetadata.md)                                         | :heavy_check_mark:                                                                                         | N/A                                                                                                        |
-| `responseBodies`                                                                                           | [operations.GetRefererAnalyticsResponseBody](../../models/operations/getrefereranalyticsresponsebody.md)[] | :heavy_minus_sign:                                                                                         | The top referers by number of clicks                                                                       |

@@ -40,7 +40,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetWorkspacesResponse](../../models/operations/getworkspacesresponse.md)>**
+**Promise<[components.WorkspaceSchema[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -93,7 +93,7 @@ run();
 
 ### Response
 
-**Promise<[operations.CreateWorkspaceResponse](../../models/operations/createworkspaceresponse.md)>**
+**Promise<[components.WorkspaceSchema](../../models/components/workspaceschema.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -145,7 +145,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetWorkspaceResponse](../../models/operations/getworkspaceresponse.md)>**
+**Promise<[components.WorkspaceSchema](../../models/components/workspaceschema.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |

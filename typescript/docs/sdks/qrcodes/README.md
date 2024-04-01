@@ -39,7 +39,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetQRCodeResponse](../../models/operations/getqrcoderesponse.md)>**
+**Promise<[string](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |

@@ -48,7 +48,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetLinksResponse](../../models/operations/getlinksresponse.md)>**
+**Promise<[components.LinkSchema[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -108,7 +108,7 @@ run();
 
 ### Response
 
-**Promise<[operations.CreateLinkResponse](../../models/operations/createlinkresponse.md)>**
+**Promise<[components.LinkSchema](../../models/components/linkschema.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -165,7 +165,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetLinksCountResponse](../../models/operations/getlinkscountresponse.md)>**
+**Promise<[components.LinkSchema[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -221,7 +221,7 @@ run();
 
 ### Response
 
-**Promise<[operations.GetLinkInfoResponse](../../models/operations/getlinkinforesponse.md)>**
+**Promise<[components.LinkSchema](../../models/components/linkschema.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -283,7 +283,7 @@ run();
 
 ### Response
 
-**Promise<[operations.EditLinkResponse](../../models/operations/editlinkresponse.md)>**
+**Promise<[components.LinkSchema](../../models/components/linkschema.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -337,7 +337,7 @@ run();
 
 ### Response
 
-**Promise<[operations.DeleteLinkResponse](../../models/operations/deletelinkresponse.md)>**
+**Promise<[components.LinkSchema](../../models/components/linkschema.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
@@ -399,7 +399,7 @@ run();
 
 ### Response
 
-**Promise<[operations.BulkCreateLinksResponse](../../models/operations/bulkcreatelinksresponse.md)>**
+**Promise<[components.LinkSchema[]](../../models/.md)>**
 ### Errors
 
 | Error Object                    | Status Code                     | Content Type                    |
