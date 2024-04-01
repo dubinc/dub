@@ -409,7 +409,6 @@ function AddEditLinkModal({
                   <input
                     name="url"
                     id={`url-${randomIdx}`}
-                    type="url"
                     required
                     placeholder={
                       domains?.find(({ slug }) => slug === domain)
