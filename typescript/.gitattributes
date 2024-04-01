@@ -1,2 +1,0 @@
-# This allows generated code to be indexed correctly
-*.ts linguist-generated=false
