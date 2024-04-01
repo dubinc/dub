@@ -5,6 +5,7 @@ import {
   cn,
   getApexDomain,
   linkConstructor,
+  truncate,
 } from "@dub/utils";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
@@ -62,11 +63,13 @@ export default function Toggle() {
                 width={48}
                 height={48}
               />
-              {linkConstructor({
-                domain: punycode.toUnicode(domain),
-                key,
-                pretty: true,
-              })}
+              <p className="w-48 truncate sm:w-[400px]">
+                {linkConstructor({
+                  domain: punycode.toUnicode(domain),
+                  key,
+                  pretty: true,
+                })}
+              </p>
               <ExpandingArrow className="h-5 w-5" />
             </a>
           ) : (
