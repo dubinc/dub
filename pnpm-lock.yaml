@@ -444,8 +444,8 @@ importers:
         specifier: ^8.0.4
         version: 8.0.4(react@18.2.0)
       vaul:
-        specifier: ^0.8.0
-        version: 0.8.0(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+        specifier: ^0.9.0
+        version: 0.9.0(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
     devDependencies:
       '@dub/tailwind-config':
         specifier: workspace:*
@@ -15908,8 +15908,8 @@ packages:
       - '@types/react-dom'
     dev: false
 
-  /vaul@0.8.0(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-9nUU2jIObJvJZxeQU1oVr/syKo5XqbRoOMoTEt0hHlWify4QZFlqTh6QSN/yxoKzNrMeEQzxbc3XC/vkPLOIqw==}
+  /vaul@0.9.0(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-bZSySGbAHiTXmZychprnX/dE0EsSige88xtyyL3/MCRbrFotRPQZo7UdydGXZWw+CKbNOw5Ow8gwAo93/nB/Cg==}
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0

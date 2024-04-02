@@ -93,7 +93,7 @@ export default function DateRangePicker() {
         className={cn(
           "flex w-full items-center justify-between space-x-2 truncate rounded-md border border-gray-200 bg-white px-3 py-2.5 transition-all md:w-48",
           {
-            "border-gray-500 ring-4 ring-gray-200": openDatePopover,
+            "truncate border-gray-500 ring-4 ring-gray-200": openDatePopover,
           },
         )}
       >
@@ -102,7 +102,7 @@ export default function DateRangePicker() {
           icon={<Calendar className="h-4 w-4 flex-shrink-0" />}
         />
         <ChevronDown
-          className={`h-4 w-4 text-gray-400 ${
+          className={`h-4 w-4 flex-shrink-0 text-gray-400 ${
             openDatePopover ? "rotate-180 transform" : ""
           } transition-all duration-75`}
         />

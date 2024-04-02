@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/usage",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/links/usage",
+      "schedule": "*/15 * * * *"
     }
   ],
   "functions": {

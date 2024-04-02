@@ -35,7 +35,7 @@ export const POST = withAuth(async ({ req, session, workspace }) => {
   ).then((links) => links.filter((link) => link !== null));
 
   if (unclaimedLinks.length === 0) {
-    return new Response("No links created.", { status: 400 });
+    return new Response("No links created.", { status: 200 });
   }
 
   if (workspace.linksUsage + unclaimedLinks.length > workspace.linksLimit) {

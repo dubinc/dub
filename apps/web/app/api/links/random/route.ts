@@ -33,7 +33,10 @@ export const GET = async (req: NextRequest) => {
       }
     }
 
-    const response = await getRandomKey(domain);
+    const response = await getRandomKey({
+      domain,
+      long: domain === "loooooooo.ng",
+    });
     return NextResponse.json(response);
   } catch (error) {
     return handleAndReturnErrorResponse(error);

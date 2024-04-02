@@ -28,7 +28,7 @@ export function constructMetadata({
 }: {
   title?: string;
   description?: string;
-  image?: string;
+  image?: string | null;
   icons?: Metadata["icons"];
   noIndex?: boolean;
 } = {}): Metadata {
@@ -38,17 +38,21 @@ export function constructMetadata({
     openGraph: {
       title,
       description,
-      images: [
-        {
-          url: image,
-        },
-      ],
+      ...(image && {
+        images: [
+          {
+            url: image,
+          },
+        ],
+      }),
     },
     twitter: {
-      card: "summary_large_image",
       title,
       description,
-      images: [image],
+      ...(image && {
+        card: "summary_large_image",
+        images: [image],
+      }),
       creator: "@dubdotco",
     },
     icons,

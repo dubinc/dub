@@ -155,7 +155,7 @@ function AddEditLinkModal({
       if (!props && activeDefaultDomains) {
         const urlDomain = getDomainWithoutWWW(url) || "";
         const defaultDomain = activeDefaultDomains.find(
-          ({ allowedHostnames }) => allowedHostnames.includes(urlDomain),
+          ({ allowedHostnames }) => allowedHostnames?.includes(urlDomain),
         );
         if (defaultDomain) {
           setData((prev) => ({ ...prev, domain: defaultDomain.slug }));
@@ -444,7 +444,6 @@ function AddEditLinkModal({
                   <input
                     name="url"
                     id={`url-${randomIdx}`}
-                    type="url"
                     required
                     placeholder={
                       domains?.find(({ slug }) => slug === domain)

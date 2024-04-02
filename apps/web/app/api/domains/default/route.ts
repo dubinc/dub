@@ -16,6 +16,7 @@ export const GET = withAuth(async ({ workspace }) => {
       sptifi: true,
       gitnew: true,
       amznid: true,
+      loooooooong: true,
     },
   });
 
@@ -52,6 +53,7 @@ export const PUT = withAuth(async ({ req, workspace }) => {
       sptifi: defaultDomains.includes("spti.fi"),
       gitnew: defaultDomains.includes("git.new"),
       amznid: defaultDomains.includes("amzn.id"),
+      loooooooong: defaultDomains.includes("loooooooo.ng"),
     },
   });
 

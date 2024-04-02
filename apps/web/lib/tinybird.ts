@@ -35,7 +35,7 @@ export async function recordClick({
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
-  const ip = ipAddress(req) || LOCALHOST_IP;
+  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
   // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
@@ -62,8 +62,14 @@ export async function recordClick({
           link_id: id,
           alias_link_id: "",
           url: url || "",
-          // only store IP Address if not EU country
-          ip: geo?.country && EU_COUNTRY_CODES.includes(geo.country) ? "" : ip,
+          ip:
+            // only record IP if it's a valid IP and not from EU
+            typeof ip === "string" &&
+            ip.trim().length > 0 &&
+            (!geo?.country ||
+              (geo?.country && !EU_COUNTRY_CODES.includes(geo.country)))
+              ? ip
+              : "",
           country: geo?.country || "Unknown",
           city: geo?.city || "Unknown",
           region: geo?.region || "Unknown",
