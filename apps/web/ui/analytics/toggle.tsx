@@ -63,7 +63,7 @@ export default function Toggle() {
                 width={48}
                 height={48}
               />
-              <p className="w-48 truncate sm:w-[400px]">
+              <p className="max-w-[192px] truncate sm:max-w-[400px]">
                 {linkConstructor({
                   domain: punycode.toUnicode(domain),
                   key,
