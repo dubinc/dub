@@ -115,7 +115,7 @@ export async function editLink({
     recordLink({
       link: {
         ...updatedLink,
-        tags: updatedLink.tagIds.map((tagId) => ({
+        tags: combinedTagIds.map((tagId) => ({
           tagId,
         })),
       },
