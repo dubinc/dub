@@ -16,12 +16,11 @@ import {
 import { FADE_IN_ANIMATION_SETTINGS, capitalize } from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -126,6 +125,7 @@ function AddEditDomainModal({
     <Modal
       showModal={showAddEditDomainModal}
       setShowModal={setShowAddEditDomainModal}
+      className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
@@ -372,15 +372,7 @@ function AddDomainButton({
   buttonProps?: Partial<ButtonProps>;
 }) {
   const { plan, nextPlan, domainsLimit, exceededDomains } = useWorkspace();
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-
-  const create =
-    searchParams.get("create") && searchParams.get("create") === "domain";
-
-  useEffect(() => {
-    if (create) setShowAddEditDomainModal(true);
-  }, [create]);
 
   return (
     <div>

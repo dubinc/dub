@@ -1,17 +1,17 @@
 import useTags from "@/lib/swr/use-tags";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { InputSelect, useRouterStuff } from "@dub/ui";
 import { Tag } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useContext } from "react";
+import { ModalContext } from "../modals/provider";
 
 export default function TagSelector() {
-  const router = useRouter();
   const { queryParams } = useRouterStuff();
-  const { slug } = useWorkspace();
 
   const { tags } = useTags();
   const searchParams = useSearchParams();
   const selectedTagId = searchParams?.get("tagId");
+  const { setShowAddEditTagModal } = useContext(ModalContext);
 
   return (
     <InputSelect
@@ -31,17 +31,13 @@ export default function TagSelector() {
         color: tags?.find(({ id }) => id === selectedTagId)?.color,
       }}
       setSelectedItem={(tag) => {
-        if (tag && typeof tag !== "function" && tag.id)
-          router.push(
-            queryParams({
-              set: { tagId: tag.id },
-              getNewPath: true,
-            }) as string,
-          );
-        else
-          router.push(
-            queryParams({ del: "tagId", getNewPath: true }) as string,
-          );
+        if (tag && typeof tag !== "function" && tag.id) {
+          queryParams({
+            set: { tagId: tag.id },
+          });
+        } else {
+          queryParams({ del: "tagId" });
+        }
       }}
       inputAttrs={{
         placeholder: "Filter tags",
@@ -55,7 +51,7 @@ export default function TagSelector() {
           <button
             type="button"
             className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
-            onClick={() => router.push(`/${slug}?create=tag`)}
+            onClick={() => setShowAddEditTagModal(true)}
           >
             Add a tag
           </button>
