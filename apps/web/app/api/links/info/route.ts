@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 export const GET = withAuth(async ({ headers, searchParams }) => {
   const { domain, key } = getLinkInfoQuerySchema.parse(searchParams);
 
-  const response = await prisma.link.findUnique({
+  const link = await prisma.link.findUnique({
     where: {
       domain_key: {
         domain,
@@ -21,7 +21,7 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
     },
   });
 
-  if (!response) {
+  if (!link) {
     throw new DubApiError({
       code: "not_found",
       message: "Link not found.",
@@ -30,10 +30,11 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
 
   return NextResponse.json(
     {
-      ...response,
+      ...link,
+      workspaceId: `ws_${link.projectId}`,
       shortLink: linkConstructor({
-        domain: response.domain,
-        key: response.key,
+        domain: link.domain,
+        key: link.key,
       }),
     },
     {
