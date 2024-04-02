@@ -63,7 +63,7 @@ export default function Clicks() {
               >
                 <p>Link</p>
                 <strong className="text-gray-800">
-                  {linkConstructor({ domain, key, pretty: true })}
+                  {truncate(linkConstructor({ domain, key, pretty: true }), 24)}
                 </strong>
                 <X className="h-4 w-4" />
               </Link>
