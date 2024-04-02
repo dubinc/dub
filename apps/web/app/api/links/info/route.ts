@@ -28,14 +28,34 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
     });
   }
 
+  const tags = await prisma.tag.findMany({
+    where: {
+      linksNew: {
+        some: {
+          linkId: link.id,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      color: true,
+    },
+  });
+
+  const shortLink = linkConstructor({
+    domain: link.domain,
+    key: link.key,
+  });
+
   return NextResponse.json(
     {
       ...link,
+      shortLink,
+      tagId: tags?.[0]?.id ?? null, // backwards compatibility
+      tags,
+      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
       workspaceId: `ws_${link.projectId}`,
-      shortLink: linkConstructor({
-        domain: link.domain,
-        key: link.key,
-      }),
     },
     {
       headers,
