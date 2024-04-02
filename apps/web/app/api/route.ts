@@ -5,5 +5,9 @@ import { createDocument } from "zod-openapi";
 export const runtime = "edge";
 
 export function GET() {
-  return NextResponse.json(createDocument(openApiObject));
+  let spec = createDocument(openApiObject)
+
+  // spec.paths["/links"]["post"]["parameters"] = {...spec.paths["/links"]["post"]["parameters"], ...{}};
+
+  return NextResponse.json(spec);
 }

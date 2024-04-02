@@ -10,11 +10,14 @@ export const createLink: ZodOpenApiOperationObject = {
   summary: "Create a new link",
   description: "Create a new link for the authenticated workspace.",
   requestParams: {
-    query: z.object({
-      workspaceId: z
-        .string()
-        .describe("The ID of the workspace to create the link for."),
-    }),
+    query: z
+      .object({
+        workspaceId: z
+          .string()
+          .describe("The ID of the workspace to create the link for.")
+          
+      })
+      // .openapi({ "x-speakeasy-ignore": true }),
   },
   requestBody: {
     content: {
