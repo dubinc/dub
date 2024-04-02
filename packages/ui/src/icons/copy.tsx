@@ -6,7 +6,7 @@ export default function Copy({ className }: { className?: string }) {
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth="1.5"
+      strokeWidth="2"
       viewBox="0 0 24 24"
       width="14"
       height="14"

@@ -63,13 +63,17 @@ export const getMetaTags = async (url: string) => {
   for (let k in metaTags) {
     let { property, content } = metaTags[k];
 
-    property && (object[property] = content && he.decode(content));
+    // !object[property] → (meaning we're taking the first instance of a metatag and ignoring the rest)
+    property &&
+      !object[property] &&
+      (object[property] = content && he.decode(content));
   }
 
   for (let m in linkTags) {
     let { rel, href } = linkTags[m];
 
-    rel && (object[rel] = href);
+    // !object[rel] → (ditto the above)
+    rel && !object[rel] && (object[rel] = href);
   }
 
   const title = object["og:title"] || object["twitter:title"] || titleTag;

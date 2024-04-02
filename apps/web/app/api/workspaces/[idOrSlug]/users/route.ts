@@ -72,24 +72,37 @@ export const PUT = withAuth(
 export const DELETE = withAuth(
   async ({ searchParams, workspace, session }) => {
     const { userId } = removeUserSchema.parse(searchParams);
-    const projectUser = await prisma.projectUsers.findUnique({
-      where: {
-        userId_projectId: {
-          projectId: workspace.id,
-          userId,
+    const [projectUser, totalOwners] = await Promise.all([
+      prisma.projectUsers.findUnique({
+        where: {
+          userId_projectId: {
+            projectId: workspace.id,
+            userId,
+          },
         },
-      },
-      select: {
-        role: true,
-      },
-    });
+        select: {
+          role: true,
+        },
+      }),
+      prisma.projectUsers.count({
+        where: {
+          projectId: workspace.id,
+          role: "owner",
+        },
+      }),
+    ]);
     if (!projectUser) {
       throw new DubApiError({
         code: "not_found",
         message: "User not found",
       });
     }
-    if (projectUser.role === "owner" && userId === session.user.id) {
+    // If there is only one owner and the user is an owner and the user is trying to remove themselves
+    if (
+      totalOwners === 1 &&
+      projectUser.role === "owner" &&
+      userId === session.user.id
+    ) {
       throw new DubApiError({
         code: "bad_request",
         message:

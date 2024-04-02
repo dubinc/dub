@@ -1,13 +1,12 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { addLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
+import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
   getLinksQuerySchema,
 } from "@/lib/zod/schemas/links";
-import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
+import { LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
@@ -84,15 +83,7 @@ export const POST = withAuth(
       });
     }
 
-    const response = await addLink(link);
-
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
-      body: {
-        linkId: response.id,
-        type: "create",
-      },
-    });
+    const response = await createLink(link);
 
     return NextResponse.json(response, { headers });
   },

@@ -1,7 +1,7 @@
 {
   "name": "@dub/utils",
   "description": "Utility functions and constants for Dub.co",
-  "version": "0.0.40",
+  "version": "0.0.46",
   "sideEffects": false,
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
@@ -16,14 +16,14 @@
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "next": "13.5.4",
+    "next": "14.2.0-canary.47",
     "react": "^18.2.0"
   },
   "devDependencies": {
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
     "@types/react": "^18.2.5",
-    "next": "13.5.4",
+    "next": "14.2.0-canary.47",
     "react": "^18.2.0",
     "tsconfig": "workspace:*",
     "tsup": "^6.1.3",

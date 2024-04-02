@@ -6,6 +6,7 @@ import {
   getApexDomain,
   linkConstructor,
   timeAgo,
+  truncate,
 } from "@dub/utils";
 import { Archive, EyeOff, Globe } from "lucide-react";
 import punycode from "punycode/";
@@ -56,11 +57,14 @@ export default function LinkPreviewTooltip({
               rel="noreferrer"
               onClick={(e) => e.stopPropagation()}
             >
-              {linkConstructor({
-                domain: punycode.toUnicode(data.domain || ""),
-                key: data.key,
-                pretty: true,
-              })}
+              {truncate(
+                linkConstructor({
+                  domain: punycode.toUnicode(data.domain || ""),
+                  key: data.key,
+                  pretty: true,
+                }),
+                32,
+              )}
             </a>
             <CopyButton
               value={linkConstructor({ domain: data.domain, key: data.key })}

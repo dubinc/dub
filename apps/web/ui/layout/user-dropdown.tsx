@@ -54,7 +54,7 @@ export default function UserDropdown() {
   }, []);
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block pt-1.5">
       <Popover
         content={
           <div className="flex w-full flex-col space-y-px rounded-md bg-white p-3 sm:w-56">

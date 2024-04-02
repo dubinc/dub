@@ -1,7 +1,22 @@
 import z from "@/lib/zod";
+import { getUrlFromString, isValidUrl, validDomainRegex } from "@dub/utils";
 import { booleanQuerySchema } from ".";
 import { TagSchema } from "./tags";
 import { getRandomKey } from "@/lib/planetscale";
+
+export const getUrlQuerySchema = z.object({
+  url: z
+    .string()
+    .transform((v) => getUrlFromString(v))
+    .refine((v) => isValidUrl(v), { message: "Invalid URL" }),
+});
+
+export const getDomainQuerySchema = z.object({
+  domain: z
+    .string()
+    .min(1, "Missing required `domain` query parameter.")
+    .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
+});
 
 const LinksQuerySchema = z.object({
   domain: z

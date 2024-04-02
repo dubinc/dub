@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.0.65",
+  "version": "0.1.2",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -17,7 +17,7 @@
   },
   "peerDependencies": {
     "@vercel/analytics": "^1.0.0",
-    "next": "13.5.4",
+    "next": "14.2.0-canary.47",
     "react": "^18.2.0"
   },
   "devDependencies": {
@@ -26,7 +26,7 @@
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.47",
     "autoprefixer": "^10.4.16",
-    "next": "13.5.4",
+    "next": "14.2.0-canary.47",
     "postcss": "^8.4.31",
     "react": "^18.2.0",
     "tailwindcss": "^3.3.3",
@@ -51,10 +51,10 @@
     "js-cookie": "^3.0.5",
     "linkify-react": "^4.1.3",
     "lucide-react": "^0.284.0",
-    "sonner": "^0.5.0",
+    "sonner": "^1.4.41",
     "swr": "^2.1.5",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.8.0"
+    "vaul": "^0.9.0"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

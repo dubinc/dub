@@ -1,21 +1,16 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { ratelimit } from "@/lib/upstash";
-import z from "@/lib/zod";
-import { isValidUrl } from "@dub/utils";
-import { getToken } from "next-auth/jwt";
-import { NextRequest } from "next/server";
-import { getMetaTags } from "./utils";
 import { getIdentityHash } from "@/lib/edge";
-
-const getMetaTagQuerySchema = z.object({
-  url: z.string().refine((v) => isValidUrl(v), { message: "Invalid URL" }),
-});
+import { ratelimit } from "@/lib/upstash";
+import { getUrlQuerySchema } from "@/lib/zod/schemas/links";
+import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
+import { getMetaTags } from "./utils";
 
 export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   try {
-    const { url } = getMetaTagQuerySchema.parse({
+    const { url } = getUrlQuerySchema.parse({
       url: req.nextUrl.searchParams.get("url"),
     });
 
@@ -36,10 +31,8 @@ export async function GET(req: NextRequest) {
     }
 
     const metatags = await getMetaTags(url);
-    return new Response(JSON.stringify(metatags), {
-      status: 200,
+    return NextResponse.json(metatags, {
       headers: {
-        "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       },
     });

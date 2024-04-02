@@ -1,5 +1,7 @@
 import {
+  EU_COUNTRY_CODES,
   LOCALHOST_GEO_DATA,
+  LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
   nanoid,
@@ -10,6 +12,7 @@ import { detectBot } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
+import { ipAddress } from "@vercel/edge";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -32,6 +35,7 @@ export async function recordClick({
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
+  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
   // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
@@ -58,6 +62,14 @@ export async function recordClick({
           link_id: id,
           alias_link_id: "",
           url: url || "",
+          ip:
+            // only record IP if it's a valid IP and not from EU
+            typeof ip === "string" &&
+            ip.trim().length > 0 &&
+            (!geo?.country ||
+              (geo?.country && !EU_COUNTRY_CODES.includes(geo.country)))
+              ? ip
+              : "",
           country: geo?.country || "Unknown",
           city: geo?.city || "Unknown",
           region: geo?.region || "Unknown",
@@ -84,13 +96,21 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // increment the click count for the link or domain (based on their ID)
-    // also increment the usage count for the project (if it's a link click)
+    // also increment the usage count for the workspace
     // and then we have a cron that will reset it at the start of new billing cycle
     root
-      ? conn.execute(
-          "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-          [id],
-        )
+      ? [
+          conn.execute(
+            "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
+            [id],
+          ),
+          // only increment workspace clicks if there is a destination URL configured (not placeholder landing page)
+          url &&
+            conn.execute(
+              "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.id = ?",
+              [id],
+            ),
+        ]
       : [
           conn.execute(
             "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
