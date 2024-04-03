@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     dir: "./tests",
     reporters: ["verbose"],
+    // outputFile: "./.vitest/html",
     globals: true,
     setupFiles: ["./tests/setup.ts"],
   },
