@@ -26,7 +26,7 @@ import {
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
-import { useChat } from "ai/react";
+import { useCompletion } from "ai/react";
 
 export default function OGSection({
   props,
@@ -39,47 +39,55 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
-  const { plan, id: workspaceId } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const { title, description, image, proxy } = data;
 
+  const {
+    completion: completionTitle,
+    isLoading: generatingTitle,
+    complete: completeTitle,
+  } = useCompletion({
+    api: `/api/ai/metatags?workspaceId=${workspaceId}`,
+    id: "metatags-title-ai",
+  });
+
+  const generateTitle = async () => {
+    completeTitle(
+      `Generate an SEO-optimized meta title tag (title only, max 120 characters) – given the current version: ${data.title}`,
+    );
+  };
+
+  useEffect(() => {
+    if (completionTitle) {
+      setData((prev) => ({ ...prev, title: completionTitle }));
+    }
+  }, [completionTitle]);
+
+  const {
+    completion: completionDescription,
+    isLoading: generatingDescription,
+    complete: completeDescription,
+  } = useCompletion({
+    api: `/api/ai/metatags?workspaceId=${workspaceId}`,
+    id: "metatags-description-ai",
+  });
+
+  const generateDescription = async () => {
+    completeDescription(
+      `Generate an SEO-optimized meta description tag (description only, max 240 characters) – given the current version: ${data.description}`,
+    );
+  };
+
+  useEffect(() => {
+    if (completionDescription) {
+      setData((prev) => ({ ...prev, description: completionDescription }));
+    }
+  }, [completionDescription]);
+
   const [resizing, setResizing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-
-  const [loadingMetaData, setLoadingMetaData] = useState({
-    title: false,
-    description: false,
-  });
-  const [metaDataError, setMetaDataError] = useState<
-    Record<string, string | null>
-  >({ title: null, description: null });
-
-  const [requestedType, setRequestedType] = useState<"title" | "description">();
-
-  const { append } = useChat({
-    api: `/api/ai/chat?workspaceId=${workspaceId}`,
-    onFinish(message) {
-      if (message.role === "assistant" && requestedType) {
-        setData((prev) => ({
-          ...prev,
-          [requestedType]: message.content.replaceAll('"', ""),
-        }));
-      }
-
-      setLoadingMetaData((prev) => ({ ...prev, [requestedType!]: false }));
-      setRequestedType(undefined);
-    },
-    // initial system message
-    initialMessages: [
-      {
-        id: "initial-prop",
-        role: "system",
-        content:
-          "You are a helpful assistant and helps with meta-tags. You receive a question like 'What is a suitable, new meta-title for Dub?' and you respond with a plain text answer, no quotes, no special characters. Try to keep it short and sweet. The same goes for meta-descriptions. Don't use any special characters or quotes. For questions regarding meta-title you answer with a max-length of 120 characters and for meta-description with a max-length of 240 characters.",
-      },
-    ],
-  });
 
   const onChangePicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
@@ -117,35 +125,6 @@ export default function OGSection({
       setCooldown(false);
     }, 200);
   }
-
-  useEffect(() => {
-    if (loadingMetaData.title || loadingMetaData.description || !requestedType)
-      return;
-
-    if (!data[requestedType]) {
-      setMetaDataError((prev) => ({
-        ...prev,
-        [requestedType]: `Please provide a ${requestedType === "title" ? "title" : "description"} to generate a new ${requestedType} out of.`,
-      }));
-      return;
-    }
-
-    const generateMetaData = async () => {
-      setLoadingMetaData((prev) => ({ ...prev, [requestedType]: true }));
-
-      await append({
-        role: "user",
-        content:
-          requestedType === "title"
-            ? `What is a suitable, new meta-title for ${data.title} that has a maximum of 110 characters?`
-            : `What is a suitable, new meta-description for ${data.description} that has a maximum of 200 characters?`,
-      });
-    };
-
-    generateMetaData();
-
-    return () => setRequestedType(undefined);
-  }, [requestedType]);
 
   return (
     <div className="relative grid gap-5 border-b border-gray-200 pb-5">
@@ -342,13 +321,11 @@ export default function OGSection({
                 </p>
                 <button
                   className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                  onClick={() => {
-                    setRequestedType("title");
-                  }}
-                  disabled={loadingMetaData.title}
+                  onClick={generateTitle}
+                  disabled={generatingTitle}
                   type="button"
                 >
-                  {loadingMetaData.title ? (
+                  {generatingTitle ? (
                     <LoadingCircle />
                   ) : (
                     <Magic className="h-4 w-4" />
@@ -376,11 +353,6 @@ export default function OGSection({
                 aria-invalid="true"
               />
             </div>
-            {metaDataError.title && (
-              <p className="mt-2 text-sm text-red-600" id="meta-title-error">
-                {metaDataError.title}
-              </p>
-            )}
           </div>
 
           <div>
@@ -394,13 +366,11 @@ export default function OGSection({
                 </p>
                 <button
                   className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                  onClick={() => {
-                    setRequestedType("description");
-                  }}
-                  disabled={loadingMetaData.description}
+                  onClick={generateDescription}
+                  disabled={generatingDescription}
                   type="button"
                 >
-                  {loadingMetaData.description ? (
+                  {generatingDescription ? (
                     <LoadingCircle />
                   ) : (
                     <Magic className="h-4 w-4" />
@@ -431,11 +401,6 @@ export default function OGSection({
                 aria-invalid="true"
               />
             </div>
-            {metaDataError.description && (
-              <p className="mt-2 text-sm text-red-600" id="meta-title-error">
-                {metaDataError.description}
-              </p>
-            )}
           </div>
         </motion.div>
       )}

@@ -58,7 +58,7 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
-import { useChat } from "ai/react";
+import { useChat, useCompletion } from "ai/react";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -82,26 +82,7 @@ function AddEditLinkModal({
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
-  const [generatingAIKey, setGeneratingAIKey] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const { append } = useChat({
-    api: `/api/ai/chat?workspaceId=${workspaceId}`,
-    onFinish(message) {
-      if (message.role === "assistant") {
-        setData((prev) => ({ ...prev, key: message.content }));
-      }
-    },
-    // initial system message
-    initialMessages: [
-      {
-        id: "initial-prop",
-        role: "system",
-        content:
-          "You are a helpful assistant and only answer in short link keys, e.g. you receive a question like 'What is the shortlink for meta-title Notion and meta-description The all in one workspace?' and you respond with e.g. 'notion-workspace'. Try to combine them in a shortlink that makes sense and is easy to share on social media. Don't use any special characters or spaces and only response with keys less than 20 characters long. If it makes sense, try to use shortnames for companies, e.g. techcrunch -> tc.",
-      },
-    ],
-  });
 
   const {
     allActiveDomains: domains,
@@ -136,18 +117,6 @@ function AddEditLinkModal({
     setGeneratingRandomKey(false);
   }, [domain, slug]);
 
-  const generateAIKey = async () => {
-    setKeyError(null);
-    setGeneratingAIKey(true);
-
-    await append({
-      role: "user",
-      content: `What is the shortlink for meta-title ${data.title} and meta-description ${data.description}? Please respond with a unique key you haven't used before.`,
-    });
-
-    setGeneratingAIKey(false);
-  };
-
   useEffect(() => {
     // when someone pastes a URL
     if (showAddEditLinkModal && url.length > 0) {
@@ -168,6 +137,34 @@ function AddEditLinkModal({
       }
     }
   }, [showAddEditLinkModal, url]);
+
+  const [generatedKeys, setGeneratedKeys] = useState<string[]>(
+    props ? [props.key] : [],
+  );
+
+  const {
+    completion,
+    isLoading: generatingAIKey,
+    complete,
+  } = useCompletion({
+    api: `/api/ai/link?workspaceId=${workspaceId}`,
+    onFinish: (_, completion) => {
+      setGeneratedKeys((prev) => [...prev, completion]);
+    },
+  });
+
+  const generateAIKey = useCallback(async () => {
+    setKeyError(null);
+    complete(
+      `Generate a short link for the URL "${data.url}", meta-title "${data.title}" and meta-description "${data.description}"? Please respond with a unique key you haven't used before: ${generatedKeys.join(", ")}`,
+    );
+  }, [data.url, data.title, data.description, generatedKeys]);
+
+  useEffect(() => {
+    if (completion) {
+      setData((prev) => ({ ...prev, key: completion }));
+    }
+  }, [completion]);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -545,9 +542,7 @@ function AddEditLinkModal({
                           generatingRandomKey ||
                           !plan ||
                           plan === "free" ||
-                          !url ||
-                          !data.title ||
-                          !data.description
+                          !url
                         }
                         type="button"
                       >
