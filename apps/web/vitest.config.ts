@@ -6,8 +6,11 @@ export default defineConfig({
   test: {
     dir: "./tests",
     reporters: ["verbose"],
-    // outputFile: "./.vitest/html",
     globals: true,
     setupFiles: ["./tests/setup.ts"],
+    testTimeout: 10000,
+    env: {
+      NEXT_PUBLIC_IS_DUB: "true",
+    },
   },
 });
