@@ -9,8 +9,5 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./tests/setup.ts"],
     testTimeout: 10000,
-    env: {
-      NEXT_PUBLIC_IS_DUB: "true",
-    },
   },
 });

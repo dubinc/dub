@@ -5,7 +5,7 @@ import { IntegrationHarness } from "../utils/integration";
 
 test("creates new link", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, apiKey, user, defaultDomains } = await h.init();
+  const { workspace, apiKey, user } = await h.init();
 
   const http = new HttpClient({
     baseUrl: h.baseUrl,
@@ -13,21 +13,25 @@ test("creates new link", async (ctx) => {
       Authorization: `Bearer ${apiKey.token}`,
     },
   });
-  
-  const domain = defaultDomains[0];
+
+  const domain = "dub.sh";
+  const url = "https://github.com/dubinc";
 
   const { status, data: link } = await http.post<Link>({
     path: "/links",
     query: { workspaceId: workspace.workspaceId },
-    body: { url: "https://google.com", domain },
+    body: {
+      url,
+      domain,
+    },
   });
 
   expect(status).toEqual(200);
   expect(link).toMatchObject({
     id: expect.any(String),
     domain,
+    url,
     key: expect.any(String),
-    url: "https://google.com",
     userId: user.id,
     projectId: workspace.id,
     workspaceId: workspace.workspaceId,
@@ -56,7 +60,7 @@ test("creates new link", async (ctx) => {
     tags: [],
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
-    shortLink: `${domain}/${link.key}`,
-    qrCode: `https://api.dub.co/qr?url=${domain}/${link.key}`,
+    shortLink: `https://${domain}/${link.key}`,
+    qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}`,
   });
 });
