@@ -6,12 +6,12 @@ import { NextResponse } from "next/server";
 
 // POST /api/workspaces/[idOrSlug]/invites/accept – accept a workspace invite
 export const POST = withSession(async ({ session, params }) => {
-  const { idOrSlug } = params;
+  const { idOrSlug: slug } = params;
   const invite = await prisma.projectInvite.findFirst({
     where: {
       email: session.user.email,
       project: {
-        slug: idOrSlug
+        slug,
       },
     },
     select: {
