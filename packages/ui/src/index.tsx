@@ -41,6 +41,6 @@ export * from "./icon-menu";
 export * from "./inline-snippet";
 export * from "./link-logo";
 export * from "./link-preview";
-export * from "./product-hunt";
+export * from "./popup";
 export * from "./progress-bar";
 export * from "./tab-select";

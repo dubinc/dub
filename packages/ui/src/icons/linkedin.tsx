@@ -1,3 +1,5 @@
+import { cn } from "@dub/utils";
+
 export default function LinkedIn({ className }: { className?: string }) {
   return (
     <svg
@@ -5,7 +7,7 @@ export default function LinkedIn({ className }: { className?: string }) {
       width="24"
       height="24"
       viewBox="0 0 24 24"
-      className={className}
+      className={cn("text-[#0A66C2]", className)}
     >
       <path
         fill="currentColor"

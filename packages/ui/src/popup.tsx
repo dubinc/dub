@@ -3,43 +3,59 @@ import Cookies from "js-cookie";
 import { X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { ReactNode, createContext, useContext, useState } from "react";
 import { ClientOnly } from "./client-only";
 
-export function ProductHunt() {
-  const [closed, setClosed] = useState(
-    Cookies.get("hideProductHuntBanner") === "1",
-  );
-  const handleClose = () => {
-    setClosed(true);
-    Cookies.set("hideProductHuntBanner", "1");
+export const PopupContext = createContext<{
+  hidePopup: () => void;
+}>({
+  hidePopup: () => {},
+});
+
+export function Popup({
+  children,
+  hiddenCookieId,
+}: {
+  children: ReactNode;
+  hiddenCookieId: string;
+}) {
+  const [hidden, setHidden] = useState(Cookies.get(hiddenCookieId) === "1");
+  const hidePopup = () => {
+    setHidden(true);
+    Cookies.set(hiddenCookieId, "1");
   };
 
   return (
     <ClientOnly>
-      <AnimatePresence>
-        {!closed && <ProductHuntPopup handleClose={handleClose} />}
-      </AnimatePresence>
+      <PopupContext.Provider value={{ hidePopup }}>
+        <AnimatePresence>
+          {!hidden && (
+            <motion.div
+              key="popup"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ y: 250 }}
+            >
+              {children}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </PopupContext.Provider>
     </ClientOnly>
   );
 }
 
-export function ProductHuntPopup({ handleClose }: { handleClose: () => void }) {
+export const ProductHuntPopupContent = () => {
+  const { hidePopup } = useContext(PopupContext);
   return (
-    <motion.div
-      key="product-hunt-banner"
-      className="xs:left-4 xs:mx-auto xs:max-w-xs group fixed bottom-4 z-40 mx-2 rounded-lg border border-gray-200 bg-white p-2 pb-4 pr-4 shadow-md"
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ y: 250 }}
-    >
+    <div className="xs:left-4 xs:mx-auto xs:max-w-xs group fixed bottom-4 z-40 mx-2 rounded-lg border border-gray-200 bg-white p-2 pb-4 pr-4 shadow-md">
       <div className="invisible absolute right-4 top-4 h-3 w-3 group-hover:invisible sm:visible">
         <div className="absolute inset-0 m-auto h-3 w-3 animate-ping items-center justify-center rounded-full bg-green-500" />
         <div className="absolute inset-0 z-10 m-auto h-3 w-3 rounded-full bg-green-500" />
       </div>
       <button
         className="visible absolute right-2.5 top-2.5 rounded-full p-1 transition-colors hover:bg-gray-100 active:scale-90 group-hover:visible sm:invisible"
-        onClick={handleClose}
+        onClick={hidePopup}
       >
         <X className="h-4 w-4 text-gray-500" />
       </button>
@@ -63,6 +79,6 @@ export function ProductHuntPopup({ handleClose }: { handleClose: () => void }) {
           </p>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
-}
+};
