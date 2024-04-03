@@ -1,21 +1,24 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { HttpClient } from "./utils/http";
 import { Link } from "@prisma/client";
+import { init } from "./utils/integration";
 
-const workspaceId = "ws_cltx2raaz0000pju4z0v33sy2";
+describe("links", async () => {
+  const { workspace, apiKey } = await init();
 
-describe("links", () => {
   test("creates new link", async () => {
     const http = new HttpClient({
       baseUrl: "http://localhost:8888/api",
       headers: {
-        Authorization: "Bearer cJHO9vZR8B4eaY3mJoI0b6JZ",
+        Authorization: `Bearer ${apiKey}`,
       },
     });
 
+    console.log("workspace", workspace);
+
     const res = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
+      query: { workspaceId: workspace.workspaceId },
       body: { url: "https://google.com" },
     });
 
@@ -25,8 +28,8 @@ describe("links", () => {
       domain: "kiran.localhost",
       shortLink: `https://kiran.localhost/${res.data.key}`,
       archived: false,
-      workspaceId,
-      projectId: workspaceId.replace("ws_", ""),
+      workspaceId: workspace.workspaceId,
+      projectId: workspace.id,
     });
   });
 });
