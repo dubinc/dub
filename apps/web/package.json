@@ -119,6 +119,7 @@
     "tsx": "^3.14.0",
     "turbo": "^1.10.14",
     "typescript": "^5.1.6",
+    "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^1.4.0"
   },
   "browser": {
