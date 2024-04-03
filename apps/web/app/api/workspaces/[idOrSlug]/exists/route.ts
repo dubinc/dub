@@ -6,13 +6,13 @@ import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/exists – check if a project exists
 export const GET = withSession(async ({ params }) => {
-  const { slug } = params;
-  if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
+  const { idOrSlug } = params;
+  if ((await isReservedKey(idOrSlug)) || DEFAULT_REDIRECTS[idOrSlug]) {
     return NextResponse.json(1);
   }
   const project = await prisma.project.findUnique({
     where: {
-      slug,
+      slug: idOrSlug
     },
     select: {
       slug: true,
