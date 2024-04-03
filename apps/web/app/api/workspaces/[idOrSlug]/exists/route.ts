@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/exists – check if a project exists
 export const GET = withSession(async ({ params }) => {
-  const { slug } = params;
+  const { idOrSlug: slug } = params;
   if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
     return NextResponse.json(1);
   }
