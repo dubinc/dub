@@ -8,7 +8,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "next lint",
     "start": "next start",
-    "script": "tsx ./scripts/run.ts"
+    "script": "tsx ./scripts/run.ts",
+    "test": "vitest"
   },
   "dependencies": {
     "@boxyhq/saml-jackson": "^1.14.2",
