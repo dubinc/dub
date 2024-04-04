@@ -1,6 +1,8 @@
+import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { Background, Footer, Nav } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { TimerOff } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export const runtime = "edge";
 
@@ -11,7 +13,17 @@ export const metadata = constructMetadata({
   noIndex: true,
 });
 
-export default async function ExpiredPage() {
+export default async function ExpiredPage({
+  params,
+}: {
+  params: { workspaceId: string };
+}) {
+  const workspace = await getWorkspaceViaEdge(params.workspaceId);
+
+  if (workspace?.slug === "acme") {
+    redirect("https://dub.co");
+  }
+
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <Nav />
