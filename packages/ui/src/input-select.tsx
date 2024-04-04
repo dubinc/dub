@@ -73,6 +73,14 @@ export function InputSelect({
 
   const { isMobile } = useMediaQuery();
 
+  // isFocused is used to determine if the input is focused to fix mobile issues with keyboard + drawer
+  const [isFocused, setIsFocused] = useState(false);
+  useEffect(() => {
+    if (!openCommandList) {
+      setIsFocused(false);
+    }
+  }, [openCommandList]);
+
   const CommandInput = () => {
     const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
     return (
@@ -80,10 +88,13 @@ export function InputSelect({
         <Command.Input
           placeholder={inputAttrs?.placeholder || "Search..."}
           // hack to focus on the input when the dropdown opens
-          autoFocus={openCommandList}
+          autoFocus={(openCommandList && !isMobile) || (isMobile && isFocused)}
           onFocus={() => setOpenCommandList(true)}
           value={inputValue}
-          onValueChange={setInputValue}
+          onValueChange={(value) => {
+            setInputValue(value);
+            setIsFocused(true);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               e.preventDefault();
