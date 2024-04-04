@@ -4,6 +4,7 @@ import { Project } from "@prisma/client";
 import { IntegrationHarness } from "../utils/integration";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import { expectedWorkspace } from "../utils/schema";
 
 test("creates new workspace", async (ctx) => {
   const h = new IntegrationHarness(ctx);
@@ -29,25 +30,10 @@ test("creates new workspace", async (ctx) => {
 
   expect(status).toEqual(200);
   expect(workspace).toEqual({
-    id: expect.any(String),
+    ...expectedWorkspace,
     name,
     slug,
-    logo: null,
-    plan: "free",
-    stripeId: null,
-    billingCycleStart: 4,
-    usage: 0,
-    usageLimit: 1000,
-    linksUsage: 0,
-    linksLimit: 25,
-    domainsLimit: 3,
-    tagsLimit: 5,
-    usersLimit: 1,
-    monitoringId: null,
     domains: [],
-    inviteCode: expect.any(String),
-    createdAt: expect.any(String),
-    updatedAt: expect.any(String),
   });
 
   await http.delete({
@@ -55,6 +41,8 @@ test("creates new workspace", async (ctx) => {
   });
 });
 
+// TODO:
+// Move this to error handling tests
 test("should not create workspace with slug in use", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { apiKey } = await h.init();

@@ -1,4 +1,4 @@
-import { Link, Tag } from "@prisma/client";
+import { Link, Project, Tag } from "@prisma/client";
 import { expect } from "vitest";
 
 export const expectedLink: Partial<Link> = {
@@ -32,6 +32,25 @@ export const expectedLink: Partial<Link> = {
 
 export const expectedTag: Partial<Tag> = {
   id: expect.any(String),
+  createdAt: expect.any(String),
+  updatedAt: expect.any(String),
+};
+
+export const expectedWorkspace: Partial<Project> = {
+  id: expect.any(String),
+  logo: null,
+  plan: "free",
+  stripeId: null,
+  billingCycleStart: 4,
+  usage: 0,
+  usageLimit: 1000,
+  linksUsage: 0,
+  linksLimit: 25,
+  domainsLimit: 3,
+  tagsLimit: 5,
+  usersLimit: 1,
+  monitoringId: null,
+  inviteCode: expect.any(String),
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
 };
