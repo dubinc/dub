@@ -58,4 +58,12 @@ export class HttpClient {
   public async post<TResponse>(req: Request) {
     return await this.request<TResponse>("POST", req);
   }
+
+  public async put<TResponse>(req: Request) {
+    return await this.request<TResponse>("PUT", req);
+  }
+
+  public async delete<TResponse>(req: Request) {
+    return await this.request<TResponse>("DELETE", req);
+  }
 }

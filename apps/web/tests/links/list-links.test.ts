@@ -42,7 +42,6 @@ test("list links", async (ctx) => {
 
   expect(status).toEqual(200);
   expect(links.length).toEqual(2);
-
   expect(links[0]).toMatchObject({
     id: expect.any(String),
     domain,

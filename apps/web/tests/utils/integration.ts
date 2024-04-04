@@ -31,8 +31,8 @@ export class IntegrationHarness {
   async seed() {
     this.ctx.onTestFinished(async () => {
       await prisma.$transaction([
-        prisma.project.delete({ where: { id: this.resources.workspace.id } }),
         prisma.token.delete({ where: { id: this.resources.apiKey.id } }),
+        prisma.project.delete({ where: { id: this.resources.workspace.id } }),
         prisma.user.delete({ where: { id: this.resources.user.id } }),
       ]);
 
@@ -53,13 +53,14 @@ export class IntegrationHarness {
       data: {
         name: "Dub",
         slug: `dub-${nanoid()}`,
+        plan: "pro",
+        billingCycleStart: new Date().getDate(),
         users: {
           create: {
             userId: user.id,
             role: "owner",
           },
         },
-        billingCycleStart: new Date().getDate(),
         defaultDomains: {
           create: {},
         },
