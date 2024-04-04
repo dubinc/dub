@@ -54,6 +54,7 @@ export class IntegrationHarness {
         name: "Dub",
         slug: `dub-${nanoid()}`,
         plan: "pro",
+        inviteCode: nanoid(6),
         billingCycleStart: new Date().getDate(),
         users: {
           create: {
