@@ -104,6 +104,18 @@ export function InputSelect({
     );
   });
 
+  const CloseButton = () => (
+    <button
+      onClick={() => {
+        setSelectedItem(null);
+        setInputValue("");
+      }}
+      className="absolute inset-y-0 right-0 my-auto"
+    >
+      <X className="h-7 w-7 pr-3 text-gray-400" />
+    </button>
+  );
+
   // renders a reusable list of items
   const SelectorList = () =>
     items.map((item) => (
@@ -179,16 +191,7 @@ export function InputSelect({
               <div className="flex h-10 px-8">
                 <CommandInput />
                 {inputValue || selectedItem?.value !== "" ? (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setSelectedItem(null);
-                      setInputValue("");
-                    }}
-                    className="absolute inset-y-0 right-0 my-auto"
-                  >
-                    <X className="h-7 w-7 pr-3 text-gray-400" />
-                  </button>
+                  <CloseButton />
                 ) : (
                   <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400 transition-all" />
                 )}
@@ -220,15 +223,7 @@ export function InputSelect({
                 <div className="flex h-10 px-8">
                   <CommandInput />
                   {inputValue || selectedItem?.value !== "" ? (
-                    <button
-                      onClick={() => {
-                        setSelectedItem(null);
-                        setInputValue("");
-                      }}
-                      className="absolute inset-y-0 right-0 my-auto"
-                    >
-                      <X className="h-7 w-7 pr-3 text-gray-400" />
-                    </button>
+                    <CloseButton />
                   ) : (
                     <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 rotate-180 pl-3 text-gray-400 transition-all" />
                   )}
@@ -286,15 +281,7 @@ export function InputSelect({
         <div className="flex h-10 px-8">
           <CommandInput />
           {inputValue || selectedItem?.value !== "" ? (
-            <button
-              onClick={() => {
-                setSelectedItem(null);
-                setInputValue("");
-              }}
-              className="absolute inset-y-0 right-0 my-auto"
-            >
-              <X className="h-7 w-7 pr-3 text-gray-400" />
-            </button>
+            <CloseButton />
           ) : (
             <ChevronDown
               onClick={() => setOpenCommandList((prev) => !prev)}
