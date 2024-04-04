@@ -13,7 +13,8 @@
     "build": "tsup",
     "lint": "eslint src/",
     "dev": "tsup --watch",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest"
   },
   "peerDependencies": {
     "next": "14.2.0-canary.47",
