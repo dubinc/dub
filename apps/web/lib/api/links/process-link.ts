@@ -37,6 +37,7 @@ export async function processLink({
     ios,
     android,
     geo,
+    createdAt,
   } = payload;
 
   const tagIds = combineTagIds(payload);
@@ -58,8 +59,11 @@ export async function processLink({
     };
   }
 
-  // free plan restrictions
-  if (!workspace || workspace.plan === "free") {
+  // free plan restrictions (after Jan 19, 2024)
+  if (
+    (!workspace || workspace.plan === "free") &&
+    (!createdAt || new Date(createdAt) > new Date("2024-01-19"))
+  ) {
     if (proxy || password || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
