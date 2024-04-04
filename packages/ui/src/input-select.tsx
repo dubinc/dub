@@ -81,7 +81,6 @@ export function InputSelect({
       <Command.Input
         placeholder={inputAttrs?.placeholder || "Search..."}
         // hacky focus on the input when the dropdown opens
-        // only do this on desktop
         autoFocus={openCommandList}
         onFocus={() => setOpenCommandList(true)}
         value={inputValue}
