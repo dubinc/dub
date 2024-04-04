@@ -6,6 +6,7 @@ import {
   InputHTMLAttributes,
   ReactNode,
   SetStateAction,
+  memo,
   useEffect,
   useRef,
   useState,
@@ -73,46 +74,35 @@ export function InputSelect({
 
   const { isMobile } = useMediaQuery();
 
-  // isFocused is used to determine if the input is focused to fix mobile issues with keyboard + drawer
-  const [isFocused, setIsFocused] = useState(false);
-  useEffect(() => {
-    if (!openCommandList) {
-      setIsFocused(false);
-    }
-  }, [openCommandList]);
-
-  const CommandInput = () => {
+  const CommandInput = memo(() => {
     const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
+
     return (
-      <>
-        <Command.Input
-          placeholder={inputAttrs?.placeholder || "Search..."}
-          // hack to focus on the input when the dropdown opens
-          autoFocus={(openCommandList && !isMobile) || (isMobile && isFocused)}
-          onFocus={() => setOpenCommandList(true)}
-          value={inputValue}
-          onValueChange={(value) => {
-            setInputValue(value);
-            setIsFocused(true);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              e.preventDefault();
-              setOpenCommandList(false);
-              // listen for cases where empty results and enter is pressed
-            } else if (e.key === "Enter" && isEmpty) {
-              setOpenCommandList(false);
-              // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
-            } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
-              setOpenCommandList(true);
-            }
-          }}
-          disabled={disabled}
-          className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
-        />
-      </>
+      <Command.Input
+        placeholder={inputAttrs?.placeholder || "Search..."}
+        // hacky focus on the input when the dropdown opens
+        // only do this on desktop
+        autoFocus={openCommandList}
+        onFocus={() => setOpenCommandList(true)}
+        value={inputValue}
+        onValueChange={setInputValue}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setOpenCommandList(false);
+            // listen for cases where empty results and enter is pressed
+          } else if (e.key === "Enter" && isEmpty) {
+            setOpenCommandList(false);
+            // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
+          } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
+            setOpenCommandList(true);
+          }
+        }}
+        disabled={disabled}
+        className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
+      />
     );
-  };
+  });
 
   // renders a reusable list of items
   const SelectorList = () =>
@@ -188,7 +178,7 @@ export function InputSelect({
               </div>
               <div className="flex h-10 px-8">
                 <CommandInput />
-                {inputValue && selectedItem?.value !== "" ? (
+                {inputValue || selectedItem?.value !== "" ? (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
@@ -229,7 +219,7 @@ export function InputSelect({
                 </div>
                 <div className="flex h-10 px-8">
                   <CommandInput />
-                  {inputValue && selectedItem?.value !== "" ? (
+                  {inputValue || selectedItem?.value !== "" ? (
                     <button
                       onClick={() => {
                         setSelectedItem(null);
@@ -295,7 +285,7 @@ export function InputSelect({
         </div>
         <div className="flex h-10 px-8">
           <CommandInput />
-          {inputValue && selectedItem?.value !== "" ? (
+          {inputValue || selectedItem?.value !== "" ? (
             <button
               onClick={() => {
                 setSelectedItem(null);
