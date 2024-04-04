@@ -42,7 +42,7 @@ test("list links", async (ctx) => {
 
   expect(status).toEqual(200);
   expect(links.length).toEqual(2);
-  expect(links[0]).toMatchObject({
+  expect(links[0]).toEqual({
     id: expect.any(String),
     domain,
     url,
@@ -80,7 +80,7 @@ test("list links", async (ctx) => {
     user: JSON.parse(JSON.stringify(user)),
   });
 
-  expect(links[1]).toMatchObject({
+  expect(links[1]).toEqual({
     id: expect.any(String),
     domain,
     url,

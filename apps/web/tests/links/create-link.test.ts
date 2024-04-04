@@ -27,7 +27,7 @@ test("creates new link", async (ctx) => {
   });
 
   expect(status).toEqual(200);
-  expect(link).toMatchObject({
+  expect(link).toEqual({
     id: expect.any(String),
     domain,
     url,
