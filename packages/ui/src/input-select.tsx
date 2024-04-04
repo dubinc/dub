@@ -73,13 +73,17 @@ export function InputSelect({
 
   const { isMobile } = useMediaQuery();
 
-  // isFocused is used to determine if the input is focused to fix mobile issues with keyboard + drawer
-  const [isFocused, setIsFocused] = useState(false);
-  useEffect(() => {
-    if (!openCommandList) {
-      setIsFocused(false);
-    }
-  }, [openCommandList]);
+  const CloseButton = () => (
+    <button
+      onClick={() => {
+        setSelectedItem(null);
+        setInputValue("");
+      }}
+      className="absolute inset-y-0 right-0 my-auto"
+    >
+      <X className="h-7 w-7 pr-3 text-gray-400" />
+    </button>
+  );
 
   const CommandInput = () => {
     const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
@@ -88,12 +92,11 @@ export function InputSelect({
         <Command.Input
           placeholder={inputAttrs?.placeholder || "Search..."}
           // hack to focus on the input when the dropdown opens
-          autoFocus={(openCommandList && !isMobile) || (isMobile && isFocused)}
+          autoFocus={openCommandList && !isMobile}
           onFocus={() => setOpenCommandList(true)}
           value={inputValue}
           onValueChange={(value) => {
             setInputValue(value);
-            setIsFocused(true);
           }}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
@@ -189,16 +192,7 @@ export function InputSelect({
               <div className="flex h-10 px-8">
                 <CommandInput />
                 {inputValue && selectedItem?.value !== "" ? (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setSelectedItem(null);
-                      setInputValue("");
-                    }}
-                    className="absolute inset-y-0 right-0 my-auto"
-                  >
-                    <X className="h-7 w-7 pr-3 text-gray-400" />
-                  </button>
+                  <CloseButton />
                 ) : (
                   <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400 transition-all" />
                 )}
@@ -230,15 +224,7 @@ export function InputSelect({
                 <div className="flex h-10 px-8">
                   <CommandInput />
                   {inputValue && selectedItem?.value !== "" ? (
-                    <button
-                      onClick={() => {
-                        setSelectedItem(null);
-                        setInputValue("");
-                      }}
-                      className="absolute inset-y-0 right-0 my-auto"
-                    >
-                      <X className="h-7 w-7 pr-3 text-gray-400" />
-                    </button>
+                    <CloseButton />
                   ) : (
                     <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 rotate-180 pl-3 text-gray-400 transition-all" />
                   )}
@@ -296,15 +282,7 @@ export function InputSelect({
         <div className="flex h-10 px-8">
           <CommandInput />
           {inputValue && selectedItem?.value !== "" ? (
-            <button
-              onClick={() => {
-                setSelectedItem(null);
-                setInputValue("");
-              }}
-              className="absolute inset-y-0 right-0 my-auto"
-            >
-              <X className="h-7 w-7 pr-3 text-gray-400" />
-            </button>
+            <CloseButton />
           ) : (
             <ChevronDown
               onClick={() => setOpenCommandList((prev) => !prev)}
