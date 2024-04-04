@@ -1,6 +1,5 @@
-import { TagProps } from "@/lib/types";
-import { Link } from "@prisma/client";
-import { expect, test } from "vitest";
+import { Link, Tag } from "@prisma/client";
+import { expect } from "vitest";
 
 export const expectedLink: Partial<Link> = {
   id: expect.any(String),
@@ -27,6 +26,12 @@ export const expectedLink: Partial<Link> = {
   checkDisabled: false,
   tagId: null,
   comments: null,
+  createdAt: expect.any(String),
+  updatedAt: expect.any(String),
+};
+
+export const expectedTag: Partial<Tag> = {
+  id: expect.any(String),
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
 };
