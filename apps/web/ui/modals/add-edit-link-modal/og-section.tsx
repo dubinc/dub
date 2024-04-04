@@ -17,16 +17,11 @@ import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Link2 } from "lucide-react";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
 import { useCompletion } from "ai/react";
+import { toast } from "sonner";
 
 export default function OGSection({
   props,
@@ -51,6 +46,9 @@ export default function OGSection({
   } = useCompletion({
     api: `/api/ai/metatags?workspaceId=${workspaceId}`,
     id: "metatags-title-ai",
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
 
   const generateTitle = async () => {
@@ -72,6 +70,9 @@ export default function OGSection({
   } = useCompletion({
     api: `/api/ai/metatags?workspaceId=${workspaceId}`,
     id: "metatags-description-ai",
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
 
   const generateDescription = async () => {

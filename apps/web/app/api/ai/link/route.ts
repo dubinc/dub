@@ -1,8 +1,12 @@
-import { getWorkspaceViaEdge } from "@/lib/planetscale";
+import {
+  getWorkspaceViaEdge,
+  incrementWorkspaceAIUsage,
+} from "@/lib/planetscale";
 import { getSearchParams } from "@dub/utils";
 import { OpenAIStream, StreamingTextResponse } from "ai";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
+import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -16,9 +20,15 @@ export async function POST(req: NextRequest) {
   const { workspaceId } = searchParams;
   const workspace = await getWorkspaceViaEdge(workspaceId);
 
-  // this endpoint is only available for paid plans
-  if (!workspace || workspace.plan === "free") {
-    return new Response("Requires higher plan", { status: 403 });
+  if (!workspace) {
+    return new Response("Workspace not found", { status: 404 });
+  }
+
+  if (workspace.aiUsage > workspace.aiLimit) {
+    return new Response(
+      "Exceeded AI usage limit. Upgrade to a higher plan to get more AI credits.",
+      { status: 429 },
+    );
   }
 
   try {
@@ -46,6 +56,8 @@ export async function POST(req: NextRequest) {
     });
 
     const stream = OpenAIStream(response);
+
+    waitUntil(async () => await incrementWorkspaceAIUsage(workspaceId));
 
     return new StreamingTextResponse(stream);
   } catch (error) {

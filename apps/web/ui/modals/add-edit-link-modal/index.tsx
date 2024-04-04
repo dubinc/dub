@@ -58,7 +58,7 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
-import { useChat, useCompletion } from "ai/react";
+import { useCompletion } from "ai/react";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -148,6 +148,9 @@ function AddEditLinkModal({
     complete,
   } = useCompletion({
     api: `/api/ai/link?workspaceId=${workspaceId}`,
+    onError: (error) => {
+      toast.error(error.message);
+    },
     onFinish: (_, completion) => {
       setGeneratedKeys((prev) => [...prev, completion]);
     },
@@ -510,39 +513,16 @@ function AddEditLinkModal({
                     )}
                     <Tooltip
                       content={
-                        !plan || plan === "free" ? (
-                          <TooltipContent
-                            title={`AI Short Link generation is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
-                            cta="Upgrade to Pro"
-                            {...(plan === "free"
-                              ? {
-                                  onClick: () =>
-                                    queryParams({
-                                      set: {
-                                        upgrade: "pro",
-                                      },
-                                    }),
-                                }
-                              : {
-                                  href: `${HOME_DOMAIN}/pricing`,
-                                })}
-                          />
-                        ) : !url ? (
-                          "Please enter a destination URL to generate AI Short Link."
-                        ) : (
-                          "Create Short Link with AI"
-                        )
+                        !url
+                          ? "Please enter a destination URL to generate AI Short Link."
+                          : "Create Short Link with AI"
                       }
                     >
                       <button
                         className="ml-2 flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                         onClick={generateAIKey}
                         disabled={
-                          generatingAIKey ||
-                          generatingRandomKey ||
-                          !plan ||
-                          plan === "free" ||
-                          !url
+                          generatingAIKey || generatingRandomKey || !url
                         }
                         type="button"
                       >
