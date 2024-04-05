@@ -59,7 +59,7 @@ import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
 import { useCompletion } from "ai/react";
-import SimplePieChart from "@/ui/charts/simple-pie-chart";
+import { ButtonWithTooltip } from "./tooltip-button";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -78,12 +78,18 @@ function AddEditLinkModal({
   const { slug } = params;
   const router = useRouter();
   const pathname = usePathname();
-  const { id: workspaceId, aiUsage, aiLimit, nextPlan } = useWorkspace();
+  const {
+    id: workspaceId,
+    aiUsage: tempAiUsage,
+    aiLimit,
+    nextPlan,
+  } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [aiUsage, setAiUsage] = useState(tempAiUsage);
 
   const {
     allActiveDomains: domains,
@@ -154,6 +160,7 @@ function AddEditLinkModal({
     },
     onFinish: (_, completion) => {
       setGeneratedKeys((prev) => [...prev, completion]);
+      setAiUsage(aiUsage ? aiUsage + 1 : 1);
     },
   });
 
@@ -529,99 +536,49 @@ function AddEditLinkModal({
                     </button>
                   ) : (
                     <div className="flex items-center">
-                      <Tooltip content="Generate a random key">
-                        <button
-                          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                          onClick={generateRandomKey}
-                          disabled={generatingRandomKey || generatingAIKey}
-                          type="button"
-                        >
-                          {generatingRandomKey ? (
-                            <LoadingCircle />
-                          ) : (
-                            <Random className="h-3 w-3" />
-                          )}
-                        </button>
-                      </Tooltip>
-                      <Tooltip
-                        content={
-                          !url ? (
-                            "Please enter a destination URL to generate AI Short Link."
-                          ) : aiUsage && aiLimit ? (
-                            aiUsage + (generatedKeys.length - 1) < aiLimit ? (
-                              <div className="flex items-center gap-4 px-4 py-2">
-                                <div>
-                                  <span className="block max-w-xs text-center text-sm text-gray-700">
-                                    Create a short link using AI
-                                  </span>
-                                  {aiUsage && aiLimit && (
-                                    <span className="text-xs text-gray-500">
-                                      {aiLimit -
-                                        aiUsage -
-                                        (generatedKeys.length - 1)}
-                                      /{aiLimit} left
-                                    </span>
-                                  )}
-                                </div>
-                                {aiUsage && aiLimit && (
-                                  <SimplePieChart
-                                    data={[
-                                      {
-                                        name: "Used",
-                                        value:
-                                          aiUsage + (generatedKeys.length - 1),
-                                        color: "text-gray-200",
-                                      },
-                                      {
-                                        name: "Remaining",
-                                        value:
-                                          aiLimit -
-                                          aiUsage -
-                                          (generatedKeys.length - 1),
-                                        color: "text-black",
-                                      },
-                                    ]}
-                                  />
-                                )}
-                              </div>
-                            ) : (
-                              <TooltipContent
-                                title="You've reached your AI usage limit. Upgrade to Pro to get more AI credits."
-                                cta={`Upgrade to ${nextPlan.name}`}
-                                onClick={() => {
-                                  queryParams({
-                                    set: {
-                                      upgrade: nextPlan.name.toLowerCase(),
-                                    },
-                                  });
-                                }}
-                              />
-                            )
-                          ) : (
-                            "Create a short link using AI"
-                          )
-                        }
+                      <ButtonWithTooltip
+                        tooltip={{
+                          content: "Generate a random key",
+                        }}
+                        onClick={generateRandomKey}
+                        disabled={generatingRandomKey || generatingAIKey}
                       >
-                        <button
-                          className="ml-2 flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                          onClick={generateAIKey}
-                          disabled={
-                            generatingAIKey ||
-                            generatingRandomKey ||
-                            !url ||
-                            (aiUsage && aiLimit
-                              ? aiUsage + (generatedKeys.length - 1) >= aiLimit
-                              : false)
-                          }
-                          type="button"
-                        >
-                          {generatingAIKey ? (
-                            <LoadingCircle />
-                          ) : (
-                            <Magic className="h-4 w-4" />
-                          )}
-                        </button>
-                      </Tooltip>
+                        {generatingRandomKey ? (
+                          <LoadingCircle />
+                        ) : (
+                          <Random className="h-3 w-3" />
+                        )}
+                      </ButtonWithTooltip>
+                      <ButtonWithTooltip
+                        onClick={generateAIKey}
+                        disabled={
+                          generatingAIKey ||
+                          (aiLimit && aiUsage && aiUsage >= aiLimit) ||
+                          !url
+                        }
+                        tooltip={{
+                          ai:
+                            url && aiLimit && aiUsage
+                              ? {
+                                  data: {
+                                    limit: aiLimit,
+                                    usage: aiUsage,
+                                  },
+                                  title: "AI Usage",
+                                  nextPlan: nextPlan,
+                                }
+                              : undefined,
+                          content: url
+                            ? "Generate AI key"
+                            : "Enter a URL first",
+                        }}
+                      >
+                        {generatingAIKey ? (
+                          <LoadingCircle />
+                        ) : (
+                          <Magic className="h-4 w-4" />
+                        )}
+                      </ButtonWithTooltip>
                     </div>
                   )}
                 </div>

@@ -13,7 +13,7 @@ import {
   Unsplash,
   useRouterStuff,
 } from "@dub/ui";
-import { TooltipContent } from "@dub/ui/src/tooltip";
+import { Tooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Link2 } from "lucide-react";
@@ -22,6 +22,8 @@ import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
 import { useCompletion } from "ai/react";
 import { toast } from "sonner";
+import SimplePieChart from "@/ui/charts/simple-pie-chart";
+import TooltipButton, { ButtonWithTooltip } from "./tooltip-button";
 
 export default function OGSection({
   props,
@@ -34,10 +36,9 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
-  const { id: workspaceId, plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
+  const { id: workspaceId, plan, aiUsage, aiLimit, nextPlan } = useWorkspace();
 
-  const { title, description, image, proxy } = data;
+  const { title, description, image, proxy, url } = data;
 
   const {
     completion: completionTitle,
@@ -160,9 +161,10 @@ export default function OGSection({
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Image</p>
               <div className="flex items-center justify-between">
-                <button
-                  className="mr-1 flex h-6 w-6 items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
-                  type="button"
+                <ButtonWithTooltip
+                  tooltip={{
+                    content: "Paste a URL to an image.",
+                  }}
                   onClick={() => {
                     const image = window.prompt(
                       "Paste a URL to an image.",
@@ -174,7 +176,7 @@ export default function OGSection({
                   }}
                 >
                   <Link2 className="h-4 w-4 text-gray-500" />
-                </button>
+                </ButtonWithTooltip>
                 <Popover
                   content={
                     <UnsplashSearch
@@ -185,12 +187,14 @@ export default function OGSection({
                   openPopover={openPopover}
                   setOpenPopover={handleSet}
                 >
-                  <div
+                  <ButtonWithTooltip
                     onClick={handleSet}
-                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
+                    tooltip={{
+                      content: "Find high-resolution photos on Unsplash.",
+                    }}
                   >
                     <Unsplash className="h-3 w-3 text-gray-500" />
-                  </div>
+                  </ButtonWithTooltip>
                 </Popover>
               </div>
             </div>
@@ -297,18 +301,32 @@ export default function OGSection({
                 <p className="text-sm text-gray-500">
                   {title?.length || 0}/120
                 </p>
-                <button
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                <ButtonWithTooltip
                   onClick={generateTitle}
                   disabled={generatingTitle}
-                  type="button"
+                  tooltip={{
+                    ai:
+                      aiLimit && aiUsage
+                        ? {
+                            data: {
+                              limit: aiLimit,
+                              usage: aiUsage,
+                            },
+                            title: "Create a title using AI",
+                            nextPlan: nextPlan,
+                          }
+                        : undefined,
+                    content: !title
+                      ? "Please enter a title to generate one using AI."
+                      : "Create an optimized title using AI.",
+                  }}
                 >
                   {generatingTitle ? (
                     <LoadingCircle />
                   ) : (
                     <Magic className="h-4 w-4" />
                   )}
-                </button>
+                </ButtonWithTooltip>
               </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
@@ -342,18 +360,32 @@ export default function OGSection({
                 <p className="text-sm text-gray-500">
                   {description?.length || 0}/240
                 </p>
-                <button
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                <ButtonWithTooltip
                   onClick={generateDescription}
                   disabled={generatingDescription}
-                  type="button"
+                  tooltip={{
+                    ai:
+                      aiLimit && aiUsage
+                        ? {
+                            data: {
+                              limit: aiLimit,
+                              usage: aiUsage,
+                            },
+                            title: "Create a description using AI",
+                            nextPlan: nextPlan,
+                          }
+                        : undefined,
+                    content: !title
+                      ? "Please enter a description to generate one using AI."
+                      : "Create an optimized description using AI.",
+                  }}
                 >
-                  {generatingDescription ? (
+                  {generatingTitle ? (
                     <LoadingCircle />
                   ) : (
                     <Magic className="h-4 w-4" />
                   )}
-                </button>
+                </ButtonWithTooltip>
               </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
