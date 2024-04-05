@@ -147,29 +147,6 @@ export default function OGSection({
         <Switch
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
           checked={proxy}
-          // custom social media cards is only available on Dub's Pro plan
-          {...((!plan || plan === "free") && !proxy
-            ? {
-                disabledTooltip: (
-                  <TooltipContent
-                    title={`Custom Social Media Cards is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
-                    cta="Upgrade to Pro"
-                    {...(plan === "free"
-                      ? {
-                          onClick: () =>
-                            queryParams({
-                              set: {
-                                upgrade: "pro",
-                              },
-                            }),
-                        }
-                      : {
-                          href: `${HOME_DOMAIN}/pricing`,
-                        })}
-                  />
-                ),
-              }
-            : {})}
         />
       </div>
 

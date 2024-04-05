@@ -64,7 +64,14 @@ export async function processLink({
     (!workspace || workspace.plan === "free") &&
     (!createdAt || new Date(createdAt) > new Date("2024-01-19"))
   ) {
-    if (proxy || password || rewrite || expiresAt || ios || android || geo) {
+    // separate check for social media card activation with free plan
+    if (proxy) {
+      return {
+        link: payload,
+        error: "Social media cards need a Pro plan.",
+        code: "forbidden",
+      };
+    } else if (password || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
         error:

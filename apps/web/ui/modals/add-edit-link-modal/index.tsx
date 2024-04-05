@@ -412,8 +412,40 @@ function AddEditLinkModal({
                 } else {
                   const { error } = await res.json();
                   if (error) {
-                    toast.error(error.message);
                     const message = error.message.toLowerCase();
+
+                    if (message === "social media cards need a pro plan.") {
+                      toast.custom(
+                        () => (
+                          <div className="relative z-50 grid grid-cols-2 items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-md">
+                            <div>
+                              <p className="mb-1.5 text-sm text-gray-700">
+                                Social media cards need a Pro plan.
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Upgrade to Pro to get this feature.
+                              </p>
+                            </div>
+                            <Button
+                              text={`Upgrade to ${nextPlan.name}`}
+                              onClick={() => {
+                                queryParams({
+                                  set: {
+                                    upgrade: nextPlan.name.toLowerCase(),
+                                  },
+                                });
+                              }}
+                            />
+                          </div>
+                        ),
+                        {
+                          duration: 10000,
+                        },
+                      );
+                    } else {
+                      toast.error(error.message);
+                    }
+
                     if (message.includes("key") || message.includes("domain")) {
                       setKeyError(error.message);
                     } else if (message.includes("url")) {
