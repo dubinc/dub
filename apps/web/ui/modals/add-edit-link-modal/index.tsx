@@ -565,7 +565,6 @@ function AddEditLinkModal({
                                     usage: aiUsage,
                                   },
                                   title: "AI Usage",
-                                  nextPlan: nextPlan,
                                 }
                               : undefined,
                           content: url

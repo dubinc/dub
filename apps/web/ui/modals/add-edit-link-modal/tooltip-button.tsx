@@ -1,6 +1,8 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import SimplePieChart from "@/ui/charts/simple-pie-chart";
+import Infinity from "@/ui/shared/icons/infinity";
 import { TooltipContent, useRouterStuff } from "@dub/ui";
 import { Tooltip } from "@dub/ui/src/tooltip";
 import { cn } from "@dub/utils";
@@ -22,14 +24,14 @@ export default function TooltipButton() {
           usage: number;
           limit: number;
         };
-        nextPlan: {
-          name: string;
-        };
       };
     };
     [key: string]: any;
   }) {
     const { queryParams } = useRouterStuff();
+    const { plan, nextPlan } = useWorkspace();
+
+    const showUsage = plan === "free" || plan === "pro" || plan === "business";
 
     return (
       <Tooltip
@@ -42,32 +44,38 @@ export default function TooltipButton() {
                     {ai.title}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {ai.data.limit - ai.data.usage} / {ai.data.limit} left
+                    {showUsage
+                      ? `${ai.data.limit - ai.data.usage} / ${ai.data.limit} left`
+                      : "Unlimited credits"}
                   </span>
                 </div>
-                <SimplePieChart
-                  data={[
-                    {
-                      name: "Used",
-                      value: ai.data.usage,
-                      color: "text-gray-200",
-                    },
-                    {
-                      name: "Remaining",
-                      value: ai.data.limit - ai.data.usage,
-                      color: "text-black",
-                    },
-                  ]}
-                />
+                {showUsage ? (
+                  <SimplePieChart
+                    data={[
+                      {
+                        name: "Used",
+                        value: ai.data.usage,
+                        color: "text-gray-200",
+                      },
+                      {
+                        name: "Remaining",
+                        value: ai.data.limit - ai.data.usage,
+                        color: "text-black",
+                      },
+                    ]}
+                  />
+                ) : (
+                  <Infinity className="h-6 w-6 text-gray-500" />
+                )}
               </div>
             ) : (
               <TooltipContent
                 title="You've reached your AI usage limit. Upgrade to Pro to get more AI credits."
-                cta={`Upgrade to ${ai.nextPlan.name}`}
+                cta={`Upgrade to ${nextPlan.name}`}
                 onClick={() => {
                   queryParams({
                     set: {
-                      upgrade: ai.nextPlan.name.toLowerCase(),
+                      upgrade: nextPlan.name.toLowerCase(),
                     },
                   });
                 }}

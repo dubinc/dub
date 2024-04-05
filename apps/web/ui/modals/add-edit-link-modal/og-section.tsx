@@ -323,7 +323,6 @@ export default function OGSection({
                               usage: aiUsage,
                             },
                             title: "Create a title using AI",
-                            nextPlan: nextPlan,
                           }
                         : undefined,
                     content: !title
@@ -382,7 +381,6 @@ export default function OGSection({
                               usage: aiUsage,
                             },
                             title: "Create a description using AI",
-                            nextPlan: nextPlan,
                           }
                         : undefined,
                     content: !title
