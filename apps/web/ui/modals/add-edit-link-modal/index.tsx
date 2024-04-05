@@ -59,6 +59,7 @@ import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
 import { useCompletion } from "ai/react";
+import SimplePieChart from "@/ui/charts/simple-pie-chart";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -77,7 +78,7 @@ function AddEditLinkModal({
   const { slug } = params;
   const router = useRouter();
   const pathname = usePathname();
-  const { id: workspaceId, plan } = useWorkspace();
+  const { id: workspaceId, aiUsage, aiLimit, nextPlan } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -512,16 +513,73 @@ function AddEditLinkModal({
                       </Tooltip>
                       <Tooltip
                         content={
-                          !url
-                            ? "Please enter a destination URL to generate AI Short Link."
-                            : "Create Short Link with AI"
+                          !url ? (
+                            "Please enter a destination URL to generate AI Short Link."
+                          ) : aiUsage && aiLimit ? (
+                            aiUsage + (generatedKeys.length - 1) < aiLimit ? (
+                              <div className="flex items-center gap-4 px-4 py-2">
+                                <div>
+                                  <span className="block max-w-xs text-center text-sm text-gray-700">
+                                    Create a short link using AI
+                                  </span>
+                                  {aiUsage && aiLimit && (
+                                    <span className="text-xs text-gray-500">
+                                      {aiLimit -
+                                        aiUsage -
+                                        (generatedKeys.length - 1)}
+                                      /{aiLimit} left
+                                    </span>
+                                  )}
+                                </div>
+                                {aiUsage && aiLimit && (
+                                  <SimplePieChart
+                                    data={[
+                                      {
+                                        name: "Used",
+                                        value:
+                                          aiUsage + (generatedKeys.length - 1),
+                                        color: "text-gray-200",
+                                      },
+                                      {
+                                        name: "Remaining",
+                                        value:
+                                          aiLimit -
+                                          aiUsage -
+                                          (generatedKeys.length - 1),
+                                        color: "text-black",
+                                      },
+                                    ]}
+                                  />
+                                )}
+                              </div>
+                            ) : (
+                              <TooltipContent
+                                title="You've reached your AI usage limit. Upgrade to Pro to get more AI credits."
+                                cta={`Upgrade to ${nextPlan.name}`}
+                                onClick={() => {
+                                  queryParams({
+                                    set: {
+                                      upgrade: nextPlan.name.toLowerCase(),
+                                    },
+                                  });
+                                }}
+                              />
+                            )
+                          ) : (
+                            "Create a short link using AI"
+                          )
                         }
                       >
                         <button
                           className="ml-2 flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                           onClick={generateAIKey}
                           disabled={
-                            generatingAIKey || generatingRandomKey || !url
+                            generatingAIKey ||
+                            generatingRandomKey ||
+                            !url ||
+                            (aiUsage && aiLimit
+                              ? aiUsage + (generatedKeys.length - 1) >= aiLimit
+                              : false)
                           }
                           type="button"
                         >

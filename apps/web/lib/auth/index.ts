@@ -235,6 +235,8 @@ export const withAuth = (
             logo: true,
             usage: true,
             usageLimit: true,
+            aiUsage: true,
+            aiLimit: true,
             linksUsage: true,
             linksLimit: true,
             domainsLimit: true,
