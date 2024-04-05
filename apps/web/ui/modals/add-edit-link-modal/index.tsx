@@ -160,7 +160,7 @@ function AddEditLinkModal({
     },
     onFinish: (_, completion) => {
       setGeneratedKeys((prev) => [...prev, completion]);
-      setAiUsage(aiUsage ? aiUsage + 1 : 1);
+      setAiUsage((prev) => (prev ? prev + 1 : 1));
     },
   });
 
@@ -682,7 +682,7 @@ function AddEditLinkModal({
               <CommentsSection {...{ props, data, setData }} />
               <UTMSection {...{ props, data, setData }} />
               <OGSection
-                {...{ props, data, setData }}
+                {...{ props, data, setData, aiUsage, setAiUsage }}
                 generatingMetatags={generatingMetatags}
               />
               <CloakingSection {...{ data, setData }} />

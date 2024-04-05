@@ -29,16 +29,20 @@ export default function OGSection({
   props,
   data,
   setData,
+  aiUsage,
+  setAiUsage,
   generatingMetatags,
 }: {
   props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
+  aiUsage?: number;
+  setAiUsage: Dispatch<SetStateAction<number>>;
   generatingMetatags: boolean;
 }) {
-  const { id: workspaceId, plan, aiUsage, aiLimit, nextPlan } = useWorkspace();
+  const { id: workspaceId, aiLimit, nextPlan } = useWorkspace();
 
-  const { title, description, image, proxy, url } = data;
+  const { title, description, image, proxy } = data;
 
   const {
     completion: completionTitle,
@@ -49,6 +53,9 @@ export default function OGSection({
     id: "metatags-title-ai",
     onError: (error) => {
       toast.error(error.message);
+    },
+    onFinish: () => {
+      setAiUsage((prev) => (prev ? prev + 1 : 1));
     },
   });
 
@@ -73,6 +80,9 @@ export default function OGSection({
     id: "metatags-description-ai",
     onError: (error) => {
       toast.error(error.message);
+    },
+    onFinish: () => {
+      setAiUsage((prev) => (prev ? prev + 1 : 1));
     },
   });
 
@@ -380,7 +390,7 @@ export default function OGSection({
                       : "Create an optimized description using AI.",
                   }}
                 >
-                  {generatingTitle ? (
+                  {generatingDescription ? (
                     <LoadingCircle />
                   ) : (
                     <Magic className="h-4 w-4" />
