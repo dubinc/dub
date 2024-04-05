@@ -3,14 +3,9 @@ import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import {
-  SHORT_DOMAIN,
-  getParamsFromURL,
-  linkConstructor,
-  truncate,
-} from "@dub/utils";
+import { SHORT_DOMAIN, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { combineTagIds } from "./utils";
+import { combineTagIds, transformLink } from "./utils";
 
 export async function editLink({
   oldDomain = SHORT_DOMAIN,
@@ -125,19 +120,5 @@ export async function editLink({
       redis.hdel(oldDomain, oldKey.toLowerCase()),
   ]);
 
-  const shortLink = linkConstructor({
-    domain: response.domain,
-    key: response.key,
-  });
-
-  const tags = response.tags.map(({ tag }) => tag);
-
-  return {
-    ...response,
-    tagId: tags?.[0]?.id ?? null, // backwards compatibility
-    tags,
-    shortLink,
-    qrCode: `https://api.dub.co/qr?url=${shortLink}`,
-    workspaceId: `ws_${response.projectId}`,
-  };
+  return transformLink(response);
 }
