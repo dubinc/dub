@@ -482,20 +482,20 @@ function AddEditLinkModal({
                   >
                     Short Link
                   </label>
-                  <div className="flex items-center">
-                    {props && lockKey ? (
-                      <button
-                        className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                        type="button"
-                        onClick={() => {
-                          window.confirm(
-                            "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
-                          ) && setLockKey(false);
-                        }}
-                      >
-                        <Lock className="h-3 w-3" />
-                      </button>
-                    ) : (
+                  {props && lockKey ? (
+                    <button
+                      className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                      type="button"
+                      onClick={() => {
+                        window.confirm(
+                          "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
+                        ) && setLockKey(false);
+                      }}
+                    >
+                      <Lock className="h-3 w-3" />
+                    </button>
+                  ) : (
+                    <div className="flex items-center">
                       <Tooltip content="Generate a random key">
                         <button
                           className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
@@ -510,30 +510,30 @@ function AddEditLinkModal({
                           )}
                         </button>
                       </Tooltip>
-                    )}
-                    <Tooltip
-                      content={
-                        !url
-                          ? "Please enter a destination URL to generate AI Short Link."
-                          : "Create Short Link with AI"
-                      }
-                    >
-                      <button
-                        className="ml-2 flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                        onClick={generateAIKey}
-                        disabled={
-                          generatingAIKey || generatingRandomKey || !url
+                      <Tooltip
+                        content={
+                          !url
+                            ? "Please enter a destination URL to generate AI Short Link."
+                            : "Create Short Link with AI"
                         }
-                        type="button"
                       >
-                        {generatingAIKey ? (
-                          <LoadingCircle />
-                        ) : (
-                          <Magic className="h-4 w-4" />
-                        )}
-                      </button>
-                    </Tooltip>
-                  </div>
+                        <button
+                          className="ml-2 flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                          onClick={generateAIKey}
+                          disabled={
+                            generatingAIKey || generatingRandomKey || !url
+                          }
+                          type="button"
+                        >
+                          {generatingAIKey ? (
+                            <LoadingCircle />
+                          ) : (
+                            <Magic className="h-4 w-4" />
+                          )}
+                        </button>
+                      </Tooltip>
+                    </div>
+                  )}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
                   <select
