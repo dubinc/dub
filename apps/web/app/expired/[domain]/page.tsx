@@ -1,4 +1,4 @@
-import { getWorkspaceViaEdge } from "@/lib/planetscale";
+import { getDomainViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { Background, Footer, Nav } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { TimerOff } from "lucide-react";
@@ -16,12 +16,12 @@ export const metadata = constructMetadata({
 export default async function ExpiredPage({
   params,
 }: {
-  params: { workspaceId: string };
+  params: { domain: string };
 }) {
-  const workspace = await getWorkspaceViaEdge(params.workspaceId);
+  const domain = await getDomainViaEdge(params.domain);
 
-  if (workspace?.slug === "acme") {
-    redirect("https://dub.co");
+  if (domain?.expiredUrl) {
+    redirect(domain.expiredUrl);
   }
 
   return (

@@ -125,7 +125,7 @@ export default async function LinkMiddleware(
       return NextResponse.redirect(expiredUrl, DUB_HEADERS);
     } else {
       return NextResponse.rewrite(
-        new URL(`/expired/${link.projectId}`, req.url),
+        new URL(`/expired/${domain}`, req.url),
         DUB_HEADERS,
       );
     }

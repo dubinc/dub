@@ -100,7 +100,6 @@ model Project {
   domainsLimit      Int     @default(3)
   tagsLimit         Int     @default(5)
   usersLimit        Int     @default(1)
-  expiredUrl        String? @db.LongText // URL to redirect to for expired links
   monitoringId      String? @unique // cron job ID for monitoring
 
   users      ProjectUsers[]
@@ -174,19 +173,24 @@ model Domain {
   id          String    @id @default(cuid())
   slug        String    @unique
   verified    Boolean   @default(false)
-  target      String?
-  type        String    @default("redirect")
   placeholder String    @default("https://dub.co/help/article/what-is-dub")
   description String?
-  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String?
   primary     Boolean   @default(false)
   archived    Boolean   @default(false)
-  publicStats Boolean   @default(false)
+  expiredUrl  String? @db.LongText // URL to redirect to for expired links
+  lastChecked DateTime  @default(now())
   links       Link[]
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
+
+  // TODO: migrate these attributes to Link model
+  target      String?
+  type        String    @default("redirect")
   clicks      Int       @default(0)
   lastClicked DateTime? // when the link was last clicked
-  lastChecked DateTime  @default(now())
+  publicStats Boolean   @default(false)
+
+  // these attributes will exist on both Link and Domain models
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
