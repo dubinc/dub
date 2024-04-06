@@ -177,16 +177,18 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                     icon={<QrCode className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
                   />
-                  <Button
-                    text="Set as Primary"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowPrimaryDomainModal(true);
-                    }}
-                    icon={<FileCog className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
+                  {!primary && (
+                    <Button
+                      text="Set as Primary"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowPrimaryDomainModal(true);
+                      }}
+                      icon={<FileCog className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                  )}
                   <Button
                     text={archived ? "Unarchive" : "Archive"}
                     variant="outline"
