@@ -51,7 +51,7 @@ export const POST = withAuth(
       });
     }
 
-    await prisma.domain.update({
+    const response = await prisma.domain.update({
       where: { slug: domain, projectId: workspace.id },
       data: { projectId: newWorkspaceId },
     });
@@ -65,7 +65,7 @@ export const POST = withAuth(
       },
     });
 
-    return NextResponse.json({}, { headers });
+    return NextResponse.json(response, { headers });
   },
   { requiredRole: ["owner"] },
 );
