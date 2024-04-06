@@ -23,6 +23,7 @@ export const GET = withAuth(async ({ workspace }) => {
       type: true,
       placeholder: true,
       clicks: true,
+      expiredUrl: true,
     },
   });
   return NextResponse.json(domains);

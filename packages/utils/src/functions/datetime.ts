@@ -1,3 +1,5 @@
+import * as chrono from "chrono-node";
+
 export const getDateTimeLocal = (timestamp?: Date): string => {
   const d = timestamp ? new Date(timestamp) : new Date();
   if (d.toString() === "Invalid Date") return "";
@@ -8,12 +10,28 @@ export const getDateTimeLocal = (timestamp?: Date): string => {
     .join(":");
 };
 
+// Function to parse a date string into a Date object
+export const parseDateTime = (text: string) => {
+  return chrono.parseDate(text);
+};
+
 export const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
     timeZone: "UTC",
+  });
+};
+
+export const formatDateTime = (datetime: Date | string) => {
+  return new Date(datetime).toLocaleTimeString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
   });
 };
 

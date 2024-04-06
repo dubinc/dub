@@ -34,6 +34,7 @@ export async function processLink({
     password,
     rewrite,
     expiresAt,
+    expiredUrl,
     ios,
     android,
     geo,
@@ -214,6 +215,13 @@ export async function processLink({
       return {
         link: payload,
         error: "Expiry date must be in the future.",
+        code: "unprocessable_entity",
+      };
+    }
+    if (expiredUrl && !isValidUrl(getUrlFromString(expiredUrl))) {
+      return {
+        link: payload,
+        error: "Invalid expired URL.",
         code: "unprocessable_entity",
       };
     }

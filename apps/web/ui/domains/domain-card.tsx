@@ -28,7 +28,6 @@ import DomainConfiguration from "./domain-configuration";
 import { useRef, useState } from "react";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
-import { toast } from "sonner";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
 
 export default function DomainCard({ props }: { props: DomainProps }) {

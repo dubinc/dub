@@ -1,6 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
+import { AlertCircleFill } from "@/ui/shared/icons";
 import {
+  ExpandingArrow,
   InfoTooltip,
   SimpleTooltipContent,
   Switch,
@@ -10,10 +12,12 @@ import { TooltipContent } from "@dub/ui/src/tooltip";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   HOME_DOMAIN,
+  formatDateTime,
   getDateTimeLocal,
+  parseDateTime,
 } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 export default function ExpirationSection({
   props,
@@ -26,27 +30,32 @@ export default function ExpirationSection({
 }) {
   const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const { expiresAt } = data;
-  const [enabled, setEnabled] = useState(!!expiresAt);
+  const { expiresAt, expiredUrl } = data;
+  // const [enabled, setEnabled] = useState(!!expiresAt);
+  const [enabled, setEnabled] = useState(true);
   useEffect(() => {
     if (enabled) {
       // if enabling, add previous expiration date if exists
       setData({
         ...data,
         expiresAt: props?.expiresAt || expiresAt,
+        expiredUrl: props?.expiredUrl || null,
       });
     } else {
-      // if disabling, remove expiration date
-      setData({ ...data, expiresAt: null });
+      // if disabling, remove expiration date and expired URL
+      setData({ ...data, expiresAt: null, expiredUrl: null });
     }
   }, [enabled]);
+
+  const [expiredUrlError, setExpiredUrlError] = useState<string | null>(null);
 
   return (
     <div className="relative border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
-          <h2 className="text-sm font-medium text-gray-900">Expiration Date</h2>
+          <h2 className="text-sm font-medium text-gray-900">Link Expiration</h2>
           <InfoTooltip
             content={
               <SimpleTooltipContent
@@ -87,18 +96,97 @@ export default function ExpirationSection({
       </div>
       {enabled && (
         <motion.div className="mt-3" {...FADE_IN_ANIMATION_SETTINGS}>
-          <input
-            type="datetime-local"
-            id="expiresAt"
-            name="expiresAt"
-            min={getDateTimeLocal()}
-            value={expiresAt ? getDateTimeLocal(expiresAt) : ""}
-            step="60" // need to add step to prevent weird date bug (https://stackoverflow.com/q/19284193/10639526)
-            onChange={(e) => {
-              setData({ ...data, expiresAt: new Date(e.target.value) });
-            }}
-            className="flex w-full items-center justify-center space-x-2 rounded-md border border-gray-300 px-3 py-2 text-gray-500 shadow-sm transition-all hover:border-gray-800 focus:border-gray-800 focus:outline-none focus:ring-gray-500 sm:text-sm"
-          />
+          <div className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white shadow-sm transition-all focus-within:border-gray-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-gray-500">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
+              onBlur={(e) => {
+                if (e.target.value.length > 0) {
+                  const parsedDateTime = parseDateTime(e.target.value);
+                  if (parsedDateTime) {
+                    setData({ ...data, expiresAt: parsedDateTime });
+                    e.target.value = formatDateTime(parsedDateTime);
+                  }
+                }
+              }}
+              className="flex-1 border-none bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+            />
+            <input
+              type="datetime-local"
+              id="expiresAt"
+              name="expiresAt"
+              value={expiresAt ? getDateTimeLocal(expiresAt) : ""}
+              onChange={(e) => {
+                const expiryDate = new Date(e.target.value);
+                setData({ ...data, expiresAt: expiryDate });
+                if (inputRef.current) {
+                  inputRef.current.value = formatDateTime(expiryDate);
+                }
+              }}
+              className="w-[40px] border-none bg-transparent text-gray-500 focus:outline-none focus:ring-0 sm:text-sm"
+            />
+          </div>
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="expiredUrl"
+                className="flex items-center space-x-2"
+              >
+                <p className="text-sm font-medium text-gray-700">Expired URL</p>
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="Redirect users to a specific URL when the link has expired."
+                      cta="Learn more."
+                      href={`${HOME_DOMAIN}/help/article/link-expiration`}
+                    />
+                  }
+                />
+              </label>
+              {expiredUrlError && (
+                <p className="text-sm text-red-600" id="key-error">
+                  Invalid url.
+                </p>
+              )}
+            </div>
+            <div className="relative mt-3 flex rounded-md shadow-sm">
+              <input
+                name="expiredUrl"
+                id="expiredUrl"
+                tabIndex={0}
+                placeholder="https://yourwebsite.com"
+                value={expiredUrl || ""}
+                autoComplete="off"
+                onChange={(e) => {
+                  setExpiredUrlError(null);
+                  setData({ ...data, expiredUrl: e.target.value });
+                }}
+                className={`${
+                  expiredUrlError
+                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                    : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                } block w-full rounded-md focus:outline-none sm:text-sm`}
+                aria-invalid="true"
+              />
+              {expiredUrlError && (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <AlertCircleFill
+                    className="h-5 w-5 text-red-500"
+                    aria-hidden="true"
+                  />
+                </div>
+              )}
+            </div>
+            <a
+              href={`${HOME_DOMAIN}/help/article/link-expiration`}
+              target="_blank"
+              className="group mt-3 flex items-center text-sm text-gray-500 hover:text-gray-700"
+            >
+              <p>Or set a default expired URL for your domain</p>
+              <ExpandingArrow />
+            </a>
+          </div>
         </motion.div>
       )}
     </div>

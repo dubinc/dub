@@ -54,11 +54,10 @@ function AddEditDomainModal({
       type: "redirect",
       clicks: 0,
       projectId: id || "",
-      expiredUrl: "",
     },
   );
 
-  const { slug: domain, primary, target, type, placeholder, expiredUrl } = data;
+  const { slug: domain, target, type, placeholder, expiredUrl } = data;
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -194,19 +193,7 @@ function AddEditDomainModal({
             <h2 className="text-sm font-medium text-gray-900">Landing Page</h2>
             <InfoTooltip content="The page your users will get redirected to when they visit your domain." />
           </label>
-          {plan !== "free" ? (
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                type="url"
-                name="target"
-                id="target"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                placeholder="https://example.com"
-                value={target}
-                onChange={(e) => setData({ ...data, target: e.target.value })}
-              />
-            </div>
-          ) : (
+          {plan === "free" ? (
             <Tooltip
               content={
                 <TooltipContent
@@ -227,6 +214,18 @@ function AddEditDomainModal({
                 https://yourdomain.com
               </div>
             </Tooltip>
+          ) : (
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                type="url"
+                name="target"
+                id="target"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                placeholder="https://example.com"
+                value={target}
+                onChange={(e) => setData({ ...data, target: e.target.value })}
+              />
+            </div>
           )}
         </div>
         {target && (
@@ -281,21 +280,7 @@ function AddEditDomainModal({
                 <InfoTooltip content="URL to redirect your users to to when a link with this domain has expired." />
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
-                {plan !== "free" ? (
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <input
-                      type="url"
-                      name="expiredUrl"
-                      id="expiredUrl"
-                      className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                      placeholder="https://yourwebsite.com"
-                      value={expiredUrl}
-                      onChange={(e) =>
-                        setData({ ...data, expiredUrl: e.target.value })
-                      }
-                    />
-                  </div>
-                ) : (
+                {plan === "free" ? (
                   <Tooltip
                     content={
                       <TooltipContent
@@ -316,6 +301,20 @@ function AddEditDomainModal({
                       https://yourwebsite.com
                     </div>
                   </Tooltip>
+                ) : (
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="url"
+                      name="expiredUrl"
+                      id="expiredUrl"
+                      className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                      placeholder="https://yourwebsite.com"
+                      value={expiredUrl}
+                      onChange={(e) =>
+                        setData({ ...data, expiredUrl: e.target.value })
+                      }
+                    />
+                  </div>
                 )}
               </div>
             </div>

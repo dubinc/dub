@@ -25,6 +25,7 @@ export const GET = withAuth(
         type: true,
         placeholder: true,
         clicks: true,
+        expiredUrl: true,
       },
     });
     if (!data) {
