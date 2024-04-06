@@ -18,11 +18,12 @@ import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
 import { QrCode } from "lucide-react";
 import Link from "next/link";
 import punycode from "punycode/";
+import { useRef } from "react";
 import useSWR, { mutate } from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import DomainConfiguration from "./domain-configuration";
-import { useRef } from "react";
+import { useTransferDomainModal } from "../modals/transfer-domain-modal";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const { id, slug } = useWorkspace();
@@ -73,10 +74,16 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       props,
     });
 
+  const { setShowTransferDomainModal, TransferDomainModal } =
+    useTransferDomainModal({
+      props,
+    });
+
   return (
     <>
       <AddEditDomainModal />
       <LinkQRModal />
+      <TransferDomainModal />
       <div
         ref={domainRef}
         className="flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white px-5 py-8 sm:px-10"
@@ -131,6 +138,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               onClick={() => {
                 mutate(`/api/domains/${domain}/verify?workspaceId=${id}`);
               }}
+            />
+            <Button
+              text="Transfer"
+              variant="secondary"
+              onClick={() => setShowTransferDomainModal(true)}
             />
             <Button
               text="Edit"
