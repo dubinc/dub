@@ -128,9 +128,7 @@ export const createLinkBodySchema = z.object({
   expiresAt: z
     .string()
     .nullish()
-    .describe(
-      "The date and time when the short link will expire in ISO-8601 format. Must be in the future.",
-    ),
+    .describe("The date and time when the short link will expire at."),
   expiredUrl: z
     .string()
     .nullish()
@@ -234,9 +232,10 @@ export const LinkSchema = z
       .describe("Whether the short link is archived."),
     expiresAt: z
       .string()
+      .datetime()
       .nullable()
       .describe(
-        "The date and time when the short link will expire in ISO-8601 format. Must be in the future.",
+        "The date and time when the short link will expire in ISO-8601 format.",
       ),
     expiredUrl: z
       .string()

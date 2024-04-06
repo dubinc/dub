@@ -97,6 +97,7 @@ export default function ExpirationSection({
               ref={inputRef}
               type="text"
               placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
+              defaultValue={expiresAt ? formatDateTime(expiresAt) : ""}
               onBlur={(e) => {
                 if (e.target.value.length > 0) {
                   const parsedDateTime = parseDateTime(e.target.value);

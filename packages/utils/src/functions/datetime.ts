@@ -11,12 +11,13 @@ export const getDateTimeLocal = (timestamp?: Date): string => {
 };
 
 // Function to parse a date string into a Date object
-export const parseDateTime = (text: string) => {
-  return chrono.parseDate(text);
+export const parseDateTime = (str: Date | string) => {
+  if (str instanceof Date) return str;
+  return chrono.parseDate(str);
 };
 
-export const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
+export const formatDate = (datetime: Date | string) => {
+  return new Date(datetime).toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
