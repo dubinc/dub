@@ -1,6 +1,8 @@
+import { getAnalytics } from "@/lib/analytics";
+import { setRootDomain } from "@/lib/api/domains";
 import { qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Link } from "@prisma/client";
@@ -28,6 +30,20 @@ export async function POST(req: Request) {
 
   const { currentWorkspaceId, newWorkspaceId, domain } = schema.parse(body);
 
+  const newWorkspace = await prisma.project.findUniqueOrThrow({
+    where: { id: newWorkspaceId },
+    select: { plan: true },
+  });
+
+  const domainRecord = await prisma.domain.findUniqueOrThrow({
+    where: { slug: domain },
+    select: {
+      id: true,
+      target: true,
+      type: true,
+    },
+  });
+
   const links = await prisma.link.findMany({
     where: { domain, projectId: currentWorkspaceId },
     take: 100,
@@ -40,54 +56,95 @@ export async function POST(req: Request) {
   }
 
   const linksCount = links.length;
-
-  // Object.entries(linksByDomain).forEach(([domain, links]) => {
-  //   pipeline.hdel(domain, ...links);
-  // });
-
-  // [link.key.toLowerCase()]: {
-  //   ...(await formatRedisLink(link)),
-  //   projectId: LEGAL_WORKSPACE_ID,
-  // },
+  const linkIds = links.map((link) => link.id);
 
   try {
+    // Update links in the redis
     const updateLinksInRedis = async (links: Link[]) => {
       const pipeline = redis.pipeline();
 
-      links.forEach((link) =>
-        pipeline.hset(domain, {
-          [link.key.toLowerCase()]: {
-            // ...(await formatRedisLink(link)),
+      const formatedLinks = await Promise.all(
+        links.map(async (link) => {
+          return {
+            ...(await formatRedisLink(link)),
             projectId: newWorkspaceId,
-          },
+            key: link.key.toLowerCase(),
+          };
         }),
       );
 
-      pipeline.exec();
+      formatedLinks.map((formatedLink) => {
+        const { key, ...rest } = formatedLink;
+
+        pipeline.hset(domain, {
+          [formatedLink.key]: rest,
+        });
+      });
+
+      await pipeline.exec();
     };
 
-    await Promise.allSettled([
+    // Update analytics
+    const updateAnalytics = async (links: Link[]) => {
+      const linkClicks = (await Promise.all(
+        links.map((link) =>
+          getAnalytics({
+            linkId: link.id,
+            endpoint: "clicks",
+            interval: "30d",
+          }),
+        ),
+      )) as number[];
+
+      const totalLinkClicks = linkClicks.reduce((acc, curr) => acc + curr, 0);
+
+      await Promise.all([
+        prisma.project.update({
+          where: {
+            id: currentWorkspaceId,
+          },
+          data: {
+            usage: {
+              decrement: totalLinkClicks,
+            },
+            linksUsage: {
+              decrement: linksCount,
+            },
+          },
+        }),
+        prisma.project.update({
+          where: {
+            id: newWorkspaceId,
+          },
+          data: {
+            usage: {
+              increment: totalLinkClicks,
+            },
+            linksUsage: {
+              increment: linksCount,
+            },
+          },
+        }),
+      ]);
+    };
+
+    await Promise.all([
       prisma.link.updateMany({
-        where: { domain, projectId: currentWorkspaceId },
+        where: { domain, projectId: currentWorkspaceId, id: { in: linkIds } },
         data: { projectId: newWorkspaceId },
       }),
-      prisma.project.update({
-        where: { id: currentWorkspaceId },
-        data: {
-          linksUsage: {
-            decrement: linksCount,
-          },
-        },
+      setRootDomain({
+        id: domainRecord.id,
+        domain,
+        projectId: newWorkspaceId,
+        ...(newWorkspace.plan !== "free" &&
+          domainRecord.target && {
+            url: domainRecord.target,
+          }),
+        rewrite: domainRecord.type === "rewrite",
       }),
-      prisma.project.update({
-        where: { id: newWorkspaceId },
-        data: {
-          linksUsage: {
-            increment: linksCount,
-          },
-        },
-      }),
-      updateLinksInRedis(links)
+      updateLinksInRedis(links),
+      updateAnalytics(links),
     ]);
 
     // wait 500 ms before making another request
@@ -101,6 +158,10 @@ export async function POST(req: Request) {
         domain,
       },
     });
+
+    return NextResponse.json({
+      response: "success",
+    });
   } catch (error) {
     await log({
       message: `Domain transfer cron for the workspace ${newWorkspaceId} failed. Error: ${error.message}`,
@@ -111,7 +172,7 @@ export async function POST(req: Request) {
   }
 
   // TODO:
-  // Update redis
   // Update TB
-  // Update analytics
+  // Clear tags when transferring link
+  // Send email
 }
