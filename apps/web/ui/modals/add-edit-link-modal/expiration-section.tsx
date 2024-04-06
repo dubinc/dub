@@ -1,6 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import { AlertCircleFill } from "@/ui/shared/icons";
 import {
   ExpandingArrow,
   InfoTooltip,
@@ -33,8 +32,7 @@ export default function ExpirationSection({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { expiresAt, expiredUrl } = data;
-  // const [enabled, setEnabled] = useState(!!expiresAt);
-  const [enabled, setEnabled] = useState(true);
+  const [enabled, setEnabled] = useState(!!expiresAt);
   useEffect(() => {
     if (enabled) {
       // if enabling, add previous expiration date if exists
@@ -48,8 +46,6 @@ export default function ExpirationSection({
       setData({ ...data, expiresAt: null, expiredUrl: null });
     }
   }, [enabled]);
-
-  const [expiredUrlError, setExpiredUrlError] = useState<string | null>(null);
 
   return (
     <div className="relative border-b border-gray-200 pb-5">
@@ -144,13 +140,8 @@ export default function ExpirationSection({
                   }
                 />
               </label>
-              {expiredUrlError && (
-                <p className="text-sm text-red-600" id="key-error">
-                  Invalid url.
-                </p>
-              )}
             </div>
-            <div className="relative mt-3 flex rounded-md shadow-sm">
+            <div className="mt-3 flex rounded-md shadow-sm">
               <input
                 name="expiredUrl"
                 id="expiredUrl"
@@ -159,24 +150,11 @@ export default function ExpirationSection({
                 value={expiredUrl || ""}
                 autoComplete="off"
                 onChange={(e) => {
-                  setExpiredUrlError(null);
                   setData({ ...data, expiredUrl: e.target.value });
                 }}
-                className={`${
-                  expiredUrlError
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                } block w-full rounded-md focus:outline-none sm:text-sm`}
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 aria-invalid="true"
               />
-              {expiredUrlError && (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <AlertCircleFill
-                    className="h-5 w-5 text-red-500"
-                    aria-hidden="true"
-                  />
-                </div>
-              )}
             </div>
             <a
               href={`${HOME_DOMAIN}/help/article/link-expiration`}
