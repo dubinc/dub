@@ -63,21 +63,18 @@ function AddEditDomainModal({
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
   const [domainError, setDomainError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const saveDisabled = useMemo(() => {
     /* 
       Disable save if:
       - modal is not open
       - saving is in progress
-      - deleting is in progress
       - domain is invalid
       - for an existing domain, there's no changes
     */
     if (
       !showAddEditDomainModal ||
       saving ||
-      deleting ||
       domainError ||
       (props &&
         Object.entries(props).every(([key, value]) => data[key] === value))
@@ -273,45 +270,6 @@ function AddEditDomainModal({
             {...FADE_IN_ANIMATION_SETTINGS}
             className="flex flex-col space-y-6"
           >
-            <div className="flex items-center justify-between bg-gray-50">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">
-                  Primary Domain
-                </h2>
-                <InfoTooltip content="The default domain used in the link creation modal. You can only have one primary domain at a time." />
-              </div>
-              <Switch
-                fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
-                checked={primary}
-                disabled={props?.primary}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="placeholder"
-                className="flex items-center space-x-2"
-              >
-                <h2 className="text-sm font-medium text-gray-900">
-                  Input Placeholder URL
-                </h2>
-                <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  type="url"
-                  name="placeholder"
-                  id="placeholder"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  placeholder="https://dub.co/help/article/what-is-dub"
-                  value={placeholder}
-                  onChange={(e) =>
-                    setData({ ...data, placeholder: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
             <div>
               <label
                 htmlFor="expiredUrl"
@@ -359,6 +317,31 @@ function AddEditDomainModal({
                     </div>
                   </Tooltip>
                 )}
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="placeholder"
+                className="flex items-center space-x-2"
+              >
+                <h2 className="text-sm font-medium text-gray-900">
+                  Input Placeholder URL
+                </h2>
+                <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <input
+                  type="url"
+                  name="placeholder"
+                  id="placeholder"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  placeholder="https://dub.co/help/article/what-is-dub"
+                  value={placeholder}
+                  onChange={(e) =>
+                    setData({ ...data, placeholder: e.target.value })
+                  }
+                />
               </div>
             </div>
           </motion.div>

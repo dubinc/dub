@@ -18,7 +18,7 @@ import {
   useIntersectionObserver,
 } from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
-import { Archive, Edit3, QrCode } from "lucide-react";
+import { Archive, Edit3, FileCog, QrCode } from "lucide-react";
 import Link from "next/link";
 import punycode from "punycode/";
 import useSWR, { mutate } from "swr";
@@ -28,9 +28,10 @@ import DomainConfiguration from "./domain-configuration";
 import { useRef, useState } from "react";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
+import { toast } from "sonner";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
-  const { id, slug } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
 
   const { slug: domain, primary, target, type, archived } = props || {};
 
@@ -49,10 +50,10 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     status: DomainVerificationStatusProps;
     response: any;
   }>(
-    id &&
+    workspaceId &&
       isVisible &&
       !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
-      `/api/domains/${domain}/verify?workspaceId=${id}`,
+      `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
     {
       revalidateOnFocus: true,
@@ -65,7 +66,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   );
 
   const { data: clicks } = useSWR<number>(
-    id && `/api/analytics/clicks?workspaceId=${id}&domain=${domain}&key=_root`,
+    workspaceId &&
+      `/api/analytics/clicks?workspaceId=${workspaceId}&domain=${domain}&key=_root`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -88,6 +90,21 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const { setShowDeleteDomainModal, DeleteDomainModal } = useDeleteDomainModal({
     props,
   });
+
+  const setPrimary = async () => {
+    const response = await fetch(
+      `/api/domains/${domain}/primary?workspaceId=${workspaceId}`,
+      {
+        method: "POST",
+      },
+    );
+    if (response.ok) {
+      await mutate(`/api/domains?workspaceId=${workspaceId}`);
+    } else {
+      const { error } = await response.json();
+      throw new Error(error.message);
+    }
+  };
 
   return (
     <>
@@ -140,12 +157,14 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               variant="secondary"
               loading={isValidating}
               onClick={() => {
-                mutate(`/api/domains/${domain}/verify?workspaceId=${id}`);
+                mutate(
+                  `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
+                );
               }}
             />
             <Popover
               content={
-                <div className="grid w-full gap-px p-2 sm:w-48">
+                <div className="grid w-full gap-px p-2 sm:w-44">
                   <Button
                     text="Edit"
                     variant="outline"
@@ -154,8 +173,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                       setShowAddEditDomainModal(true);
                     }}
                     icon={<Edit3 className="h-4 w-4" />}
-                    shortcut="E"
-                    className="h-9 px-2 font-medium"
+                    className="h-9 justify-start px-2 font-medium"
                   />
                   <Button
                     text="QR Code"
@@ -165,8 +183,29 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                       setShowLinkQRModal(true);
                     }}
                     icon={<QrCode className="h-4 w-4" />}
-                    shortcut="Q"
-                    className="h-9 px-2 font-medium"
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                  <Button
+                    text="Set as Primary"
+                    variant="outline"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Setting this domain as primary will make it the default domain in the link creation modal, as well as via the API. Are you sure you want to proceed?",
+                        )
+                      ) {
+                        setOpenPopover(false);
+                        toast.promise(setPrimary(), {
+                          loading: `Setting ${domain} as the primary domain...`,
+                          success: `Successfully set ${domain} as the primary domain!`,
+                          error: (error) => {
+                            return error.message;
+                          },
+                        });
+                      }
+                    }}
+                    icon={<FileCog className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
                   />
                   <Button
                     text={archived ? "Unarchive" : "Archive"}
@@ -176,8 +215,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                       setShowArchiveDomainModal(true);
                     }}
                     icon={<Archive className="h-4 w-4" />}
-                    shortcut="A"
-                    className="h-9 px-2 font-medium"
+                    className="h-9 justify-start px-2 font-medium"
                   />
                   <Button
                     text="Delete"
@@ -187,8 +225,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                       setShowDeleteDomainModal(true);
                     }}
                     icon={<Delete className="h-4 w-4" />}
-                    shortcut="X"
-                    className="h-9 px-2 font-medium"
+                    className="h-9 justify-start px-2 font-medium"
                   />
                 </div>
               }
