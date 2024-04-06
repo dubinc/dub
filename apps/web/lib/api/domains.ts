@@ -272,8 +272,3 @@ export async function deleteDomainAndLinks(
       }),
   ]);
 }
-
-// Transfer domain
-const transferDomain = async () => {
-  //
-}

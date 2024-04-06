@@ -436,6 +436,7 @@ export const withAuth = (
         link,
       });
     } catch (error) {
+      console.log(error)
       return handleAndReturnErrorResponse(error);
     }
   };

@@ -1,7 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 const transferDomainBodySchema = z.object({
@@ -15,12 +17,11 @@ const transferDomainBodySchema = z.object({
 export const POST = withAuth(
   async ({ req, headers, session, params, workspace }) => {
     const { newWorkspaceId } = transferDomainBodySchema.parse(await req.json());
+    const { domain } = params;
 
     const newWorkspace = await prisma.project.findUnique({
       where: { id: newWorkspaceId },
       select: {
-        linksUsage: true,
-        linksLimit: true,
         users: {
           where: {
             userId: session.user.id,
@@ -39,14 +40,32 @@ export const POST = withAuth(
       });
     }
 
-    const domain = await prisma.domain.findUniqueOrThrow({
-      where: { slug: params.domain, projectId: workspace.id },
+    const domainFound = await prisma.domain.findUnique({
+      where: { slug: domain, projectId: workspace.id },
     });
 
+    if (!domainFound) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Domain not found",
+      });
+    }
+
     await prisma.domain.update({
-      where: { slug: domain.slug, projectId: workspace.id },
+      where: { slug: domain, projectId: workspace.id },
       data: { projectId: newWorkspaceId },
     });
+
+    qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,
+      body: {
+        currentWorkspaceId: workspace.id,
+        newWorkspaceId,
+        domain,
+      },
+    });
+
+    return NextResponse.json({}, { headers });
 
     // const link = await prisma.link.findUnique({
     //   where: {
@@ -124,12 +143,6 @@ export const POST = withAuth(
     //     },
     //   }),
     // ]);
-
-    return NextResponse.json(
-      {},
-      {
-        headers,
-      },
-    );
   },
+  { requiredRole: ["owner"] },
 );
