@@ -29,6 +29,7 @@ import { useRef, useState } from "react";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { toast } from "sonner";
+import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const { id: workspaceId, slug } = useWorkspace();
@@ -82,6 +83,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       props,
     });
 
+  const { setShowPrimaryDomainModal, PrimaryDomainModal } =
+    usePrimaryDomainModal({
+      props,
+    });
+
   const { setShowArchiveDomainModal, ArchiveDomainModal } =
     useArchiveDomainModal({
       props,
@@ -91,25 +97,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     props,
   });
 
-  const setPrimary = async () => {
-    const response = await fetch(
-      `/api/domains/${domain}/primary?workspaceId=${workspaceId}`,
-      {
-        method: "POST",
-      },
-    );
-    if (response.ok) {
-      await mutate(`/api/domains?workspaceId=${workspaceId}`);
-    } else {
-      const { error } = await response.json();
-      throw new Error(error.message);
-    }
-  };
-
   return (
     <>
       <AddEditDomainModal />
       <LinkQRModal />
+      <PrimaryDomainModal />
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <div
@@ -189,20 +181,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                     text="Set as Primary"
                     variant="outline"
                     onClick={() => {
-                      if (
-                        window.confirm(
-                          "Setting this domain as primary will make it the default domain in the link creation modal, as well as via the API. Are you sure you want to proceed?",
-                        )
-                      ) {
-                        setOpenPopover(false);
-                        toast.promise(setPrimary(), {
-                          loading: `Setting ${domain} as the primary domain...`,
-                          success: `Successfully set ${domain} as the primary domain!`,
-                          error: (error) => {
-                            return error.message;
-                          },
-                        });
-                      }
+                      setOpenPopover(false);
+                      setShowPrimaryDomainModal(true);
                     }}
                     icon={<FileCog className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"

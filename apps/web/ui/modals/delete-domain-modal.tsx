@@ -1,7 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { getApexDomain } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -25,7 +24,6 @@ function DeleteDomainModal({
   const { id } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
   const domain = props.slug;
-  const apexDomain = getApexDomain(domain);
 
   const { isMobile } = useMediaQuery();
 
@@ -35,7 +33,7 @@ function DeleteDomainModal({
       setShowModal={setShowDeleteDomainModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <LinkLogo apexDomain={apexDomain} />
+        <LinkLogo apexDomain={domain} />
         <h3 className="text-lg font-medium">Delete {domain}</h3>
         <p className="text-sm text-gray-500">
           Warning: Deleting this domain will delete all associated links as well
