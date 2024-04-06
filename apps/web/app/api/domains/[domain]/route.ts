@@ -50,6 +50,7 @@ export const PUT = withAuth(async ({ req, workspace, domain }) => {
     placeholder,
     primary,
     archived,
+    expiredUrl,
   } = await req.json();
 
   if (isDubDomain(domain) && workspace.id !== DUB_WORKSPACE_ID) {
@@ -79,15 +80,11 @@ export const PUT = withAuth(async ({ req, workspace, domain }) => {
         ...(newDomain !== domain && {
           slug: newDomain,
         }),
-        // same logic as the redis part above
-        ...(workspace.plan !== "free" &&
-          (target
-            ? {
-                target,
-              }
-            : {
-                target: null,
-              })),
+        // only set target and expiredUrl if the workspace is not free
+        ...(workspace.plan !== "free" && {
+          target: target || null,
+          expiredUrl: expiredUrl || null,
+        }),
         type,
         placeholder,
         primary,
