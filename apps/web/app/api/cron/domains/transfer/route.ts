@@ -30,24 +30,24 @@ export async function POST(req: Request) {
 
   const { currentWorkspaceId, newWorkspaceId, domain } = schema.parse(body);
 
-  const newWorkspace = await prisma.project.findUniqueOrThrow({
-    where: { id: newWorkspaceId },
-    select: { plan: true },
-  });
-
-  const domainRecord = await prisma.domain.findUniqueOrThrow({
-    where: { slug: domain },
-    select: {
-      id: true,
-      target: true,
-      type: true,
-    },
-  });
-
-  const links = await prisma.link.findMany({
-    where: { domain, projectId: currentWorkspaceId },
-    take: 100,
-  });
+  const [newWorkspace, domainRecord, links] = await Promise.all([
+    prisma.project.findUniqueOrThrow({
+      where: { id: newWorkspaceId },
+      select: { plan: true },
+    }),
+    prisma.domain.findUniqueOrThrow({
+      where: { slug: domain },
+      select: {
+        id: true,
+        target: true,
+        type: true,
+      },
+    }),
+    prisma.link.findMany({
+      where: { domain, projectId: currentWorkspaceId },
+      take: 100,
+    }),
+  ]);
 
   if (!links || links.length === 0) {
     return NextResponse.json({
