@@ -133,6 +133,10 @@ export async function POST(req: Request) {
         where: { domain, projectId: currentWorkspaceId, id: { in: linkIds } },
         data: { projectId: newWorkspaceId },
       }),
+      prisma.linkTag.deleteMany({
+        where: { linkId: { in: linkIds } },
+      }),
+      updateLinksInRedis(links),
       setRootDomain({
         id: domainRecord.id,
         domain,
@@ -143,7 +147,6 @@ export async function POST(req: Request) {
           }),
         rewrite: domainRecord.type === "rewrite",
       }),
-      updateLinksInRedis(links),
       updateAnalytics(links),
     ]);
 
@@ -173,6 +176,5 @@ export async function POST(req: Request) {
 
   // TODO:
   // Update TB
-  // Clear tags when transferring link
   // Send email
 }
