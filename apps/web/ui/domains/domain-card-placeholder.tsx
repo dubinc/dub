@@ -8,7 +8,7 @@ export default function DomainCardPlaceholder() {
         </div>
         <div className="flex space-x-3">
           <div className="h-9 w-24 animate-pulse rounded-md bg-gray-200" />
-          <div className="h-9 w-24 animate-pulse rounded-md bg-gray-200" />
+          <div className="h-9 w-9 animate-pulse rounded-md bg-gray-200" />
         </div>
       </div>
       <div className="flex h-10 flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-5 sm:space-y-0">

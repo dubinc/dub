@@ -1,6 +1,8 @@
+import { getDomainViaEdge } from "@/lib/planetscale";
 import { Background, Footer, Nav } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { TimerOff } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export const runtime = "edge";
 
@@ -11,7 +13,17 @@ export const metadata = constructMetadata({
   noIndex: true,
 });
 
-export default async function ExpiredPage() {
+export default async function ExpiredPage({
+  params,
+}: {
+  params: { domain: string };
+}) {
+  const domain = await getDomainViaEdge(params.domain);
+
+  if (domain?.expiredUrl) {
+    redirect(domain.expiredUrl);
+  }
+
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <Nav />

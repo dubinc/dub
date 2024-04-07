@@ -93,6 +93,8 @@ model Project {
   billingCycleStart Int // day of the month when the billing cycle starts
   usage             Int     @default(0)
   usageLimit        Int     @default(1000)
+  aiUsage           Int     @default(0)
+  aiLimit           Int     @default(10)
   linksUsage        Int     @default(0)
   linksLimit        Int     @default(25)
   domainsLimit      Int     @default(3)
@@ -171,19 +173,24 @@ model Domain {
   id          String    @id @default(cuid())
   slug        String    @unique
   verified    Boolean   @default(false)
-  target      String?
-  type        String    @default("redirect")
   placeholder String    @default("https://dub.co/help/article/what-is-dub")
   description String?
-  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String?
   primary     Boolean   @default(false)
   archived    Boolean   @default(false)
-  publicStats Boolean   @default(false)
+  expiredUrl  String? @db.LongText // URL to redirect to for expired links
+  lastChecked DateTime  @default(now())
   links       Link[]
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
+
+  // TODO: migrate these attributes to Link model
+  target      String?
+  type        String    @default("redirect")
   clicks      Int       @default(0)
   lastClicked DateTime? // when the link was last clicked
-  lastChecked DateTime  @default(now())
+  publicStats Boolean   @default(false)
+
+  // these attributes will exist on both Link and Domain models
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -194,13 +201,14 @@ model Domain {
 }
 
 model Link {
-  id        String    @id @default(cuid())
-  domain    String // domain of the link (e.g. dub.sh) – also stored on Redis
-  key       String // key of the link (e.g. /github) – also stored on Redis
-  url       String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
-  archived  Boolean   @default(false) // whether the link is archived or not
-  expiresAt DateTime? // when the link expires – stored on Redis via ttl
-  password  String? // password to access the link
+  id          String    @id @default(cuid())
+  domain      String // domain of the link (e.g. dub.sh) – also stored on Redis
+  key         String // key of the link (e.g. /github) – also stored on Redis
+  url         String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
+  archived    Boolean   @default(false) // whether the link is archived or not
+  expiresAt   DateTime? // when the link expires – stored on Redis via ttl
+  expiredUrl  String?   @db.LongText // URL to redirect the user to when the link is expired
+  password    String? // password to access the link
 
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)

@@ -114,7 +114,6 @@ function AddWorkspaceModalHelper({
         <a
           href={`${HOME_DOMAIN}/help/article/what-is-a-workspace`}
           target="_blank"
-          rel="noopener noreferrer"
           className="-translate-y-2 text-center text-xs text-gray-500 underline underline-offset-4 hover:text-gray-800"
         >
           What is a workspace?

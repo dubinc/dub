@@ -23,6 +23,7 @@ export const GET = withAuth(async ({ workspace }) => {
       type: true,
       placeholder: true,
       clicks: true,
+      expiredUrl: true,
     },
   });
   return NextResponse.json(domains);
@@ -30,7 +31,7 @@ export const GET = withAuth(async ({ workspace }) => {
 
 // POST /api/domains - add a domain
 export const POST = withAuth(async ({ req, workspace }) => {
-  const { slug: domain, primary, archived, target, type } = await req.json();
+  const { slug: domain, target, type } = await req.json();
 
   if (workspace.domains.length >= workspace.domainsLimit) {
     return new Response(
@@ -57,8 +58,7 @@ export const POST = withAuth(async ({ req, workspace }) => {
           If the domain is being added, we need to:
             1. Add the domain to Vercel
             2. If there's a landing page set, update the root domain in Redis
-            3. If the domain is being set as the primary domain, set all other domains to not be the primary domain
-            4. Add the domain to the database along with its primary status
+            3. If the workspace has no domains (meaning this is the first domain added), set it as primary
         */
   const response = await Promise.all([
     prisma.domain.create({
@@ -67,20 +67,9 @@ export const POST = withAuth(async ({ req, workspace }) => {
         target,
         type,
         projectId: workspace.id,
-        primary: primary || workspace.domains.length === 0,
-        archived,
+        primary: workspace.domains.length === 0,
       },
     }),
-    primary &&
-      prisma.domain.updateMany({
-        where: {
-          projectId: workspace.id,
-          primary: true,
-        },
-        data: {
-          primary: false,
-        },
-      }),
   ]);
 
   await setRootDomain({
