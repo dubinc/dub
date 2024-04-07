@@ -10,14 +10,12 @@ import {
   LoadingCircle,
   Magic,
   Modal,
-  Tooltip,
   TooltipContent,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
   DEFAULT_LINK_PROPS,
-  HOME_DOMAIN,
   cn,
   deepEqual,
   getApexDomain,
@@ -78,18 +76,12 @@ function AddEditLinkModal({
   const { slug } = params;
   const router = useRouter();
   const pathname = usePathname();
-  const {
-    id: workspaceId,
-    aiUsage: tempAiUsage,
-    aiLimit,
-    nextPlan,
-  } = useWorkspace();
+  const { id: workspaceId, aiUsage, aiLimit, nextPlan } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [aiUsage, setAiUsage] = useState(tempAiUsage);
 
   const {
     allActiveDomains: domains,
@@ -160,9 +152,11 @@ function AddEditLinkModal({
     },
     onFinish: (_, completion) => {
       setGeneratedKeys((prev) => [...prev, completion]);
-      setAiUsage((prev) => (prev ? prev + 1 : 1));
+      revalidateAiUsage();
     },
   });
+
+  const revalidateAiUsage = async () => await mutate(`/api/workspaces/${slug}`);
 
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
@@ -681,7 +675,7 @@ function AddEditLinkModal({
               <CommentsSection {...{ props, data, setData }} />
               <UTMSection {...{ props, data, setData }} />
               <OGSection
-                {...{ props, data, setData, aiUsage, setAiUsage }}
+                {...{ props, data, setData, aiUsage, revalidateAiUsage }}
                 generatingMetatags={generatingMetatags}
               />
               <CloakingSection {...{ data, setData }} />

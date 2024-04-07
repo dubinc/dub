@@ -11,9 +11,7 @@ import {
   SimpleTooltipContent,
   Switch,
   Unsplash,
-  useRouterStuff,
 } from "@dub/ui";
-import { Tooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Link2 } from "lucide-react";
@@ -22,25 +20,24 @@ import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
 import { useCompletion } from "ai/react";
 import { toast } from "sonner";
-import SimplePieChart from "@/ui/charts/simple-pie-chart";
-import TooltipButton, { ButtonWithTooltip } from "./tooltip-button";
+import { ButtonWithTooltip } from "./tooltip-button";
 
 export default function OGSection({
   props,
   data,
   setData,
   aiUsage,
-  setAiUsage,
+  revalidateAiUsage,
   generatingMetatags,
 }: {
   props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
   aiUsage?: number;
-  setAiUsage: Dispatch<SetStateAction<number>>;
+  revalidateAiUsage: () => Promise<void>;
   generatingMetatags: boolean;
 }) {
-  const { id: workspaceId, aiLimit, nextPlan } = useWorkspace();
+  const { id: workspaceId, aiLimit } = useWorkspace();
 
   const { title, description, image, proxy } = data;
 
@@ -55,7 +52,7 @@ export default function OGSection({
       toast.error(error.message);
     },
     onFinish: () => {
-      setAiUsage((prev) => (prev ? prev + 1 : 1));
+      revalidateAiUsage();
     },
   });
 
@@ -82,7 +79,7 @@ export default function OGSection({
       toast.error(error.message);
     },
     onFinish: () => {
-      setAiUsage((prev) => (prev ? prev + 1 : 1));
+      revalidateAiUsage();
     },
   });
 

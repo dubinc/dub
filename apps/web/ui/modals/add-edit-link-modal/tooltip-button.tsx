@@ -53,14 +53,14 @@ export default function TooltipButton() {
                   <SimplePieChart
                     data={[
                       {
-                        name: "Used",
-                        value: ai.data.usage,
-                        color: "text-gray-200",
-                      },
-                      {
                         name: "Remaining",
                         value: ai.data.limit - ai.data.usage,
                         color: "text-black",
+                      },
+                      {
+                        name: "Used",
+                        value: ai.data.usage,
+                        color: "text-gray-200",
                       },
                     ]}
                   />

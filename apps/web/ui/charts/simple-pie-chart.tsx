@@ -16,12 +16,13 @@ export default function SimplePieChart({ data }: { data: PieChartData[] }) {
           outerRadius={16}
           innerRadius={10}
           cornerRadius={2}
-          padAngle={0}
+          padAngle={0.02}
+          pieSortValues={() => -1}
         >
           {(pie) => {
-            return pie.arcs.map((arc, i) => {
+            return pie.arcs.map((arc, index) => {
               return (
-                <g key={i}>
+                <g key={`arc-${arc.data.name.toLowerCase()}-${index}`}>
                   <path
                     d={pie.path(arc) || ""}
                     fill="currentColor"
