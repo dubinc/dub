@@ -138,7 +138,7 @@ export default function ExpirationSection({
                     <SimpleTooltipContent
                       title="Redirect users to a specific URL when the link has expired."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/link-expiration`}
+                      href={`${HOME_DOMAIN}/help/article/link-expiration#setting-a-custom-expiration-url`}
                     />
                   }
                 />
@@ -160,7 +160,7 @@ export default function ExpirationSection({
               />
             </div>
             <a
-              href={`${HOME_DOMAIN}/help/article/link-expiration`}
+              href={`${HOME_DOMAIN}/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain`}
               target="_blank"
               className="group mt-3 flex items-center text-sm text-gray-500 hover:text-gray-700"
             >

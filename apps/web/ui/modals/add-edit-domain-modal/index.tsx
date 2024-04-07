@@ -8,12 +8,16 @@ import {
   InfoTooltip,
   Logo,
   Modal,
-  Switch,
+  SimpleTooltipContent,
   Tooltip,
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, capitalize } from "@dub/utils";
+import {
+  FADE_IN_ANIMATION_SETTINGS,
+  HOME_DOMAIN,
+  capitalize,
+} from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -277,7 +281,15 @@ function AddEditDomainModal({
                 <h2 className="text-sm font-medium text-gray-900">
                   Default Expiration URL
                 </h2>
-                <InfoTooltip content="URL to redirect your users to to when a link with this domain has expired." />
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="Redirect users to a specific URL when any link under this domain has expired."
+                      cta="Learn more."
+                      href={`${HOME_DOMAIN}/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain`}
+                    />
+                  }
+                />
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 {plan === "free" ? (
