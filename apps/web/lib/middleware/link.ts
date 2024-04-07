@@ -84,6 +84,7 @@ export default async function LinkMiddleware(
     ios,
     android,
     geo,
+    expiredUrl,
   } = link;
 
   // only show inspect modal if the link is not password protected
@@ -120,7 +121,14 @@ export default async function LinkMiddleware(
 
   // if the link has expired
   if (expiresAt && new Date(expiresAt) < new Date()) {
-    return NextResponse.rewrite(new URL("/expired", req.url), DUB_HEADERS);
+    if (expiredUrl) {
+      return NextResponse.redirect(expiredUrl, DUB_HEADERS);
+    } else {
+      return NextResponse.rewrite(
+        new URL(`/expired/${domain}`, req.url),
+        DUB_HEADERS,
+      );
+    }
   }
 
   const searchParams = req.nextUrl.searchParams;

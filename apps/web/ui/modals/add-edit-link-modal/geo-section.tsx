@@ -7,7 +7,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
+import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -58,7 +58,7 @@ export default function GeoSection({
               <SimpleTooltipContent
                 title="Redirect your users to different links based on their location."
                 cta="Learn more about geo targeting."
-                href={`${HOME_DOMAIN}/help/article/geo-targeting`}
+                href="https://dub.co/help/article/geo-targeting"
               />
             }
           />
@@ -83,7 +83,7 @@ export default function GeoSection({
                             }),
                         }
                       : {
-                          href: `${HOME_DOMAIN}/pricing`,
+                          href: "https://dub.co/pricing",
                         })}
                   />
                 ),
@@ -168,7 +168,7 @@ const GeoSelector = ({
           name="geo-url"
           required
           autoComplete="off"
-          className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+          className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
           value={url}
           placeholder="URL"
           onChange={(e) => {

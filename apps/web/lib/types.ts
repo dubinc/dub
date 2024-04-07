@@ -33,6 +33,7 @@ export interface RedisLinkProps {
   rewrite?: boolean;
   iframeable?: boolean;
   expiresAt?: Date;
+  expiredUrl?: string;
   ios?: string;
   android?: string;
   geo?: object;
@@ -128,6 +129,7 @@ export interface DomainProps {
   placeholder?: string;
   clicks: number;
   projectId: string;
+  expiredUrl?: string;
 }
 export interface RedisDomainProps {
   id: string;

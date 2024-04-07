@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { InputSelect, useRouterStuff } from "@dub/ui";
 import { DUB_LOGO, GOOGLE_FAVICON_URL, getApexDomain } from "@dub/utils";
 import { Globe } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
 import { ModalContext } from "../modals/provider";
 

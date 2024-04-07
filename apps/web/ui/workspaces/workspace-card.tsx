@@ -11,13 +11,7 @@ import {
   NumberTooltip,
   Tooltip,
 } from "@dub/ui";
-import {
-  DICEBEAR_AVATAR_URL,
-  HOME_DOMAIN,
-  cn,
-  fetcher,
-  nFormatter,
-} from "@dub/utils";
+import { DICEBEAR_AVATAR_URL, cn, fetcher, nFormatter } from "@dub/utils";
 import {
   BarChart2,
   ExternalLink,
@@ -70,7 +64,7 @@ export default function WorkspaceCard({
               migrated to a custom workspace.
             </p>
             <a
-              href={`${HOME_DOMAIN}/changelog/dub-links-updates`}
+              href="https://dub.co/changelog/dub-links-updates"
               target="_blank"
               className="mt-1 block text-gray-500 underline underline-offset-4 hover:text-gray-800"
             >

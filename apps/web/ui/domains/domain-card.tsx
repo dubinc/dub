@@ -4,7 +4,9 @@ import {
   AlertCircleFill,
   Chart,
   CheckCircleFill,
+  Delete,
   ExternalLink,
+  ThreeDots,
   XCircleFill,
 } from "@/ui/shared/icons";
 import {
@@ -12,22 +14,26 @@ import {
   LoadingCircle,
   LoadingDots,
   NumberTooltip,
+  Popover,
   useIntersectionObserver,
 } from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
-import { QrCode } from "lucide-react";
+import { Archive, Edit3, FileCog, QrCode } from "lucide-react";
 import Link from "next/link";
 import punycode from "punycode/";
+import { useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
+import { useArchiveDomainModal } from "../modals/archive-domain-modal";
+import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useLinkQRModal } from "../modals/link-qr-modal";
+import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
 import DomainConfiguration from "./domain-configuration";
-import { useRef } from "react";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
-  const { id, slug } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
 
-  const { slug: domain, primary, target, type, verified } = props || {};
+  const { slug: domain, primary, target, type, archived } = props || {};
 
   const { showLinkQRModal, setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props: {
@@ -44,10 +50,10 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     status: DomainVerificationStatusProps;
     response: any;
   }>(
-    id &&
+    workspaceId &&
       isVisible &&
       !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
-      `/api/domains/${domain}/verify?workspaceId=${id}`,
+      `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
     {
       revalidateOnFocus: true,
@@ -60,7 +66,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   );
 
   const { data: clicks } = useSWR<number>(
-    id && `/api/analytics/clicks?workspaceId=${id}&domain=${domain}&key=_root`,
+    workspaceId &&
+      `/api/analytics/clicks?workspaceId=${workspaceId}&domain=${domain}&key=_root`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -68,15 +75,34 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     },
   );
 
+  const [openPopover, setOpenPopover] = useState(false);
+
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal({
       props,
     });
 
+  const { setShowPrimaryDomainModal, PrimaryDomainModal } =
+    usePrimaryDomainModal({
+      props,
+    });
+
+  const { setShowArchiveDomainModal, ArchiveDomainModal } =
+    useArchiveDomainModal({
+      props,
+    });
+
+  const { setShowDeleteDomainModal, DeleteDomainModal } = useDeleteDomainModal({
+    props,
+  });
+
   return (
     <>
       <AddEditDomainModal />
       <LinkQRModal />
+      <PrimaryDomainModal />
+      <ArchiveDomainModal />
+      <DeleteDomainModal />
       <div
         ref={domainRef}
         className="flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white px-5 py-8 sm:px-10"
@@ -94,13 +120,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </p>
               <ExternalLink className="h-5 w-5" />
             </a>
-            <button
-              onClick={() => setShowLinkQRModal(true)}
-              className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
-            >
-              <span className="sr-only">QR Code</span>
-              <QrCode className="h-4 w-4 text-gray-700 transition-all group-hover:text-blue-800" />
-            </button>
             <NumberTooltip value={clicks}>
               <Link
                 href={`/${slug}/analytics?domain=${domain}&key=_root`}
@@ -129,14 +148,83 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               variant="secondary"
               loading={isValidating}
               onClick={() => {
-                mutate(`/api/domains/${domain}/verify?workspaceId=${id}`);
+                mutate(
+                  `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
+                );
               }}
             />
-            <Button
-              text="Edit"
-              variant="secondary"
-              onClick={() => setShowAddEditDomainModal(true)}
-            />
+            <Popover
+              content={
+                <div className="grid w-full gap-px p-2 sm:w-44">
+                  <Button
+                    text="Edit"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowAddEditDomainModal(true);
+                    }}
+                    icon={<Edit3 className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                  <Button
+                    text="QR Code"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowLinkQRModal(true);
+                    }}
+                    icon={<QrCode className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                  {!primary && (
+                    <Button
+                      text="Set as Primary"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowPrimaryDomainModal(true);
+                      }}
+                      icon={<FileCog className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                  )}
+                  <Button
+                    text={archived ? "Unarchive" : "Archive"}
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowArchiveDomainModal(true);
+                    }}
+                    icon={<Archive className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                  <Button
+                    text="Delete"
+                    variant="danger-outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowDeleteDomainModal(true);
+                    }}
+                    icon={<Delete className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                </div>
+              }
+              align="end"
+              openPopover={openPopover}
+              setOpenPopover={setOpenPopover}
+            >
+              <div>
+                <Button
+                  variant="secondary"
+                  className="px-2"
+                  icon={<ThreeDots className="h-5 w-5" />}
+                  onClick={() => {
+                    setOpenPopover(!openPopover);
+                  }}
+                />
+              </div>
+            </Popover>
           </div>
         </div>
         <div className="flex h-10 flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-5 sm:space-y-0">

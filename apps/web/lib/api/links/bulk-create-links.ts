@@ -2,8 +2,8 @@ import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, LinkWithTagIdsProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { getParamsFromURL, linkConstructor, truncate } from "@dub/utils";
-import { combineTagIds } from "./utils";
+import { getParamsFromURL, truncate } from "@dub/utils";
+import { combineTagIds, transformLink } from "./utils";
 
 export async function bulkCreateLinks({
   links,
@@ -61,21 +61,7 @@ export async function bulkCreateLinks({
 
   await propagateBulkLinkChanges(createdLinks);
 
-  return createdLinks.map((link) => {
-    const shortLink = linkConstructor({
-      domain: link.domain,
-      key: link.key,
-    });
-    const tags = link.tags.map(({ tag }) => tag);
-    return {
-      ...link,
-      shortLink,
-      tagId: tags?.[0]?.id ?? null, // backwards compatibility
-      tags,
-      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
-      workspaceId: `ws_${link.projectId}`,
-    };
-  });
+  return createdLinks.map((link) => transformLink(link));
 }
 
 export async function propagateBulkLinkChanges(

@@ -80,6 +80,7 @@ export const withAuth = (
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     allowSelf, // special case for removing yourself from a workspace
     skipLinkChecks, // special case for /api/links/exists – skip link checks
+    domainChecks,
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredRole?: Array<"owner" | "member">;
@@ -88,6 +89,7 @@ export const withAuth = (
     allowAnonymous?: boolean;
     allowSelf?: boolean;
     skipLinkChecks?: boolean;
+    domainChecks?: boolean;
   } = {},
 ) => {
   return async (
@@ -295,16 +297,23 @@ export const withAuth = (
         });
       }
 
-      // prevent unauthorized access to domains that don't belong to the workspace
-      if (
-        domain &&
-        !isDubDomain(domain) &&
-        !workspace.domains.find((d) => d.slug === domain)
-      ) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "Domain does not belong to workspace.",
-        });
+      // if domain is defined, check if:
+      // it's a dub domain and domainChecks is required, check if the user is part of the dub workspace
+      // it's a custom domain, check if the domain belongs to the workspace
+      if (domain) {
+        if (isDubDomain(domain)) {
+          if (domainChecks && workspace.id !== DUB_WORKSPACE_ID) {
+            throw new DubApiError({
+              code: "forbidden",
+              message: "Domain does not belong to workspace.",
+            });
+          }
+        } else if (!workspace.domains.find((d) => d.slug === domain)) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "Domain does not belong to workspace.",
+          });
+        }
       }
 
       // workspace exists but user is not part of it

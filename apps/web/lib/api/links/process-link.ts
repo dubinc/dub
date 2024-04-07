@@ -9,6 +9,7 @@ import {
   getUrlFromString,
   isDubDomain,
   isValidUrl,
+  parseDateTime,
 } from "@dub/utils";
 import { combineTagIds, keyChecks, processKey } from "./utils";
 
@@ -34,6 +35,7 @@ export async function processLink({
     password,
     rewrite,
     expiresAt,
+    expiredUrl,
     ios,
     android,
     geo,
@@ -50,8 +52,8 @@ export async function processLink({
       code: "bad_request",
     };
   }
-  const processedUrl = getUrlFromString(url);
-  if (!isValidUrl(processedUrl)) {
+  url = getUrlFromString(url);
+  if (!isValidUrl(url)) {
     return {
       link: payload,
       error: "Invalid destination url.",
@@ -208,21 +210,24 @@ export async function processLink({
 
   // expire date checks
   if (expiresAt) {
-    const date = new Date(expiresAt);
-    if (isNaN(date.getTime())) {
+    const datetime = parseDateTime(expiresAt);
+    if (!datetime) {
       return {
         link: payload,
-        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
+        error: "Invalid expiration date.",
         code: "unprocessable_entity",
       };
     }
-    // check if expiresAt is in the future
-    if (new Date(expiresAt) < new Date()) {
-      return {
-        link: payload,
-        error: "Expiry date must be in the future.",
-        code: "unprocessable_entity",
-      };
+    expiresAt = datetime;
+    if (expiredUrl) {
+      expiredUrl = getUrlFromString(expiredUrl);
+      if (!isValidUrl(expiredUrl)) {
+        return {
+          link: payload,
+          error: "Invalid expired URL.",
+          code: "unprocessable_entity",
+        };
+      }
     }
   }
 
@@ -236,7 +241,10 @@ export async function processLink({
       ...payload,
       domain,
       key,
-      url: processedUrl,
+      // we're redefining these fields because they're processed in the function
+      url,
+      expiresAt,
+      expiredUrl,
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
