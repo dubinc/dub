@@ -54,7 +54,7 @@ function PrimaryDomainModal({
         <h3 className="text-lg font-medium">Set {domain} as primary domain</h3>
         <p className="text-sm text-gray-500">
           Setting this domain as primary will make it the default domain in the
-          link creation modal, as well as in the API. Proceed with caution.{" "}
+          link creation modal, as well as in the API.{" "}
           <a
             href={`${HOME_DOMAIN}/help/article/how-to-set-primary-domain`}
             target="_blank"
