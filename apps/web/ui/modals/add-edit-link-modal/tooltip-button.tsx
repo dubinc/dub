@@ -45,7 +45,7 @@ export default function TooltipButton() {
                   </span>
                   <span className="text-xs text-gray-500">
                     {showUsage
-                      ? `${ai.data.limit - ai.data.usage} / ${ai.data.limit} left`
+                      ? `${ai.data.limit - ai.data.usage} / ${ai.data.limit} AI credits left`
                       : "Unlimited credits"}
                   </span>
                 </div>
