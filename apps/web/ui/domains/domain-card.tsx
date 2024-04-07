@@ -21,14 +21,14 @@ import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
 import { Archive, Edit3, FileCog, QrCode } from "lucide-react";
 import Link from "next/link";
 import punycode from "punycode/";
+import { useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
-import { useLinkQRModal } from "../modals/link-qr-modal";
-import DomainConfiguration from "./domain-configuration";
-import { useRef, useState } from "react";
-import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
+import { useDeleteDomainModal } from "../modals/delete-domain-modal";
+import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
+import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const { id: workspaceId, slug } = useWorkspace();

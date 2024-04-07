@@ -1,10 +1,8 @@
 import { LoadingSpinner, Tooltip, TooltipContent } from "@dub/ui";
-import zip from "jszip";
 import { Download } from "lucide-react";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from ".";
-import { HOME_DOMAIN } from "@dub/utils";
 
 export default function ExportButton() {
   const [loading, setLoading] = useState(false);
@@ -44,7 +42,7 @@ export default function ExportButton() {
         <TooltipContent
           title="There's no data available for download. Try adjusting your filter or date range settings."
           cta="Learn more"
-          href={`${HOME_DOMAIN}/help/article/how-to-export-analytics`}
+          href="https://dub.co/help/article/how-to-export-analytics"
         />
       }
     >

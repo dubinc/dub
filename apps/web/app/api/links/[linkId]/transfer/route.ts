@@ -1,12 +1,10 @@
 import { getAnalytics } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 const transferLinkBodySchema = z.object({

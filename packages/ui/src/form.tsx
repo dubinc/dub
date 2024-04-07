@@ -50,7 +50,7 @@ export function Form({
             disabled={disabledTooltip ? true : false}
             onChange={(e) => setValue(e.target.value)}
             className={cn(
-              "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
               {
                 "cursor-not-allowed bg-gray-100 text-gray-400": disabledTooltip,
               },

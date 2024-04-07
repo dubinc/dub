@@ -52,7 +52,7 @@ const Form = () => {
         disabled={pending}
         autoComplete="off"
         className={cn(
-          "block w-full rounded-r-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500",
+          "block w-full rounded-r-md border-gray-300 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500",
           pending && "bg-gray-100",
         )}
         placeholder="owd"

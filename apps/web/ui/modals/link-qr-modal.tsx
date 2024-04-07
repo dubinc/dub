@@ -19,7 +19,6 @@ import {
 import {
   APP_HOSTNAMES,
   FADE_IN_ANIMATION_SETTINGS,
-  HOME_DOMAIN,
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
@@ -331,7 +330,7 @@ function AdvancedSettings({
                     <SimpleTooltipContent
                       title=""
                       cta="How to update my QR Code logo?"
-                      href={`${HOME_DOMAIN}/help/article/custom-qr-codes`}
+                      href="https://dub.co/help/article/custom-qr-codes"
                     />
                   }
                 />
@@ -368,7 +367,7 @@ function AdvancedSettings({
                             });
                           },
                         }
-                      : { href: `${HOME_DOMAIN}/pricing` })}
+                      : { href: "https://dub.co/pricing" })}
                   />
                 }
               >
@@ -421,7 +420,7 @@ function AdvancedSettings({
                 onChange={(color) => setFgColor(color)}
                 prefixed
                 style={{ borderColor: qrData.fgColor }}
-                className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-black sm:text-sm"
+                className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
               />
             </div>
           </div>

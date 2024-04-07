@@ -10,7 +10,6 @@ import {
 import { TooltipContent } from "@dub/ui/src/tooltip";
 import {
   FADE_IN_ANIMATION_SETTINGS,
-  HOME_DOMAIN,
   formatDateTime,
   getDateTimeLocal,
   parseDateTime,
@@ -57,7 +56,7 @@ export default function ExpirationSection({
               <SimpleTooltipContent
                 title="Set an expiration date for your links – after which it won't be accessible."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/link-expiration`}
+                href="https://dub.co/help/article/link-expiration"
               />
             }
           />
@@ -82,7 +81,7 @@ export default function ExpirationSection({
                             }),
                         }
                       : {
-                          href: `${HOME_DOMAIN}/pricing`,
+                          href: "https://dub.co/pricing",
                         })}
                   />
                 ),
@@ -138,7 +137,7 @@ export default function ExpirationSection({
                     <SimpleTooltipContent
                       title="Redirect users to a specific URL when the link has expired."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/link-expiration#setting-a-custom-expiration-url`}
+                      href="https://dub.co/help/article/link-expiration#setting-a-custom-expiration-url"
                     />
                   }
                 />
@@ -160,7 +159,7 @@ export default function ExpirationSection({
               />
             </div>
             <a
-              href={`${HOME_DOMAIN}/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain`}
+              href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
               target="_blank"
               className="group mt-3 flex items-center text-sm text-gray-500 hover:text-gray-700"
             >
