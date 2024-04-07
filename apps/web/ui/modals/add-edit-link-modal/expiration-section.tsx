@@ -130,7 +130,9 @@ export default function ExpirationSection({
                 htmlFor="expiredUrl"
                 className="flex items-center space-x-2"
               >
-                <p className="text-sm font-medium text-gray-700">Expired URL</p>
+                <p className="text-sm font-medium text-gray-700">
+                  Expiration URL
+                </p>
                 <InfoTooltip
                   content={
                     <SimpleTooltipContent
@@ -162,7 +164,7 @@ export default function ExpirationSection({
               target="_blank"
               className="group mt-3 flex items-center text-sm text-gray-500 hover:text-gray-700"
             >
-              <p>Or set a default expired URL for your domain</p>
+              <p>Or set a default expiration URL for your domain</p>
               <ExpandingArrow />
             </a>
           </div>

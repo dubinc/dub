@@ -275,7 +275,7 @@ function AddEditDomainModal({
                 className="flex items-center space-x-2"
               >
                 <h2 className="text-sm font-medium text-gray-900">
-                  Expired URL
+                  Default Expiration URL
                 </h2>
                 <InfoTooltip content="URL to redirect your users to to when a link with this domain has expired." />
               </label>
