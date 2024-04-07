@@ -212,12 +212,15 @@ export async function processLink({
       };
     }
     expiresAt = datetime;
-    if (expiredUrl && !isValidUrl(getUrlFromString(expiredUrl))) {
-      return {
-        link: payload,
-        error: "Invalid expired URL.",
-        code: "unprocessable_entity",
-      };
+    if (expiredUrl) {
+      expiredUrl = getUrlFromString(expiredUrl);
+      if (!isValidUrl(expiredUrl)) {
+        return {
+          link: payload,
+          error: "Invalid expired URL.",
+          code: "unprocessable_entity",
+        };
+      }
     }
   }
 
@@ -231,8 +234,10 @@ export async function processLink({
       ...payload,
       domain,
       key,
+      // we're redefining these fields because they're processed in the function
       url,
       expiresAt,
+      expiredUrl,
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
