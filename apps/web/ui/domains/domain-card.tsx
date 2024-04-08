@@ -18,7 +18,7 @@ import {
   useIntersectionObserver,
 } from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
-import { Archive, Edit3, FileCog, QrCode } from "lucide-react";
+import { Archive, Edit3, FileCog, QrCode, FolderInput } from "lucide-react";
 import Link from "next/link";
 import punycode from "punycode/";
 import { useRef, useState } from "react";
@@ -203,6 +203,16 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                       setShowArchiveDomainModal(true);
                     }}
                     icon={<Archive className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                  <Button
+                    text="Transfer"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowTransferDomainModal(true);
+                    }}
+                    icon={<FolderInput className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
                   />
                   <Button
