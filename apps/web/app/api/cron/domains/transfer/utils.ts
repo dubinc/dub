@@ -1,4 +1,3 @@
-import { getAnalytics } from "@/lib/analytics";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
@@ -37,59 +36,6 @@ export const updateLinksInRedis = async ({
   });
 
   await pipeline.exec();
-};
-
-// Update links & click usage
-export const updateLinksUsage = async ({
-  currentWorkspaceId,
-  newWorkspaceId,
-  links,
-}: {
-  currentWorkspaceId: string;
-  newWorkspaceId: string;
-  links: Link[];
-}) => {
-  const linkClicks: number[] = await Promise.all(
-    links.map((link) =>
-      getAnalytics({
-        linkId: link.id,
-        endpoint: "clicks",
-        interval: "30d",
-      }),
-    ),
-  );
-
-  const totalClicks = linkClicks.reduce((acc, curr) => acc + curr, 0);
-  const linksCount = links.length;
-
-  await Promise.all([
-    prisma.project.update({
-      where: {
-        id: currentWorkspaceId,
-      },
-      data: {
-        usage: {
-          decrement: totalClicks,
-        },
-        linksUsage: {
-          decrement: linksCount,
-        },
-      },
-    }),
-    prisma.project.update({
-      where: {
-        id: newWorkspaceId,
-      },
-      data: {
-        usage: {
-          increment: totalClicks,
-        },
-        linksUsage: {
-          increment: linksCount,
-        },
-      },
-    }),
-  ]);
 };
 
 // Send email to the owner after the domain transfer is completed

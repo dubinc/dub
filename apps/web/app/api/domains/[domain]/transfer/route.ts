@@ -1,3 +1,4 @@
+import { getAnalytics } from "@/lib/analytics";
 import { setRootDomain } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
@@ -94,6 +95,14 @@ export const POST = withAuth(
       });
     }
 
+    const totalLinkClicks = await getAnalytics({
+      domain,
+      workspaceId: workspace.id,
+      endpoint: "clicks",
+      interval: "30d",
+      excludeRoot: true,
+    });
+
     // Update the domain to use the new workspace
     const [domainResponse] = await Promise.all([
       prisma.domain.update({
@@ -109,6 +118,22 @@ export const POST = withAuth(
             url: domainRecord.target,
           }),
         rewrite: domainRecord.type === "rewrite",
+      }),
+      prisma.project.update({
+        where: { id: workspace.id },
+        data: {
+          usage: {
+            decrement: totalLinkClicks,
+          },
+        },
+      }),
+      prisma.project.update({
+        where: { id: newWorkspaceId },
+        data: {
+          linksUsage: {
+            increment: totalLinkClicks,
+          },
+        },
       }),
     ]);
 

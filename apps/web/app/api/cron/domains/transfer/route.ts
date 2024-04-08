@@ -7,7 +7,6 @@ import {
   domainTransferredEmail,
   recordLinks,
   updateLinksInRedis,
-  updateLinksUsage,
 } from "./utils";
 
 const schema = z.object({
@@ -63,7 +62,6 @@ export async function POST(req: Request) {
         where: { linkId: { in: linkIds } },
       }),
       updateLinksInRedis({ links, newWorkspaceId, domain }),
-      updateLinksUsage({ links, newWorkspaceId, currentWorkspaceId }),
       recordLinks({ links, newWorkspaceId }),
     ]);
 
