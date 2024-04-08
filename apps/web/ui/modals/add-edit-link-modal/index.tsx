@@ -481,6 +481,7 @@ function AddEditLinkModal({
                     disabled={props && lockKey}
                     value={domain}
                     onChange={(e) => {
+                      setKeyError(null);
                       setData({ ...data, domain: e.target.value });
                     }}
                     className={cn(
