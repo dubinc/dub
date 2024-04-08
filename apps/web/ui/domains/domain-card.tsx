@@ -19,7 +19,7 @@ import {
   useIntersectionObserver,
 } from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
-import { Archive, Edit3, FileCog, QrCode, FolderInput } from "lucide-react";
+import { Archive, Edit3, FileCog, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
 import punycode from "punycode/";
 import { useRef, useState } from "react";
@@ -29,10 +29,16 @@ import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
-import DomainConfiguration from "./domain-configuration";
 import { useTransferDomainModal } from "../modals/transfer-domain-modal";
+import DomainConfiguration from "./domain-configuration";
 
-export default function DomainCard({ props }: { props: DomainProps }) {
+export default function DomainCard({
+  props,
+  activeDomainsCount,
+}: {
+  props: DomainProps;
+  activeDomainsCount: number;
+}) {
   const { id: workspaceId, slug } = useWorkspace();
 
   const { slug: domain, primary, target, type, archived } = props || {};
@@ -184,6 +190,26 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                     icon={<QrCode className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
                   />
+                  <Button
+                    text="Transfer"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowTransferDomainModal(true);
+                    }}
+                    icon={<FolderInput className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                    {...(primary &&
+                      activeDomainsCount > 1 && {
+                        disabledTooltip: (
+                          <SimpleTooltipContent
+                            title="You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
+                            cta="Learn more."
+                            href="https://dub.co/help/article/how-to-set-primary-domain"
+                          />
+                        ),
+                      })}
+                  />
                   {!primary && (
                     <Button
                       text="Set as Primary"
@@ -205,25 +231,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                     }}
                     icon={<Archive className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
-                  />
-                  <Button
-                    text="Transfer"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowTransferDomainModal(true);
-                    }}
-                    icon={<FolderInput className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                    {...(primary && {
-                      disabledTooltip: (
-                        <SimpleTooltipContent
-                          title="You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
-                          cta="Learn more."
-                          href="https://dub.co/help/article/how-to-set-primary-domain"
-                        />
-                      ),
-                    })}
                   />
                   <Button
                     text="Delete"
