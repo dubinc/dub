@@ -5,11 +5,9 @@ import { formatRedisLink, redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Link } from "@prisma/client";
+import { sendEmail } from "emails";
+import DomainTransferred from "emails/domain-transferred";
 import { NextResponse } from "next/server";
-
-// TODO:
-// Update TB
-// Send email
 
 const schema = z.object({
   currentWorkspaceId: z.string(),
@@ -56,20 +54,73 @@ export async function POST(req: Request) {
         where: { linkId: { in: linkIds } },
       }),
       updateLinksInRedis({ links, newWorkspaceId, domain }),
-      updateAnalytics({ links, newWorkspaceId, currentWorkspaceId }),
+      updateUsage({ links, newWorkspaceId, currentWorkspaceId }),
     ]);
 
     // wait 500 ms before making another request
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,
-      body: {
-        currentWorkspaceId,
-        newWorkspaceId,
-        domain,
-      },
+    const hasMoreLinks = await prisma.link.count({
+      where: { domain, projectId: currentWorkspaceId },
     });
+
+    // No more links to transfer
+    if (hasMoreLinks === 0) {
+      const currentWorkspace = await prisma.project.findUnique({
+        where: {
+          id: currentWorkspaceId,
+        },
+        select: {
+          name: true,
+          slug: true,
+          users: {
+            where: {
+              role: "owner",
+            },
+            select: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const newWorkspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: newWorkspaceId,
+        },
+        select: {
+          name: true,
+          slug: true,
+        },
+      });
+
+      const ownerEmail = currentWorkspace?.users[0]?.user?.email!;
+
+      sendEmail({
+        subject: "Domain transfer completed",
+        email: ownerEmail,
+        react: DomainTransferred({
+          email: ownerEmail,
+          domain,
+          newWorkspace,
+        }),
+      });
+    }
+
+    if (hasMoreLinks > 0) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,
+        body: {
+          currentWorkspaceId,
+          newWorkspaceId,
+          domain,
+        },
+      });
+    }
 
     return NextResponse.json({
       response: "success",
@@ -118,7 +169,7 @@ const updateLinksInRedis = async ({
 };
 
 // Update links & click usage
-const updateAnalytics = async ({
+const updateUsage = async ({
   currentWorkspaceId,
   newWorkspaceId,
   links,
