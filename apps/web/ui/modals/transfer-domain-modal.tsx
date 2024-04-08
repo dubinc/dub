@@ -51,7 +51,8 @@ function TransferDomainModal({
         setShowTransferDomainModal(false);
         return true;
       } else {
-        const error = await res.json();
+        setTransferring(false);
+        const { error } = await res.json();
         throw new Error(error.message);
       }
     });
@@ -72,7 +73,7 @@ function TransferDomainModal({
               loading: "Transferring domain...",
               success:
                 "Domain transfer initiated. We'll send you an email once it's complete.",
-              error: "Failed to transfer domain.",
+              error: (message) => message || "Failed to transfer domain.",
             });
           }
         }}
@@ -87,20 +88,14 @@ function TransferDomainModal({
         </div>
         <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
           <InputSelect
-            items={
-              workspaces
-                ? workspaces.map((workspace) => ({
-                    id: workspace.id,
-                    value: workspace.name,
-                    image:
-                      workspace.logo ||
-                      `${DICEBEAR_AVATAR_URL}${workspace.name}`,
-                    disabled: workspace.id === currentWorkspace.id,
-                    label:
-                      workspace.id === currentWorkspace.id ? "Current" : "",
-                  }))
-                : []
-            }
+            items={(workspaces || []).map((workspace) => ({
+              id: workspace.id,
+              value: workspace.name,
+              image:
+                workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
+              disabled: workspace.id === currentWorkspace.id,
+              label: workspace.id === currentWorkspace.id ? "Current" : "",
+            }))}
             selectedItem={selectedWorkspace}
             setSelectedItem={setselectedWorkspace}
             inputAttrs={{
