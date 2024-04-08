@@ -79,7 +79,7 @@ export const POST = withAuth(
     if (newWorkspace.linksUsage >= newWorkspace.linksLimit) {
       throw new DubApiError({
         code: "exceeded_limit",
-        message: `Workspace ${newWorkspace.name} has reached its link limit. You need to upgrade it to accommodate the links.`,
+        message: `Workspace ${newWorkspace.name} has reached its link limit.`,
       });
     }
 
@@ -90,7 +90,7 @@ export const POST = withAuth(
     if (newWorkspace.linksUsage + linksCount > newWorkspace.linksLimit) {
       throw new DubApiError({
         code: "exceeded_limit",
-        message: `Workspace ${newWorkspace.name} doesn't have enough space to accommodate the links from the current workspace. You need to upgrade it to accommodate the links.`,
+        message: `Workspace ${newWorkspace.name} doesn't have enough space to accommodate the links of the domain ${domain}.`,
       });
     }
 
