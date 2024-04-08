@@ -52,7 +52,7 @@ export async function deleteWorkspace(
   const pipeline = redis.pipeline();
 
   Object.entries(linksByDomain).forEach(([domain, links]) => {
-    pipeline.hdel(domain, ...links);
+    pipeline.hdel(domain.toLowerCase(), ...links);
   });
 
   // delete all domains, links, and uploaded images associated with the workspace
