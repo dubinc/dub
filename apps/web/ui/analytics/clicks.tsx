@@ -1,4 +1,5 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import useDomains from "@/lib/swr/use-domains";
 import useTags from "@/lib/swr/use-tags";
 import { Chart } from "@/ui/shared/icons";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
@@ -9,7 +10,6 @@ import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
 import ClicksChart from "./clicks-chart";
-import useDomains from "@/lib/swr/use-domains";
 
 export default function Clicks() {
   const { totalClicks } = useContext(AnalyticsContext);

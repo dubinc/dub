@@ -1,7 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps } from "@/lib/types";
+import { DomainProps } from "@/lib/types";
 import { Button, Modal, useToastWithUndo } from "@dub/ui";
-import { getApexDomain, linkConstructor } from "@dub/utils";
 import {
   Dispatch,
   MouseEvent,
@@ -15,15 +14,15 @@ import { mutate } from "swr";
 import LinkLogo from "../links/link-logo";
 
 const sendArchiveRequest = ({
-  linkId,
+  domain,
   archive,
   workspaceId,
 }: {
-  linkId: string;
+  domain: string;
   archive: boolean;
   workspaceId?: string;
 }) => {
-  const baseUrl = `/api/links/${linkId}/archive`;
+  const baseUrl = `/api/domains/${domain}/archive`;
   return fetch(`${baseUrl}?workspaceId=${workspaceId}`, {
     method: archive ? "POST" : "DELETE",
     headers: {
@@ -32,45 +31,27 @@ const sendArchiveRequest = ({
   });
 };
 
-const revalidateLinks = () => {
-  return mutate(
-    (key) => typeof key === "string" && key.startsWith("/api/links"),
-    undefined,
-    { revalidate: true },
-  );
-};
-
-function ArchiveLinkModal({
-  showArchiveLinkModal,
-  setShowArchiveLinkModal,
+function ArchiveDomainModal({
+  showArchiveDomainModal,
+  setShowArchiveDomainModal,
   props,
 }: {
-  showArchiveLinkModal: boolean;
-  setShowArchiveLinkModal: Dispatch<SetStateAction<boolean>>;
-  props: LinkProps;
+  showArchiveDomainModal: boolean;
+  setShowArchiveDomainModal: Dispatch<SetStateAction<boolean>>;
+  props: DomainProps;
 }) {
   const toastWithUndo = useToastWithUndo();
 
   const { id: workspaceId } = useWorkspace();
   const [archiving, setArchiving] = useState(false);
-  const apexDomain = getApexDomain(props.url);
-
-  const { key, domain } = props;
-
-  const shortlink = useMemo(() => {
-    return linkConstructor({
-      key,
-      domain,
-      pretty: true,
-    });
-  }, [key, domain]);
+  const domain = props.slug;
 
   const handleArchiveRequest = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
 
     setArchiving(true);
     const res = await sendArchiveRequest({
-      linkId: props.id,
+      domain,
       archive: !props.archived,
       workspaceId,
     });
@@ -82,11 +63,11 @@ function ArchiveLinkModal({
       return;
     }
 
-    revalidateLinks();
-    setShowArchiveLinkModal(false);
+    mutate(`/api/domains?workspaceId=${workspaceId}`);
+    setShowArchiveDomainModal(false);
     toastWithUndo({
-      id: "link-archive-undo-toast",
-      message: `Successfully ${props.archived ? "unarchived" : "archived"} link!`,
+      id: "domain-archive-undo-toast",
+      message: `Successfully ${props.archived ? "unarchived" : "archived"} domain!`,
       undo: undoAction,
       duration: 5000,
     });
@@ -95,7 +76,7 @@ function ArchiveLinkModal({
   const undoAction = () => {
     toast.promise(
       sendArchiveRequest({
-        linkId: props.id,
+        domain,
         archive: props.archived,
         workspaceId,
       }),
@@ -103,7 +84,7 @@ function ArchiveLinkModal({
         loading: "Undo in progress...",
         error: "Failed to roll back changes. An error occurred.",
         success: () => {
-          revalidateLinks();
+          mutate(`/api/domains?workspaceId=${workspaceId}`);
           return "Undo successful! Changes reverted.";
         },
       },
@@ -112,18 +93,18 @@ function ArchiveLinkModal({
 
   return (
     <Modal
-      showModal={showArchiveLinkModal}
-      setShowModal={setShowArchiveLinkModal}
+      showModal={showArchiveDomainModal}
+      setShowModal={setShowArchiveDomainModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <LinkLogo apexDomain={apexDomain} />
+        <LinkLogo apexDomain={domain} />
         <h3 className="text-lg font-medium">
-          {props.archived ? "Unarchive" : "Archive"} {shortlink}
+          {props.archived ? "Unarchive" : "Archive"} {domain}
         </h3>
         <p className="text-sm text-gray-500">
           {props.archived
-            ? "By unarchiving this link, it will show up on your main dashboard again."
-            : "Archived links will still work - they just won't show up on your main dashboard."}
+            ? "By unarchiving this domain, it will show up in the link creation modal again."
+            : "Archived domains will still work, but they won't show up in the link creation modal."}
         </p>
       </div>
 
@@ -139,24 +120,24 @@ function ArchiveLinkModal({
   );
 }
 
-export function useArchiveLinkModal({ props }: { props: LinkProps }) {
-  const [showArchiveLinkModal, setShowArchiveLinkModal] = useState(false);
+export function useArchiveDomainModal({ props }: { props: DomainProps }) {
+  const [showArchiveDomainModal, setShowArchiveDomainModal] = useState(false);
 
-  const ArchiveLinkModalCallback = useCallback(() => {
+  const ArchiveDomainModalCallback = useCallback(() => {
     return props ? (
-      <ArchiveLinkModal
-        showArchiveLinkModal={showArchiveLinkModal}
-        setShowArchiveLinkModal={setShowArchiveLinkModal}
+      <ArchiveDomainModal
+        showArchiveDomainModal={showArchiveDomainModal}
+        setShowArchiveDomainModal={setShowArchiveDomainModal}
         props={props}
       />
     ) : null;
-  }, [showArchiveLinkModal, setShowArchiveLinkModal]);
+  }, [showArchiveDomainModal, setShowArchiveDomainModal]);
 
   return useMemo(
     () => ({
-      setShowArchiveLinkModal,
-      ArchiveLinkModal: ArchiveLinkModalCallback,
+      setShowArchiveDomainModal,
+      ArchiveDomainModal: ArchiveDomainModalCallback,
     }),
-    [setShowArchiveLinkModal, ArchiveLinkModalCallback],
+    [setShowArchiveDomainModal, ArchiveDomainModalCallback],
   );
 }

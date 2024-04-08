@@ -11,7 +11,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
+import { fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -231,7 +231,7 @@ function ImportShortModal({
                     <SimpleTooltipContent
                       title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
                       cta="Read the guide."
-                      href={`${HOME_DOMAIN}/help/article/migrating-from-short`}
+                      href="https://dub.co/help/article/migrating-from-short"
                     />
                   }
                 />
