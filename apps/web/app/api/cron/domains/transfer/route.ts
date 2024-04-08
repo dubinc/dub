@@ -5,8 +5,9 @@ import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import {
   domainTransferredEmail,
+  recordLinks,
   updateLinksInRedis,
-  updateUsage,
+  updateLinksUsage,
 } from "./utils";
 
 const schema = z.object({
@@ -62,7 +63,8 @@ export async function POST(req: Request) {
         where: { linkId: { in: linkIds } },
       }),
       updateLinksInRedis({ links, newWorkspaceId, domain }),
-      updateUsage({ links, newWorkspaceId, currentWorkspaceId }),
+      updateLinksUsage({ links, newWorkspaceId, currentWorkspaceId }),
+      recordLinks({ links, newWorkspaceId }),
     ]);
 
     // wait 500 ms before making another request

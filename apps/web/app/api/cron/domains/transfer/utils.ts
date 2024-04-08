@@ -1,5 +1,6 @@
 import { getAnalytics } from "@/lib/analytics";
 import prisma from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { Link } from "@prisma/client";
 import { sendEmail } from "emails";
@@ -39,7 +40,7 @@ export const updateLinksInRedis = async ({
 };
 
 // Update links & click usage
-export const updateUsage = async ({
+export const updateLinksUsage = async ({
   currentWorkspaceId,
   newWorkspaceId,
   links,
@@ -142,4 +143,21 @@ export const domainTransferredEmail = async ({
       newWorkspace,
     }),
   });
+};
+
+// Record link in Tinybird
+export const recordLinks = async ({
+  newWorkspaceId,
+  links,
+}: {
+  newWorkspaceId: string;
+  links: Link[];
+}) => {
+  await Promise.all(
+    links.map((link) =>
+      recordLink({ link: { ...link, projectId: newWorkspaceId } }),
+    ),
+  );
+
+  return;
 };
