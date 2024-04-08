@@ -295,8 +295,9 @@ export const withAuth = (
         });
       }
 
-      // if domain is defined, check if:
-      // it's a dub domain and domainChecks is required, check if the user is part of the dub workspace
+      // if domain is defined:
+      // - it's a dub domain and domainChecks is required, check if the user is part of the dub workspace
+      // - it's a custom domain, check if the domain belongs to the workspace
       if (domain) {
         if (isDubDomain(domain)) {
           if (domainChecks && workspace.id !== DUB_WORKSPACE_ID) {
