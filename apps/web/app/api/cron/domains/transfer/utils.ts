@@ -133,7 +133,7 @@ export const domainTransferredEmail = async ({
 
   const ownerEmail = currentWorkspace?.users[0]?.user?.email!;
 
-  sendEmail({
+  await sendEmail({
     subject: "Domain transfer completed",
     email: ownerEmail,
     react: DomainTransferred({

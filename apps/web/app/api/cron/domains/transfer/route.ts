@@ -36,12 +36,20 @@ export async function POST(req: Request) {
     take: 100,
   });
 
+  // No remaining links to transfer
   if (!links || links.length === 0) {
+    domainTransferredEmail({
+      domain,
+      currentWorkspaceId,
+      newWorkspaceId,
+    });
+
     return NextResponse.json({
       response: "success",
     });
   }
 
+  // Transfer links to the new workspace
   const linkIds = links.map((link) => link.id);
 
   try {
@@ -60,20 +68,20 @@ export async function POST(req: Request) {
     // wait 500 ms before making another request
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const hasMoreLinks = await prisma.link.count({
+    const remainingLinksCount = await prisma.link.count({
       where: { domain, projectId: currentWorkspaceId },
     });
 
     // No more links to transfer
-    if (hasMoreLinks === 0) {
-      await domainTransferredEmail({
+    if (remainingLinksCount === 0) {
+      domainTransferredEmail({
         domain,
         currentWorkspaceId,
         newWorkspaceId,
       });
     }
 
-    if (hasMoreLinks > 0) {
+    if (remainingLinksCount > 0) {
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,
         body: {

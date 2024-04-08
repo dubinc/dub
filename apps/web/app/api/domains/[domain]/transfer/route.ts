@@ -112,17 +112,14 @@ export const POST = withAuth(
       }),
     ]);
 
-    // If the domain has links, transfer them to the new workspace
-    if (workspace.linksUsage > 0) {
-      await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,
-        body: {
-          currentWorkspaceId: workspace.id,
-          newWorkspaceId,
-          domain,
-        },
-      });
-    }
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,
+      body: {
+        currentWorkspaceId: workspace.id,
+        newWorkspaceId,
+        domain,
+      },
+    });
 
     return NextResponse.json(domainResponse, { headers });
   },
