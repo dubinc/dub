@@ -103,7 +103,7 @@ export async function editLink({
       },
     }),
     // record link in Redis
-    redis.hset(updatedLink.domain, {
+    redis.hset(updatedLink.domain.toLowerCase(), {
       [updatedLink.key.toLowerCase()]: await formatRedisLink(updatedLink),
     }),
     // record link in Tinybird
@@ -117,7 +117,7 @@ export async function editLink({
     }),
     // if key is changed: delete the old key in Redis
     (changedDomain || changedKey) &&
-      redis.hdel(oldDomain, oldKey.toLowerCase()),
+      redis.hdel(oldDomain.toLowerCase(), oldKey.toLowerCase()),
   ]);
 
   return transformLink(response);
