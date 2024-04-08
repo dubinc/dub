@@ -24,7 +24,7 @@ async function main() {
     //   where: filters,
     // }),
     ...links.flatMap((link) => [
-      redis.hdel(link.domain, link.key.toLowerCase()),
+      redis.hdel(link.domain.toLowerCase(), link.key.toLowerCase()),
       recordLink({
         link,
         deleted: true,
