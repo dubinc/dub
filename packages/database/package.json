@@ -1,0 +1,38 @@
+{
+  "name": "@dub/database",
+  "description": "Dub.co Prisma client",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "clean": "rimraf .turbo node_modules dist",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "tsx src/seed.ts",
+    "dev": "tsup --watch",
+    "format": "prisma format",
+    "generate": "prisma generate",
+    "lint": "eslint ./src --fix",
+    "prebuild": "npm run generate",
+    "predev": "npm run generate",
+    "studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.1.1"
+  },
+  "devDependencies": {
+    "config": "*",
+    "eslint": "^8.12.0",
+    "prisma": "^4.1.1",
+    "rimraf": "^3.0.2",
+    "tsconfig": "workspace:*",
+    "tsup": "^5.11.13",
+    "typescript": "^4.5.5"
+  }
+}

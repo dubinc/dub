@@ -1,10 +1,10 @@
-import type { SAMLSSORecord } from "@boxyhq/saml-jackson";
+import { SAMLSSORecord } from "@boxyhq/saml-jackson";
 import { fetcher } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export default function useSAML() {
+export function useSAML() {
   const { id } = useWorkspace();
 
   const { data, isLoading, mutate } = useSWR<{ connections: SAMLSSORecord[] }>(

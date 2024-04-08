@@ -12,9 +12,9 @@ import {
   useState,
 } from "react";
 import { Drawer } from "vaul";
+import { useMediaQuery } from "../../hooks/src";
 import { Badge } from "./badge";
 import { BlurImage } from "./blur-image";
-import { useMediaQuery } from "./hooks";
 
 export interface InputSelectItemProps {
   id: string;

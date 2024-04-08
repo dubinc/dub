@@ -4,7 +4,10 @@
     ".",
     "../hooks/swr",
     "../hooks/src/index.ts",
-    "../hooks/src/use-cookies.ts"
+    "../hooks/src/use-cookies.ts",
+    "../ui/src/use-toast-with-undo.tsx",
+    "../ee/src/use-scim.ts",
+    "../ui/src/use-optimistic-update.ts"
   ],
   "exclude": ["dist", "build", "node_modules"]
 }

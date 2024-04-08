@@ -1,6 +1,6 @@
-import z from "@/lib/zod";
 import { Link } from "@prisma/client";
-import { createLinkBodySchema } from "../../../packages/types/src/zod/schemas/links";
+import z from "./zod";
+import { createLinkBodySchema } from "./zod/schemas/links";
 
 export type LinkProps = Link;
 

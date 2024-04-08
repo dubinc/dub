@@ -16,9 +16,6 @@ export * from "./radio-group";
 export * from "./switch";
 export * from "./tooltip";
 
-// hooks
-export * from "./hooks";
-
 // icons
 export * from "./icons";
 
@@ -44,3 +41,5 @@ export * from "./link-preview";
 export * from "./product-hunt";
 export * from "./progress-bar";
 export * from "./tab-select";
+export * from "./use-optimistic-update";
+export * from "./use-toast-with-undo";

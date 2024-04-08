@@ -5,7 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import { Drawer } from "vaul";
-import { useMediaQuery } from "./hooks";
+import { useMediaQuery } from "../../hooks/src";
 
 export function Modal({
   children,

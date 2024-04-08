@@ -1,0 +1,54 @@
+{
+  "name": "@dub/hooks",
+  "description": "Hooks for Dub",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "lint": "eslint src/",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "next": "14.2.0-canary.47",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@dub/utils": "workspace:*",
+    "@types/js-cookie": "^3.0.6",
+    "@types/react": "^18.2.47",
+    "next": "14.2.0-canary.47",
+    "react": "^18.2.0",
+    "tsconfig": "workspace:*",
+    "tsup": "^6.1.3",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "js-cookie": "^3.0.5",
+    "swr": "^2.1.5",
+    "use-debounce": "^8.0.4"
+  },
+  "author": "Steven Tey <stevensteel97@gmail.com>",
+  "homepage": "https://dub.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steven-tey/dub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/steven-tey/dub/issues"
+  },
+  "keywords": [
+    "dub",
+    "dub.co",
+    "hooks"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

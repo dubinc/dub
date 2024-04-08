@@ -7,8 +7,8 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useSWR from "swr";
+import { useScroll } from "../../hooks/src";
 import { FEATURES_LIST } from "./content";
-import { useScroll } from "./hooks";
 import { LogoType } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
 

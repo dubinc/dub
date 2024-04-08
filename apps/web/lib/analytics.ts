@@ -1,6 +1,6 @@
 import { DATABASE_URL, conn } from "./planetscale";
-import z from "./zod";
-import { getAnalyticsQuerySchema } from "./zod/schemas/analytics";
+import z from "../../../packages/types/src/zod";
+import { getAnalyticsQuerySchema } from "../../../packages/types/src/zod/schemas/analytics";
 
 export const intervals = ["1h", "24h", "7d", "30d", "90d", "all"] as const;
 

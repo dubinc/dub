@@ -3,7 +3,7 @@
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { Drawer } from "vaul";
-import { useMediaQuery } from "./hooks";
+import { useMediaQuery } from "../../hooks/src";
 
 export function Popover({
   children,

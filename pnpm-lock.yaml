@@ -354,6 +354,96 @@ importers:
         specifier: ^5.1.6
         version: 5.1.6
 
+  packages/database:
+    dependencies:
+      '@prisma/client':
+        specifier: ^4.1.1
+        version: 4.16.2(prisma@4.16.2)
+    devDependencies:
+      config:
+        specifier: '*'
+        version: 3.3.11
+      eslint:
+        specifier: ^8.12.0
+        version: 8.48.0
+      prisma:
+        specifier: ^4.1.1
+        version: 4.16.2
+      rimraf:
+        specifier: ^3.0.2
+        version: 3.0.2
+      tsconfig:
+        specifier: workspace:*
+        version: link:../tsconfig
+      tsup:
+        specifier: ^5.11.13
+        version: 5.12.9(typescript@4.9.5)
+      typescript:
+        specifier: ^4.5.5
+        version: 4.9.5
+
+  packages/ee:
+    dependencies:
+      '@boxyhq/saml-jackson':
+        specifier: ^1.14.2
+        version: 1.14.2
+      '@dub/utils':
+        specifier: workspace:*
+        version: link:../utils
+      swr:
+        specifier: ^2.1.5
+        version: 2.2.4(react@18.2.0)
+    devDependencies:
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      tsconfig:
+        specifier: workspace:*
+        version: link:../tsconfig
+      tsup:
+        specifier: ^6.1.3
+        version: 6.1.3(typescript@5.2.2)
+      typescript:
+        specifier: ^5.1.6
+        version: 5.2.2
+
+  packages/hooks:
+    dependencies:
+      js-cookie:
+        specifier: ^3.0.5
+        version: 3.0.5
+      swr:
+        specifier: ^2.1.5
+        version: 2.2.4(react@18.2.0)
+      use-debounce:
+        specifier: ^8.0.4
+        version: 8.0.4(react@18.2.0)
+    devDependencies:
+      '@dub/utils':
+        specifier: workspace:*
+        version: link:../utils
+      '@types/js-cookie':
+        specifier: ^3.0.6
+        version: 3.0.6
+      '@types/react':
+        specifier: ^18.2.47
+        version: 18.2.48
+      next:
+        specifier: 14.2.0-canary.47
+        version: 14.2.0-canary.47(@babel/core@7.23.0)(@opentelemetry/api@1.4.1)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      tsconfig:
+        specifier: workspace:*
+        version: link:../tsconfig
+      tsup:
+        specifier: ^6.1.3
+        version: 6.1.3(typescript@5.2.2)
+      typescript:
+        specifier: ^5.1.6
+        version: 5.2.2
+
   packages/tailwind-config:
     dependencies:
       '@tailwindcss/forms':
@@ -374,6 +464,30 @@ importers:
         version: 3.3.3
 
   packages/tsconfig: {}
+
+  packages/types:
+    devDependencies:
+      '@types/node':
+        specifier: 18.11.9
+        version: 18.11.9
+      '@types/react':
+        specifier: ^18.2.5
+        version: 18.2.48
+      next:
+        specifier: 14.2.0-canary.47
+        version: 14.2.0-canary.47(@babel/core@7.23.0)(@opentelemetry/api@1.4.1)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      tsconfig:
+        specifier: workspace:*
+        version: link:../tsconfig
+      tsup:
+        specifier: ^6.1.3
+        version: 6.1.3(typescript@5.2.2)
+      typescript:
+        specifier: ^5.1.6
+        version: 5.2.2
 
   packages/ui:
     dependencies:
@@ -668,7 +782,7 @@ packages:
       '@smithy/node-http-handler': 2.1.8
       '@smithy/protocol-http': 3.0.8
       '@smithy/smithy-client': 2.1.12
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       '@smithy/url-parser': 2.0.12
       '@smithy/util-base64': 2.0.0
       '@smithy/util-body-length-browser': 2.0.0
@@ -757,7 +871,7 @@ packages:
       '@smithy/node-http-handler': 2.1.8
       '@smithy/protocol-http': 3.0.8
       '@smithy/smithy-client': 2.1.12
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       '@smithy/url-parser': 2.0.12
       '@smithy/util-base64': 2.0.0
       '@smithy/util-body-length-browser': 2.0.0
@@ -844,10 +958,10 @@ packages:
       '@aws-sdk/credential-provider-sso': 3.433.0
       '@aws-sdk/credential-provider-web-identity': 3.433.0
       '@aws-sdk/types': 3.433.0
-      '@smithy/credential-provider-imds': 2.0.13
-      '@smithy/property-provider': 2.0.11
-      '@smithy/shared-ini-file-loader': 2.0.12
-      '@smithy/types': 2.4.0
+      '@smithy/credential-provider-imds': 2.0.18
+      '@smithy/property-provider': 2.0.13
+      '@smithy/shared-ini-file-loader': 2.2.2
+      '@smithy/types': 2.12.0
       tslib: 2.6.2
     transitivePeerDependencies:
       - aws-crt
@@ -907,7 +1021,7 @@ packages:
       '@aws-sdk/types': 3.433.0
       '@smithy/credential-provider-imds': 2.0.18
       '@smithy/property-provider': 2.0.13
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       tslib: 2.6.2
     transitivePeerDependencies:
       - aws-crt
@@ -929,7 +1043,7 @@ packages:
       '@aws-sdk/types': 3.433.0
       '@smithy/node-config-provider': 2.1.3
       '@smithy/protocol-http': 3.0.8
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       tslib: 2.6.2
     dev: false
 
@@ -980,7 +1094,7 @@ packages:
       '@smithy/property-provider': 2.0.13
       '@smithy/protocol-http': 3.0.8
       '@smithy/signature-v4': 2.0.10
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       '@smithy/util-middleware': 2.0.5
       tslib: 2.6.2
     dev: false
@@ -1001,7 +1115,7 @@ packages:
     engines: {node: '>=14.0.0'}
     dependencies:
       '@smithy/node-config-provider': 2.1.3
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       '@smithy/util-config-provider': 2.0.0
       '@smithy/util-middleware': 2.0.5
       tslib: 2.6.2
@@ -1095,7 +1209,7 @@ packages:
     resolution: {integrity: sha512-2Cf/Lwvxbt5RXvWFXrFr49vXv0IddiUwrZoAiwhDYxvsh+BMnh+NUFot+ZQaTrk/8IPZVDeLPWZRdVy00iaVXQ==}
     dependencies:
       '@aws-sdk/types': 3.433.0
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       bowser: 2.11.0
       tslib: 2.6.2
     dev: false
@@ -3940,6 +4054,20 @@ packages:
     engines: {node: '>=16'}
     dev: false
 
+  /@prisma/client@4.16.2(prisma@4.16.2):
+    resolution: {integrity: sha512-qCoEyxv1ZrQ4bKy39GnylE8Zq31IRmm8bNhNbZx7bF2cU5aiCCnSa93J2imF88MBjn7J9eUQneNxUQVJdl/rPQ==}
+    engines: {node: '>=14.17'}
+    requiresBuild: true
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+    dependencies:
+      '@prisma/engines-version': 4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81
+      prisma: 4.16.2
+    dev: false
+
   /@prisma/client@5.10.2(prisma@5.10.2):
     resolution: {integrity: sha512-ef49hzB2yJZCvM5gFHMxSFL9KYrIP9udpT5rYo0CsHD4P9IKj473MbhU1gjKKftiwWBTIyrt9jukprzZXazyag==}
     engines: {node: '>=16.13'}
@@ -3957,9 +4085,17 @@ packages:
     resolution: {integrity: sha512-bkBOmH9dpEBbMKFJj8V+Zp8IZHIBjy3fSyhLhxj4FmKGb/UBSt9doyfA6k1UeUREsMJft7xgPYBbHSOYBr8XCA==}
     dev: false
 
+  /@prisma/engines-version@4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81:
+    resolution: {integrity: sha512-q617EUWfRIDTriWADZ4YiWRZXCa/WuhNgLTVd+HqWLffjMSPzyM5uOWoauX91wvQClSKZU4pzI4JJLQ9Kl62Qg==}
+    dev: false
+
   /@prisma/engines-version@5.10.0-34.5a9203d0590c951969e85a7d07215503f4672eb9:
     resolution: {integrity: sha512-uCy/++3Jx/O3ufM+qv2H1L4tOemTNqcP/gyEVOlZqTpBvYJUe0tWtW0y3o2Ueq04mll4aM5X3f6ugQftOSLdFQ==}
     dev: false
+
+  /@prisma/engines@4.16.2:
+    resolution: {integrity: sha512-vx1nxVvN4QeT/cepQce68deh/Turxy5Mr+4L4zClFuK1GlxN3+ivxfuv+ej/gvidWn1cE1uAhW7ALLNlYbRUAw==}
+    requiresBuild: true
 
   /@prisma/engines@5.10.2:
     resolution: {integrity: sha512-HkSJvix6PW8YqEEt3zHfCYYJY69CXsNdhU+wna+4Y7EZ+AwzeupMnUThmvaDA7uqswiHkgm5/SZ6/4CStjaGmw==}
@@ -5055,7 +5191,7 @@ packages:
       '@types/react-dom':
         optional: true
     dependencies:
-      '@babel/runtime': 7.23.9
+      '@babel/runtime': 7.23.2
       '@radix-ui/primitive': 1.0.1
       '@radix-ui/react-collection': 1.0.3(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-compose-refs': 1.0.1(@types/react@18.2.48)(react@18.2.0)
@@ -6216,17 +6352,6 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@smithy/credential-provider-imds@2.0.13:
-    resolution: {integrity: sha512-/xe3wNoC4j+BeTemH9t2gSKLBfyZmk8LXB2pQm/TOEYi+QhBgT+PSolNDfNAhrR68eggNE17uOimsrnwSkCt4w==}
-    engines: {node: '>=14.0.0'}
-    dependencies:
-      '@smithy/node-config-provider': 2.0.13
-      '@smithy/property-provider': 2.0.11
-      '@smithy/types': 2.4.0
-      '@smithy/url-parser': 2.0.10
-      tslib: 2.6.2
-    dev: false
-
   /@smithy/credential-provider-imds@2.0.18:
     resolution: {integrity: sha512-QnPBi6D2zj6AHJdUTo5zXmk8vwHJ2bNevhcVned1y+TZz/OI5cizz5DsYNkqFUIDn8tBuEyKNgbmKVNhBbuY3g==}
     engines: {node: '>=14.0.0'}
@@ -6252,7 +6377,7 @@ packages:
     dependencies:
       '@smithy/protocol-http': 3.0.8
       '@smithy/querystring-builder': 2.0.12
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       '@smithy/util-base64': 2.0.0
       tslib: 2.6.2
     dev: false
@@ -6261,7 +6386,7 @@ packages:
     resolution: {integrity: sha512-fDZnTr5j9t5qcbeJ037aMZXxMka13Znqwrgy3PAqYj6Dm3XHXHftTH3q+NWgayUxl1992GFtQt1RuEzRMy3NnQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      '@smithy/types': 2.4.0
+      '@smithy/types': 2.12.0
       '@smithy/util-buffer-from': 2.0.0
       '@smithy/util-utf8': 2.0.0
       tslib: 2.6.2
@@ -6333,16 +6458,6 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@smithy/node-config-provider@2.0.13:
-    resolution: {integrity: sha512-pPpLqYuJcOq1sj1EGu+DoZK47DUS4gepqSTNgRezmrjnzNlSU2/Dcc9Ebzs+WZ0Z5vXKazuE+k+NksFLo07/AA==}
-    engines: {node: '>=14.0.0'}
-    dependencies:
-      '@smithy/property-provider': 2.0.13
-      '@smithy/shared-ini-file-loader': 2.2.2
-      '@smithy/types': 2.12.0
-      tslib: 2.6.2
-    dev: false
-
   /@smithy/node-config-provider@2.1.3:
     resolution: {integrity: sha512-J6lXvRHGVnSX3n1PYi+e1L5HN73DkkJpUviV3Ebf+8wSaIjAf+eVNbzyvh/S5EQz7nf4KVfwbD5vdoZMAthAEQ==}
     engines: {node: '>=14.0.0'}
@@ -6360,14 +6475,6 @@ packages:
       '@smithy/abort-controller': 2.0.12
       '@smithy/protocol-http': 3.0.8
       '@smithy/querystring-builder': 2.0.12
-      '@smithy/types': 2.4.0
-      tslib: 2.6.2
-    dev: false
-
-  /@smithy/property-provider@2.0.11:
-    resolution: {integrity: sha512-kzuOadu6XvrnlF1iXofpKXYmo4oe19st9/DE8f5gHNaFepb4eTkR8gD8BSdTnNnv7lxfv6uOwZPg4VS6hemX1w==}
-    engines: {node: '>=14.0.0'}
-    dependencies:
       '@smithy/types': 2.4.0
       tslib: 2.6.2
     dev: false
@@ -6410,14 +6517,6 @@ packages:
     engines: {node: '>=14.0.0'}
     dependencies:
       '@smithy/types': 2.4.0
-    dev: false
-
-  /@smithy/shared-ini-file-loader@2.0.12:
-    resolution: {integrity: sha512-umi0wc4UBGYullAgYNUVfGLgVpxQyES47cnomTqzCKeKO5oudO4hyDNj+wzrOjqDFwK2nWYGVgS8Y0JgGietrw==}
-    engines: {node: '>=14.0.0'}
-    dependencies:
-      '@smithy/types': 2.4.0
-      tslib: 2.6.2
     dev: false
 
   /@smithy/shared-ini-file-loader@2.2.2:
@@ -6463,14 +6562,6 @@ packages:
     resolution: {integrity: sha512-iH1Xz68FWlmBJ9vvYeHifVMWJf82ONx+OybPW8ZGf5wnEv2S0UXcU4zwlwJkRXuLKpcSLHrraHbn2ucdVXLb4g==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      tslib: 2.6.2
-    dev: false
-
-  /@smithy/url-parser@2.0.10:
-    resolution: {integrity: sha512-4TXQFGjHcqru8aH5VRB4dSnOFKCYNX6SR1Do6fwxZ+ExT2onLsh2W77cHpks7ma26W5jv6rI1u7d0+KX9F0aOw==}
-    dependencies:
-      '@smithy/querystring-parser': 2.0.12
-      '@smithy/types': 2.12.0
       tslib: 2.6.2
     dev: false
 
@@ -7813,7 +7904,7 @@ packages:
   /axios@1.5.1:
     resolution: {integrity: sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==}
     dependencies:
-      follow-redirects: 1.15.3
+      follow-redirects: 1.15.5
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -8377,11 +8468,6 @@ packages:
     engines: {node: '>=14'}
     dev: false
 
-  /commander@11.0.0:
-    resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
-    engines: {node: '>=16'}
-    dev: false
-
   /commander@11.1.0:
     resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
     engines: {node: '>=16'}
@@ -8455,6 +8541,13 @@ packages:
       ini: 1.3.8
       proto-list: 1.2.4
     dev: false
+
+  /config@3.3.11:
+    resolution: {integrity: sha512-Dhn63ZoWCW5EMg4P0Sl/XNsj/7RLiUIA1x1npCy+m2cRwRHzLnt3UtYtxRDMZW/6oOMdWhCzaGYkOcajGgrAOA==}
+    engines: {node: '>= 10.0.0'}
+    dependencies:
+      json5: 2.2.3
+    dev: true
 
   /connect@3.7.0:
     resolution: {integrity: sha512-ZqRXc+tZukToSNmh5C2iWMSoV3X1YUcPbqEM4DkEG5tNQXrQUZCNVGGv3IuicnkMtPfGf3Xtp8WCXs295iQ1pQ==}
@@ -9717,16 +9810,6 @@ packages:
   /flow-parser@0.206.0:
     resolution: {integrity: sha512-HVzoK3r6Vsg+lKvlIZzaWNBVai+FXTX1wdYhz/wVlH13tb/gOdLXmlTqy6odmTBhT5UoWUbq0k8263Qhr9d88w==}
     engines: {node: '>=0.4.0'}
-    dev: false
-
-  /follow-redirects@1.15.3:
-    resolution: {integrity: sha512-1VzOtuEM8pC9SFU1E+8KfTjZyMztRsgEfwQl44z8A25uy13jSzTj6dyK2Df52iV0vgHCfBwLhDWevLn95w5v6Q==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
     dev: false
 
   /follow-redirects@1.15.5:
@@ -12056,7 +12139,7 @@ packages:
     hasBin: true
     dependencies:
       '@tediousjs/connection-string': 0.5.0
-      commander: 11.0.0
+      commander: 11.1.0
       debug: 4.3.4
       rfdc: 1.3.0
       tarn: 3.0.2
@@ -13097,6 +13180,14 @@ packages:
       clsx: 1.2.1
       react: 18.2.0
     dev: false
+
+  /prisma@4.16.2:
+    resolution: {integrity: sha512-SYCsBvDf0/7XSJyf2cHTLjLeTLVXYfqp7pG5eEVafFLeT0u/hLFz/9W196nDRGUOo1JfPatAEb+uEnTQImQC1g==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    requiresBuild: true
+    dependencies:
+      '@prisma/engines': 4.16.2
 
   /prisma@5.10.2:
     resolution: {integrity: sha512-hqb/JMz9/kymRE25pMWCxkdyhbnIWrq+h7S6WysJpdnCvhstbJSNP/S6mScEcqiB8Qv2F+0R3yG+osRaWqZacQ==}
@@ -14887,6 +14978,41 @@ packages:
   /tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
+  /tsup@5.12.9(typescript@4.9.5):
+    resolution: {integrity: sha512-dUpuouWZYe40lLufo64qEhDpIDsWhRbr2expv5dHEMjwqeKJS2aXA/FPqs1dxO4T6mBojo7rvo3jP9NNzaKyDg==}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': ^1
+      postcss: ^8.4.12
+      typescript: ^4.1.0
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      postcss:
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      bundle-require: 3.1.2(esbuild@0.14.54)
+      cac: 6.7.14
+      chokidar: 3.5.3
+      debug: 4.3.4
+      esbuild: 0.14.54
+      execa: 5.1.1
+      globby: 11.1.0
+      joycon: 3.1.1
+      postcss-load-config: 3.1.4(postcss@8.4.31)
+      resolve-from: 5.0.0
+      rollup: 2.79.1
+      source-map: 0.8.0-beta.0
+      sucrase: 3.34.0
+      tree-kill: 1.2.2
+      typescript: 4.9.5
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+    dev: true
+
   /tsup@6.1.3(postcss@8.4.31)(typescript@5.1.6):
     resolution: {integrity: sha512-eRpBnbfpDFng+EJNTQ90N7QAf4HAGGC7O3buHIjroKWK7D1ibk9/YnR/3cS8HsMU5T+6Oi+cnF+yU5WmCnB//Q==}
     engines: {node: '>=14'}
@@ -14919,6 +15045,42 @@ packages:
       sucrase: 3.34.0
       tree-kill: 1.2.2
       typescript: 5.1.6
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+    dev: true
+
+  /tsup@6.1.3(typescript@5.2.2):
+    resolution: {integrity: sha512-eRpBnbfpDFng+EJNTQ90N7QAf4HAGGC7O3buHIjroKWK7D1ibk9/YnR/3cS8HsMU5T+6Oi+cnF+yU5WmCnB//Q==}
+    engines: {node: '>=14'}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': ^1
+      postcss: ^8.4.12
+      typescript: ^4.1.0
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      postcss:
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      bundle-require: 3.1.2(esbuild@0.14.54)
+      cac: 6.7.14
+      chokidar: 3.5.3
+      debug: 4.3.4
+      esbuild: 0.14.54
+      execa: 5.1.1
+      globby: 11.1.0
+      joycon: 3.1.1
+      postcss-load-config: 3.1.4(postcss@8.4.31)
+      resolve-from: 5.0.0
+      rollup: 2.79.1
+      source-map: 0.8.0-beta.0
+      sucrase: 3.34.0
+      tree-kill: 1.2.2
+      typescript: 5.2.2
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -15214,6 +15376,12 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: false
+
+  /typescript@4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: true
 
   /typescript@5.1.6:
     resolution: {integrity: sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==}

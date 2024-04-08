@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import Success from "../icons/success";
+import Success from "./icons/success";
 
 function ToastWithUndo({
   id,
@@ -43,7 +43,7 @@ function ToastWithUndo({
   );
 }
 
-export default function useToastWithUndo() {
+export function useToastWithUndo() {
   const toastWithUndo = ({
     id,
     message,

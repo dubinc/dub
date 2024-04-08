@@ -3,7 +3,7 @@ import Bottleneck from "bottleneck";
 import { sendEmail } from "emails";
 import ClicksExceeded from "emails/clicks-exceeded";
 import LinksLimitAlert from "emails/links-limit";
-import prisma from "./prisma";
+import prisma from "../../../packages/database/src/client";
 import { WorkspaceProps } from "./types";
 
 export const limiter = new Bottleneck({

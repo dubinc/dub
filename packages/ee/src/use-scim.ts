@@ -2,7 +2,7 @@ import type { Directory } from "@boxyhq/saml-jackson";
 import { fetcher } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
-import useWorkspace from "./use-workspace";
+import useWorkspace from "../../hooks/src/swr/use-workspace";
 
 export default function useSCIM() {
   const { id } = useWorkspace();

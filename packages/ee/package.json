@@ -1,0 +1,46 @@
+{
+  "name": "@dub/ee",
+  "description": "Dub.co Commercial License features",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "lint": "eslint src/",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "react": "^18.2.0",
+    "tsconfig": "workspace:*",
+    "tsup": "^6.1.3",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@boxyhq/saml-jackson": "^1.14.2",
+    "@dub/utils": "workspace:*",
+    "swr": "^2.1.5"
+  },
+  "author": "Steven Tey <stevensteel97@gmail.com>",
+  "homepage": "https://dub.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steven-tey/dub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/steven-tey/dub/issues"
+  },
+  "keywords": [
+    "dub",
+    "dub.co",
+    "ee"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

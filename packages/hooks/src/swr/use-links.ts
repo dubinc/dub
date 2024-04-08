@@ -1,8 +1,8 @@
-import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { LinkWithTagsProps, UserProps } from "../types";
+import { useRouterStuff } from "..";
+import { LinkWithTagsProps, UserProps } from "../../../apps/web/lib/types";
 import useWorkspace from "./use-workspace";
 
 export default function useLinks() {

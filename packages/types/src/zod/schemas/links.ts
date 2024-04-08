@@ -1,6 +1,6 @@
-import z from "@/lib/zod";
 import { getUrlFromString, isValidUrl, validDomainRegex } from "@dub/utils";
 import { booleanQuerySchema } from ".";
+import z from "..";
 import { TagSchema } from "./tags";
 
 export const getUrlQuerySchema = z.object({
