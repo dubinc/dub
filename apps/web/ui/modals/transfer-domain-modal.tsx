@@ -1,14 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { DomainProps } from "@/lib/types";
-import {
-  BlurImage,
-  Button,
-  InputSelect,
-  InputSelectItemProps,
-  Logo,
-  Modal,
-} from "@dub/ui";
+import { Button, InputSelect, InputSelectItemProps, Modal } from "@dub/ui";
 import { APP_NAME, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import {
   Dispatch,
@@ -19,6 +12,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import LinkLogo from "../links/link-logo";
 
 function TransferDomainModal({
   showTransferDomainModal,
@@ -83,24 +77,13 @@ function TransferDomainModal({
         }}
       >
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-          {currentWorkspace?.logo ? (
-            <BlurImage
-              src={currentWorkspace.logo}
-              alt={`Logo for ${currentWorkspace.slug}`}
-              className="h-10 w-10 rounded-full border border-gray-200"
-              width={20}
-              height={20}
-            />
-          ) : (
-            <Logo />
-          )}
+          <LinkLogo apexDomain={domain} />
           <h3 className="text-lg font-medium">Transfer {domain}</h3>
           <p className="text-sm text-gray-500">
             Transfer this domain and its links to another {APP_NAME} workspace.
             Link tags will not be transferred.
           </p>
         </div>
-
         <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
           <InputSelect
             items={
