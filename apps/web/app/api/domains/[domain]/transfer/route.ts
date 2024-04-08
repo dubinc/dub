@@ -103,9 +103,6 @@ export const POST = withAuth(
       excludeRoot: true,
     });
 
-    console.log({ usage: Math.max(workspace.usage - totalLinkClicks, 0) });
-    console.log({ linksUsage: Math.max(workspace.linksUsage - linksCount, 0) });
-
     // Update the domain to use the new workspace
     const [domainResponse] = await Promise.all([
       prisma.domain.update({
