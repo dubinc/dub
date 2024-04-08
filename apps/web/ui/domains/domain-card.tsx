@@ -15,6 +15,7 @@ import {
   LoadingDots,
   NumberTooltip,
   Popover,
+  SimpleTooltipContent,
   useIntersectionObserver,
 } from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
@@ -214,6 +215,15 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                     }}
                     icon={<FolderInput className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
+                    {...(primary && {
+                      disabledTooltip: (
+                        <SimpleTooltipContent
+                          title="You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
+                          cta="Learn more."
+                          href="https://dub.co/help/article/how-to-set-primary-domain"
+                        />
+                      ),
+                    })}
                   />
                   <Button
                     text="Delete"

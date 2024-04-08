@@ -125,13 +125,19 @@ export const POST = withAuth(
           usage: {
             decrement: totalLinkClicks,
           },
+          linksUsage: {
+            decrement: linksCount,
+          },
         },
       }),
       prisma.project.update({
         where: { id: newWorkspaceId },
         data: {
-          linksUsage: {
+          usage: {
             increment: totalLinkClicks,
+          },
+          linksUsage: {
+            increment: linksCount,
           },
         },
       }),
