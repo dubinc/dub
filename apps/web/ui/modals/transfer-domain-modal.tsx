@@ -31,7 +31,7 @@ function TransferDomainModal({
   const [selectedWorkspace, setselectedWorkspace] =
     useState<InputSelectItemProps | null>(null);
 
-  const transferDomain = async (linkId: string, newWorkspaceId: string) => {
+  const transferDomain = async (domain: string, newWorkspaceId: string) => {
     return await fetch(
       `/api/domains/${domain}/transfer?workspaceId=${currentWorkspace.id}`,
       {
@@ -69,7 +69,7 @@ function TransferDomainModal({
           e.preventDefault();
           if (selectedWorkspace) {
             setTransferring(true);
-            toast.promise(transferDomain(props.id, selectedWorkspace.id), {
+            toast.promise(transferDomain(domain, selectedWorkspace.id), {
               loading: "Transferring domain...",
               success:
                 "Domain transfer initiated. We'll send you an email once it's complete.",
