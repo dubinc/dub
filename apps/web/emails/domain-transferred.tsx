@@ -19,10 +19,12 @@ export default function DomainTransferred({
   email = "panic@thedis.co",
   domain = "dub.sh",
   newWorkspace = { name: "Dub", slug: "dub" },
+  linksCount = 50,
 }: {
   email: string;
   domain: string;
   newWorkspace: Pick<Project, "name" | "slug">;
+  linksCount: number;
 }) {
   return (
     <Html>
@@ -44,8 +46,11 @@ export default function DomainTransferred({
               Domain Transferred
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your domain <code className="text-purple-600">{domain}</code> and
-              its links has been transferred to the workspace{" "}
+              Your domain <code className="text-purple-600">{domain}</code>{" "}
+              {linksCount > 0 && (
+                <>and its {linksCount > 0 ? linksCount : ""} links </>
+              )}
+              has been transferred to the workspace{" "}
               <Link
                 href={`https://app.dub.co/${newWorkspace.slug}/domains`}
                 className="font-medium text-blue-600 no-underline"

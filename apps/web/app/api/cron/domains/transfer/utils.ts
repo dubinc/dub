@@ -43,10 +43,12 @@ export const domainTransferredEmail = async ({
   domain,
   currentWorkspaceId,
   newWorkspaceId,
+  linksCount,
 }: {
   domain: string;
   currentWorkspaceId: string;
   newWorkspaceId: string;
+  linksCount: number;
 }) => {
   const currentWorkspace = await prisma.project.findUnique({
     where: {
@@ -87,6 +89,7 @@ export const domainTransferredEmail = async ({
       email: ownerEmail,
       domain,
       newWorkspace,
+      linksCount,
     }),
   });
 };

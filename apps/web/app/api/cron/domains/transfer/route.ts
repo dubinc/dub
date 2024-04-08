@@ -13,6 +13,7 @@ const schema = z.object({
   currentWorkspaceId: z.string(),
   newWorkspaceId: z.string(),
   domain: z.string(),
+  linksCount: z.number(),
 });
 
 export async function POST(req: Request) {
@@ -29,7 +30,8 @@ export async function POST(req: Request) {
     }
   }
 
-  const { currentWorkspaceId, newWorkspaceId, domain } = schema.parse(body);
+  const { currentWorkspaceId, newWorkspaceId, domain, linksCount } =
+    schema.parse(body);
 
   const links = await prisma.link.findMany({
     where: { domain, projectId: currentWorkspaceId },
@@ -42,6 +44,7 @@ export async function POST(req: Request) {
       domain,
       currentWorkspaceId,
       newWorkspaceId,
+      linksCount,
     });
 
     return NextResponse.json({
@@ -78,6 +81,7 @@ export async function POST(req: Request) {
         domain,
         currentWorkspaceId,
         newWorkspaceId,
+        linksCount,
       });
     }
 

@@ -149,6 +149,7 @@ export const POST = withAuth(
         currentWorkspaceId: workspace.id,
         newWorkspaceId,
         domain,
+        linksCount,
       },
     });
 
