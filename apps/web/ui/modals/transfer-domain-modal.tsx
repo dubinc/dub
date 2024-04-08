@@ -70,7 +70,8 @@ function TransferDomainModal({
             setTransferring(true);
             toast.promise(transferDomain(props.id, selectedWorkspace.id), {
               loading: "Transferring domain...",
-              success: "Successfully transferred domain.",
+              success:
+                "Domain transfer initiated. We'll send you an email once it's complete.",
               error: "Failed to transfer domain.",
             });
           }
