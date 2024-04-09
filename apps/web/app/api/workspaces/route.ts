@@ -29,7 +29,12 @@ export const GET = withSession(async ({ session }) => {
           role: true,
         },
       },
-      domains: true,
+      domains: {
+        select: {
+          slug: true,
+          primary: true,
+        },
+      },
     },
   });
   return NextResponse.json(
@@ -113,7 +118,13 @@ export const POST = withSession(async ({ req, session }) => {
         },
       },
       include: {
-        domains: true,
+        domains: {
+          select: {
+            id: true,
+            slug: true,
+            primary: true,
+          },
+        },
         users: {
           select: {
             role: true,
@@ -134,5 +145,13 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  return NextResponse.json(projectResponse);
+  const response = {
+    ...projectResponse,
+    domains: projectResponse.domains.map(({ slug, primary }) => ({
+      slug,
+      primary,
+    })),
+  };
+
+  return NextResponse.json(response);
 });
