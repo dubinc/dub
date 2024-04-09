@@ -53,8 +53,6 @@ export const openApiObject: ZodOpenApiObject = {
         scheme: "bearer",
       },
     },
-    // @ts-ignore
-    // TODO: Fix this typing issue
     responses: {
       ...openApiErrorResponses,
     },

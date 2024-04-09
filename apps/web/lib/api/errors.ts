@@ -3,6 +3,7 @@ import { capitalize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
+import { ZodOpenApiResponseObject } from "zod-openapi";
 import { PlanProps } from "../types";
 
 export const ErrorCode = z.enum([
@@ -156,36 +157,48 @@ export function handleAndReturnErrorResponse(
   return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }
 
-export const errorSchemaFactory = (code: z.infer<typeof ErrorCode>) => {
+export const errorSchemaFactory = (
+  code: z.infer<typeof ErrorCode>,
+  description: string,
+): ZodOpenApiResponseObject => {
   return {
-    "x-speakeasy-name-override": speakeasyErrorOverrides[code],
-    type: "object",
-    properties: {
-      error: {
-        type: "object",
-        properties: {
-          code: {
-            type: "string",
-            enum: [code],
-            description: "A short code indicating the error code returned.",
-            example: code,
+    description,
+    content: {
+      "application/json": {
+        schema: {
+          "x-speakeasy-name-override": speakeasyErrorOverrides[code],
+          type: "object",
+          properties: {
+            error: {
+              type: "object",
+              properties: {
+                code: {
+                  type: "string",
+                  enum: [code],
+                  description:
+                    "A short code indicating the error code returned.",
+                  example: code,
+                },
+                message: {
+                  type: "string",
+                  description:
+                    "A human readable explanation of what went wrong.",
+                  example: "The requested resource was not found.",
+                },
+                doc_url: {
+                  type: "string",
+                  description:
+                    "A link to our documentation with more details about this error code",
+                  example: `${docErrorUrl}#${code}`,
+                },
+              },
+              required: ["code", "message"],
+            },
           },
-          message: {
-            type: "string",
-            description: "A human readable explanation of what went wrong.",
-            example: "The requested resource was not found.",
-          },
-          doc_url: {
-            type: "string",
-            description:
-              "A link to our documentation with more details about this error code",
-            example: `${docErrorUrl}#${code}`,
-          },
+          required: ["error"],
         },
-        required: ["code", "message"],
       },
     },
-    required: ["error"],
   };
 };
 
