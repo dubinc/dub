@@ -6,6 +6,7 @@ import { TagSchema } from "./tags";
 export const getUrlQuerySchema = z.object({
   url: z
     .string()
+    .describe("The destination URL of the short link.")
     .transform((v) => getUrlFromString(v))
     .refine((v) => isValidUrl(v), { message: "Invalid URL" }),
 });
@@ -126,21 +127,12 @@ export const createLinkBodySchema = z.object({
     .describe("Whether the short link is archived."),
   expiresAt: z
     .string()
-    .datetime({
-      message: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
-    })
     .nullish()
-    .describe(
-      "The date and time when the short link will expire in ISO-8601 format. Must be in the future.",
-    )
-    .refine(
-      (expiresAt) => {
-        return expiresAt ? new Date(expiresAt) > new Date() : true;
-      },
-      {
-        message: "Expiry date must be in the future.",
-      },
-    ),
+    .describe("The date and time when the short link will expire at."),
+  expiredUrl: z
+    .string()
+    .nullish()
+    .describe("The URL to redirect to when the short link has expired."),
   password: z
     .string()
     .nullish()
@@ -240,10 +232,16 @@ export const LinkSchema = z
       .describe("Whether the short link is archived."),
     expiresAt: z
       .string()
+      .datetime()
       .nullable()
       .describe(
-        "The date and time when the short link will expire in ISO-8601 format. Must be in the future.",
+        "The date and time when the short link will expire in ISO-8601 format.",
       ),
+    expiredUrl: z
+      .string()
+      .url()
+      .nullable()
+      .describe("The URL to redirect to when the short link has expired."),
     password: z
       .string()
       .nullable()

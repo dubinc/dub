@@ -23,7 +23,6 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  HOME_DOMAIN,
   cn,
   fetcher,
   getApexDomain,
@@ -160,7 +159,6 @@ export default function LinkCard({
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
-    archived: !archived,
   });
   const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
     props,
@@ -425,7 +423,7 @@ export default function LinkCard({
                     <SimpleTooltipContent
                       title="This link is cloaked. Your users will only see the short link in the browser address bar."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/link-cloaking`}
+                      href="https://dub.co/help/article/link-cloaking"
                     />
                   }
                 >
@@ -438,7 +436,7 @@ export default function LinkCard({
                     <SimpleTooltipContent
                       title="This link is password-protected."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/password-protected-links`}
+                      href="https://dub.co/help/article/password-protected-links"
                     />
                   }
                 >
@@ -605,7 +603,7 @@ export default function LinkCard({
               }}
               className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
-              <span className="sr-only">Edit</span>
+              <span className="sr-only">More options</span>
               <ThreeDots className="h-5 w-5 text-gray-500" />
             </button>
           </Popover>

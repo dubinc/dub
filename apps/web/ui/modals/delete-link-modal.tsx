@@ -47,8 +47,8 @@ function DeleteLinkModal({
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Delete {shortlink}</h3>
         <p className="text-sm text-gray-500">
-          Warning: Deleting this link will remove all of its stats. This action
-          cannot be undone.
+          Warning: Deleting this link will remove all of its analytics. This
+          action cannot be undone – proceed with caution.
         </p>
       </div>
 
@@ -94,7 +94,7 @@ function DeleteLinkModal({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             />
           </div>
         </div>

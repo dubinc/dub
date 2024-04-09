@@ -7,7 +7,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -49,7 +49,7 @@ export default function AndroidSection({
               <SimpleTooltipContent
                 title="Redirect your Android users to a different link."
                 cta="Learn more about device targeting."
-                href={`${HOME_DOMAIN}/help/article/device-targeting`}
+                href="https://dub.co/help/article/device-targeting"
               />
             }
           />
@@ -74,7 +74,7 @@ export default function AndroidSection({
                             }),
                         }
                       : {
-                          href: `${HOME_DOMAIN}/pricing`,
+                          href: "https://dub.co/pricing",
                         })}
                   />
                 ),
@@ -96,7 +96,7 @@ export default function AndroidSection({
             onChange={(e) => {
               setData({ ...data, android: e.target.value });
             }}
-            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             aria-invalid="true"
           />
         </motion.div>

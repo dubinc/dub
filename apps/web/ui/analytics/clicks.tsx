@@ -1,4 +1,5 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import useDomains from "@/lib/swr/use-domains";
 import useTags from "@/lib/swr/use-tags";
 import { Chart } from "@/ui/shared/icons";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
@@ -15,9 +16,15 @@ export default function Clicks() {
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
-  const tagId = searchParams?.get("tagId");
   const { queryParams } = useRouterStuff();
+
+  // Tag related
+  const tagId = searchParams?.get("tagId");
   const { tags } = useTags();
+
+  // Domain related
+  const domainSlug = searchParams?.get("domainSlug");
+  const { allActiveDomains: domains } = useDomains();
 
   return (
     <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">
@@ -56,7 +63,7 @@ export default function Clicks() {
               >
                 <p>Link</p>
                 <strong className="text-gray-800">
-                  {linkConstructor({ domain, key, pretty: true })}
+                  {truncate(linkConstructor({ domain, key, pretty: true }), 24)}
                 </strong>
                 <X className="h-4 w-4" />
               </Link>

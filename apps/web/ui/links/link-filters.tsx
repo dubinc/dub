@@ -424,7 +424,7 @@ const DomainPopover = ({
           onClick={() => setOpenPopover(!openPopover)}
           className={`${
             openPopover ? "bg-gray-200" : "hover:bg-gray-200"
-          } -mr-1 flex h-6 w-5 items-center justify-center rounded-md transition-colors`}
+          } flex h-6 items-center justify-center rounded-md transition-colors`}
         >
           <ThreeDots
             className={`h-4 w-4 text-gray-500 ${

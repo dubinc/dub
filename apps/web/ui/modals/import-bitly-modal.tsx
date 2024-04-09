@@ -9,7 +9,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { HOME_DOMAIN, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -250,7 +250,7 @@ function ImportBitlyModal({
               }}
             />
             <a
-              href={`${HOME_DOMAIN}/help/article/migrating-from-bitly`}
+              href="https://dub.co/help/article/migrating-from-bitly"
               target="_blank"
               className="text-center text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
             >

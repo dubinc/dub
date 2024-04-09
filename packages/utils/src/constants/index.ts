@@ -141,6 +141,19 @@ export const DUB_DOMAINS = [
           ],
           projectId: DUB_WORKSPACE_ID,
         },
+        {
+          id: "clugy7euh000a11h6ignmj42o",
+          slug: "loooooooo.ng",
+          verified: true,
+          primary: false,
+          archived: true,
+          publicStats: true,
+          target: "https://dub.co/tools/url-lengthener",
+          type: "redirect",
+          placeholder: "https://d.to/long",
+          clicks: 0,
+          projectId: DUB_WORKSPACE_ID,
+        },
       ]
     : []),
 ];

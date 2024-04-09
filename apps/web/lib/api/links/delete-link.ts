@@ -17,7 +17,7 @@ export async function deleteLink(linkId: string) {
     link.proxy &&
       link.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
       storage.delete(`images/${link.id}`),
-    redis.hdel(link.domain, link.key.toLowerCase()),
+    redis.hdel(link.domain.toLowerCase(), link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&
       prisma.project.update({

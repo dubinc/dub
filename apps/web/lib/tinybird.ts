@@ -6,13 +6,13 @@ import {
   getDomainWithoutWWW,
   nanoid,
 } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
 import { getIdentityHash } from "./edge";
 import { detectBot } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
-import { ipAddress } from "@vercel/edge";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -63,7 +63,9 @@ export async function recordClick({
           alias_link_id: "",
           url: url || "",
           ip:
-            ip &&
+            // only record IP if it's a valid IP and not from EU
+            typeof ip === "string" &&
+            ip.trim().length > 0 &&
             (!geo?.country ||
               (geo?.country && !EU_COUNTRY_CODES.includes(geo.country)))
               ? ip

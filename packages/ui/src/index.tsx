@@ -39,6 +39,7 @@ export * from "./copy-button";
 export * from "./counting-numbers";
 export * from "./icon-menu";
 export * from "./inline-snippet";
+export * from "./link-logo";
 export * from "./link-preview";
 export * from "./product-hunt";
 export * from "./progress-bar";
