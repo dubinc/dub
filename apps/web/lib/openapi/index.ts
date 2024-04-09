@@ -1,10 +1,9 @@
-import { ZodOpenApiObject } from "zod-openapi";
-
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { LinkSchema } from "@/lib/zod/schemas/links";
 import { TagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { API_DOMAIN } from "@dub/utils";
+import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
 import { linksPaths } from "./links";
 import { qrCodePaths } from "./qr";
@@ -55,6 +54,7 @@ export const openApiObject: ZodOpenApiObject = {
       },
     },
     // @ts-ignore
+    // TODO: Fix this typing issue
     responses: {
       ...openApiErrorResponses,
     },
