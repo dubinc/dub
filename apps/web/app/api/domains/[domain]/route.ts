@@ -7,7 +7,6 @@ import {
 } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { DUB_WORKSPACE_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain

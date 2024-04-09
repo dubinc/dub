@@ -5,15 +5,14 @@ import {
   cn,
   getApexDomain,
   linkConstructor,
-  truncate,
 } from "@dub/utils";
+import punycode from "punycode/";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
-import ExportButton from "./export-button";
-import SharePopover from "./share-popover";
 import DateRangePicker from "./date-range-picker";
+import ExportButton from "./export-button";
 import FilterBar from "./filter-bar";
-import punycode from "punycode/";
+import SharePopover from "./share-popover";
 
 export default function Toggle() {
   const { basePath, domain, key, url, admin } = useContext(AnalyticsContext);

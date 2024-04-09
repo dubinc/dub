@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar, Badge, IconMenu, LoadingCircle, Popover } from "@dub/ui";
-import { HOME_DOMAIN } from "@dub/utils";
 import va from "@vercel/analytics";
 import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
@@ -73,7 +72,7 @@ export default function UserDropdown() {
               </p>
             </Link>
             <Link
-              href={`${HOME_DOMAIN}/help`}
+              href="https://dub.co/help"
               onClick={() => setOpenPopover(false)}
               target="_blank"
               className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
@@ -113,7 +112,7 @@ export default function UserDropdown() {
               />
             </Link>
             <Link
-              href={`${HOME_DOMAIN}/changelog`}
+              href="https://dub.co/changelog"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {

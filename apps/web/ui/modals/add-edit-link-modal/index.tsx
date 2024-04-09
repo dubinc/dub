@@ -425,7 +425,7 @@ function AddEditLinkModal({
                     className={`${
                       urlError
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                        : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
                     } block w-full rounded-md focus:outline-none sm:text-sm`}
                     aria-invalid="true"
                   />
@@ -481,6 +481,7 @@ function AddEditLinkModal({
                     disabled={props && lockKey}
                     value={domain}
                     onChange={(e) => {
+                      setKeyError(null);
                       setData({ ...data, domain: e.target.value });
                     }}
                     className={cn(
@@ -509,7 +510,7 @@ function AddEditLinkModal({
                     disabled={props && lockKey}
                     autoComplete="off"
                     className={cn(
-                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                       {
                         "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                           keyError,

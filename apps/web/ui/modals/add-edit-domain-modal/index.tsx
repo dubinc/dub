@@ -13,11 +13,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import {
-  FADE_IN_ANIMATION_SETTINGS,
-  HOME_DOMAIN,
-  capitalize,
-} from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS, capitalize } from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -224,7 +220,7 @@ function AddEditDomainModal({
                 type="url"
                 name="target"
                 id="target"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder="https://example.com"
                 value={target}
                 onChange={(e) => setData({ ...data, target: e.target.value })}
@@ -286,7 +282,7 @@ function AddEditDomainModal({
                     <SimpleTooltipContent
                       title="Redirect users to a specific URL when any link under this domain has expired."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain`}
+                      href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
                     />
                   }
                 />
@@ -319,7 +315,7 @@ function AddEditDomainModal({
                       type="url"
                       name="expiredUrl"
                       id="expiredUrl"
-                      className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                       placeholder="https://yourwebsite.com"
                       value={expiredUrl}
                       onChange={(e) =>
@@ -346,7 +342,7 @@ function AddEditDomainModal({
                   type="url"
                   name="placeholder"
                   id="placeholder"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                   placeholder="https://dub.co/help/article/what-is-dub"
                   value={placeholder}
                   onChange={(e) =>
