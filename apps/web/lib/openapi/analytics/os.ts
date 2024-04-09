@@ -5,6 +5,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getOSAnalytics: ZodOpenApiOperationObject = {
   operationId: "getOSAnalytics",
+  "x-speakeasy-name-override": "os",
   summary: "Retrieve OS analytics",
   description:
     "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",

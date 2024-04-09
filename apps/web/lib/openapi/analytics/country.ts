@@ -6,6 +6,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getCountryAnalytics: ZodOpenApiOperationObject = {
   operationId: "getCountryAnalytics",
+  "x-speakeasy-name-override": "countries",
   summary: "Retrieve country analytics",
   description:
     "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",

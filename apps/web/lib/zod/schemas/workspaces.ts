@@ -42,6 +42,9 @@ export const WorkspaceSchema = z
         }),
       )
       .describe("The role of the authenticated user in the workspace."),
+
+    // TODO:
+    // Update the domains schema to include the domain object
     domains: z
       .array(
         z.object({

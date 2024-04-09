@@ -5,6 +5,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getTopLinks: ZodOpenApiOperationObject = {
   operationId: "getTopLinks",
+  "x-speakeasy-name-override": "topLinks",
   summary: "Retrieve top links",
   description:
     "Retrieve the top links by number of clicks for a domain or the authenticated workspace.",

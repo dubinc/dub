@@ -5,6 +5,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getBrowserAnalytics: ZodOpenApiOperationObject = {
   operationId: "getBrowserAnalytics",
+  "x-speakeasy-name-override": "browsers",
   summary: "Retrieve browser analytics",
   description:
     "Retrieve the top browsers by number of clicks for a link, a domain, or the authenticated workspace.",

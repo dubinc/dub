@@ -5,6 +5,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getDeviceAnalytics: ZodOpenApiOperationObject = {
   operationId: "getDeviceAnalytics",
+  "x-speakeasy-name-override": "devices",
   summary: "Retrieve device analytics",
   description:
     "Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",

@@ -29,6 +29,7 @@ export const GET = withSession(async ({ session }) => {
           role: true,
         },
       },
+      domains: true,
     },
   });
   return NextResponse.json(
@@ -113,6 +114,11 @@ export const POST = withSession(async ({ req, session }) => {
       },
       include: {
         domains: true,
+        users: {
+          select: {
+            role: true,
+          },
+        },
       },
     }),
     domain && addDomainToVercel(domain),

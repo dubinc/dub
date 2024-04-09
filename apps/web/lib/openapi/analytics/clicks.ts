@@ -5,6 +5,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getClicksAnalytics: ZodOpenApiOperationObject = {
   operationId: "getClicksAnalytics",
+  "x-speakeasy-name-override": "clicks",
   summary: "Retrieve clicks analytics",
   description:
     "Retrieve the number of clicks for a link, a domain, or the authenticated workspace.",

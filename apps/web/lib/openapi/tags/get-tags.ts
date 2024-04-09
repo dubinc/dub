@@ -6,6 +6,7 @@ import { TagSchema } from "@/lib/zod/schemas/tags";
 
 export const getTags: ZodOpenApiOperationObject = {
   operationId: "getTags",
+  "x-speakeasy-name-override": "list",
   summary: "Retrieve a list of tags",
   description: "Retrieve a list of tags for the authenticated workspace.",
   requestParams: {
