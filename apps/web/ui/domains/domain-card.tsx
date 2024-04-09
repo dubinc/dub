@@ -1,3 +1,4 @@
+import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps, DomainVerificationStatusProps } from "@/lib/types";
 import {
@@ -32,14 +33,9 @@ import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
 import { useTransferDomainModal } from "../modals/transfer-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 
-export default function DomainCard({
-  props,
-  activeDomainsCount,
-}: {
-  props: DomainProps;
-  activeDomainsCount: number;
-}) {
+export default function DomainCard({ props }: { props: DomainProps }) {
   const { id: workspaceId, slug } = useWorkspace();
+  const { activeWorkspaceDomains } = useDomains();
 
   const { slug: domain, primary, target, type, archived } = props || {};
 
@@ -108,6 +104,8 @@ export default function DomainCard({
   const { setShowDeleteDomainModal, DeleteDomainModal } = useDeleteDomainModal({
     props,
   });
+
+  const activeDomainsCount = activeWorkspaceDomains?.length || 0;
 
   return (
     <>

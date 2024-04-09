@@ -60,10 +60,7 @@ export default function WorkspaceDomainsClient() {
             <ul className="grid grid-cols-1 gap-3">
               {activeWorkspaceDomains.map((domain) => (
                 <li key={domain.slug}>
-                  <DomainCard
-                    props={domain}
-                    activeDomainsCount={activeWorkspaceDomains.length}
-                  />
+                  <DomainCard props={domain} />
                 </li>
               ))}
             </ul>
@@ -78,10 +75,7 @@ export default function WorkspaceDomainsClient() {
             {showArchivedDomains &&
               archivedWorkspaceDomains?.map((domain) => (
                 <li key={domain.slug}>
-                  <DomainCard
-                    props={domain}
-                    activeDomainsCount={archivedWorkspaceDomains.length}
-                  />
+                  <DomainCard props={domain} />
                 </li>
               ))}
             <Button
