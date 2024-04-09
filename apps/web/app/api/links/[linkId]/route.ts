@@ -100,9 +100,6 @@ export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
 export const DELETE = withAuth(async ({ headers, link }) => {
   await deleteLink(link!.id);
 
-  // TODO:
-  // Check if this change breaks the UI
-
   return NextResponse.json(
     { id: link?.id },
     {
