@@ -61,6 +61,7 @@ export const openApiObject: ZodOpenApiObject = {
   "x-speakeasy-globals": {
     parameters: [
       {
+        "x-speakeasy-globals-hidden": true,
         name: "workspaceId",
         in: "query",
         required: true,
