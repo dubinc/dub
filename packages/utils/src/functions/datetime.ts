@@ -26,6 +26,7 @@ export const formatDate = (datetime: Date | string) => {
 };
 
 export const formatDateTime = (datetime: Date | string) => {
+  if(datetime.toString() === 'Invalid Date') return ""
   return new Date(datetime).toLocaleTimeString("en-US", {
     month: "short",
     day: "numeric",
