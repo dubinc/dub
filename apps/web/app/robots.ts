@@ -1,4 +1,4 @@
-import { SHORT_DOMAIN } from "@dub/utils";
+import { SHORT_DOMAIN, isDubDomain } from "@dub/utils";
 import { MetadataRoute } from "next";
 import { headers } from "next/headers";
 
@@ -9,6 +9,18 @@ export default function robots(): MetadataRoute.Robots {
   if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
     // for local development and preview URLs
     domain = SHORT_DOMAIN;
+  }
+
+  if (isDubDomain(domain)) {
+    return {
+      rules: [
+        {
+          userAgent: "*",
+          allow: "/",
+        },
+      ],
+      sitemap: `https://${domain}/sitemap.xml`,
+    };
   }
 
   return {
