@@ -33,6 +33,20 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   internal_server_error: 500,
 };
 
+const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
+  bad_request: "BadRequest",
+  unauthorized: "Unauthorized",
+  forbidden: "Forbidden",
+  exceeded_limit: "ExceededLimit",
+  not_found: "NotFound",
+  conflict: "Conflict",
+  invite_pending: "InvitePending",
+  invite_expired: "InviteExpired",
+  unprocessable_entity: "UnprocessableEntity",
+  rate_limit_exceeded: "RateLimitExceeded",
+  internal_server_error: "InternalServerError",
+};
+
 const ErrorSchema = z.object({
   error: z.object({
     code: ErrorCode.openapi({
@@ -143,26 +157,36 @@ export function handleAndReturnErrorResponse(
 }
 
 export const errorSchemaFactory = (code: z.infer<typeof ErrorCode>) => {
-  return z.object({
-    error: z.object({
-      code: z.literal(code).openapi({
-        description: "A short code indicating the error code returned.",
-        example: code,
-      }),
-      message: z.string().openapi({
-        description: "A human readable explanation of what went wrong.",
-        example: "The requested resource was not found.",
-      }),
-      doc_url: z
-        .string()
-        .optional()
-        .openapi({
-          description:
-            "A link to our documentation with more details about this error code",
-          example: `${docErrorUrl}#${code}`,
-        }),
-    }),
-  });
+  return {
+    "x-speakeasy-name-override": speakeasyErrorOverrides[code],
+    type: "object",
+    properties: {
+      error: {
+        type: "object",
+        properties: {
+          code: {
+            type: "string",
+            enum: [code],
+            description: "A short code indicating the error code returned.",
+            example: code,
+          },
+          message: {
+            type: "string",
+            description: "A human readable explanation of what went wrong.",
+            example: "The requested resource was not found.",
+          },
+          doc_url: {
+            type: "string",
+            description:
+              "A link to our documentation with more details about this error code",
+            example: `${docErrorUrl}#${code}`,
+          },
+        },
+        required: ["code", "message"],
+      },
+    },
+    required: ["error"],
+  };
 };
 
 export const exceededLimitError = ({
