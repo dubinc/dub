@@ -107,7 +107,10 @@ export const POST = withAuth(
     const [domainResponse] = await Promise.all([
       prisma.domain.update({
         where: { slug: domain, projectId: workspace.id },
-        data: { projectId: newWorkspaceId },
+        data: {
+          projectId: newWorkspaceId,
+          primary: newWorkspace.domains.length === 0,
+        },
       }),
       setRootDomain({
         id: domainRecord.id,
