@@ -1,3 +1,4 @@
+import HelpButton from "@/ui/layout/help-button";
 import NavTabs from "@/ui/layout/nav-tabs";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 import UserDropdown from "@/ui/layout/user-dropdown";
@@ -51,6 +52,9 @@ export default function Layout({ children }: { children: ReactNode }) {
           </MaxWidthWrapper>
         </div>
         {children}
+      </div>
+      <div className="fixed bottom-0 right-0 m-5">
+        <HelpButton />
       </div>
     </Providers>
   );
