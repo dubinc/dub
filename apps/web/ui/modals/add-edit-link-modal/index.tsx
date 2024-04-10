@@ -47,7 +47,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
+import { useDebounce, useDebouncedCallback } from "use-debounce";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -107,7 +107,7 @@ function AddEditLinkModal({
 
   const { domain, key, url, password, proxy } = data;
 
-  const generateRandomKey = useCallback(async () => {
+  const generateRandomKey = useDebouncedCallback(async () => {
     setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
@@ -116,20 +116,7 @@ function AddEditLinkModal({
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
     setGeneratingKey(false);
-  }, [domain, slug]);
-
-  const runKeyChecks = async (e: React.FocusEvent<HTMLInputElement>) => {
-    if (!e.target.value) return;
-    const res = await fetch(
-      `/api/links/verify?domain=${domain}&key=${e.target.value}&workspaceId=${workspaceId}`,
-    );
-    const { error } = await res.json();
-    if (error) {
-      setKeyError(error.message);
-    } else {
-      setKeyError(null);
-    }
-  };
+  }, 500);
 
   useEffect(() => {
     // when someone pastes a URL
@@ -151,6 +138,19 @@ function AddEditLinkModal({
       }
     }
   }, [showAddEditLinkModal, url]);
+
+  const runKeyChecks = async (e: React.FocusEvent<HTMLInputElement>) => {
+    if (!e.target.value) return;
+    const res = await fetch(
+      `/api/links/verify?domain=${domain}&key=${e.target.value}&workspaceId=${workspaceId}`,
+    );
+    const { error } = await res.json();
+    if (error) {
+      setKeyError(error.message);
+    } else {
+      setKeyError(null);
+    }
+  };
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
