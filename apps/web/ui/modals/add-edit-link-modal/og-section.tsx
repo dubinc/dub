@@ -309,10 +309,10 @@ export default function OGSection({
                 </p>
                 <ButtonWithTooltip
                   onClick={generateTitle}
-                  disabled={generatingTitle}
+                  disabled={generatingTitle || !title}
                   tooltip={{
                     ai:
-                      aiLimit && aiUsage
+                      title && aiLimit && aiUsage
                         ? {
                             data: {
                               limit: aiLimit,
@@ -367,10 +367,10 @@ export default function OGSection({
                 </p>
                 <ButtonWithTooltip
                   onClick={generateDescription}
-                  disabled={generatingDescription}
+                  disabled={generatingDescription || !description}
                   tooltip={{
                     ai:
-                      aiLimit && aiUsage
+                      description && aiLimit && aiUsage
                         ? {
                             data: {
                               limit: aiLimit,
@@ -379,7 +379,7 @@ export default function OGSection({
                             title: "Create a description using AI",
                           }
                         : undefined,
-                    content: !title
+                    content: !description
                       ? "Please enter a description to generate one using AI."
                       : "Create an optimized description using AI.",
                   }}
