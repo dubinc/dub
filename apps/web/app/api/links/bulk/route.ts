@@ -3,7 +3,7 @@ import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps } from "@/lib/types";
-import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
+import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links

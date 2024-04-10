@@ -1,5 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { createTagBodySchema, TagSchema } from "@/lib/zod/schemas/tags";
+import { createTagBodySchema, TagSchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 

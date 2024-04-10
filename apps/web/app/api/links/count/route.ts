@@ -1,6 +1,6 @@
 import { getLinksCount } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
+import { getLinksCountQuerySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/links/count – get the number of links for a workspace

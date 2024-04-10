@@ -6,7 +6,7 @@ import {
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { createWorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import { createWorkspaceSchema } from "@/lib/zod/schemas";
 import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
