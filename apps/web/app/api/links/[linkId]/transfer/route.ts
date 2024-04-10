@@ -85,7 +85,7 @@ export const POST = withAuth(
           },
         },
       }),
-      redis.hset(link.domain, {
+      redis.hset(link.domain.toLowerCase(), {
         [link.key.toLowerCase()]: await formatRedisLink({
           ...link,
           projectId: newWorkspaceId,

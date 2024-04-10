@@ -51,7 +51,10 @@ export const POST = withAuth(async ({ req, workspace }) => {
   }
   const vercelResponse = await addDomainToVercel(domain);
 
-  if (vercelResponse.error) {
+  if (
+    vercelResponse.error &&
+    vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+  ) {
     return new Response(vercelResponse.error.message, { status: 422 });
   }
   /* 
@@ -60,20 +63,18 @@ export const POST = withAuth(async ({ req, workspace }) => {
             2. If there's a landing page set, update the root domain in Redis
             3. If the workspace has no domains (meaning this is the first domain added), set it as primary
         */
-  const response = await Promise.all([
-    prisma.domain.create({
-      data: {
-        slug: domain,
-        target,
-        type,
-        projectId: workspace.id,
-        primary: workspace.domains.length === 0,
-      },
-    }),
-  ]);
+  const response = await prisma.domain.create({
+    data: {
+      slug: domain,
+      target,
+      type,
+      projectId: workspace.id,
+      primary: workspace.domains.length === 0,
+    },
+  });
 
   await setRootDomain({
-    id: response[0].id,
+    id: response.id,
     domain,
     projectId: workspace.id,
     ...(workspace.plan !== "free" && {

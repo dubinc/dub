@@ -6,6 +6,7 @@ import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
 
 export const createBulkLink: ZodOpenApiOperationObject = {
   operationId: "bulkCreateLinks",
+  "x-speakeasy-name-override": "createMany",
   summary: "Bulk create links",
   description: "Bulk create up to 100 links for the authenticated workspace.",
   requestParams: {
@@ -34,5 +35,5 @@ export const createBulkLink: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Links"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

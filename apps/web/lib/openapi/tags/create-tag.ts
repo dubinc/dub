@@ -6,6 +6,7 @@ import { createTagBodySchema, TagSchema } from "@/lib/zod/schemas/tags";
 
 export const createTag: ZodOpenApiOperationObject = {
   operationId: "createTag",
+  "x-speakeasy-name-override": "create",
   summary: "Create a new tag",
   description: "Create a new tag for the authenticated workspace.",
   requestParams: {
@@ -34,5 +35,5 @@ export const createTag: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Tags"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

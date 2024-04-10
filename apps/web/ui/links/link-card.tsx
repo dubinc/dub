@@ -515,19 +515,26 @@ export default function LinkCard({
                   shortcut="A"
                   className="h-9 px-2 font-medium"
                 />
-                {isDubDomain(domain) && (
-                  <Button
-                    text="Transfer"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowTransferLinkModal(true);
-                    }}
-                    icon={<FolderInput className="h-4 w-4" />}
-                    shortcut="T"
-                    className="h-9 px-2 font-medium"
-                  />
-                )}
+                <Button
+                  text="Transfer"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowTransferLinkModal(true);
+                  }}
+                  icon={<FolderInput className="h-4 w-4" />}
+                  shortcut="T"
+                  className="h-9 px-2 font-medium"
+                  {...(!isDubDomain(domain) && {
+                    disabledTooltip: (
+                      <SimpleTooltipContent
+                        title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
+                        cta="Learn more."
+                        href="https://dub.co/help/article/how-to-transfer-domains"
+                      />
+                    ),
+                  })}
+                />
                 <Button
                   text="Copy Link ID"
                   variant="outline"

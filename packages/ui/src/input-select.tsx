@@ -65,13 +65,6 @@ export function InputSelect({
     }
   }, [commandRef, openCommandList]);
 
-  // hacks the input value to be empty when the selectedItem is empty
-  useEffect(() => {
-    if (!selectedItem?.value) {
-      setInputValue("");
-    }
-  }, [selectedItem?.value]);
-
   const { isMobile } = useMediaQuery();
 
   const CommandInput = memo(() => {
@@ -103,20 +96,32 @@ export function InputSelect({
     );
   });
 
-  const CloseButton = () => (
+  const CloseChevron = memo(() => (
     <button
       onClick={() => {
+        setOpenCommandList((prev) => !prev);
         setSelectedItem(null);
         setInputValue("");
       }}
-      className="absolute inset-y-0 right-0 my-auto"
+      className="absolute inset-y-0 right-0 my-auto pr-3"
     >
-      <X className="h-7 w-7 pr-3 text-gray-400" />
+      {inputValue.length > 0 ? (
+        <X className="h-4 w-4 text-gray-400 transition-all hover:text-gray-700" />
+      ) : (
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-gray-400 transition-all hover:text-gray-700",
+            {
+              "rotate-180 transform": openCommandList,
+            },
+          )}
+        />
+      )}
     </button>
-  );
+  ));
 
   // renders a reusable list of items
-  const SelectorList = () =>
+  const SelectorList = memo(() =>
     items.map((item) => (
       <Command.Item
         key={item.id}
@@ -162,7 +167,8 @@ export function InputSelect({
 
         <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
       </Command.Item>
-    ));
+    )),
+  );
 
   // when adjustForMobile is true, render the input as a drawer
   if (isMobile && adjustForMobile) {
@@ -189,11 +195,7 @@ export function InputSelect({
               </div>
               <div className="flex h-10 px-8">
                 <CommandInput />
-                {inputValue || selectedItem?.value !== "" ? (
-                  <CloseButton />
-                ) : (
-                  <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400 transition-all" />
-                )}
+                <CloseChevron />
               </div>
             </div>
           </Command>
@@ -221,11 +223,7 @@ export function InputSelect({
                 </div>
                 <div className="flex h-10 px-8">
                   <CommandInput />
-                  {inputValue || selectedItem?.value !== "" ? (
-                    <CloseButton />
-                  ) : (
-                    <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 rotate-180 pl-3 text-gray-400 transition-all" />
-                  )}
+                  <CloseChevron />
                 </div>
               </div>
               {openCommandList && (
@@ -279,16 +277,7 @@ export function InputSelect({
         </div>
         <div className="flex h-10 px-8">
           <CommandInput />
-          {inputValue || selectedItem?.value !== "" ? (
-            <CloseButton />
-          ) : (
-            <ChevronDown
-              onClick={() => setOpenCommandList((prev) => !prev)}
-              className={`absolute inset-y-0 right-0 my-auto mr-3 h-4 w-4 cursor-pointer text-gray-400 transition-all ${
-                openCommandList && "rotate-180"
-              }`}
-            />
-          )}
+          <CloseChevron />
         </div>
       </div>
       {openCommandList && (

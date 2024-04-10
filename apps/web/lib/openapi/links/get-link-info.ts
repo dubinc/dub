@@ -6,6 +6,7 @@ import { getLinkInfoQuerySchema, LinkSchema } from "@/lib/zod/schemas/links";
 
 export const getLinkInfo: ZodOpenApiOperationObject = {
   operationId: "getLinkInfo",
+  "x-speakeasy-name-override": "get",
   summary: "Retrieve a link",
   description: "Retrieve the info for a link from their domain and key.",
   requestParams: {
@@ -29,5 +30,5 @@ export const getLinkInfo: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Links"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

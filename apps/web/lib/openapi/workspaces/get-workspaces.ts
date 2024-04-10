@@ -6,6 +6,7 @@ import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 
 export const getWorkspaces: ZodOpenApiOperationObject = {
   operationId: "getWorkspaces",
+  "x-speakeasy-name-override": "list",
   summary: "Retrieve a list of workspaces",
   description: "Retrieve a list of workspaces for the authenticated user.",
   responses: {
@@ -20,5 +21,5 @@ export const getWorkspaces: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Workspaces"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

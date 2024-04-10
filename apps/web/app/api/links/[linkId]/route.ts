@@ -98,8 +98,12 @@ export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withAuth(async ({ headers, link }) => {
-  const response = await deleteLink(link!.id);
-  return NextResponse.json(response[0], {
-    headers,
-  });
+  await deleteLink(link!.id);
+
+  return NextResponse.json(
+    { id: link?.id },
+    {
+      headers,
+    },
+  );
 });
