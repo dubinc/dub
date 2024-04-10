@@ -7,9 +7,11 @@ import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
   Button,
+  LinkedIn,
   LoadingCircle,
   Modal,
   TooltipContent,
+  Twitter,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
@@ -22,6 +24,9 @@ import {
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
+  nanoid,
+  punyEncode,
+  punycode,
   truncate,
 } from "@dub/utils";
 import {
@@ -30,7 +35,6 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import punycode from "punycode/";
 import {
   Dispatch,
   SetStateAction,
@@ -55,6 +59,8 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
+import { TriangleAlert } from "lucide-react";
+import slugify from "@sindresorhus/slugify";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -259,7 +265,7 @@ function AddEditLinkModal({
   const welcomeFlow = pathname === "/welcome";
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (key && key.endsWith("-copy")) {
+    if (key?.endsWith("-copy")) {
       keyRef.current?.select();
     }
   }, [key]);
@@ -268,6 +274,16 @@ function AddEditLinkModal({
 
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
+
+  const shortLinkLength = useMemo(() => {
+    return linkConstructor({
+      key: data.key,
+      domain: data.domain,
+      pretty: true,
+    }).length;
+  }, [data.key, data.domain]);
+
+  const randomLinkedInNonce = useMemo(() => nanoid(8), []);
 
   return (
     <Modal
@@ -311,10 +327,8 @@ function AddEditLinkModal({
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
               {props
                 ? `Edit ${linkConstructor({
+                    domain: props.domain,
                     key: props.key,
-                    domain: props.domain
-                      ? punycode.toUnicode(props.domain)
-                      : undefined,
                     pretty: true,
                   })}`
                 : "Create a new link"}
@@ -485,13 +499,13 @@ function AddEditLinkModal({
                       setData({ ...data, domain: e.target.value });
                     }}
                     className={cn(
-                      "max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                      "min-w-[6rem] max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
                       props && lockKey && "cursor-not-allowed",
                     )}
                   >
                     {domains?.map(({ slug }) => (
                       <option key={slug} value={slug}>
-                        {punycode.toUnicode(slug || "")}
+                        {punycode(slug)}
                       </option>
                     ))}
                   </select>
@@ -501,10 +515,11 @@ function AddEditLinkModal({
                     name="key"
                     id={`key-${randomIdx}`}
                     required
-                    pattern="[\p{L}\p{N}\p{Pd}\/]+"
+                    // allow letters, numbers, '-', '/' and emojis
+                    pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
                     onInvalid={(e) => {
                       e.currentTarget.setCustomValidity(
-                        "Only letters, numbers, '-', and '/' are allowed.",
+                        "Only letters, numbers, '-', '/', and emojis are allowed.",
                       );
                     }}
                     disabled={props && lockKey}
@@ -523,7 +538,10 @@ function AddEditLinkModal({
                     onChange={(e) => {
                       setKeyError(null);
                       e.currentTarget.setCustomValidity("");
-                      setData({ ...data, key: e.target.value });
+                      setData({
+                        ...data,
+                        key: e.target.value.replace(" ", "-"),
+                      });
                     }}
                     aria-invalid="true"
                     aria-describedby="key-error"
@@ -554,6 +572,40 @@ function AddEditLinkModal({
                       {keyError}
                     </p>
                   ))}
+                {shortLinkLength > 25 && (
+                  <div className="mt-4 flex items-start space-x-2 rounded-2xl border border-gray-300 bg-gray-100 p-4">
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Short links longer than 25 characters will show up
+                        differently on some platforms.
+                      </p>
+                      <div className="mt-2 flex items-center space-x-2">
+                        <LinkedIn className="h-4 w-4" />
+                        <p className="cursor-pointer text-sm font-semibold text-[#4783cf] hover:underline">
+                          {linkConstructor({
+                            domain: "lnkd.in",
+                            key: randomLinkedInNonce,
+                            pretty: true,
+                          })}
+                        </p>
+                      </div>
+                      <div className="mt-1 flex items-center space-x-2">
+                        <Twitter className="h-4 w-4" />
+                        <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
+                          {truncate(
+                            linkConstructor({
+                              domain: data.domain,
+                              key: data.key,
+                              pretty: true,
+                            }),
+                            25,
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
