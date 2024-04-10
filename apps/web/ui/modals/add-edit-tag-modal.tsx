@@ -13,7 +13,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { HOME_DOMAIN, capitalize, cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
 import va from "@vercel/analytics";
 import {
   Dispatch,
@@ -88,7 +88,7 @@ function AddEditTagModal({
           <p className="text-sm text-gray-500">
             Use tags to organize your links.{" "}
             <a
-              href={`${HOME_DOMAIN}/help/article/how-to-use-tags#what-is-a-tag`}
+              href="https://dub.co/help/article/how-to-use-tags#what-is-a-tag"
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-4 hover:text-gray-800"
@@ -151,7 +151,7 @@ function AddEditTagModal({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="New Tag"
               value={name}
               onChange={(e) => {

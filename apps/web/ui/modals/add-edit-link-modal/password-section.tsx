@@ -8,7 +8,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { TooltipContent } from "@dub/ui/src/tooltip";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -53,7 +53,7 @@ export default function PasswordSection({
               <SimpleTooltipContent
                 title="Restrict access to your short links by encrypting it with a password."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/password-protected-links`}
+                href="https://dub.co/help/article/password-protected-links"
               />
             }
           />
@@ -78,7 +78,7 @@ export default function PasswordSection({
                             }),
                         }
                       : {
-                          href: `${HOME_DOMAIN}/pricing`,
+                          href: "https://dub.co/pricing",
                         })}
                   />
                 ),
@@ -95,7 +95,7 @@ export default function PasswordSection({
             name="password"
             id="password"
             type={showPassword ? "text" : "password"}
-            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             value={password || ""}
             placeholder="Enter password"
             onChange={(e) => {

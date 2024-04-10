@@ -6,6 +6,7 @@ import {
   InputHTMLAttributes,
   ReactNode,
   SetStateAction,
+  memo,
   useEffect,
   useRef,
   useState,
@@ -33,6 +34,7 @@ export function InputSelect({
   adjustForMobile,
   icon,
   inputAttrs,
+  noItemsElement,
 }: {
   items: InputSelectItemProps[] | [];
   selectedItem: InputSelectItemProps | null;
@@ -42,6 +44,7 @@ export function InputSelect({
   adjustForMobile?: boolean;
   icon?: ReactNode;
   inputAttrs?: InputHTMLAttributes<HTMLInputElement>;
+  noItemsElement?: ReactNode;
 }) {
   const commandRef = useRef<HTMLDivElement | null>(null);
   const [openCommandList, setOpenCommandList] = useState(false);
@@ -62,47 +65,63 @@ export function InputSelect({
     }
   }, [commandRef, openCommandList]);
 
-  // hacks the input value to be empty when the selectedItem is empty
-  useEffect(() => {
-    if (!selectedItem?.value) {
-      setInputValue("");
-    }
-  }, [selectedItem?.value]);
-
   const { isMobile } = useMediaQuery();
 
-  const CommandInput = () => {
+  const CommandInput = memo(() => {
     const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
+
     return (
-      <>
-        <Command.Input
-          placeholder={inputAttrs?.placeholder || "Search..."}
-          // hack to focus on the input when the dropdown opens (only on desktop)
-          autoFocus={openCommandList && !isMobile}
-          onFocus={() => setOpenCommandList(true)}
-          value={inputValue}
-          onValueChange={setInputValue}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              e.preventDefault();
-              setOpenCommandList(false);
-              // listen for cases where empty results and enter is pressed
-            } else if (e.key === "Enter" && isEmpty) {
-              setOpenCommandList(false);
-              // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
-            } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
-              setOpenCommandList(true);
-            }
-          }}
-          disabled={disabled}
-          className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
-        />
-      </>
+      <Command.Input
+        placeholder={inputAttrs?.placeholder || "Search..."}
+        // hacky focus on the input when the dropdown opens
+        autoFocus={openCommandList}
+        onFocus={() => setOpenCommandList(true)}
+        value={inputValue}
+        onValueChange={setInputValue}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setOpenCommandList(false);
+            // listen for cases where empty results and enter is pressed
+          } else if (e.key === "Enter" && isEmpty) {
+            setOpenCommandList(false);
+            // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
+          } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
+            setOpenCommandList(true);
+          }
+        }}
+        disabled={disabled}
+        className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
+      />
     );
-  };
+  });
+
+  const CloseChevron = memo(() => (
+    <button
+      onClick={() => {
+        setOpenCommandList((prev) => !prev);
+        setSelectedItem(null);
+        setInputValue("");
+      }}
+      className="absolute inset-y-0 right-0 my-auto pr-3"
+    >
+      {inputValue.length > 0 ? (
+        <X className="h-4 w-4 text-gray-400 transition-all hover:text-gray-700" />
+      ) : (
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-gray-400 transition-all hover:text-gray-700",
+            {
+              "rotate-180 transform": openCommandList,
+            },
+          )}
+        />
+      )}
+    </button>
+  ));
 
   // renders a reusable list of items
-  const SelectorList = () =>
+  const SelectorList = memo(() =>
     items.map((item) => (
       <Command.Item
         key={item.id}
@@ -148,7 +167,8 @@ export function InputSelect({
 
         <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
       </Command.Item>
-    ));
+    )),
+  );
 
   // when adjustForMobile is true, render the input as a drawer
   if (isMobile && adjustForMobile) {
@@ -175,20 +195,7 @@ export function InputSelect({
               </div>
               <div className="flex h-10 px-8">
                 <CommandInput />
-                {inputValue && selectedItem?.value !== "" ? (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setSelectedItem(null);
-                      setInputValue("");
-                    }}
-                    className="absolute inset-y-0 right-0 my-auto"
-                  >
-                    <X className="h-7 w-7 pr-3 text-gray-400" />
-                  </button>
-                ) : (
-                  <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400 transition-all" />
-                )}
+                <CloseChevron />
               </div>
             </div>
           </Command>
@@ -216,26 +223,25 @@ export function InputSelect({
                 </div>
                 <div className="flex h-10 px-8">
                   <CommandInput />
-                  {inputValue && selectedItem?.value !== "" ? (
-                    <button
-                      onClick={() => {
-                        setSelectedItem(null);
-                        setInputValue("");
-                      }}
-                      className="absolute inset-y-0 right-0 my-auto"
-                    >
-                      <X className="h-7 w-7 pr-3 text-gray-400" />
-                    </button>
-                  ) : (
-                    <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 rotate-180 pl-3 text-gray-400 transition-all" />
-                  )}
+                  <CloseChevron />
                 </div>
               </div>
               {openCommandList && (
                 <Command.List className="dub-scrollbar h-[70vh] overflow-y-auto p-2">
-                  <Command.Empty className="px-4 py-2 text-sm text-gray-600">
-                    No results found.
-                  </Command.Empty>
+                  {items.length === 0 &&
+                    inputValue === "" &&
+                    (noItemsElement ? (
+                      <div>{noItemsElement}</div>
+                    ) : (
+                      <p className="px-4 py-2 text-sm text-gray-600">
+                        No items found.
+                      </p>
+                    ))}
+                  {inputValue !== "" && (
+                    <Command.Empty className="px-4 py-2 text-sm text-gray-600">
+                      No results found.
+                    </Command.Empty>
+                  )}
                   <SelectorList />
                 </Command.List>
               )}
@@ -271,31 +277,23 @@ export function InputSelect({
         </div>
         <div className="flex h-10 px-8">
           <CommandInput />
-          {inputValue && selectedItem?.value !== "" ? (
-            <button
-              onClick={() => {
-                setSelectedItem(null);
-                setInputValue("");
-              }}
-              className="absolute inset-y-0 right-0 my-auto"
-            >
-              <X className="h-7 w-7 pr-3 text-gray-400" />
-            </button>
-          ) : (
-            <ChevronDown
-              onClick={() => setOpenCommandList((prev) => !prev)}
-              className={`absolute inset-y-0 right-0 my-auto mr-3 h-4 w-4 cursor-pointer text-gray-400 transition-all ${
-                openCommandList && "rotate-180"
-              }`}
-            />
-          )}
+          <CloseChevron />
         </div>
       </div>
       {openCommandList && (
         <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full min-w-[160px] overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all duration-75">
-          <Command.Empty className="px-4 py-2 text-sm text-gray-600">
-            No results found.
-          </Command.Empty>
+          {items.length === 0 &&
+            inputValue === "" &&
+            (noItemsElement ? (
+              <div>{noItemsElement}</div>
+            ) : (
+              <p className="px-4 py-2 text-sm text-gray-600">No items found.</p>
+            ))}
+          {inputValue !== "" && (
+            <Command.Empty className="px-4 py-2 text-sm text-gray-600">
+              No results found.
+            </Command.Empty>
+          )}
           <SelectorList />
         </Command.List>
       )}

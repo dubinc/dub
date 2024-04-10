@@ -9,7 +9,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN, fetcher } from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS, fetcher } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useSWR from "swr";
@@ -49,7 +49,7 @@ export default function CloakingSection({
               <SimpleTooltipContent
                 title="Mask your destination URL so your users only see the short link in the browser address bar."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/link-cloaking`}
+                href="https://dub.co/help/article/link-cloaking"
               />
             }
           />
@@ -74,7 +74,7 @@ export default function CloakingSection({
                             }),
                         }
                       : {
-                          href: `${HOME_DOMAIN}/pricing`,
+                          href: "https://dub.co/pricing",
                         })}
                   />
                 ),

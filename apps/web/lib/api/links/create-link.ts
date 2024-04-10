@@ -4,14 +4,9 @@ import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  getParamsFromURL,
-  linkConstructor,
-  truncate,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { combineTagIds, dubLinkChecks } from "./utils";
+import { combineTagIds, dubLinkChecks, transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
   let { key, url, expiresAt, title, description, image, proxy, geo } = link;
@@ -65,7 +60,7 @@ export async function createLink(link: ProcessedLinkProps) {
 
   await Promise.all([
     // record link in Redis
-    redis.hset(link.domain, {
+    redis.hset(link.domain.toLowerCase(), {
       [link.key.toLowerCase()]: await formatRedisLink(response),
     }),
     // record link in Tinybird
@@ -122,20 +117,10 @@ export async function createLink(link: ProcessedLinkProps) {
     link.domain === "dub.sh" && dubLinkChecks(link),
   ]);
 
-  const shortLink = linkConstructor({
-    domain: response.domain,
-    key: response.key,
-  });
-  const tags = response.tags.map(({ tag }) => tag);
   return {
-    ...response,
+    ...transformLink(response),
     // optimistically set the image URL to the uploaded image URL
     image:
       proxy && image && !isStored(image) ? uploadedImageUrl : response.image,
-    tagId: tags?.[0]?.id ?? null, // backwards compatibility
-    tags,
-    shortLink,
-    qrCode: `https://api.dub.co/qr?url=${shortLink}`,
-    workspaceId: `ws_${response.projectId}`,
   };
 }

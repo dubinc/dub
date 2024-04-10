@@ -21,6 +21,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 
 export const ModalContext = createContext<{
@@ -28,6 +29,7 @@ export const ModalContext = createContext<{
   setShowCompleteSetupModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
+  setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
@@ -37,6 +39,7 @@ export const ModalContext = createContext<{
   setShowCompleteSetupModal: () => {},
   setShowAddEditDomainModal: () => {},
   setShowAddEditLinkModal: () => {},
+  setShowAddEditTagModal: () => {},
   setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
@@ -48,11 +51,12 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     useAddWorkspaceModal();
   const { CompleteSetupModal, setShowCompleteSetupModal } =
     useCompleteSetupModal();
-  const { setShowAddEditDomainModal, AddEditDomainModal } =
-    useAddEditDomainModal();
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
+  const { setShowAddEditDomainModal, AddEditDomainModal } =
+    useAddEditDomainModal();
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
+  const { setShowAddEditTagModal, AddEditTagModal } = useAddEditTagModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
@@ -119,6 +123,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowCompleteSetupModal,
         setShowAddEditDomainModal,
         setShowAddEditLinkModal,
+        setShowAddEditTagModal,
         setShowUpgradePlanModal,
         setShowImportBitlyModal,
         setShowImportShortModal,
@@ -130,6 +135,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       <CompleteSetupModal />
       <AddEditDomainModal />
       <AddEditLinkModal />
+      <AddEditTagModal />
       <UpgradePlanModal />
       <ImportBitlyModal />
       <ImportShortModal />

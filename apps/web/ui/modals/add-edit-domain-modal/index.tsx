@@ -8,7 +8,7 @@ import {
   InfoTooltip,
   Logo,
   Modal,
-  Switch,
+  SimpleTooltipContent,
   Tooltip,
   TooltipContent,
   useRouterStuff,
@@ -57,26 +57,23 @@ function AddEditDomainModal({
     },
   );
 
-  const { slug: domain, primary, archived, target, type, placeholder } = data;
+  const { slug: domain, target, type, placeholder, expiredUrl } = data;
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
   const [domainError, setDomainError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const saveDisabled = useMemo(() => {
     /* 
       Disable save if:
       - modal is not open
       - saving is in progress
-      - deleting is in progress
       - domain is invalid
       - for an existing domain, there's no changes
     */
     if (
       !showAddEditDomainModal ||
       saving ||
-      deleting ||
       domainError ||
       (props &&
         Object.entries(props).every(([key, value]) => data[key] === value))
@@ -103,28 +100,13 @@ function AddEditDomainModal({
     }
   }, [props]);
 
-  async function deleteDomain() {
-    setDeleting(true);
-    fetch(`/api/domains/${domain}?workspaceId=${id}`, {
-      method: "DELETE",
-    }).then(async (res) => {
-      if (res.status === 200) {
-        await mutate(`/api/domains?workspaceId=${id}`);
-        setShowAddEditDomainModal(false);
-        toast.success("Successfully deleted domain!");
-      } else {
-        setDomainError("Something went wrong. Please try again.");
-      }
-      setDeleting(false);
-    });
-  }
-
   const [expanded, setExpanded] = useState(false);
 
   return (
     <Modal
       showModal={showAddEditDomainModal}
       setShowModal={setShowAddEditDomainModal}
+      className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
@@ -211,19 +193,7 @@ function AddEditDomainModal({
             <h2 className="text-sm font-medium text-gray-900">Landing Page</h2>
             <InfoTooltip content="The page your users will get redirected to when they visit your domain." />
           </label>
-          {plan !== "free" ? (
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                type="url"
-                name="target"
-                id="target"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                placeholder="https://example.com"
-                value={target}
-                onChange={(e) => setData({ ...data, target: e.target.value })}
-              />
-            </div>
-          ) : (
+          {plan === "free" ? (
             <Tooltip
               content={
                 <TooltipContent
@@ -244,6 +214,18 @@ function AddEditDomainModal({
                 https://yourdomain.com
               </div>
             </Tooltip>
+          ) : (
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                type="url"
+                name="target"
+                id="target"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                placeholder="https://example.com"
+                value={target}
+                onChange={(e) => setData({ ...data, target: e.target.value })}
+              />
+            </div>
           )}
         </div>
         {target && (
@@ -287,29 +269,62 @@ function AddEditDomainModal({
             {...FADE_IN_ANIMATION_SETTINGS}
             className="flex flex-col space-y-6"
           >
-            <div className="flex items-center justify-between bg-gray-50">
-              <div className="flex items-center space-x-2">
+            <div>
+              <label
+                htmlFor="expiredUrl"
+                className="flex items-center space-x-2"
+              >
                 <h2 className="text-sm font-medium text-gray-900">
-                  Primary Domain
+                  Default Expiration URL
                 </h2>
-                <InfoTooltip content="The default domain used in the link creation modal. You can only have one primary domain at a time." />
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="Redirect users to a specific URL when any link under this domain has expired."
+                      cta="Learn more."
+                      href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
+                    />
+                  }
+                />
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                {plan === "free" ? (
+                  <Tooltip
+                    content={
+                      <TooltipContent
+                        title="You can't configure a custom expired URL on a free plan. Upgrade to a Pro plan to proceed."
+                        cta="Upgrade to Pro"
+                        onClick={() => {
+                          setShowAddEditDomainModal(false);
+                          queryParams({
+                            set: {
+                              upgrade: "pro",
+                            },
+                          });
+                        }}
+                      />
+                    }
+                  >
+                    <div className="mt-2 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
+                      https://yourwebsite.com
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <input
+                      type="url"
+                      name="expiredUrl"
+                      id="expiredUrl"
+                      className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                      placeholder="https://yourwebsite.com"
+                      value={expiredUrl}
+                      onChange={(e) =>
+                        setData({ ...data, expiredUrl: e.target.value })
+                      }
+                    />
+                  </div>
+                )}
               </div>
-              <Switch
-                fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
-                checked={primary}
-                disabled={props?.primary}
-              />
-            </div>
-
-            <div className="flex items-center justify-between bg-gray-50">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">Archived</h2>
-                <InfoTooltip content="Archived domains will still work, but they won't show up in the link creation modal." />
-              </div>
-              <Switch
-                fn={() => setData((prev) => ({ ...prev, archived: !archived }))}
-                checked={archived}
-              />
             </div>
 
             <div>
@@ -327,7 +342,7 @@ function AddEditDomainModal({
                   type="url"
                   name="placeholder"
                   id="placeholder"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                   placeholder="https://dub.co/help/article/what-is-dub"
                   value={placeholder}
                   onChange={(e) =>
@@ -339,25 +354,11 @@ function AddEditDomainModal({
           </motion.div>
         )}
 
-        <div className="grid gap-2">
-          <Button
-            text={props ? "Save changes" : "Add domain"}
-            disabled={saveDisabled}
-            loading={saving}
-          />
-          {props && (
-            <Button
-              variant="danger"
-              text="Delete domain"
-              onClick={() => {
-                window.confirm(
-                  "Warning: Deleting your workspace's domain will delete all existing short links using the domain. Are you sure you want to continue?",
-                ) && deleteDomain();
-              }}
-              loading={deleting}
-            />
-          )}
-        </div>
+        <Button
+          text={props ? "Save changes" : "Add domain"}
+          disabled={saveDisabled}
+          loading={saving}
+        />
       </form>
     </Modal>
   );
