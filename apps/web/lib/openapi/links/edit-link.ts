@@ -1,8 +1,8 @@
-import { ZodOpenApiOperationObject } from "zod-openapi";
-
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { ZodOpenApiOperationObject } from "zod-openapi";
+import { requestParamsSchema } from "../request";
 
 export const editLink: ZodOpenApiOperationObject = {
   operationId: "editLink",
@@ -11,11 +11,7 @@ export const editLink: ZodOpenApiOperationObject = {
   summary: "Edit a link",
   description: "Edit a link for the authenticated workspace.",
   requestParams: {
-    query: z.object({
-      workspaceId: z
-        .string()
-        .describe("The ID of the workspace the link belongs to."),
-    }),
+    query: requestParamsSchema,
     path: z.object({
       linkId: z.string().openapi({
         description:

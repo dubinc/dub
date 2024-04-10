@@ -2,6 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import { requestParamsSchema } from "../request";
 
 export const getRefererAnalytics: ZodOpenApiOperationObject = {
   operationId: "getRefererAnalytics",
@@ -10,13 +11,7 @@ export const getRefererAnalytics: ZodOpenApiOperationObject = {
   description:
     "Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: z
-      .object({
-        workspaceId: z
-          .string()
-          .describe("The ID of the workspace the link belongs to."),
-      })
-      .merge(getAnalyticsQuerySchema),
+    query: requestParamsSchema.merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {
