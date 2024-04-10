@@ -19,10 +19,15 @@ import {
   SimpleTooltipContent,
   useIntersectionObserver,
 } from "@dub/ui";
-import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
+import {
+  capitalize,
+  fetcher,
+  nFormatter,
+  punycode,
+  truncate,
+} from "@dub/utils";
 import { Archive, Edit3, FileCog, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
-import punycode from "punycode/";
 import { useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
@@ -128,7 +133,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               className="flex items-center space-x-2"
             >
               <p className="flex items-center text-xl font-semibold">
-                {punycode.toUnicode(domain)}
+                {punycode(domain)}
               </p>
               <ExternalLink className="h-5 w-5" />
             </a>

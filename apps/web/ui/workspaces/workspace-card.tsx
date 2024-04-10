@@ -11,7 +11,13 @@ import {
   NumberTooltip,
   Tooltip,
 } from "@dub/ui";
-import { DICEBEAR_AVATAR_URL, cn, fetcher, nFormatter } from "@dub/utils";
+import {
+  DICEBEAR_AVATAR_URL,
+  cn,
+  fetcher,
+  nFormatter,
+  punycode,
+} from "@dub/utils";
 import {
   BarChart2,
   ExternalLink,
@@ -20,7 +26,6 @@ import {
   MinusCircle,
 } from "lucide-react";
 import Link from "next/link";
-import punycode from "punycode/";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import PlanBadge from "./plan-badge";
@@ -222,7 +227,7 @@ const DomainsTooltip = ({
                 <XCircleFill className="h-5 w-5 text-gray-300" />
               )}
               <p className="text-sm font-semibold text-gray-500">
-                {punycode.toUnicode(slug)}
+                {punycode(slug)}
               </p>
             </div>
             <ExternalLink className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />

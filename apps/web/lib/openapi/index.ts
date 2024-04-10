@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { LinkSchema } from "@/lib/zod/schemas/links";
-import { TagSchema } from "@/lib/zod/schemas/tags";
-import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import { LinkSchema } from "@/lib/zod/schemas";
+import { TagSchema } from "@/lib/zod/schemas";
+import { WorkspaceSchema } from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
 import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
