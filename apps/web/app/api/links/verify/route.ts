@@ -18,8 +18,6 @@ export const GET = async (req: NextRequest) => {
       .and(workspaceIdSchema)
       .parse(searchParams);
 
-    console.log({ domain, key, workspaceId });
-
     const processedKey = processKey(key);
     if (processedKey === null) {
       throw new DubApiError({

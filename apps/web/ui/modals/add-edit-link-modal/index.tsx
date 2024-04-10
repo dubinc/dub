@@ -280,7 +280,7 @@ function AddEditLinkModal({
     if (key?.endsWith("-copy")) {
       keyRef.current?.select();
     }
-  }, [key]);
+  }, []);
 
   const { isMobile } = useMediaQuery();
 
