@@ -573,7 +573,7 @@ function AddEditLinkModal({
                     </p>
                   ))}
                 {shortLinkLength > 25 && (
-                  <div className="mt-4 flex items-start space-x-2 rounded-2xl border border-gray-300 bg-gray-100 p-4">
+                  <div className="mt-4 flex items-start space-x-2 rounded-md border border-gray-300 bg-gray-100 p-4">
                     <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-700">
