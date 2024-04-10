@@ -6,6 +6,7 @@ import { LinkWithTagsProps } from "@/lib/types";
 import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
+  Badge,
   Button,
   LinkedIn,
   LoadingCircle,
@@ -499,7 +500,7 @@ function AddEditLinkModal({
                       setData({ ...data, domain: e.target.value });
                     }}
                     className={cn(
-                      "min-w-[6rem] max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                      "max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
                       props && lockKey && "cursor-not-allowed",
                     )}
                   >
@@ -589,6 +590,7 @@ function AddEditLinkModal({
                             pretty: true,
                           })}
                         </p>
+                        <Badge variant="neutral">Obfuscated</Badge>
                       </div>
                       <div className="mt-1 flex items-center space-x-2">
                         <Twitter className="h-4 w-4" />
@@ -602,6 +604,7 @@ function AddEditLinkModal({
                             25,
                           )}
                         </p>
+                        <Badge variant="neutral">Truncated</Badge>
                       </div>
                     </div>
                   </div>
