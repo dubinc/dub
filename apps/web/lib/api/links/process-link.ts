@@ -47,7 +47,7 @@ export async function processLink<T extends Record<string, any>>({
     proxy,
     password,
     rewrite,
-    expiresAt,
+    expiresAt: expiresAtRaw,
     expiredUrl,
     ios,
     android,
@@ -80,7 +80,7 @@ export async function processLink<T extends Record<string, any>>({
     (!workspace || workspace.plan === "free") &&
     (!createdAt || new Date(createdAt) > new Date("2024-01-19"))
   ) {
-    if (proxy || password || rewrite || expiresAt || ios || android || geo) {
+    if (proxy || password || rewrite || expiresAtRaw || ios || android || geo) {
       return {
         link: payload,
         error:
@@ -232,9 +232,11 @@ export async function processLink<T extends Record<string, any>>({
     };
   }
 
+  let expiresAt: Date | null = null;
+
   // expire date checks
-  if (expiresAt) {
-    const datetime = parseDateTime(expiresAt);
+  if (expiresAtRaw) {
+    const datetime = parseDateTime(expiresAtRaw);
     if (!datetime) {
       return {
         link: payload,
