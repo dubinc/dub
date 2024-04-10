@@ -85,13 +85,16 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   }),
 );
 
-export const getLinkInfoQuerySchema = z.object({
+export const domainKeySchema = z.object({
   domain: z
     .string()
     .min(1, "Domain is required.")
     .describe(
       "The domain of the link to retrieve. E.g. for `d.to/github`, the domain is `d.to`.",
-    ),
+    )
+    .refine((v) => validDomainRegex.test(v), {
+      message: "Invalid domain format",
+    }),
   key: z
     .string()
     .min(1, "Key is required.")

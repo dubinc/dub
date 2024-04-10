@@ -6,11 +6,11 @@ import { LinkWithTagsProps } from "@/lib/types";
 import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
-  Badge,
   Button,
   LinkedIn,
   LoadingCircle,
   Modal,
+  Tooltip,
   TooltipContent,
   Twitter,
   useMediaQuery,
@@ -26,7 +26,6 @@ import {
   isValidUrl,
   linkConstructor,
   nanoid,
-  punyEncode,
   punycode,
   truncate,
 } from "@dub/utils";
@@ -61,7 +60,6 @@ import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
 import { TriangleAlert } from "lucide-react";
-import slugify from "@sindresorhus/slugify";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -119,6 +117,19 @@ function AddEditLinkModal({
     setData((prev) => ({ ...prev, key }));
     setGeneratingKey(false);
   }, [domain, slug]);
+
+  const runKeyChecks = async (e: React.FocusEvent<HTMLInputElement>) => {
+    if (!e.target.value) return;
+    const res = await fetch(
+      `/api/links/verify?domain=${domain}&key=${e.target.value}&workspaceId=${workspaceId}`,
+    );
+    const { error } = await res.json();
+    if (error) {
+      setKeyError(error.message);
+    } else {
+      setKeyError(null);
+    }
+  };
 
   useEffect(() => {
     // when someone pastes a URL
@@ -276,12 +287,19 @@ function AddEditLinkModal({
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
 
-  const shortLinkLength = useMemo(() => {
+  const shortLink = useMemo(() => {
+    return linkConstructor({
+      key: data.key,
+      domain: data.domain,
+    });
+  }, [data.key, data.domain]);
+
+  const shortLinkPretty = useMemo(() => {
     return linkConstructor({
       key: data.key,
       domain: data.domain,
       pretty: true,
-    }).length;
+    });
   }, [data.key, data.domain]);
 
   const randomLinkedInNonce = useMemo(() => nanoid(8), []);
@@ -326,13 +344,7 @@ function AddEditLinkModal({
           <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
             <LinkLogo apexDomain={getApexDomain(url)} />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-              {props
-                ? `Edit ${linkConstructor({
-                    domain: props.domain,
-                    key: props.key,
-                    pretty: true,
-                  })}`
-                : "Create a new link"}
+              {props ? `Edit ${shortLinkPretty}` : "Create a new link"}
             </h3>
           </div>
 
@@ -366,16 +378,11 @@ function AddEditLinkModal({
                     router.push("/links");
                     setShowAddEditLinkModal(false);
                   }
+                  const data = await res.json();
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
                     try {
-                      await navigator.clipboard.writeText(
-                        linkConstructor({
-                          // remove leading and trailing slashes
-                          key: data.key.replace(/^\/+|\/+$/g, ""),
-                          domain,
-                        }),
-                      );
+                      await navigator.clipboard.writeText(data.shortLink);
                       toast.success("Copied shortlink to clipboard!");
                     } catch (e) {
                       console.error(
@@ -523,6 +530,7 @@ function AddEditLinkModal({
                         "Only letters, numbers, '-', '/', and emojis are allowed.",
                       );
                     }}
+                    onBlur={runKeyChecks}
                     disabled={props && lockKey}
                     autoComplete="off"
                     className={cn(
@@ -530,6 +538,8 @@ function AddEditLinkModal({
                       {
                         "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                           keyError,
+                        "border-amber-300 pr-10 text-amber-900 placeholder-amber-300 focus:border-amber-500 focus:ring-amber-500":
+                          shortLink.length > 25,
                         "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
                           props && lockKey,
                       },
@@ -547,13 +557,51 @@ function AddEditLinkModal({
                     aria-invalid="true"
                     aria-describedby="key-error"
                   />
-                  {keyError && (
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <AlertCircleFill
-                        className="h-5 w-5 text-red-500"
-                        aria-hidden="true"
-                      />
-                    </div>
+                  {(keyError || shortLink.length > 25) && (
+                    <Tooltip
+                      content={
+                        keyError || (
+                          <div className="flex max-w-xs items-start space-x-2 bg-white p-4">
+                            <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-500" />
+                            <div>
+                              <p className="text-sm text-gray-700">
+                                Short links longer than 25 characters will show
+                                up differently on some platforms.
+                              </p>
+                              <div className="mt-2 flex items-center space-x-2">
+                                <LinkedIn className="h-4 w-4" />
+                                <p className="cursor-pointer text-sm font-semibold text-[#4783cf] hover:underline">
+                                  {linkConstructor({
+                                    domain: "lnkd.in",
+                                    key: randomLinkedInNonce,
+                                    pretty: true,
+                                  })}
+                                </p>
+                              </div>
+                              {shortLinkPretty.length > 25 && (
+                                <div className="mt-1 flex items-center space-x-2">
+                                  <Twitter className="h-4 w-4" />
+                                  <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
+                                    {truncate(shortLinkPretty, 25)}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      }
+                    >
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        {keyError ? (
+                          <AlertCircleFill
+                            className="h-5 w-5 text-red-500"
+                            aria-hidden="true"
+                          />
+                        ) : shortLink.length > 25 ? (
+                          <AlertCircleFill className="h-5 w-5 text-amber-500" />
+                        ) : null}
+                      </div>
+                    </Tooltip>
                   )}
                 </div>
                 {keyError &&
@@ -573,42 +621,6 @@ function AddEditLinkModal({
                       {keyError}
                     </p>
                   ))}
-                {shortLinkLength > 25 && (
-                  <div className="mt-4 flex items-start space-x-2 rounded-md border border-gray-300 bg-gray-100 p-4">
-                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-gray-500" />
-                    <div>
-                      <p className="text-sm text-gray-700">
-                        Short links longer than 25 characters will show up
-                        differently on some platforms.
-                      </p>
-                      <div className="mt-2 flex items-center space-x-2">
-                        <LinkedIn className="h-4 w-4" />
-                        <p className="cursor-pointer text-sm font-semibold text-[#4783cf] hover:underline">
-                          {linkConstructor({
-                            domain: "lnkd.in",
-                            key: randomLinkedInNonce,
-                            pretty: true,
-                          })}
-                        </p>
-                        <Badge variant="neutral">Obfuscated</Badge>
-                      </div>
-                      <div className="mt-1 flex items-center space-x-2">
-                        <Twitter className="h-4 w-4" />
-                        <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
-                          {truncate(
-                            linkConstructor({
-                              domain: data.domain,
-                              key: data.key,
-                              pretty: true,
-                            }),
-                            25,
-                          )}
-                        </p>
-                        <Badge variant="neutral">Truncated</Badge>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 

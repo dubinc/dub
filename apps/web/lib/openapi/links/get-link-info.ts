@@ -2,7 +2,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { getLinkInfoQuerySchema, LinkSchema } from "@/lib/zod/schemas/links";
+import { domainKeySchema, LinkSchema } from "@/lib/zod/schemas";
 
 export const getLinkInfo: ZodOpenApiOperationObject = {
   operationId: "getLinkInfo",
@@ -16,7 +16,7 @@ export const getLinkInfo: ZodOpenApiOperationObject = {
           .string()
           .describe("The ID of the workspace the link belongs to."),
       })
-      .merge(getLinkInfoQuerySchema),
+      .merge(domainKeySchema),
   },
   responses: {
     "200": {
