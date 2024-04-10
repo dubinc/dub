@@ -263,8 +263,8 @@ export default function LinkCard({
     <li
       ref={linkRef}
       className={`${
-        selected ? "border-black" : "border-gray-50"
-      } relative rounded-lg border-2 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4`}
+        selected ? "border-black" : "border-gray-200"
+      } relative rounded-lg border bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4`}
     >
       {isVisible && (
         <>

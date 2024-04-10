@@ -17,7 +17,7 @@ export default function LinkPagination() {
     : [];
 
   return (
-    <div className="sticky bottom-0 mt-4 flex h-20 scale-[1.02] flex-col items-center justify-center space-y-2 rounded-t-md border border-gray-200 bg-white shadow-lg">
+    <div className="sticky bottom-0 mt-4 flex h-20 scale-[1.02] flex-col items-center justify-center space-y-2 rounded-t-lg border border-gray-200 bg-white shadow-lg">
       <div className="flex items-center space-x-2">
         {currentPage > 1 && paginatedCount > 5 && (
           <button

@@ -53,7 +53,7 @@ export function Popover({
         <PopoverPrimitive.Content
           sideOffset={8}
           align={align}
-          className="animate-slide-up-fade z-50 items-center rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
+          className="animate-slide-up-fade z-50 items-center rounded-xl border border-gray-200 bg-white drop-shadow-lg sm:block"
         >
           {content}
         </PopoverPrimitive.Content>

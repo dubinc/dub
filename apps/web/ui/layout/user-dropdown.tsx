@@ -56,10 +56,10 @@ export default function UserDropdown() {
     <div className="relative inline-block pt-1.5">
       <Popover
         content={
-          <div className="flex w-full flex-col space-y-px rounded-md bg-white p-3 sm:w-56">
+          <div className="flex w-full flex-col space-y-px rounded-xl bg-white p-2 sm:w-56">
             <Link
               href="/"
-              className="p-2"
+              className="px-2 pb-2 pt-1"
               onClick={() => setOpenPopover(false)}
             >
               {session?.user?.name && (
