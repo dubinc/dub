@@ -157,7 +157,7 @@ export function DrawerContent({
   );
 }
 
-export const DrawerRoot = Drawer.Root;
+export const DrawerRoot = Drawer.Root as typeof Dialog.Root;
 export const DialogRoot = Dialog.Root;
 
 export const Responsive = createResponsiveWrapper({
