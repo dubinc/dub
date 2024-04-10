@@ -10,7 +10,7 @@ export async function submitFeedback(data: FormData) {
 
   const emailHtml = render(FeedbackEmail({ email, feedback }));
 
-  return await client.sendEmail({
+  return await client?.sendEmail({
     From: "feedback@dub.co",
     To: "steven@dub.co",
     ...(email && { ReplyTo: email }),
