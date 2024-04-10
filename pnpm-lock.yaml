@@ -205,6 +205,12 @@ importers:
       prisma:
         specifier: ^5.9.1
         version: 5.10.2
+      punycode:
+        specifier: ^2.3.0
+        version: 2.3.0
+      pushmodal:
+        specifier: ^1.0.3
+        version: 1.0.3(@radix-ui/react-dialog@1.0.5)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -425,6 +431,9 @@ importers:
       lucide-react:
         specifier: ^0.367.0
         version: 0.367.0(react@18.2.0)
+      pushmodal:
+        specifier: ^1.0.3
+        version: 1.0.3(@radix-ui/react-dialog@1.0.5)(react-dom@18.2.0)(react@18.2.0)
       sonner:
         specifier: ^1.4.41
         version: 1.4.41(react-dom@18.2.0)(react@18.2.0)
@@ -12061,6 +12070,10 @@ packages:
     engines: {node: '>=16 || 14 >=14.17'}
     dev: false
 
+  /mitt@3.0.1:
+    resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
+    dev: false
+
   /mixpanel@0.18.0:
     resolution: {integrity: sha512-VyUoiLB/S/7abYYHGD5x0LijeuJCUabG8Hb+FvYU3Y99xHf1Qh+s4/pH9lt50fRitAHncWbU1FE01EknUfVVjQ==}
     engines: {node: '>=10.0'}
@@ -13194,7 +13207,7 @@ packages:
         optional: true
     dependencies:
       prettier: 3.2.5
-      prettier-plugin-organize-imports: 3.2.4(prettier@3.2.5)(typescript@5.1.6)
+      prettier-plugin-organize-imports: 3.2.4(prettier@3.2.5)(typescript@5.2.2)
     dev: true
 
   /prettier@3.2.5:
@@ -13315,6 +13328,19 @@ packages:
   /punycode@2.3.0:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}
     engines: {node: '>=6'}
+
+  /pushmodal@1.0.3(@radix-ui/react-dialog@1.0.5)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-p8HxdCoXfwDU7V3uUxGpbZzK0/nHWey/A8wgfVrUDMSJC3XXEC+Hx8c+UsrTHRXw60ZJSjSoAgldyEh35UPsog==}
+    peerDependencies:
+      '@radix-ui/react-dialog': ^1.0.0
+      react: ^16.12.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
+      react-dom: ^16.12.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
+    dependencies:
+      '@radix-ui/react-dialog': 1.0.5(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+      mitt: 3.0.1
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
 
   /qs@6.11.2:
     resolution: {integrity: sha512-tDNIz22aBzCDxLtVH++VnTfzxlfeK5CbqohpSqpJgj1Wg/cQbStNAz3NuqCs5vV+pjBsK4x4pN9HlVh7rcYRiA==}
