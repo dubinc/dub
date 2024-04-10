@@ -1,11 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import {
-  WorkspaceSchema,
-  createWorkspaceSchema,
-} from "@/lib/zod/schemas/workspaces";
+import { WorkspaceSchema, createWorkspaceSchema } from "@/lib/zod/schemas";
 
 export const createWorkspace = {
   operationId: "createWorkspace",
+  "x-speakeasy-name-override": "create",
   summary: "Create a workspace",
   description: "Create a new workspace for the authenticated user.",
   requestBody: {
@@ -27,5 +25,5 @@ export const createWorkspace = {
     ...openApiErrorResponses,
   },
   tags: ["Workspaces"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

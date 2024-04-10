@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getIdentityHash } from "@/lib/edge";
 import { getRandomKey } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import { domainKeySchema } from "@/lib/zod";
+import { domainKeySchema } from "@/lib/zod/schemas";
 import { getSearchParams } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";

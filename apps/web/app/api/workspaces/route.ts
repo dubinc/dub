@@ -6,7 +6,7 @@ import {
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { createWorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import { createWorkspaceSchema } from "@/lib/zod/schemas";
 import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -27,6 +27,12 @@ export const GET = withSession(async ({ session }) => {
         },
         select: {
           role: true,
+        },
+      },
+      domains: {
+        select: {
+          slug: true,
+          primary: true,
         },
       },
     },
@@ -112,7 +118,18 @@ export const POST = withSession(async ({ req, session }) => {
         },
       },
       include: {
-        domains: true,
+        domains: {
+          select: {
+            id: true,
+            slug: true,
+            primary: true,
+          },
+        },
+        users: {
+          select: {
+            role: true,
+          },
+        },
       },
     }),
     domain && addDomainToVercel(domain),
@@ -128,5 +145,13 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  return NextResponse.json(projectResponse);
+  const response = {
+    ...projectResponse,
+    domains: projectResponse.domains.map(({ slug, primary }) => ({
+      slug,
+      primary,
+    })),
+  };
+
+  return NextResponse.json(response);
 });

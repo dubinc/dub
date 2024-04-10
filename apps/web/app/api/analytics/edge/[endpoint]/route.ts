@@ -10,7 +10,7 @@ import { ratelimit } from "@/lib/upstash";
 import {
   analyticsEndpointSchema,
   getAnalyticsEdgeQuerySchema,
-} from "@/lib/zod/schemas/analytics";
+} from "@/lib/zod/schemas";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { NextResponse, type NextRequest } from "next/server";
 
