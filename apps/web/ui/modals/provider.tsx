@@ -4,9 +4,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
-import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
-import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
-import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
@@ -21,24 +18,19 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { pushModal } from ".";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 
 export const ModalContext = createContext<{
-  setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
-  setShowCompleteSetupModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
-  setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
 }>({
-  setShowAddWorkspaceModal: () => {},
-  setShowCompleteSetupModal: () => {},
   setShowAddEditDomainModal: () => {},
-  setShowAddEditLinkModal: () => {},
   setShowAddEditTagModal: () => {},
   setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
@@ -47,15 +39,10 @@ export const ModalContext = createContext<{
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
-  const { AddWorkspaceModal, setShowAddWorkspaceModal } =
-    useAddWorkspaceModal();
-  const { CompleteSetupModal, setShowCompleteSetupModal } =
-    useCompleteSetupModal();
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal();
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
   const { setShowAddEditTagModal, AddEditTagModal } = useAddEditTagModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
@@ -109,20 +96,17 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   // handle ?newWorkspace and ?newLink query params
   useEffect(() => {
     if (searchParams.has("newWorkspace")) {
-      setShowAddWorkspaceModal(true);
+      pushModal("AddWorkspace");
     }
     if (searchParams.has("newLink")) {
-      setShowAddEditLinkModal(true);
+      pushModal("AddEditLink", { props: undefined });
     }
   }, []);
 
   return (
     <ModalContext.Provider
       value={{
-        setShowAddWorkspaceModal,
-        setShowCompleteSetupModal,
         setShowAddEditDomainModal,
-        setShowAddEditLinkModal,
         setShowAddEditTagModal,
         setShowUpgradePlanModal,
         setShowImportBitlyModal,
@@ -130,11 +114,8 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowImportRebrandlyModal,
       }}
     >
-      <AddWorkspaceModal />
       <AcceptInviteModal />
-      <CompleteSetupModal />
       <AddEditDomainModal />
-      <AddEditLinkModal />
       <AddEditTagModal />
       <UpgradePlanModal />
       <ImportBitlyModal />

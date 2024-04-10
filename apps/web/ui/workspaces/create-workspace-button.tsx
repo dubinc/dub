@@ -1,14 +1,12 @@
 "use client";
 
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { ModalContext } from "@/ui/modals/provider";
 import { Button } from "@dub/ui";
 import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FREE_WORKSPACES_LIMIT } from "@dub/utils";
-import { useContext } from "react";
+import { pushModal } from "../modals";
 
 export default function CreateWorkspaceButton() {
-  const { setShowAddWorkspaceModal } = useContext(ModalContext);
   const { freeWorkspaces, exceedingFreeWorkspaces } = useWorkspaces();
 
   return (
@@ -29,7 +27,7 @@ export default function CreateWorkspaceButton() {
           ) : undefined
         }
         className="flex-shrink-0 truncate"
-        onClick={() => setShowAddWorkspaceModal(true)}
+        onClick={() => pushModal("AddWorkspace")}
       />
     </div>
   );

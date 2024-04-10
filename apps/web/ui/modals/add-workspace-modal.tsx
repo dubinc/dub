@@ -3,7 +3,7 @@ import {
   Button,
   InfoTooltip,
   Logo,
-  Modal,
+  Responsive,
   Switch,
   useMediaQuery,
   useRouterStuff,
@@ -13,27 +13,14 @@ import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  Dispatch,
-  FormEvent,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { popModal } from ".";
 import DomainInput from "./add-edit-domain-modal/domain-input";
 
-function AddWorkspaceModalHelper({
-  showAddWorkspaceModal,
-  setShowAddWorkspaceModal,
-}: {
-  showAddWorkspaceModal: boolean;
-  setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
-}) {
+export function AddWorkspaceModalHelper() {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -89,21 +76,20 @@ function AddWorkspaceModalHelper({
 
   const { isMobile } = useMediaQuery();
 
+  useEffect(() => {
+    return () => {
+      if (welcomeFlow) {
+        router.back();
+      } else if (searchParams.has("newWorkspace")) {
+        queryParams({
+          del: ["newWorkspace"],
+        });
+      }
+    };
+  }, []);
+
   return (
-    <Modal
-      showModal={showAddWorkspaceModal}
-      setShowModal={setShowAddWorkspaceModal}
-      preventDefaultClose={welcomeFlow}
-      onClose={() => {
-        if (welcomeFlow) {
-          router.back();
-        } else if (searchParams.has("newWorkspace")) {
-          queryParams({
-            del: ["newWorkspace"],
-          });
-        }
-      }}
-    >
+    <Responsive.Content>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
         <h3 className="text-lg font-medium">Create a new workspace</h3>
@@ -139,7 +125,7 @@ function AddWorkspaceModalHelper({
               } else {
                 router.push(`/${slug}`);
                 toast.success("Successfully created workspace!");
-                setShowAddWorkspaceModal(false);
+                popModal();
               }
             } else {
               const { error } = await res.json();
@@ -288,24 +274,6 @@ function AddWorkspaceModalHelper({
           text="Create workspace"
         />
       </form>
-    </Modal>
-  );
-}
-
-export function useAddWorkspaceModal() {
-  const [showAddWorkspaceModal, setShowAddWorkspaceModal] = useState(false);
-
-  const AddWorkspaceModal = useCallback(() => {
-    return (
-      <AddWorkspaceModalHelper
-        showAddWorkspaceModal={showAddWorkspaceModal}
-        setShowAddWorkspaceModal={setShowAddWorkspaceModal}
-      />
-    );
-  }, [showAddWorkspaceModal, setShowAddWorkspaceModal]);
-
-  return useMemo(
-    () => ({ setShowAddWorkspaceModal, AddWorkspaceModal }),
-    [setShowAddWorkspaceModal, AddWorkspaceModal],
+    </Responsive.Content>
   );
 }

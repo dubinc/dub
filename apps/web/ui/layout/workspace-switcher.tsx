@@ -2,7 +2,6 @@
 
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import { BlurImage, Popover, Tick } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
@@ -10,7 +9,8 @@ import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { pushModal } from "../modals";
 
 export default function WorkspaceSwitcher() {
   const { workspaces } = useWorkspaces();
@@ -119,7 +119,6 @@ function WorkspaceList({
   workspaces: WorkspaceProps[];
   setOpenPopover: (open: boolean) => void;
 }) {
-  const { setShowAddWorkspaceModal } = useContext(ModalContext);
   const { domain, key } = useParams() as { domain?: string; key?: string };
   const pathname = usePathname();
 
@@ -176,7 +175,7 @@ function WorkspaceList({
         key="add"
         onClick={() => {
           setOpenPopover(false);
-          setShowAddWorkspaceModal(true);
+          pushModal("AddWorkspace");
         }}
         className="flex w-full cursor-pointer items-center space-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
       >

@@ -1,34 +1,20 @@
 import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
-import { ModalContext } from "@/ui/modals/provider";
 import { CheckCircleFill } from "@/ui/shared/icons";
-import { ExpandingArrow, Logo, Modal } from "@dub/ui";
+import { ExpandingArrow, Logo, Responsive } from "@dub/ui";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import { useMemo } from "react";
+import { popModal, replaceWithModal } from ".";
 
-function CompleteSetupModal({
-  showCompleteSetupModal,
-  setShowCompleteSetupModal,
-}: {
-  showCompleteSetupModal: boolean;
-  setShowCompleteSetupModal: Dispatch<SetStateAction<boolean>>;
-}) {
+export function CompleteSetup() {
   const { slug } = useParams() as { slug: string };
 
   const { verified } = useDomains();
   const { data: count } = useLinksCount();
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
-  const { setShowAddEditLinkModal } = useContext(ModalContext);
 
   const tasks = useMemo(() => {
     return [
@@ -51,10 +37,7 @@ function CompleteSetupModal({
   }, [slug, verified, count]);
 
   return (
-    <Modal
-      showModal={showCompleteSetupModal}
-      setShowModal={setShowCompleteSetupModal}
-    >
+    <Responsive.Content>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
         <h3 className="text-lg font-medium">You're almost there!</h3>
@@ -86,9 +69,13 @@ function CompleteSetupModal({
                 key={display}
                 href={cta}
                 onClick={() => {
-                  setShowCompleteSetupModal(false);
-                  display === "Create or import your links" &&
-                    setShowAddEditLinkModal(true);
+                  if (display === "Create or import your links") {
+                    replaceWithModal("AddEditLink", {
+                      props: undefined,
+                    });
+                  } else {
+                    popModal();
+                  }
                 }}
               >
                 {contents}
@@ -97,27 +84,6 @@ function CompleteSetupModal({
           })}
         </div>
       </div>
-    </Modal>
-  );
-}
-
-export function useCompleteSetupModal() {
-  const [showCompleteSetupModal, setShowCompleteSetupModal] = useState(false);
-
-  const CompleteSetupModalCallback = useCallback(() => {
-    return (
-      <CompleteSetupModal
-        showCompleteSetupModal={showCompleteSetupModal}
-        setShowCompleteSetupModal={setShowCompleteSetupModal}
-      />
-    );
-  }, [showCompleteSetupModal, setShowCompleteSetupModal]);
-
-  return useMemo(
-    () => ({
-      setShowCompleteSetupModal,
-      CompleteSetupModal: CompleteSetupModalCallback,
-    }),
-    [setShowCompleteSetupModal, CompleteSetupModalCallback],
+    </Responsive.Content>
   );
 }

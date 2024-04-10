@@ -4,12 +4,12 @@ import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ModalContext } from "@/ui/modals/provider";
 import { Badge } from "@dub/ui";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
+import { pushModal } from "../modals";
 
 export default function NavTabs() {
   const pathname = usePathname();
@@ -60,7 +60,6 @@ export default function NavTabs() {
   );
 }
 const OnboardingChecklist = () => {
-  const { setShowCompleteSetupModal } = useContext(ModalContext);
   const { verified } = useDomains();
   const { data: links } = useLinksCount();
   const { users } = useUsers();
@@ -76,7 +75,7 @@ const OnboardingChecklist = () => {
 
   return (
     <button
-      onClick={() => setShowCompleteSetupModal(true)}
+      onClick={() => pushModal("CompleteSetup")}
       className="flex items-center space-x-2 rounded-md border-b-2 border-transparent p-1 px-3 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
     >
       <p className="whitespace-nowrap text-sm text-gray-600">

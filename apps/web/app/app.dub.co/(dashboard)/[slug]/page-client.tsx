@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import LinksContainer from "@/ui/links/links-container";
-import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
+import { AddEditLinkButton } from "@/ui/modals/add-edit-link-modal";
 import {
   IconMenu,
   MaxWidthWrapper,
@@ -16,11 +16,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function WorkspaceLinksClient() {
-  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
-
   return (
     <>
-      <AddEditLinkModal />
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">

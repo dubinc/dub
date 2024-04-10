@@ -2,7 +2,6 @@ import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
-import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
@@ -51,6 +50,7 @@ import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
+import { pushModal } from "../modals";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import LinkLogo from "./link-logo";
 
@@ -131,29 +131,29 @@ export default function LinkCard({
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props,
   });
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
-    props,
-  });
 
-  // Duplicate link Modal
-  const {
-    id: _,
-    createdAt: __,
-    updatedAt: ___,
-    userId: ____,
-    ...propsToDuplicate
-  } = props;
-  const {
-    setShowAddEditLinkModal: setShowDuplicateLinkModal,
-    AddEditLinkModal: DuplicateLinkModal,
-  } = useAddEditLinkModal({
-    // @ts-expect-error
-    duplicateProps: {
-      ...propsToDuplicate,
-      key: `${key}-copy`,
-      clicks: 0,
-    },
-  });
+  const showLinkModal = () => {
+    pushModal("AddEditLink", {
+      props,
+    });
+  };
+  const showDuplicateLinkModal = () => {
+    const {
+      id: _,
+      createdAt: __,
+      updatedAt: ___,
+      userId: ____,
+      ...propsToDuplicate
+    } = props;
+    pushModal("AddEditLink", {
+      props,
+      duplicateProps: {
+        ...propsToDuplicate,
+        key: `${key}-copy`,
+        clicks: 0,
+      },
+    });
+  };
 
   const expired = expiresAt && new Date(expiresAt) < new Date();
 
@@ -226,10 +226,10 @@ export default function LinkCard({
       e.preventDefault();
       switch (e.key) {
         case "e":
-          setShowAddEditLinkModal(true);
+          showLinkModal();
           break;
         case "d":
-          setShowDuplicateLinkModal(true);
+          showDuplicateLinkModal();
           break;
         case "q":
           setShowLinkQRModal(true);
@@ -269,8 +269,6 @@ export default function LinkCard({
       {isVisible && (
         <>
           <LinkQRModal />
-          <AddEditLinkModal />
-          <DuplicateLinkModal />
           <ArchiveLinkModal />
           <TransferLinkModal />
           <DeleteLinkModal />
@@ -348,9 +346,7 @@ export default function LinkCard({
                   }
                 >
                   <button
-                    onClick={() => {
-                      setShowAddEditLinkModal(true);
-                    }}
+                    onClick={showLinkModal}
                     className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 active:scale-100"
                   >
                     <MessageCircle className="h-3.5 w-3.5 text-gray-700" />
@@ -476,7 +472,7 @@ export default function LinkCard({
                   variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
-                    setShowAddEditLinkModal(true);
+                    showLinkModal();
                   }}
                   icon={<Edit3 className="h-4 w-4" />}
                   shortcut="E"
@@ -487,7 +483,7 @@ export default function LinkCard({
                   variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
-                    setShowDuplicateLinkModal(true);
+                    showDuplicateLinkModal();
                   }}
                   icon={<CopyPlus className="h-4 w-4" />}
                   shortcut="D"

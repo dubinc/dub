@@ -3,7 +3,8 @@
 import { cn } from "@dub/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction } from "react";
+import { createResponsiveWrapper } from "pushmodal";
+import { ComponentPropsWithoutRef, Dispatch, SetStateAction } from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
@@ -101,3 +102,72 @@ export function Modal({
     </Dialog.Root>
   );
 }
+
+export function DialogContent({
+  className,
+  children,
+  preventDefaultClose,
+  ...props
+}: Dialog.DialogContentProps & { preventDefaultClose?: boolean }) {
+  return (
+    <>
+      <Dialog.Overlay className="animate-fade-in fixed inset-0 z-40 bg-gray-100 bg-opacity-50 backdrop-blur-md" />
+      <Dialog.Content
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          if (preventDefaultClose) {
+            e.preventDefault();
+          }
+        }}
+        className={cn(
+          "animate-scale-in fixed inset-0 z-40 m-auto max-h-fit w-full max-w-md overflow-hidden border border-gray-200 bg-white p-0 shadow-xl sm:rounded-2xl",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </Dialog.Content>
+    </>
+  );
+}
+export function DrawerContent({
+  className,
+  children,
+  ...props
+}: ComponentPropsWithoutRef<typeof Drawer.Content>) {
+  return (
+    <>
+      <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
+      <Drawer.Content
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        className={cn(
+          "fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white",
+          className,
+        )}
+        {...props}
+      >
+        <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
+          <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
+        </div>
+        {children}
+      </Drawer.Content>
+    </>
+  );
+}
+
+export const DrawerRoot = Drawer.Root;
+export const DialogRoot = Dialog.Root;
+
+export const Responsive = createResponsiveWrapper({
+  desktop: {
+    Wrapper: DialogRoot,
+    Content: DialogContent,
+  },
+  mobile: {
+    Wrapper: DrawerRoot,
+    Content: DrawerContent,
+  },
+  breakpoint: 640,
+});

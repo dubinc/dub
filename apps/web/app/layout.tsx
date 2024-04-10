@@ -1,5 +1,6 @@
 import { inter, satoshi } from "@/styles/fonts";
 import "@/styles/globals.css";
+import { ModalProvider } from "@/ui/modals";
 import { TooltipProvider } from "@dub/ui/src/tooltip";
 import { cn, constructMetadata } from "@dub/utils";
 import { Analytics } from "@vercel/analytics/react";
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="en" className={cn(satoshi.variable, inter.variable)}>
       <body>
         <TooltipProvider>
+          <ModalProvider />
           <Toaster closeButton />
           {children}
           <Analytics />
