@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { createTagBodySchema, TagSchema } from "@/lib/zod/schemas/tags";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { requestParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../request";
 
 export const createTag: ZodOpenApiOperationObject = {
   operationId: "createTag",
@@ -9,7 +9,7 @@ export const createTag: ZodOpenApiOperationObject = {
   summary: "Create a new tag",
   description: "Create a new tag for the authenticated workspace.",
   requestParams: {
-    query: requestParamsSchema,
+    query: workspaceParamsSchema,
   },
   requestBody: {
     content: {

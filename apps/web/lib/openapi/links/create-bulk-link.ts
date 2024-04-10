@@ -2,7 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { requestParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../request";
 
 export const createBulkLink: ZodOpenApiOperationObject = {
   operationId: "bulkCreateLinks",
@@ -10,7 +10,7 @@ export const createBulkLink: ZodOpenApiOperationObject = {
   summary: "Bulk create links",
   description: "Bulk create up to 100 links for the authenticated workspace.",
   requestParams: {
-    query: requestParamsSchema,
+    query: workspaceParamsSchema,
   },
   requestBody: {
     content: {

@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { getLinkInfoQuerySchema, LinkSchema } from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { requestParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../request";
 
 export const getLinkInfo: ZodOpenApiOperationObject = {
   operationId: "getLinkInfo",
@@ -9,7 +9,7 @@ export const getLinkInfo: ZodOpenApiOperationObject = {
   summary: "Retrieve a link",
   description: "Retrieve the info for a link from their domain and key.",
   requestParams: {
-    query: requestParamsSchema.merge(getLinkInfoQuerySchema),
+    query: workspaceParamsSchema.merge(getLinkInfoQuerySchema),
   },
   responses: {
     "200": {

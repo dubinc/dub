@@ -2,7 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { getLinksQuerySchema, LinkSchema } from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { requestParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../request";
 
 export const getLinks: ZodOpenApiOperationObject = {
   operationId: "getLinks",
@@ -11,7 +11,7 @@ export const getLinks: ZodOpenApiOperationObject = {
   description:
     "Retrieve a list of links for the authenticated workspace. The list will be paginated and the provided query parameters allow filtering the returned links.",
   requestParams: {
-    query: requestParamsSchema.merge(getLinksQuerySchema),
+    query: workspaceParamsSchema.merge(getLinksQuerySchema),
   },
   responses: {
     "200": {

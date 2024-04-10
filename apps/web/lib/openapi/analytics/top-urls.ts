@@ -2,7 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { requestParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../request";
 
 export const getTopURLs: ZodOpenApiOperationObject = {
   operationId: "getTopURLs",
@@ -11,7 +11,7 @@ export const getTopURLs: ZodOpenApiOperationObject = {
   description:
     "Retrieve the top URLs by number of clicks for a given short link.",
   requestParams: {
-    query: requestParamsSchema.merge(getAnalyticsQuerySchema),
+    query: workspaceParamsSchema.merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {

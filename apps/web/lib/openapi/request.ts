@@ -1,6 +1,6 @@
 import z from "../zod";
 
-export const requestParamsSchema = z.object({
+export const workspaceParamsSchema = z.object({
   workspaceId: z.string().describe("The ID of the workspace."),
   projectSlug: z
     .string()

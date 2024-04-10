@@ -2,7 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { requestParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../request";
 
 export const getDeviceAnalytics: ZodOpenApiOperationObject = {
   operationId: "getDeviceAnalytics",
@@ -11,7 +11,7 @@ export const getDeviceAnalytics: ZodOpenApiOperationObject = {
   description:
     "Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: requestParamsSchema.merge(getAnalyticsQuerySchema),
+    query: workspaceParamsSchema.merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {
