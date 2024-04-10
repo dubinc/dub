@@ -9,6 +9,7 @@ import {
   Button,
   LinkedIn,
   LoadingCircle,
+  Responsive,
   Tooltip,
   TooltipContent,
   Twitter,
@@ -44,7 +45,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
+import { useDebounce, useDebouncedCallback } from "use-debounce";
 import { popModal, pushModal } from "..";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
