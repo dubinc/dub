@@ -5,6 +5,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getRefererAnalytics: ZodOpenApiOperationObject = {
   operationId: "getRefererAnalytics",
+  "x-speakeasy-name-override": "referers",
   summary: "Retrieve referer analytics",
   description:
     "Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
@@ -40,5 +41,5 @@ export const getRefererAnalytics: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Analytics"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

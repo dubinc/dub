@@ -5,6 +5,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getQRCode: ZodOpenApiOperationObject = {
   operationId: "getQRCode",
+  "x-speakeasy-name-override": "get",
   summary: "Retrieve a QR code",
   description: "Retrieve a QR code for a link.",
   requestParams: {
@@ -22,5 +23,5 @@ export const getQRCode: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["QR Codes"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

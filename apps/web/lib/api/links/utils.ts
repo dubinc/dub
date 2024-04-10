@@ -126,7 +126,7 @@ export async function dubLinkChecks(link: SimpleLinkProps) {
 
 // Transform link with additional properties
 export const transformLink = (link: LinkWithTags) => {
-  const tags = link.tags.map(({ tag }) => tag);
+  const tags = (link.tags || []).map(({ tag }) => tag);
 
   const shortLink = linkConstructor({
     domain: link.domain,

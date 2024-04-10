@@ -1,10 +1,9 @@
-import { ZodOpenApiObject } from "zod-openapi";
-
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { LinkSchema } from "@/lib/zod/schemas/links";
 import { TagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { API_DOMAIN } from "@dub/utils";
+import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
 import { linksPaths } from "./links";
 import { qrCodePaths } from "./qr";
@@ -48,7 +47,7 @@ export const openApiObject: ZodOpenApiObject = {
       TagSchema,
     },
     securitySchemes: {
-      bearerToken: {
+      token: {
         type: "http",
         description: "Default authentication mechanism",
         scheme: "bearer",
@@ -57,5 +56,18 @@ export const openApiObject: ZodOpenApiObject = {
     responses: {
       ...openApiErrorResponses,
     },
+  },
+  "x-speakeasy-globals": {
+    parameters: [
+      {
+        "x-speakeasy-globals-hidden": true,
+        name: "workspaceId",
+        in: "query",
+        required: true,
+        schema: {
+          type: "string",
+        },
+      },
+    ],
   },
 };
