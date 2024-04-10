@@ -68,6 +68,15 @@ export const openApiObject: ZodOpenApiObject = {
           type: "string",
         },
       },
+      {
+        "x-speakeasy-globals-hidden": true,
+        name: "projectSlug",
+        in: "query",
+        deprecated: true,
+        schema: {
+          type: "string",
+        },
+      },
     ],
   },
 };
