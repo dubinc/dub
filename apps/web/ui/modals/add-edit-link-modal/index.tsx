@@ -534,7 +534,7 @@ function AddEditLinkModal({
                       },
                     )}
                     placeholder="github"
-                    value={key}
+                    value={punycode(key)}
                     onChange={(e) => {
                       setKeyError(null);
                       e.currentTarget.setCustomValidity("");
