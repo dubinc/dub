@@ -9,6 +9,7 @@ import {
   isDubDomain,
   linkConstructor,
   log,
+  punyEncode,
   validKeyRegex,
 } from "@dub/utils";
 import { Link, Tag } from "@prisma/client";
@@ -105,6 +106,8 @@ export function processKey(key: string) {
   key = key.replace(/^\/+|\/+$/g, "");
   // replace all special characters
   key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // encode the key to ascii
+  key = punyEncode(key);
 
   return key;
 }

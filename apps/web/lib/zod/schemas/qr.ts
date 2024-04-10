@@ -5,7 +5,7 @@ import {
   QR_LEVELS,
 } from "@/lib/qr/constants";
 import z from "@/lib/zod";
-import { booleanQuerySchema } from ".";
+import { booleanQuerySchema } from "./misc";
 
 export const getQRCodeQuerySchema = z.object({
   url: z

@@ -3,7 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
 import JSZip from "jszip";
