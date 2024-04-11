@@ -35,7 +35,9 @@ const LinksQuerySchema = z.object({
   tagId: z
     .string()
     .optional()
-    .describe("The tag ID to filter the links by. This field is deprecated – use `tagIds` instead.")
+    .describe(
+      "The tag ID to filter the links by. This field is deprecated – use `tagIds` instead.",
+    )
     .openapi({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
@@ -366,7 +368,9 @@ export const LinkSchema = z
       .describe("The date and time when the short link was last updated."),
     projectId: z
       .string()
-      .describe("The project ID of the short link. This field is deprecated – use `workspaceId` instead.")
+      .describe(
+        "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
+      )
       .openapi({ deprecated: true }),
   })
   .openapi({ title: "Link" });
