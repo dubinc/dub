@@ -17,9 +17,18 @@ const getMetatags: ZodOpenApiOperationObject = {
           schema: {
             type: "object",
             properties: {
-              title: { type: "string" },
-              description: { type: "string" },
-              image: { type: "string" },
+              title: {
+                type: "string",
+                description: "The meta title tag for the URL",
+              },
+              description: {
+                type: "string",
+                description: "The meta description tag for the URL",
+              },
+              image: {
+                type: "string",
+                description: "The OpenGraph image for the URL",
+              },
             },
           },
         },
