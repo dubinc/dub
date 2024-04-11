@@ -5,8 +5,6 @@ export const workspaceParamsSchema = z.object({
   projectSlug: z
     .string()
     .optional()
-    .describe(
-      "[DEPRECATED] (use `workspaceId` instead) The slug of the project.",
-    )
+    .describe("The slug of the project. This field is deprecated – use `workspaceId` instead.")
     .openapi({ deprecated: true }),
 });
