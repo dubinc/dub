@@ -1,10 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { ratelimit } from "@/lib/upstash";
-import {
-  getDomainQuerySchema,
-  getUrlQuerySchema,
-} from "@/lib/zod/schemas/links";
+import { getDomainQuerySchema, getUrlQuerySchema } from "@/lib/zod/schemas";
 import { isIframeable } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";

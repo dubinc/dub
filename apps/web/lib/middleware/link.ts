@@ -6,6 +6,7 @@ import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
+  punyEncode,
 } from "@dub/utils";
 import {
   NextFetchEvent,
@@ -27,8 +28,9 @@ export default async function LinkMiddleware(
     return NextResponse.next();
   }
 
+  // encode the key to ascii
   // links on Dub are case insensitive by default
-  key = key.toLowerCase();
+  key = punyEncode(key.toLowerCase());
 
   const demoLink = DUB_DEMO_LINKS.find(
     (l) => l.domain === domain && l.key === key,
