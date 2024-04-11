@@ -4,3 +4,4 @@ export * from "./misc";
 export * from "./qr";
 export * from "./tags";
 export * from "./workspaces";
+export * from "./domains";

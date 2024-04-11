@@ -109,7 +109,7 @@ export const PUT = withAuth(
 export const DELETE = withAuth(
   async ({ domain }) => {
     const response = await deleteDomainAndLinks(domain);
-    return NextResponse.json(response);
+    return NextResponse.json({ slug: domain });
   },
   {
     domainChecks: true,

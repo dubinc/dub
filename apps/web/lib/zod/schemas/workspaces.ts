@@ -6,14 +6,7 @@ import {
   validSlugRegex,
 } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { planSchema, roleSchema } from ".";
-
-export const DomainSchema = z.object({
-  slug: z.string().describe("The domain of the workspace."),
-  primary: z
-    .boolean()
-    .describe("Indicates if the domain is the primary domain."),
-});
+import { DomainSchema, planSchema, roleSchema } from ".";
 
 export const WorkspaceSchema = z
   .object({
@@ -49,7 +42,14 @@ export const WorkspaceSchema = z
         }),
       )
       .describe("The role of the authenticated user in the workspace."),
-    domains: z.array(DomainSchema).describe("The domains of the workspace."),
+    domains: z
+      .array(
+        DomainSchema.pick({
+          slug: true,
+          primary: true,
+        }),
+      )
+      .describe("The domains of the workspace."),
   })
   .openapi({
     title: "Workspace",
