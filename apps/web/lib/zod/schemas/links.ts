@@ -28,9 +28,7 @@ const LinksQuerySchema = z.object({
   tagId: z
     .string()
     .optional()
-    .describe(
-      "[DEPRECATED] (use tagIds instead): The tag ID to filter the links by.",
-    )
+    .describe("The tag ID to filter the links by. Use `tagIds` instead.")
     .openapi({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
@@ -197,7 +195,7 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe(
-      "[DEPRECATED] (use tagIds instead): The unique ID of the tag assigned to the short link.",
+      "The unique ID of the tag assigned to the short link. Use `tagIds` instead.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -305,7 +303,7 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe(
-        "[DEPRECATED] (use `tags` instead): The unique ID of the tag assigned to the short link.",
+        "The unique ID of the tag assigned to the short link. Use `tags` instead.",
       )
       .openapi({ deprecated: true }),
     tags: TagSchema.array()
@@ -364,9 +362,7 @@ export const LinkSchema = z
       .describe("The date and time when the short link was last updated."),
     projectId: z
       .string()
-      .describe(
-        "[DEPRECATED] (use workspaceId instead): The project ID of the short link.",
-      )
+      .describe("The project ID of the short link. Use `workspaceId` instead.")
       .openapi({ deprecated: true }),
   })
   .openapi({ title: "Link" });
