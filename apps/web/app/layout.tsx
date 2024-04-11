@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="en" className={cn(satoshi.variable, inter.variable)}>
       <body>
         <TooltipProvider>
-          <Toaster closeButton />
+          <Toaster className="pointer-events-auto" />
           {children}
           <Analytics />
           <SpeedInsights />

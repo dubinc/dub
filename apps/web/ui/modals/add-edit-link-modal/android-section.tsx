@@ -1,14 +1,8 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import {
-  InfoTooltip,
-  SimpleTooltipContent,
-  Switch,
-  TooltipContent,
-  useRouterStuff,
-} from "@dub/ui";
+import { BadgeTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
+import { Crown } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function AndroidSection({
@@ -20,8 +14,6 @@ export default function AndroidSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
   const { android } = data;
   const [enabled, setEnabled] = useState(!!android);
   useEffect(() => {
@@ -44,7 +36,7 @@ export default function AndroidSection({
           <h2 className="text-sm font-medium text-gray-900">
             Android Targeting
           </h2>
-          <InfoTooltip
+          <BadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Redirect your Android users to a different link."
@@ -52,35 +44,14 @@ export default function AndroidSection({
                 href="https://dub.co/help/article/device-targeting"
               />
             }
-          />
+          >
+            <div className="flex items-center space-x-1">
+              <Crown size={12} />
+              <p>PRO</p>
+            </div>
+          </BadgeTooltip>
         </div>
-        <Switch
-          fn={() => setEnabled(!enabled)}
-          checked={enabled}
-          // Android targeting is only available on Dub's Pro plan
-          {...((!plan || plan === "free") && !enabled
-            ? {
-                disabledTooltip: (
-                  <TooltipContent
-                    title={`Android targeting is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
-                    cta="Upgrade to Pro"
-                    {...(plan === "free"
-                      ? {
-                          onClick: () =>
-                            queryParams({
-                              set: {
-                                upgrade: "pro",
-                              },
-                            }),
-                        }
-                      : {
-                          href: "https://dub.co/pricing",
-                        })}
-                  />
-                ),
-              }
-            : {})}
-        />
+        <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
       {enabled && (
         <motion.div

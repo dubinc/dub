@@ -29,6 +29,8 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
+import { Crown, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 import {
   useParams,
   usePathname,
@@ -59,7 +61,6 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
-import { TriangleAlert } from "lucide-react";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -201,9 +202,7 @@ function AddEditLinkModal({
           // set timeout to prevent flickering
           setTimeout(() => setGeneratingMetatags(false), 200);
         });
-      } catch (e) {
-        console.log("not a valid url");
-      }
+      } catch (_) {}
     } else {
       setGeneratingMetatags(false);
     }
@@ -398,7 +397,36 @@ function AddEditLinkModal({
                 } else {
                   const { error } = await res.json();
                   if (error) {
-                    toast.error(error.message);
+                    if (error.message.includes("Upgrade to Pro")) {
+                      toast.custom(() => (
+                        <div className="flex flex-col space-y-3 rounded-lg bg-white p-6 shadow-lg">
+                          <div className="flex items-center space-x-1.5">
+                            <Crown className="h-5 w-5 text-black" />{" "}
+                            <p className="font-semibold">
+                              You've discovered a Pro feature!
+                            </p>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {error.message}
+                          </p>
+                          <Link
+                            href={
+                              queryParams({
+                                set: {
+                                  upgrade: "pro",
+                                },
+                                getNewPath: true,
+                              }) as string
+                            }
+                            className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+                          >
+                            Upgrade to Pro
+                          </Link>
+                        </div>
+                      ));
+                    } else {
+                      toast.error(error.message);
+                    }
                     const message = error.message.toLowerCase();
                     if (message.includes("key") || message.includes("domain")) {
                       setKeyError(error.message);
