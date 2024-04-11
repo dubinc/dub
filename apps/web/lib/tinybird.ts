@@ -8,8 +8,7 @@ import {
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
-import { getIdentityHash } from "./edge";
-import { detectBot } from "./middleware/utils";
+import { detectBot, detectQr, getIdentityHash } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
@@ -30,8 +29,9 @@ export async function recordClick({
 }) {
   const isBot = detectBot(req);
   if (isBot) {
-    return null;
+    return null; // don't record clicks from bots
   }
+  const isQr = detectQr(req);
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
@@ -87,6 +87,7 @@ export async function recordClick({
           cpu_architecture: ua.cpu?.architecture || "Unknown",
           ua: ua.ua || "Unknown",
           bot: ua.isBot,
+          qr: isQr,
           referer: referer
             ? getDomainWithoutWWW(referer) || "(direct)"
             : "(direct)",
