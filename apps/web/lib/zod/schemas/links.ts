@@ -135,6 +135,24 @@ export const createLinkBodySchema = z.object({
     .optional()
     .default(false)
     .describe("Whether the short link is archived."),
+  publicStats: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Whether the short link's stats are publicly accessible."),
+  tagId: z
+    .string()
+    .nullish()
+    .describe(
+      "[DEPRECATED] (use tagIds instead): The unique ID of the tag assigned to the short link.",
+    )
+    .openapi({ deprecated: true }),
+  tagIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The unique IDs of the tags assigned to the short link."),
+  comments: z.string().nullish().describe("The comments for the short link."),
   expiresAt: z
     .string()
     .nullish()
@@ -192,24 +210,6 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
     ),
-  publicStats: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe("Whether the short link's stats are publicly accessible."),
-  tagId: z
-    .string()
-    .nullish()
-    .describe(
-      "[DEPRECATED] (use tagIds instead): The unique ID of the tag assigned to the short link.",
-    )
-    .openapi({ deprecated: true }),
-  tagIds: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe("The unique IDs of the tags assigned to the short link."),
-  comments: z.string().nullish().describe("The comments for the short link."),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial();
