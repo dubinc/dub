@@ -6,6 +6,7 @@ import { API_DOMAIN } from "@dub/utils";
 import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
 import { linksPaths } from "./links";
+import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { workspacesPaths } from "./workspaces";
@@ -39,6 +40,7 @@ export const openApiObject: ZodOpenApiObject = {
     ...analyticsPaths,
     ...workspacesPaths,
     ...tagsPaths,
+    ...metatagsPath,
   },
   components: {
     schemas: {
