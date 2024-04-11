@@ -4,7 +4,7 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import {
