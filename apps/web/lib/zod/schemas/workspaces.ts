@@ -6,7 +6,8 @@ import {
   validSlugRegex,
 } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { DomainSchema, planSchema, roleSchema } from ".";
+import { planSchema, roleSchema } from ".";
+import { DomainSchema } from "./domains";
 
 export const WorkspaceSchema = z
   .object({
