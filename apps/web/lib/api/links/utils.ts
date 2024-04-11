@@ -136,12 +136,20 @@ export const transformLink = (link: LinkWithTags) => {
     key: link.key,
   });
 
+  const qrLink = linkConstructor({
+    domain: link.domain,
+    key: link.key,
+    searchParams: {
+      qr: "1",
+    },
+  });
+
   return {
     ...link,
     shortLink,
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
-    qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    qrCode: `https://api.dub.co/qr?url=${qrLink}`,
     workspaceId: `ws_${link.projectId}`,
   };
 };

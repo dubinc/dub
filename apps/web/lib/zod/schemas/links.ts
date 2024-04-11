@@ -1,14 +1,21 @@
 import z from "@/lib/zod";
-import { getUrlFromString, isValidUrl, validDomainRegex } from "@dub/utils";
+import {
+  COUNTRY_CODES,
+  getUrlFromString,
+  isValidUrl,
+  validDomainRegex,
+} from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
 
+export const parseUrlSchema = z
+  .string()
+  .describe("The destination URL of the short link.")
+  .transform((v) => getUrlFromString(v))
+  .refine((v) => isValidUrl(v), { message: "Invalid URL" });
+
 export const getUrlQuerySchema = z.object({
-  url: z
-    .string()
-    .describe("The destination URL of the short link.")
-    .transform((v) => getUrlFromString(v))
-    .refine((v) => isValidUrl(v), { message: "Invalid URL" }),
+  url: parseUrlSchema,
 });
 
 export const getDomainQuerySchema = z.object({
@@ -120,18 +127,35 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
     ),
-  url: z.string().describe("The destination URL of the short link."),
+  url: parseUrlSchema.describe("The destination URL of the short link."),
   archived: z
     .boolean()
     .optional()
     .default(false)
     .describe("Whether the short link is archived."),
+  publicStats: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Whether the short link's stats are publicly accessible."),
+  tagId: z
+    .string()
+    .nullish()
+    .describe(
+      "The unique ID of the tag assigned to the short link. This field is deprecated – use `tagIds` instead.",
+    )
+    .openapi({ deprecated: true }),
+  tagIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The unique IDs of the tags assigned to the short link."),
+  comments: z.string().nullish().describe("The comments for the short link."),
   expiresAt: z
     .string()
     .nullish()
     .describe("The date and time when the short link will expire at."),
-  expiredUrl: z
-    .string()
+  expiredUrl: parseUrlSchema
     .nullish()
     .describe("The URL to redirect to when the short link has expired."),
   password: z
@@ -168,42 +192,22 @@ export const createLinkBodySchema = z.object({
     .optional()
     .default(false)
     .describe("Whether the short link uses link cloaking."),
-  ios: z
-    .string()
+  ios: parseUrlSchema
     .nullish()
     .describe(
       "The iOS destination URL for the short link for iOS device targeting.",
     ),
-  android: z
-    .string()
+  android: parseUrlSchema
     .nullish()
     .describe(
       "The Android destination URL for the short link for Android device targeting.",
     ),
   geo: z
-    .record(z.string())
+    .record(z.enum(COUNTRY_CODES), parseUrlSchema)
     .nullish()
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
     ),
-  publicStats: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe("Whether the short link's stats are publicly accessible."),
-  tagId: z
-    .string()
-    .nullish()
-    .describe(
-      "The unique ID of the tag assigned to the short link. This field is deprecated – use `tagIds` instead.",
-    )
-    .openapi({ deprecated: true }),
-  tagIds: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe("The unique IDs of the tags assigned to the short link."),
-  comments: z.string().nullish().describe("The comments for the short link."),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial();
@@ -290,7 +294,7 @@ export const LinkSchema = z
         "The Android destination URL for the short link for Android device targeting.",
       ),
     geo: z
-      .record(z.string())
+      .record(z.enum(COUNTRY_CODES), z.string().url())
       .nullable()
       .describe(
         "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. Learn more: https://d.to/geo",
