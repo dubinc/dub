@@ -77,6 +77,7 @@ export const POST = async (req: Request) => {
             usageLimit: plan.limits.clicks!,
             linksLimit: plan.limits.links!,
             domainsLimit: plan.limits.domains!,
+            aiLimit: plan.limits.ai!,
             tagsLimit: plan.limits.tags!,
             usersLimit: plan.limits.users!,
           },

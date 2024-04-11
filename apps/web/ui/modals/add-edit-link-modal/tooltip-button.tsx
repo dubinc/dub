@@ -31,7 +31,7 @@ export default function TooltipButton() {
     const { queryParams } = useRouterStuff();
     const { plan, nextPlan } = useWorkspace();
 
-    const showUsage = plan === "free" || plan === "pro" || plan === "business";
+    const showUsage = plan === "free" || plan === "pro";
 
     return (
       <Tooltip
@@ -40,13 +40,12 @@ export default function TooltipButton() {
             ai.data.usage < ai.data.limit ? (
               <div className="flex items-center gap-4 px-4 py-2">
                 <div>
-                  <span className="block max-w-xs text-center text-sm text-gray-700">
+                  <span className="block max-w-xs text-left text-sm text-gray-700">
                     {ai.title}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {showUsage
-                      ? `${ai.data.limit - ai.data.usage} / ${ai.data.limit} AI credits left`
-                      : "Unlimited credits left"}
+                    {showUsage &&
+                      `${ai.data.limit - ai.data.usage} / ${ai.data.limit} AI credits left`}
                   </span>
                 </div>
                 {showUsage ? (
@@ -65,7 +64,9 @@ export default function TooltipButton() {
                     ]}
                   />
                 ) : (
-                  <Infinity className="h-6 w-6 text-gray-500" />
+                  <div className="rounded-full border-4 border-black p-1">
+                    <Infinity className="h-6 w-6" />
+                  </div>
                 )}
               </div>
             ) : (

@@ -9,7 +9,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   domains = 40,
   tags = 150,
   users = 15,
-  aiCredits = "∞",
+  ai = 10000,
   ids = [],
 }: {
   name: string;
@@ -19,7 +19,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   clicks: number;
   domains: number;
   users: number;
-  aiCredits?: string;
+  ai: number;
   tags: number;
   ids: string[];
 }) => ({
@@ -37,6 +37,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     domains,
     tags,
     users,
+    ai,
   },
   colors: {
     bg: "bg-sky-900",
@@ -57,7 +58,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: "2-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
-    { text: `${aiCredits} AI credits` },
+    { text: `∞ AI credits` },
     {
       text: `${nFormatter(tags, { full: true })} tags`,
       footnote: {
@@ -93,6 +94,7 @@ export const PLANS = [
       domains: 3,
       tags: 5,
       users: 1,
+      ai: 10,
     },
     colors: {
       bg: "bg-black",
@@ -149,6 +151,7 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       users: 5,
+      ai: 1000,
     },
     colors: {
       bg: "bg-blue-500",
@@ -196,7 +199,7 @@ export const PLANS = [
     domains: 40,
     tags: 150,
     users: 15,
-    aiCredits: "∞",
+    ai: 10000,
     ids: [
       "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
       "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
@@ -216,7 +219,7 @@ export const PLANS = [
     domains: 100,
     tags: 300,
     users: 40,
-    aiCredits: "∞",
+    ai: 10000,
     ids: [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
       "price_1OnWu0AlJJEpqkPVkDWVriAB", // yearly (test)
@@ -233,7 +236,7 @@ export const PLANS = [
     domains: 250,
     tags: 500,
     users: 100,
-    aiCredits: "∞",
+    ai: 10000,
     ids: [
       "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
       "price_1OnWvCAlJJEpqkPVHhCCvIOq", // yearly (test)
@@ -250,7 +253,7 @@ export const PLANS = [
     domains: 500,
     tags: 1000,
     users: 250,
-    aiCredits: "∞",
+    ai: 10000,
     ids: [
       "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
       "price_1OnWwLAlJJEpqkPV4eMbOkNh", // yearly (test)
