@@ -61,7 +61,6 @@ export default function AndroidSection({
           <input
             name="android-url"
             id="android-url"
-            type="url"
             placeholder="https://play.google.com/store/apps/details?id=com.disney.disneyplus"
             value={android || ""}
             onChange={(e) => {

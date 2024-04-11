@@ -134,7 +134,6 @@ const GeoSelector = ({
           ))}
         </select>
         <input
-          type="url"
           name="geo-url"
           required
           autoComplete="off"

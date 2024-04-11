@@ -59,7 +59,6 @@ export default function IOSSection({
           <input
             name="ios-url"
             id="ios-url"
-            type="url"
             placeholder="https://apps.apple.com/app/1611158928"
             value={ios || ""}
             onChange={(e) => {
