@@ -37,10 +37,10 @@ export async function recordClick({
   const referer = req.headers.get("referer");
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
-  // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
+  // if in production / preview env, deduplicate clicks from the same IP address + link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${identity_hash}:${id}`,
+      `recordClick:${ip}:${id}`,
     );
     if (!success) {
       return null;
