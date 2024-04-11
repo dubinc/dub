@@ -6,6 +6,7 @@ import {
 import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { addDomainBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -31,7 +32,11 @@ export const GET = withAuth(async ({ workspace }) => {
 
 // POST /api/domains - add a domain
 export const POST = withAuth(async ({ req, workspace }) => {
-  const { slug: domain, target, type } = await req.json();
+  const {
+    slug: domain,
+    target,
+    type,
+  } = addDomainBodySchema.parse(await req.json());
 
   if (workspace.domains.length >= workspace.domainsLimit) {
     return new Response(
