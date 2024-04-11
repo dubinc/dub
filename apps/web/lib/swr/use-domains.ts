@@ -49,8 +49,10 @@ export default function useDomains({
   ];
 
   const primaryDomain =
-    activeWorkspaceDomains?.find((domain) => domain.primary)?.slug ||
-    SHORT_DOMAIN;
+    activeWorkspaceDomains && activeWorkspaceDomains.length > 0
+      ? activeWorkspaceDomains.find((domain) => domain.primary)?.slug ||
+        activeWorkspaceDomains[0].slug
+      : SHORT_DOMAIN;
 
   const verified = domain
     ? // If a domain is passed, check if it's verified

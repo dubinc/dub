@@ -1,21 +1,18 @@
 import { resizeImage } from "@/lib/images";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { UploadCloud } from "@/ui/shared/icons";
 import {
-  InfoTooltip,
+  BadgeTooltip,
   LoadingCircle,
   LoadingSpinner,
   Popover,
   SimpleTooltipContent,
   Switch,
   Unsplash,
-  useRouterStuff,
 } from "@dub/ui";
-import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Link2 } from "lucide-react";
+import { Crown, Link2 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
@@ -31,9 +28,6 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
-  const { plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
-
   const { title, description, image, proxy } = data;
 
   const [resizing, setResizing] = useState(false);
@@ -82,7 +76,7 @@ export default function OGSection({
           <h2 className="text-sm font-medium text-gray-900">
             Custom Social Media Cards
           </h2>
-          <InfoTooltip
+          <BadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Customize how your links look when shared on social media."
@@ -90,34 +84,16 @@ export default function OGSection({
                 href="https://dub.co/help/article/custom-social-media-cards"
               />
             }
-          />
+          >
+            <div className="flex items-center space-x-1">
+              <Crown size={12} />
+              <p>PRO</p>
+            </div>
+          </BadgeTooltip>
         </div>
         <Switch
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
           checked={proxy}
-          // custom social media cards is only available on Dub's Pro plan
-          {...((!plan || plan === "free") && !proxy
-            ? {
-                disabledTooltip: (
-                  <TooltipContent
-                    title={`Custom Social Media Cards is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
-                    cta="Upgrade to Pro"
-                    {...(plan === "free"
-                      ? {
-                          onClick: () =>
-                            queryParams({
-                              set: {
-                                upgrade: "pro",
-                              },
-                            }),
-                        }
-                      : {
-                          href: "https://dub.co/pricing",
-                        })}
-                  />
-                ),
-              }
-            : {})}
         />
       </div>
 
