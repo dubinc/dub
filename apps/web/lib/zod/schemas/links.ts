@@ -1,5 +1,10 @@
 import z from "@/lib/zod";
-import { getUrlFromString, isValidUrl, validDomainRegex } from "@dub/utils";
+import {
+  COUNTRY_CODES,
+  getUrlFromString,
+  isValidUrl,
+  validDomainRegex,
+} from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
 
@@ -183,7 +188,7 @@ export const createLinkBodySchema = z.object({
       "The Android destination URL for the short link for Android device targeting.",
     ),
   geo: z
-    .record(z.string())
+    .record(z.enum(COUNTRY_CODES), z.string().url())
     .nullish()
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
@@ -292,7 +297,7 @@ export const LinkSchema = z
         "The Android destination URL for the short link for Android device targeting.",
       ),
     geo: z
-      .record(z.string())
+      .record(z.enum(COUNTRY_CODES), z.string().url())
       .nullable()
       .describe(
         "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. Learn more: https://d.to/geo",
