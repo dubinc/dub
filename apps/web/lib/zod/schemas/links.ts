@@ -8,12 +8,14 @@ import {
 import { booleanQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
 
+export const parseUrlSchema = z
+  .string()
+  .describe("The destination URL of the short link.")
+  .transform((v) => getUrlFromString(v))
+  .refine((v) => isValidUrl(v), { message: "Invalid URL" });
+
 export const getUrlQuerySchema = z.object({
-  url: z
-    .string()
-    .describe("The destination URL of the short link.")
-    .transform((v) => getUrlFromString(v))
-    .refine((v) => isValidUrl(v), { message: "Invalid URL" }),
+  url: parseUrlSchema,
 });
 
 export const getDomainQuerySchema = z.object({
@@ -127,7 +129,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
     ),
-  url: z.string().describe("The destination URL of the short link."),
+  url: parseUrlSchema.describe("The destination URL of the short link."),
   archived: z
     .boolean()
     .optional()
@@ -137,8 +139,7 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe("The date and time when the short link will expire at."),
-  expiredUrl: z
-    .string()
+  expiredUrl: parseUrlSchema
     .nullish()
     .describe("The URL to redirect to when the short link has expired."),
   password: z
@@ -175,20 +176,18 @@ export const createLinkBodySchema = z.object({
     .optional()
     .default(false)
     .describe("Whether the short link uses link cloaking."),
-  ios: z
-    .string()
+  ios: parseUrlSchema
     .nullish()
     .describe(
       "The iOS destination URL for the short link for iOS device targeting.",
     ),
-  android: z
-    .string()
+  android: parseUrlSchema
     .nullish()
     .describe(
       "The Android destination URL for the short link for Android device targeting.",
     ),
   geo: z
-    .record(z.enum(COUNTRY_CODES), z.string().url())
+    .record(z.enum(COUNTRY_CODES), parseUrlSchema)
     .nullish()
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
