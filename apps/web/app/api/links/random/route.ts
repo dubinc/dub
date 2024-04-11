@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { getRandomKey } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import { domainKeySchema } from "@/lib/zod/schemas";
