@@ -1,7 +1,5 @@
-import { ZodOpenApiPathsObject } from "zod-openapi";
-import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { getUrlQuerySchema } from "@/lib/zod/schemas";
-import { ZodOpenApiOperationObject } from "zod-openapi";
+import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
 const getMetatags: ZodOpenApiOperationObject = {
   operationId: "getMetatags",
@@ -29,7 +27,6 @@ const getMetatags: ZodOpenApiOperationObject = {
     },
   },
   tags: ["Metatags"],
-  security: [{ token: [] }],
 };
 
 export const metatagsPath: ZodOpenApiPathsObject = {
