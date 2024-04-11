@@ -19,23 +19,23 @@ export function GET() {
     const pathItem = document.paths[path];
 
     if (pathItem.get) {
-      pathItem?.get?.security?.push({});
+      pathItem.get.security = [{ token: [] }, {}];
     }
 
     if (pathItem.post) {
-      pathItem?.post?.security?.push({});
+      pathItem.post.security = [{ token: [] }, {}];
     }
 
     if (pathItem.put) {
-      pathItem?.put?.security?.push({});
+      pathItem.put.security = [{ token: [] }, {}];
     }
 
     if (pathItem.delete) {
-      pathItem?.delete?.security?.push({});
+      pathItem.delete.security = [{ token: [] }, {}];
     }
 
     if (pathItem.patch) {
-      pathItem?.patch?.security?.push({});
+      pathItem.patch.security = [{ token: [] }, {}];
     }
   }
 
