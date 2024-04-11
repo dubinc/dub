@@ -36,5 +36,5 @@ export const getRefererAnalytics: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Analytics"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };

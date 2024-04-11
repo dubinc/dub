@@ -35,5 +35,5 @@ export const getCountryAnalytics: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Analytics"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };

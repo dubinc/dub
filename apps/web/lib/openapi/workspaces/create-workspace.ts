@@ -25,5 +25,5 @@ export const createWorkspace = {
     ...openApiErrorResponses,
   },
   tags: ["Workspaces"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };

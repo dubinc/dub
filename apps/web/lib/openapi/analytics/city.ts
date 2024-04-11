@@ -38,5 +38,5 @@ export const getCityAnalytics: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Analytics"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };

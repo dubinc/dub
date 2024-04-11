@@ -30,5 +30,5 @@ export const createLink: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Links"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };

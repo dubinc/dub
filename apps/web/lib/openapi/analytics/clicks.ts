@@ -27,5 +27,5 @@ export const getClicksAnalytics: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Analytics"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };

@@ -30,5 +30,5 @@ export const createTag: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Tags"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };

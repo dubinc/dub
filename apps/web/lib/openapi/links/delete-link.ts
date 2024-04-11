@@ -32,5 +32,5 @@ export const deleteLink: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Links"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };

@@ -31,5 +31,5 @@ export const createBulkLink: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Links"],
-  security: [{ token: [] }],
+  security: [{ token: [] }, {}],
 };
