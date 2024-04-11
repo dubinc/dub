@@ -17,7 +17,7 @@ export const getFinalUrl = (url: string, { req }: { req: NextRequest }) => {
   }
 
   if (urlObj.searchParams.get("qr") === "1") {
-    // remove qr param from the final url (only used for detectQr function)
+    // remove qr param from the final url if the value is "1" (only used for detectQr function)
     urlObj.searchParams.delete("qr");
   }
 
