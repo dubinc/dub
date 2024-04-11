@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { UploadCloud } from "@/ui/shared/icons";
 import {
-  InfoTooltip,
+  BadgeTooltip,
   LoadingCircle,
   LoadingSpinner,
   Magic,
@@ -13,14 +13,14 @@ import {
   Unsplash,
 } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
+import { useCompletion } from "ai/react";
 import { motion } from "framer-motion";
-import { Link2 } from "lucide-react";
+import { Crown, Link2 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import UnsplashSearch from "./unsplash-search";
-import { useCompletion } from "ai/react";
 import { toast } from "sonner";
 import { ButtonWithTooltip } from "./tooltip-button";
+import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({
   props,
@@ -142,7 +142,7 @@ export default function OGSection({
           <h2 className="text-sm font-medium text-gray-900">
             Custom Social Media Cards
           </h2>
-          <InfoTooltip
+          <BadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Customize how your links look when shared on social media."
@@ -150,7 +150,12 @@ export default function OGSection({
                 href="https://dub.co/help/article/custom-social-media-cards"
               />
             }
-          />
+          >
+            <div className="flex items-center space-x-1">
+              <Crown size={12} />
+              <p>PRO</p>
+            </div>
+          </BadgeTooltip>
         </div>
         <Switch
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}

@@ -6,7 +6,6 @@ import {
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
-import punycode from "punycode/";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
 import DateRangePicker from "./date-range-picker";
@@ -64,7 +63,7 @@ export default function Toggle() {
               />
               <p className="max-w-[192px] truncate sm:max-w-[400px]">
                 {linkConstructor({
-                  domain: punycode.toUnicode(domain),
+                  domain,
                   key,
                   pretty: true,
                 })}

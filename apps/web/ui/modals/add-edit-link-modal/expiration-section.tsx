@@ -1,13 +1,11 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import {
+  BadgeTooltip,
   ExpandingArrow,
   InfoTooltip,
   SimpleTooltipContent,
   Switch,
-  useRouterStuff,
 } from "@dub/ui";
-import { TooltipContent } from "@dub/ui/src/tooltip";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   formatDateTime,
@@ -15,6 +13,7 @@ import {
   parseDateTime,
 } from "@dub/utils";
 import { motion } from "framer-motion";
+import { Crown } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 export default function ExpirationSection({
@@ -26,8 +25,6 @@ export default function ExpirationSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { expiresAt, expiredUrl } = data;
@@ -51,7 +48,7 @@ export default function ExpirationSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">Link Expiration</h2>
-          <InfoTooltip
+          <BadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Set an expiration date for your links – after which it won't be accessible."
@@ -59,35 +56,14 @@ export default function ExpirationSection({
                 href="https://dub.co/help/article/link-expiration"
               />
             }
-          />
+          >
+            <div className="flex items-center space-x-1">
+              <Crown size={12} />
+              <p>PRO</p>
+            </div>
+          </BadgeTooltip>
         </div>
-        <Switch
-          fn={() => setEnabled(!enabled)}
-          checked={enabled}
-          // expiration date is only available on Dub's Pro plan
-          {...((!plan || plan === "free") && !enabled
-            ? {
-                disabledTooltip: (
-                  <TooltipContent
-                    title={`Expiration date is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
-                    cta="Upgrade to Pro"
-                    {...(plan === "free"
-                      ? {
-                          onClick: () =>
-                            queryParams({
-                              set: {
-                                upgrade: "pro",
-                              },
-                            }),
-                        }
-                      : {
-                          href: "https://dub.co/pricing",
-                        })}
-                  />
-                ),
-              }
-            : {})}
-        />
+        <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
       {enabled && (
         <motion.div className="mt-3" {...FADE_IN_ANIMATION_SETTINGS}>

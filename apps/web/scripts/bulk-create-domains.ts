@@ -1,8 +1,8 @@
 import { addDomainToVercel, setRootDomain } from "@/lib/api/domains";
+import prisma from "@/lib/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import prisma from "@/lib/prisma";
 
 const projectId = "xxx";
 const domains: { domain: string; target: string }[] = [];

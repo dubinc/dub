@@ -2,7 +2,9 @@ import { render } from "@react-email/render";
 import { Client } from "postmark";
 import { JSXElementConstructor, ReactElement } from "react";
 
-export const client = new Client(process.env.POSTMARK_API_KEY as string);
+export const client = process.env.POSTMARK_API_KEY
+  ? new Client(process.env.POSTMARK_API_KEY)
+  : null;
 
 export const sendEmail = async ({
   email,
@@ -19,8 +21,16 @@ export const sendEmail = async ({
   react?: ReactElement<any, string | JSXElementConstructor<any>>;
   marketing?: boolean;
 }) => {
-  if (!process.env.POSTMARK_API_KEY) {
-    console.log(
+  if (process.env.NODE_ENV === "development" && !client) {
+    // Set up a fake email client for development
+    console.info(
+      `Email to ${email} with subject ${subject} sent from ${
+        from || process.env.NEXT_PUBLIC_APP_NAME
+      }`,
+    );
+    return Promise.resolve();
+  } else if (!client) {
+    console.error(
       "Postmark is not configured. You need to add a POSTMARK_API_KEY in your .env file for emails to work.",
     );
     return Promise.resolve();

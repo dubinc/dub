@@ -1,7 +1,8 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import { workspaceParamsSchema } from "../request";
 
 export const getOSAnalytics: ZodOpenApiOperationObject = {
   operationId: "getOSAnalytics",
@@ -10,13 +11,7 @@ export const getOSAnalytics: ZodOpenApiOperationObject = {
   description:
     "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: z
-      .object({
-        workspaceId: z
-          .string()
-          .describe("The ID of the workspace the link belongs to."),
-      })
-      .merge(getAnalyticsQuerySchema),
+    query: workspaceParamsSchema.merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {

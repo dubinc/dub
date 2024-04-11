@@ -25,13 +25,14 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
+import { useCompletion } from "ai/react";
 import {
   useParams,
   usePathname,
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import punycode from "punycode/";
+import punycode from "punycode";
 import {
   Dispatch,
   SetStateAction,
@@ -55,9 +56,8 @@ import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import Preview from "./preview";
 import TagsSection from "./tags-section";
-import UTMSection from "./utm-section";
-import { useCompletion } from "ai/react";
 import { ButtonWithTooltip } from "./tooltip-button";
+import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,

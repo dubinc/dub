@@ -15,7 +15,7 @@ export default function LoginForm() {
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
   const [clickedGoogle, setClickedGoogle] = useState(false);
-  const [clickedGitub, setClickedGithub] = useState(false);
+  const [clickedGithub, setClickedGithub] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
   const [clickedSSO, setClickedSSO] = useState(false);
 
@@ -59,7 +59,7 @@ export default function LoginForm() {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
             });
           }}
-          loading={clickedGitub}
+          loading={clickedGithub}
           disabled={clickedEmail || clickedSSO}
           icon={<Github className="h-5 w-5 text-black" />}
         />
