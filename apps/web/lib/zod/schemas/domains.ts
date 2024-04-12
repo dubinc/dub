@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { isValidUrl } from "@dub/utils";
+import { parseUrlSchema } from "./links";
 
 export const DomainSchema = z.object({
   slug: z
@@ -51,12 +51,8 @@ export const addDomainBodySchema = z.object({
     .string({ required_error: "Domain name is required" })
     .min(1, "Domain name cannot be empty.")
     .describe("Name of the domain."),
-  target: z
-    .string()
-    .refine((value) => (value ? isValidUrl(value) : true), {
-      message: "Target URL must be a valid URL.",
-    })
-    .optional()
+  target: parseUrlSchema
+    .nullable()
     .describe(
       "The page your users will get redirected to when they visit your domain.",
     ),
@@ -65,10 +61,8 @@ export const addDomainBodySchema = z.object({
     .optional()
     .default("redirect")
     .describe("The type of redirect to use for this domain."),
-  expiredUrl: z
-    .string()
-    .url("expiredUrl must be a valid URL")
-    .optional()
+  expiredUrl: parseUrlSchema
+    .nullable()
     .describe(
       "Redirect users to a specific URL when any link under this domain has expired.",
     ),
