@@ -59,7 +59,7 @@ export const DELETE = withAdmin(async ({ params }) => {
           ],
         }),
       },
-    ),
+    ).then((res) => res.json()),
   ]);
 
   return NextResponse.json(response);
