@@ -6,9 +6,13 @@ export const DomainSchema = z.object({
     .string()
     .describe("The domain name.")
     .openapi({ example: "acme.com" }),
-  verified: z.boolean().describe("Whether the domain is verified."),
+  verified: z
+    .boolean()
+    .default(false)
+    .describe("Whether the domain is verified."),
   primary: z
     .boolean()
+    .default(false)
     .describe("Whether the domain is the primary domain for the workspace."),
   archived: z
     .boolean()
@@ -45,12 +49,10 @@ export const DomainSchema = z.object({
 export const addDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "Domain name is required" })
-    .min(1)
-    .max(50, "Domain name is too long. Max 50 characters long")
+    .min(1, "Domain name cannot be empty.")
     .describe("Name of the domain."),
   target: z
     .string()
-    // .url("target must be a valid URL")
     .refine((value) => (value ? isValidUrl(value) : true), {
       message: "Target URL must be a valid URL.",
     })
@@ -74,6 +76,7 @@ export const addDomainBodySchema = z.object({
     .string()
     .url("placeholder must be a valid URL")
     .optional()
+    .default("https://dub.co/help/article/what-is-dub")
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     ),
@@ -85,5 +88,6 @@ export const transferDomainBodySchema = z.object({
   newWorkspaceId: z
     .string({ required_error: "New workspace ID is required." })
     .min(1, "New workspace ID cannot be empty.")
-    .transform((v) => v.replace("ws_", "")),
+    .transform((v) => v.replace("ws_", ""))
+    .describe("The ID of the new workspace to transfer the domain to."),
 });
