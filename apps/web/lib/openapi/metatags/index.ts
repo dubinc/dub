@@ -8,7 +8,7 @@ const getMetatags: ZodOpenApiOperationObject = {
   summary: "Retrieve the metatags for a URL",
   description: "Retrieve the metatags for a URL",
   requestParams: {
-    query: getUrlQuerySchema.describe("The URL to retrieve metatags for"),
+    query: getUrlQuerySchema,
   },
   responses: {
     "200": {
