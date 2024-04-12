@@ -67,14 +67,26 @@ export const addDomainBodySchema = z.object({
       "Redirect users to a specific URL when any link under this domain has expired.",
     ),
   placeholder: parseUrlSchema
-    .optional()
+    .nullish()
     .default("https://dub.co/help/article/what-is-dub")
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     ),
 });
 
-export const updateDomainBodySchema = addDomainBodySchema;
+export const updateDomainBodySchema = addDomainBodySchema
+  .merge(
+    z.object({
+      archived: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          "Whether to archive this repository. `false` will unarchive a previously archived domain.",
+        ),
+    }),
+  )
+  .partial();
 
 export const transferDomainBodySchema = z.object({
   newWorkspaceId: z

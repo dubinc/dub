@@ -8,7 +8,7 @@ import {
 import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { updateDomainBodySchema } from "@/lib/zod/schemas";
+import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
@@ -46,7 +46,7 @@ export const GET = withAuth(
 );
 
 // PUT /api/domains/[domain] – edit a workspace's domain
-export const PUT = withAuth(
+export const PATCH = withAuth(
   async ({ req, workspace, domain }) => {
     const {
       slug: newDomain,
@@ -54,9 +54,10 @@ export const PUT = withAuth(
       type,
       placeholder,
       expiredUrl,
+      archived,
     } = updateDomainBodySchema.parse(await req.json());
 
-    if (newDomain !== domain) {
+    if (newDomain && newDomain !== domain) {
       const validDomain = await validateDomain(newDomain);
       if (validDomain !== true) {
         throw new DubApiError({
@@ -79,15 +80,13 @@ export const PUT = withAuth(
           slug: domain,
         },
         data: {
-          ...(newDomain !== domain && {
-            slug: newDomain,
-          }),
+          slug: newDomain,
           type,
-          placeholder,
-          // only set target and expiredUrl if the workspace is not free
+          archived,
+          ...(placeholder && { placeholder }),
           ...(workspace.plan !== "free" && {
-            target: target || null,
-            expiredUrl: expiredUrl || null,
+            target,
+            expiredUrl,
           }),
         },
       }),
@@ -108,7 +107,7 @@ export const PUT = withAuth(
       projectId: workspace.id,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(DomainSchema.parse(response[0]));
   },
   {
     domainChecks: true,

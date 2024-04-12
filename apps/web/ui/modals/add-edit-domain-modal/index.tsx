@@ -87,7 +87,7 @@ function AddEditDomainModal({
   const endpoint = useMemo(() => {
     if (props) {
       return {
-        method: "PUT",
+        method: "PATCH",
         url: `/api/domains/${domain}?workspaceId=${id}`,
         successMessage: "Successfully updated domain!",
       };
@@ -132,7 +132,12 @@ function AddEditDomainModal({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({
+              ...data,
+              target: target || null,
+              placeholder: placeholder || null,
+              expiredUrl: expiredUrl || null,
+            }),
           }).then(async (res) => {
             if (res.ok) {
               await mutate(`/api/domains?workspaceId=${id}`);

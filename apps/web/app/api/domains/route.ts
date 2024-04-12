@@ -76,7 +76,7 @@ export const POST = withAuth(async ({ req, workspace }) => {
       type,
       projectId: workspace.id,
       primary: workspace.domains.length === 0,
-      placeholder,
+      ...(placeholder && { placeholder }),
       ...(workspace.plan !== "free" && {
         target,
         expiredUrl,
