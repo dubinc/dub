@@ -10,7 +10,6 @@ import { TagSchema } from "./tags";
 
 export const parseUrlSchema = z
   .string()
-  .describe("The destination URL of the short link.")
   .transform((v) => getUrlFromString(v))
   .refine((v) => isValidUrl(v), { message: "Invalid URL" });
 

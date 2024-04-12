@@ -89,7 +89,7 @@ export const POST = withAuth(async ({ req, workspace }) => {
     domain,
     projectId: workspace.id,
     ...(workspace.plan !== "free" && {
-      url: target,
+      url: target || undefined,
     }),
     rewrite: type === "rewrite",
   });

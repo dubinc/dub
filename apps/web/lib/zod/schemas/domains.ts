@@ -48,27 +48,25 @@ export const DomainSchema = z.object({
 
 export const addDomainBodySchema = z.object({
   slug: z
-    .string({ required_error: "Domain name is required" })
-    .min(1, "Domain name cannot be empty.")
+    .string({ required_error: "slug is required" })
+    .min(1, "slug cannot be empty.")
     .describe("Name of the domain."),
-  target: parseUrlSchema
-    .nullable()
-    .describe(
-      "The page your users will get redirected to when they visit your domain.",
-    ),
   type: z
     .enum(["redirect", "rewrite"])
     .optional()
     .default("redirect")
     .describe("The type of redirect to use for this domain."),
+  target: parseUrlSchema
+    .nullish()
+    .describe(
+      "The page your users will get redirected to when they visit your domain.",
+    ),
   expiredUrl: parseUrlSchema
-    .nullable()
+    .nullish()
     .describe(
       "Redirect users to a specific URL when any link under this domain has expired.",
     ),
-  placeholder: z
-    .string()
-    .url("placeholder must be a valid URL")
+  placeholder: parseUrlSchema
     .optional()
     .default("https://dub.co/help/article/what-is-dub")
     .describe(
