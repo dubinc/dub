@@ -78,14 +78,17 @@ export const POST = withAuth(
       },
       select: {
         id: true,
+        name: true,
       },
     });
     const workspaceTagIds = workspaceTags.map(({ id }) => id);
+    const workspaceTagNames = workspaceTags.map(({ name }) => name);
     validLinks.forEach((link, index) => {
-      const combinedTagIds = combineTagIds({
-        tagId: link.tagId,
-        tagIds: link.tagIds,
-      });
+      const combinedTagIds =
+        combineTagIds({
+          tagId: link.tagId,
+          tagIds: link.tagIds,
+        }) ?? [];
       const invalidTagIds = combinedTagIds.filter(
         (id) => !workspaceTagIds.includes(id),
       );
@@ -95,6 +98,18 @@ export const POST = withAuth(
         errorLinks.push({
           link,
           error: `Invalid tagIds detected: ${invalidTagIds.join(", ")}`,
+          code: "unprocessable_entity",
+        });
+      }
+
+      const invalidTagNames = link.tagNames?.filter((name) =>
+        workspaceTagNames.includes(name),
+      );
+      if (invalidTagNames?.length) {
+        validLinks = validLinks.filter((_, i) => i !== index);
+        errorLinks.push({
+          link,
+          error: `Invalid tagNames detected: ${invalidTagNames.join(", ")}`,
           code: "unprocessable_entity",
         });
       }

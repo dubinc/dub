@@ -43,6 +43,7 @@ export async function editLink({
     updatedAt,
     tagId,
     tagIds,
+    tagNames,
     ...rest
   } = updatedLink;
 
@@ -76,17 +77,34 @@ export async function editLink({
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
-      tags: {
-        deleteMany: {
-          tagId: {
-            notIn: combinedTagIds,
+
+      // Associate tags by tagNames
+      ...(tagNames &&
+        updatedLink.projectId && {
+          tags: {
+            deleteMany: {},
+            create: tagNames.map((tagName) => ({
+              tag: {
+                connect: {
+                  name_projectId: {
+                    name: tagName,
+                    projectId: updatedLink.projectId as string,
+                  },
+                },
+              },
+            })),
           },
+        }),
+
+      // Associate tags by IDs (takes priority over tagNames)
+      ...(combinedTagIds && {
+        tags: {
+          deleteMany: {},
+          create: combinedTagIds.map((tagId) => ({
+            tagId,
+          })),
         },
-        connectOrCreate: combinedTagIds.map((tagId) => ({
-          where: { linkId_tagId: { linkId: id, tagId } },
-          create: { tagId },
-        })),
-      },
+      }),
     },
     include: {
       tags: {

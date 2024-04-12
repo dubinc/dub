@@ -21,18 +21,21 @@ type LinkWithTags = Link & {
   tags: { tag: Pick<Tag, "id" | "name" | "color"> }[];
 };
 
+/**
+ * Combines tagIds into a single string array or undefined from tagId and tagIds arguments
+ */
 export function combineTagIds({
   tagId,
   tagIds,
 }: {
   tagId?: string | null;
   tagIds?: string[];
-}): string[] {
+}): string[] | undefined {
   // Use tagIds if present, fall back to tagId
-  if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+  if (tagIds && Array.isArray(tagIds)) {
     return tagIds;
   }
-  return tagId ? [tagId] : [];
+  return tagId === null ? [] : tagId !== undefined ? [tagId] : undefined;
 }
 
 export async function keyChecks({

@@ -40,7 +40,7 @@ export async function getLinksForWorkspace({
           some: {},
         },
       }),
-      ...(combinedTagIds.length > 0
+      ...(combinedTagIds && combinedTagIds.length > 0
         ? {
             tags: { some: { tagId: { in: combinedTagIds } } },
           }

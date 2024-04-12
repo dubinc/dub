@@ -59,15 +59,16 @@ export async function getLinksCount({
           some: {},
         },
       }),
-      ...(combinedTagIds.length > 0 && {
-        tags: {
-          some: {
-            tagId: {
-              in: tagIds,
+      ...(combinedTagIds &&
+        combinedTagIds.length > 0 && {
+          tags: {
+            some: {
+              tagId: {
+                in: tagIds,
+              },
             },
           },
-        },
-      }),
+        }),
     };
 
     if (groupBy === "domain") {
