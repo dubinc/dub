@@ -5,7 +5,6 @@ import {
   cn,
   getApexDomain,
   linkConstructor,
-  punycode,
   timeAgo,
   truncate,
 } from "@dub/utils";

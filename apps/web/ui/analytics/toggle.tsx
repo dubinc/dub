@@ -5,7 +5,6 @@ import {
   cn,
   getApexDomain,
   linkConstructor,
-  punycode,
 } from "@dub/utils";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";

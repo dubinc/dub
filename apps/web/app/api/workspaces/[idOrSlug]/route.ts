@@ -10,15 +10,24 @@ import { NextResponse } from "next/server";
 
 const updateWorkspaceSchema = z.object({
   name: z.preprocess(trim, z.string().min(1).max(32)).optional(),
-  slug: z.preprocess(trim,
-    z.string()
-    .min(3, "Slug must be at least 3 characters")
-    .max(48, "Slug must be less than 48 characters")
-    .transform((v) => slugify(v))
-    .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
-    .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
-      message: "Cannot use reserved slugs",
-    }))
+  slug: z
+    .preprocess(
+      trim,
+      z
+        .string()
+        .min(3, "Slug must be at least 3 characters")
+        .max(48, "Slug must be less than 48 characters")
+        .transform((v) => slugify(v))
+        .refine((v) => validSlugRegex.test(v), {
+          message: "Invalid slug format",
+        })
+        .refine(
+          async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]),
+          {
+            message: "Cannot use reserved slugs",
+          },
+        ),
+    )
     .optional(),
 });
 
