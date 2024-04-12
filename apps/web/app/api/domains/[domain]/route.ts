@@ -6,6 +6,7 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
@@ -48,6 +49,7 @@ export const GET = withAuth(
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withAuth(
   async ({ req, workspace, domain }) => {
+    const body = await parseRequestBody(req);
     const {
       slug: newDomain,
       target,
@@ -55,7 +57,7 @@ export const PATCH = withAuth(
       placeholder,
       expiredUrl,
       archived,
-    } = updateDomainBodySchema.parse(await req.json());
+    } = updateDomainBodySchema.parse(body);
 
     if (newDomain && newDomain !== domain) {
       const validDomain = await validateDomain(newDomain);

@@ -4,6 +4,7 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import { exceededLimitError } from "@/lib/api/errors";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas";
@@ -32,13 +33,14 @@ export const GET = withAuth(async ({ workspace }) => {
 
 // POST /api/domains - add a domain
 export const POST = withAuth(async ({ req, workspace }) => {
+  const body = await parseRequestBody(req);
   const {
     slug: domain,
     target,
     type,
     expiredUrl,
     placeholder,
-  } = addDomainBodySchema.parse(await req.json());
+  } = addDomainBodySchema.parse(body);
 
   if (workspace.domains.length >= workspace.domainsLimit) {
     return new Response(
