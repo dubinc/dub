@@ -80,6 +80,9 @@ export function QRCodePicker({
       value: linkConstructor({
         key: props.key,
         domain: props.domain,
+        searchParams: {
+          qr: "1",
+        },
       }),
       bgColor: "#ffffff",
       fgColor,
@@ -190,6 +193,9 @@ export function QRCodePicker({
                     `https://api.dub.co/qr?url=${linkConstructor({
                       key: props.key,
                       domain: props.domain,
+                      searchParams: {
+                        qr: "1",
+                      },
                     })}`,
                   );
                   toast.success("Copied QR code URL to clipboard!");

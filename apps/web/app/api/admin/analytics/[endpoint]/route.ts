@@ -3,7 +3,7 @@ import { withAdmin } from "@/lib/auth";
 import {
   analyticsEndpointSchema,
   getAnalyticsQuerySchema,
-} from "@/lib/zod/schemas/analytics";
+} from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/analytics/[endpoint] – get analytics for a specific endpoint

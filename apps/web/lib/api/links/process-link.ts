@@ -81,10 +81,23 @@ export async function processLink<T extends Record<string, any>>({
     (!createdAt || new Date(createdAt) > new Date("2024-01-19"))
   ) {
     if (proxy || password || rewrite || expiresAtRaw || ios || android || geo) {
+      const proFeaturesString = [
+        proxy && "custom social media cards",
+        password && "password protection",
+        rewrite && "link cloaking",
+        expiresAtRaw && "link expiration",
+        ios && "iOS targeting",
+        android && "Android targeting",
+        geo && "geo targeting",
+      ]
+        .filter(Boolean)
+        .join(", ")
+        // final one should be "and" instead of comma
+        .replace(/, ([^,]*)$/, " and $1");
+
       return {
         link: payload,
-        error:
-          "You can only use custom social media cards, password-protection, link cloaking, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
+        error: `You can only use ${proFeaturesString} on a Pro plan and above. Upgrade to Pro to use these features.`,
         code: "forbidden",
       };
     }

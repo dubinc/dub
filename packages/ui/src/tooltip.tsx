@@ -180,13 +180,9 @@ export function NumberTooltip({
   );
 }
 
-export function BadgeTooltip({
-  children,
-  content,
-  side = "bottom",
-}: TooltipProps) {
+export function BadgeTooltip({ children, content, ...props }: TooltipProps) {
   return (
-    <Tooltip content={content} side={side}>
+    <Tooltip content={content} {...props}>
       <div className="flex cursor-pointer items-center">
         <Badge
           variant="gray"

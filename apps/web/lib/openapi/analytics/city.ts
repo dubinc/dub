@@ -1,22 +1,18 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { COUNTRY_CODES } from "@dub/utils";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import { workspaceParamsSchema } from "../request";
 
 export const getCityAnalytics: ZodOpenApiOperationObject = {
   operationId: "getCityAnalytics",
+  "x-speakeasy-name-override": "cities",
   summary: "Retrieve city analytics",
   description:
     "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: z
-      .object({
-        workspaceId: z
-          .string()
-          .describe("The ID of the workspace the link belongs to."),
-      })
-      .merge(getAnalyticsQuerySchema),
+    query: workspaceParamsSchema.merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {
@@ -42,5 +38,5 @@ export const getCityAnalytics: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Analytics"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

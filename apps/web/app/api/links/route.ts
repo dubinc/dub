@@ -2,10 +2,7 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
-import {
-  createLinkBodySchema,
-  getLinksQuerySchema,
-} from "@/lib/zod/schemas/links";
+import { createLinkBodySchema, getLinksQuerySchema } from "@/lib/zod/schemas";
 import { LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
