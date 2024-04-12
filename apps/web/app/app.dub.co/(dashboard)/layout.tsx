@@ -1,4 +1,4 @@
-import HelpButton from "@/ui/layout/help-button";
+import { HelpButton } from "@/ui/layout/help";
 import NavTabs from "@/ui/layout/nav-tabs";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 import UserDropdown from "@/ui/layout/user-dropdown";
