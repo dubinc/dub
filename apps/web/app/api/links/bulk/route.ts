@@ -102,8 +102,8 @@ export const POST = withAuth(
         });
       }
 
-      const invalidTagNames = link.tagNames?.filter((name) =>
-        workspaceTagNames.includes(name),
+      const invalidTagNames = link.tagNames?.filter(
+        (name) => !workspaceTagNames.includes(name),
       );
       if (invalidTagNames?.length) {
         validLinks = validLinks.filter((_, i) => i !== index);
