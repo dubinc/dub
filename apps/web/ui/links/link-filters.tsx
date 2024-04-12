@@ -299,8 +299,8 @@ const DomainPopover = ({
 
   const toastWithUndo = useToastWithUndo();
 
-  const archiveDomain = (archive: boolean) => {
-    return fetch(`/api/domains/${domain.slug}?workspaceId=${id}`, {
+  const archiveDomain = async (archive: boolean) => {
+    return await fetch(`/api/domains/${domain.slug}?workspaceId=${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -309,14 +309,14 @@ const DomainPopover = ({
         ...domain,
         archived: archive,
       }),
-    });
+    }).then((res) => res.json());
   };
 
-  const archiveDefaultDomain = (archive: boolean) => {
+  const archiveDefaultDomain = async (archive: boolean) => {
     const newDefaultDomains = archive
       ? defaultDomains?.filter((d) => d !== domain.slug)
       : [...(defaultDomains || []), domain.slug];
-    return fetch(`/api/domains/default?workspaceId=${id}`, {
+    return await fetch(`/api/domains/default?workspaceId=${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -324,7 +324,7 @@ const DomainPopover = ({
       body: JSON.stringify({
         defaultDomains: newDefaultDomains,
       }),
-    });
+    }).then((res) => res.json());
   };
 
   const handleArchiveRequest = async () => {

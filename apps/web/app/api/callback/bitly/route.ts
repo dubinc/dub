@@ -17,7 +17,7 @@ export async function GET(req: Request) {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: `client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&client_secret=${process.env.BITLY_CLIENT_SECRET}&code=${code}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}`,
-  }).then((r) => r.text());
+  }).then((res) => res.text());
 
   if (!response || response.includes("error")) {
     return NextResponse.redirect(APP_DOMAIN);
