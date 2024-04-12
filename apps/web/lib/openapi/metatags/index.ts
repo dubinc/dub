@@ -1,3 +1,4 @@
+import z from "@/lib/zod";
 import { getUrlQuerySchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
@@ -14,23 +15,25 @@ const getMetatags: ZodOpenApiOperationObject = {
       description: "The retrieved metatags",
       content: {
         "application/json": {
-          schema: {
-            type: "object",
-            properties: {
-              title: {
-                type: "string",
-                description: "The meta title tag for the URL",
-              },
-              description: {
-                type: "string",
-                description: "The meta description tag for the URL",
-              },
-              image: {
-                type: "string",
-                description: "The OpenGraph image for the URL",
-              },
-            },
-          }, // TODO: use zod schema here
+          schema: z.object({
+            title: z
+              .string()
+              .describe("The meta title tag for the URL")
+              .openapi({
+                example: "Dub.co - Link Management for Modern Marketing Teams",
+              }),
+            description: z
+              .string()
+              .describe("The meta description tag for the URL")
+              .openapi({
+                example:
+                  "Dub.co is the open-source link management infrastructure ...",
+              }),
+            image: z
+              .string()
+              .describe("The OpenGraph image for the URL")
+              .openapi({ example: "https://assets.dub.co/thumbnail.jpg" }),
+          }),
         },
       },
     },
