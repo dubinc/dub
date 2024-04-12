@@ -10,6 +10,7 @@ export const editDomain: ZodOpenApiOperationObject = {
   description: "Edit a domain for the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema,
+    path: DomainSchema.pick({ slug: true }),
   },
   requestBody: {
     content: {
