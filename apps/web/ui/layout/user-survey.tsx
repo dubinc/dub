@@ -1,16 +1,16 @@
 "use client";
 
 import {
-  Logo,
+  Github,
+  Google,
   Label,
+  LinkedIn,
+  Logo,
+  PopupContext,
+  ProductHunt,
   RadioGroup,
   RadioGroupItem,
-  PopupContext,
   Twitter,
-  LinkedIn,
-  ProductHunt,
-  Google,
-  Github,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Globe, X } from "lucide-react";

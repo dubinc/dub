@@ -28,9 +28,9 @@ export function Popup({
         <AnimatePresence>
           {!hidden && (
             <motion.div
-              key="popup"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
+              className="fixed inset-0"
+              initial={{ opacity: 0, translateY: 50 }}
+              animate={{ opacity: 1, translateY: 0 }}
               exit={{ y: 250 }}
             >
               {children}
