@@ -99,7 +99,8 @@ export const PUT = withAuth(
       id: response[0].id,
       domain,
       ...(workspace.plan !== "free" && {
-        url: target,
+        url: target || undefined,
+        expiredUrl: expiredUrl || undefined,
       }),
       rewrite: type === "rewrite",
       ...(newDomain !== domain && {

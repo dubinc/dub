@@ -78,8 +78,8 @@ export const POST = withAuth(async ({ req, workspace }) => {
       primary: workspace.domains.length === 0,
       placeholder,
       ...(workspace.plan !== "free" && {
-        target,
-        expiredUrl,
+        target: target || null,
+        expiredUrl: expiredUrl || null,
       }),
     },
   });
@@ -89,7 +89,8 @@ export const POST = withAuth(async ({ req, workspace }) => {
     domain,
     projectId: workspace.id,
     ...(workspace.plan !== "free" && {
-      url: target,
+      url: target || undefined,
+      expiredUrl: expiredUrl || undefined,
     }),
     rewrite: type === "rewrite",
   });
