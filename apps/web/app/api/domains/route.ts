@@ -94,5 +94,5 @@ export const POST = withAuth(async ({ req, workspace }) => {
     rewrite: type === "rewrite",
   });
 
-  return NextResponse.json(DomainSchema.parse(response));
+  return NextResponse.json(DomainSchema.parse(response), { status: 201 });
 });

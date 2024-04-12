@@ -134,7 +134,7 @@ function AddEditDomainModal({
             },
             body: JSON.stringify(data),
           }).then(async (res) => {
-            if (res.status === 200) {
+            if (res.ok) {
               await mutate(`/api/domains?workspaceId=${id}`);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
@@ -142,10 +142,10 @@ function AddEditDomainModal({
                 router.push(`/${slug}/domains`);
               }
             } else {
-              const errorMessage = await res.text();
-              toast.error(errorMessage);
+              const { error } = await res.json();
+              toast.error(error.message);
               if (res.status === 422) {
-                setDomainError(errorMessage);
+                setDomainError(error.message);
               }
             }
             setSaving(false);
