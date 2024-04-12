@@ -4,13 +4,13 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import {
   analyticsEndpointSchema,
   getAnalyticsEdgeQuerySchema,
-} from "@/lib/zod/schemas/analytics";
+} from "@/lib/zod/schemas";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { NextResponse, type NextRequest } from "next/server";
 

@@ -1,4 +1,4 @@
-import { getIdentityHash } from "@/lib/edge";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
 import { unsplash } from "../utils";

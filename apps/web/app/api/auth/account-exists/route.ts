@@ -1,5 +1,5 @@
-import { getIdentityHash } from "@/lib/edge";
 import { isWhitelistedEmail } from "@/lib/edge-config";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { DATABASE_URL, conn } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import { NextRequest, NextResponse } from "next/server";

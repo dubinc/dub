@@ -110,6 +110,10 @@
         "api-reference/endpoint/create-a-new-tag",
         "api-reference/endpoint/retrieve-a-list-of-tags"
       ]
+    },
+    {
+      "group": "Metatags",
+      "pages": ["api-reference/endpoint/retrieve-metatags"]
     }
   ],
   "api": {

@@ -3,7 +3,7 @@ import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps } from "@/lib/types";
-import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
+import { updateLinkBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
@@ -98,8 +98,12 @@ export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withAuth(async ({ headers, link }) => {
-  const response = await deleteLink(link!.id);
-  return NextResponse.json(response[0], {
-    headers,
-  });
+  await deleteLink(link!.id);
+
+  return NextResponse.json(
+    { id: link?.id },
+    {
+      headers,
+    },
+  );
 });

@@ -23,6 +23,7 @@ import {
   SWIPE_REVEAL_ANIMATION_SETTINGS,
   isDubDomain,
   nFormatter,
+  punycode,
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -34,7 +35,6 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import punycode from "punycode/";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -259,7 +259,7 @@ const DomainsFilter = () => {
                   htmlFor={domain.slug}
                   className="flex w-full cursor-pointer items-center justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
-                  <p>{truncate(punycode.toUnicode(domain.slug || ""), 24)}</p>
+                  <p>{truncate(punycode(domain.slug), 24)}</p>
                   <DomainPopover domain={domain} count={domain.count} />
                 </label>
               </div>

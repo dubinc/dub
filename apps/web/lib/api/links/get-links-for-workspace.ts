@@ -1,8 +1,7 @@
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
-import { getLinksQuerySchema } from "@/lib/zod/schemas/links";
-import { linkConstructor } from "@dub/utils";
-import { combineTagIds } from "./utils";
+import { getLinksQuerySchema } from "@/lib/zod/schemas";
+import { combineTagIds, transformLink } from "./utils";
 
 export async function getLinksForWorkspace({
   workspaceId,
@@ -68,21 +67,5 @@ export async function getLinksForWorkspace({
     }),
   });
 
-  return links.map((link) => {
-    const shortLink = linkConstructor({
-      domain: link.domain,
-      key: link.key,
-    });
-
-    const tags = link.tags.map(({ tag }) => tag);
-
-    return {
-      ...link,
-      tagId: tags?.[0]?.id ?? null, // backwards compatibility
-      tags,
-      shortLink,
-      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
-      workspaceId: `ws_${link.projectId}`,
-    };
-  });
+  return links.map((link) => transformLink(link));
 }

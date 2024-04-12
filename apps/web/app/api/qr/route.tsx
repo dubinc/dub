@@ -1,8 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { ratelimit } from "@/lib/upstash";
-import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
+import { getQRCodeQuerySchema } from "@/lib/zod/schemas";
 import { getSearchParams } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { ImageResponse } from "next/og";

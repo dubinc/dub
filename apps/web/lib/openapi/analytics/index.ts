@@ -1,5 +1,4 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
-
 import { getBrowserAnalytics } from "./browser";
 import { getCityAnalytics } from "./city";
 import { getClicksAnalytics } from "./clicks";

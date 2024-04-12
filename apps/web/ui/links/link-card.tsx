@@ -23,13 +23,13 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  HOME_DOMAIN,
   cn,
   fetcher,
   getApexDomain,
   isDubDomain,
   linkConstructor,
   nFormatter,
+  punycode,
   timeAgo,
 } from "@dub/utils";
 import {
@@ -48,7 +48,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
@@ -151,7 +150,7 @@ export default function LinkCard({
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: `${key}-copy`,
+      key: `${punycode(key)}-copy`,
       clicks: 0,
     },
   });
@@ -160,7 +159,6 @@ export default function LinkCard({
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
-    archived: !archived,
   });
   const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
     props,
@@ -317,8 +315,8 @@ export default function LinkCard({
                 >
                   <div className="max-w-[140px] -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]">
                     {linkConstructor({
+                      domain,
                       key,
-                      domain: punycode.toUnicode(domain || ""),
                       pretty: true,
                     })}
                   </div>
@@ -331,18 +329,26 @@ export default function LinkCard({
                       "text-gray-500": archived || expired,
                     },
                   )}
-                  href={linkConstructor({ key, domain })}
+                  href={linkConstructor({
+                    domain,
+                    key,
+                  })}
                   target="_blank"
                   rel="noreferrer"
                 >
                   {linkConstructor({
+                    domain,
                     key,
-                    domain: punycode.toUnicode(domain || ""),
                     pretty: true,
                   })}
                 </a>
               )}
-              <CopyButton value={linkConstructor({ key, domain })} />
+              <CopyButton
+                value={linkConstructor({
+                  domain,
+                  key,
+                })}
+              />
               {comments && (
                 <Tooltip
                   content={
@@ -425,7 +431,7 @@ export default function LinkCard({
                     <SimpleTooltipContent
                       title="This link is cloaked. Your users will only see the short link in the browser address bar."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/link-cloaking`}
+                      href="https://dub.co/help/article/link-cloaking"
                     />
                   }
                 >
@@ -438,7 +444,7 @@ export default function LinkCard({
                     <SimpleTooltipContent
                       title="This link is password-protected."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/password-protected-links`}
+                      href="https://dub.co/help/article/password-protected-links"
                     />
                   }
                 >
@@ -517,19 +523,26 @@ export default function LinkCard({
                   shortcut="A"
                   className="h-9 px-2 font-medium"
                 />
-                {isDubDomain(domain) && (
-                  <Button
-                    text="Transfer"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowTransferLinkModal(true);
-                    }}
-                    icon={<FolderInput className="h-4 w-4" />}
-                    shortcut="T"
-                    className="h-9 px-2 font-medium"
-                  />
-                )}
+                <Button
+                  text="Transfer"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowTransferLinkModal(true);
+                  }}
+                  icon={<FolderInput className="h-4 w-4" />}
+                  shortcut="T"
+                  className="h-9 px-2 font-medium"
+                  {...(!isDubDomain(domain) && {
+                    disabledTooltip: (
+                      <SimpleTooltipContent
+                        title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
+                        cta="Learn more."
+                        href="https://dub.co/help/article/how-to-transfer-domains"
+                      />
+                    ),
+                  })}
+                />
                 <Button
                   text="Copy Link ID"
                   variant="outline"
@@ -605,7 +618,7 @@ export default function LinkCard({
               }}
               className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
-              <span className="sr-only">Edit</span>
+              <span className="sr-only">More options</span>
               <ThreeDots className="h-5 w-5 text-gray-500" />
             </button>
           </Popover>
