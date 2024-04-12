@@ -3,21 +3,21 @@ import { DomainSchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
-export const deleteDomain: ZodOpenApiOperationObject = {
-  operationId: "deleteDomain",
-  "x-speakeasy-name-override": "delete",
-  summary: "Delete a domain",
-  description: "Delete a domain from a workspace.",
+export const setPrimaryDomain: ZodOpenApiOperationObject = {
+  operationId: "setPrimaryDomain",
+  "x-speakeasy-name-override": "setPrimary",
+  summary: "Set a domain as primary",
+  description: "Set a domain as primary for the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema,
     path: DomainSchema.pick({ slug: true }),
   },
   responses: {
     "200": {
-      description: "The domain was deleted.",
+      description: "The domain was set as primary",
       content: {
         "application/json": {
-          schema: DomainSchema.pick({ slug: true }),
+          schema: DomainSchema,
         },
       },
     },

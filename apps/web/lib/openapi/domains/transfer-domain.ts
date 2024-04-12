@@ -1,26 +1,28 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
+import { DomainSchema, transferDomainBodySchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
-export const editDomain: ZodOpenApiOperationObject = {
-  operationId: "editDomain",
-  "x-speakeasy-name-override": "update",
-  summary: "Edit a domain",
-  description: "Edit a domain for the authenticated workspace.",
+export const transferDomain: ZodOpenApiOperationObject = {
+  operationId: "transferDomain",
+  "x-speakeasy-name-override": "transfer",
+  summary: "Transfer a domain",
+  description:
+    "Transfer a domain to another workspace within the authenticated account.",
   requestParams: {
     query: workspaceParamsSchema,
+    path: DomainSchema.pick({ slug: true }),
   },
   requestBody: {
     content: {
       "application/json": {
-        schema: updateDomainBodySchema,
+        schema: transferDomainBodySchema,
       },
     },
   },
   responses: {
     "200": {
-      description: "The domain was updated.",
+      description: "The domain transfer initiated",
       content: {
         "application/json": {
           schema: DomainSchema,

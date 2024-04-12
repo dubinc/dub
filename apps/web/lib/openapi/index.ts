@@ -9,6 +9,7 @@ import { linksPaths } from "./links";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { workspacesPaths } from "./workspaces";
+import { domainsPaths } from "./domains";
 
 export const openApiObject: ZodOpenApiObject = {
   openapi: "3.0.3",
@@ -29,7 +30,7 @@ export const openApiObject: ZodOpenApiObject = {
   },
   servers: [
     {
-      url: API_DOMAIN,
+      url: "https://8be2-103-181-40-111.ngrok-free.app/api/",
       description: "Production API",
     },
   ],
@@ -39,6 +40,7 @@ export const openApiObject: ZodOpenApiObject = {
     ...analyticsPaths,
     ...workspacesPaths,
     ...tagsPaths,
+    ...domainsPaths,
   },
   components: {
     schemas: {
