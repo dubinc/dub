@@ -1,15 +1,8 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import {
-  InfoTooltip,
-  SimpleTooltipContent,
-  Switch,
-  TooltipContent,
-  useRouterStuff,
-} from "@dub/ui";
-import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
+import { BadgeTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
+import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Trash } from "lucide-react";
+import { Crown, Trash } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function GeoSection({
@@ -21,8 +14,6 @@ export default function GeoSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
   const { geo } = data;
   const [enabled, setEnabled] = useState(!!geo);
 
@@ -53,43 +44,22 @@ export default function GeoSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">Geo Targeting</h2>
-          <InfoTooltip
+          <BadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Redirect your users to different links based on their location."
                 cta="Learn more about geo targeting."
-                href={`${HOME_DOMAIN}/help/article/geo-targeting`}
+                href="https://dub.co/help/article/geo-targeting"
               />
             }
-          />
+          >
+            <div className="flex items-center space-x-1">
+              <Crown size={12} />
+              <p>PRO</p>
+            </div>
+          </BadgeTooltip>
         </div>
-        <Switch
-          fn={() => setEnabled(!enabled)}
-          checked={enabled}
-          // geo targeting is only available on Dub's Pro plan
-          {...((!plan || plan === "free") && !enabled
-            ? {
-                disabledTooltip: (
-                  <TooltipContent
-                    title={`Geo targeting is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
-                    cta="Upgrade to Pro"
-                    {...(plan === "free"
-                      ? {
-                          onClick: () =>
-                            queryParams({
-                              set: {
-                                upgrade: "pro",
-                              },
-                            }),
-                        }
-                      : {
-                          href: `${HOME_DOMAIN}/pricing`,
-                        })}
-                  />
-                ),
-              }
-            : {})}
-        />
+        <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
       {enabled && (
         <motion.div className="mt-3 grid gap-2" {...FADE_IN_ANIMATION_SETTINGS}>
@@ -164,11 +134,10 @@ const GeoSelector = ({
           ))}
         </select>
         <input
-          type="url"
           name="geo-url"
           required
           autoComplete="off"
-          className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+          className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
           value={url}
           placeholder="URL"
           onChange={(e) => {

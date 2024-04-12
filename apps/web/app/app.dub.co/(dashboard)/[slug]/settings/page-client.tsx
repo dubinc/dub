@@ -43,11 +43,9 @@ export default function WorkspaceSettingsClient() {
                 mutate(`/api/workspaces/${id}`),
               ]);
               toast.success("Successfully updated workspace name!");
-            } else if (res.status === 422) {
-              toast.error("Workspace slug already exists");
             } else {
-              const errorMessage = await res.text();
-              toast.error(errorMessage || "Something went wrong");
+              const { error } = await res.json();
+              toast.error(error.message);
             }
           })
         }
@@ -81,8 +79,8 @@ export default function WorkspaceSettingsClient() {
               router.push(`/${newSlug}/settings`);
               toast.success("Successfully updated workspace slug!");
             } else {
-              const error = await res.text();
-              toast.error(error || "Something went wrong");
+              const { error } = await res.json();
+              toast.error(error.message);
             }
           })
         }

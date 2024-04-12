@@ -1,7 +1,8 @@
 import { withAuth } from "@/lib/auth";
 import { getDomainOrLink } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import z, { domainKeySchema } from "@/lib/zod";
+import z from "@/lib/zod";
+import { domainKeySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 const updatePublicStatsSchema = z.object({

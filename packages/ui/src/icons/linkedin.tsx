@@ -7,7 +7,7 @@ export default function LinkedIn({ className }: { className?: string }) {
       width="24"
       height="24"
       viewBox="0 0 24 24"
-      className={cn("text-[#0A66C2]", className)}
+      className={cn("text-[#0077b5]", className)}
     >
       <path
         fill="currentColor"

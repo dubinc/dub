@@ -1,3 +1,5 @@
+import { cn } from "@dub/utils";
+
 export default function YouTube({ className }: { className?: string }) {
   return (
     <svg
@@ -6,7 +8,7 @@ export default function YouTube({ className }: { className?: string }) {
       width="256"
       height="256"
       viewBox="0 0 256 256"
-      className={className}
+      className={cn("text-[#ff0000]", className)}
     >
       <defs></defs>
       <g
@@ -17,7 +19,7 @@ export default function YouTube({ className }: { className?: string }) {
           strokeLinecap: "butt",
           strokeLinejoin: "miter",
           strokeMiterlimit: 10,
-          fill: "none",
+          fill: "#ff0000",
           fillRule: "nonzero",
           opacity: 1,
         }}
@@ -32,7 +34,7 @@ export default function YouTube({ className }: { className?: string }) {
             strokeLinecap: "butt",
             strokeLinejoin: "miter",
             strokeMiterlimit: 10,
-            fill: "rgb(0,0,0)",
+            fill: "currentColor",
             fillRule: "nonzero",
             opacity: 1,
           }}

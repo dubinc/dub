@@ -16,7 +16,7 @@ import {
   Popover,
   TooltipContent,
 } from "@dub/ui";
-import { DUB_DOMAINS, HOME_DOMAIN } from "@dub/utils";
+import { DUB_DOMAINS } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -40,7 +40,7 @@ export default function WorkspaceDomainsClient() {
                 content={
                   <TooltipContent
                     title="Learn more about how to add, configure, and verify custom domains on Dub."
-                    href={`${HOME_DOMAIN}/help/category/custom-domains`}
+                    href="https://dub.co/help/category/custom-domains"
                     target="_blank"
                     cta="Learn more"
                   />

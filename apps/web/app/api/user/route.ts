@@ -54,9 +54,17 @@ export const PUT = withSession(async ({ req, session }) => {
   } catch (error) {
     if (error.code === "P2002") {
       // return res.status(422).end("Email is already in use.");
-      return new Response("Email is already in use.", { status: 422 });
+      return NextResponse.json(
+        {
+          error: {
+            code: "conflict",
+            message: "Email is already in use.",
+          },
+        },
+        { status: 422 },
+      );
     }
-    return new Response(error.message, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 });
 

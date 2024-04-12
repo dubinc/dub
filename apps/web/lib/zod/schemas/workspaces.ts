@@ -8,6 +8,13 @@ import {
 import slugify from "@sindresorhus/slugify";
 import { planSchema, roleSchema } from ".";
 
+export const DomainSchema = z.object({
+  slug: z.string().describe("The domain of the workspace."),
+  primary: z
+    .boolean()
+    .describe("Indicates if the domain is the primary domain."),
+});
+
 export const WorkspaceSchema = z
   .object({
     id: z.string().describe("The unique ID of the workspace."),
@@ -42,13 +49,7 @@ export const WorkspaceSchema = z
         }),
       )
       .describe("The role of the authenticated user in the workspace."),
-    domains: z
-      .array(
-        z.object({
-          slug: z.string().describe("The domain of the workspace."),
-        }),
-      )
-      .describe("The domains of the workspace."),
+    domains: z.array(DomainSchema).describe("The domains of the workspace."),
   })
   .openapi({
     title: "Workspace",

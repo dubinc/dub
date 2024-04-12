@@ -1,16 +1,18 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
 import {
-  InfoTooltip,
+  BadgeTooltip,
   LoadingSpinner,
   SimpleTooltipContent,
   Switch,
-  TooltipContent,
-  useRouterStuff,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN, fetcher } from "@dub/utils";
+import {
+  FADE_IN_ANIMATION_SETTINGS,
+  fetcher,
+  getUrlFromString,
+} from "@dub/utils";
 import { motion } from "framer-motion";
+import { Crown } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useSWR from "swr";
 
@@ -21,9 +23,6 @@ export default function CloakingSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
-
   const { rewrite } = data;
   const [enabled, setEnabled] = useState(rewrite);
   useEffect(() => {
@@ -44,52 +43,37 @@ export default function CloakingSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">Link Cloaking</h2>
-          <InfoTooltip
+          <BadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Mask your destination URL so your users only see the short link in the browser address bar."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/link-cloaking`}
+                href="https://dub.co/help/article/link-cloaking"
               />
             }
-          />
+          >
+            <div className="flex items-center space-x-1">
+              <Crown size={12} />
+              <p>PRO</p>
+            </div>
+          </BadgeTooltip>
         </div>
-        <Switch
-          fn={() => setEnabled(!enabled)}
-          checked={enabled}
-          // link cloaking is only available on Dub's Pro plan
-          {...((!plan || plan === "free") && !enabled
-            ? {
-                disabledTooltip: (
-                  <TooltipContent
-                    title={`Link cloaking is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
-                    cta="Upgrade to Pro"
-                    {...(plan === "free"
-                      ? {
-                          onClick: () =>
-                            queryParams({
-                              set: {
-                                upgrade: "pro",
-                              },
-                            }),
-                        }
-                      : {
-                          href: `${HOME_DOMAIN}/pricing`,
-                        })}
-                  />
-                ),
-              }
-            : {})}
-        />
+        <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
 
       {enabled && (
         <motion.div className="mt-3 grid gap-2" {...FADE_IN_ANIMATION_SETTINGS}>
           <div className="relative mt-1 flex aspect-[1200/630] w-full cursor-pointer items-center justify-center overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50">
-            <iframe src={data.url} className="absolute z-10 h-full w-full" />
+            <iframe
+              src={getUrlFromString(data.url)}
+              className="absolute z-10 h-full w-full"
+            />
             <LoadingSpinner />
           </div>
-          <IframeIndicator url={data.url} domain={data.domain} />
+          <IframeIndicator
+            url={getUrlFromString(data.url)}
+            domain={data.domain}
+          />
         </motion.div>
       )}
     </div>

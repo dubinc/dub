@@ -1,15 +1,13 @@
 import useDomains from "@/lib/swr/use-domains";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { InputSelect, useRouterStuff } from "@dub/ui";
 import { DUB_LOGO, GOOGLE_FAVICON_URL, getApexDomain } from "@dub/utils";
 import { Globe } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
 import { ModalContext } from "../modals/provider";
 
 export default function DomainSelector() {
   const { queryParams } = useRouterStuff();
-  const { slug } = useWorkspace();
 
   const { allWorkspaceDomains: domains } = useDomains();
   const searchParams = useSearchParams();
@@ -40,7 +38,6 @@ export default function DomainSelector() {
           : undefined,
       }}
       setSelectedItem={(domain) => {
-        console.log(domain);
         if (domain && typeof domain !== "function" && domain.value) {
           queryParams({
             set: { domain: domain.value },

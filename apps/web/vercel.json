@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/domains",
+      "path": "/api/cron/domains/verify",
       "schedule": "0 * * * *"
     },
     {
