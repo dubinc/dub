@@ -36,6 +36,8 @@ export const POST = withAuth(async ({ req, workspace }) => {
     slug: domain,
     target,
     type,
+    expiredUrl,
+    placeholder,
   } = addDomainBodySchema.parse(await req.json());
 
   if (workspace.domains.length >= workspace.domainsLimit) {
@@ -71,10 +73,14 @@ export const POST = withAuth(async ({ req, workspace }) => {
   const response = await prisma.domain.create({
     data: {
       slug: domain,
-      target,
       type,
       projectId: workspace.id,
       primary: workspace.domains.length === 0,
+      placeholder,
+      ...(workspace.plan !== "free" && {
+        target,
+        expiredUrl,
+      }),
     },
   });
 

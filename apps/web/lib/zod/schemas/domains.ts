@@ -1,41 +1,5 @@
 import z from "@/lib/zod";
-
-// TODO
-// Add max and min
-
-export const addDomainBodySchema = z.object({
-  slug: z
-    .string({ required_error: "Domain name is required" })
-    .min(1)
-    .max(50, "Domain name is too long. Max 50 characters long")
-    .describe("Name of the domain."),
-  target: z
-    .string()
-    .url("Target URL must be a valid URL.")
-    .optional()
-    .describe(
-      "The page your users will get redirected to when they visit your domain.",
-    ),
-  type: z
-    .enum(["redirect", "rewrite"])
-    .optional()
-    .default("redirect")
-    .describe("The type of redirect to use for this domain."),
-  expiredUrl: z
-    .string()
-    .url("Expired URL must be a valid URL")
-    .optional()
-    .describe(
-      "Redirect users to a specific URL when any link under this domain has expired.",
-    ),
-  placeholder: z
-    .string()
-    .url("Placeholder URL must be a valid URL")
-    .optional()
-    .describe(
-      "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
-    ),
-});
+import { isValidUrl } from "@dub/utils";
 
 export const DomainSchema = z
   .object({
@@ -83,4 +47,41 @@ export const DomainSchema = z
   })
   .strict();
 
-export type Domain = z.infer<typeof DomainSchema>;
+export const addDomainBodySchema = z.object({
+  slug: z
+    .string({ required_error: "Domain name is required" })
+    .min(1)
+    .max(50, "Domain name is too long. Max 50 characters long")
+    .describe("Name of the domain."),
+  target: z
+    .string()
+    // .url("target must be a valid URL")
+    .refine((value) => (value ? isValidUrl(value) : true), {
+      message: "Target URL must be a valid URL.",
+    })
+    .optional()
+    .describe(
+      "The page your users will get redirected to when they visit your domain.",
+    ),
+  type: z
+    .enum(["redirect", "rewrite"])
+    .optional()
+    .default("redirect")
+    .describe("The type of redirect to use for this domain."),
+  expiredUrl: z
+    .string()
+    .url("expiredUrl must be a valid URL")
+    .optional()
+    .describe(
+      "Redirect users to a specific URL when any link under this domain has expired.",
+    ),
+  placeholder: z
+    .string()
+    .url("placeholder must be a valid URL")
+    .optional()
+    .describe(
+      "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
+    ),
+});
+
+export const updateDomainBodySchema = addDomainBodySchema;

@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { updateDomainBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
@@ -49,7 +50,7 @@ export const PUT = withAuth(
       type,
       placeholder,
       expiredUrl,
-    } = await req.json();
+    } = updateDomainBodySchema.parse(await req.json());
 
     if (newDomain !== domain) {
       const validDomain = await validateDomain(newDomain);
