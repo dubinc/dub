@@ -6,7 +6,7 @@ import {
 import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { addDomainBodySchema } from "@/lib/zod/schemas";
+import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -94,5 +94,5 @@ export const POST = withAuth(async ({ req, workspace }) => {
     rewrite: type === "rewrite",
   });
 
-  return NextResponse.json(response);
+  return NextResponse.json(DomainSchema.parse(response));
 });
