@@ -31,7 +31,7 @@ export function ContactForm({
           value={message}
           autoComplete="off"
           onChange={(e) => setMessage(e.target.value)}
-          minRows={8}
+          minRows={12}
           className={`${
             false
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
@@ -40,12 +40,12 @@ export function ContactForm({
         />
       </label>
       {/* TODO */}
-      <label className="mt-3 flex cursor-pointer items-center space-x-1 py-1">
+      <div className="mt-3 flex h-[4rem] cursor-pointer items-center justify-center space-x-1 rounded-md border border-dashed border-gray-400 py-1">
         <p className="text-sm text-gray-500 hover:text-gray-700 hover:underline">
           Upload attachment
         </p>
         <Upload className="h-3 w-3" />
-      </label>
+      </div>
       <Button className="mt-3 h-9" disabled={!message} text="Send message" />
     </div>
   );
