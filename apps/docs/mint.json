@@ -112,6 +112,17 @@
       ]
     },
     {
+      "group": "Domains",
+      "pages": [
+        "api-reference/endpoint/add-a-domain",
+        "api-reference/endpoint/edit-a-domain",
+        "api-reference/endpoint/delete-a-domain",
+        "api-reference/endpoint/retrieve-a-list-of-domains",
+        "api-reference/endpoint/set-a-primary-domain",
+        "api-reference/endpoint/transfer-a-domain"
+      ]
+    },
+    {
       "group": "Metatags",
       "pages": ["api-reference/endpoint/retrieve-metatags"]
     }
