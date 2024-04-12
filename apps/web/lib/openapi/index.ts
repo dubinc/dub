@@ -29,7 +29,7 @@ export const openApiObject: ZodOpenApiObject = {
   },
   servers: [
     {
-      url: "https://8be2-103-181-40-111.ngrok-free.app/api/",
+      url: API_DOMAIN,
       description: "Production API",
     },
   ],
