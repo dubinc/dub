@@ -5,6 +5,7 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
+import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { updateDomainBodySchema } from "@/lib/zod/schemas";
@@ -29,7 +30,10 @@ export const GET = withAuth(
       },
     });
     if (!data) {
-      return new Response("Domain not found", { status: 404 });
+      throw new DubApiError({
+        code: "not_found",
+        message: "Domain not found",
+      });
     }
     return NextResponse.json({
       ...data,
@@ -55,11 +59,17 @@ export const PUT = withAuth(
     if (newDomain !== domain) {
       const validDomain = await validateDomain(newDomain);
       if (validDomain !== true) {
-        return new Response(validDomain, { status: 422 });
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: validDomain,
+        });
       }
       const vercelResponse = await addDomainToVercel(newDomain);
       if (vercelResponse.error) {
-        return new Response(vercelResponse.error.message, { status: 422 });
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: vercelResponse.error.message,
+        });
       }
     }
 
@@ -109,7 +119,7 @@ export const PUT = withAuth(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withAuth(
   async ({ domain }) => {
-    const response = await deleteDomainAndLinks(domain);
+    await deleteDomainAndLinks(domain);
     return NextResponse.json({ slug: domain });
   },
   {
