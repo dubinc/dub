@@ -4,7 +4,7 @@ import { Popover } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 import { HelpArticle } from ".";
 import { ContactForm } from "./contact-form";
 import { MainScreen } from "./main-screen";
@@ -63,10 +63,37 @@ export function HelpButton({
 function HelpSection() {
   const [screen, setScreen] = useState<"main" | "contact">("main");
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState("auto");
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setHeight(`${entry.target.scrollHeight}px`);
+      }
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        resizeObserver.unobserve(containerRef.current);
+      }
+    };
+  }, [containerRef.current]); // Ensure effect runs if ref changes
+
   return (
-    <div className="w-full transition-all duration-300 ease-in-out sm:w-[32rem]">
-      {screen === "main" && <MainScreen setScreen={setScreen} />}
-      {screen === "contact" && <ContactForm setScreen={setScreen} />}
-    </div>
+    <motion.div
+      className="w-full overflow-scroll sm:w-[32rem]"
+      animate={{ height, maxHeight: "calc(100vh - 10rem)" }}
+      transition={{ type: "spring", duration: 0.3 }}
+    >
+      <div ref={containerRef}>
+        {screen === "main" && <MainScreen setScreen={setScreen} />}
+        {screen === "contact" && <ContactForm setScreen={setScreen} />}
+      </div>
+    </motion.div>
   );
 }

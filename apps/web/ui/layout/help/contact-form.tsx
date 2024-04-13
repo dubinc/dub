@@ -41,8 +41,6 @@ export function ContactForm({
       method: "GET",
     }).then((res) => res.json());
 
-    console.log({ uploadFormUrl, attachmentId });
-
     const form = new FormData();
     uploadFormData.forEach(({ key, value }) => {
       form.append(key, value);
@@ -83,7 +81,7 @@ export function ContactForm({
   const { handleKeyDown } = useEnterSubmit(formRef);
 
   return (
-    <div className="w-full px-6 py-5">
+    <div className="relative w-full px-3 pb-16 pt-5 sm:px-6">
       <button
         type="button"
         className="-ml-2 flex items-center space-x-1 rounded-md px-2 py-1"
@@ -100,7 +98,7 @@ export function ContactForm({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <CheckCircleFill className="h-5 w-5 text-green-500" />
+            <CheckCircleFill className="h-8 w-8 text-green-500" />
             <p className="text-gray-500">
               Thanks for reaching out! <br /> We'll get back to you as soon as
               possible.
@@ -250,12 +248,14 @@ export function ContactForm({
               }}
             />
 
-            <Button
-              className="mt-3 h-9"
-              disabled={!data.message}
-              loading={formStatus === "loading"}
-              text="Send message"
-            />
+            <div className="fixed bottom-0 left-0 z-10 flex h-16 w-full items-center justify-center bg-white px-3 sm:px-6">
+              <Button
+                className="h-9"
+                disabled={!data.message}
+                loading={formStatus === "loading"}
+                text="Send message"
+              />
+            </div>
           </motion.form>
         )}
       </AnimatePresence>

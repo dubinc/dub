@@ -21,7 +21,7 @@ export function MainScreen({
   }, 1000);
   return (
     <div>
-      <div className="p-4">
+      <div className="p-2 sm:p-4">
         <div className="p-2">
           <h3 className="font-semibold">How can we help?</h3>
         </div>
@@ -61,7 +61,7 @@ export function MainScreen({
           </Command.List>
         </Command>
       </div>
-      <div className="flex justify-between border-t border-gray-200 px-5 py-4">
+      <div className="flex justify-between border-t border-gray-200 px-3 py-4 sm:px-6">
         <button
           onClick={() => setScreen("contact")}
           className="flex items-center space-x-2 hover:underline"
