@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function useCurrentAnchor() {
+export function useCurrentAnchor() {
   const [currentAnchor, setCurrentAnchor] = useState<string | null>(null);
 
   useEffect(() => {

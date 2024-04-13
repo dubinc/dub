@@ -1,9 +1,10 @@
 "use client";
 
 import { Popover } from "@dub/ui";
+import { fetcher } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
-import { createContext, useEffect, useRef, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { HelpArticle } from ".";
 import { ContactForm } from "./contact-form";
 import { MainScreen } from "./main-screen";
@@ -24,6 +25,10 @@ export function HelpButton({
   allHelpArticles: HelpArticle[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    fetcher("/api/support");
+  }, []);
 
   return (
     <HelpContext.Provider value={{ popularHelpArticles, allHelpArticles }}>
@@ -58,25 +63,10 @@ export function HelpButton({
 function HelpSection() {
   const [screen, setScreen] = useState<"main" | "contact">("main");
 
-  const ref = useRef<HTMLDivElement>(null);
-  const [contentHeight, setContentHeight] = useState(0);
-
-  useEffect(() => {
-    if (ref.current) {
-      setContentHeight(ref.current.offsetHeight);
-    }
-  });
-
   return (
-    <motion.div
-      className="w-full overflow-hidden sm:w-[32rem]"
-      animate={{ height: contentHeight }}
-      transition={{ ease: "easeInOut" }}
-    >
-      <div ref={ref}>
-        {screen === "main" && <MainScreen setScreen={setScreen} />}
-        {screen === "contact" && <ContactForm setScreen={setScreen} />}
-      </div>
-    </motion.div>
+    <div className="w-full transition-all duration-300 ease-in-out sm:w-[32rem]">
+      {screen === "main" && <MainScreen setScreen={setScreen} />}
+      {screen === "contact" && <ContactForm setScreen={setScreen} />}
+    </div>
   );
 }
