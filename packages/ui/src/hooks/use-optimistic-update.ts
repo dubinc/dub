@@ -2,7 +2,7 @@ import { fetcher } from "@dub/utils";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-export default function useOptimisticUpdate<T>(
+export function useOptimisticUpdate<T>(
   url: string,
   toastCopy?: { loading: string; success: string; error: string },
 ) {

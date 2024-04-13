@@ -1,3 +1,4 @@
+import HelpPortal from "@/ui/layout/help";
 import NavTabs from "@/ui/layout/nav-tabs";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 import UserDropdown from "@/ui/layout/user-dropdown";
@@ -52,6 +53,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         {children}
       </div>
+      <HelpPortal />
     </Providers>
   );
 }
