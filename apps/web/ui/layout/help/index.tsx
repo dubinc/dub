@@ -11,7 +11,7 @@ export interface HelpArticle {
 export default function HelpPortal() {
   return (
     <Suspense fallback={null}>
-      <div className="fixed bottom-0 right-0 m-5">
+      <div className="fixed bottom-0 right-0 z-40 m-5">
         <HelpPortalRSC />
       </div>
     </Suspense>

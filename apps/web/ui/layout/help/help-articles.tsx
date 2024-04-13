@@ -3,6 +3,7 @@ import va from "@vercel/analytics";
 import { Command, useCommandState } from "cmdk";
 import Fuse from "fuse.js";
 import { ExternalLink, MessageSquareText } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { Dispatch, SetStateAction, useContext, useMemo, useRef } from "react";
 import Highlighter from "react-highlight-words";
 import { useDebouncedCallback } from "use-debounce";
@@ -13,12 +14,14 @@ export function HelpArticles({
 }: {
   setScreen: Dispatch<SetStateAction<"main" | "contact">>;
 }) {
+  const { data: session } = useSession();
   const commandListRef = useRef<HTMLDivElement>(null);
   const debouncedTrackSearch = useDebouncedCallback((query: string) => {
     va.track("CMDK Search", {
       query,
     });
   }, 1000);
+
   return (
     <div>
       <div className="p-2 sm:p-4">
@@ -64,13 +67,17 @@ export function HelpArticles({
         </Command>
       </div>
       <div className="flex justify-between border-t border-gray-200 px-3 py-4 sm:px-6">
-        <button
-          onClick={() => setScreen("contact")}
-          className="flex items-center space-x-2 hover:underline"
-        >
-          <MessageSquareText className="h-4 w-4" />
-          <p className="text-sm">Contact us</p>
-        </button>
+        {session ? (
+          <button
+            onClick={() => setScreen("contact")}
+            className="flex items-center space-x-2 hover:underline"
+          >
+            <MessageSquareText className="h-4 w-4" />
+            <p className="text-sm">Contact us</p>
+          </button>
+        ) : (
+          <div />
+        )}
         <a
           href="https://dub.co/help"
           target="_blank"

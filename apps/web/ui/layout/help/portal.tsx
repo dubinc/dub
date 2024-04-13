@@ -4,6 +4,7 @@ import { Popover } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { createContext, useEffect, useRef, useState } from "react";
 import { HelpArticle } from ".";
 import { ContactForm } from "./contact-form";
@@ -26,9 +27,11 @@ export function HelpButton({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const { data: session } = useSession();
+
   useEffect(() => {
-    fetcher("/api/support");
-  }, []);
+    session && fetcher("/api/support");
+  }, [session]);
 
   return (
     <HelpContext.Provider value={{ popularHelpArticles, allHelpArticles }}>
