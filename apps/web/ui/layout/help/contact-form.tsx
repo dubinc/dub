@@ -87,8 +87,8 @@ export function ContactForm({
         className="-ml-2 flex items-center space-x-1 rounded-md px-2 py-1"
         onClick={() => setScreen("main")}
       >
-        <ChevronLeft className="h-4 w-4" />
-        <h3 className="font-semibold">Contact support</h3>
+        <ChevronLeft className="h-5 w-5" />
+        <h3 className="text-lg font-semibold text-gray-700">Contact support</h3>
       </button>
 
       <AnimatePresence>
@@ -117,11 +117,11 @@ export function ContactForm({
               }).then((res) => res.json());
               if (res.error) {
                 toast.error(res.error);
+                setFormStatus("idle");
               } else {
-                toast.success("Message sent!");
                 setData({ message: "", attachmentIds: [] });
+                setFormStatus("success");
               }
-              setFormStatus("success");
             }}
             initial={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}

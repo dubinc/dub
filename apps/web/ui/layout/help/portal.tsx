@@ -7,7 +7,7 @@ import { XIcon } from "lucide-react";
 import { createContext, useEffect, useRef, useState } from "react";
 import { HelpArticle } from ".";
 import { ContactForm } from "./contact-form";
-import { MainScreen } from "./main-screen";
+import { HelpArticles } from "./help-articles";
 
 export const HelpContext = createContext<{
   popularHelpArticles: HelpArticle[];
@@ -91,7 +91,7 @@ function HelpSection() {
       transition={{ type: "spring", duration: 0.3 }}
     >
       <div ref={containerRef}>
-        {screen === "main" && <MainScreen setScreen={setScreen} />}
+        {screen === "main" && <HelpArticles setScreen={setScreen} />}
         {screen === "contact" && <ContactForm setScreen={setScreen} />}
       </div>
     </motion.div>

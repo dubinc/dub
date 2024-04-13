@@ -8,7 +8,7 @@ import Highlighter from "react-highlight-words";
 import { useDebouncedCallback } from "use-debounce";
 import { HelpContext } from "./portal";
 
-export function MainScreen({
+export function HelpArticles({
   setScreen,
 }: {
   setScreen: Dispatch<SetStateAction<"main" | "contact">>;
@@ -23,7 +23,9 @@ export function MainScreen({
     <div>
       <div className="p-2 sm:p-4">
         <div className="p-2">
-          <h3 className="font-semibold">How can we help?</h3>
+          <h3 className="text-lg font-semibold text-gray-700">
+            👋 How can we help?
+          </h3>
         </div>
         <Command label="help-portal" loop shouldFilter={false}>
           <Command.Input
