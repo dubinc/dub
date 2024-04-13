@@ -1,10 +1,10 @@
 import NavTabs from "@/ui/layout/nav-tabs";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 import UserDropdown from "@/ui/layout/user-dropdown";
-import UserSurveyPopupContent from "@/ui/layout/user-survey";
+import UserSurveyPopup from "@/ui/layout/user-survey";
 import WorkspaceSwitcher from "@/ui/layout/workspace-switcher";
 import { Divider } from "@/ui/shared/icons";
-import { Logo, MaxWidthWrapper, Popup } from "@dub/ui";
+import { Logo, MaxWidthWrapper } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
@@ -16,9 +16,6 @@ export const metadata = constructMetadata();
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <Providers>
-      <Popup hiddenCookieId="hideUserSurveyPopup">
-        <UserSurveyPopupContent />
-      </Popup>
       <div className="min-h-screen w-full bg-gray-50">
         <div className="sticky left-0 right-0 top-0 z-20 border-b border-gray-200 bg-white">
           <MaxWidthWrapper>
@@ -56,6 +53,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         {children}
       </div>
+      <UserSurveyPopup />
     </Providers>
   );
 }

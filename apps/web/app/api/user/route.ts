@@ -28,11 +28,12 @@ const updateUserSchema = z.object({
   name: z.preprocess(trim, z.string().min(1).max(64)).optional(),
   email: z.preprocess(trim, z.string().email()).optional(),
   image: z.string().url().optional(),
+  source: z.preprocess(trim, z.string().min(1).max(32)).optional(),
 });
 
 // PUT /api/user – edit a specific user
 export const PUT = withSession(async ({ req, session }) => {
-  let { name, email, image } = await updateUserSchema.parseAsync(
+  let { name, email, image, source } = await updateUserSchema.parseAsync(
     await req.json(),
   );
   try {
@@ -48,6 +49,7 @@ export const PUT = withSession(async ({ req, session }) => {
         ...(name && { name }),
         ...(email && { email }),
         ...(image && { image }),
+        ...(source && { source }),
       },
     });
     return NextResponse.json(response);

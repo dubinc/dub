@@ -61,6 +61,9 @@ importers:
       '@react-email/render':
         specifier: ^0.0.12
         version: 0.0.12
+      '@react-hook/resize-observer':
+        specifier: ^1.2.6
+        version: 1.2.6(react@18.2.0)
       '@sindresorhus/slugify':
         specifier: ^2.2.1
         version: 2.2.1
@@ -5697,6 +5700,33 @@ packages:
     peerDependencies:
       react: 18.2.0
     dependencies:
+      react: 18.2.0
+    dev: false
+
+  /@react-hook/latest@1.0.3(react@18.2.0):
+    resolution: {integrity: sha512-dy6duzl+JnAZcDbNTfmaP3xHiKtbXYOaz3G51MGVljh548Y8MWzTr+PHLOfvpypEVW9zwvl+VyKjbWKEVbV1Rg==}
+    peerDependencies:
+      react: '>=16.8'
+    dependencies:
+      react: 18.2.0
+    dev: false
+
+  /@react-hook/passive-layout-effect@1.2.1(react@18.2.0):
+    resolution: {integrity: sha512-IwEphTD75liO8g+6taS+4oqz+nnroocNfWVHWz7j+N+ZO2vYrc6PV1q7GQhuahL0IOR7JccFTsFKQ/mb6iZWAg==}
+    peerDependencies:
+      react: '>=16.8'
+    dependencies:
+      react: 18.2.0
+    dev: false
+
+  /@react-hook/resize-observer@1.2.6(react@18.2.0):
+    resolution: {integrity: sha512-DlBXtLSW0DqYYTW3Ft1/GQFZlTdKY5VAFIC4+km6IK5NiPPDFchGbEJm1j6pSgMqPRHbUQgHJX7RaR76ic1LWA==}
+    peerDependencies:
+      react: '>=16.8'
+    dependencies:
+      '@juggle/resize-observer': 3.4.0
+      '@react-hook/latest': 1.0.3(react@18.2.0)
+      '@react-hook/passive-layout-effect': 1.2.1(react@18.2.0)
       react: 18.2.0
     dev: false
 

@@ -31,7 +31,7 @@ export function Popup({
               className="fixed inset-0"
               initial={{ opacity: 0, translateY: 50 }}
               animate={{ opacity: 1, translateY: 0 }}
-              exit={{ y: 250 }}
+              exit={{ opacity: 0, y: "100%" }}
             >
               {children}
             </motion.div>
