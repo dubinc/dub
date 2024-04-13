@@ -213,6 +213,7 @@ export default function LinkCard({
   };
 
   const onKeyDown = (e: any) => {
+    const key = e.key.toLowerCase();
     // only run shortcut logic if:
     // - usage is not exceeded
     // - link is selected or the 3 dots menu is open
@@ -220,11 +221,11 @@ export default function LinkCard({
     // - there is no existing modal backdrop
     if (
       (selected || openPopover) &&
-      ["e", "d", "q", "a", "t", "i", "x"].includes(e.key)
+      ["e", "d", "q", "a", "t", "i", "x"].includes(key)
     ) {
       setSelected(false);
       e.preventDefault();
-      switch (e.key) {
+      switch (key) {
         case "e":
           setShowAddEditLinkModal(true);
           break;
