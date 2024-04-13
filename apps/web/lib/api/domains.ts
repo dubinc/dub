@@ -207,23 +207,6 @@ export async function setRootDomain({
   ]);
 }
 
-export async function archiveDomain({
-  domain,
-  archived,
-}: {
-  domain: string;
-  archived: boolean;
-}) {
-  return await prisma.domain.update({
-    where: {
-      slug: domain,
-    },
-    data: {
-      archived,
-    },
-  });
-}
-
 /* Delete a domain and all links & images associated with it */
 export async function deleteDomainAndLinks(
   domain: string,
