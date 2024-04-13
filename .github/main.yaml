@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+      - run: pnpm install
+
+      - name: Check prettier format
+      - run: pnpm run prettier-check
