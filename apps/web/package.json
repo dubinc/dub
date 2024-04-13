@@ -51,7 +51,6 @@
     "cmdk": "^0.2.0",
     "cobe": "^0.6.3",
     "concurrently": "^8.0.1",
-    "crisp-sdk-web": "^1.0.19",
     "d3-array": "^3.2.4",
     "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",
