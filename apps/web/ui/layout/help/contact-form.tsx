@@ -84,7 +84,7 @@ export function ContactForm({
     <div className="relative w-full px-3 pb-16 pt-5 sm:px-6">
       <button
         type="button"
-        className="-ml-2 flex items-center space-x-1 rounded-md px-2 py-1"
+        className="-ml-2 flex items-center space-x-1 px-2 py-1"
         onClick={() => setScreen("main")}
       >
         <ChevronLeft className="h-5 w-5" />
@@ -248,7 +248,7 @@ export function ContactForm({
               }}
             />
 
-            <div className="fixed bottom-0 left-0 z-10 flex h-16 w-full items-center justify-center bg-white px-3 sm:px-6">
+            <div className="fixed bottom-0 left-0 z-10 flex h-16 w-full items-center justify-center rounded-b-lg bg-white px-3 sm:px-6">
               <Button
                 className="h-9"
                 disabled={!data.message}
