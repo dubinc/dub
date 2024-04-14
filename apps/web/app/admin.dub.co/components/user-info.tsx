@@ -32,7 +32,7 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
           id="email"
           value={data.email}
           readOnly
-          className="w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+          className="w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
         />
         <button
           type="button"

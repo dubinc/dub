@@ -1,8 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { getRandomKey } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import { domainKeySchema } from "@/lib/zod";
+import { domainKeySchema } from "@/lib/zod/schemas";
 import { getSearchParams } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
@@ -33,7 +33,10 @@ export const GET = async (req: NextRequest) => {
       }
     }
 
-    const response = await getRandomKey(domain);
+    const response = await getRandomKey({
+      domain,
+      long: domain === "loooooooo.ng",
+    });
     return NextResponse.json(response);
   } catch (error) {
     return handleAndReturnErrorResponse(error);

@@ -1,15 +1,9 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { Eye, EyeOff } from "@/ui/shared/icons";
-import {
-  InfoTooltip,
-  SimpleTooltipContent,
-  Switch,
-  useRouterStuff,
-} from "@dub/ui";
-import { TooltipContent } from "@dub/ui/src/tooltip";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
+import { BadgeTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
+import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
+import { Crown } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function PasswordSection({
@@ -21,9 +15,6 @@ export default function PasswordSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
-
   const { password } = data;
   const [enabled, setEnabled] = useState(!!password);
   useEffect(() => {
@@ -48,43 +39,22 @@ export default function PasswordSection({
           <h2 className="text-sm font-medium text-gray-900">
             Password Protection
           </h2>
-          <InfoTooltip
+          <BadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Restrict access to your short links by encrypting it with a password."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/password-protected-links`}
+                href="https://dub.co/help/article/password-protected-links"
               />
             }
-          />
+          >
+            <div className="flex items-center space-x-1">
+              <Crown size={12} />
+              <p>PRO</p>
+            </div>
+          </BadgeTooltip>
         </div>
-        <Switch
-          fn={() => setEnabled(!enabled)}
-          checked={enabled}
-          // password protection is only available on Dub's Pro plan
-          {...((!plan || plan === "free") && !enabled
-            ? {
-                disabledTooltip: (
-                  <TooltipContent
-                    title={`Password protection is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
-                    cta="Upgrade to Pro"
-                    {...(plan === "free"
-                      ? {
-                          onClick: () =>
-                            queryParams({
-                              set: {
-                                upgrade: "pro",
-                              },
-                            }),
-                        }
-                      : {
-                          href: `${HOME_DOMAIN}/pricing`,
-                        })}
-                  />
-                ),
-              }
-            : {})}
-        />
+        <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
       {enabled && (
         <motion.div
@@ -95,7 +65,7 @@ export default function PasswordSection({
             name="password"
             id="password"
             type={showPassword ? "text" : "password"}
-            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             value={password || ""}
             placeholder="Enter password"
             onChange={(e) => {

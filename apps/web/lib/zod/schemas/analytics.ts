@@ -2,7 +2,7 @@ import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 import { DateTime } from "luxon";
-import { booleanQuerySchema } from ".";
+import { booleanQuerySchema } from "./misc";
 
 export const getAnalyticsQuerySchema = z.object({
   domain: z.string().optional().describe("The domain of the short link."),

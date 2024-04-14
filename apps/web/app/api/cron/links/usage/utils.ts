@@ -1,8 +1,8 @@
 import { sendLimitEmail } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
-import { Project, SentEmail } from "@prisma/client";
 import { log } from "@dub/utils";
+import { Project, SentEmail } from "@prisma/client";
 
 // Check if the workspace is close to the links limit and send an email to the users
 export const sendLinksUsageEmail = async (

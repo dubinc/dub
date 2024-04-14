@@ -2,7 +2,6 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Badge, useRouterStuff } from "@dub/ui";
-import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,13 +15,6 @@ export default function UpgradeBanner() {
 
   useEffect(() => {
     if (plan) {
-      Crisp.session.setData({
-        workspaceId: id,
-        workspaceName: name,
-        workspaceSlug: slug,
-        plan,
-        ...(stripeId && { stripeId }),
-      });
       /* show pro banner if:
           - free plan
           - not hidden by user for this workspace 

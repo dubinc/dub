@@ -1,20 +1,29 @@
+import { punycode } from ".";
+
 export function linkConstructor({
-  domain = "dub.sh",
+  domain,
   key,
-  localhost,
   pretty,
-  noDomain,
+  searchParams,
 }: {
   domain?: string;
   key?: string;
-  localhost?: boolean;
   pretty?: boolean;
-  noDomain?: boolean;
+  searchParams?: Record<string, string>;
 }) {
-  const link = `${
-    localhost ? "http://home.localhost:8888" : `https://${domain}`
-  }${key && key !== "_root" ? `/${key}` : ""}`;
+  if (!domain) {
+    return "";
+  }
 
-  if (noDomain) return `/${key}`;
-  return pretty ? link.replace(/^https?:\/\//, "") : link;
+  let url = `https://${punycode(domain)}${key && key !== "_root" ? `/${punycode(key)}` : ""}`;
+
+  if (searchParams) {
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(searchParams)) {
+      search.set(key, value);
+    }
+    url += `?${search.toString()}`;
+  }
+
+  return pretty ? url.replace(/^https?:\/\//, "") : url;
 }
