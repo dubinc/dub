@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - run-prettier
   pull_request:
     branches:
       - main
