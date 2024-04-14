@@ -1,9 +1,10 @@
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button, LoadingSpinner, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useCompletion } from "ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, Image, Trash2, UploadCloud } from "lucide-react";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
@@ -13,9 +14,11 @@ export function ContactForm({
   setScreen: Dispatch<SetStateAction<"main" | "contact">>;
 }) {
   const [data, setData] = useState<{
+    title: string | null;
     message: string;
     attachmentIds: string[];
   }>({
+    title: null,
     message: "",
     attachmentIds: [],
   });
@@ -80,6 +83,23 @@ export function ContactForm({
 
   const { handleKeyDown } = useEnterSubmit(formRef);
 
+  const {
+    completion,
+    isLoading: generatingAIKey,
+    complete,
+  } = useCompletion({
+    api: `/api/ai/completion`,
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  useEffect(() => {
+    if (completion) {
+      setData((prev) => ({ ...prev, title: completion }));
+    }
+  }, [completion]);
+
   return (
     <div className="relative w-full px-3 pb-16 pt-5 sm:px-6">
       <button
@@ -107,7 +127,7 @@ export function ContactForm({
         ) : (
           <motion.form
             ref={formRef}
-            className="mt-5"
+            className="mt-5 grid gap-2"
             onSubmit={async (e) => {
               e.preventDefault();
               setFormStatus("loading");
@@ -119,15 +139,34 @@ export function ContactForm({
                 toast.error(res.error);
                 setFormStatus("idle");
               } else {
-                setData({ message: "", attachmentIds: [] });
+                setData({ title: null, message: "", attachmentIds: [] });
                 setFormStatus("success");
               }
             }}
             initial={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <label className="block w-full">
-              <span className="block text-sm font-medium text-gray-700">
+            {typeof data.title === "string" && (
+              <label>
+                <span className="text-sm font-medium text-gray-700">
+                  Issue title
+                </span>
+                <input
+                  name="title"
+                  required
+                  placeholder="E.g. Custom domain not working"
+                  autoComplete="off"
+                  value={data.title}
+                  onChange={(e) =>
+                    setData((prev) => ({ ...prev, title: e.target.value }))
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                />
+              </label>
+            )}
+
+            <label>
+              <span className="text-sm font-medium text-gray-700">
                 Describe the issue
               </span>
               <TextareaAutosize
@@ -135,8 +174,16 @@ export function ContactForm({
                 required
                 placeholder="E.g. My custom domain is not working."
                 minRows={8}
+                autoFocus
                 autoComplete="off"
                 value={data.message}
+                onBlur={() => {
+                  if (!data.title && data.message) {
+                    complete(`Create a short but concise title that summarizes the following support request. Only return the generated title, and nothing else. Don't use quotation marks
+                    
+                    ${data.message}`);
+                  }
+                }}
                 onChange={(e) =>
                   setData((prev) => ({ ...prev, message: e.target.value }))
                 }
@@ -149,7 +196,7 @@ export function ContactForm({
               />
             </label>
 
-            <div className="mt-2 grid w-full gap-2">
+            <div className="grid w-full gap-2">
               {images.map((image) => (
                 <div
                   key={image.attachmentId}
@@ -187,7 +234,7 @@ export function ContactForm({
 
             <label
               htmlFor="image"
-              className="group relative mt-1 flex aspect-[5/1] w-full cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-white transition-all"
+              className="group relative flex aspect-[5/1] w-full cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-white transition-all"
             >
               <div
                 className="absolute z-[5] h-full w-full rounded-md"

@@ -1,8 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/middleware/utils";
 import { ratelimit } from "@/lib/upstash";
 import { getDomainQuerySchema, getUrlQuerySchema } from "@/lib/zod/schemas";
 import { isIframeable } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -21,10 +21,8 @@ export async function GET(req: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET,
     });
     if (!session?.email) {
-      const identity_hash = await getIdentityHash(req);
-      const { success } = await ratelimit().limit(
-        `iframeable:${identity_hash}`,
-      );
+      const ip = ipAddress(req);
+      const { success } = await ratelimit().limit(`iframeable:${ip}`);
       if (!success) {
         throw new DubApiError({
           code: "rate_limit_exceeded",
