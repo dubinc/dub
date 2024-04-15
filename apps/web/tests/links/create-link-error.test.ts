@@ -61,25 +61,6 @@ const cases = [
       },
     },
   },
-  // {
-  //   name: "create link with invalid expiration date",
-  //   body: {
-  //     domain,
-  //     url,
-  //     expiresAt: new Date("2020-01-01").toISOString(),
-  //   },
-  //   expected: {
-  //     status: 422,
-  //     data: {
-  //       error: {
-  //         code: "unprocessable_entity",
-  //         message: "custom: expiresAt: Expiry date must be in the future.",
-  //         doc_url:
-  //           "https://dub.co/docs/api-reference/errors#unprocessable_entity",
-  //       },
-  //     },
-  //   },
-  // },
 ];
 
 cases.forEach(({ name, body, expected }) => {
