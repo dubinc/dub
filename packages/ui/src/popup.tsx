@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Cookies from "js-cookie";
-import { ReactNode, createContext, useContext, useState } from "react";
+import { ReactNode, createContext, useState } from "react";
 import { ClientOnly } from "./client-only";
 
 export const PopupContext = createContext<{
