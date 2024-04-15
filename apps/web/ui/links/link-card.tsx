@@ -75,8 +75,9 @@ export default function LinkCard({
     tags,
     comments,
     user,
+    title,
+    description,
   } = props;
-
   const searchParams = useSearchParams();
 
   const [primaryTags, additionalTags] = useMemo(() => {
@@ -314,6 +315,7 @@ export default function LinkCard({
                     />
                   }
                 >
+                  <div>{title}</div>
                   <div className="max-w-[140px] -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]">
                     {linkConstructor({
                       domain,
@@ -323,26 +325,29 @@ export default function LinkCard({
                   </div>
                 </Tooltip>
               ) : (
-                <a
-                  className={cn(
-                    "max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
-                    {
-                      "text-gray-500": archived || expired,
-                    },
-                  )}
-                  href={linkConstructor({
-                    domain,
-                    key,
-                  })}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {linkConstructor({
-                    domain,
-                    key,
-                    pretty: true,
-                  })}
-                </a>
+                <Tooltip content={description && <div className="w-full p-4 text-sm">{description}</div>}>
+                  <a
+                    className={cn(
+                      "max-w-[140px] sm:max-w-[300px] md:max-w-[360px] xl:max-w-[500px] truncate text-sm font-semibold text-blue-800",
+                      {
+                        "text-gray-500": archived || expired,
+                      },
+                    )}
+                    href={linkConstructor({
+                      domain,
+                      key,
+                    })}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {title && (
+                      <div className="text-black-800">
+                        {title} - {linkConstructor({ domain, key, pretty: true })}
+                      </div>
+                    )}
+                    {!title && linkConstructor({ domain, key, pretty: true })}
+                  </a>
+                </Tooltip>
               )}
               <CopyButton
                 value={linkConstructor({
