@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
+import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 
 export type LinkProps = Link;
 
@@ -184,3 +185,5 @@ export const tagColors = [
   "pink",
   "brown",
 ] as const;
+
+export type MetaTag = z.infer<typeof metaTagsSchema>;
