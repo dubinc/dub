@@ -7,3 +7,4 @@ export { default as useOptimisticUpdate } from "./use-optimistic-update";
 export { default as useRouterStuff } from "./use-router-stuff";
 export { default as useScroll } from "./use-scroll";
 export { default as useToastWithUndo } from "./use-toast-with-undo";
+export { default as useResizeObserver } from "./use-resize-observer";
