@@ -52,7 +52,7 @@ test("update an existing link", async (ctx) => {
     projectId: workspace.id,
     workspaceId: workspace.workspaceId,
     shortLink: `https://${domain}/${newLink.key}`,
-    qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}`,
+    qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}?qr=1`,
     tags: [],
   });
 });

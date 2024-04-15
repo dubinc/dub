@@ -54,7 +54,7 @@ test("list links", async (ctx) => {
         workspaceId: workspace.workspaceId,
         tags: [],
         shortLink: `https://${domain}/${secondLink.key}`,
-        qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink.key}`,
+        qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink.key}?qr=1`,
         user: JSON.parse(JSON.stringify(user)),
       },
       {
@@ -66,7 +66,7 @@ test("list links", async (ctx) => {
         workspaceId: workspace.workspaceId,
         tags: [],
         shortLink: `https://${domain}/${firstLink.key}`,
-        qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}`,
+        qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
         user: JSON.parse(JSON.stringify(user)),
       },
     ],

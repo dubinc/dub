@@ -37,7 +37,7 @@ test("creates new link", async (ctx) => {
     projectId: workspace.id,
     workspaceId: workspace.workspaceId,
     shortLink: `https://${domain}/${link.key}`,
-    qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}`,
+    qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     tags: [],
   });
 });
@@ -77,7 +77,7 @@ test("creates new link with user defined key", async (ctx) => {
     projectId: workspace.id,
     workspaceId: workspace.workspaceId,
     shortLink: `https://${domain}/${key}`,
-    qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}`,
+    qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
     tags: [],
   });
 });

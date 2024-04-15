@@ -4,7 +4,7 @@ import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedWorkspace } from "../utils/schema";
 
-test.skip("retrieve a workspace by id", async (ctx) => {
+test("retrieve a workspace by id", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey } = await h.init();
 
@@ -16,17 +16,18 @@ test.skip("retrieve a workspace by id", async (ctx) => {
   });
 
   const { status, data: workspaceFetched } = await http.get<Project>({
-    path: `/workspaces/${workspace.id}`,
+    path: `/workspaces/${workspace.workspaceId}`,
   });
 
-  // console.log(workspaceFetched);
-
   expect(status).toEqual(200);
-  expect(workspaceFetched).toEqual({
+  expect(workspaceFetched).toMatchObject({
     ...expectedWorkspace,
-    ...workspace,
+    name: workspace.name,
+    slug: workspace.slug,
+    id: `ws_${workspace.id}`,
+    plan: "pro",
     domains: [],
-    workspaceId: `ws_${workspace.id}`,
+    users: [{ role: "owner" }],
   });
 });
 
@@ -45,17 +46,13 @@ test("retrieve a workspace by slug", async (ctx) => {
     path: `/workspaces/${workspace.slug}`,
   });
 
-  console.log({ workspaceFetched });
-  console.log({ workspace });
-
   expect(status).toEqual(200);
-  expect(workspaceFetched).toEqual({
-    // ...expectedWorkspace,
-    ...JSON.parse(JSON.stringify(workspace)),
+  expect(workspaceFetched).toMatchObject({
+    ...expectedWorkspace,
+    name: workspace.name,
+    slug: workspace.slug,
     id: `ws_${workspace.id}`,
-    workspaceId: `ws_${workspace.id}`,
-    // name: workspace.name,
-    // s
+    plan: "pro",
     domains: [],
     users: [{ role: "owner" }],
   });

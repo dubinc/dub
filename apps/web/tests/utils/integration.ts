@@ -31,8 +31,18 @@ export class IntegrationHarness {
   async seed() {
     this.ctx.onTestFinished(async () => {
       await prisma.$transaction([
-        prisma.token.delete({ where: { id: this.resources.apiKey.id } }),
-        prisma.project.delete({ where: { id: this.resources.workspace.id } }),
+        // prisma.token.delete({ where: { id: this.resources.apiKey.id } }),
+        prisma.project.deleteMany({
+          where: {
+            users: {
+              some: {
+                userId: this.resources.user.id,
+              },
+            },
+          },
+        }),
+
+        // prisma.project.delete({ where: { id: this.resources.workspace.id } }),
         prisma.user.delete({ where: { id: this.resources.user.id } }),
       ]);
 

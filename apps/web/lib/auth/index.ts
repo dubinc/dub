@@ -242,10 +242,14 @@ export const withAuth = (
             domainsLimit: true,
             tagsLimit: true,
             usersLimit: true,
+            aiLimit: true,
+            aiUsage: true,
             plan: true,
             stripeId: true,
             billingCycleStart: true,
             createdAt: true,
+            updatedAt: true,
+            monitoringId: true,
             users: {
               where: {
                 userId: session.user.id,

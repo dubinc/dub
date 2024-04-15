@@ -34,9 +34,6 @@ test("creates new workspace", async (ctx) => {
     name,
     slug,
     domains: [],
-  });
-
-  await http.delete({
-    path: `/workspaces/ws_${workspace.id}`,
+    users: [{ role: "owner" }],
   });
 });

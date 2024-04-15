@@ -45,8 +45,4 @@ test("should not create workspace with slug in use", async (ctx) => {
       doc_url: "https://dub.co/docs/api-reference/errors#conflict",
     },
   });
-
-  await http.delete({
-    path: `/workspaces/ws_${workspace.id}`,
-  });
 });

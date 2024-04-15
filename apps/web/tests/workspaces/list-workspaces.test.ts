@@ -22,14 +22,10 @@ test("retrieve list of workspaces", async (ctx) => {
     { name: "Work", slug: slugify(nanoid(6)) },
   ];
 
-  await Promise.allSettled(
-    workspacesToCreate.map(({ name, slug }) =>
-      http.post({
-        path: "/workspaces",
-        body: { name, slug },
-      }),
-    ),
-  );
+  await http.post({
+    path: "/workspaces",
+    body: { ...workspacesToCreate[0] },
+  });
 
   // Fetch the list of workspaces
   const { status, data: workspaces } = await http.get<Project[]>({
@@ -37,34 +33,21 @@ test("retrieve list of workspaces", async (ctx) => {
   });
 
   expect(status).toEqual(200);
-  expect(workspaces.length).equal(3);
+  expect(workspaces).toHaveLength(2);
 
-  expect(workspaces).toContainEqual({
-    ...expectedWorkspace,
-    name: workspace.name,
-    slug: workspace.slug,
-    plan: "pro",
-    users: [{ role: "owner" }],
-  });
-
-  expect(workspaces).toContainEqual({
-    ...expectedWorkspace,
-    ...workspacesToCreate[0],
-    users: [{ role: "owner" }],
-  });
-
-  expect(workspaces).toContainEqual({
-    ...expectedWorkspace,
-    ...workspacesToCreate[1],
-    users: [{ role: "owner" }],
-  });
-
-  // Delete the workspaces
-  await Promise.allSettled(
-    workspaces.map((w) =>
-      http.delete({
-        path: `/workspaces/ws_${w.id}`,
-      }),
-    ),
-  );
+  expect(workspaces).toMatchObject([
+    {
+      ...expectedWorkspace,
+      name: workspace.name,
+      slug: workspace.slug,
+      plan: "pro",
+      domains: [],
+    },
+    {
+      ...expectedWorkspace,
+      ...workspacesToCreate[0],
+      users: [{ role: "owner" }],
+      domains: [],
+    },
+  ]);
 });

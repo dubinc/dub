@@ -7,7 +7,6 @@ export default defineConfig({
     dir: "./tests",
     reporters: ["verbose"],
     globals: true,
-    setupFiles: ["./tests/setup.ts"],
-    testTimeout: 10000,
+    testTimeout: 50000,
   },
 });

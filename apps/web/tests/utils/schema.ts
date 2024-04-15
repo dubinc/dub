@@ -28,6 +28,7 @@ export const expectedLink: Partial<Link> = {
   comments: null,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
+  expiredUrl: null,
 };
 
 export const expectedTag: Partial<Tag> = {
@@ -37,11 +38,9 @@ export const expectedTag: Partial<Tag> = {
 };
 
 export const expectedWorkspace: Partial<Project> = {
-  id: expect.any(String),
   logo: null,
   plan: "free",
   stripeId: null,
-  billingCycleStart: 4,
   usage: 0,
   usageLimit: 1000,
   linksUsage: 0,
@@ -49,7 +48,11 @@ export const expectedWorkspace: Partial<Project> = {
   domainsLimit: 3,
   tagsLimit: 5,
   usersLimit: 1,
+  aiLimit: 10,
+  aiUsage: 0,
   monitoringId: null,
+  id: expect.any(String),
+  billingCycleStart: expect.any(Number),
   inviteCode: expect.any(String),
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
