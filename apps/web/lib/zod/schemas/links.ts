@@ -210,6 +210,33 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
     ),
+
+  // UTM builder
+  utm_source: z
+    .string()
+    .nullish()
+    .describe("The UTM source of the short link.")
+    .openapi({ example: "twitter" }),
+  utm_medium: z
+    .string()
+    .nullish()
+    .describe("The UTM medium of the short link.")
+    .openapi({ example: "social" }),
+  utm_campaign: z
+    .string()
+    .nullish()
+    .describe("The UTM campaign of the short link.")
+    .openapi({ example: "summer_sale" }),
+  utm_term: z
+    .string()
+    .nullish()
+    .describe("The UTM term of the short link.")
+    .openapi({ example: "blue_shoes" }),
+  utm_content: z
+    .string()
+    .nullish()
+    .describe("The UTM content of the short link.")
+    .openapi({ example: "logolink" }),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial();

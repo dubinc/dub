@@ -12,11 +12,11 @@ interface Resources {
 }
 
 export class IntegrationHarness {
-  private readonly ctx: TaskContext;
+  private readonly ctx?: TaskContext;
   public resources: Resources;
   public baseUrl: string;
 
-  constructor(ctx: TaskContext) {
+  constructor(ctx?: TaskContext) {
     const env = integrationTestEnv.parse(process.env);
 
     this.ctx = ctx;
@@ -24,26 +24,8 @@ export class IntegrationHarness {
   }
 
   async init() {
-    this.resources = await this.seed();
-    return this.resources;
-  }
-
-  async seed() {
-    this.ctx.onTestFinished(async () => {
-      await prisma.$transaction([
-        prisma.project.deleteMany({
-          where: {
-            users: {
-              some: {
-                userId: this.resources.user.id,
-              },
-            },
-          },
-        }),
-        prisma.user.delete({ where: { id: this.resources.user.id } }),
-      ]);
-
-      await prisma.$disconnect();
+    this.ctx?.onTestFinished(async () => {
+      await this.teardown();
     });
 
     // Create a user
@@ -88,12 +70,29 @@ export class IntegrationHarness {
       },
     });
 
-    const resource = {
+    this.resources = {
       user,
       workspace: { ...workspace, workspaceId: `ws_${workspace.id}` },
       apiKey: { ...apiKey, token },
     } as const;
 
-    return resource;
+    return this.resources;
+  }
+
+  public async teardown() {
+    await prisma.$transaction([
+      prisma.project.deleteMany({
+        where: {
+          users: {
+            some: {
+              userId: this.resources.user.id,
+            },
+          },
+        },
+      }),
+      prisma.user.delete({ where: { id: this.resources.user.id } }),
+    ]);
+
+    await prisma.$disconnect();
   }
 }
