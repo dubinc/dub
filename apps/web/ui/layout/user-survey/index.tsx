@@ -63,7 +63,7 @@ export function UserSurveyPopupInner() {
                 setStatus("success");
                 setTimeout(hidePopup, 2000);
               } catch (e) {
-                toast.error("Failed to do it!");
+                toast.error("Error saving response. Please try again.");
                 setStatus("idle");
               }
             }}
