@@ -1,13 +1,21 @@
 import { nanoid } from "@dub/utils";
-import { Link } from "@prisma/client";
+import { Link, Tag } from "@prisma/client";
 import { afterAll, describe, expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedLink } from "../utils/schema";
 
-const domain = "dub.sh";
+// TODO: Move this to shared
+// userId: user.id,
+// projectId: workspace.id,
+// workspaceId: workspace.workspaceId,
+// shortLink: `https://${domain}/${link.key}`,
+// qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
 
 describe("create links with", async () => {
+  const url = "https://github.com/dubinc";
+  const domain = "dub.sh";
+
   const h = new IntegrationHarness();
   const { workspace, apiKey, user } = await h.init();
 
@@ -23,8 +31,6 @@ describe("create links with", async () => {
   });
 
   test("default domain", async (ctx) => {
-    const url = "https://github.com/dubinc";
-
     const { status, data: link } = await http.post<Link>({
       path: "/links",
       query: { workspaceId: workspace.workspaceId },
@@ -34,7 +40,7 @@ describe("create links with", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toEqual({
+    expect(link).toMatchObject({
       ...expectedLink,
       url,
       userId: user.id,
@@ -47,8 +53,8 @@ describe("create links with", async () => {
   });
 
   test("user defined key", async () => {
-    const url = "https://github.com/dubinc";
     const key = nanoid(6);
+    const comments = "This is a test";
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -56,14 +62,16 @@ describe("create links with", async () => {
       body: {
         url,
         key,
+        comments,
       },
     });
 
     expect(status).toEqual(200);
-    expect(link).toEqual({
+    expect(link).toMatchObject({
       ...expectedLink,
       key,
       url,
+      comments,
       userId: user.id,
       projectId: workspace.id,
       workspaceId: workspace.workspaceId,
@@ -73,9 +81,39 @@ describe("create links with", async () => {
     });
   });
 
-  test("utm builder", async (ctx) => {
-    const url = "https://github.com/dubinc";
+  test("prefix", async () => {
+    const domain = "git.new";
+    const prefix = "gh";
 
+    const { status, data: link } = await http.post<
+      Link & { shortLink: string }
+    >({
+      path: "/links",
+      query: { workspaceId: workspace.workspaceId },
+      body: {
+        url,
+        domain,
+        prefix,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link.key.startsWith(prefix)).toBeTruthy();
+    expect(link).toMatchObject({
+      ...expectedLink,
+      domain,
+      url,
+      userId: user.id,
+      projectId: workspace.id,
+      workspaceId: workspace.workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
+    });
+  });
+
+  test("utm builder", async (ctx) => {
+    const longUrl = new URL(url);
     const utm = {
       utm_source: "facebook",
       utm_medium: "social",
@@ -84,28 +122,192 @@ describe("create links with", async () => {
       utm_content: "cta",
     };
 
+    Object.keys(utm).forEach((key) => {
+      longUrl.searchParams.set(key, utm[key]);
+    });
+
     const { status, data: link } = await http.post<Link>({
       path: "/links",
       query: { workspaceId: workspace.workspaceId },
       body: {
-        url,
-        ...utm,
+        url: longUrl.href,
       },
     });
 
-    console.log(link);
-
     expect(status).toEqual(200);
-    expect(link).toEqual({
+    expect(link).toMatchObject({
       ...expectedLink,
       ...utm,
-      url,
+      url: longUrl.href,
       userId: user.id,
       projectId: workspace.id,
       workspaceId: workspace.workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
+    });
+  });
+
+  test("password protection", async () => {
+    const password = "link-password";
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      query: { workspaceId: workspace.workspaceId },
+      body: {
+        url,
+        password,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toMatchObject({
+      ...expectedLink,
+      url,
+      password,
+      userId: user.id,
+      projectId: workspace.id,
+      workspaceId: workspace.workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
+    });
+  });
+
+  test("link expiration", async () => {
+    const expiresAt = "Apr 16, 2030, 5:00 PM";
+    const expiredUrl = "https://github.com/expired";
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      query: { workspaceId: workspace.workspaceId },
+      body: {
+        url,
+        expiresAt,
+        expiredUrl,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toMatchObject({
+      ...expectedLink,
+      url,
+      expiresAt: "2030-04-16T11:30:00.000Z",
+      expiredUrl,
+      userId: user.id,
+      projectId: workspace.id,
+      workspaceId: workspace.workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
+    });
+  });
+
+  test("device targeting", async () => {
+    const ios = "https://apps.apple.com/app/1611158928";
+    const android =
+      "https://play.google.com/store/apps/details?id=com.disney.disneyplus";
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      query: { workspaceId: workspace.workspaceId },
+      body: {
+        url,
+        ios,
+        android,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toMatchObject({
+      ...expectedLink,
+      url,
+      ios,
+      android,
+      userId: user.id,
+      projectId: workspace.id,
+      workspaceId: workspace.workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
+    });
+  });
+
+  test("geo targeting", async () => {
+    const geo = {
+      AF: `${url}/AF`,
+      AL: `${url}/AL`,
+      DZ: `${url}/DZ`,
+    };
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      query: { workspaceId: workspace.workspaceId },
+      body: {
+        url,
+        geo,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toMatchObject({
+      ...expectedLink,
+      url,
+      geo,
+      userId: user.id,
+      projectId: workspace.id,
+      workspaceId: workspace.workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
+    });
+  });
+
+  test("tags", async () => {
+    const tagsToCreate = [
+      { tag: "news", color: "red" },
+      { tag: "work", color: "green" },
+    ];
+
+    const response = await Promise.all(
+      tagsToCreate.map(({ tag, color }) =>
+        http.post<Tag>({
+          path: "/tags",
+          query: { workspaceId: workspace.workspaceId },
+          body: { tag, color },
+        }),
+      ),
+    );
+
+    const tagIds = response.map((r) => r.data.id);
+    const tags = response.map((r) => {
+      return {
+        id: r.data.id,
+        name: r.data.name,
+        color: r.data.color,
+      };
+    });
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      query: { workspaceId: workspace.workspaceId },
+      body: {
+        url,
+        tagIds,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toMatchObject({
+      ...expectedLink,
+      url,
+      tagId: tags[0].id,
+      userId: user.id,
+      projectId: workspace.id,
+      workspaceId: workspace.workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: expect.arrayContaining(tags),
     });
   });
 });

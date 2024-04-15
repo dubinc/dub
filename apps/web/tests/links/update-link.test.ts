@@ -5,6 +5,13 @@ import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedLink } from "../utils/schema";
 
+// TODO:
+// Archive Unarchive
+// Delete
+// Transfer
+// Add/update/delete tags
+// Other links endpoints
+
 test("update an existing link", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey, user } = await h.init();
