@@ -53,7 +53,6 @@ export function UserSurveyPopupInner() {
             onSubmit={async (source) => {
               setStatus("loading");
               try {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
                 await fetch("/api/user", {
                   method: "PUT",
                   headers: {
