@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-      - uses: actions/checkout@v4
-      
+        uses: actions/checkout@v4
+
       - name: Install dependencies
-      - run: pnpm install
+        run: pnpm install
 
       - name: Check prettier format
-      - run: pnpm run prettier-check
+        run: pnpm run prettier-check
