@@ -41,7 +41,7 @@ export function UserSurveyPopupInner() {
       animate={{
         height: resizeObserverEntry?.borderBoxSize[0].blockSize ?? "auto",
       }}
-      transition={{ ease: "easeInOut", duration: 0.1 }}
+      transition={{ type: "spring", duration: 0.3 }}
       className="fixed bottom-4 z-50 mx-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md sm:left-4 sm:mx-auto sm:max-w-sm"
     >
       <div className="p-4" ref={contentWrapperRef}>

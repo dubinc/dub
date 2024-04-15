@@ -107,6 +107,10 @@ export interface UserProps {
   migratedWorkspace: string | null;
 }
 
+export interface WorkspaceUserProps extends UserProps {
+  role: RoleProps;
+}
+
 export type DomainVerificationStatusProps =
   | "Valid Configuration"
   | "Invalid Configuration"
