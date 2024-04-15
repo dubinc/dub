@@ -729,7 +729,7 @@ function AddEditLinkButton({
     // - there is no existing modal backdrop (i.e. no other modal is open)
     // - workspace has not exceeded links limit
     if (
-      e.key === "c" &&
+      e.key.toLowerCase() === "c" &&
       !e.metaKey &&
       !e.ctrlKey &&
       target.tagName !== "INPUT" &&

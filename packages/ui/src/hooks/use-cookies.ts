@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 
-export default function useCookies<T>(
+export function useCookies<T>(
   key: string,
   initialValue: T,
   opts?: Cookies.CookieAttributes,
