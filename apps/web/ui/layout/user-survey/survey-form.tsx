@@ -138,7 +138,7 @@ export default function SurveyForm({
                   autoFocus={!isMobile}
                   autoComplete="off"
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  placeholder="Somewhere else"
+                  placeholder="Reddit, Indie Hackers, etc."
                   value={otherSource}
                   onChange={(e) => setOtherSource(e.target.value)}
                 />
@@ -148,7 +148,7 @@ export default function SurveyForm({
         )}
         {source !== undefined && (
           <Button
-            className="mt-4"
+            className="mt-4 h-9"
             variant="primary"
             type="submit"
             text="Submit"
@@ -156,7 +156,7 @@ export default function SurveyForm({
             disabled={
               status === "success" ||
               !source.length ||
-              (source === "other" && !otherSource?.length)
+              (source === "other" && !otherSource)
             }
           />
         )}

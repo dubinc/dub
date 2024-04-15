@@ -103,8 +103,8 @@ export interface UserProps {
   email: string;
   image?: string;
   createdAt: Date;
-  role: RoleProps;
-  projects?: { projectId: string }[];
+  source: string | null;
+  migratedWorkspace: string | null;
 }
 
 export type DomainVerificationStatusProps =

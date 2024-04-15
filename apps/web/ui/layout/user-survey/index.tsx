@@ -1,9 +1,10 @@
 "use client";
 
+import useUser from "@/lib/swr/use-user";
+import { CheckCircleFill } from "@/ui/shared/icons";
 import { Popup, PopupContext, useResizeObserver } from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { X } from "lucide-react";
 import { createContext, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
 import SurveyForm from "./survey-form";
@@ -15,10 +16,9 @@ export const UserSurveyContext = createContext<{ status: UserSurveyStatus }>({
 });
 
 export default function UserSurveyPopup() {
-  const { data: session } = useSession();
+  const { source } = useUser();
 
-  // @ts-ignore
-  return session?.user.source !== null ? null : (
+  return typeof source === "string" ? null : (
     <Popup hiddenCookieId="hideUserSurveyPopup">
       <UserSurveyPopupInner />
     </Popup>
@@ -61,7 +61,7 @@ export function UserSurveyPopupInner() {
                   body: JSON.stringify({ source }),
                 });
                 setStatus("success");
-                setTimeout(hidePopup, 2000);
+                setTimeout(hidePopup, 3000);
               } catch (e) {
                 toast.error("Error saving response. Please try again.");
                 setStatus("idle");
@@ -75,8 +75,8 @@ export function UserSurveyPopupInner() {
                 animate={{ opacity: 1, y: 0 }}
                 className="absolute inset-0 flex flex-col items-center justify-center space-y-3 bg-white text-sm"
               >
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <p className="text-gray-500">Thank you!</p>
+                <CheckCircleFill className="h-8 w-8 text-green-500" />
+                <p className="text-gray-500">Thank you for your response!</p>
               </motion.div>
             )}
           </AnimatePresence>
