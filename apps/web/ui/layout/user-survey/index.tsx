@@ -29,7 +29,6 @@ export function UserSurveyPopupInner() {
   const { hidePopup } = useContext(PopupContext);
 
   const contentWrapperRef = useRef<HTMLDivElement>(null);
-
   const resizeObserverEntry = useResizeObserver(contentWrapperRef);
 
   const [status, setStatus] = useState<UserSurveyStatus>("idle");
