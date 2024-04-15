@@ -113,7 +113,7 @@ model Project {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  inviteCode  String? @unique
+  inviteCode     String?          @unique
   defaultDomains DefaultDomains[]
 }
 
@@ -129,17 +129,16 @@ model ProjectInvite {
 }
 
 model DefaultDomains {
-  id                String   @id @default(cuid())
-  dubsh             Boolean  @default(true)
-  chatgpt           Boolean  @default(true)
-  sptifi            Boolean  @default(true)
-  gitnew            Boolean  @default(true)
-  amznid            Boolean  @default(true)
-  loooooooong       Boolean  @default(false)
-  projectId         String   @unique
-  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id          String  @id @default(cuid())
+  dubsh       Boolean @default(true)
+  chatgpt     Boolean @default(true)
+  sptifi      Boolean @default(true)
+  gitnew      Boolean @default(true)
+  amznid      Boolean @default(true)
+  loooooooong Boolean @default(false)
+  projectId   String  @unique
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
-
 
 enum Role {
   owner
@@ -171,17 +170,17 @@ model SentEmail {
 }
 
 model Domain {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  verified    Boolean   @default(false)
-  placeholder String    @default("https://dub.co/help/article/what-is-dub")
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  verified    Boolean  @default(false)
+  placeholder String   @default("https://dub.co/help/article/what-is-dub")
   description String?
-  primary     Boolean   @default(false)
-  archived    Boolean   @default(false)
-  expiredUrl  String? @db.LongText // URL to redirect to for expired links
-  lastChecked DateTime  @default(now())
+  primary     Boolean  @default(false)
+  archived    Boolean  @default(false)
+  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
+  lastChecked DateTime @default(now())
   links       Link[]
-  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
 
   // TODO: migrate these attributes to Link model
@@ -192,8 +191,8 @@ model Domain {
   publicStats Boolean   @default(false)
 
   // these attributes will exist on both Link and Domain models
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index(projectId)
   @@index(clicks(sort: Desc))
@@ -202,14 +201,14 @@ model Domain {
 }
 
 model Link {
-  id          String    @id @default(cuid())
-  domain      String // domain of the link (e.g. dub.sh) – also stored on Redis
-  key         String // key of the link (e.g. /github) – also stored on Redis
-  url         String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
-  archived    Boolean   @default(false) // whether the link is archived or not
-  expiresAt   DateTime? // when the link expires – stored on Redis via ttl
-  expiredUrl  String?   @db.LongText // URL to redirect the user to when the link is expired
-  password    String? // password to access the link
+  id         String    @id @default(cuid())
+  domain     String // domain of the link (e.g. dub.sh) – also stored on Redis
+  key        String // key of the link (e.g. /github) – also stored on Redis
+  url        String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
+  archived   Boolean   @default(false) // whether the link is archived or not
+  expiresAt  DateTime? // when the link expires – stored on Redis via ttl
+  expiredUrl String?   @db.LongText // URL to redirect the user to when the link is expired
+  password   String? // password to access the link
 
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
@@ -253,7 +252,7 @@ model Link {
   tagId String?
 
   // (Upcoming) multiple link tags
-  tags  LinkTag[]
+  tags LinkTag[]
 
   // Comments on the particular shortlink
   comments String? @db.LongText
@@ -275,12 +274,12 @@ model Link {
 }
 
 model Tag {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  color     String   @default("blue")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  project   Project  @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  color     String    @default("blue")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  project   Project   @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   projectId String
   links     Link[]
   linksNew  LinkTag[]
