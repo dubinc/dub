@@ -26,6 +26,9 @@ model User {
   tokens     Token[]
   createdAt  DateTime       @default(now())
   subscribed Boolean        @default(true)
+  source     String?
+
+  @@index(source)
 }
 
 model Account {

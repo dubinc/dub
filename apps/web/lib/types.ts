@@ -103,8 +103,12 @@ export interface UserProps {
   email: string;
   image?: string;
   createdAt: Date;
+  source: string | null;
+  migratedWorkspace: string | null;
+}
+
+export interface WorkspaceUserProps extends UserProps {
   role: RoleProps;
-  projects?: { projectId: string }[];
 }
 
 export type DomainVerificationStatusProps =

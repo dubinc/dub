@@ -8,3 +8,4 @@ export * from "./use-optimistic-update";
 export * from "./use-router-stuff";
 export * from "./use-scroll";
 export * from "./use-toast-with-undo";
+export * from "./use-resize-observer";
