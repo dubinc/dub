@@ -6,13 +6,12 @@ import {
   getDomainWithoutWWW,
   nanoid,
 } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
-import { getIdentityHash } from "./edge";
-import { detectBot } from "./middleware/utils";
+import { detectBot, detectQr, getIdentityHash } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
-import { ipAddress } from "@vercel/edge";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -30,17 +29,18 @@ export async function recordClick({
 }) {
   const isBot = detectBot(req);
   if (isBot) {
-    return null;
+    return null; // don't record clicks from bots
   }
+  const isQr = detectQr(req);
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
-  // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
+  // if in production / preview env, deduplicate clicks from the same IP address + link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${identity_hash}:${id}`,
+      `recordClick:${ip}:${id}`,
     );
     if (!success) {
       return null;
@@ -87,6 +87,7 @@ export async function recordClick({
           cpu_architecture: ua.cpu?.architecture || "Unknown",
           ua: ua.ua || "Unknown",
           bot: ua.isBot,
+          qr: isQr,
           referer: referer
             ? getDomainWithoutWWW(referer) || "(direct)"
             : "(direct)",

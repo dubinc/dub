@@ -7,9 +7,16 @@ import {
   SHORT_DOMAIN,
   getApexDomain,
   isDubDomain,
+  linkConstructor,
   log,
+  punyEncode,
   validKeyRegex,
 } from "@dub/utils";
+import { Link, Tag } from "@prisma/client";
+
+type LinkWithTags = Link & {
+  tags: { tag: Pick<Tag, "id" | "name" | "color"> }[];
+};
 
 export function combineTagIds({
   tagId,
@@ -99,6 +106,8 @@ export function processKey(key: string) {
   key = key.replace(/^\/+|\/+$/g, "");
   // replace all special characters
   key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // encode the key to ascii
+  key = punyEncode(key);
 
   return key;
 }
@@ -117,3 +126,30 @@ export async function dubLinkChecks(link: SimpleLinkProps) {
   }
   return null;
 }
+
+// Transform link with additional properties
+export const transformLink = (link: LinkWithTags) => {
+  const tags = (link.tags || []).map(({ tag }) => tag);
+
+  const shortLink = linkConstructor({
+    domain: link.domain,
+    key: link.key,
+  });
+
+  const qrLink = linkConstructor({
+    domain: link.domain,
+    key: link.key,
+    searchParams: {
+      qr: "1",
+    },
+  });
+
+  return {
+    ...link,
+    shortLink,
+    tagId: tags?.[0]?.id ?? null, // backwards compatibility
+    tags,
+    qrCode: `https://api.dub.co/qr?url=${qrLink}`,
+    workspaceId: `ws_${link.projectId}`,
+  };
+};

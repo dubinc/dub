@@ -8,7 +8,6 @@ import {
 } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
-  HOME_DOMAIN,
   constructMetadata,
   getApexDomain,
 } from "@dub/utils";
@@ -77,7 +76,7 @@ export default async function InspectPage({
             <LinkPreview defaultUrl={data.url} />
           </Suspense>
           <a
-            href={`${HOME_DOMAIN}/tools/inspector`}
+            href="https://dub.co/tools/inspector"
             rel="noreferrer"
             target="_blank"
             className="mx-auto mt-2 flex items-center justify-center space-x-2 text-sm text-gray-500 transition-all hover:text-black"

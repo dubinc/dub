@@ -2,7 +2,6 @@ import { LinkProps } from "@/lib/types";
 import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 import {
   FADE_IN_ANIMATION_SETTINGS,
-  HOME_DOMAIN,
   constructURLFromUTMParams,
   getParamsFromURL,
   getUrlWithoutUTMParams,
@@ -65,7 +64,7 @@ export default function UTMSection({
               <SimpleTooltipContent
                 title="Add UTM parameters to your short links for conversion tracking."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/utm-builder`}
+                href="https://dub.co/help/article/utm-builder"
               />
             }
           />
@@ -86,7 +85,7 @@ export default function UTMSection({
                 disabled={!isValidUrl}
                 className={`${
                   isValidUrl ? "" : "cursor-not-allowed bg-gray-100"
-                } block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm`}
+                } block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm`}
                 placeholder={examples}
                 value={params[key] || ""}
                 onChange={(e) => {

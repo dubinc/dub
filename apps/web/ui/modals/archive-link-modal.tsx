@@ -14,14 +14,18 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import LinkLogo from "../links/link-logo";
 
-const sendArchiveRequest = (
-  archived: boolean,
-  id: string,
-  workspaceId?: string,
-) => {
-  const baseUrl = `/api/links/${id}/archive`;
+const sendArchiveRequest = ({
+  linkId,
+  archive,
+  workspaceId,
+}: {
+  linkId: string;
+  archive: boolean;
+  workspaceId?: string;
+}) => {
+  const baseUrl = `/api/links/${linkId}/archive`;
   return fetch(`${baseUrl}?workspaceId=${workspaceId}`, {
-    method: archived ? "POST" : "DELETE",
+    method: archive ? "POST" : "DELETE",
     headers: {
       "Content-Type": "application/json",
     },
@@ -40,12 +44,10 @@ function ArchiveLinkModal({
   showArchiveLinkModal,
   setShowArchiveLinkModal,
   props,
-  archived,
 }: {
   showArchiveLinkModal: boolean;
   setShowArchiveLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
-  archived: boolean;
 }) {
   const toastWithUndo = useToastWithUndo();
 
@@ -67,7 +69,11 @@ function ArchiveLinkModal({
     event.preventDefault();
 
     setArchiving(true);
-    const res = await sendArchiveRequest(archived, props.id, workspaceId);
+    const res = await sendArchiveRequest({
+      linkId: props.id,
+      archive: !props.archived,
+      workspaceId,
+    });
     setArchiving(false);
 
     if (!res.ok) {
@@ -80,21 +86,28 @@ function ArchiveLinkModal({
     setShowArchiveLinkModal(false);
     toastWithUndo({
       id: "link-archive-undo-toast",
-      message: `Successfully ${archived ? "archived" : "unarchived"} link!`,
+      message: `Successfully ${props.archived ? "unarchived" : "archived"} link!`,
       undo: undoAction,
       duration: 5000,
     });
   };
 
   const undoAction = () => {
-    toast.promise(sendArchiveRequest(!archived, props.id, workspaceId), {
-      loading: "Undo in progress...",
-      error: "Failed to roll back changes. An error occurred.",
-      success: () => {
-        revalidateLinks();
-        return "Undo successful! Changes reverted.";
+    toast.promise(
+      sendArchiveRequest({
+        linkId: props.id,
+        archive: props.archived,
+        workspaceId,
+      }),
+      {
+        loading: "Undo in progress...",
+        error: "Failed to roll back changes. An error occurred.",
+        success: () => {
+          revalidateLinks();
+          return "Undo successful! Changes reverted.";
+        },
       },
-    });
+    );
   };
 
   return (
@@ -105,12 +118,12 @@ function ArchiveLinkModal({
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">
-          {archived ? "Archive" : "Unarchive"} {shortlink}
+          {props.archived ? "Unarchive" : "Archive"} {shortlink}
         </h3>
         <p className="text-sm text-gray-500">
-          {archived
-            ? "Archived links will still work - they just won't show up on your main dashboard."
-            : "By unarchiving this link, it will show up on your main dashboard again."}
+          {props.archived
+            ? "By unarchiving this link, it will show up on your main dashboard again."
+            : "Archived links will still work - they just won't show up on your main dashboard."}
         </p>
       </div>
 
@@ -119,20 +132,14 @@ function ArchiveLinkModal({
           onClick={handleArchiveRequest}
           autoFocus
           loading={archiving}
-          text={`Confirm ${archived ? "archive" : "unarchive"}`}
+          text={`Confirm ${props.archived ? "unarchive" : "archive"}`}
         />
       </div>
     </Modal>
   );
 }
 
-export function useArchiveLinkModal({
-  props,
-  archived = true,
-}: {
-  props: LinkProps;
-  archived: boolean;
-}) {
+export function useArchiveLinkModal({ props }: { props: LinkProps }) {
   const [showArchiveLinkModal, setShowArchiveLinkModal] = useState(false);
 
   const ArchiveLinkModalCallback = useCallback(() => {
@@ -141,7 +148,6 @@ export function useArchiveLinkModal({
         showArchiveLinkModal={showArchiveLinkModal}
         setShowArchiveLinkModal={setShowArchiveLinkModal}
         props={props}
-        archived={archived}
       />
     ) : null;
   }, [showArchiveLinkModal, setShowArchiveLinkModal]);

@@ -217,7 +217,7 @@ export const POST = async (req: Request) => {
         const pipeline = redis.pipeline();
         // remove root domain redirect for all domains
         workspace.domains.forEach((domain) => {
-          pipeline.hset(domain.slug, {
+          pipeline.hset(domain.slug.toLowerCase(), {
             _root: {
               id: domain.id,
               projectId: workspace.id,

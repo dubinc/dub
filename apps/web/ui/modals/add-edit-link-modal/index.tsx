@@ -7,9 +7,12 @@ import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
   Button,
+  LinkedIn,
   LoadingCircle,
   Modal,
+  Tooltip,
   TooltipContent,
+  Twitter,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
@@ -22,15 +25,18 @@ import {
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
+  nanoid,
+  punycode,
   truncate,
 } from "@dub/utils";
+import { Crown, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 import {
   useParams,
   usePathname,
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import punycode from "punycode/";
 import {
   Dispatch,
   SetStateAction,
@@ -43,7 +49,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
+import { useDebounce, useDebouncedCallback } from "use-debounce";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -102,7 +108,7 @@ function AddEditLinkModal({
 
   const { domain, key, url, password, proxy } = data;
 
-  const generateRandomKey = useCallback(async () => {
+  const generateRandomKey = useDebouncedCallback(async () => {
     setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
@@ -111,7 +117,7 @@ function AddEditLinkModal({
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
     setGeneratingKey(false);
-  }, [domain, slug]);
+  }, 500);
 
   useEffect(() => {
     // when someone pastes a URL
@@ -133,6 +139,19 @@ function AddEditLinkModal({
       }
     }
   }, [showAddEditLinkModal, url]);
+
+  const runKeyChecks = async (e: React.FocusEvent<HTMLInputElement>) => {
+    if (!e.target.value) return;
+    const res = await fetch(
+      `/api/links/verify?domain=${domain}&key=${e.target.value}&workspaceId=${workspaceId}`,
+    );
+    const { error } = await res.json();
+    if (error) {
+      setKeyError(error.message);
+    } else {
+      setKeyError(null);
+    }
+  };
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -183,9 +202,7 @@ function AddEditLinkModal({
           // set timeout to prevent flickering
           setTimeout(() => setGeneratingMetatags(false), 200);
         });
-      } catch (e) {
-        console.log("not a valid url");
-      }
+      } catch (_) {}
     } else {
       setGeneratingMetatags(false);
     }
@@ -259,15 +276,32 @@ function AddEditLinkModal({
   const welcomeFlow = pathname === "/welcome";
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (key && key.endsWith("-copy")) {
+    if (key?.endsWith("-copy")) {
       keyRef.current?.select();
     }
-  }, [key]);
+  }, []);
 
   const { isMobile } = useMediaQuery();
 
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
+
+  const shortLink = useMemo(() => {
+    return linkConstructor({
+      key: data.key,
+      domain: data.domain,
+    });
+  }, [data.key, data.domain]);
+
+  const shortLinkPretty = useMemo(() => {
+    return linkConstructor({
+      key: data.key,
+      domain: data.domain,
+      pretty: true,
+    });
+  }, [data.key, data.domain]);
+
+  const randomLinkedInNonce = useMemo(() => nanoid(8), []);
 
   return (
     <Modal
@@ -309,15 +343,7 @@ function AddEditLinkModal({
           <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
             <LinkLogo apexDomain={getApexDomain(url)} />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-              {props
-                ? `Edit ${linkConstructor({
-                    key: props.key,
-                    domain: props.domain
-                      ? punycode.toUnicode(props.domain)
-                      : undefined,
-                    pretty: true,
-                  })}`
-                : "Create a new link"}
+              {props ? `Edit ${shortLinkPretty}` : "Create a new link"}
             </h3>
           </div>
 
@@ -351,16 +377,11 @@ function AddEditLinkModal({
                     router.push("/links");
                     setShowAddEditLinkModal(false);
                   }
+                  const data = await res.json();
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
                     try {
-                      await navigator.clipboard.writeText(
-                        linkConstructor({
-                          // remove leading and trailing slashes
-                          key: data.key.replace(/^\/+|\/+$/g, ""),
-                          domain,
-                        }),
-                      );
+                      await navigator.clipboard.writeText(data.shortLink);
                       toast.success("Copied shortlink to clipboard!");
                     } catch (e) {
                       console.error(
@@ -376,7 +397,36 @@ function AddEditLinkModal({
                 } else {
                   const { error } = await res.json();
                   if (error) {
-                    toast.error(error.message);
+                    if (error.message.includes("Upgrade to Pro")) {
+                      toast.custom(() => (
+                        <div className="flex flex-col space-y-3 rounded-lg bg-white p-6 shadow-lg">
+                          <div className="flex items-center space-x-1.5">
+                            <Crown className="h-5 w-5 text-black" />{" "}
+                            <p className="font-semibold">
+                              You've discovered a Pro feature!
+                            </p>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {error.message}
+                          </p>
+                          <Link
+                            href={
+                              queryParams({
+                                set: {
+                                  upgrade: "pro",
+                                },
+                                getNewPath: true,
+                              }) as string
+                            }
+                            className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+                          >
+                            Upgrade to Pro
+                          </Link>
+                        </div>
+                      ));
+                    } else {
+                      toast.error(error.message);
+                    }
                     const message = error.message.toLowerCase();
                     if (message.includes("key") || message.includes("domain")) {
                       setKeyError(error.message);
@@ -425,7 +475,7 @@ function AddEditLinkModal({
                     className={`${
                       urlError
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                        : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
                     } block w-full rounded-md focus:outline-none sm:text-sm`}
                     aria-invalid="true"
                   />
@@ -481,6 +531,7 @@ function AddEditLinkModal({
                     disabled={props && lockKey}
                     value={domain}
                     onChange={(e) => {
+                      setKeyError(null);
                       setData({ ...data, domain: e.target.value });
                     }}
                     className={cn(
@@ -490,7 +541,7 @@ function AddEditLinkModal({
                   >
                     {domains?.map(({ slug }) => (
                       <option key={slug} value={slug}>
-                        {punycode.toUnicode(slug || "")}
+                        {punycode(slug)}
                       </option>
                     ))}
                   </select>
@@ -500,40 +551,85 @@ function AddEditLinkModal({
                     name="key"
                     id={`key-${randomIdx}`}
                     required
-                    pattern="[\p{L}\p{N}\p{Pd}\/]+"
+                    // allow letters, numbers, '-', '/' and emojis
+                    pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
                     onInvalid={(e) => {
                       e.currentTarget.setCustomValidity(
-                        "Only letters, numbers, '-', and '/' are allowed.",
+                        "Only letters, numbers, '-', '/', and emojis are allowed.",
                       );
                     }}
+                    onBlur={runKeyChecks}
                     disabled={props && lockKey}
                     autoComplete="off"
                     className={cn(
-                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                       {
                         "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                           keyError,
+                        "border-amber-300 pr-10 text-amber-900 placeholder-amber-300 focus:border-amber-500 focus:ring-amber-500":
+                          shortLink.length > 25,
                         "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
                           props && lockKey,
                       },
                     )}
                     placeholder="github"
-                    value={key}
+                    value={punycode(key)}
                     onChange={(e) => {
                       setKeyError(null);
                       e.currentTarget.setCustomValidity("");
-                      setData({ ...data, key: e.target.value });
+                      setData({
+                        ...data,
+                        key: e.target.value.replace(" ", "-"),
+                      });
                     }}
                     aria-invalid="true"
                     aria-describedby="key-error"
                   />
-                  {keyError && (
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <AlertCircleFill
-                        className="h-5 w-5 text-red-500"
-                        aria-hidden="true"
-                      />
-                    </div>
+                  {(keyError || shortLink.length > 25) && (
+                    <Tooltip
+                      content={
+                        keyError || (
+                          <div className="flex max-w-xs items-start space-x-2 bg-white p-4">
+                            <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-500" />
+                            <div>
+                              <p className="text-sm text-gray-700">
+                                Short links longer than 25 characters will show
+                                up differently on some platforms.
+                              </p>
+                              <div className="mt-2 flex items-center space-x-2">
+                                <LinkedIn className="h-4 w-4" />
+                                <p className="cursor-pointer text-sm font-semibold text-[#4783cf] hover:underline">
+                                  {linkConstructor({
+                                    domain: "lnkd.in",
+                                    key: randomLinkedInNonce,
+                                    pretty: true,
+                                  })}
+                                </p>
+                              </div>
+                              {shortLinkPretty.length > 25 && (
+                                <div className="mt-1 flex items-center space-x-2">
+                                  <Twitter className="h-4 w-4" />
+                                  <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
+                                    {truncate(shortLinkPretty, 25)}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      }
+                    >
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        {keyError ? (
+                          <AlertCircleFill
+                            className="h-5 w-5 text-red-500"
+                            aria-hidden="true"
+                          />
+                        ) : shortLink.length > 25 ? (
+                          <AlertCircleFill className="h-5 w-5 text-amber-500" />
+                        ) : null}
+                      </div>
+                    </Tooltip>
                   )}
                 </div>
                 {keyError &&
@@ -633,7 +729,7 @@ function AddEditLinkButton({
     // - there is no existing modal backdrop (i.e. no other modal is open)
     // - workspace has not exceeded links limit
     if (
-      e.key === "c" &&
+      e.key.toLowerCase() === "c" &&
       !e.metaKey &&
       !e.ctrlKey &&
       target.tagName !== "INPUT" &&

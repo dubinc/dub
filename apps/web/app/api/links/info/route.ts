@@ -1,15 +1,15 @@
 import { DubApiError } from "@/lib/api/errors";
+import { transformLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
-import { linkConstructor } from "@dub/utils";
+import { domainKeySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link
 export const GET = withAuth(async ({ headers, searchParams }) => {
-  const { domain, key } = getLinkInfoQuerySchema.parse(searchParams);
+  const { domain, key } = domainKeySchema.parse(searchParams);
 
-  const response = await prisma.link.findUnique({
+  const link = await prisma.link.findUnique({
     where: {
       domain_key: {
         domain,
@@ -18,26 +18,28 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
     },
     include: {
       user: true,
+      tags: {
+        select: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
   });
 
-  if (!response) {
+  if (!link) {
     throw new DubApiError({
       code: "not_found",
       message: "Link not found.",
     });
   }
 
-  return NextResponse.json(
-    {
-      ...response,
-      shortLink: linkConstructor({
-        domain: response.domain,
-        key: response.key,
-      }),
-    },
-    {
-      headers,
-    },
-  );
+  return NextResponse.json(transformLink(link), {
+    headers,
+  });
 });

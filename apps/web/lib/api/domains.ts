@@ -173,10 +173,10 @@ export async function setRootDomain({
   newDomain?: string; // if the domain is changed, this will be the new domain
 }) {
   if (newDomain) {
-    await redis.rename(domain, newDomain);
+    await redis.rename(domain.toLowerCase(), newDomain.toLowerCase());
   }
   return await Promise.all([
-    redis.hset(newDomain || domain, {
+    redis.hset(newDomain ? newDomain.toLowerCase() : domain.toLowerCase(), {
       _root: {
         id,
         ...(url && {
@@ -187,7 +187,9 @@ export async function setRootDomain({
             rewrite: true,
             iframeable: await isIframeable({
               url,
-              requestDomain: newDomain || domain,
+              requestDomain: newDomain
+                ? newDomain.toLowerCase()
+                : domain.toLowerCase(),
             }),
           }),
         projectId,
@@ -203,6 +205,23 @@ export async function setRootDomain({
       },
     }),
   ]);
+}
+
+export async function archiveDomain({
+  domain,
+  archived,
+}: {
+  domain: string;
+  archived: boolean;
+}) {
+  return await prisma.domain.update({
+    where: {
+      slug: domain,
+    },
+    data: {
+      archived,
+    },
+  });
 }
 
 /* Delete a domain and all links & images associated with it */
@@ -243,7 +262,7 @@ export async function deleteDomainAndLinks(
   }
   return await Promise.allSettled([
     // delete all links from redis
-    redis.del(domain),
+    redis.del(domain.toLowerCase()),
     // record deletes in tinybird for domain & links
     recordLink({
       link: {

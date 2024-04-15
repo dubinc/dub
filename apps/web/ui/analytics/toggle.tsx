@@ -5,15 +5,13 @@ import {
   cn,
   getApexDomain,
   linkConstructor,
-  truncate,
 } from "@dub/utils";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
-import ExportButton from "./export-button";
-import SharePopover from "./share-popover";
 import DateRangePicker from "./date-range-picker";
+import ExportButton from "./export-button";
 import FilterBar from "./filter-bar";
-import punycode from "punycode/";
+import SharePopover from "./share-popover";
 
 export default function Toggle() {
   const { basePath, domain, key, url, admin } = useContext(AnalyticsContext);
@@ -65,7 +63,7 @@ export default function Toggle() {
               />
               <p className="max-w-[192px] truncate sm:max-w-[400px]">
                 {linkConstructor({
-                  domain: punycode.toUnicode(domain),
+                  domain,
                   key,
                   pretty: true,
                 })}

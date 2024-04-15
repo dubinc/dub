@@ -1,10 +1,11 @@
+import HelpPortal from "@/ui/layout/help";
 import NavTabs from "@/ui/layout/nav-tabs";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 import UserDropdown from "@/ui/layout/user-dropdown";
 import WorkspaceSwitcher from "@/ui/layout/workspace-switcher";
 import { Divider } from "@/ui/shared/icons";
 import { Logo, MaxWidthWrapper } from "@dub/ui";
-import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
+import { constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import Providers from "./providers";
@@ -29,14 +30,14 @@ export default function Layout({ children }: { children: ReactNode }) {
               </div>
               <div className="flex items-center space-x-6">
                 <a
-                  href={`${HOME_DOMAIN}/changelog`}
+                  href="https://dub.co/changelog"
                   className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 sm:block"
                   target="_blank"
                 >
                   Changelog
                 </a>
                 <a
-                  href={`${HOME_DOMAIN}/help`}
+                  href="https://dub.co/help"
                   className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 sm:block"
                   target="_blank"
                 >
@@ -52,6 +53,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         {children}
       </div>
+      <HelpPortal />
     </Providers>
   );
 }

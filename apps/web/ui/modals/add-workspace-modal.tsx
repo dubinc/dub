@@ -8,11 +8,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import {
-  FADE_IN_ANIMATION_SETTINGS,
-  HOME_DOMAIN,
-  generateDomainFromName,
-} from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS, generateDomainFromName } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
@@ -112,9 +108,8 @@ function AddWorkspaceModalHelper({
         <Logo />
         <h3 className="text-lg font-medium">Create a new workspace</h3>
         <a
-          href={`${HOME_DOMAIN}/help/article/what-is-a-workspace`}
+          href="https://dub.co/help/article/what-is-a-workspace"
           target="_blank"
-          rel="noopener noreferrer"
           className="-translate-y-2 text-center text-xs text-gray-500 underline underline-offset-4 hover:text-gray-800"
         >
           What is a workspace?
@@ -182,7 +177,7 @@ function AddWorkspaceModalHelper({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="Acme, Inc."
               value={name}
               onChange={(e) => {
@@ -216,7 +211,7 @@ function AddWorkspaceModalHelper({
               className={`${
                 slugError
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                  : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
               } block w-full rounded-r-md focus:outline-none sm:text-sm`}
               placeholder="acme"
               value={slug}

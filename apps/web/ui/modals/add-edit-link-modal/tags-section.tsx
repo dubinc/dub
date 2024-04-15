@@ -3,7 +3,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
-import { HOME_DOMAIN } from "@dub/utils";
 import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Tag, X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
@@ -116,7 +115,7 @@ export default function TagsSection({
                   <SimpleTooltipContent
                     title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
                     cta="Learn more about tags."
-                    href={`${HOME_DOMAIN}/help/article/how-to-use-tags`}
+                    href="https://dub.co/help/article/how-to-use-tags"
                   />
                 }
               >
