@@ -1,5 +1,5 @@
 import { Project } from "@prisma/client";
-import { describe, expect, test } from "vitest";
+import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 

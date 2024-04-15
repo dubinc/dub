@@ -1,6 +1,6 @@
+import { Tag } from "@prisma/client";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
-import { Tag } from "@prisma/client";
 import { IntegrationHarness } from "../utils/integration";
 
 test("retrieve list of tags", async (ctx) => {

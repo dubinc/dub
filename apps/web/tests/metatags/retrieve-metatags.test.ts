@@ -1,7 +1,7 @@
+import { MetaTag } from "@/lib/types";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
-import { MetaTag } from "@/lib/types";
 
 test("retrieve the metatags for a URL", async (ctx) => {
   const h = new IntegrationHarness(ctx);

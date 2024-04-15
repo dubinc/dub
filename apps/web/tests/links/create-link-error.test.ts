@@ -1,6 +1,6 @@
+import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
-import { Link } from "@prisma/client";
 import { IntegrationHarness } from "../utils/integration";
 
 const domain = "dub.sh";

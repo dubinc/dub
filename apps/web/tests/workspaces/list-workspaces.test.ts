@@ -1,10 +1,10 @@
+import { nanoid } from "@dub/utils";
+import { Project } from "@prisma/client";
+import slugify from "@sindresorhus/slugify";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
-import { Project } from "@prisma/client";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedWorkspace } from "../utils/schema";
-import slugify from "@sindresorhus/slugify";
-import { nanoid } from "@dub/utils";
 
 test("retrieve list of workspaces", async (ctx) => {
   const h = new IntegrationHarness(ctx);

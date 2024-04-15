@@ -1,9 +1,9 @@
-import { expect, test, describe, beforeAll, afterAll } from "vitest";
-import { HttpClient } from "../utils/http";
+import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
+import { afterAll, describe, expect, test } from "vitest";
+import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedLink } from "../utils/schema";
-import { nanoid } from "@dub/utils";
 
 const domain = "dub.sh";
 

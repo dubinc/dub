@@ -1,6 +1,6 @@
+import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
-import { Link } from "@prisma/client";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedLink } from "../utils/schema";
 
@@ -43,32 +43,30 @@ test("list links", async (ctx) => {
 
   expect(status).toEqual(200);
   expect(links.length).toEqual(2);
-  expect(links).toEqual(
-    [
-      {
-        ...expectedLink,
-        domain,
-        url,
-        userId: user.id,
-        projectId: workspace.id,
-        workspaceId: workspace.workspaceId,
-        tags: [],
-        shortLink: `https://${domain}/${secondLink.key}`,
-        qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink.key}?qr=1`,
-        user: JSON.parse(JSON.stringify(user)),
-      },
-      {
-        ...expectedLink,
-        domain,
-        url,
-        userId: user.id,
-        projectId: workspace.id,
-        workspaceId: workspace.workspaceId,
-        tags: [],
-        shortLink: `https://${domain}/${firstLink.key}`,
-        qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
-        user: JSON.parse(JSON.stringify(user)),
-      },
-    ],
-  );
+  expect(links).toEqual([
+    {
+      ...expectedLink,
+      domain,
+      url,
+      userId: user.id,
+      projectId: workspace.id,
+      workspaceId: workspace.workspaceId,
+      tags: [],
+      shortLink: `https://${domain}/${secondLink.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink.key}?qr=1`,
+      user: JSON.parse(JSON.stringify(user)),
+    },
+    {
+      ...expectedLink,
+      domain,
+      url,
+      userId: user.id,
+      projectId: workspace.id,
+      workspaceId: workspace.workspaceId,
+      tags: [],
+      shortLink: `https://${domain}/${firstLink.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
+      user: JSON.parse(JSON.stringify(user)),
+    },
+  ]);
 });

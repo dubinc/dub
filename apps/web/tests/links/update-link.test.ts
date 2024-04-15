@@ -1,9 +1,9 @@
+import { nanoid } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
-import { Link } from "@prisma/client";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedLink } from "../utils/schema";
-import { nanoid } from "@dub/utils";
 
 test("update an existing link", async (ctx) => {
   const h = new IntegrationHarness(ctx);

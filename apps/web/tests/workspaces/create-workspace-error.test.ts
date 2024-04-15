@@ -1,9 +1,9 @@
+import { nanoid } from "@dub/utils";
+import { Project } from "@prisma/client";
+import slugify from "@sindresorhus/slugify";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
-import { Project } from "@prisma/client";
 import { IntegrationHarness } from "../utils/integration";
-import { nanoid } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
 
 test("should not create workspace with slug in use", async (ctx) => {
   const h = new IntegrationHarness(ctx);
