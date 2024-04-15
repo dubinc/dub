@@ -50,9 +50,9 @@ export default function WorkspaceCard({
     fetcher,
   );
 
-  const { migratedWorkspace } = useUser();
+  const { user } = useUser();
 
-  const isMigratedWorkspace = migratedWorkspace === id;
+  const isMigratedWorkspace = user?.migratedWorkspace === id;
 
   return (
     <div className="group relative">

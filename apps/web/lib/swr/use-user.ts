@@ -1,11 +1,12 @@
 import { fetcher } from "@dub/utils";
-import uswSWRImmutable from "swr/immutable";
+import useSWRImmutable from "swr/immutable";
 import { UserProps } from "../types";
 
 export default function useUser() {
-  const { data } = uswSWRImmutable<UserProps>(`/api/user`, fetcher);
+  const { data, isLoading } = useSWRImmutable<UserProps>("/api/user", fetcher);
 
   return {
-    ...data,
+    user: data,
+    loading: isLoading,
   };
 }

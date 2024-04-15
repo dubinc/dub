@@ -29,7 +29,8 @@ import {
 import { Archive, Edit3, FileCog, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
@@ -55,23 +56,14 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const entry = useIntersectionObserver(domainRef, {});
   const isVisible = !!entry?.isIntersecting;
 
-  const { data, isValidating } = useSWR<{
+  const { data, isValidating, mutate } = useSWRImmutable<{
     status: DomainVerificationStatusProps;
     response: any;
   }>(
     workspaceId &&
       isVisible &&
-      !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
-    {
-      revalidateOnFocus: true,
-      revalidateOnMount: true,
-      revalidateOnReconnect: true,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
-    },
   );
 
   const { data: clicks } = useSWR<number>(
@@ -165,9 +157,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               variant="secondary"
               loading={isValidating}
               onClick={() => {
-                mutate(
-                  `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
-                );
+                mutate();
               }}
             />
             <Popover

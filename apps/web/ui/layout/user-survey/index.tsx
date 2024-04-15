@@ -16,12 +16,15 @@ export const UserSurveyContext = createContext<{ status: UserSurveyStatus }>({
 });
 
 export default function UserSurveyPopup() {
-  const { source } = useUser();
+  const { user } = useUser();
 
-  return typeof source === "string" ? null : (
-    <Popup hiddenCookieId="hideUserSurveyPopup">
-      <UserSurveyPopupInner />
-    </Popup>
+  return (
+    user &&
+    !user.source && (
+      <Popup hiddenCookieId="hideUserSurveyPopup">
+        <UserSurveyPopupInner />
+      </Popup>
+    )
   );
 }
 
