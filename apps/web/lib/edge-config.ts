@@ -23,19 +23,24 @@ export const isBlacklistedDomain = async ({
       whitelistedDomains,
     } = await getAll(["domains", "terms", "whitelistedDomains"]);
 
-    if (whitelistedDomains.includes(apexDomain)) {
-      return "whitelisted";
-    }
-
     const blacklistedTermsRegex = new RegExp(
       blacklistedTerms
         .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
         .join("|"),
     );
 
-    return (
-      blacklistedDomains.includes(domain) || blacklistedTermsRegex.test(domain)
-    );
+    const isBlacklisted =
+      blacklistedDomains.includes(domain) || blacklistedTermsRegex.test(domain);
+
+    if (isBlacklisted) {
+      return true;
+    }
+
+    if (whitelistedDomains.includes(apexDomain)) {
+      return "whitelisted";
+    }
+
+    return false;
   } catch (e) {
     return false;
   }
