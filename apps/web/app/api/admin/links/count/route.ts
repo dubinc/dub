@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAdmin } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
@@ -40,53 +39,49 @@ export const GET = withAdmin(async ({ searchParams }) => {
     }),
   };
 
-  try {
-    if (groupBy === "tagId") {
-      response = await prisma.linkTag.groupBy({
-        by: ["tagId"],
-        where: {
-          link: linksWhere,
+  if (groupBy === "tagId") {
+    response = await prisma.linkTag.groupBy({
+      by: ["tagId"],
+      where: {
+        link: linksWhere,
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          tagId: "desc",
         },
+      },
+    });
+  } else {
+    const where = {
+      ...linksWhere,
+      ...(tagIds.length > 0 && {
+        tags: {
+          some: {
+            tagId: {
+              in: tagIds,
+            },
+          },
+        },
+      }),
+    };
+
+    if (groupBy === "domain") {
+      response = await prisma.link.groupBy({
+        by: [groupBy],
+        where,
         _count: true,
         orderBy: {
           _count: {
-            tagId: "desc",
+            [groupBy]: "desc",
           },
         },
       });
     } else {
-      const where = {
-        ...linksWhere,
-        ...(tagIds.length > 0 && {
-          tags: {
-            some: {
-              tagId: {
-                in: tagIds,
-              },
-            },
-          },
-        }),
-      };
-
-      if (groupBy === "domain") {
-        response = await prisma.link.groupBy({
-          by: [groupBy],
-          where,
-          _count: true,
-          orderBy: {
-            _count: {
-              [groupBy]: "desc",
-            },
-          },
-        });
-      } else {
-        response = await prisma.link.count({
-          where,
-        });
-      }
+      response = await prisma.link.count({
+        where,
+      });
     }
-    return NextResponse.json(response);
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
   }
+  return NextResponse.json(response);
 });
