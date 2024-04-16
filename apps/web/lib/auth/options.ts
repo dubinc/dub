@@ -276,11 +276,6 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     jwt: async ({ token, user, trigger }) => {
-      // force log out banned users
-      if (!token.email || (await isBlacklistedEmail(token.email))) {
-        return {};
-      }
-
       if (user) {
         token.user = user;
       }

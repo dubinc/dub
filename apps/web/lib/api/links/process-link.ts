@@ -1,6 +1,6 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
-import { getRandomKey } from "@/lib/planetscale";
+import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps, WorkspaceProps } from "@/lib/types";
 import {
@@ -99,6 +99,18 @@ export async function processLink({
 
   // checks for dub.sh links
   if (domain === "dub.sh") {
+    // check if user exists (if userId is passed)
+    if (userId) {
+      const userExists = await checkIfUserExists(userId);
+      if (!userExists) {
+        return {
+          link: payload,
+          error: "Session expired. Please log in again.",
+          code: "not_found",
+        };
+      }
+    }
+
     const isMaliciousLink = await maliciousLinkCheck(url);
     if (isMaliciousLink) {
       return {
