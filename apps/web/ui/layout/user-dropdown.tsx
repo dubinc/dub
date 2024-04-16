@@ -1,16 +1,9 @@
 "use client";
 
-import { Avatar, Badge, IconMenu, LoadingCircle, Popover } from "@dub/ui";
+import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
 import va from "@vercel/analytics";
-import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
-import {
-  Edit3,
-  HelpCircle,
-  LogOut,
-  MessageCircle,
-  Settings,
-} from "lucide-react";
+import { Edit3, HelpCircle, LogOut, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -18,31 +11,6 @@ import { useEffect, useState } from "react";
 export default function UserDropdown() {
   const { data: session } = useSession();
   const [openPopover, setOpenPopover] = useState(false);
-  const [openingSupport, setOpeningSupport] = useState(false);
-
-  useEffect(() => {
-    Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0", {
-      autoload: false,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (session?.user?.email) {
-      Crisp.user.setEmail(session.user.email);
-      Crisp.user.setNickname(session.user.name || session.user.email);
-    }
-  }, [session]);
-
-  useEffect(() => {
-    Crisp.chat.onChatOpened(() => {
-      va.track("Open support chat");
-      setOpeningSupport(false);
-      setOpenPopover(false);
-    });
-    Crisp.chat.onChatClosed(() => {
-      Crisp.chat.hide();
-    });
-  }, []);
 
   const [unreadChangelogs, setUnreadChangelogs] = useState(0);
   useEffect(() => {
@@ -82,25 +50,6 @@ export default function UserDropdown() {
                 icon={<HelpCircle className="h-4 w-4" />}
               />
             </Link>
-            <button
-              className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
-              onClick={() => {
-                setOpeningSupport(true);
-                Crisp.chat.open();
-                Crisp.chat.show();
-              }}
-            >
-              <IconMenu
-                text="Support"
-                icon={
-                  openingSupport ? (
-                    <LoadingCircle />
-                  ) : (
-                    <MessageCircle className="h-4 w-4" />
-                  )
-                }
-              />
-            </button>
             <Link
               href="/settings"
               onClick={() => setOpenPopover(false)}

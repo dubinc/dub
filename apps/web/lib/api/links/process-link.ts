@@ -1,14 +1,17 @@
-import { isBlacklistedDomain } from "@/lib/edge-config";
-import { getRandomKey } from "@/lib/planetscale";
+import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { getPangeaDomainIntel } from "@/lib/pangea";
+import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
   SHORT_DOMAIN,
+  getApexDomain,
   getDomainWithoutWWW,
   getUrlFromString,
   isDubDomain,
   isValidUrl,
+  log,
   parseDateTime,
 } from "@dub/utils";
 import { combineTagIds, keyChecks, processKey } from "./utils";
@@ -108,13 +111,25 @@ export async function processLink<T extends Record<string, any>>({
     domain = workspace?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
   }
 
-  // checks for default short domain
-  if (domain === SHORT_DOMAIN) {
-    const domainBlacklisted = await isBlacklistedDomain(url);
-    if (domainBlacklisted) {
+  // checks for dub.sh links
+  if (domain === "dub.sh") {
+    // check if user exists (if userId is passed)
+    if (userId) {
+      const userExists = await checkIfUserExists(userId);
+      if (!userExists) {
+        return {
+          link: payload,
+          error: "Session expired. Please log in again.",
+          code: "not_found",
+        };
+      }
+    }
+
+    const isMaliciousLink = await maliciousLinkCheck(url);
+    if (isMaliciousLink) {
       return {
         link: payload,
-        error: "Invalid url.",
+        error: "Malicious URL detected",
         code: "unprocessable_entity",
       };
     }
@@ -291,4 +306,52 @@ export async function processLink<T extends Record<string, any>>({
     },
     error: null,
   };
+}
+
+async function maliciousLinkCheck(url: string) {
+  const [domain, apexDomain] = [getDomainWithoutWWW(url), getApexDomain(url)];
+
+  if (!domain) {
+    return false;
+  }
+
+  const domainBlacklisted = await isBlacklistedDomain({ domain, apexDomain });
+  if (domainBlacklisted === true) {
+    return true;
+  } else if (domainBlacklisted === "whitelisted") {
+    return false;
+  }
+
+  try {
+    const response = await getPangeaDomainIntel(domain);
+
+    const verdict = response.result.data[apexDomain].verdict;
+    console.log("Pangea verdict for domain", apexDomain, verdict);
+
+    if (verdict === "benign") {
+      await updateConfig({
+        key: "whitelistedDomains",
+        value: domain,
+      });
+      return false;
+    } else if (verdict === "malicious" || verdict === "suspicious") {
+      await Promise.all([
+        updateConfig({
+          key: "domains",
+          value: domain,
+        }),
+        log({
+          message: `Suspicious link detected via Pangea → ${url}`,
+          type: "links",
+          mention: true,
+        }),
+      ]);
+
+      return true;
+    }
+  } catch (e) {
+    console.error("Error checking domain with Pangea", e);
+  }
+
+  return false;
 }
