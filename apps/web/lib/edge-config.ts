@@ -10,28 +10,36 @@ export const isBlacklistedDomain = async (domain: string) => {
     return false;
   }
 
-  const {
-    domains: blacklistedDomains,
-    terms: blacklistedTerms,
-    whitelistedDomains,
-  } = await getAll(["domains", "terms", "whitelistedDomains"]);
+  try {
+    const {
+      domains: blacklistedDomains,
+      terms: blacklistedTerms,
+      whitelistedDomains,
+    } = await getAll(["domains", "terms", "whitelistedDomains"]);
 
-  if (whitelistedDomains.includes(domain)) {
+    if (whitelistedDomains.includes(domain)) {
+      return false;
+    }
+
+    const blacklistedTermsRegex = new RegExp(
+      blacklistedTerms
+        .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|"),
+    );
+
+    return (
+      blacklistedDomains.includes(domain) || blacklistedTermsRegex.test(domain)
+    );
+  } catch (e) {
     return false;
   }
-
-  const blacklistedTermsRegex = new RegExp(
-    blacklistedTerms
-      .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-      .join("|"),
-  );
-
-  return (
-    blacklistedDomains.includes(domain) || blacklistedTermsRegex.test(domain)
-  );
 };
 
 export const isBlacklistedReferrer = async (referrer: string | null) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+    return false;
+  }
+
   const hostname = referrer ? getDomainWithoutWWW(referrer) : "(direct)";
   let referrers;
   try {
@@ -43,6 +51,10 @@ export const isBlacklistedReferrer = async (referrer: string | null) => {
 };
 
 export const isBlacklistedKey = async (key: string) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+    return false;
+  }
+
   let blacklistedKeys;
   try {
     blacklistedKeys = await get("keys");
@@ -54,6 +66,10 @@ export const isBlacklistedKey = async (key: string) => {
 };
 
 export const isWhitelistedEmail = async (email: string) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+    return false;
+  }
+
   let whitelistedEmails;
   try {
     whitelistedEmails = await get("whitelistedEmails");
@@ -64,9 +80,10 @@ export const isWhitelistedEmail = async (email: string) => {
 };
 
 export const isBlacklistedEmail = async (email: string) => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
     return false;
   }
+
   let blacklistedEmails;
   try {
     blacklistedEmails = await get("emails");
@@ -78,9 +95,10 @@ export const isBlacklistedEmail = async (email: string) => {
 };
 
 export const isReservedKey = async (key: string) => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
     return false;
   }
+
   let reservedKeys;
   try {
     reservedKeys = await get("reserved");
@@ -91,9 +109,10 @@ export const isReservedKey = async (key: string) => {
 };
 
 export const isReservedUsername = async (key: string) => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
     return false;
   }
+
   let reservedUsernames;
   try {
     reservedUsernames = await get("reservedUsernames");
