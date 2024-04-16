@@ -19,6 +19,7 @@
       "to": "#9563FF"
     }
   },
+  "backgroundImage": "/images/background.png",
   "topbarLinks": [
     {
       "name": "Support",

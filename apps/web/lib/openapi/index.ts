@@ -53,6 +53,7 @@ export const openApiObject: ZodOpenApiObject = {
         type: "http",
         description: "Default authentication mechanism",
         scheme: "bearer",
+        "x-speakeasy-example": "DUB_API_KEY",
       },
     },
     responses: {
