@@ -6,7 +6,7 @@ import { LinkWithTagIdsProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { combineTagIds, dubLinkChecks, transformLink } from "./utils";
+import { combineTagIds, transformLink } from "./utils";
 
 export async function createLink(link: LinkWithTagIdsProps) {
   let { key, url, expiresAt, title, description, image, proxy, geo } = link;
@@ -113,8 +113,6 @@ export async function createLink(link: LinkWithTagIdsProps) {
           },
         },
       }),
-    // if the link is a dub.sh link, do some checks
-    link.domain === "dub.sh" && dubLinkChecks(link),
   ]);
 
   return {

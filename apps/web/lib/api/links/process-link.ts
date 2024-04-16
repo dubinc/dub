@@ -1,4 +1,5 @@
-import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/edge-config";
+import { isBlacklistedDomain } from "@/lib/edge-config";
+import { getPangeaDomainIntel, getPangeaURLIntel } from "@/lib/pangea";
 import { getRandomKey } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps, WorkspaceProps } from "@/lib/types";
@@ -94,21 +95,13 @@ export async function processLink({
     domain = workspace?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
   }
 
-  // checks for default short domain
-  if (domain === SHORT_DOMAIN) {
-    const keyBlacklisted = await isBlacklistedKey(key);
-    if (keyBlacklisted) {
+  // checks for dub.sh links
+  if (domain === "dub.sh") {
+    const isMaliciousLink = await maliciousLinkCheck(url);
+    if (isMaliciousLink) {
       return {
         link: payload,
-        error: "Invalid key.",
-        code: "unprocessable_entity",
-      };
-    }
-    const domainBlacklisted = await isBlacklistedDomain(url);
-    if (domainBlacklisted) {
-      return {
-        link: payload,
-        error: "Invalid url.",
+        error: "Malicious link detected.",
         code: "unprocessable_entity",
       };
     }
@@ -260,4 +253,24 @@ export async function processLink({
     },
     error: null,
   };
+}
+
+async function maliciousLinkCheck(url: string) {
+  const domainBlacklisted = await isBlacklistedDomain(url);
+  if (domainBlacklisted) {
+    return true;
+  }
+
+  // Check if domain is suspicious. We're going to do a broad check if domain is suspicious then proceed with a URL scan for accuracy
+  // The best way to flag domains is using mutlipe dataset providers
+  const domainScanRes = await getPangeaDomainIntel(url);
+  console.log(domainScanRes);
+  if (domainScanRes === "malicious" || domainScanRes === "suspicious") {
+    // Suspicious domain detected, so run a URL scan to check if URL is malicious
+    const urlScanRes = await getPangeaURLIntel(url);
+    if (urlScanRes === "malicious") {
+      return true;
+    }
+  }
+  return false;
 }

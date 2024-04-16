@@ -112,21 +112,6 @@ export function processKey(key: string) {
   return key;
 }
 
-export async function dubLinkChecks(link: SimpleLinkProps) {
-  const invalidFavicon = await fetch(
-    `${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`,
-  ).then((res) => !res.ok);
-
-  if (invalidFavicon) {
-    return await log({
-      message: `Suspicious link detected: ${link.domain}/${link.key} → ${link.url}`,
-      type: "links",
-      mention: true,
-    });
-  }
-  return null;
-}
-
 // Transform link with additional properties
 export const transformLink = (link: LinkWithTags) => {
   const tags = (link.tags || []).map(({ tag }) => tag);
