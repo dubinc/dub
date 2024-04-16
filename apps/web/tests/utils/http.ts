@@ -48,10 +48,6 @@ export class HttpClient {
     const { status } = response;
     const data = (await response.json()) as TResponse;
 
-    if (!response.ok) {
-      console.error(`Request to ${url} failed with status ${status}`);
-    }
-
     return { data, status };
   }
 
