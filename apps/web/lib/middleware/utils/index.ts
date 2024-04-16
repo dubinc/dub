@@ -3,3 +3,4 @@ export * from "./detect-qr";
 export * from "./get-final-url";
 export * from "./get-identity-hash";
 export * from "./parse";
+export * from "./parse-url";
