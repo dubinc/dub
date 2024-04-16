@@ -262,7 +262,7 @@ async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  const domainBlacklisted = await isBlacklistedDomain(url);
+  const domainBlacklisted = await isBlacklistedDomain(domain);
   if (domainBlacklisted) {
     return true;
   }

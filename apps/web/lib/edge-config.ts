@@ -1,27 +1,33 @@
 import { getDomainWithoutWWW } from "@dub/utils";
-import { get } from "@vercel/edge-config";
+import { get, getAll } from "@vercel/edge-config";
 
 export const isBlacklistedDomain = async (domain: string) => {
-  let blacklistedDomains, blacklistedTerms;
-  try {
-    [blacklistedDomains, blacklistedTerms] = await Promise.all([
-      get("domains"),
-      get("terms"),
-    ]);
-  } catch (e) {
-    return false; // if blacklisted domains & terms don't exist, don't block
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+    return false;
   }
 
-  const domainToTest = getDomainWithoutWWW(domain) || domain;
+  if (!domain) {
+    return false;
+  }
+
+  const {
+    domains: blacklistedDomains,
+    terms: blacklistedTerms,
+    whitelistedDomains,
+  } = await getAll(["domains", "terms", "whitelistedDomains"]);
+
+  if (whitelistedDomains.includes(domain)) {
+    return false;
+  }
 
   const blacklistedTermsRegex = new RegExp(
     blacklistedTerms
       .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
       .join("|"),
   );
+
   return (
-    blacklistedDomains.includes(domainToTest) ||
-    blacklistedTermsRegex.test(domainToTest)
+    blacklistedDomains.includes(domain) || blacklistedTermsRegex.test(domain)
   );
 };
 
@@ -50,7 +56,7 @@ export const isBlacklistedKey = async (key: string) => {
 export const isWhitelistedEmail = async (email: string) => {
   let whitelistedEmails;
   try {
-    whitelistedEmails = await get("whitelist");
+    whitelistedEmails = await get("whitelistedEmails");
   } catch (e) {
     whitelistedEmails = [];
   }
