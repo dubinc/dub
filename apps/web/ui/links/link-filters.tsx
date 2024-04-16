@@ -194,7 +194,7 @@ const DomainsFilter = () => {
   const { id: workspaceId } = useWorkspace();
   const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
 
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(domains.length > 0 ? false : true);
   const [showMore, setShowMore] = useState(false);
 
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal({
@@ -223,9 +223,12 @@ const DomainsFilter = () => {
             }))
             .filter((d) => d.count > 0);
 
-    return [...(workspaceDomains || []), ...(defaultDomains || [])].sort(
-      (a, b) => b.count - a.count,
-    );
+    const finalOptions = [
+      ...(workspaceDomains || []),
+      ...(defaultDomains || []),
+    ].sort((a, b) => b.count - a.count);
+
+    return finalOptions;
   }, [activeWorkspaceDomains, activeDefaultDomains, domains, workspaceId]);
 
   return (
@@ -251,35 +254,41 @@ const DomainsFilter = () => {
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {options.slice(0, showMore ? options.length : 4).map((domain) => (
-              <div
-                key={domain.slug}
-                className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
-              >
-                <input
-                  id={domain.slug}
-                  name={domain.slug}
-                  checked={searchParams?.get("domain") === domain.slug}
-                  onChange={() => {
-                    queryParams({
-                      set: {
-                        domain: domain.slug,
-                      },
-                      del: "page",
-                    });
-                  }}
-                  type="radio"
-                  className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
-                />
-                <label
-                  htmlFor={domain.slug}
-                  className="flex w-full cursor-pointer items-center justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+            {options.length === 0 ? ( // if the workspace has no domains
+              <p className="text-center text-sm text-gray-500">
+                No domains yet.
+              </p>
+            ) : (
+              options.slice(0, showMore ? options.length : 4).map((domain) => (
+                <div
+                  key={domain.slug}
+                  className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
                 >
-                  <p>{truncate(punycode(domain.slug), 24)}</p>
-                  <DomainPopover domain={domain} count={domain.count} />
-                </label>
-              </div>
-            ))}
+                  <input
+                    id={domain.slug}
+                    name={domain.slug}
+                    checked={searchParams?.get("domain") === domain.slug}
+                    onChange={() => {
+                      queryParams({
+                        set: {
+                          domain: domain.slug,
+                        },
+                        del: "page",
+                      });
+                    }}
+                    type="radio"
+                    className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                  />
+                  <label
+                    htmlFor={domain.slug}
+                    className="flex w-full cursor-pointer items-center justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+                  >
+                    <p>{truncate(punycode(domain.slug), 24)}</p>
+                    <DomainPopover domain={domain} count={domain.count} />
+                  </label>
+                </div>
+              ))
+            )}
             {options.length > 4 && (
               <button
                 onClick={() => setShowMore(!showMore)}
