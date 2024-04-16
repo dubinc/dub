@@ -5,7 +5,7 @@ export * from "./use-intersection-observer";
 export * from "./use-local-storage";
 export * from "./use-media-query";
 export * from "./use-optimistic-update";
+export * from "./use-resize-observer";
 export * from "./use-router-stuff";
 export * from "./use-scroll";
 export * from "./use-toast-with-undo";
-export * from "./use-resize-observer";
