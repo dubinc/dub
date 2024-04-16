@@ -2,9 +2,9 @@ import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
+import { link } from "../utils/resource";
 
-const domain = "dub.sh";
-const url = "https://github.com/dubinc";
+const { domain, url } = link;
 
 const cases = [
   {
@@ -67,6 +67,7 @@ cases.forEach(({ name, body, expected }) => {
   test(name, async (ctx) => {
     const h = new IntegrationHarness(ctx);
     const { workspace, apiKey } = await h.init();
+    const { workspaceId } = workspace;
 
     const http = new HttpClient({
       baseUrl: h.baseUrl,
@@ -77,7 +78,7 @@ cases.forEach(({ name, body, expected }) => {
 
     const response = await http.post<Link>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body,
     });
 

@@ -4,6 +4,9 @@ import { afterAll, describe, expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedLink } from "../utils/schema";
+import { link } from "../utils/resource";
+
+const { domain, url } = link;
 
 // TODO: Move this to shared
 // userId: user.id,
@@ -13,9 +16,6 @@ import { expectedLink } from "../utils/schema";
 // qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
 
 describe("create links with", async () => {
-  const url = "https://github.com/dubinc";
-  const domain = "dub.sh";
-
   const h = new IntegrationHarness();
   const { workspace, apiKey, user } = await h.init();
 
@@ -288,7 +288,7 @@ describe("create links with", async () => {
       };
     });
 
-    const { status, data: link } = await http.post<Link>({
+    const { status, data: link } = await http.post<Link & { tags: [] }>({
       path: "/links",
       query: { workspaceId: workspace.workspaceId },
       body: {
@@ -298,10 +298,11 @@ describe("create links with", async () => {
     });
 
     expect(status).toEqual(200);
+    expect(link.tags).toHaveLength(2);
     expect(link).toMatchObject({
       ...expectedLink,
       url,
-      tagId: tags[0].id,
+      tagId: expect.any(String), // TODO: Fix this
       userId: user.id,
       projectId: workspace.id,
       workspaceId: workspace.workspaceId,

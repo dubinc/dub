@@ -3,6 +3,9 @@ import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedLink } from "../utils/schema";
+import { link } from "../utils/resource";
+
+const { domain, url } = link;
 
 test("list links", async (ctx) => {
   const h = new IntegrationHarness(ctx);
@@ -14,9 +17,6 @@ test("list links", async (ctx) => {
       Authorization: `Bearer ${apiKey.token}`,
     },
   });
-
-  const domain = "dub.sh";
-  const url = "https://github.com/dubinc";
 
   // Create a link
   const { data: firstLink } = await http.post<Link>({

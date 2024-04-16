@@ -4,10 +4,12 @@ import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedLink } from "../utils/schema";
+import { link } from "../utils/resource";
+
+const { domain, url } = link;
 
 // TODO:
 // Archive Unarchive
-// Delete
 // Transfer
 // Add/update/delete tags
 // Other links endpoints
@@ -22,9 +24,6 @@ test("update an existing link", async (ctx) => {
       Authorization: `Bearer ${apiKey.token}`,
     },
   });
-
-  const domain = "dub.sh";
-  const url = "https://github.com/dubinc";
 
   const { data: link } = await http.post<Link>({
     path: "/links",
