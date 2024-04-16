@@ -3,12 +3,12 @@ import { LinkSchema, TagSchema, WorkspaceSchema } from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
 import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
+import { domainsPaths } from "./domains";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { workspacesPaths } from "./workspaces";
-import { domainsPaths } from "./domains";
 
 export const openApiObject: ZodOpenApiObject = {
   openapi: "3.0.3",

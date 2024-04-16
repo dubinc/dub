@@ -1,8 +1,8 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
+import z from "@/lib/zod";
 import { DomainSchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
-import z from "@/lib/zod";
 
 export const listDomains: ZodOpenApiOperationObject = {
   operationId: "listDomains",
