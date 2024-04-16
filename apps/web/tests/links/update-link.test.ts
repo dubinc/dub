@@ -1,10 +1,10 @@
 import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
-import { expect, test, describe, afterAll } from "vitest";
+import { afterAll, describe, expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
-import { expectedLink } from "../utils/schema";
 import { link } from "../utils/resource";
+import { expectedLink } from "../utils/schema";
 
 const { domain, url } = link;
 

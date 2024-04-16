@@ -3,8 +3,8 @@ import { Link, Tag } from "@prisma/client";
 import { afterAll, describe, expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
-import { expectedLink } from "../utils/schema";
 import { link } from "../utils/resource";
+import { expectedLink } from "../utils/schema";
 
 const { domain, url } = link;
 
