@@ -1,0 +1,36 @@
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - main
+      - integration-tests
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+  deployment_status:
+
+jobs:
+  run-e2es:
+    timeout-minutes: 30
+    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run tests
+        working-directory: apps/web
+        env:
+          API_BASE_URL: https://preview.dub.co
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm test
