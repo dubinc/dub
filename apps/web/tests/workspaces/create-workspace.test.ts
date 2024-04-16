@@ -6,7 +6,7 @@ import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedWorkspace } from "../utils/schema";
 
-test("creates new workspace", async (ctx) => {
+test("POST /workspaces", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { apiKey } = await h.init();
 

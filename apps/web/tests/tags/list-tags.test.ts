@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 
-test("retrieve list of tags", async (ctx) => {
+test("GET /tags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey } = await h.init();
 

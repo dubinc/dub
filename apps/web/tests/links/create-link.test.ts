@@ -8,16 +8,10 @@ import { link } from "../utils/resource";
 
 const { domain, url } = link;
 
-// TODO: Move this to shared
-// userId: user.id,
-// projectId: workspace.id,
-// workspaceId: workspace.workspaceId,
-// shortLink: `https://${domain}/${link.key}`,
-// qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-
-describe("create a link with", async () => {
+describe("POST /links", async () => {
   const h = new IntegrationHarness();
   const { workspace, apiKey, user } = await h.init();
+  const { workspaceId, id: projectId } = workspace;
 
   const http = new HttpClient({
     baseUrl: h.baseUrl,
@@ -30,10 +24,10 @@ describe("create a link with", async () => {
     await h.teardown();
   });
 
-  test("default domain", async (ctx) => {
+  test("default domain", async () => {
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url,
       },
@@ -44,8 +38,8 @@ describe("create a link with", async () => {
       ...expectedLink,
       url,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
@@ -58,7 +52,7 @@ describe("create a link with", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url,
         key,
@@ -73,8 +67,8 @@ describe("create a link with", async () => {
       url,
       comments,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
       tags: [],
@@ -89,7 +83,7 @@ describe("create a link with", async () => {
       Link & { shortLink: string }
     >({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url,
         domain,
@@ -104,8 +98,8 @@ describe("create a link with", async () => {
       domain,
       url,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
@@ -128,7 +122,7 @@ describe("create a link with", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url: longUrl.href,
       },
@@ -140,8 +134,8 @@ describe("create a link with", async () => {
       ...utm,
       url: longUrl.href,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
@@ -153,7 +147,7 @@ describe("create a link with", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url,
         password,
@@ -166,8 +160,8 @@ describe("create a link with", async () => {
       url,
       password,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
@@ -180,7 +174,7 @@ describe("create a link with", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url,
         expiresAt,
@@ -195,8 +189,8 @@ describe("create a link with", async () => {
       expiresAt: "2030-04-16T11:30:00.000Z",
       expiredUrl,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
@@ -210,7 +204,7 @@ describe("create a link with", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url,
         ios,
@@ -225,8 +219,8 @@ describe("create a link with", async () => {
       ios,
       android,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
@@ -242,7 +236,7 @@ describe("create a link with", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url,
         geo,
@@ -255,8 +249,8 @@ describe("create a link with", async () => {
       url,
       geo,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
@@ -273,7 +267,7 @@ describe("create a link with", async () => {
       tagsToCreate.map(({ tag, color }) =>
         http.post<Tag>({
           path: "/tags",
-          query: { workspaceId: workspace.workspaceId },
+          query: { workspaceId },
           body: { tag, color },
         }),
       ),
@@ -290,7 +284,7 @@ describe("create a link with", async () => {
 
     const { status, data: link } = await http.post<Link & { tags: [] }>({
       path: "/links",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: {
         url,
         tagIds,
@@ -304,8 +298,8 @@ describe("create a link with", async () => {
       url,
       tagId: expect.any(String), // TODO: Fix this
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: expect.arrayContaining(tags),

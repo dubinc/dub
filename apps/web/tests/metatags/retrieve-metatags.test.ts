@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 
-test("retrieve the metatags for a URL", async (ctx) => {
+test("GET /metatags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
 
   const http = new HttpClient({

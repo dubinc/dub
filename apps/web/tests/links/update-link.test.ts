@@ -9,10 +9,10 @@ import { link } from "../utils/resource";
 const { domain, url } = link;
 
 // TODO:
-// Update other fields
+// Make sure we cover all the fields
 // Add/update/delete tags
 
-describe("PUT - /links/{linkId}", async () => {
+describe("PUT /links/{linkId}", async () => {
   const h = new IntegrationHarness();
   const { workspace, apiKey, user } = await h.init();
   const { workspaceId, id: projectId } = workspace;
@@ -39,12 +39,22 @@ describe("PUT - /links/{linkId}", async () => {
       },
     });
 
-    const newLink = {
+    const newLink: Partial<Link> = {
       key: nanoid(),
       url: "https://github.com/dubinc/dub",
-      expiresAt: new Date("2030-01-01").toISOString(),
       title: "Dub Inc",
       description: "Open-source link management infrastructure.",
+      publicStats: true,
+      comments: "This is a comment.",
+      expiresAt: new Date("2030-04-16 23:59:59"),
+      expiredUrl: "https://github.com/expired",
+      password: "link-password",
+      ios: "https://apps.apple.com/app/1611158928",
+      android:
+        "https://play.google.com/store/apps/details?id=com.disney.disneyplus",
+      geo: {
+        AF: `${url}/AF`,
+      },
     };
 
     const { data: updatedLink } = await http.put<Link>({
@@ -56,15 +66,28 @@ describe("PUT - /links/{linkId}", async () => {
     expect(updatedLink).toMatchObject({
       ...expectedLink,
       ...newLink,
+      expiresAt: "2030-04-16T18:29:59.000Z",
       domain,
-      url: newLink.url,
-      userId: user.id,
       projectId,
       workspaceId,
+      userId: user.id,
       shortLink: `https://${domain}/${newLink.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}?qr=1`,
       tags: [],
     });
+
+    // Fetch the link
+    const { data: fetchedLink } = await http.get<Link>({
+      path: `/links/${link.id}`,
+      query: { workspaceId },
+    });
+
+    expect({
+      ...fetchedLink,
+      workspaceId,
+      shortLink: `https://${domain}/${newLink.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}?qr=1`,
+    }).toMatchObject(updatedLink);
   });
 
   // Archive the link

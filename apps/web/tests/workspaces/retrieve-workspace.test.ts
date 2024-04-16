@@ -4,7 +4,7 @@ import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedWorkspace } from "../utils/schema";
 
-test("retrieve a workspace by id", async (ctx) => {
+test("GET /workspaces/{id}", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey } = await h.init();
 
@@ -31,7 +31,7 @@ test("retrieve a workspace by id", async (ctx) => {
   });
 });
 
-test("retrieve a workspace by slug", async (ctx) => {
+test("GET /workspaces/{slug}", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey } = await h.init();
 

@@ -6,7 +6,7 @@ import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedWorkspace } from "../utils/schema";
 
-test("retrieve list of workspaces", async (ctx) => {
+test("GET /workspaces", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { apiKey, workspace } = await h.init();
 

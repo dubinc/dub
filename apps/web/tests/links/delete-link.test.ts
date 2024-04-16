@@ -6,7 +6,7 @@ import { link } from "../utils/resource";
 
 const { domain, url } = link;
 
-test("delete an existing link", async (ctx) => {
+test("DELETE /links/{linkId}", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey } = await h.init();
   const { workspaceId } = workspace;

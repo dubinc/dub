@@ -7,7 +7,7 @@ import { link } from "../utils/resource";
 
 const { domain, url } = link;
 
-test("list links", async (ctx) => {
+test("GET /links", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey, user } = await h.init();
   const { workspaceId, id: projectId } = workspace;
