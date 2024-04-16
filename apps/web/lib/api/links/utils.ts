@@ -1,14 +1,11 @@
 import { isReservedKey, isReservedUsername } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { SimpleLinkProps, WorkspaceProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import {
   DEFAULT_REDIRECTS,
-  GOOGLE_FAVICON_URL,
   SHORT_DOMAIN,
-  getApexDomain,
   isDubDomain,
   linkConstructor,
-  log,
   punyEncode,
   validKeyRegex,
 } from "@dub/utils";
