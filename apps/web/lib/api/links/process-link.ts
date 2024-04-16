@@ -6,6 +6,7 @@ import { LinkWithTagIdsProps, WorkspaceProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
   SHORT_DOMAIN,
+  getApexDomain,
   getDomainWithoutWWW,
   getUrlFromString,
   isDubDomain,
@@ -257,7 +258,7 @@ export async function processLink({
 }
 
 async function maliciousLinkCheck(url: string) {
-  const domain = getDomainWithoutWWW(url) || "";
+  const [domain, apexDomain] = [getDomainWithoutWWW(url), getApexDomain(url)];
 
   if (!domain) {
     return false;
@@ -267,24 +268,30 @@ async function maliciousLinkCheck(url: string) {
   if (domainBlacklisted) {
     return true;
   }
-  const response = await getPangeaDomainIntel(domain);
-  const verdict = response.result.data[domain].verdict;
-  console.log("Pangea verdict for domain", domain, verdict);
 
-  if (verdict === "malicious" || verdict === "suspicious") {
-    await Promise.all([
-      updateConfig({
-        key: "domains",
-        value: domain,
-      }),
-      log({
-        message: `Suspicious link detected via Pangea → ${url}`,
-        type: "links",
-        mention: true,
-      }),
-    ]);
+  try {
+    const response = await getPangeaDomainIntel(domain);
 
-    return true;
+    const verdict = response.result.data[apexDomain].verdict;
+    console.log("Pangea verdict for domain", apexDomain, verdict);
+
+    if (verdict === "malicious" || verdict === "suspicious") {
+      await Promise.all([
+        updateConfig({
+          key: "domains",
+          value: domain,
+        }),
+        log({
+          message: `Suspicious link detected via Pangea → ${url}`,
+          type: "links",
+          mention: true,
+        }),
+      ]);
+
+      return true;
+    }
+  } catch (e) {
+    console.error("Error checking domain with Pangea", e);
   }
 
   return false;
