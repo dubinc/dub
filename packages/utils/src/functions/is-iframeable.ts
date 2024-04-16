@@ -17,8 +17,8 @@ export const isIframeable = async ({
     return false;
   }
 
-  const xFrameOptions = res.headers.get("X-Frame-Options"); // returns null if there is no `X-Frame-Options` header
-  if (xFrameOptions) {
+  const xFrameOptions = res.headers.get("X-Frame-Options");
+  if (xFrameOptions === "DENY" || xFrameOptions === "SAMEORIGIN") {
     return false;
   }
 

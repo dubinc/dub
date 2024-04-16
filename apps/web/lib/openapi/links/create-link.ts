@@ -1,19 +1,16 @@
-import { ZodOpenApiOperationObject } from "zod-openapi";
-
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
-import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas";
+import { ZodOpenApiOperationObject } from "zod-openapi";
+import { workspaceParamsSchema } from "../request";
 
 export const createLink: ZodOpenApiOperationObject = {
   operationId: "createLink",
+  "x-speakeasy-name-override": "create",
+  "x-speakeasy-usage-example": true,
   summary: "Create a new link",
   description: "Create a new link for the authenticated workspace.",
   requestParams: {
-    query: z.object({
-      workspaceId: z
-        .string()
-        .describe("The ID of the workspace to create the link for."),
-    }),
+    query: workspaceParamsSchema,
   },
   requestBody: {
     content: {
@@ -34,5 +31,5 @@ export const createLink: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Links"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

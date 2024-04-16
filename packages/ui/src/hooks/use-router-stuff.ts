@@ -1,6 +1,6 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-export default function useRouterStuff() {
+export function useRouterStuff() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -55,7 +55,7 @@ export default function useRouterStuff() {
     }`;
     if (getNewPath) return newPath;
     if (replace) {
-      router.replace(newPath);
+      router.replace(newPath, { scroll: false });
     } else {
       router.push(newPath);
     }

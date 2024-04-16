@@ -3,7 +3,6 @@ import { Label, RadioGroup, RadioGroupItem, useMediaQuery } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import {
   FADE_IN_ANIMATION_SETTINGS,
-  HOME_DOMAIN,
   cn,
   getApexDomain,
   getSubdomain,
@@ -37,7 +36,7 @@ export default function DomainInput({
 
   const [domainType, setDomainType] = useState<string | undefined>(undefined);
   const apexDomain = useMemo(
-    () => getApexDomain(getUrlFromString(domain) || ""),
+    () => getApexDomain(getUrlFromString(domain)),
     [domain],
   );
 
@@ -64,7 +63,7 @@ export default function DomainInput({
               required
               autoComplete="off"
               placeholder="subdomain"
-              className="w-1/3 rounded-l-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="w-1/3 rounded-l-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               value={getSubdomain(domain, apexDomain) || ""}
               onChange={(e) => {
                 setData({
@@ -89,7 +88,7 @@ export default function DomainInput({
             autoComplete="off"
             pattern="[a-zA-Z0-9\-.]+"
             className={cn(
-              "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
               {
                 "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                   domainError,
@@ -175,7 +174,7 @@ export default function DomainInput({
         <p className="mt-2 text-sm text-gray-500">
           Want to set up Dub.co to handle redirects on a subpath instead?{" "}
           <a
-            href={`${HOME_DOMAIN}/help/article/how-to-use-dub-with-subpath`}
+            href="https://dub.co/help/article/how-to-use-dub-with-subpath"
             target="_blank"
             className="underline"
           >

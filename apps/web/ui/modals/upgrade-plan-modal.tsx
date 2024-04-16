@@ -14,7 +14,6 @@ import {
 } from "@dub/ui";
 import {
   APP_DOMAIN,
-  HOME_DOMAIN,
   SELF_SERVE_PAID_PLANS,
   STAGGER_CHILD_VARIANTS,
   capitalize,
@@ -298,7 +297,7 @@ function UpgradePlanModal({
           <div className="mt-2 flex items-center justify-center space-x-2">
             {currentPlan === "free" ? (
               <a
-                href={`${HOME_DOMAIN}/pricing`}
+                href="https://dub.co/pricing"
                 target="_blank"
                 className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
               >
@@ -353,7 +352,7 @@ function UpgradePlanModal({
               </Link>
             ) : (
               <a
-                href={`${HOME_DOMAIN}/enterprise`}
+                href="https://dub.co/enterprise"
                 target="_blank"
                 className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
               >

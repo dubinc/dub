@@ -53,6 +53,19 @@ function TransferLinkModal({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ newWorkspaceId }),
+    }).then(async (res) => {
+      if (res.ok) {
+        mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/links"),
+          undefined,
+          { revalidate: true },
+        );
+        setShowTransferLinkModal(false);
+        return true;
+      } else {
+        const error = await res.json();
+        throw new Error(error.message);
+      }
     });
   };
 
@@ -69,21 +82,7 @@ function TransferLinkModal({
             setTransferring(true);
             toast.promise(transferLink(props.id, selectedWorkspace.id), {
               loading: "Transferring link...",
-              success: async (response) => {
-                if (!response.ok) {
-                  const { error } = await response.json();
-                  return `Failed to transfer link. ${error.message}`;
-                }
-
-                mutate(
-                  (key) =>
-                    typeof key === "string" && key.startsWith("/api/links"),
-                  undefined,
-                  { revalidate: true },
-                );
-                setShowTransferLinkModal(false);
-                return "Successfully transferred link.";
-              },
+              success: "Successfully transferred link.",
               error: "Failed to transfer link.",
             });
           }

@@ -1,8 +1,9 @@
+import z from "@/lib/zod";
+import { capitalize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
-import z from "@/lib/zod";
-import { capitalize } from "@dub/utils";
+import { ZodOpenApiResponseObject } from "zod-openapi";
 import { PlanProps } from "../types";
 
 export const ErrorCode = z.enum([
@@ -31,6 +32,20 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   unprocessable_entity: 422,
   rate_limit_exceeded: 429,
   internal_server_error: 500,
+};
+
+const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
+  bad_request: "BadRequest",
+  unauthorized: "Unauthorized",
+  forbidden: "Forbidden",
+  exceeded_limit: "ExceededLimit",
+  not_found: "NotFound",
+  conflict: "Conflict",
+  invite_pending: "InvitePending",
+  invite_expired: "InviteExpired",
+  unprocessable_entity: "UnprocessableEntity",
+  rate_limit_exceeded: "RateLimitExceeded",
+  internal_server_error: "InternalServerError",
 };
 
 const ErrorSchema = z.object({
@@ -142,27 +157,49 @@ export function handleAndReturnErrorResponse(
   return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }
 
-export const errorSchemaFactory = (code: z.infer<typeof ErrorCode>) => {
-  return z.object({
-    error: z.object({
-      code: z.literal(code).openapi({
-        description: "A short code indicating the error code returned.",
-        example: code,
-      }),
-      message: z.string().openapi({
-        description: "A human readable explanation of what went wrong.",
-        example: "The requested resource was not found.",
-      }),
-      doc_url: z
-        .string()
-        .optional()
-        .openapi({
-          description:
-            "A link to our documentation with more details about this error code",
-          example: `${docErrorUrl}#${code}`,
-        }),
-    }),
-  });
+export const errorSchemaFactory = (
+  code: z.infer<typeof ErrorCode>,
+  description: string,
+): ZodOpenApiResponseObject => {
+  return {
+    description,
+    content: {
+      "application/json": {
+        schema: {
+          "x-speakeasy-name-override": speakeasyErrorOverrides[code],
+          type: "object",
+          properties: {
+            error: {
+              type: "object",
+              properties: {
+                code: {
+                  type: "string",
+                  enum: [code],
+                  description:
+                    "A short code indicating the error code returned.",
+                  example: code,
+                },
+                message: {
+                  type: "string",
+                  description:
+                    "A human readable explanation of what went wrong.",
+                  example: "The requested resource was not found.",
+                },
+                doc_url: {
+                  type: "string",
+                  description:
+                    "A link to our documentation with more details about this error code",
+                  example: `${docErrorUrl}#${code}`,
+                },
+              },
+              required: ["code", "message"],
+            },
+          },
+          required: ["error"],
+        },
+      },
+    },
+  };
 };
 
 export const exceededLimitError = ({

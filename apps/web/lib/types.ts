@@ -33,6 +33,7 @@ export interface RedisLinkProps {
   rewrite?: boolean;
   iframeable?: boolean;
   expiresAt?: Date;
+  expiredUrl?: string;
   ios?: string;
   android?: string;
   geo?: object;
@@ -102,8 +103,12 @@ export interface UserProps {
   email: string;
   image?: string;
   createdAt: Date;
+  source: string | null;
+  migratedWorkspace: string | null;
+}
+
+export interface WorkspaceUserProps extends UserProps {
   role: RoleProps;
-  projects?: { projectId: string }[];
 }
 
 export type DomainVerificationStatusProps =
@@ -126,6 +131,7 @@ export interface DomainProps {
   placeholder?: string;
   clicks: number;
   projectId: string;
+  expiredUrl?: string;
 }
 export interface RedisDomainProps {
   id: string;

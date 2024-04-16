@@ -4,14 +4,14 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
 import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import {
   analyticsEndpointSchema,
   getAnalyticsEdgeQuerySchema,
-} from "@/lib/zod/schemas/analytics";
+} from "@/lib/zod/schemas";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "edge";
@@ -36,11 +36,11 @@ export const GET = async (
     if (demoLink) {
       // Rate limit in production
       if (process.env.NODE_ENV !== "development") {
-        const identity_hash = await getIdentityHash(req);
+        const ip = ipAddress(req);
         const { success } = await ratelimit(
           15,
           endpoint === "clicks" ? "10 s" : "1 m",
-        ).limit(`demo-analytics:${demoLink.id}:${identity_hash}:${endpoint}`);
+        ).limit(`demo-analytics:${demoLink.id}:${ip}:${endpoint}`);
 
         if (!success) {
           throw new DubApiError({

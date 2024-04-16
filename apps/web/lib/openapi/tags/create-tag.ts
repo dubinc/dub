@@ -1,19 +1,15 @@
-import { ZodOpenApiOperationObject } from "zod-openapi";
-
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
-import { createTagBodySchema, TagSchema } from "@/lib/zod/schemas/tags";
+import { createTagBodySchema, TagSchema } from "@/lib/zod/schemas";
+import { ZodOpenApiOperationObject } from "zod-openapi";
+import { workspaceParamsSchema } from "../request";
 
 export const createTag: ZodOpenApiOperationObject = {
   operationId: "createTag",
+  "x-speakeasy-name-override": "create",
   summary: "Create a new tag",
   description: "Create a new tag for the authenticated workspace.",
   requestParams: {
-    query: z.object({
-      workspaceId: z
-        .string()
-        .describe("The ID of the workspace to create the tag for."),
-    }),
+    query: workspaceParamsSchema,
   },
   requestBody: {
     content: {
@@ -34,5 +30,5 @@ export const createTag: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Tags"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

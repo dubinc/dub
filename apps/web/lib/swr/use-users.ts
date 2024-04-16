@@ -1,4 +1,4 @@
-import { UserProps } from "@/lib/types";
+import { WorkspaceUserProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
@@ -6,7 +6,7 @@ import useWorkspace from "./use-workspace";
 export default function useUsers({ invites }: { invites?: boolean } = {}) {
   const { id } = useWorkspace();
 
-  const { data: users, error } = useSWR<UserProps[]>(
+  const { data: users, error } = useSWR<WorkspaceUserProps[]>(
     id &&
       (invites
         ? `/api/workspaces/${id}/invites`

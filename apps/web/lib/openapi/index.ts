@@ -1,11 +1,10 @@
-import { ZodOpenApiObject } from "zod-openapi";
-
-import { LinkSchema } from "@/lib/zod/schemas/links";
-import { TagSchema } from "@/lib/zod/schemas/tags";
-import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import { openApiErrorResponses } from "@/lib/openapi/responses";
+import { LinkSchema, TagSchema, WorkspaceSchema } from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
+import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
 import { linksPaths } from "./links";
+import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { workspacesPaths } from "./workspaces";
@@ -39,6 +38,7 @@ export const openApiObject: ZodOpenApiObject = {
     ...analyticsPaths,
     ...workspacesPaths,
     ...tagsPaths,
+    ...metatagsPath,
   },
   components: {
     schemas: {
@@ -47,11 +47,37 @@ export const openApiObject: ZodOpenApiObject = {
       TagSchema,
     },
     securitySchemes: {
-      bearerToken: {
+      token: {
         type: "http",
         description: "Default authentication mechanism",
         scheme: "bearer",
+        "x-speakeasy-example": "DUB_API_KEY",
       },
     },
+    responses: {
+      ...openApiErrorResponses,
+    },
+  },
+  "x-speakeasy-globals": {
+    parameters: [
+      {
+        "x-speakeasy-globals-hidden": true,
+        name: "workspaceId",
+        in: "query",
+        required: true,
+        schema: {
+          type: "string",
+        },
+      },
+      {
+        "x-speakeasy-globals-hidden": true,
+        name: "projectSlug",
+        in: "query",
+        deprecated: true,
+        schema: {
+          type: "string",
+        },
+      },
+    ],
   },
 };

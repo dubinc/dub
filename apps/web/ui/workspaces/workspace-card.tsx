@@ -1,7 +1,7 @@
 "use client";
 
-import { Session } from "@/lib/auth";
 import useDomains from "@/lib/swr/use-domains";
+import useUser from "@/lib/swr/use-user";
 import { DomainProps, WorkspaceProps } from "@/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
 import {
@@ -13,10 +13,10 @@ import {
 } from "@dub/ui";
 import {
   DICEBEAR_AVATAR_URL,
-  HOME_DOMAIN,
   cn,
   fetcher,
   nFormatter,
+  punycode,
 } from "@dub/utils";
 import {
   BarChart2,
@@ -26,9 +26,7 @@ import {
   MinusCircle,
 } from "lucide-react";
 import Link from "next/link";
-import punycode from "punycode/";
 import useSWR from "swr";
-import useSWRImmutable from "swr/immutable";
 import PlanBadge from "./plan-badge";
 import WorkspaceArrow from "./workspace-arrow";
 
@@ -52,9 +50,7 @@ export default function WorkspaceCard({
     fetcher,
   );
 
-  const { data: user } = useSWRImmutable<
-    Session["user"] & { migratedWorkspace: string | null }
-  >(`/api/user`, fetcher);
+  const { user } = useUser();
 
   const isMigratedWorkspace = user?.migratedWorkspace === id;
 
@@ -70,7 +66,7 @@ export default function WorkspaceCard({
               migrated to a custom workspace.
             </p>
             <a
-              href={`${HOME_DOMAIN}/changelog/dub-links-updates`}
+              href="https://dub.co/changelog/dub-links-updates"
               target="_blank"
               className="mt-1 block text-gray-500 underline underline-offset-4 hover:text-gray-800"
             >
@@ -228,7 +224,7 @@ const DomainsTooltip = ({
                 <XCircleFill className="h-5 w-5 text-gray-300" />
               )}
               <p className="text-sm font-semibold text-gray-500">
-                {punycode.toUnicode(slug)}
+                {punycode(slug)}
               </p>
             </div>
             <ExternalLink className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />

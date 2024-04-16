@@ -73,12 +73,12 @@ export const POST = async (req: Request) => {
           data: {
             stripeId,
             billingCycleStart: new Date().getDate(),
+            plan: plan.name.toLowerCase(),
             usageLimit: plan.limits.clicks!,
             linksLimit: plan.limits.links!,
             domainsLimit: plan.limits.domains!,
             tagsLimit: plan.limits.tags!,
             usersLimit: plan.limits.users!,
-            plan: plan.name.toLowerCase(),
           },
           select: {
             users: {
@@ -151,20 +151,24 @@ export const POST = async (req: Request) => {
           return NextResponse.json({ received: true });
         }
 
+        const newPlan = plan.name.toLowerCase();
+
         // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
-        await prisma.project.update({
-          where: {
-            stripeId,
-          },
-          data: {
-            usageLimit: plan.limits.clicks!,
-            linksLimit: plan.limits.links!,
-            domainsLimit: plan.limits.domains!,
-            tagsLimit: plan.limits.tags!,
-            usersLimit: plan.limits.users!,
-            plan: plan.name.toLowerCase(),
-          },
-        });
+        if (workspace.plan !== newPlan) {
+          await prisma.project.update({
+            where: {
+              stripeId,
+            },
+            data: {
+              plan: newPlan,
+              usageLimit: plan.limits.clicks!,
+              linksLimit: plan.limits.links!,
+              domainsLimit: plan.limits.domains!,
+              tagsLimit: plan.limits.tags!,
+              usersLimit: plan.limits.users!,
+            },
+          });
+        }
       }
 
       // If workspace cancels their subscription
@@ -213,7 +217,7 @@ export const POST = async (req: Request) => {
         const pipeline = redis.pipeline();
         // remove root domain redirect for all domains
         workspace.domains.forEach((domain) => {
-          pipeline.hset(domain.slug, {
+          pipeline.hset(domain.slug.toLowerCase(), {
             _root: {
               id: domain.id,
               projectId: workspace.id,

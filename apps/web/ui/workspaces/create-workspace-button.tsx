@@ -4,7 +4,7 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import { ModalContext } from "@/ui/modals/provider";
 import { Button } from "@dub/ui";
 import { TooltipContent } from "@dub/ui/src/tooltip";
-import { FREE_WORKSPACES_LIMIT, HOME_DOMAIN } from "@dub/utils";
+import { FREE_WORKSPACES_LIMIT } from "@dub/utils";
 import { useContext } from "react";
 
 export default function CreateWorkspaceButton() {
@@ -23,11 +23,12 @@ export default function CreateWorkspaceButton() {
               href={
                 freeWorkspaces
                   ? `/${freeWorkspaces[0].slug}/settings/billing?upgrade=pro`
-                  : `${HOME_DOMAIN}/pricing`
+                  : "https://dub.co/pricing"
               }
             />
           ) : undefined
         }
+        className="flex-shrink-0 truncate"
         onClick={() => setShowAddWorkspaceModal(true)}
       />
     </div>

@@ -2,7 +2,7 @@
 
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { UserProps } from "@/lib/types";
+import { WorkspaceUserProps } from "@/lib/types";
 import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
 import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
@@ -106,7 +106,7 @@ const UserCard = ({
   user,
   currentTab,
 }: {
-  user: UserProps;
+  user: WorkspaceUserProps;
   currentTab: "Members" | "Invitations";
 }) => {
   const [openPopover, setOpenPopover] = useState(false);

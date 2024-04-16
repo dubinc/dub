@@ -1,7 +1,7 @@
 import { ratelimit } from "@/lib/upstash";
+import { ipAddress } from "@vercel/edge";
 import { NextResponse } from "next/server";
 import { unsplash } from "../utils";
-import { getIdentityHash } from "@/lib/edge";
 
 export const runtime = "edge";
 
@@ -17,10 +17,8 @@ export async function GET(req: Request) {
     return new Response("Unsplash API key not found", { status: 400 });
   }
 
-  const identity_hash = await getIdentityHash(req);
-  const { success } = await ratelimit(10, "10 s").limit(
-    `unsplash:${identity_hash}`,
-  );
+  const ip = ipAddress(req);
+  const { success } = await ratelimit(10, "10 s").limit(`unsplash:${ip}`);
   if (!success) {
     return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }

@@ -93,7 +93,7 @@ function DeleteWorkspaceModal({
               pattern={slug}
               disabled={!isOwner}
               className={cn(
-                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                 {
                   "cursor-not-allowed bg-gray-100": !isOwner,
                 },
@@ -120,7 +120,7 @@ function DeleteWorkspaceModal({
               autoComplete="off"
               disabled={!isOwner}
               className={cn(
-                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                 {
                   "cursor-not-allowed bg-gray-100": !isOwner,
                 },

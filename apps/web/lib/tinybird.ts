@@ -1,12 +1,14 @@
 import {
+  EU_COUNTRY_CODES,
   LOCALHOST_GEO_DATA,
+  LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
   nanoid,
 } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
-import { getIdentityHash } from "./edge";
-import { detectBot } from "./middleware/utils";
+import { detectBot, detectQr, getIdentityHash } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
@@ -27,16 +29,18 @@ export async function recordClick({
 }) {
   const isBot = detectBot(req);
   if (isBot) {
-    return null;
+    return null; // don't record clicks from bots
   }
+  const isQr = detectQr(req);
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
+  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
-  // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
+  // if in production / preview env, deduplicate clicks from the same IP address + link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${identity_hash}:${id}`,
+      `recordClick:${ip}:${id}`,
     );
     if (!success) {
       return null;
@@ -58,6 +62,14 @@ export async function recordClick({
           link_id: id,
           alias_link_id: "",
           url: url || "",
+          ip:
+            // only record IP if it's a valid IP and not from EU
+            typeof ip === "string" &&
+            ip.trim().length > 0 &&
+            (!geo?.country ||
+              (geo?.country && !EU_COUNTRY_CODES.includes(geo.country)))
+              ? ip
+              : "",
           country: geo?.country || "Unknown",
           city: geo?.city || "Unknown",
           region: geo?.region || "Unknown",
@@ -75,6 +87,7 @@ export async function recordClick({
           cpu_architecture: ua.cpu?.architecture || "Unknown",
           ua: ua.ua || "Unknown",
           bot: ua.isBot,
+          qr: isQr,
           referer: referer
             ? getDomainWithoutWWW(referer) || "(direct)"
             : "(direct)",
@@ -84,13 +97,21 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // increment the click count for the link or domain (based on their ID)
-    // also increment the usage count for the project (if it's a link click)
+    // also increment the usage count for the workspace
     // and then we have a cron that will reset it at the start of new billing cycle
     root
-      ? conn.execute(
-          "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-          [id],
-        )
+      ? [
+          conn.execute(
+            "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
+            [id],
+          ),
+          // only increment workspace clicks if there is a destination URL configured (not placeholder landing page)
+          url &&
+            conn.execute(
+              "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.id = ?",
+              [id],
+            ),
+        ]
       : [
           conn.execute(
             "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",

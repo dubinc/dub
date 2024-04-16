@@ -1,10 +1,9 @@
 import useTags from "@/lib/swr/use-tags";
-import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
-import { ChevronDown, Tag } from "lucide-react";
-import Link from "next/link";
+import { InputSelect, useRouterStuff } from "@dub/ui";
+import { Tag } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
-import TagBadge from "../links/tag-badge";
+import { useContext } from "react";
+import { ModalContext } from "../modals/provider";
 
 export default function TagSelector() {
   const { queryParams } = useRouterStuff();
@@ -12,61 +11,52 @@ export default function TagSelector() {
   const { tags } = useTags();
   const searchParams = useSearchParams();
   const selectedTagId = searchParams?.get("tagId");
+  const { setShowAddEditTagModal } = useContext(ModalContext);
 
-  const [openPopover, setOpenPopover] = useState(false);
-
-  return tags && tags.length > 0 ? (
-    <Popover
-      content={
-        <div className="grid w-full p-2 md:w-48">
-          <Link
-            href={
-              queryParams({
-                del: "tagId",
-                getNewPath: true,
-              }) as string
-            }
-            className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+  return (
+    <InputSelect
+      adjustForMobile
+      disabled={!tags}
+      items={
+        tags?.map(({ id, name, color }) => ({
+          id,
+          color,
+          value: name,
+        })) || []
+      }
+      icon={<Tag className="h-4 w-4 text-black" />}
+      selectedItem={{
+        id: selectedTagId!,
+        value: tags?.find(({ id }) => id === selectedTagId)?.name || "",
+        color: tags?.find(({ id }) => id === selectedTagId)?.color,
+      }}
+      setSelectedItem={(tag) => {
+        if (tag && typeof tag !== "function" && tag.id) {
+          queryParams({
+            set: { tagId: tag.id },
+          });
+        } else {
+          queryParams({ del: "tagId" });
+        }
+      }}
+      inputAttrs={{
+        placeholder: "Filter tags",
+      }}
+      className="lg:w-48"
+      noItemsElement={
+        <div>
+          <h4 className="mb-2 px-2 py-2 text-sm text-gray-600">
+            No tags found in this workspace
+          </h4>
+          <button
+            type="button"
+            className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+            onClick={() => setShowAddEditTagModal(true)}
           >
-            <p className="text-sm">All tags</p>
-            {!selectedTagId && <Tick className="h-4 w-4" aria-hidden="true" />}
-          </Link>
-          {tags.map((tag) => (
-            <Link
-              key={tag.id}
-              href={
-                queryParams({
-                  set: { tagId: tag.id },
-                  getNewPath: true,
-                }) as string
-              }
-              className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-            >
-              <TagBadge {...tag} />
-              {selectedTagId === tag.id && (
-                <Tick className="h-4 w-4" aria-hidden="true" />
-              )}
-            </Link>
-          ))}
+            Add a tag
+          </button>
         </div>
       }
-      openPopover={openPopover}
-      setOpenPopover={setOpenPopover}
-    >
-      <button
-        onClick={(o) => setOpenPopover(!o)}
-        className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
-      >
-        <IconMenu
-          text={tags.find(({ id }) => id === selectedTagId)?.name || "All tags"}
-          icon={<Tag className="h-4 w-4" />}
-        />
-        <ChevronDown
-          className={`h-5 w-5 text-gray-400 ${
-            openPopover ? "rotate-180 transform" : ""
-          } transition-all duration-75`}
-        />
-      </button>
-    </Popover>
-  ) : undefined;
+    />
+  );
 }

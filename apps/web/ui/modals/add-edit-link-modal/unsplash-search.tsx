@@ -41,7 +41,7 @@ export default function UnsplashSearch({
           autoComplete="off"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="block w-full rounded-md border-gray-300 py-1 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+          className="block w-full rounded-md border-gray-300 py-1 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
         />
       </div>
       {data ? (

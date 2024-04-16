@@ -55,8 +55,8 @@ function DeleteAccountModal({
         <Avatar user={session?.user} />
         <h3 className="text-lg font-medium">Delete Account</h3>
         <p className="text-center text-sm text-gray-500">
-          Warning: This will permanently delete your account, all your workspaces,
-          and all your short links.
+          Warning: This will permanently delete your account, all your
+          workspaces, and all your short links.
         </p>
       </div>
 
@@ -88,7 +88,7 @@ function DeleteAccountModal({
               required
               autoFocus={false}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             />
           </div>
         </div>
