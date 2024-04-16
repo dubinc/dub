@@ -10,6 +10,7 @@ import {
   getUrlFromString,
   isDubDomain,
   isValidUrl,
+  log,
   parseDateTime,
 } from "@dub/utils";
 import { combineTagIds, keyChecks, processKey } from "./utils";
@@ -268,12 +269,20 @@ async function maliciousLinkCheck(url: string) {
   }
   const response = await getPangeaDomainIntel(domain);
   const verdict = response.result.data[domain].verdict;
+  console.log("Pangea verdict for domain", domain, verdict);
 
   if (verdict === "malicious" || verdict === "suspicious") {
-    await updateConfig({
-      key: "domains",
-      value: domain,
-    });
+    await Promise.all([
+      updateConfig({
+        key: "domains",
+        value: domain,
+      }),
+      log({
+        message: `Suspicious link detected via Pangea → ${url}`,
+        type: "links",
+        mention: true,
+      }),
+    ]);
 
     return true;
   }
