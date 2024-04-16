@@ -1,8 +1,15 @@
 import { hashToken, withSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, nanoid, trim } from "@dub/utils";
 import { NextResponse } from "next/server";
+
+import z from "@/lib/zod";
+import { string } from "zod";
+
+const createApikeySchema = z.object({
+  name: string(z.preprocess(trim, z.string().min(1).max(32)).optional()),
+});
 
 // GET /api/user/tokens – get all tokens for a specific user
 export const GET = withSession(async ({ session }) => {
@@ -31,34 +38,38 @@ export const GET = withSession(async ({ session }) => {
 
 // POST /api/user/tokens – create a new token for a specific user
 export const POST = withSession(async ({ req, session }) => {
-  const { name } = await req.json();
-  const token = nanoid(24);
-  const hashedKey = hashToken(token, {
-    noSecret: true,
-  });
-  // take first 3 and last 4 characters of the key
-  const partialKey = `${token.slice(0, 3)}...${token.slice(-4)}`;
-  await Promise.all([
-    prisma.token.create({
-      data: {
-        name,
-        hashedKey,
-        partialKey,
-        userId: session.user.id,
-      },
-    }),
-    qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/notify`,
-      body: {
-        type: "API_KEY_CREATED",
-        props: {
-          email: session.user.email,
-          apiKeyName: name,
+  try {
+    const { name } = await createApikeySchema.parseAsync(req.json());
+    const token = nanoid(24);
+    const hashedKey = hashToken(token, {
+      noSecret: true,
+    });
+    // take first 3 and last 4 characters of the key
+    const partialKey = `${token.slice(0, 3)}...${token.slice(-4)}`;
+    await Promise.all([
+      prisma.token.create({
+        data: {
+          name,
+          hashedKey,
+          partialKey,
+          userId: session.user.id,
         },
-      },
-    }),
-  ]);
-  return NextResponse.json({ token });
+      }),
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/notify`,
+        body: {
+          type: "API_KEY_CREATED",
+          props: {
+            email: session.user.email,
+            apiKeyName: name,
+          },
+        },
+      }),
+    ]);
+    return NextResponse.json({ token });
+  } catch (error) {
+    throw error;
+  }
 });
 
 // DELETE /api/user/tokens – delete a token for a specific user

@@ -148,6 +148,7 @@ export default function UploadAvatar() {
               id="image"
               name="image"
               type="file"
+              required
               accept="image/*"
               className="sr-only"
               onChange={onChangePicture}
