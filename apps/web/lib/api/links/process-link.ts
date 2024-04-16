@@ -275,7 +275,13 @@ async function maliciousLinkCheck(url: string) {
     const verdict = response.result.data[apexDomain].verdict;
     console.log("Pangea verdict for domain", apexDomain, verdict);
 
-    if (verdict === "malicious" || verdict === "suspicious") {
+    if (verdict === "benign") {
+      await updateConfig({
+        key: "whitelistedDomains",
+        value: domain,
+      });
+      return false;
+    } else if (verdict === "malicious" || verdict === "suspicious") {
       await Promise.all([
         updateConfig({
           key: "domains",

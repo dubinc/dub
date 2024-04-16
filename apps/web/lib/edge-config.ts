@@ -109,6 +109,7 @@ export const updateConfig = async ({
 }: {
   key:
     | "domains"
+    | "whitelistedDomains"
     | "terms"
     | "referrers"
     | "keys"
