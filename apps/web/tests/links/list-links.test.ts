@@ -10,6 +10,7 @@ const { domain, url } = link;
 test("list links", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey, user } = await h.init();
+  const { workspaceId, id: projectId } = workspace;
 
   const http = new HttpClient({
     baseUrl: h.baseUrl,
@@ -21,7 +22,7 @@ test("list links", async (ctx) => {
   // Create a link
   const { data: firstLink } = await http.post<Link>({
     path: "/links",
-    query: { workspaceId: workspace.workspaceId },
+    query: { workspaceId },
     body: { url, domain },
   });
 
@@ -31,14 +32,14 @@ test("list links", async (ctx) => {
   // Create another link
   const { data: secondLink } = await http.post<Link>({
     path: "/links",
-    query: { workspaceId: workspace.workspaceId },
+    query: { workspaceId },
     body: { url, domain },
   });
 
   // List links
   const { data: links, status } = await http.get<Link[]>({
     path: "/links",
-    query: { workspaceId: workspace.workspaceId },
+    query: { workspaceId },
   });
 
   expect(status).toEqual(200);
@@ -49,8 +50,8 @@ test("list links", async (ctx) => {
       domain,
       url,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       tags: [],
       shortLink: `https://${domain}/${secondLink.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink.key}?qr=1`,
@@ -61,8 +62,8 @@ test("list links", async (ctx) => {
       domain,
       url,
       userId: user.id,
-      projectId: workspace.id,
-      workspaceId: workspace.workspaceId,
+      projectId,
+      workspaceId,
       tags: [],
       shortLink: `https://${domain}/${firstLink.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,

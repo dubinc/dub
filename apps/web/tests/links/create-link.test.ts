@@ -15,7 +15,7 @@ const { domain, url } = link;
 // shortLink: `https://${domain}/${link.key}`,
 // qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
 
-describe("create links with", async () => {
+describe("create a link with", async () => {
   const h = new IntegrationHarness();
   const { workspace, apiKey, user } = await h.init();
 
