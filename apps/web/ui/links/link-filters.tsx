@@ -194,7 +194,7 @@ const DomainsFilter = () => {
   const { id: workspaceId } = useWorkspace();
   const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
 
-  const [collapsed, setCollapsed] = useState(domains.length > 0 ? false : true);
+  const [collapsed, setCollapsed] = useState(true);
   const [showMore, setShowMore] = useState(false);
 
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal({
@@ -206,6 +206,8 @@ const DomainsFilter = () => {
   });
 
   const options = useMemo(() => {
+    if (domains?.length === 0) return [];
+
     const workspaceDomains = activeWorkspaceDomains?.map((domain) => ({
       ...domain,
       count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
@@ -230,6 +232,12 @@ const DomainsFilter = () => {
 
     return finalOptions;
   }, [activeWorkspaceDomains, activeDefaultDomains, domains, workspaceId]);
+
+  useEffect(() => {
+    if (options.length > 0) {
+      setCollapsed(false);
+    }
+  }, [options]);
 
   return (
     <fieldset className="overflow-hidden py-6">
