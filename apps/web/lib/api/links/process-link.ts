@@ -1,5 +1,5 @@
-import { isBlacklistedDomain } from "@/lib/edge-config";
-import { getPangeaDomainIntel, getPangeaURLIntel } from "@/lib/pangea";
+import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { getPangeaDomainIntel } from "@/lib/pangea";
 import { getRandomKey } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps, WorkspaceProps } from "@/lib/types";
@@ -101,7 +101,7 @@ export async function processLink({
     if (isMaliciousLink) {
       return {
         link: payload,
-        error: "Malicious link detected.",
+        error: "Malicious URL detected",
         code: "unprocessable_entity",
       };
     }
@@ -256,21 +256,27 @@ export async function processLink({
 }
 
 async function maliciousLinkCheck(url: string) {
+  const domain = getDomainWithoutWWW(url) || "";
+
+  if (!domain) {
+    return false;
+  }
+
   const domainBlacklisted = await isBlacklistedDomain(url);
   if (domainBlacklisted) {
     return true;
   }
+  const response = await getPangeaDomainIntel(domain);
+  const verdict = response.result.data[domain].verdict;
 
-  // Check if domain is suspicious. We're going to do a broad check if domain is suspicious then proceed with a URL scan for accuracy
-  // The best way to flag domains is using mutlipe dataset providers
-  const domainScanRes = await getPangeaDomainIntel(url);
-  console.log(domainScanRes);
-  if (domainScanRes === "malicious" || domainScanRes === "suspicious") {
-    // Suspicious domain detected, so run a URL scan to check if URL is malicious
-    const urlScanRes = await getPangeaURLIntel(url);
-    if (urlScanRes === "malicious") {
-      return true;
-    }
+  if (verdict === "malicious" || verdict === "suspicious") {
+    await updateConfig({
+      key: "domains",
+      value: domain,
+    });
+
+    return true;
   }
+
   return false;
 }
