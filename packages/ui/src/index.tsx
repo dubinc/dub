@@ -34,8 +34,13 @@ export * from "./content";
 
 // misc
 export * from "./blur-image";
+export * from "./client-only";
 export * from "./copy-button";
+export * from "./counting-numbers";
 export * from "./icon-menu";
 export * from "./inline-snippet";
+export * from "./link-logo";
 export * from "./link-preview";
+export * from "./popup";
+export * from "./progress-bar";
 export * from "./tab-select";

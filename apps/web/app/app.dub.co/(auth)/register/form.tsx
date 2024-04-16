@@ -10,7 +10,7 @@ export default function RegisterForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const [clickedGoogle, setClickedGoogle] = useState(false);
-  const [clickedGitub, setClickedGithub] = useState(false);
+  const [clickedGithub, setClickedGithub] = useState(false);
 
   useEffect(() => {
     // when leave page, reset state
@@ -42,7 +42,7 @@ export default function RegisterForm() {
             ...(next && next.length > 0 ? { callbackUrl: next } : {}),
           });
         }}
-        loading={clickedGitub}
+        loading={clickedGithub}
         icon={<Github className="h-4 w-4" />}
       />
       <p className="text-center text-sm text-gray-500">

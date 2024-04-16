@@ -12,12 +12,12 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { ProjectProps } from "../lib/types";
+import { WorkspaceProps } from "../lib/types";
 import Footer from "./components/footer";
 
 export default function ClicksExceeded({
   email = "panic@thedis.co",
-  project = {
+  workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
     name: "Acme",
     slug: "acme",
@@ -25,20 +25,20 @@ export default function ClicksExceeded({
     usageLimit: 1000,
     plan: "business",
   },
-  type = "first",
+  type = "firstUsageLimitEmail",
 }: {
   email: string;
-  project: Partial<ProjectProps>;
-  type: "first" | "second";
+  workspace: Partial<WorkspaceProps>;
+  type: "firstUsageLimitEmail" | "secondUsageLimitEmail";
 }) {
-  const { slug, name, usage, usageLimit, plan } = project;
+  const { slug, name, usage, usageLimit, plan } = workspace;
   const nextPlan = getNextPlan(plan as string);
 
   return (
     <Html>
       <Head />
       <Preview>
-        Your Dub.co project, {name || ""} has exceeded the{" "}
+        Your Dub.co workspace, {name || ""} has exceeded the{" "}
         {capitalize(plan) || ""} Plan limit of {nFormatter(usageLimit)} link
         clicks/month.
       </Preview>
@@ -58,7 +58,7 @@ export default function ClicksExceeded({
               Clicks Limit Exceeded
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your Dub.co project,{" "}
+              Your Dub.co workspace,{" "}
               <Link
                 href={`https://app.dub.co/${slug}`}
                 className="text-black underline"
@@ -94,7 +94,7 @@ export default function ClicksExceeded({
             </Section>
             <Text className="text-sm leading-6 text-black">
               To respect your inbox,{" "}
-              {type === "first"
+              {type === "firstUsageLimitEmail"
                 ? "we will only send you one more email about this in 3 days"
                 : "this will be the last time we'll email you about this for the current billing cycle"}
               . Feel free to ignore this email if you don't plan on upgrading,

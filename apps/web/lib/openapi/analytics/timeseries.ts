@@ -1,15 +1,17 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import { workspaceParamsSchema } from "../request";
 
 export const getTimeseriesAnalytics: ZodOpenApiOperationObject = {
   operationId: "getTimeseriesAnalytics",
+  "x-speakeasy-name-override": "timeseries",
   summary: "Retrieve timeseries analytics",
   description:
-    "Retrieve the number of clicks for a link, a domain, or the authenticated project over a period of time.",
+    "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
   requestParams: {
-    query: getAnalyticsQuerySchema,
+    query: workspaceParamsSchema.merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {
@@ -32,5 +34,5 @@ export const getTimeseriesAnalytics: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Analytics"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

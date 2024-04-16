@@ -15,7 +15,7 @@ export default function LoginForm() {
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
   const [clickedGoogle, setClickedGoogle] = useState(false);
-  const [clickedGitub, setClickedGithub] = useState(false);
+  const [clickedGithub, setClickedGithub] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
   const [clickedSSO, setClickedSSO] = useState(false);
 
@@ -59,7 +59,7 @@ export default function LoginForm() {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
             });
           }}
-          loading={clickedGitub}
+          loading={clickedGithub}
           disabled={clickedEmail || clickedSSO}
           icon={<Github className="h-5 w-5 text-black" />}
         />
@@ -152,7 +152,7 @@ export default function LoginForm() {
               return;
             }
             await signIn("saml", undefined, {
-              tenant: data.projectId,
+              tenant: data.workspaceId,
               product: "Dub",
             });
           });
@@ -164,10 +164,10 @@ export default function LoginForm() {
             <div className="mb-4 mt-1 border-t border-gray-300" />
             <div className="flex items-center space-x-2">
               <h2 className="text-sm font-medium text-gray-900">
-                Project Slug
+                Workspace Slug
               </h2>
               <InfoTooltip
-                content={`This is your project's unique identifier on ${process.env.NEXT_PUBLIC_APP_NAME}. E.g. app.dub.co/acme is "acme".`}
+                content={`This is your workspace's unique identifier on ${process.env.NEXT_PUBLIC_APP_NAME}. E.g. app.dub.co/acme is "acme".`}
               />
             </div>
             <input

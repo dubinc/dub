@@ -4,8 +4,9 @@ import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   DUB_DEMO_LINKS,
   DUB_HEADERS,
-  LEGAL_PROJECT_ID,
+  LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
+  punyEncode,
 } from "@dub/utils";
 import {
   NextFetchEvent,
@@ -27,8 +28,9 @@ export default async function LinkMiddleware(
     return NextResponse.next();
   }
 
+  // encode the key to ascii
   // links on Dub are case insensitive by default
-  key = key.toLowerCase();
+  key = punyEncode(key.toLowerCase());
 
   const demoLink = DUB_DEMO_LINKS.find(
     (l) => l.domain === domain && l.key === key,
@@ -57,7 +59,10 @@ export default async function LinkMiddleware(
     if (!linkData) {
       // short link not found, redirect to root
       // TODO: log 404s (https://github.com/dubinc/dub/issues/559)
-      return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
+      return NextResponse.redirect(new URL("/", req.url), {
+        ...DUB_HEADERS,
+        status: 302,
+      });
     }
 
     // format link to fit the RedisLinkProps interface
@@ -81,12 +86,14 @@ export default async function LinkMiddleware(
     ios,
     android,
     geo,
+    expiredUrl,
   } = link;
 
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
     return NextResponse.rewrite(
       new URL(`/inspect/${domain}/${encodeURIComponent(key)}+`, req.url),
+      DUB_HEADERS,
     );
   }
 
@@ -101,6 +108,7 @@ export default async function LinkMiddleware(
     if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
       return NextResponse.rewrite(
         new URL(`/password/${domain}/${encodeURIComponent(key)}`, req.url),
+        DUB_HEADERS,
       );
     } else if (pw) {
       // strip it from the URL if it's correct
@@ -109,13 +117,20 @@ export default async function LinkMiddleware(
   }
 
   // if the link is banned
-  if (link.projectId === LEGAL_PROJECT_ID) {
-    return NextResponse.rewrite(new URL("/banned", req.url));
+  if (link.projectId === LEGAL_WORKSPACE_ID) {
+    return NextResponse.rewrite(new URL("/banned", req.url), DUB_HEADERS);
   }
 
   // if the link has expired
   if (expiresAt && new Date(expiresAt) < new Date()) {
-    return NextResponse.rewrite(new URL("/expired", req.url));
+    if (expiredUrl) {
+      return NextResponse.redirect(expiredUrl, DUB_HEADERS);
+    } else {
+      return NextResponse.rewrite(
+        new URL(`/expired/${domain}`, req.url),
+        DUB_HEADERS,
+      );
+    }
   }
 
   const searchParams = req.nextUrl.searchParams;
@@ -138,13 +153,14 @@ export default async function LinkMiddleware(
   if (isBot && proxy) {
     return NextResponse.rewrite(
       new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+      DUB_HEADERS,
     );
 
     // rewrite to target URL if link cloaking is enabled
   } else if (rewrite) {
     if (iframeable) {
       return NextResponse.rewrite(
-        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
+        new URL(`/cloaked/${encodeURIComponent(url)}`, req.url),
         DUB_HEADERS,
       );
     } else {
@@ -154,21 +170,30 @@ export default async function LinkMiddleware(
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
-    return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(ios, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
-    return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(android, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
-    return NextResponse.redirect(
-      getFinalUrl(geo[country], { req }),
-      DUB_HEADERS,
-    );
+    return NextResponse.redirect(getFinalUrl(geo[country], { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // regular redirect
   } else {
-    return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(url, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
   }
 }

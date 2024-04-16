@@ -1,8 +1,10 @@
+import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useDomains from "@/lib/swr/use-domains";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
-import { TagProps } from "@/lib/types";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { DomainProps, TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
@@ -11,19 +13,22 @@ import {
   Copy,
   LoadingCircle,
   LoadingSpinner,
-  NumberTooltip,
   Popover,
   Switch,
   Tick,
   useRouterStuff,
+  useToastWithUndo,
 } from "@dub/ui";
 import {
+  DUB_WORKSPACE_ID,
   SWIPE_REVEAL_ANIMATION_SETTINGS,
+  isDubDomain,
   nFormatter,
+  punycode,
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Edit3, Search, XCircle } from "lucide-react";
+import { Archive, ChevronRight, Edit3, Search, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   useParams,
@@ -31,7 +36,6 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import punycode from "punycode/";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -63,7 +67,7 @@ export default function LinkFilters() {
       "search",
       "domain",
       "userId",
-      "tagId",
+      "tagIds",
       "showArchived",
       "page",
       "withTags",
@@ -103,7 +107,7 @@ const ClearButton = ({ searchInputRef }) => {
   return (
     <button
       onClick={() => {
-        router.replace(`/${slug || "links"}`);
+        router.replace(`/${slug}`);
         searchInputRef.current.value = "";
       }}
       className="group flex items-center justify-center space-x-1 rounded-md border border-gray-400 px-2 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
@@ -187,9 +191,10 @@ const DomainsFilter = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
-  const { primaryDomain } = useDomains();
+  const { id: workspaceId } = useWorkspace();
+  const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
 
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [showMore, setShowMore] = useState(false);
 
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal({
@@ -201,18 +206,38 @@ const DomainsFilter = () => {
   });
 
   const options = useMemo(() => {
-    return domains?.length === 0
-      ? [
-          {
-            value: primaryDomain,
-            count: 0,
-          },
-        ]
-      : domains?.map(({ domain, _count }) => ({
-          value: domain,
-          count: _count,
-        })) || [];
-  }, [domains, primaryDomain]);
+    if (domains?.length === 0) return [];
+
+    const workspaceDomains = activeWorkspaceDomains?.map((domain) => ({
+      ...domain,
+      count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
+    }));
+
+    const defaultDomains =
+      workspaceId === `ws_${DUB_WORKSPACE_ID}`
+        ? []
+        : activeDefaultDomains
+            ?.map((domain) => ({
+              ...domain,
+              count:
+                domains?.find(({ domain: d }) => d === domain.slug)?._count ||
+                0,
+            }))
+            .filter((d) => d.count > 0);
+
+    const finalOptions = [
+      ...(workspaceDomains || []),
+      ...(defaultDomains || []),
+    ].sort((a, b) => b.count - a.count);
+
+    return finalOptions;
+  }, [activeWorkspaceDomains, activeDefaultDomains, domains, workspaceId]);
+
+  useEffect(() => {
+    if (options.length > 0) {
+      setCollapsed(false);
+    }
+  }, [options]);
 
   return (
     <fieldset className="overflow-hidden py-6">
@@ -237,24 +262,24 @@ const DomainsFilter = () => {
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {options
-              .slice(0, showMore ? options.length : 4)
-              .map(({ value, count }) => (
+            {options.length === 0 ? ( // if the workspace has no domains
+              <p className="text-center text-sm text-gray-500">
+                No domains yet.
+              </p>
+            ) : (
+              options.slice(0, showMore ? options.length : 4).map((domain) => (
                 <div
-                  key={value}
-                  className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
+                  key={domain.slug}
+                  className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
                 >
                   <input
-                    id={value}
-                    name={value}
-                    checked={
-                      searchParams?.get("domain") === value ||
-                      domains?.length <= 1
-                    }
+                    id={domain.slug}
+                    name={domain.slug}
+                    checked={searchParams?.get("domain") === domain.slug}
                     onChange={() => {
                       queryParams({
                         set: {
-                          domain: value,
+                          domain: domain.slug,
                         },
                         del: "page",
                       });
@@ -263,16 +288,15 @@ const DomainsFilter = () => {
                     className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
                   />
                   <label
-                    htmlFor={value}
-                    className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+                    htmlFor={domain.slug}
+                    className="flex w-full cursor-pointer items-center justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                   >
-                    <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
-                    <NumberTooltip value={count} unit="links">
-                      <p className="text-gray-500">{nFormatter(count)}</p>
-                    </NumberTooltip>
+                    <p>{truncate(punycode(domain.slug), 24)}</p>
+                    <DomainPopover domain={domain} count={domain.count} />
                   </label>
                 </div>
-              ))}
+              ))
+            )}
             {options.length > 4 && (
               <button
                 onClick={() => setShowMore(!showMore)}
@@ -285,6 +309,172 @@ const DomainsFilter = () => {
         )}
       </AnimatePresence>
     </fieldset>
+  );
+};
+
+const DomainPopover = ({
+  domain,
+  count,
+}: {
+  domain: DomainProps;
+  count: number;
+}) => {
+  const { id, slug } = useWorkspace();
+  const [openPopover, setOpenPopover] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const { mutate: mutateDomains } = useDomains();
+  const { defaultDomains, mutate: mutateDefaultDomains } = useDefaultDomains();
+
+  const { AddEditDomainModal, setShowAddEditDomainModal } =
+    useAddEditDomainModal({
+      props: domain,
+    });
+
+  const toastWithUndo = useToastWithUndo();
+
+  const archiveDomain = (archive: boolean) => {
+    return fetch(`/api/domains/${domain.slug}?workspaceId=${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...domain,
+        archived: archive,
+      }),
+    });
+  };
+
+  const archiveDefaultDomain = (archive: boolean) => {
+    const newDefaultDomains = archive
+      ? defaultDomains?.filter((d) => d !== domain.slug)
+      : [...(defaultDomains || []), domain.slug];
+    return fetch(`/api/domains/default?workspaceId=${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        defaultDomains: newDefaultDomains,
+      }),
+    });
+  };
+
+  const handleArchiveRequest = async () => {
+    setProcessing(true);
+    if (isDubDomain(domain.slug)) {
+      const res = await archiveDefaultDomain(true);
+      if (res.ok) {
+        await mutateDefaultDomains();
+        toastWithUndo({
+          id: "domain-archive-undo-toast",
+          message: `Successfully archived domain!`,
+          undo: async () => {
+            toast.promise(archiveDefaultDomain(false), {
+              loading: "Undo in progress...",
+              error: "Failed to roll back changes. An error occurred.",
+              success: async () => {
+                await mutateDefaultDomains();
+                return "Undo successful! Changes reverted.";
+              },
+            });
+          },
+          duration: 5000,
+        });
+      } else {
+        const { error } = await res.json();
+        setProcessing(false);
+        toast.error(error.message);
+      }
+    } else {
+      const res = await archiveDomain(true);
+      if (res.ok) {
+        await mutateDomains();
+        toastWithUndo({
+          id: "domain-archive-undo-toast",
+          message: `Successfully archived domain!`,
+          undo: async () => {
+            toast.promise(archiveDomain(false), {
+              loading: "Undo in progress...",
+              error: "Failed to roll back changes. An error occurred.",
+              success: async () => {
+                await mutateDomains();
+                return "Undo successful! Changes reverted.";
+              },
+            });
+          },
+          duration: 5000,
+        });
+      } else {
+        const { error } = await res.json();
+        setProcessing(false);
+        toast.error(error.message);
+      }
+    }
+  };
+
+  return processing ? (
+    <div className="flex h-6 items-center justify-center">
+      <LoadingCircle />
+    </div>
+  ) : (
+    <>
+      <Popover
+        content={
+          <div className="grid w-full gap-px p-2 sm:w-48">
+            {(!isDubDomain(domain.slug) || slug === "dub") && (
+              <Button
+                type="button"
+                text="Edit"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowAddEditDomainModal(true);
+                }}
+                icon={<Edit3 className="h-4 w-4" />}
+                className="h-9 w-full justify-start px-2 font-medium"
+              />
+            )}
+            <Button
+              type="button"
+              text="Archive"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                handleArchiveRequest();
+              }}
+              icon={<Archive className="h-4 w-4" />}
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
+          </div>
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <button
+          type="button"
+          onClick={() => setOpenPopover(!openPopover)}
+          className={`${
+            openPopover ? "bg-gray-200" : "hover:bg-gray-200"
+          } flex h-6 items-center justify-center rounded-md transition-colors`}
+        >
+          <ThreeDots
+            className={`h-4 w-4 text-gray-500 ${
+              openPopover ? "" : "hidden group-hover:block"
+            }`}
+          />
+          <p
+            className={`text-gray-500 ${
+              openPopover ? "hidden" : "group-hover:hidden"
+            }`}
+          >
+            {nFormatter(count)}
+          </p>
+        </button>
+      </Popover>
+      <AddEditDomainModal />
+    </>
   );
 };
 
@@ -304,7 +494,7 @@ const TagsFilter = ({
   const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
 
   const selectedTagIds =
-    searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
+    searchParams?.get("tagIds")?.split(",")?.filter(Boolean) ?? [];
 
   const onCheckboxChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -313,12 +503,12 @@ const TagsFilter = ({
         : selectedTagIds.filter((tagId) => tagId !== e.target.id) ?? [];
       queryParams({
         set: {
-          tagId: newTags,
+          tagIds: newTags,
         },
         del: [
           "page",
           // Remove tagId from params if empty
-          ...(newTags.length ? [] : ["tagId"]),
+          ...(newTags.length ? [] : ["tagIds"]),
         ],
       });
     },
@@ -363,7 +553,7 @@ const TagsFilter = ({
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {tags?.length === 0 ? ( // if the project has no tags
+            {tags?.length === 0 ? ( // if the workspace has no tags
               <p className="text-center text-sm text-gray-500">No tags yet.</p>
             ) : (
               <>
@@ -426,7 +616,7 @@ const TagsFilter = ({
 };
 
 const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
-  const { slug } = useParams() as { slug?: string };
+  const { id } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const [processing, setProcessing] = useState(false);
 
@@ -438,13 +628,13 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
 
   const handleDelete = async () => {
     setProcessing(true);
-    fetch(`/api/tags/${tag.id}?projectSlug=${slug}`, {
+    fetch(`/api/tags/${tag.id}?workspaceId=${id}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
-        queryParams({ del: "tagId" });
+        queryParams({ del: "tagIds" });
         await Promise.all([
-          mutate(`/api/tags?projectSlug=${slug}`),
+          mutate(`/api/tags?workspaceId=${id}`),
           mutate(
             (key) => typeof key === "string" && key.startsWith("/api/links"),
             undefined,

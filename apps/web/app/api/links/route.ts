@@ -1,25 +1,31 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
+import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import {
-  createLinkBodySchema,
-  getLinksQuerySchema,
-} from "@/lib/zod/schemas/links";
-import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
+import { createLinkBodySchema, getLinksQuerySchema } from "@/lib/zod/schemas";
+import { LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/links – get all user links
-export const GET = withAuth(async ({ headers, searchParams, project }) => {
-  const { domain, tagId, search, sort, page, userId, showArchived, withTags } =
-    getLinksQuerySchema.parse(searchParams);
-
-  const response = await getLinksForProject({
-    projectId: project.id,
+// GET /api/links – get all links for a workspace
+export const GET = withAuth(async ({ headers, searchParams, workspace }) => {
+  const {
     domain,
     tagId,
+    tagIds,
+    search,
+    sort,
+    page,
+    userId,
+    showArchived,
+    withTags,
+  } = getLinksQuerySchema.parse(searchParams);
+
+  const response = await getLinksForWorkspace({
+    workspaceId: workspace.id,
+    domain,
+    tagId,
+    tagIds,
     search,
     sort,
     page,
@@ -27,6 +33,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
     showArchived,
     withTags,
   });
+
   return NextResponse.json(response, {
     headers,
   });
@@ -34,7 +41,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
 
 // POST /api/links – create a new link
 export const POST = withAuth(
-  async ({ req, headers, session, project }) => {
+  async ({ req, headers, session, workspace }) => {
     let bodyRaw;
     try {
       bodyRaw = await req.json();
@@ -61,7 +68,7 @@ export const POST = withAuth(
 
     const { link, error, code } = await processLink({
       payload: body as LinkWithTagIdsProps,
-      project,
+      workspace,
       ...(session && { userId: session.user.id }),
     });
 
@@ -72,22 +79,7 @@ export const POST = withAuth(
       });
     }
 
-    const response = await addLink(link);
-
-    if (response === null) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "Duplicate key: This short link already exists.",
-      });
-    }
-
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
-      body: {
-        linkId: response.id,
-        type: "create",
-      },
-    });
+    const response = await createLink(link);
 
     return NextResponse.json(response, { headers });
   },

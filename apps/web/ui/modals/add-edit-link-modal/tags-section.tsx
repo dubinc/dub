@@ -1,11 +1,10 @@
 import useTags from "@/lib/swr/use-tags";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
-import { HOME_DOMAIN } from "@dub/utils";
 import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Tag, X } from "lucide-react";
-import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -17,7 +16,7 @@ export default function TagsSection({
   data: LinkWithTagsProps;
   setData: Dispatch<SetStateAction<LinkWithTagsProps>>;
 }) {
-  const { slug } = useParams() as { slug?: string };
+  const { id } = useWorkspace();
   const { tags: availableTags } = useTags();
   const tags = data.tags;
 
@@ -27,7 +26,7 @@ export default function TagsSection({
   const createTag = async (tag: string) => {
     setCreatingTag(true);
     setInputValue("");
-    fetch(`/api/tags?projectSlug=${slug}`, {
+    fetch(`/api/tags?workspaceId=${id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -35,7 +34,7 @@ export default function TagsSection({
       body: JSON.stringify({ tag }),
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/tags?projectSlug=${slug}`);
+        await mutate(`/api/tags?workspaceId=${id}`);
         const newTag = await res.json();
         setData({ ...data, tags: [...tags, newTag] });
         toast.success(`Successfully created tag!`);
@@ -116,7 +115,7 @@ export default function TagsSection({
                   <SimpleTooltipContent
                     title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
                     cta="Learn more about tags."
-                    href={`${HOME_DOMAIN}/help/article/how-to-use-tags`}
+                    href="https://dub.co/help/article/how-to-use-tags"
                   />
                 }
               >

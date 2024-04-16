@@ -1,16 +1,14 @@
 import type { SAMLSSORecord } from "@boxyhq/saml-jackson";
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
+import useWorkspace from "./use-workspace";
 
 export default function useSAML() {
-  const { slug } = useParams() as {
-    slug?: string;
-  };
+  const { id } = useWorkspace();
 
   const { data, isLoading, mutate } = useSWR<{ connections: SAMLSSORecord[] }>(
-    slug && `/api/projects/${slug}/saml`,
+    id && `/api/workspaces/${id}/saml`,
     fetcher,
     {
       keepPreviousData: true,
@@ -27,7 +25,7 @@ export default function useSAML() {
       ? data!.connections[0].idpMetadata.friendlyProviderName
       : null,
     configured,
-    loading: !slug || isLoading,
+    loading: isLoading,
     mutate,
   };
 }

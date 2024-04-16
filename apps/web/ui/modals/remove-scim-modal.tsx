@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSCIM from "@/lib/swr/use-scim";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import { BlurImage, Button, Logo, Modal } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
@@ -20,7 +20,7 @@ function RemoveSCIMModal({
   setShowRemoveSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [removing, setRemoving] = useState(false);
-  const { slug, logo } = useProject();
+  const { id: workspaceId, logo } = useWorkspace();
   const { scim, provider, mutate } = useSCIM();
 
   const currentProvider = useMemo(
@@ -37,7 +37,7 @@ function RemoveSCIMModal({
         {logo ? (
           <BlurImage
             src={logo}
-            alt="Project logo"
+            alt="Workspace logo"
             className="h-10 w-10 rounded-full"
             width={20}
             height={20}
@@ -48,7 +48,7 @@ function RemoveSCIMModal({
         <h3 className="text-lg font-medium">Remove SCIM Directory</h3>
         <p className="text-center text-sm text-gray-500">
           This will remove the currently configured SCIM directory from your
-          project. Are you sure you want to continue?
+          workspace. Are you sure you want to continue?
         </p>
       </div>
 
@@ -81,7 +81,7 @@ function RemoveSCIMModal({
               directoryId: id,
             });
 
-            fetch(`/api/projects/${slug}/scim?${params}`, {
+            fetch(`/api/workspaces/${workspaceId}/scim?${params}`, {
               method: "DELETE",
             }).then(async (res) => {
               if (res.ok) {

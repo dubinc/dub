@@ -5,7 +5,6 @@ import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { banUser, getUserOrProjectOwner } from "../actions";
 import UserInfo, { UserInfoProps } from "./user-info";
 
 export default function ImpersonateUser() {
@@ -14,31 +13,46 @@ export default function ImpersonateUser() {
   return (
     <div className="flex flex-col space-y-5">
       <form
-        action={(data) =>
-          getUserOrProjectOwner(data).then((res) => {
-            if (res.error) {
-              toast.error(res.error);
+        action={async (formData) => {
+          await fetch("/api/admin/impersonate", {
+            method: "POST",
+            body: JSON.stringify({
+              email: formData.get("email"),
+            }),
+          }).then(async (res) => {
+            if (res.ok) {
+              setData(await res.json());
             } else {
-              // @ts-ignore
-              setData(res);
+              const error = await res.text();
+              toast.error(error);
             }
-          })
-        }
+          });
+        }}
       >
         <Form />
       </form>
       {data && (
         <form
-          action={(formData) => {
+          action={async (formData) => {
             if (
               !confirm(
-                `This will ban the user ${data.email} and delete all their projects and links. Are you sure?`,
+                `This will ban the user ${data.email} and delete all their workspaces and links. Are you sure?`,
               )
             ) {
               return;
             }
-            banUser(formData).then(() => {
-              toast.success("Successfully banned user");
+            await fetch("/api/admin/ban", {
+              method: "POST",
+              body: JSON.stringify({
+                email: data.email,
+              }),
+            }).then(async (res) => {
+              if (res.ok) {
+                toast.success("User has been banned");
+              } else {
+                const error = await res.text();
+                toast.error(error);
+              }
             });
           }}
         >
@@ -65,7 +79,7 @@ const Form = () => {
         disabled={pending}
         autoComplete="off"
         className={cn(
-          "block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500",
+          "block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500",
           pending && "bg-gray-100",
         )}
         placeholder="stey@vercel.com"

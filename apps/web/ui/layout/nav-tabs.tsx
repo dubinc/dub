@@ -2,8 +2,8 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
-import useProject from "@/lib/swr/use-project";
 import useUsers from "@/lib/swr/use-users";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ModalContext } from "@/ui/modals/provider";
 import { Badge } from "@dub/ui";
 import { motion } from "framer-motion";
@@ -15,7 +15,7 @@ export default function NavTabs() {
   const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
   const domain = useSearchParams()?.get("domain");
-  const { loading, error } = useProject();
+  const { loading, error } = useWorkspace();
 
   const tabs = [
     { name: "Links", href: `/${slug}` },

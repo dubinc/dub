@@ -1,7 +1,7 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { getApexDomain, linkConstructor } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -22,8 +22,7 @@ function DeleteLinkModal({
   setShowDeleteLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
 }) {
-  const params = useParams() as { slug?: string };
-  const { slug } = params;
+  const { id } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
   const apexDomain = getApexDomain(props.url);
 
@@ -48,8 +47,8 @@ function DeleteLinkModal({
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Delete {shortlink}</h3>
         <p className="text-sm text-gray-500">
-          Warning: Deleting this link will remove all of its stats. This action
-          cannot be undone.
+          Warning: Deleting this link will remove all of its analytics. This
+          action cannot be undone – proceed with caution.
         </p>
       </div>
 
@@ -57,7 +56,7 @@ function DeleteLinkModal({
         onSubmit={async (e) => {
           e.preventDefault();
           setDeleting(true);
-          fetch(`/api/links/${props.id}?projectSlug=${slug}`, {
+          fetch(`/api/links/${props.id}?workspaceId=${id}`, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
@@ -95,7 +94,7 @@ function DeleteLinkModal({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             />
           </div>
         </div>

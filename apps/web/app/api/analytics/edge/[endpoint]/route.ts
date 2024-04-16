@@ -4,14 +4,14 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
-import { getDomainOrLink, getProjectViaEdge } from "@/lib/planetscale";
+import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import {
   analyticsEndpointSchema,
   getAnalyticsEdgeQuerySchema,
-} from "@/lib/zod/schemas/analytics";
-import { DUB_DEMO_LINKS, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
+} from "@/lib/zod/schemas";
+import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "edge";
@@ -36,11 +36,11 @@ export const GET = async (
     if (demoLink) {
       // Rate limit in production
       if (process.env.NODE_ENV !== "development") {
-        const identity_hash = await getIdentityHash(req);
+        const ip = ipAddress(req);
         const { success } = await ratelimit(
           15,
           endpoint === "clicks" ? "10 s" : "1 m",
-        ).limit(`demo-analytics:${demoLink.id}:${identity_hash}:${endpoint}`);
+        ).limit(`demo-analytics:${demoLink.id}:${ip}:${endpoint}`);
 
         if (!success) {
           throw new DubApiError({
@@ -51,7 +51,7 @@ export const GET = async (
       }
       link = {
         id: demoLink.id,
-        projectId: DUB_PROJECT_ID,
+        projectId: DUB_WORKSPACE_ID,
       };
     } else {
       link = await getDomainOrLink({ domain, key });
@@ -62,10 +62,10 @@ export const GET = async (
           message: "Analytics for this link are not public",
         });
       }
-      const project =
-        link?.projectId && (await getProjectViaEdge(link.projectId));
+      const workspace =
+        link?.projectId && (await getWorkspaceViaEdge(link.projectId));
       if (
-        (!project || project.plan === "free") &&
+        (!workspace || workspace.plan === "free") &&
         (interval === "all" || interval === "90d")
       ) {
         throw new DubApiError({
@@ -73,12 +73,12 @@ export const GET = async (
           message: "Need higher plan",
         });
       }
-      if (project && project.usage > project.usageLimit) {
+      if (workspace && workspace.usage > workspace.usageLimit) {
         throw new DubApiError({
           code: "forbidden",
           message: exceededLimitError({
-            plan: project.plan,
-            limit: project.usageLimit,
+            plan: workspace.plan,
+            limit: workspace.usageLimit,
             type: "clicks",
           }),
         });
@@ -86,8 +86,8 @@ export const GET = async (
     }
 
     const response = await getAnalytics({
-      // projectId can be undefined (for public links that haven't been claimed/synced to a project)
-      ...(link.projectId && { projectId: link.projectId }),
+      // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
+      ...(link.projectId && { workspaceId: link.projectId }),
       linkId: link.id,
       endpoint,
       ...parsedParams,

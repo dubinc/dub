@@ -1,21 +1,16 @@
-import { ZodOpenApiOperationObject } from "zod-openapi";
-
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { TagSchema } from "@/lib/zod/schemas/tags";
+import { TagSchema } from "@/lib/zod/schemas";
+import { ZodOpenApiOperationObject } from "zod-openapi";
+import { workspaceParamsSchema } from "../request";
 
 export const getTags: ZodOpenApiOperationObject = {
   operationId: "getTags",
+  "x-speakeasy-name-override": "list",
   summary: "Retrieve a list of tags",
-  description: "Retrieve a list of tags for the authenticated project.",
+  description: "Retrieve a list of tags for the authenticated workspace.",
   requestParams: {
-    query: z.object({
-      projectSlug: z
-        .string()
-        .describe(
-          "The slug for the project to retrieve tags for. E.g. for `app.dub.co/acme`, the `projectSlug` is `acme`.",
-        ),
-    }),
+    query: workspaceParamsSchema,
   },
   responses: {
     "200": {
@@ -29,5 +24,5 @@ export const getTags: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Tags"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

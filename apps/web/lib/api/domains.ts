@@ -6,7 +6,7 @@ import {
   isIframeable,
   validDomainRegex,
 } from "@dub/utils";
-import cloudinary from "cloudinary";
+import { storage } from "../storage";
 import { recordLink } from "../tinybird";
 
 export const validateDomain = async (domain: string) => {
@@ -15,8 +15,10 @@ export const validateDomain = async (domain: string) => {
   }
   const validDomain =
     validDomainRegex.test(domain) &&
-    // make sure the domain doesn't contain dub.co/dub.sh
-    !/^(dub\.co|.*\.dub\.co|dub\.sh|.*\.dub\.sh)$/i.test(domain);
+    // make sure the domain doesn't contain dub.co/dub.sh/d.to
+    !/^(dub\.co|.*\.dub\.co|dub\.sh|.*\.dub\.sh|d\.to|.*\.d\.to)$/i.test(
+      domain,
+    );
 
   if (!validDomain) {
     return "Invalid domain";
@@ -62,9 +64,9 @@ export const addDomainToVercel = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name: domain,
+        name: domain.toLowerCase(),
         ...(redirectToApex && {
-          redirect: getDomainWithoutWWW(domain),
+          redirect: getDomainWithoutWWW(domain.toLowerCase()),
         }),
       }),
     },
@@ -91,7 +93,7 @@ export const removeDomainFromVercel = async (domain: string) => {
     // the apex domain is being used by other domains on Dub
     // so we should only remove it from our Vercel project
     return await fetch(
-      `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain}?teamId=${process.env.TEAM_ID_VERCEL}`,
+      `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain.toLowerCase()}?teamId=${process.env.TEAM_ID_VERCEL}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
@@ -103,7 +105,7 @@ export const removeDomainFromVercel = async (domain: string) => {
     // this is the only domain using this apex domain
     // so we can remove it entirely from our Vercel team
     return await fetch(
-      `https://api.vercel.com/v6/domains/${domain}?teamId=${process.env.TEAM_ID_VERCEL}`,
+      `https://api.vercel.com/v6/domains/${domain.toLowerCase()}?teamId=${process.env.TEAM_ID_VERCEL}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
@@ -116,7 +118,7 @@ export const removeDomainFromVercel = async (domain: string) => {
 
 export const getDomainResponse = async (domain: string) => {
   return await fetch(
-    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain}?teamId=${process.env.TEAM_ID_VERCEL}`,
+    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain.toLowerCase()}?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       method: "GET",
       headers: {
@@ -131,7 +133,7 @@ export const getDomainResponse = async (domain: string) => {
 
 export const getConfigResponse = async (domain: string) => {
   return await fetch(
-    `https://api.vercel.com/v6/domains/${domain}/config?teamId=${process.env.TEAM_ID_VERCEL}`,
+    `https://api.vercel.com/v6/domains/${domain.toLowerCase()}/config?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       method: "GET",
       headers: {
@@ -144,7 +146,7 @@ export const getConfigResponse = async (domain: string) => {
 
 export const verifyDomain = async (domain: string) => {
   return await fetch(
-    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain}/verify?teamId=${process.env.TEAM_ID_VERCEL}`,
+    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain.toLowerCase()}/verify?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       method: "POST",
       headers: {
@@ -171,10 +173,10 @@ export async function setRootDomain({
   newDomain?: string; // if the domain is changed, this will be the new domain
 }) {
   if (newDomain) {
-    await redis.rename(domain, newDomain);
+    await redis.rename(domain.toLowerCase(), newDomain.toLowerCase());
   }
   return await Promise.all([
-    redis.hset(newDomain || domain, {
+    redis.hset(newDomain ? newDomain.toLowerCase() : domain.toLowerCase(), {
       _root: {
         id,
         ...(url && {
@@ -185,7 +187,9 @@ export async function setRootDomain({
             rewrite: true,
             iframeable: await isIframeable({
               url,
-              requestDomain: newDomain || domain,
+              requestDomain: newDomain
+                ? newDomain.toLowerCase()
+                : domain.toLowerCase(),
             }),
           }),
         projectId,
@@ -203,32 +207,21 @@ export async function setRootDomain({
   ]);
 }
 
-/* Change the domain for all images for a given project on Cloudinary */
-export async function changeDomainForImages(domain: string, newDomain: string) {
-  const links = await prisma.link.findMany({
+export async function archiveDomain({
+  domain,
+  archived,
+}: {
+  domain: string;
+  archived: boolean;
+}) {
+  return await prisma.domain.update({
     where: {
-      domain,
+      slug: domain,
     },
-    select: {
-      key: true,
+    data: {
+      archived,
     },
   });
-  if (links.length === 0) return null;
-  try {
-    return await Promise.all(
-      links.map(({ key }) =>
-        cloudinary.v2.uploader.rename(
-          `${domain}/${key}`,
-          `${newDomain}/${key}`,
-          {
-            invalidate: true,
-          },
-        ),
-      ),
-    );
-  } catch (e) {
-    return null;
-  }
 }
 
 /* Delete a domain and all links & images associated with it */
@@ -256,9 +249,11 @@ export async function deleteDomainAndLinks(
       },
       select: {
         id: true,
+        domain: true,
         key: true,
         url: true,
         projectId: true,
+        tags: true,
       },
     }),
   ]);
@@ -267,7 +262,7 @@ export async function deleteDomainAndLinks(
   }
   return await Promise.allSettled([
     // delete all links from redis
-    redis.del(domain),
+    redis.del(domain.toLowerCase()),
     // record deletes in tinybird for domain & links
     recordLink({
       link: {
@@ -279,20 +274,13 @@ export async function deleteDomainAndLinks(
       },
       deleted: true,
     }),
-    ...allLinks.map(({ id, key, url, projectId }) =>
+    ...allLinks.flatMap((link) => [
       recordLink({
-        link: {
-          id,
-          domain,
-          key,
-          url,
-          projectId,
-        },
+        link,
         deleted: true,
       }),
-    ),
-    // remove all images from cloudinary
-    cloudinary.v2.api.delete_resources_by_prefix(domain),
+      storage.delete(`images/${link.id}`),
+    ]),
     // remove the domain from Vercel
     removeDomainFromVercel(domain),
     !skipPrismaDelete &&

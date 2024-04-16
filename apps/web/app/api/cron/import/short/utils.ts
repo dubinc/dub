@@ -8,7 +8,7 @@ import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
 
 export const importLinksFromShort = async ({
-  projectId,
+  workspaceId,
   userId,
   domainId,
   domain,
@@ -17,7 +17,7 @@ export const importLinksFromShort = async ({
   count = 0,
   shortApiKey,
 }: {
-  projectId: string;
+  workspaceId: string;
   userId: string;
   domainId: number;
   domain: string;
@@ -59,9 +59,11 @@ export const importLinksFromShort = async ({
         if (path.length === 0) {
           return null;
         }
-        tags.forEach((tag: string) => tagsToCreate.add(tag));
+        if (tags) {
+          tags.forEach((tag: string) => tagsToCreate.add(tag));
+        }
         return {
-          projectId,
+          projectId: workspaceId,
           userId,
           domain,
           key: path,
@@ -81,7 +83,7 @@ export const importLinksFromShort = async ({
   if (importTags && tagsToCreate.size > 0) {
     const existingTags = await prisma.tag.findMany({
       where: {
-        projectId,
+        projectId: workspaceId,
       },
       select: {
         id: true,
@@ -95,13 +97,13 @@ export const importLinksFromShort = async ({
         .map((tag) => ({
           name: tag,
           color: randomBadgeColor(),
-          projectId,
+          projectId: workspaceId,
         })),
       skipDuplicates: true,
     });
     allTags = await prisma.tag.findMany({
       where: {
-        projectId,
+        projectId: workspaceId,
       },
       select: {
         id: true,
@@ -138,9 +140,9 @@ export const importLinksFromShort = async ({
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   if (!nextPageToken) {
-    const project = await prisma.project.findUnique({
+    const workspace = await prisma.project.findUnique({
       where: {
-        id: projectId,
+        id: workspaceId,
       },
       select: {
         name: true,
@@ -173,12 +175,12 @@ export const importLinksFromShort = async ({
         },
       },
     });
-    const ownerEmail = project?.users[0].user.email ?? "";
-    const links = project?.links ?? [];
+    const ownerEmail = workspace?.users[0].user.email ?? "";
+    const links = workspace?.links ?? [];
 
     await Promise.all([
       // delete key from redis
-      redis.del(`import:short:${projectId}`),
+      redis.del(`import:short:${workspaceId}`),
 
       // send email to user
       sendEmail({
@@ -190,8 +192,8 @@ export const importLinksFromShort = async ({
           count,
           links,
           domains: [domain],
-          projectName: project?.name ?? "",
-          projectSlug: project?.slug ?? "",
+          workspaceName: workspace?.name ?? "",
+          workspaceSlug: workspace?.slug ?? "",
         }),
       }),
     ]);
@@ -201,7 +203,7 @@ export const importLinksFromShort = async ({
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/short`,
       body: {
-        projectId,
+        workspaceId,
         userId,
         domainId,
         domain,

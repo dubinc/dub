@@ -1,4 +1,4 @@
-import { SHORT_DOMAIN } from "@dub/utils";
+import { SHORT_DOMAIN, isDubDomain } from "@dub/utils";
 import { MetadataRoute } from "next";
 import { headers } from "next/headers";
 
@@ -11,12 +11,30 @@ export default function robots(): MetadataRoute.Robots {
     domain = SHORT_DOMAIN;
   }
 
+  if (isDubDomain(domain)) {
+    return {
+      rules: [
+        {
+          userAgent: "*",
+          allow: "/",
+        },
+      ],
+      sitemap: `https://${domain}/sitemap.xml`,
+    };
+  }
+
   return {
-    rules: {
-      userAgent: "Googlebot",
-      allow: ["/$", "/api/og/"], // allow the home page and the OG image API
-      disallow: "/", // disallow everything else
-    },
+    rules: [
+      {
+        userAgent: "Googlebot", // for Googlebot
+        allow: ["/$", "/api/og/"], // allow the home page and the OG image API
+        disallow: "/", // disallow everything else
+      },
+      {
+        userAgent: "LinkedInBot", // for LinkedInBot
+        allow: "/", // allow everything
+      },
+    ],
     sitemap: `https://${domain}/sitemap.xml`,
   };
 }

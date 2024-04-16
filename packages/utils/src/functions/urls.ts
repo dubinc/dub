@@ -13,9 +13,8 @@ export const getUrlFromString = (str: string) => {
     if (str.includes(".") && !str.includes(" ")) {
       return new URL(`https://${str}`).toString();
     }
-  } catch (e) {
-    return null;
-  }
+  } catch (_) {}
+  return "";
 };
 
 export const getSearchParams = (url: string) => {

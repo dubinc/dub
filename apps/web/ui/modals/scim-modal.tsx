@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSCIM from "@/lib/swr/use-scim";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import {
   Button,
@@ -10,7 +10,7 @@ import {
   SimpleTooltipContent,
   Tick,
 } from "@dub/ui";
-import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
+import { SAML_PROVIDERS } from "@dub/utils";
 import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
 import {
   Dispatch,
@@ -28,7 +28,7 @@ function SCIMModal({
   showSCIMModal: boolean;
   setShowSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useProject();
+  const { id } = useWorkspace();
   const [submitting, setSubmitting] = useState(false);
   const { scim, provider, configured, mutate } = useSCIM();
   const [selectedProvider, setSelectedProvider] = useState<
@@ -69,8 +69,8 @@ function SCIMModal({
         </h3>
         <p className="text-center text-sm text-gray-500">
           {currentProvider
-            ? "Your project is currently syncing with your SCIM directory."
-            : `Select a provider to configure directory sync for your ${process.env.NEXT_PUBLIC_APP_NAME} project.`}
+            ? "Your workspace is currently syncing with your SCIM directory."
+            : `Select a provider to configure directory sync for your ${process.env.NEXT_PUBLIC_APP_NAME} workspace.`}
         </p>
       </div>
 
@@ -79,7 +79,7 @@ function SCIMModal({
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/projects/${slug}/scim`, {
+            fetch(`/api/workspaces/${id}/scim`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -113,7 +113,7 @@ function SCIMModal({
                   <SimpleTooltipContent
                     title="Your directory provider is the IDP you use to manage your users."
                     cta={selectedProvider ? "Read the guide." : "Learn more."}
-                    href={`${HOME_DOMAIN}/help/${
+                    href={`https://dub.co/help/${
                       currentProvider
                         ? `article/${currentProvider.saml}-scim`
                         : "category/saml-sso"
@@ -147,7 +147,7 @@ function SCIMModal({
             </select>
             {currentProvider && (
               <a
-                href={`${HOME_DOMAIN}/help/article/${currentProvider.saml}-scim`}
+                href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
                 target="_blank"
                 className="ml-2 mt-2 block text-sm text-gray-500 underline"
               >
@@ -169,7 +169,7 @@ function SCIMModal({
                       <SimpleTooltipContent
                         title="Your directory provider is the IDP you use to manage your users."
                         cta="Read the guide."
-                        href={`${HOME_DOMAIN}/help/article/${currentProvider.saml}-scim`}
+                        href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
                       />
                     }
                   />
@@ -211,7 +211,7 @@ function SCIMModal({
                       <SimpleTooltipContent
                         title="Your directory provider is the IDP you use to manage your users."
                         cta="Read the guide."
-                        href={`${HOME_DOMAIN}/help/article/${currentProvider.saml}-scim`}
+                        href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
                       />
                     }
                   />

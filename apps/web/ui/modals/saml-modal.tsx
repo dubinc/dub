@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import {
   Button,
@@ -8,7 +8,7 @@ import {
   SimpleTooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
+import { SAML_PROVIDERS } from "@dub/utils";
 import { Check, Lock, UploadCloud } from "lucide-react";
 import {
   Dispatch,
@@ -26,7 +26,7 @@ function SAMLModal({
   showSAMLModal: boolean;
   setShowSAMLModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useProject();
+  const { id } = useWorkspace();
   const [selectedProvider, setSelectedProvider] = useState<
     SAMLProviderProps["saml"] | undefined
   >();
@@ -52,7 +52,7 @@ function SAMLModal({
         <h3 className="text-lg font-medium">Configure SAML</h3>
         <p className="text-center text-sm text-gray-500">
           Select a provider to configure SAML for your{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} project.
+          {process.env.NEXT_PUBLIC_APP_NAME} workspace.
         </p>
       </div>
 
@@ -61,7 +61,7 @@ function SAMLModal({
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/projects/${slug}/saml`, {
+            fetch(`/api/workspaces/${id}/saml`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -119,7 +119,7 @@ function SAMLModal({
             </select>
             {currentProvider ? (
               <a
-                href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml`}
+                href={`https://dub.co/help/article/${selectedProvider}-saml`}
                 target="_blank"
                 className="ml-2 mt-2 block text-sm text-gray-500 underline"
               >
@@ -127,7 +127,7 @@ function SAMLModal({
               </a>
             ) : (
               <a
-                href={`${HOME_DOMAIN}/help/category/saml-sso`}
+                href="https://dub.co/help/category/saml-sso"
                 target="_blank"
                 className="ml-2 mt-2 block text-sm text-gray-500 underline"
               >
@@ -148,7 +148,7 @@ function SAMLModal({
                       <SimpleTooltipContent
                         title={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata.`}
                         cta="Learn more."
-                        href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml`}
+                        href={`https://dub.co/help/article/${selectedProvider}-saml`}
                       />
                     }
                   />
@@ -203,7 +203,7 @@ function SAMLModal({
                       <SimpleTooltipContent
                         title={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata.`}
                         cta="Learn more."
-                        href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
+                        href={`https://dub.co/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
                       />
                     }
                   />

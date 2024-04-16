@@ -1,5 +1,4 @@
 import { Button, Google, Logo, Modal } from "@dub/ui";
-import { HOME_DOMAIN } from "@dub/utils";
 import Cookies from "js-cookie";
 import { signIn } from "next-auth/react";
 import {
@@ -32,7 +31,7 @@ function GoogleOauthModal({
           account with Google.{" "}
           <a
             className="underline underline-offset-4 transition-colors hover:text-black"
-            href={`${HOME_DOMAIN}/changelog/sign-in-with-google`}
+            href="https://dub.co/changelog/sign-in-with-google"
             target="_blank"
             rel="noopener noreferrer"
           >

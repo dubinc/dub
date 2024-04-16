@@ -1,6 +1,6 @@
 import { TopLinksTabs } from "@/lib/analytics";
 import { LoadingSpinner, Modal, Switch, useRouterStuff } from "@dub/ui";
-import { fetcher, linkConstructor } from "@dub/utils";
+import { fetcher, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -86,7 +86,7 @@ export default function TopLinks() {
                 }
               >
                 <strong className="text-gray-800">
-                  {linkConstructor({ domain, key, pretty: true })}
+                  {truncate(linkConstructor({ domain, key, pretty: true }), 24)}
                 </strong>
                 <X className="h-4 w-4" />
               </Link>

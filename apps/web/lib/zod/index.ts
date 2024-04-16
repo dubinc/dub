@@ -5,7 +5,9 @@ extendZodWithOpenApi(z);
 
 export default z;
 
-export const domainKeySchema = z.object({
-  domain: z.string().min(1),
-  key: z.string().min(1),
+export const workspaceIdSchema = z.object({
+  workspaceId: z
+    .string()
+    .min(1, "Workspace ID is required.")
+    .describe("The ID of the workspace the link belongs to."),
 });

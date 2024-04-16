@@ -1,6 +1,6 @@
 "use client";
 
-import { useAddProjectModal } from "@/ui/modals/add-project-modal";
+import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import Interim from "@/ui/welcome/interim";
 import Intro from "@/ui/welcome/intro";
@@ -11,7 +11,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function WelcomePageClient() {
-  const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal();
+  const { setShowAddWorkspaceModal, AddWorkspaceModal } =
+    useAddWorkspaceModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
 
   const router = useRouter();
@@ -22,12 +23,12 @@ export default function WelcomePageClient() {
   }, []);
 
   useEffect(() => {
-    if (searchParams?.get("type") === "project") {
+    if (searchParams?.get("type") === "workspace") {
       setTimeout(() => {
-        setShowAddProjectModal(true);
+        setShowAddWorkspaceModal(true);
       }, 200);
     } else {
-      setShowAddProjectModal(false);
+      setShowAddWorkspaceModal(false);
     }
     if (searchParams?.get("type") === "upgrade") {
       setTimeout(() => {
@@ -40,7 +41,7 @@ export default function WelcomePageClient() {
 
   return (
     <div className="flex h-screen flex-col items-center">
-      <AddProjectModal />
+      <AddWorkspaceModal />
       <UpgradePlanModal />
       <AnimatePresence mode="wait">
         {!searchParams?.get("type") && <Intro key="intro" />}

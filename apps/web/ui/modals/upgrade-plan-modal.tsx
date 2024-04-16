@@ -1,5 +1,5 @@
 import { getStripe } from "@/lib/stripe/client";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import {
   Badge,
@@ -14,7 +14,6 @@ import {
 } from "@dub/ui";
 import {
   APP_DOMAIN,
-  HOME_DOMAIN,
   SELF_SERVE_PAID_PLANS,
   STAGGER_CHILD_VARIANTS,
   capitalize,
@@ -55,7 +54,7 @@ function UpgradePlanModal({
   const welcomeFlow = pathname === "/welcome";
   const slug = welcomeFlow ? searchParams?.get("slug") : params.slug;
 
-  const { plan: currentPlan } = useProject();
+  const { plan: currentPlan } = useWorkspace();
   const plan = searchParams.get("upgrade") ?? "pro";
   const selectedPlan =
     SELF_SERVE_PAID_PLANS.find((p) => p.name.toLowerCase() === plan) ??
@@ -267,7 +266,7 @@ function UpgradePlanModal({
             loading={clicked}
             onClick={() => {
               setClicked(true);
-              fetch(`/api/projects/${slug}/billing/upgrade`, {
+              fetch(`/api/workspaces/${slug}/billing/upgrade`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -298,7 +297,7 @@ function UpgradePlanModal({
           <div className="mt-2 flex items-center justify-center space-x-2">
             {currentPlan === "free" ? (
               <a
-                href={`${HOME_DOMAIN}/pricing`}
+                href="https://dub.co/pricing"
                 target="_blank"
                 className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
               >
@@ -308,7 +307,7 @@ function UpgradePlanModal({
               <button
                 onClick={() => {
                   setClickedCompare(true);
-                  fetch(`/api/projects/${slug}/billing/upgrade`, {
+                  fetch(`/api/workspaces/${slug}/billing/upgrade`, {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -353,7 +352,7 @@ function UpgradePlanModal({
               </Link>
             ) : (
               <a
-                href={`${HOME_DOMAIN}/enterprise`}
+                href="https://dub.co/enterprise"
                 target="_blank"
                 className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
               >

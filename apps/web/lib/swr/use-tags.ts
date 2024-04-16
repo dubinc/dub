@@ -1,13 +1,13 @@
 import { TagProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
+import useWorkspace from "./use-workspace";
 
 export default function useTags() {
-  const { slug } = useParams() as { slug?: string };
+  const { id } = useWorkspace();
 
   const { data: tags, isValidating } = useSWR<TagProps[]>(
-    slug && `/api/tags?projectSlug=${slug}`,
+    id && `/api/tags?workspaceId=${id}`,
     fetcher,
     {
       dedupingInterval: 30000,

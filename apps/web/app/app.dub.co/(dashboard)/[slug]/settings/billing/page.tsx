@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import ProjectBillingClient from "./page-client";
+import WorkspaceBillingClient from "./page-client";
 
-export default function ProjectBilling() {
+export default function WorkspaceBilling() {
   return (
     <Suspense>
-      <ProjectBillingClient />
+      <WorkspaceBillingClient />
     </Suspense>
   );
 }

@@ -1,14 +1,14 @@
-import useProjects from "@/lib/swr/use-projects";
+import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import { LinkProps } from "@/lib/types";
 import { Button, InputSelect, InputSelectItemProps, Modal } from "@dub/ui";
 import {
   APP_NAME,
-  DUB_LOGO,
+  DICEBEAR_AVATAR_URL,
   getApexDomain,
   isDubDomain,
   linkConstructor,
 } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -29,11 +29,10 @@ function TransferLinkModal({
   setShowTransferLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
 }) {
-  const params = useParams() as { slug?: string };
-  const { slug } = params;
-  const { projects } = useProjects();
+  const { id } = useWorkspace();
+  const { workspaces } = useWorkspaces();
   const [transferring, setTransferring] = useState(false);
-  const [selectedProject, setSelectedProject] =
+  const [selectedWorkspace, setselectedWorkspace] =
     useState<InputSelectItemProps | null>(null);
 
   const apexDomain = getApexDomain(props.url);
@@ -47,13 +46,26 @@ function TransferLinkModal({
     });
   }, [key, domain]);
 
-  const transferLink = async (linkId: string, newProjectId: string) => {
-    return await fetch(`/api/links/${linkId}/transfer?projectSlug=${slug}`, {
+  const transferLink = async (linkId: string, newWorkspaceId: string) => {
+    return await fetch(`/api/links/${linkId}/transfer?workspaceId=${id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ newProjectId }),
+      body: JSON.stringify({ newWorkspaceId }),
+    }).then(async (res) => {
+      if (res.ok) {
+        mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/links"),
+          undefined,
+          { revalidate: true },
+        );
+        setShowTransferLinkModal(false);
+        return true;
+      } else {
+        const error = await res.json();
+        throw new Error(error.message);
+      }
     });
   };
 
@@ -66,25 +78,11 @@ function TransferLinkModal({
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          if (selectedProject) {
+          if (selectedWorkspace) {
             setTransferring(true);
-            toast.promise(transferLink(props.id, selectedProject.id), {
+            toast.promise(transferLink(props.id, selectedWorkspace.id), {
               loading: "Transferring link...",
-              success: async (response) => {
-                if (!response.ok) {
-                  const { error } = await response.json();
-                  return `Failed to transfer link. ${error.message}`;
-                }
-
-                mutate(
-                  (key) =>
-                    typeof key === "string" && key.startsWith("/api/links"),
-                  undefined,
-                  { revalidate: true },
-                );
-                setShowTransferLinkModal(false);
-                return "Successfully transferred link.";
-              },
+              success: "Successfully transferred link.",
               error: "Failed to transfer link.",
             });
           }
@@ -94,32 +92,38 @@ function TransferLinkModal({
           <LinkLogo apexDomain={apexDomain} />
           <h3 className="text-lg font-medium">Transfer {shortlink}</h3>
           <p className="text-sm text-gray-500">
-            Transfer this link and its analytics to another {APP_NAME} project.
-            Link tags will not be transferred.
+            Transfer this link and its analytics to another {APP_NAME}{" "}
+            workspace. Link tags will not be transferred.
           </p>
         </div>
 
         <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
           <InputSelect
             items={
-              projects
-                ? projects
-                    .filter((project) => project.id !== props.projectId)
-                    .map((project) => ({
-                      id: project.id,
-                      value: project.name,
-                      image: project.logo || DUB_LOGO,
-                    }))
+              workspaces
+                ? workspaces.map((workspace) => ({
+                    id: workspace.id,
+                    value: workspace.name,
+                    image:
+                      workspace.logo ||
+                      `${DICEBEAR_AVATAR_URL}${workspace.name}`,
+                    disabled:
+                      workspace.id.replace("ws_", "") === props.projectId,
+                    label:
+                      workspace.id.replace("ws_", "") === props.projectId
+                        ? "Current"
+                        : "",
+                  }))
                 : []
             }
-            selectedItem={selectedProject}
-            setSelectedItem={setSelectedProject}
+            selectedItem={selectedWorkspace}
+            setSelectedItem={setselectedWorkspace}
             inputAttrs={{
-              placeholder: "Select a project",
+              placeholder: "Select a workspace",
             }}
           />
           <Button
-            disabled={!selectedProject || !isDubDomain(domain)}
+            disabled={!selectedWorkspace || !isDubDomain(domain)}
             loading={transferring}
             text="Confirm transfer"
           />

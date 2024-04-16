@@ -43,7 +43,7 @@ function ToastWithUndo({
   );
 }
 
-export default function useToastWithUndo() {
+export function useToastWithUndo() {
   const toastWithUndo = ({
     id,
     message,

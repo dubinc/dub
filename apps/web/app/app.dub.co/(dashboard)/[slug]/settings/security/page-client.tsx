@@ -1,19 +1,19 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
 import useSCIM from "@/lib/swr/use-scim";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useRemoveSCIMModal } from "@/ui/modals/remove-scim-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
 import { useSCIMModal } from "@/ui/modals/scim-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, IconMenu, Popover, TooltipContent } from "@dub/ui";
-import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
+import { SAML_PROVIDERS } from "@dub/utils";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
 import { useMemo, useState } from "react";
 
-export default function ProjectSecurityClient() {
+export default function WorkspaceSecurityClient() {
   return (
     <>
       <SAMLSection />
@@ -23,7 +23,7 @@ export default function ProjectSecurityClient() {
 }
 
 const SAMLSection = () => {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
@@ -45,7 +45,7 @@ const SAMLSection = () => {
           />
         ),
         title: `${provider} SAML`,
-        description: "SAML SSO is configured for your project.",
+        description: "SAML SSO is configured for your workspace.",
       };
     } else
       return {
@@ -139,7 +139,7 @@ const SAMLSection = () => {
                       <TooltipContent
                         title="SAML SSO is only available on Enterprise plans. Upgrade to get started."
                         cta="Contact sales"
-                        href={`${HOME_DOMAIN}/enterprise`}
+                        href="https://dub.co/enterprise"
                         target="_blank"
                       />
                     ),
@@ -153,7 +153,7 @@ const SAMLSection = () => {
 
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
           <a
-            href={`${HOME_DOMAIN}/help/category/saml-sso`}
+            href="https://dub.co/help/category/saml-sso"
             target="_blank"
             className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
           >
@@ -166,7 +166,7 @@ const SAMLSection = () => {
 };
 
 const SCIMSection = () => {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { SCIMModal, setShowSCIMModal } = useSCIMModal();
   const { RemoveSCIMModal, setShowRemoveSCIMModal } = useRemoveSCIMModal();
 
@@ -189,7 +189,7 @@ const SCIMSection = () => {
           />
         ),
         title: `${SAML_PROVIDERS.find((p) => p.scim === provider)!.name} SCIM`,
-        description: "SCIM directory sync is configured for your project.",
+        description: "SCIM directory sync is configured for your workspace.",
       };
     } else
       return {
@@ -295,7 +295,7 @@ const SCIMSection = () => {
                       <TooltipContent
                         title="SCIM Directory Sync is only available on Enterprise plans. Upgrade to get started."
                         cta="Contact sales"
-                        href={`${HOME_DOMAIN}/enterprise`}
+                        href="https://dub.co/enterprise"
                         target="_blank"
                       />
                     ),
@@ -309,7 +309,7 @@ const SCIMSection = () => {
 
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
           <a
-            href={`${HOME_DOMAIN}/help/category/saml-sso`}
+            href="https://dub.co/help/category/saml-sso"
             target="_blank"
             className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
           >

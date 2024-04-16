@@ -1,14 +1,12 @@
 "use client";
 /* 
-  This Stats component lives in 3 different places:
-  1. Project link page, e.g. app.dub.co/dub/d.to/github
-  2. Generic Dub.co link page, e.g. app.dub.co/links/steven
-  3. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
-
-  We use the `useEndpoint()` hook to get the correct layout
+  This Analytics component lives in 2 different places:
+  1. Workspace analytics page, e.g. app.dub.co/dub/analytics
+  2. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
 */
 
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
@@ -28,27 +26,32 @@ export const AnalyticsContext = createContext<{
   url?: string;
   queryString: string;
   interval: string;
+  tagId?: string;
   totalClicks?: number;
+  admin?: boolean;
 }>({
   basePath: "",
   baseApiPath: "",
   domain: "",
   queryString: "",
   interval: "",
+  admin: false,
 });
 
 export default function Analytics({
   staticDomain,
   staticUrl,
+  admin,
 }: {
   staticDomain?: string;
   staticUrl?: string;
+  admin?: boolean;
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { id, slug } = useWorkspace();
 
-  let { slug, key } = useParams() as {
-    slug?: string;
+  let { key } = useParams() as {
     key?: string;
   };
   const domainSlug = searchParams?.get("domain");
@@ -56,9 +59,17 @@ export default function Analytics({
   key = searchParams?.get("key") || key;
   const interval = searchParams?.get("interval") || "24h";
 
+  const tagId = searchParams?.get("tagId") ?? undefined;
+
   const { basePath, domain, baseApiPath } = useMemo(() => {
-    // Project link analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
-    if (slug) {
+    // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
+    if (admin) {
+      return {
+        basePath: `/analytics`,
+        baseApiPath: `/api/admin/analytics`,
+        domain: domainSlug,
+      };
+    } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
         baseApiPath: `/api/analytics`,
@@ -72,7 +83,7 @@ export default function Analytics({
         domain: staticDomain,
       };
     }
-  }, [slug, pathname, staticDomain, domainSlug, key]);
+  }, [admin, slug, pathname, staticDomain, domainSlug, key]);
 
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
@@ -85,13 +96,14 @@ export default function Analytics({
       {},
     );
     return new URLSearchParams({
-      ...(slug && { projectSlug: slug }),
+      ...(id && { workspaceId: id }),
       ...(domain && { domain }),
       ...(key && { key }),
-      ...availableFilterParams,
       ...(interval && { interval }),
+      ...(tagId && { tagId }),
+      ...availableFilterParams,
     }).toString();
-  }, [slug, domain, key, searchParams, interval]);
+  }, [id, domain, key, searchParams, interval, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/clicks?${queryString}`,
@@ -110,7 +122,9 @@ export default function Analytics({
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: staticUrl, // url for the link (only for public stats pages)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
+        tagId, // id of a single tag
         totalClicks, // total clicks for the link
+        admin, // whether the user is an admin
       }}
     >
       <div className="bg-gray-50 py-10">

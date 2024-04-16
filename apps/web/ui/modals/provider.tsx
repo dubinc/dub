@@ -1,11 +1,11 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
-import { useAddProjectModal } from "@/ui/modals/add-project-modal";
+import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
@@ -21,22 +21,25 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 
 export const ModalContext = createContext<{
-  setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
+  setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
   setShowCompleteSetupModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
+  setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
 }>({
-  setShowAddProjectModal: () => {},
+  setShowAddWorkspaceModal: () => {},
   setShowCompleteSetupModal: () => {},
   setShowAddEditDomainModal: () => {},
   setShowAddEditLinkModal: () => {},
+  setShowAddEditTagModal: () => {},
   setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
@@ -44,14 +47,16 @@ export const ModalContext = createContext<{
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
-  const { AddProjectModal, setShowAddProjectModal } = useAddProjectModal();
+  const { AddWorkspaceModal, setShowAddWorkspaceModal } =
+    useAddWorkspaceModal();
   const { CompleteSetupModal, setShowCompleteSetupModal } =
     useCompleteSetupModal();
-  const { setShowAddEditDomainModal, AddEditDomainModal } =
-    useAddEditDomainModal();
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
+  const { setShowAddEditDomainModal, AddEditDomainModal } =
+    useAddEditDomainModal();
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
+  const { setShowAddEditTagModal, AddEditTagModal } = useAddEditTagModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
@@ -62,12 +67,12 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
   });
 
-  const { slug, error } = useProject();
+  const { id, error } = useWorkspace();
 
   useEffect(() => {
-    if (hashes.length > 0 && slug) {
+    if (hashes.length > 0 && id) {
       toast.promise(
-        fetch(`/api/links/sync?projectSlug=${slug}`, {
+        fetch(`/api/links/sync?workspaceId=${id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -90,7 +95,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         },
       );
     }
-  }, [hashes, slug]);
+  }, [hashes, id]);
 
   // handle invite and oauth modals
   useEffect(() => {
@@ -101,10 +106,10 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
 
   const searchParams = useSearchParams();
 
-  // handle ?newProject and ?newLink query params
+  // handle ?newWorkspace and ?newLink query params
   useEffect(() => {
-    if (searchParams.has("newProject")) {
-      setShowAddProjectModal(true);
+    if (searchParams.has("newWorkspace")) {
+      setShowAddWorkspaceModal(true);
     }
     if (searchParams.has("newLink")) {
       setShowAddEditLinkModal(true);
@@ -114,21 +119,23 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   return (
     <ModalContext.Provider
       value={{
-        setShowAddProjectModal,
+        setShowAddWorkspaceModal,
         setShowCompleteSetupModal,
         setShowAddEditDomainModal,
         setShowAddEditLinkModal,
+        setShowAddEditTagModal,
         setShowUpgradePlanModal,
         setShowImportBitlyModal,
         setShowImportShortModal,
         setShowImportRebrandlyModal,
       }}
     >
-      <AddProjectModal />
+      <AddWorkspaceModal />
       <AcceptInviteModal />
       <CompleteSetupModal />
       <AddEditDomainModal />
       <AddEditLinkModal />
+      <AddEditTagModal />
       <UpgradePlanModal />
       <ImportBitlyModal />
       <ImportShortModal />

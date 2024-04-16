@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BitlyGroupProps } from "@/lib/types";
 import {
   Button,
@@ -9,7 +9,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { HOME_DOMAIN, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -33,12 +33,12 @@ function ImportBitlyModal({
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
-  const { id: projectId } = useProject();
+  const { id } = useWorkspace();
 
   const [redirecting, setRedirecting] = useState(false);
 
   const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
-    slug && showImportBitlyModal && `/api/projects/${slug}/import/bitly`,
+    id && showImportBitlyModal && `/api/workspaces/${id}/import/bitly`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -67,14 +67,14 @@ function ImportBitlyModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "bitly") {
-      mutate(`/api/projects/${slug}/import/bitly`);
+      mutate(`/api/workspaces/${id}/import/bitly`);
       setShowImportBitlyModal(true);
     } else {
       setShowImportBitlyModal(false);
     }
   }, [searchParams]);
 
-  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}&state=${projectId}`;
+  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}&state=${id}`;
 
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
@@ -121,7 +121,7 @@ function ImportBitlyModal({
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/projects/${slug}/import/bitly`, {
+                fetch(`/api/workspaces/${id}/import/bitly`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -132,7 +132,7 @@ function ImportBitlyModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/projects/${slug}/domains`);
+                    await mutate(`/api/domains?workspaceId=${id}`);
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
@@ -250,7 +250,7 @@ function ImportBitlyModal({
               }}
             />
             <a
-              href={`${HOME_DOMAIN}/help/article/migrating-from-bitly`}
+              href="https://dub.co/help/article/migrating-from-bitly"
               target="_blank"
               className="text-center text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
             >

@@ -4,7 +4,7 @@ import { HOME_DOMAIN } from "../constants";
 export function constructMetadata({
   title = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`,
   description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management infrastructure for modern marketing teams to create, share, and track short links.`,
-  image = "https://assets.dub.co/thumbnail.png",
+  image = "https://assets.dub.co/thumbnail.jpg",
   icons = [
     {
       rel: "apple-touch-icon",
@@ -28,7 +28,7 @@ export function constructMetadata({
 }: {
   title?: string;
   description?: string;
-  image?: string;
+  image?: string | null;
   icons?: Metadata["icons"];
   noIndex?: boolean;
 } = {}): Metadata {
@@ -38,17 +38,21 @@ export function constructMetadata({
     openGraph: {
       title,
       description,
-      images: [
-        {
-          url: image,
-        },
-      ],
+      ...(image && {
+        images: [
+          {
+            url: image,
+          },
+        ],
+      }),
     },
     twitter: {
-      card: "summary_large_image",
       title,
       description,
-      images: [image],
+      ...(image && {
+        card: "summary_large_image",
+        images: [image],
+      }),
       creator: "@dubdotco",
     },
     icons,

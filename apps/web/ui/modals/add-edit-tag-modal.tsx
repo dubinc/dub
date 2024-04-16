@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { TagColorProps, TagProps } from "@/lib/types";
 import {
   Button,
@@ -13,7 +13,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { HOME_DOMAIN, capitalize, cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
 import va from "@vercel/analytics";
 import {
   Dispatch,
@@ -36,7 +36,7 @@ function AddEditTagModal({
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
   props?: TagProps;
 }) {
-  const { slug: projectSlug } = useProject();
+  const { id: workspaceId } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
   const [saving, setSaving] = useState(false);
@@ -65,12 +65,12 @@ function AddEditTagModal({
       id
         ? {
             method: "PUT",
-            url: `/api/tags/${id}?projectSlug=${projectSlug}`,
+            url: `/api/tags/${id}?workspaceId=${workspaceId}`,
             successMessage: "Successfully updated tag!",
           }
         : {
             method: "POST",
-            url: `/api/tags?projectSlug=${projectSlug}`,
+            url: `/api/tags?workspaceId=${workspaceId}`,
             successMessage: "Successfully added tag!",
           },
     [id],
@@ -88,7 +88,7 @@ function AddEditTagModal({
           <p className="text-sm text-gray-500">
             Use tags to organize your links.{" "}
             <a
-              href={`${HOME_DOMAIN}/help/article/how-to-use-tags#what-is-a-tag`}
+              href="https://dub.co/help/article/how-to-use-tags#what-is-a-tag"
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-4 hover:text-gray-800"
@@ -118,7 +118,7 @@ function AddEditTagModal({
             if (res.status === 200 || res.status === 201) {
               va.track(props ? "Edited Tag" : "Created Tag");
               await Promise.all([
-                mutate(`/api/tags?projectSlug=${projectSlug}`),
+                mutate(`/api/tags?workspaceId=${workspaceId}`),
                 props
                   ? mutate(
                       (key) =>
@@ -151,7 +151,7 @@ function AddEditTagModal({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="New Tag"
               value={name}
               onChange={(e) => {
@@ -210,7 +210,7 @@ function AddTagButton({
 }: {
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { plan, nextPlan, tagsLimit } = useProject();
+  const { plan, nextPlan, tagsLimit } = useWorkspace();
   const { tags } = useTags();
   const { queryParams } = useRouterStuff();
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;

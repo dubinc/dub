@@ -1,62 +1,72 @@
 import { DomainProps } from "@/lib/types";
-import { DUB_DOMAINS, SHORT_DOMAIN, fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
+import {
+  DUB_DOMAINS,
+  DUB_WORKSPACE_ID,
+  SHORT_DOMAIN,
+  fetcher,
+} from "@dub/utils";
 import useSWR from "swr";
 import useDefaultDomains from "./use-default-domains";
+import useWorkspace from "./use-workspace";
 
-export default function useDomains({ domain }: { domain?: string } = {}) {
-  const { slug } = useParams() as {
-    slug: string;
-  };
+export default function useDomains({
+  id: workspaceId,
+  domain,
+}: { id?: string; domain?: string } = {}) {
+  let id: string | undefined = undefined;
+  if (workspaceId) {
+    id = workspaceId;
+  } else {
+    const { id: paramsId } = useWorkspace();
+    id = paramsId;
+  }
 
   const { data, error, mutate } = useSWR<DomainProps[]>(
-    slug && `/api/projects/${slug}/domains`,
+    id && `/api/domains?workspaceId=${id}`,
     fetcher,
     {
       dedupingInterval: 60000,
     },
   );
+  const { defaultDomains: workspaceDefaultDomains } = useDefaultDomains();
 
-  const allProjectDomains = data || [];
-  const projectDomains = data?.filter((domain) => !domain.archived);
-  const archivedProjectDomains = data?.filter((domain) => domain.archived);
+  const allWorkspaceDomains = data || [];
+  const activeWorkspaceDomains = data?.filter((domain) => !domain.archived);
+  const archivedWorkspaceDomains = data?.filter((domain) => domain.archived);
 
-  const { defaultDomains: projectDefaultDomains } = useDefaultDomains();
-
-  const defaultDomains =
-    (projectDefaultDomains &&
-      DUB_DOMAINS.filter((d) => projectDefaultDomains?.includes(d.slug))) ||
+  const activeDefaultDomains =
+    (workspaceDefaultDomains &&
+      DUB_DOMAINS.filter((d) => workspaceDefaultDomains?.includes(d.slug))) ||
     DUB_DOMAINS;
 
   const allDomains = [
-    ...(data || []),
-    ...(slug !== "dub" ? defaultDomains : []),
+    ...allWorkspaceDomains,
+    ...(id === `ws_${DUB_WORKSPACE_ID}` ? [] : DUB_DOMAINS),
   ];
   const allActiveDomains = [
-    ...(projectDomains || []),
-    ...(slug !== "dub" ? defaultDomains : []),
+    ...(activeWorkspaceDomains || []),
+    ...(id === `ws_${DUB_WORKSPACE_ID}` ? [] : activeDefaultDomains),
   ];
 
   const primaryDomain =
-    projectDomains?.find((domain) => domain.primary)?.slug ||
-    defaultDomains.find((domain) => domain.primary)?.slug ||
-    SHORT_DOMAIN;
+    activeWorkspaceDomains && activeWorkspaceDomains.length > 0
+      ? activeWorkspaceDomains.find((domain) => domain.primary)?.slug ||
+        activeWorkspaceDomains[0].slug
+      : SHORT_DOMAIN;
 
   const verified = domain
     ? // If a domain is passed, check if it's verified
-      [...allActiveDomains, ...(archivedProjectDomains || [])].find(
-        (d) => d.slug === domain,
-      )?.verified
-    : // If no domain is passed, check if any of the project domains are verified
-      projectDomains?.some((d) => d.verified);
+      allDomains.find((d) => d.slug === domain)?.verified
+    : // If no domain is passed, check if any of the workspace domains are verified
+      activeWorkspaceDomains?.some((d) => d.verified);
 
   return {
-    projectDomains,
-    archivedProjectDomains,
-    defaultDomains,
-    allProjectDomains,
-    allActiveDomains,
-    allDomains,
+    activeWorkspaceDomains, // active workspace domains
+    archivedWorkspaceDomains, // archived workspace domains
+    activeDefaultDomains, // active default Dub domains
+    allWorkspaceDomains, // all workspace domains (active + archived)
+    allActiveDomains, // all active domains (active workspace domains + active default Dub domains)
+    allDomains, // all domains (all workspace domains + all default Dub domains)
     primaryDomain,
     verified,
     loading: !data && !error,
