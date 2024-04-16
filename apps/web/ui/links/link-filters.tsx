@@ -20,6 +20,7 @@ import {
   useToastWithUndo,
 } from "@dub/ui";
 import {
+  DUB_WORKSPACE_ID,
   SWIPE_REVEAL_ANIMATION_SETTINGS,
   isDubDomain,
   nFormatter,
@@ -190,7 +191,8 @@ const DomainsFilter = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
-  const { allActiveDomains } = useDomains();
+  const { id: workspaceId } = useWorkspace();
+  const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
 
   const [collapsed, setCollapsed] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -204,13 +206,27 @@ const DomainsFilter = () => {
   });
 
   const options = useMemo(() => {
-    return allActiveDomains
-      .map((domain) => ({
-        ...domain,
-        count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
-      }))
-      .sort((a, b) => b.count - a.count);
-  }, [allActiveDomains, domains]);
+    const workspaceDomains = activeWorkspaceDomains?.map((domain) => ({
+      ...domain,
+      count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
+    }));
+
+    const defaultDomains =
+      workspaceId === `ws_${DUB_WORKSPACE_ID}`
+        ? []
+        : activeDefaultDomains
+            ?.map((domain) => ({
+              ...domain,
+              count:
+                domains?.find(({ domain: d }) => d === domain.slug)?._count ||
+                0,
+            }))
+            .filter((d) => d.count > 0);
+
+    return [...(workspaceDomains || []), ...(defaultDomains || [])].sort(
+      (a, b) => b.count - a.count,
+    );
+  }, [activeWorkspaceDomains, activeDefaultDomains, domains, workspaceId]);
 
   return (
     <fieldset className="overflow-hidden py-6">
