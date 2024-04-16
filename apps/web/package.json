@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "concurrently --kill-others \"prisma generate && next dev --turbo --port 8888\" \"prisma generate && prisma studio --browser none\" \"email dev --port 3333\"",
     "build": "prisma generate & next build",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "next lint",
     "start": "next start",
     "script": "tsx ./scripts/run.ts",
@@ -114,9 +113,6 @@
     "papaparse": "^5.4.1",
     "postcss": "^8.4.31",
     "postcss-import": "^15.1.0",
-    "prettier": "^3.2.5",
-    "prettier-plugin-organize-imports": "^3.2.4",
-    "prettier-plugin-tailwindcss": "^0.5.11",
     "tailwindcss": "^3.3.3",
     "tsx": "^3.14.0",
     "turbo": "^1.10.14",
