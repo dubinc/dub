@@ -276,9 +276,11 @@ async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  const domainBlacklisted = await isBlacklistedDomain(domain);
-  if (domainBlacklisted) {
+  const domainBlacklisted = await isBlacklistedDomain({ domain, apexDomain });
+  if (domainBlacklisted === true) {
     return true;
+  } else if (domainBlacklisted === "whitelisted") {
+    return false;
   }
 
   try {

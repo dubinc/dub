@@ -1,7 +1,13 @@
 import { getDomainWithoutWWW } from "@dub/utils";
 import { get, getAll } from "@vercel/edge-config";
 
-export const isBlacklistedDomain = async (domain: string) => {
+export const isBlacklistedDomain = async ({
+  domain,
+  apexDomain,
+}: {
+  domain: string;
+  apexDomain: string;
+}): Promise<boolean | "whitelisted"> => {
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
     return false;
   }
@@ -17,8 +23,8 @@ export const isBlacklistedDomain = async (domain: string) => {
       whitelistedDomains,
     } = await getAll(["domains", "terms", "whitelistedDomains"]);
 
-    if (whitelistedDomains.includes(domain)) {
-      return false;
+    if (whitelistedDomains.includes(apexDomain)) {
+      return "whitelisted";
     }
 
     const blacklistedTermsRegex = new RegExp(
