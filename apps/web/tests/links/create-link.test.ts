@@ -30,6 +30,9 @@ describe("POST /links", async () => {
       query: { workspaceId },
       body: {
         url,
+        publicStats: true,
+        comments: "This is a test",
+        rewrite: true,
       },
     });
 
@@ -37,6 +40,9 @@ describe("POST /links", async () => {
     expect(link).toMatchObject({
       ...expectedLink,
       url,
+      publicStats: true,
+      comments: "This is a test",
+      rewrite: true,
       userId: user.id,
       projectId,
       workspaceId,
@@ -48,7 +54,6 @@ describe("POST /links", async () => {
 
   test("user defined key", async () => {
     const key = nanoid(6);
-    const comments = "This is a test";
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -56,7 +61,6 @@ describe("POST /links", async () => {
       body: {
         url,
         key,
-        comments,
       },
     });
 
@@ -65,7 +69,6 @@ describe("POST /links", async () => {
       ...expectedLink,
       key,
       url,
-      comments,
       userId: user.id,
       projectId,
       workspaceId,
@@ -303,6 +306,35 @@ describe("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: expect.arrayContaining(tags),
+    });
+  });
+
+  test("custom social media cards", async () => {
+    const title = "custom title";
+    const description = "custom description";
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      query: { workspaceId },
+      body: {
+        url,
+        title,
+        description,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toMatchObject({
+      ...expectedLink,
+      url,
+      title,
+      description,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
     });
   });
 });
