@@ -165,20 +165,14 @@ export const getAnalytics = async ({
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
 
-  if(startDate && endDate) {
+  if (startDate && endDate) {
     url.searchParams.append(
       "start",
-      startDate
-        .toString()
-        .replace("T", " ")
-        .replace("Z", ""),
+      startDate.toString().replace("T", " ").replace("Z", ""),
     );
     url.searchParams.append(
       "end",
-      endDate
-        .toString()
-        .replace("T", " ")
-        .replace("Z", ""),
+      endDate.toString().replace("T", " ").replace("Z", ""),
     );
   }
 

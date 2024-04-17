@@ -17,11 +17,15 @@ export const GET = withWorkspace(
     const { domain, key, interval, startDate, endDate } = parsedParams;
 
     // Either interval can be provided, or both start and end date
-    if((interval && (startDate && endDate)) || (startDate && !endDate) || (!startDate && endDate)) {
+    if (
+      (interval && startDate && endDate) ||
+      (startDate && !endDate) ||
+      (!startDate && endDate)
+    ) {
       throw new DubApiError({
         code: "unprocessable_entity",
-        message: "Either provide interval or start and end date, not both"
-      })
+        message: "Either provide interval or start and end date, not both",
+      });
     }
 
     // return 403 if workspace is on the free plan and interval is 90d or allI do
