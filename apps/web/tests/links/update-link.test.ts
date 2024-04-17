@@ -9,7 +9,6 @@ import { expectedLink } from "../utils/schema";
 const { domain, url } = link;
 
 // TODO:
-// Make sure we cover all the fields
 // Add/update/delete tags
 
 describe("PUT /links/{linkId}", async () => {
