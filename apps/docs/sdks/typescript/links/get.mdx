@@ -1,14 +1,15 @@
 ---
-title: "Create"
-"og:title": "Create a new link - TypeScript SDK"
-description: "Create a new link for the authenticated workspace."
+title: "Get"
+"og:title": "Retrieve a link - TypeScript SDK"
+description: "Retrieve the info for a link from their domain and key."
 ---
 
 <RequestExample>
 
 ```ts
-await dub.links.create({
-  url: "https://www.google.com",
+await dub.links.get({
+  domain: "dub.sh",
+  key: "e7qzMuI",
 });
 ```
 

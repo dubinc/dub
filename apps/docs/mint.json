@@ -128,6 +128,18 @@
       "group": "TypeScript",
       "pages": [
         {
+          "group": "Links",
+          "pages": [
+            "sdks/typescript/links/create",
+            "sdks/typescript/links/get",
+            "sdks/typescript/links/update",
+            "sdks/typescript/links/delete",
+            "sdks/typescript/links/list",
+            "sdks/typescript/links/count",
+            "sdks/typescript/links/createMany"
+          ]
+        },
+        {
           "group": "Tags",
           "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
         },
