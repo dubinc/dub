@@ -31,6 +31,6 @@ jobs:
       - name: Run tests
         working-directory: apps/web
         env:
-          API_BASE_URL: https://preview.dub.co
+          # API_BASE_URL: ${{ github.event.deployment_status.environment_url }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm test
