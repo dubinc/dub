@@ -118,6 +118,8 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
+  console.error("API error occurred", error);
+
   // Zod errors
   if (error instanceof ZodError) {
     return {
@@ -139,10 +141,12 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
   }
 
   // Fallback
+  // Unhandled errors are not user-facing, so we don't expose the actual error
   return {
     error: {
       code: "internal_server_error",
-      message: error instanceof Error ? error.message : "Internal Server Error",
+      message:
+        "An internal server error occurred. Please contact our support if the problem persists.",
       doc_url: `${docErrorUrl}#internal_server_error`,
     },
     status: 500,
