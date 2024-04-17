@@ -136,7 +136,7 @@
             "sdks/typescript/links/delete",
             "sdks/typescript/links/list",
             "sdks/typescript/links/count",
-            "sdks/typescript/links/createMany"
+            "sdks/typescript/links/create-many"
           ]
         },
         {

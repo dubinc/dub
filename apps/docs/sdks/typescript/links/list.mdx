@@ -3,3 +3,64 @@ title: "List"
 "og:title": "Retrieve a list of links - TypeScript SDK"
 description: "Retrieve a list of links for the authenticated workspace. The list will be paginated and the provided query parameters allow filtering the returned links."
 ---
+
+<RequestExample>
+
+```ts
+// Find links by domain
+await dub.links.list({
+  domain: "dub.sh",
+});
+
+// Find links by tagIds
+await dub.links.list({
+  tagIds: ["clv3mewk30001mq0rxl3j3frn"],
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```ts
+[
+  {
+    id: "clv3o9p9q000au1h0mc7r6l63",
+    domain: "dub.sh",
+    key: "e7qzMuI",
+    url: "https://www.google.com",
+    archived: false,
+    expiresAt: null,
+    expiredUrl: null,
+    password: null,
+    proxy: false,
+    title: null,
+    description: null,
+    image: null,
+    rewrite: false,
+    ios: null,
+    android: null,
+    geo: null,
+    publicStats: false,
+    tagId: null,
+    tags: [],
+    comments: null,
+    shortLink: "https://dub.sh/e7qzMuI",
+    qrCode: "https://api.dub.co/qr?url=https://dub.sh/e7qzMuI?qr=1",
+    utmSource: null,
+    utmMedium: null,
+    utmCampaign: null,
+    utmTerm: null,
+    utmContent: null,
+    userId: "cludszk1h0000wmd2e0ea2b0p",
+    workspaceId: "ws_clugls3tn000lwfotbpy30304",
+    clicks: 0,
+    lastClicked: null,
+    createdAt: "2024-04-17T10:31:00.398Z",
+    updatedAt: "2024-04-17T10:31:00.398Z",
+    projectId: "clugls3tn000lwfotbpy30304",
+  },
+];
+```
+
+</ResponseExample>

@@ -3,3 +3,27 @@ title: "Count"
 "og:title": "Retrieve the number of links - TypeScript SDK"
 description: "Retrieve the number of links for the authenticated workspace. The provided query parameters allow filtering the returned links."
 ---
+
+<RequestExample>
+
+```ts
+// Count links by domain
+await dub.links.count({
+  domain: "dub.sh",
+});
+
+// Count links by tagIds
+await dub.links.count({
+  tagIds: ["clv3mewk30001mq0rxl3j3frn"],
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```ts
+2
+```
+
+</ResponseExample>

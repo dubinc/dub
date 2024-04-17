@@ -7,9 +7,8 @@ description: "Edit a link for the authenticated workspace."
 <RequestExample>
 
 ```ts
-await dub.links.get({
-  domain: "dub.sh",
-  key: "e7qzMuI",
+await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
+  tagIds: ["clv3j1h7o00032u1ngo8luv84"],
 });
 ```
 
@@ -36,8 +35,14 @@ await dub.links.get({
   android: null,
   geo: null,
   publicStats: false,
-  tagId: null,
-  tags: [],
+  tagId: 'clv3j1h7o00032u1ngo8luv84',
+  tags: [
+    {
+      id: 'clv3j1h7o00032u1ngo8luv84',
+      name: 'news',
+      color: 'blue'
+    }
+  ],
   comments: null,
   shortLink: 'https://dub.sh/e7qzMuI',
   qrCode: 'https://api.dub.co/qr?url=https://dub.sh/e7qzMuI?qr=1',
