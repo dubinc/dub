@@ -1,14 +1,12 @@
 import { hashToken, withSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, nanoid, trim } from "@dub/utils";
+import z from "@/lib/zod";
+import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-import z from "@/lib/zod";
-import { string } from "zod";
-
 const createApikeySchema = z.object({
-  name: string(z.preprocess(trim, z.string().min(1).max(32)).optional()),
+  name: z.string().min(1).max(32).trim(),
 });
 
 // GET /api/user/tokens – get all tokens for a specific user
