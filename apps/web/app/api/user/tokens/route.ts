@@ -2,11 +2,11 @@ import { hashToken, withSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
-import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, nanoid, trim } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 const createApikeySchema = z.object({
-  name: z.string().min(1).max(32).trim(),
+  name: z.preprocess(trim,z.string().min(1).max(140)),
 });
 
 // GET /api/user/tokens – get all tokens for a specific user
@@ -36,7 +36,7 @@ export const GET = withSession(async ({ session }) => {
 
 // POST /api/user/tokens – create a new token for a specific user
 export const POST = withSession(async ({ req, session }) => {
-  const { name } = await createApikeySchema.parseAsync(req.json());
+  const { name } = createApikeySchema.parse(await req.json());
   const token = nanoid(24);
   const hashedKey = hashToken(token, {
     noSecret: true,

@@ -32,6 +32,7 @@ export default function TokensPageClient() {
           defaultValue: "",
           placeholder: "Jetpack API Key",
           maxLength: 140,
+          required: true,
         }}
         helpText="<a href='https://d.to/api' target='_blank'>Learn more about Dub's API.</a>"
         buttonText="Submit"
@@ -50,9 +51,9 @@ export default function TokensPageClient() {
               mutate();
               toast.success("Successfully created a new token!");
             } else {
-              const errorMessage = await res.text();
-              toast.error(errorMessage || "Something went wrong");
-            }
+              const errorResponse = await res.json();
+                toast.error(errorResponse.error.message || errorResponse || "Something went wrong");
+              }
           })
         }
       />
