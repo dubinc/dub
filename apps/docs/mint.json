@@ -127,6 +127,7 @@
     {
       "group": "TypeScript",
       "pages": [
+        "sdks/typescript/overview",
         {
           "group": "Links",
           "pages": [
