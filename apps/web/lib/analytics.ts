@@ -99,6 +99,8 @@ export const getAnalytics = async ({
   domain,
   endpoint,
   interval,
+  startDate,
+  endDate,
   ...rest
 }: z.infer<typeof getAnalyticsQuerySchema> & {
   workspaceId?: string;
@@ -106,7 +108,6 @@ export const getAnalytics = async ({
   endpoint: (typeof VALID_TINYBIRD_ENDPOINTS)[number];
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
-
   if (
     !DATABASE_URL ||
     !process.env.TINYBIRD_API_KEY ||
@@ -124,6 +125,7 @@ export const getAnalytics = async ({
       "SELECT clicks FROM Link WHERE `id` = ?",
       [linkId],
     );
+
     if (response.rows.length === 0) {
       response = await conn.execute(
         "SELECT clicks FROM Domain WHERE `id` = ?",
@@ -161,6 +163,23 @@ export const getAnalytics = async ({
     );
 
     url.searchParams.append("granularity", intervalData[interval].granularity);
+  }
+
+  if(startDate && endDate) {
+    url.searchParams.append(
+      "start",
+      startDate
+        .toString()
+        .replace("T", " ")
+        .replace("Z", ""),
+    );
+    url.searchParams.append(
+      "end",
+      endDate
+        .toString()
+        .replace("T", " ")
+        .replace("Z", ""),
+    );
   }
 
   VALID_ANALYTICS_FILTERS.forEach((filter) => {

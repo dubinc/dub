@@ -13,9 +13,18 @@ export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
     const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
-    const { domain, key, interval } = parsedParams;
 
-    // return 403 if workspace is on the free plan and interval is 90d or all
+    const { domain, key, interval, startDate, endDate } = parsedParams;
+
+    // Either interval can be provided, or both start and end date
+    if((interval && (startDate && endDate)) || (startDate && !endDate) || (!startDate && endDate)) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Either provide interval or start and end date, not both"
+      })
+    }
+
+    // return 403 if workspace is on the free plan and interval is 90d or allI do
     if (
       workspace?.plan === "free" &&
       (interval === "all" || interval === "90d")
@@ -38,6 +47,7 @@ export const GET = withWorkspace(
       endpoint,
       ...parsedParams,
     });
+
     return NextResponse.json(response);
   },
   {
