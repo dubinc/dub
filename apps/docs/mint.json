@@ -35,6 +35,10 @@
     {
       "name": "API Reference",
       "url": "api-reference"
+    },
+    {
+      "name": "SDKs",
+      "url": "sdks"
     }
   ],
   "anchors": [
@@ -115,6 +119,19 @@
     {
       "group": "Metatags",
       "pages": ["api-reference/endpoint/retrieve-metatags"]
+    },
+    {
+      "group": "SDKs",
+      "pages": ["sdks/overview"]
+    },
+    {
+      "group": "TypeScript",
+      "pages": [
+        {
+          "group": "Tags",
+          "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
+        }
+      ]
     }
   ],
   "api": {
