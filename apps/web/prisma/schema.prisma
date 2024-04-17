@@ -27,6 +27,9 @@ model User {
   createdAt  DateTime       @default(now())
   subscribed Boolean        @default(true)
   affiliates Affiliate[]
+  source     String?
+
+  @@index(source)
 }
 
 model Account {
