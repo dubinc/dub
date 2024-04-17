@@ -57,8 +57,7 @@ export const WorkspaceSchema = z
   });
 
 export const createWorkspaceSchema = z.object({
-  name: z.preprocess(trim, z.string().min(1).max(32)
-),
+  name: z.preprocess(trim, z.string().min(1).max(32)),
   slug: z
     .string()
     .min(3, "Slug must be at least 3 characters")

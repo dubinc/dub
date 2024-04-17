@@ -8,7 +8,11 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, FADE_IN_ANIMATION_SETTINGS, generateDomainFromName } from "@dub/utils";
+import {
+  FADE_IN_ANIMATION_SETTINGS,
+  cn,
+  generateDomainFromName,
+} from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
@@ -197,13 +201,14 @@ function AddWorkspaceModalHelper({
               }}
               aria-invalid="true"
             />
-          {nameError ? (
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            {nameError ? (
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <AlertCircleFill
                   className="h-5 w-5 text-red-500"
-                  aria-hidden="true" />
+                  aria-hidden="true"
+                />
               </div>
-        ) : null}
+            ) : null}
           </div>
         </div>
 

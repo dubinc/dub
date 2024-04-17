@@ -6,7 +6,7 @@ import { APP_DOMAIN_WITH_NGROK, nanoid, trim } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 const createApikeySchema = z.object({
-  name: z.preprocess(trim,z.string().min(1).max(140)),
+  name: z.preprocess(trim, z.string().min(1).max(140)),
 });
 
 // GET /api/user/tokens – get all tokens for a specific user

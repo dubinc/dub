@@ -52,8 +52,12 @@ export default function TokensPageClient() {
               toast.success("Successfully created a new token!");
             } else {
               const errorResponse = await res.json();
-                toast.error(errorResponse.error.message || errorResponse || "Something went wrong");
-              }
+              toast.error(
+                errorResponse.error.message ||
+                  errorResponse ||
+                  "Something went wrong",
+              );
+            }
           })
         }
       />
