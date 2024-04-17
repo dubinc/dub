@@ -130,6 +130,14 @@
         {
           "group": "Tags",
           "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
+        },
+        {
+          "group": "Workspaces",
+          "pages": [
+            "sdks/typescript/workspaces/create",
+            "sdks/typescript/workspaces/get",
+            "sdks/typescript/workspaces/list"
+          ]
         }
       ]
     }
