@@ -217,7 +217,7 @@ export const createLinkBodySchema = z.object({
     ),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial();
+export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
