@@ -58,7 +58,7 @@ export async function processLink<T extends Record<string, any>>({
     createdAt,
   } = payload;
 
-  let expiresAt: string | Date | null | undefined = payload.expiresAt
+  let expiresAt: string | Date | null | undefined = payload.expiresAt;
 
   const tagIds = combineTagIds(payload);
 
