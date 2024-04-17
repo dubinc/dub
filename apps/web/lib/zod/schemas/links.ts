@@ -10,7 +10,6 @@ import { TagSchema } from "./tags";
 
 export const parseUrlSchema = z
   .string()
-  .describe("The destination URL of the short link.")
   .transform((v) => getUrlFromString(v))
   .refine((v) => isValidUrl(v), { message: "Invalid URL" });
 
@@ -231,7 +230,7 @@ export const createLinkBodySchema = z.object({
     ),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial();
+export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
