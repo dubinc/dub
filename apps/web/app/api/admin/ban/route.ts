@@ -1,5 +1,6 @@
 import { deleteWorkspaceAdmin } from "@/lib/api/workspaces";
 import { withAdmin } from "@/lib/auth";
+import { updateConfig } from "@/lib/edge-config";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -62,26 +63,11 @@ export const POST = withAdmin(async ({ req }) => {
     // if the user has a custom avatar, delete it
     user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
       storage.delete(`avatars/${user.id}`),
-    unsubscribe(user.email),
-    fetch(
-      `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          items: [
-            {
-              operation: "update",
-              key: "emails",
-              value: [...blacklistedEmails, email],
-            },
-          ],
-        }),
-      },
-    ),
+    unsubscribe(email),
+    updateConfig({
+      key: "emails",
+      value: email,
+    }),
   ]);
 
   return NextResponse.json({ success: true });

@@ -451,7 +451,7 @@ function AddEditLinkModal({
                   </label>
                   {urlError && (
                     <p className="text-sm text-red-600" id="key-error">
-                      Invalid url.
+                      Invalid URL
                     </p>
                   )}
                 </div>
