@@ -4,6 +4,18 @@ title: "Delete"
 description: "Delete a link for the authenticated workspace."
 ---
 
+## Arguments
+
+<ParamField body="linkId" type="string" required>
+  The id of the link to delete. You can get this via the `links.get` method.
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="string" required>
+  The id of the link that was deleted.
+</ResponseField>
+
 <RequestExample>
 
 ```ts
