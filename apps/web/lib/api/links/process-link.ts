@@ -301,7 +301,9 @@ export async function processLink<T extends Record<string, any>>({
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
-      userId: userId || payload.userId || null,
+      ...(userId && {
+        userId,
+      }),
     },
     error: null,
   };
