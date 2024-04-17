@@ -247,7 +247,7 @@ export async function processLink<T extends Record<string, any>>({
                 tags.find(({ name }) => tagName === name) === undefined,
             )
             .join(", "),
-        status: 422,
+        code: "unprocessable_entity",
       };
     }
   }
