@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
 import { ReactNode, createContext, useState } from "react";
 import { ClientOnly } from "./client-only";
@@ -25,17 +25,7 @@ export function Popup({
   return (
     <ClientOnly>
       <PopupContext.Provider value={{ hidePopup }}>
-        <AnimatePresence>
-          {!hidden && (
-            <motion.div
-              initial={{ opacity: 0, translateY: 50 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              exit={{ opacity: 0, y: "100%" }}
-            >
-              {children}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <AnimatePresence>{!hidden && children}</AnimatePresence>
       </PopupContext.Provider>
     </ClientOnly>
   );

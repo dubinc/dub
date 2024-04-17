@@ -47,6 +47,16 @@ export const checkIfKeyExists = async (domain: string, key: string) => {
   return rows && Array.isArray(rows) && rows.length > 0;
 };
 
+export const checkIfUserExists = async (userId: string) => {
+  if (!DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute("SELECT 1 FROM User WHERE id = ? LIMIT 1", [userId])) ||
+    {};
+
+  return rows && Array.isArray(rows) && rows.length > 0;
+};
+
 export const getLinkViaEdge = async (domain: string, key: string) => {
   if (!DATABASE_URL) return null;
 
