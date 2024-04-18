@@ -2,7 +2,9 @@
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
   "version": "0.1.10",
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -13,7 +15,9 @@
     "build": "tsup",
     "lint": "eslint src/",
     "dev": "tsup --watch",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "peerDependencies": {
     "@vercel/analytics": "^1.0.0",
@@ -23,12 +27,19 @@
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
     "@dub/utils": "workspace:*",
+    "@storybook/addon-essentials": "^8.0.8",
+    "@storybook/addon-links": "^8.0.8",
+    "@storybook/blocks": "^8.0.8",
+    "@storybook/nextjs": "^8.0.8",
+    "@storybook/react": "^8.0.8",
+    "@storybook/test": "^8.0.8",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.47",
     "autoprefixer": "^10.4.16",
     "next": "14.2.0-canary.67",
     "postcss": "^8.4.31",
     "react": "^18.2.0",
+    "storybook": "^8.0.8",
     "tailwindcss": "^3.3.3",
     "tsconfig": "workspace:*",
     "tsup": "^6.1.3",
