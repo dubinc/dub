@@ -19,54 +19,43 @@ const clickEventSchema = z.object({
 
 // POST /api/track/click – post click event
 export const POST = withAuthEdge(async ({ req }) => {
-  try {
-    const body = clickEventSchema.parse(await req.json());
-    const { url, affiliateParamKey } = body;
-    const { domain, key, searchParams } = parseUrl(url);
+  const body = clickEventSchema.parse(await req.json());
+  const { url, affiliateParamKey } = body;
+  const { domain, key, searchParams } = parseUrl(url);
 
-    const clickId = generateClickId();
+  const clickId = generateClickId();
 
-    waitUntil(async () => {
-      let affiliateUsername;
-      let link;
+  waitUntil(async () => {
+    let affiliateUsername;
+    let link;
 
-      if (affiliateParamKey && url.includes(`${affiliateParamKey}=`)) {
-        link = await getLinkViaEdgeByURL(url);
-        affiliateUsername = searchParams.get(affiliateParamKey);
-      } else {
-        link = await redis.hget<RedisLinkProps>(domain, key);
-        affiliateUsername = key;
-      }
-      if (!link) {
-        return NextResponse.json("Link not found", { status: 404 });
-      }
-      const affiliate = await getAffiliateViaEdge(
-        link.project_id,
-        affiliateUsername,
-      );
-      const affiliateId = affiliate?.id;
-
-      await recordClick({
-        req,
-        id: link!.id,
-        url,
-        clickId,
-        affiliateId,
-      });
-    });
-
-    return NextResponse.json({
-      success: true,
-      clickId,
-    });
-  } catch (e) {
-    // TODO: update with handleAndReturnErrorResponse
-    return NextResponse.json(
-      {
-        success: false,
-        error: e.message,
-      },
-      { status: 400 },
+    if (affiliateParamKey && url.includes(`${affiliateParamKey}=`)) {
+      link = await getLinkViaEdgeByURL(url);
+      affiliateUsername = searchParams.get(affiliateParamKey);
+    } else {
+      link = await redis.hget<RedisLinkProps>(domain, key);
+      affiliateUsername = key;
+    }
+    if (!link) {
+      return NextResponse.json("Link not found", { status: 404 });
+    }
+    const affiliate = await getAffiliateViaEdge(
+      link.project_id,
+      affiliateUsername,
     );
-  }
+    const affiliateId = affiliate?.id;
+
+    await recordClick({
+      req,
+      id: link!.id,
+      url,
+      clickId,
+      affiliateId,
+    });
+  });
+
+  return NextResponse.json({
+    success: true,
+    clickId,
+  });
 });
