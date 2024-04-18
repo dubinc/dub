@@ -7,13 +7,13 @@ import {
 } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
-export const GET = withAuth(
+export const GET = withWorkspace(
   async ({ domain }) => {
     const data = await prisma.domain.findUnique({
       where: {
@@ -47,7 +47,7 @@ export const GET = withAuth(
 );
 
 // PUT /api/domains/[domain] – edit a workspace's domain
-export const PATCH = withAuth(
+export const PATCH = withWorkspace(
   async ({ req, workspace, domain }) => {
     const body = await parseRequestBody(req);
     const {
@@ -118,7 +118,7 @@ export const PATCH = withAuth(
 );
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
-export const DELETE = withAuth(
+export const DELETE = withWorkspace(
   async ({ domain }) => {
     await deleteDomainAndLinks(domain);
     return NextResponse.json({ slug: domain });
