@@ -3,6 +3,7 @@ import { LinkSchema, TagSchema, WorkspaceSchema } from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
 import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
+import { domainsPaths } from "./domains";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
@@ -38,6 +39,7 @@ export const openApiObject: ZodOpenApiObject = {
     ...analyticsPaths,
     ...workspacesPaths,
     ...tagsPaths,
+    ...domainsPaths,
     ...metatagsPath,
   },
   components: {

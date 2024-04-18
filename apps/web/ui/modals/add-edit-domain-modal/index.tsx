@@ -87,7 +87,7 @@ function AddEditDomainModal({
   const endpoint = useMemo(() => {
     if (props) {
       return {
-        method: "PUT",
+        method: "PATCH",
         url: `/api/domains/${domain}?workspaceId=${id}`,
         successMessage: "Successfully updated domain!",
       };
@@ -132,9 +132,14 @@ function AddEditDomainModal({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({
+              ...data,
+              target: target || null,
+              placeholder: placeholder || null,
+              expiredUrl: expiredUrl || null,
+            }),
           }).then(async (res) => {
-            if (res.status === 200) {
+            if (res.ok) {
               await mutate(`/api/domains?workspaceId=${id}`);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
@@ -142,10 +147,10 @@ function AddEditDomainModal({
                 router.push(`/${slug}/domains`);
               }
             } else {
-              const errorMessage = await res.text();
-              toast.error(errorMessage);
+              const { error } = await res.json();
+              toast.error(error.message);
               if (res.status === 422) {
-                setDomainError(errorMessage);
+                setDomainError(error.message);
               }
             }
             setSaving(false);

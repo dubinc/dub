@@ -4,16 +4,9 @@ import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import z from "@/lib/zod";
+import { DomainSchema, transferDomainBodySchema } from "@/lib/zod/schemas";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
-
-const transferDomainBodySchema = z.object({
-  newWorkspaceId: z
-    .string()
-    .min(1, "Missing new workspace ID.")
-    .transform((v) => v.replace("ws_", "")),
-});
 
 // POST /api/domains/[domain]/transfer – transfer a domain to another workspace
 export const POST = withAuth(
@@ -156,7 +149,7 @@ export const POST = withAuth(
       },
     });
 
-    return NextResponse.json(domainResponse, { headers });
+    return NextResponse.json(DomainSchema.parse(domainResponse), { headers });
   },
   { requiredRole: ["owner"] },
 );
