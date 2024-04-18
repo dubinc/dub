@@ -30,7 +30,7 @@
     "name": "Dashboard",
     "url": "https://app.dub.co"
   },
-  "openapi": "https://api.dub.co",
+  "openapi": "http://api.localhost:8888",
   "tabs": [
     {
       "name": "API Reference",
@@ -167,16 +167,31 @@
           ]
         },
         {
-          "group": "Tags",
-          "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
-        },
-        {
           "group": "Workspaces",
           "pages": [
             "sdks/typescript/workspaces/create",
             "sdks/typescript/workspaces/get",
             "sdks/typescript/workspaces/list"
           ]
+        },
+        {
+          "group": "Tags",
+          "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
+        },
+        {
+          "group": "Domains",
+          "pages": [
+            "sdks/typescript/domains/add",
+            "sdks/typescript/domains/update",
+            "sdks/typescript/domains/delete",
+            "sdks/typescript/domains/list",
+            "sdks/typescript/domains/setPrimary",
+            "sdks/typescript/domains/transfer"
+          ]
+        },
+        {
+          "group": "Metatags",
+          "pages": ["sdks/typescript/metatags/get"]
         }
       ]
     }
