@@ -35,11 +35,13 @@ export const getAnalyticsQuerySchema = z.object({
     .describe("The tag ID to retrieve analytics for."),
   qr: booleanQuerySchema
     .optional()
-    .describe("Filter for QR code scans vs link clicks."),
+    .describe(
+      "Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+    ),
   root: booleanQuerySchema
     .optional()
     .describe(
-      "Root domains filter: If true, filter for domains only. If false, filter for links only. If undefined, return both.",
+      "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
     ),
 });
 
