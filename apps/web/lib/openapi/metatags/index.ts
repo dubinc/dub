@@ -6,9 +6,16 @@ const getMetatags: ZodOpenApiOperationObject = {
   operationId: "getMetatags",
   "x-speakeasy-name-override": "get",
   summary: "Retrieve the metatags for a URL",
-  description: "Retrieve the metatags for a URL",
+  description: "Retrieve the metatags for a URL.",
   requestParams: {
-    query: getUrlQuerySchema,
+    query: getUrlQuerySchema.merge(
+      z.object({
+        url: z.string().openapi({
+          example: "https://dub.co",
+          description: "The URL to retrieve metatags for.",
+        }),
+      }),
+    ),
   },
   responses: {
     "200": {
@@ -18,20 +25,23 @@ const getMetatags: ZodOpenApiOperationObject = {
           schema: z.object({
             title: z
               .string()
-              .describe("The meta title tag for the URL")
+              .nullable()
+              .describe("The meta title tag for the URL.")
               .openapi({
                 example: "Dub.co - Link Management for Modern Marketing Teams",
               }),
             description: z
               .string()
-              .describe("The meta description tag for the URL")
+              .nullable()
+              .describe("The meta description tag for the URL.")
               .openapi({
                 example:
                   "Dub.co is the open-source link management infrastructure ...",
               }),
             image: z
               .string()
-              .describe("The OpenGraph image for the URL")
+              .nullable()
+              .describe("The OpenGraph image for the URL.")
               .openapi({ example: "https://assets.dub.co/thumbnail.jpg" }),
           }),
         },
