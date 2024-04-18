@@ -5,13 +5,13 @@ import {
 } from "@/lib/api/domains";
 import { exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
-export const GET = withAuth(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const domains = await prisma.domain.findMany({
     where: {
       projectId: workspace.id,
@@ -32,7 +32,7 @@ export const GET = withAuth(async ({ workspace }) => {
 });
 
 // POST /api/domains - add a domain
-export const POST = withAuth(async ({ req, workspace }) => {
+export const POST = withWorkspace(async ({ req, workspace }) => {
   const body = await parseRequestBody(req);
   const {
     slug: domain,
