@@ -89,8 +89,9 @@ export const VALID_ANALYTICS_FILTERS = [
   "browser",
   "os",
   "referer",
-  "excludeRoot",
   "tagId",
+  "qr",
+  "root",
 ];
 
 export const getAnalytics = async ({
@@ -164,7 +165,7 @@ export const getAnalytics = async ({
   }
 
   VALID_ANALYTICS_FILTERS.forEach((filter) => {
-    if (rest[filter]) {
+    if (rest[filter] !== undefined) {
       url.searchParams.append(filter, rest[filter]);
     }
   });

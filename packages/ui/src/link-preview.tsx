@@ -23,9 +23,13 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
     title: string | null;
     description: string | null;
     image: string | null;
-  }>(debouncedUrl && `/api/metatags?url=${debouncedUrl}`, fetcher, {
-    revalidateOnFocus: false,
-  });
+  }>(
+    debouncedUrl && `/api/metatags?url=${encodeURIComponent(debouncedUrl)}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+    },
+  );
 
   const { title, description, image } = data || {};
 

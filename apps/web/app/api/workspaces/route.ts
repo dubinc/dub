@@ -157,6 +157,7 @@ export const POST = withSession(async ({ req, session }) => {
 
   const response = {
     ...projectResponse,
+    id: `ws_${projectResponse.id}`,
     domains: projectResponse.domains.map(({ slug, primary }) => ({
       slug,
       primary,

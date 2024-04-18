@@ -5,8 +5,11 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
+import { DubApiError } from "@/lib/api/errors";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
@@ -28,7 +31,10 @@ export const GET = withAuth(
       },
     });
     if (!data) {
-      return new Response("Domain not found", { status: 404 });
+      throw new DubApiError({
+        code: "not_found",
+        message: "Domain not found",
+      });
     }
     return NextResponse.json({
       ...data,
@@ -41,24 +47,32 @@ export const GET = withAuth(
 );
 
 // PUT /api/domains/[domain] – edit a workspace's domain
-export const PUT = withAuth(
+export const PATCH = withAuth(
   async ({ req, workspace, domain }) => {
+    const body = await parseRequestBody(req);
     const {
       slug: newDomain,
       target,
       type,
       placeholder,
       expiredUrl,
-    } = await req.json();
+      archived,
+    } = updateDomainBodySchema.parse(body);
 
-    if (newDomain !== domain) {
+    if (newDomain && newDomain !== domain) {
       const validDomain = await validateDomain(newDomain);
       if (validDomain !== true) {
-        return new Response(validDomain, { status: 422 });
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: validDomain,
+        });
       }
       const vercelResponse = await addDomainToVercel(newDomain);
       if (vercelResponse.error) {
-        return new Response(vercelResponse.error.message, { status: 422 });
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: vercelResponse.error.message,
+        });
       }
     }
 
@@ -68,15 +82,13 @@ export const PUT = withAuth(
           slug: domain,
         },
         data: {
-          ...(newDomain !== domain && {
-            slug: newDomain,
-          }),
+          slug: newDomain,
           type,
-          placeholder,
-          // only set target and expiredUrl if the workspace is not free
+          archived,
+          ...(placeholder && { placeholder }),
           ...(workspace.plan !== "free" && {
-            target: target || null,
-            expiredUrl: expiredUrl || null,
+            target,
+            expiredUrl,
           }),
         },
       }),
@@ -88,7 +100,7 @@ export const PUT = withAuth(
       id: response[0].id,
       domain,
       ...(workspace.plan !== "free" && {
-        url: target,
+        url: target || undefined,
       }),
       rewrite: type === "rewrite",
       ...(newDomain !== domain && {
@@ -97,7 +109,7 @@ export const PUT = withAuth(
       projectId: workspace.id,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(DomainSchema.parse(response[0]));
   },
   {
     domainChecks: true,
@@ -108,8 +120,8 @@ export const PUT = withAuth(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withAuth(
   async ({ domain }) => {
-    const response = await deleteDomainAndLinks(domain);
-    return NextResponse.json(response);
+    await deleteDomainAndLinks(domain);
+    return NextResponse.json({ slug: domain });
   },
   {
     domainChecks: true,
