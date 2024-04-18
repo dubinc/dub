@@ -19,7 +19,7 @@ export const addDomain: ZodOpenApiOperationObject = {
     },
   },
   responses: {
-    "200": {
+    "201": {
       description: "The domain was added.",
       content: {
         "application/json": {
