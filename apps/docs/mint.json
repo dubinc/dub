@@ -30,7 +30,7 @@
     "name": "Dashboard",
     "url": "https://app.dub.co"
   },
-  "openapi": "http://api.localhost:8888",
+  "openapi": "https://api.dub.co",
   "tabs": [
     {
       "name": "API Reference",
@@ -166,16 +166,6 @@
         {
           "group": "Tags",
           "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
-        },
-        {
-          "group": "Domains",
-          "pages": [
-            "sdks/typescript/domains/add",
-            "sdks/typescript/domains/delete",
-            "sdks/typescript/domains/list",
-            "sdks/typescript/domains/setPrimary",
-            "sdks/typescript/domains/transfer"
-          ]
         },
         {
           "group": "Metatags",
