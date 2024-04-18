@@ -60,7 +60,7 @@
     },
     {
       "group": "Resources",
-      "pages": ["integrations", "sdks", "examples"]
+      "pages": ["integrations", "examples"]
     },
     {
       "group": "API Reference",
@@ -187,6 +187,10 @@
     "website": "https://dub.co"
   },
   "redirects": [
+    {
+      "source": "/sdks",
+      "destination": "/sdks/overview"
+    },
     {
       "source": "/integrations/:path*",
       "destination": "/integrations"
