@@ -152,6 +152,21 @@
           ]
         },
         {
+          "group": "Analytics",
+          "pages": [
+            "sdks/typescript/analytics/clicks",
+            "sdks/typescript/analytics/timeseries",
+            "sdks/typescript/analytics/countries",
+            "sdks/typescript/analytics/cities",
+            "sdks/typescript/analytics/devices",
+            "sdks/typescript/analytics/browsers",
+            "sdks/typescript/analytics/os",
+            "sdks/typescript/analytics/referers",
+            "sdks/typescript/analytics/top-links",
+            "sdks/typescript/analytics/top-urls"
+          ]
+        },
+        {
           "group": "Tags",
           "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
         },

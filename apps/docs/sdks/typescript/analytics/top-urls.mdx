@@ -1,0 +1,47 @@
+---
+title: "Top Urls"
+"og:title": "Retrieve top urls - TypeScript SDK"
+description: "Retrieve the top URLs by number of clicks for a given short link."
+---
+
+import AnalyticsArguments from "/snippets/analytics-arguments.mdx";
+
+<Note>
+  Analytics endpoints require a [Pro plan](/help/article/pro-plan) subscription
+  or higher.
+</Note>
+
+<AnalyticsArguments />
+
+## Response
+
+<ResponseField name="url" type="string" required="true">
+  The destination URL
+</ResponseField>
+
+<ResponseField name="clicks" type="number" required="true">
+  The number of clicks from this URL
+</ResponseField>
+
+<RequestExample>
+
+```typescript
+await dub.analytics.topUrls({
+  key: "dummy",
+  domain: "dub.sh",
+  interval: "30d",
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```typescript
+[
+  { url: "https://dub.co/", clicks: 13 },
+  { url: "https://dub.co/?qr=", clicks: 4 },
+];
+```
+
+</ResponseExample>
