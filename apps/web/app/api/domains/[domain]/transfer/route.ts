@@ -93,7 +93,7 @@ export const POST = withAuth(
       workspaceId: workspace.id,
       endpoint: "clicks",
       interval: "30d",
-      excludeRoot: true,
+      root: false,
     });
 
     // Update the domain to use the new workspace
