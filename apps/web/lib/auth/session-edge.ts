@@ -1,30 +1,13 @@
-import { Session, hashToken } from "@/lib/auth";
+import { WithSessionHandler, hashToken } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
-import { NextRequest } from "next/server";
 import { DubApiError, handleAndReturnErrorResponse } from "../api/errors";
 import { getUserFromApiKeyViaEdge, updateApiKeyViaEdge } from "../planetscale";
 
-interface WithAuthHandler {
-  ({
-    req,
-    params,
-    searchParams,
-    headers,
-    session,
-  }: {
-    req: NextRequest;
-    params: Record<string, string>;
-    searchParams: Record<string, string>;
-    headers?: Record<string, string>;
-    session: Session;
-  }): Promise<Response>;
-}
-
-export const withAuthEdge =
-  (handler: WithAuthHandler) =>
+export const withSessionEdge =
+  (handler: WithSessionHandler) =>
   async (
-    req: NextRequest,
+    req: Request,
     { params }: { params: Record<string, string> | undefined },
   ) => {
     try {
@@ -86,7 +69,6 @@ export const withAuthEdge =
         req,
         params: params || {},
         searchParams: getSearchParams(req.url),
-        headers,
         session,
       });
     } catch (error) {

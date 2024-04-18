@@ -5,13 +5,13 @@ import {
   capitalize,
   getDomainWithoutWWW,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
-import { NextRequest, userAgent } from "next/server";
+import { geolocation, ipAddress } from "@vercel/edge";
+import { userAgent } from "next/server";
+import { generateClickId } from "./analytics";
 import { detectBot, detectQr, getIdentityHash } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
-import { generateClickId } from "./analytics";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -24,7 +24,7 @@ export async function recordClick({
   clickId,
   affiliateId,
 }: {
-  req: NextRequest;
+  req: Request;
   id: string;
   url?: string;
   root?: boolean;
@@ -36,7 +36,8 @@ export async function recordClick({
     return null; // don't record clicks from bots
   }
   const isQr = detectQr(req);
-  const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
+  const geo =
+    process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;

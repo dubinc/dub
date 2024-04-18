@@ -1,4 +1,4 @@
-import { withAuthEdge } from "@/lib/auth-edge";
+import { withSessionEdge } from "@/lib/auth/session-edge";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -18,7 +18,7 @@ const clickEventSchema = z.object({
 });
 
 // POST /api/track/click – post click event
-export const POST = withAuthEdge(async ({ req }) => {
+export const POST = withSessionEdge(async ({ req }) => {
   const body = clickEventSchema.parse(await req.json());
   const { url, affiliateParamKey } = body;
   const { domain, key, searchParams } = parseUrl(url);

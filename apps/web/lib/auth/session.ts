@@ -4,16 +4,18 @@ import { getSearchParams } from "@dub/utils";
 import { ratelimit } from "../upstash";
 import { Session, getSession, hashToken } from "./utils";
 
-interface WithSessionHandler {
+export interface WithSessionHandler {
   ({
     req,
     params,
     searchParams,
+    headers,
     session,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
+    headers?: Record<string, string>;
     session: Session;
   }): Promise<Response>;
 }
@@ -105,7 +107,7 @@ export const withSession =
       }
 
       const searchParams = getSearchParams(req.url);
-      return await handler({ req, params, searchParams, session });
+      return await handler({ req, params, searchParams, headers, session });
     } catch (error) {
       return handleAndReturnErrorResponse(error);
     }
