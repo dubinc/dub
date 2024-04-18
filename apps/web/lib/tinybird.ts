@@ -66,7 +66,7 @@ export async function recordClick({
           click_id: clickId || generateClickId(),
           link_id: id,
           alias_link_id: "",
-          affiliate_id: affiliateId || "",
+          // affiliate_id: affiliateId || "",
           url: url || "",
           ip:
             // only record IP if it's a valid IP and not from EU
