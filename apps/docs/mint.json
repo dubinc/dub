@@ -182,7 +182,6 @@
           "group": "Domains",
           "pages": [
             "sdks/typescript/domains/add",
-            "sdks/typescript/domains/update",
             "sdks/typescript/domains/delete",
             "sdks/typescript/domains/list",
             "sdks/typescript/domains/setPrimary",

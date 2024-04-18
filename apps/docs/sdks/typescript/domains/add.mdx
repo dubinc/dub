@@ -47,8 +47,10 @@ import DomainResponse from "/snippets/domain-response.mdx";
 <RequestExample>
 
 ```ts
-await dub.tags.create({
-  tag: "news",
+await dub.domains.add({
+  slug: "acme.com",
+  primary: true,
+  expiredUrl: "https://acme.com/expired",
 });
 ```
 
@@ -58,9 +60,15 @@ await dub.tags.create({
 
 ```ts
 {
-  id: "clv3j1h7o00032u1ngo8luv84",
-  name: "news",
-  color: "blue"
+  slug: "acme.com",
+  verified: false,
+  primary: true,
+  archived: false,
+  placeholder: "https://dub.co/help/article/what-is-dub",
+  expiredUrl: "https://acme.com/expired",
+  target: null,
+  type: "redirect",
+  clicks: 0
 }
 ```
 
