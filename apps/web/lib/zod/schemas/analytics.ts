@@ -29,13 +29,18 @@ export const getAnalyticsQuerySchema = z.object({
     .optional()
     .describe("The referer to retrieve analytics for."),
   url: z.string().optional().describe("The URL to retrieve analytics for."),
-  excludeRoot: booleanQuerySchema
-    .optional()
-    .describe("Whether to exclude the root link from the response."),
   tagId: z
     .string()
     .optional()
     .describe("The tag ID to retrieve analytics for."),
+  qr: booleanQuerySchema
+    .optional()
+    .describe("Filter for QR code scans vs link clicks."),
+  root: booleanQuerySchema
+    .optional()
+    .describe(
+      "Root domains filter: If true, filter for domains only. If false, filter for links only. If undefined, return both.",
+    ),
 });
 
 export const getAnalyticsEdgeQuerySchema = getAnalyticsQuerySchema.required({
