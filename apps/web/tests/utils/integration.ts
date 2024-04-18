@@ -1,98 +1,74 @@
-import { hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { nanoid } from "@dub/utils";
-import { Project, Token, User } from "@prisma/client";
-import type { TaskContext } from "vitest";
+import { Project, User } from "@prisma/client";
+import { inject, type TaskContext } from "vitest";
+import { z } from "zod";
 import { integrationTestEnv } from "./env";
 
 interface Resources {
-  user: User;
+  user: Pick<User, "id">;
   workspace: Project & { workspaceId: string };
-  apiKey: Token & { token: string };
+  apiKey: { token: string };
 }
 
 export class IntegrationHarness {
   private readonly ctx?: TaskContext;
+  private env: z.infer<typeof integrationTestEnv>;
   public resources: Resources;
   public baseUrl: string;
 
   constructor(ctx?: TaskContext) {
-    const env = integrationTestEnv.parse(process.env);
+    this.env = integrationTestEnv.parse(process.env);
 
     this.ctx = ctx;
-    this.baseUrl = env.API_BASE_URL;
+    this.baseUrl = this.env.API_BASE_URL;
   }
 
   async init() {
-    this.ctx?.onTestFinished(async () => {
-      await this.teardown();
-    });
+    // this.ctx?.onTestFinished(async () => {
+    //   await this.teardown();
+    // });
 
-    // Create a user
-    const user = await prisma.user.create({
-      data: {
-        name: "John",
-        email: `john+${nanoid()}@dub.co`,
-        emailVerified: new Date(),
-      },
-    });
+    const user = {
+      id: this.env.USER_ID,
+    };
 
-    // Create a workspace for the user
-    const workspace = await prisma.project.create({
-      data: {
-        name: "Dub",
-        slug: `dub-${nanoid()}`,
-        plan: "pro",
-        inviteCode: nanoid(6),
-        billingCycleStart: new Date().getDate(),
-        users: {
-          create: {
-            userId: user.id,
-            role: "owner",
-          },
-        },
-        defaultDomains: {
-          create: {},
-        },
-      },
-    });
+    const apiKey = {
+      token: this.env.TOKEN,
+    };
 
-    // Create an API key for the user
-    const token = nanoid(24);
-    const apiKey = await prisma.token.create({
-      data: {
-        name: "API Key",
-        hashedKey: hashToken(token, {
-          noSecret: true,
-        }),
-        partialKey: `${token.slice(0, 3)}...${token.slice(-4)}`,
-        userId: user.id,
-      },
-    });
+    const workspace = inject("workspace");
 
     this.resources = {
       user,
-      workspace: { ...workspace, workspaceId: `ws_${workspace.id}` },
-      apiKey: { ...apiKey, token },
+      workspace,
+      apiKey,
     } as const;
 
     return this.resources;
   }
 
   public async teardown() {
-    await prisma.$transaction([
-      prisma.project.deleteMany({
-        where: {
-          users: {
-            some: {
-              userId: this.resources.user.id,
-            },
-          },
-        },
-      }),
-      prisma.user.delete({ where: { id: this.resources.user.id } }),
-    ]);
+    // await prisma.$transaction([
+    //   prisma.project.deleteMany({
+    //     where: {
+    //       users: {
+    //         some: {
+    //           userId: this.resources.user.id,
+    //         },
+    //       },
+    //     },
+    //   }),
+    //   prisma.user.delete({ where: { id: this.resources.user.id } }),
+    // ]);
+    // await prisma.$disconnect();
+  }
 
-    await prisma.$disconnect();
+  public async cleanup(id: string) {
+    console.log("Deleting workspace", id);
+    await prisma.project.delete({
+      where: {
+        id,
+      },
+    });
   }
 }

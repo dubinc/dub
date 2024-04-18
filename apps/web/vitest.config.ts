@@ -8,5 +8,6 @@ export default defineConfig({
     reporters: ["verbose"],
     globals: true,
     testTimeout: 50000,
+    globalSetup: ["./tests/utils/globalSetup.ts"],
   },
 });

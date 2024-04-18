@@ -1,12 +1,15 @@
 import { Tag } from "@prisma/client";
-import { expect, test } from "vitest";
+import { expect, inject, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedTag } from "../utils/schema";
 
 test("POST /tags", async (ctx) => {
+  console.log("inject", inject("workspace"));
+
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey } = await h.init();
+  const { workspaceId } = workspace;
 
   const http = new HttpClient({
     baseUrl: h.baseUrl,
@@ -17,7 +20,7 @@ test("POST /tags", async (ctx) => {
 
   const { status, data: tag } = await http.post<Tag>({
     path: "/tags",
-    query: { workspaceId: workspace.workspaceId },
+    query: { workspaceId },
     body: {
       tag: "news",
       color: "red",

@@ -1,13 +1,11 @@
-import { nanoid } from "@dub/utils";
 import { Project } from "@prisma/client";
-import slugify from "@sindresorhus/slugify";
 import { expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 
 test("should not create workspace with slug in use", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { apiKey } = await h.init();
+  const { apiKey, workspace } = await h.init();
 
   const http = new HttpClient({
     baseUrl: h.baseUrl,
@@ -16,26 +14,19 @@ test("should not create workspace with slug in use", async (ctx) => {
     },
   });
 
-  const name = "Dub Workspace";
-  const slug = slugify(`dub-${nanoid()}`);
-
-  // Create a workspace with the same slug
-  const { data: workspace } = await http.post<Project>({
-    path: "/workspaces",
-    body: {
-      name,
-      slug,
-    },
-  });
+  console.log("existing workspace", workspace);
 
   // Create another workspace with the same slug
   const { status, data: error } = await http.post<Project>({
     path: "/workspaces",
     body: {
-      name,
-      slug,
+      name: "Dub Workspace",
+      slug: workspace.slug,
     },
   });
+
+  console.log("error", error);
+  console.log("status", status);
 
   expect(status).toEqual(409);
   expect(error).toEqual({

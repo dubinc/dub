@@ -46,6 +46,7 @@ cases.forEach(({ name, body, expected }) => {
   test(name, async (ctx) => {
     const h = new IntegrationHarness(ctx);
     const { workspace, apiKey } = await h.init();
+    const { workspaceId } = workspace;
 
     const http = new HttpClient({
       baseUrl: h.baseUrl,
@@ -56,7 +57,7 @@ cases.forEach(({ name, body, expected }) => {
 
     const response = await http.post<Tag>({
       path: "/tags",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body,
     });
 
@@ -67,6 +68,7 @@ cases.forEach(({ name, body, expected }) => {
 test("create tag with existing name", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, apiKey } = await h.init();
+  const { workspaceId } = workspace;
 
   const http = new HttpClient({
     baseUrl: h.baseUrl,
@@ -77,7 +79,7 @@ test("create tag with existing name", async (ctx) => {
 
   await http.post({
     path: "/tags",
-    query: { workspaceId: workspace.workspaceId },
+    query: { workspaceId },
     body: {
       tag: "news",
       color: "red",
@@ -87,7 +89,7 @@ test("create tag with existing name", async (ctx) => {
   // Create the same tag again
   const { status, data: error } = await http.post<Tag>({
     path: "/tags",
-    query: { workspaceId: workspace.workspaceId },
+    query: { workspaceId },
     body: {
       tag: "news",
       color: "red",

@@ -13,6 +13,8 @@ describe("POST /links", async () => {
   const { workspace, apiKey, user } = await h.init();
   const { workspaceId, id: projectId } = workspace;
 
+  console.log({ workspace, apiKey, user });
+
   const http = new HttpClient({
     baseUrl: h.baseUrl,
     headers: {

@@ -1,7 +1,7 @@
 import { nanoid } from "@dub/utils";
 import { Project } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
-import { expect, test } from "vitest";
+import { afterAll, expect, test } from "vitest";
 import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedWorkspace } from "../utils/schema";
@@ -35,5 +35,9 @@ test("POST /workspaces", async (ctx) => {
     slug,
     domains: [],
     users: [{ role: "owner" }],
+  });
+
+  afterAll(async () => {
+    await h.cleanup(workspace.id);
   });
 });
