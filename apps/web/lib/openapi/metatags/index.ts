@@ -6,8 +6,7 @@ const getMetatags: ZodOpenApiOperationObject = {
   operationId: "getMetatags",
   "x-speakeasy-name-override": "get",
   summary: "Retrieve the metatags for a URL",
-  description:
-    "Retrieve the metatags for a URL.",
+  description: "Retrieve the metatags for a URL.",
   requestParams: {
     query: getUrlQuerySchema.merge(
       z.object({
