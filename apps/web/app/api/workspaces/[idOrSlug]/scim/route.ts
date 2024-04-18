@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import jackson from "@/lib/jackson";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
@@ -14,7 +14,7 @@ const deleteDirectorySchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/scim – get all SCIM directories
-export const GET = withAuth(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const { directorySyncController } = await jackson();
 
   const { data, error } =
@@ -35,7 +35,7 @@ export const GET = withAuth(async ({ workspace }) => {
 });
 
 // POST /api/workspaces/[idOrSlug]/scim – create a new SCIM directory
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const { provider = "okta-scim-v2", currentDirectoryId } =
       createDirectorySchema.parse(await req.json());
@@ -63,7 +63,7 @@ export const POST = withAuth(
 
 // DELETE /api/workspaces/[idOrSlug]/scim – delete a SCIM directory
 
-export const DELETE = withAuth(
+export const DELETE = withWorkspace(
   async ({ searchParams }) => {
     const { directoryId } = deleteDirectorySchema.parse(searchParams);
 

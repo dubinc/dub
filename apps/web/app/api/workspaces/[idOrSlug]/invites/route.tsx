@@ -1,6 +1,6 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
@@ -10,7 +10,7 @@ const emailInviteSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
-export const GET = withAuth(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const invites = await prisma.projectInvite.findMany({
     where: {
       projectId: workspace.id,
@@ -24,7 +24,7 @@ export const GET = withAuth(async ({ workspace }) => {
 });
 
 // POST /api/workspaces/[idOrSlug]/invites – invite a teammate
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const { email } = emailInviteSchema.parse(await req.json());
 
@@ -82,7 +82,7 @@ export const POST = withAuth(
 );
 
 // DELETE /api/workspaces/[idOrSlug]/invites – delete a pending invite
-export const DELETE = withAuth(
+export const DELETE = withWorkspace(
   async ({ searchParams, workspace }) => {
     const { email } = emailInviteSchema.parse(searchParams);
     const response = await prisma.projectInvite.delete({

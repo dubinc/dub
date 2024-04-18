@@ -1,6 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { createLinkBodySchema, getLinksQuerySchema } from "@/lib/zod/schemas";
@@ -8,39 +8,41 @@ import { LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
-export const GET = withAuth(async ({ headers, searchParams, workspace }) => {
-  const {
-    domain,
-    tagId,
-    tagIds,
-    search,
-    sort,
-    page,
-    userId,
-    showArchived,
-    withTags,
-  } = getLinksQuerySchema.parse(searchParams);
+export const GET = withWorkspace(
+  async ({ headers, searchParams, workspace }) => {
+    const {
+      domain,
+      tagId,
+      tagIds,
+      search,
+      sort,
+      page,
+      userId,
+      showArchived,
+      withTags,
+    } = getLinksQuerySchema.parse(searchParams);
 
-  const response = await getLinksForWorkspace({
-    workspaceId: workspace.id,
-    domain,
-    tagId,
-    tagIds,
-    search,
-    sort,
-    page,
-    userId,
-    showArchived,
-    withTags,
-  });
+    const response = await getLinksForWorkspace({
+      workspaceId: workspace.id,
+      domain,
+      tagId,
+      tagIds,
+      search,
+      sort,
+      page,
+      userId,
+      showArchived,
+      withTags,
+    });
 
-  return NextResponse.json(response, {
-    headers,
-  });
-});
+    return NextResponse.json(response, {
+      headers,
+    });
+  },
+);
 
 // POST /api/links – create a new link
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
     let bodyRaw;
     try {

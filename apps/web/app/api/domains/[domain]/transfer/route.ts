@@ -1,7 +1,7 @@
 import { getAnalytics } from "@/lib/analytics";
 import { setRootDomain } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { DomainSchema, transferDomainBodySchema } from "@/lib/zod/schemas";
@@ -9,7 +9,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/domains/[domain]/transfer – transfer a domain to another workspace
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
     const { domain } = params;
     const { newWorkspaceId } = transferDomainBodySchema.parse(await req.json());
@@ -93,7 +93,7 @@ export const POST = withAuth(
       workspaceId: workspace.id,
       endpoint: "clicks",
       interval: "30d",
-      excludeRoot: true,
+      root: false,
     });
 
     // Update the domain to use the new workspace
