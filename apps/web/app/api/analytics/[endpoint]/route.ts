@@ -1,6 +1,6 @@
 import { getAnalytics } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import {
   analyticsEndpointSchema,
@@ -9,7 +9,7 @@ import {
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/[endpoint] – get analytics for a specific endpoint
-export const GET = withAuth(
+export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
     const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);

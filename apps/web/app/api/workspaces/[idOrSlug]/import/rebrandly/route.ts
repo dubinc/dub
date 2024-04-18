@@ -1,5 +1,5 @@
 import { addDomainToVercel } from "@/lib/api/domains";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -7,7 +7,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/import/rebrandly – get all Rebrandly domains for a workspace
-export const GET = withAuth(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const accessToken = await redis.get(`import:rebrandly:${workspace.id}`);
   if (!accessToken) {
     return new Response("No Rebrandly access token found", { status: 400 });
@@ -58,14 +58,14 @@ export const GET = withAuth(async ({ workspace }) => {
 });
 
 // PUT /api/workspaces/[idOrSlug]/import/rebrandly - save Rebrandly API key
-export const PUT = withAuth(async ({ req, workspace }) => {
+export const PUT = withWorkspace(async ({ req, workspace }) => {
   const { apiKey } = await req.json();
   const response = await redis.set(`import:rebrandly:${workspace.id}`, apiKey);
   return NextResponse.json(response);
 });
 
 // POST /api/workspaces/[idOrSlug]/import/rebrandly - create job to import links from Rebrandly
-export const POST = withAuth(async ({ req, workspace, session }) => {
+export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const { selectedDomains, importTags } = await req.json();
 
   // check if there are domains that are not in the workspace
