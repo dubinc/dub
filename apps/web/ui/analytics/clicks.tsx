@@ -105,9 +105,12 @@ export default function Clicks() {
                   getNewPath: true,
                 }) as string
               }
-              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-800 transition-all hover:bg-gray-100"
+              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
             >
-              <strong>{root === "true" ? "Domains Only" : "Links Only"}</strong>
+              <strong className="text-gray-800">
+                {root === "true" ? "Domains" : "Links"}
+              </strong>
+              <p>Only</p>
               <X className="h-4 w-4" />
             </Link>
           )}
