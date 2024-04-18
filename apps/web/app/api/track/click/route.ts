@@ -10,7 +10,7 @@ import { parseUrl } from "@/lib/middleware/utils";
 import { getAffiliateViaEdge, getLinkViaEdgeByURL } from "@/lib/planetscale";
 import { z } from "zod";
 
-// export const runtime = "edge";
+export const runtime = "edge";
 
 const clickEventSchema = z.object({
   url: z.string().url(),

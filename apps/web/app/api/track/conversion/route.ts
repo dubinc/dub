@@ -1,7 +1,8 @@
+import { withSessionEdge } from "@/lib/auth/session-edge";
 import { getAffiliateViaEdge } from "@/lib/planetscale";
 import { recordConversion } from "@/lib/tinybird";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 export const runtime = "edge";
@@ -14,7 +15,7 @@ const conversionEventSchema = z.object({
 });
 
 // POST /api/track/conversion – post conversion event
-export const POST = async (req: NextRequest) => {
+export const POST = withSessionEdge(async ({ req }) => {
   const body = conversionEventSchema.parse(await req.json());
   const { eventName, properties, clickId, affiliateUsername } = body;
 
@@ -39,4 +40,4 @@ export const POST = async (req: NextRequest) => {
   return NextResponse.json({
     success: true,
   });
-};
+});
