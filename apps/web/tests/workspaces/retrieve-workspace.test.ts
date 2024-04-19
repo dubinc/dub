@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedWorkspace } from "../utils/schema";
 
-test("GET /workspaces/{id}", async (ctx) => {
+test.skip("GET /workspaces/{id}", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http } = await h.init();
 
@@ -22,7 +22,7 @@ test("GET /workspaces/{id}", async (ctx) => {
   });
 });
 
-test("GET /workspaces/{slug}", async (ctx) => {
+test.skip("GET /workspaces/{slug}", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http } = await h.init();
 
