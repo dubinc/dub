@@ -167,7 +167,12 @@ function AddEditLinkModal({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
-        toast.custom(() => <UpgradeToProToast message={error.message} />);
+        toast.custom(() => (
+          <UpgradeToProToast
+            title="You've exceeded your AI usage limit"
+            message={error.message}
+          />
+        ));
       } else {
         toast.error(error.message);
       }
@@ -433,7 +438,10 @@ function AddEditLinkModal({
                   if (error) {
                     if (error.message.includes("Upgrade to Pro")) {
                       toast.custom(() => (
-                        <UpgradeToProToast message={error.message} />
+                        <UpgradeToProToast
+                          title="You've discovered a Pro feature!"
+                          message={error.message}
+                        />
                       ));
                     } else {
                       toast.error(error.message);

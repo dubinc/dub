@@ -47,7 +47,12 @@ export default function OGSection({
     id: "metatags-title-ai",
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
-        toast.custom(() => <UpgradeToProToast message={error.message} />);
+        toast.custom(() => (
+          <UpgradeToProToast
+            title="You've exceeded your AI usage limit"
+            message={error.message}
+          />
+        ));
       } else {
         toast.error(error.message);
       }
@@ -76,7 +81,12 @@ export default function OGSection({
     id: "metatags-description-ai",
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
-        toast.custom(() => <UpgradeToProToast message={error.message} />);
+        toast.custom(() => (
+          <UpgradeToProToast
+            title="You've exceeded your AI usage limit"
+            message={error.message}
+          />
+        ));
       } else {
         toast.error(error.message);
       }

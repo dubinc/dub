@@ -2,7 +2,6 @@ import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps, TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
-import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
 import {
   Badge,
   LoadingCircle,
@@ -41,11 +40,7 @@ export default function TagsSection({
   const { complete } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     onError: (error) => {
-      if (error.message.includes("Upgrade to Pro")) {
-        toast.custom(() => <UpgradeToProToast message={error.message} />);
-      } else {
-        toast.error(error.message);
-      }
+      toast.error(error.message);
     },
     onFinish: (_, completion) => {
       mutateWorkspace();

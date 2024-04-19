@@ -35,7 +35,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     domains,
     tags,
     users,
-    ai: 10000000,
+    ai: 1000,
   },
   colors: {
     bg: "bg-sky-900",
@@ -149,7 +149,7 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       users: 5,
-      ai: 10000000,
+      ai: 1000,
     },
     colors: {
       bg: "bg-blue-500",
