@@ -25,7 +25,7 @@ test("DELETE /links/{linkId}", async (ctx) => {
   });
 
   expect(status).toBe(200);
-  expect(data).toMatchObject({
+  expect(data).toStrictEqual({
     id: link.id,
   });
 

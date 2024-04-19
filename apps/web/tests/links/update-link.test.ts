@@ -7,17 +7,11 @@ import { expectedLink } from "../utils/schema";
 
 const { domain, url } = link;
 
-// TODO:
-// Add/update/delete tags
-
 describe("PUT /links/{linkId}", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
-  const { workspaceId, id: projectId } = workspace;
-
-  // afterAll(async () => {
-  //   await h.teardown();
-  // });
+  const { workspaceId } = workspace;
+  const projectId = workspaceId.replace("ws_", "");
 
   test("update link", async () => {
     // Update the link with new data
@@ -54,7 +48,7 @@ describe("PUT /links/{linkId}", async () => {
       body: newLink,
     });
 
-    expect(updatedLink).toMatchObject({
+    expect(updatedLink).toStrictEqual({
       ...expectedLink,
       ...newLink,
       expiresAt: "2030-04-16T18:29:59.000Z",
@@ -78,7 +72,7 @@ describe("PUT /links/{linkId}", async () => {
       workspaceId,
       shortLink: `https://${domain}/${newLink.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}?qr=1`,
-    }).toMatchObject(updatedLink);
+    }).toStrictEqual(updatedLink);
 
     await h.deleteLink(link.id);
   });
@@ -103,7 +97,7 @@ describe("PUT /links/{linkId}", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(updatedLink).toMatchObject({
+    expect(updatedLink).toStrictEqual({
       ...expectedLink,
       archived: true,
       domain,
@@ -147,7 +141,7 @@ describe("PUT /links/{linkId}", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(updatedLink).toMatchObject({
+    expect(updatedLink).toStrictEqual({
       ...expectedLink,
       archived: false,
       domain,

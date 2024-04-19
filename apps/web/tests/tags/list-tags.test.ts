@@ -5,6 +5,7 @@ import { IntegrationHarness } from "../utils/integration";
 test("GET /tags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http } = await h.init();
+  const { workspaceId } = workspace;
 
   const tagsToCreate = [
     { tag: "news", color: "red" },
@@ -14,7 +15,7 @@ test("GET /tags", async (ctx) => {
   for (const { tag, color } of tagsToCreate) {
     await http.post<Tag>({
       path: "/tags",
-      query: { workspaceId: workspace.workspaceId },
+      query: { workspaceId },
       body: { tag, color },
     });
   }
@@ -22,11 +23,11 @@ test("GET /tags", async (ctx) => {
   // Fetch the list of tags
   const { status, data: tags } = await http.get<Tag[]>({
     path: "/tags",
-    query: { workspaceId: workspace.workspaceId },
+    query: { workspaceId },
   });
 
   expect(status).toEqual(200);
-  expect(tags).toEqual([
+  expect(tags).toStrictEqual([
     {
       id: expect.any(String),
       name: "news",

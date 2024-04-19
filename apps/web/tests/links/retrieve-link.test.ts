@@ -10,7 +10,8 @@ const { domain, url } = link;
 test("GET /links/info", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http, user } = await h.init();
-  const { workspaceId, id: projectId } = workspace;
+  const { workspaceId } = workspace;
+  const projectId = workspaceId.replace("ws_", "");
 
   const newLink: Partial<Link> = {
     url,
@@ -39,13 +40,13 @@ test("GET /links/info", async (ctx) => {
   });
 
   expect(status).toEqual(200);
-  expect(link).toMatchObject({
+  expect(link).toStrictEqual({
     ...expectedLink,
     ...newLink,
-    expiresAt: "2030-04-16T18:29:59.000Z",
-    userId: user.id,
     projectId,
     workspaceId,
+    userId: user.id,
+    expiresAt: "2030-04-16T18:29:59.000Z",
     shortLink: `https://${domain}/${newLink.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}?qr=1`,
     tags: [],

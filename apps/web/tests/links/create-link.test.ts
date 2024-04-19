@@ -10,7 +10,8 @@ const { domain, url } = link;
 describe("POST /links", async () => {
   const h = new IntegrationHarness();
   const { workspace, user, http } = await h.init();
-  const { workspaceId, id: projectId } = workspace;
+  const { workspaceId } = workspace;
+  const projectId = workspaceId.replace("ws_", "");
 
   test("default domain", async () => {
     const { status, data: link } = await http.post<Link>({
@@ -25,7 +26,7 @@ describe("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       url,
       publicStats: true,
@@ -55,7 +56,7 @@ describe("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       key,
       url,
@@ -87,7 +88,7 @@ describe("POST /links", async () => {
 
     expect(status).toEqual(200);
     expect(link.key.startsWith(prefix)).toBeTruthy();
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       domain,
       url,
@@ -125,7 +126,7 @@ describe("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       ...utm,
       url: longUrl.href,
@@ -153,7 +154,7 @@ describe("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       url,
       password,
@@ -183,7 +184,7 @@ describe("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       url,
       expiresAt: "2030-04-16T11:30:00.000Z",
@@ -215,7 +216,7 @@ describe("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       url,
       ios,
@@ -248,7 +249,7 @@ describe("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       url,
       geo,
@@ -265,8 +266,8 @@ describe("POST /links", async () => {
 
   test("tags", async () => {
     const tagsToCreate = [
-      { tag: "news", color: "red" },
-      { tag: "work", color: "green" },
+      { tag: nanoid(6), color: "red" },
+      { tag: nanoid(6), color: "green" },
     ];
 
     const response = await Promise.all(
@@ -299,7 +300,7 @@ describe("POST /links", async () => {
 
     expect(status).toEqual(200);
     expect(link.tags).toHaveLength(2);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       url,
       tagId: expect.any(String), // TODO: Fix this
@@ -311,7 +312,10 @@ describe("POST /links", async () => {
       tags: expect.arrayContaining(tags),
     });
 
-    await h.deleteLink(link.id);
+    await Promise.all([
+      ...tagIds.map((id) => h.deleteTag(id)),
+      h.deleteLink(link.id),
+    ]);
   });
 
   test("custom social media cards", async () => {
@@ -329,7 +333,7 @@ describe("POST /links", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(link).toMatchObject({
+    expect(link).toStrictEqual({
       ...expectedLink,
       url,
       title,

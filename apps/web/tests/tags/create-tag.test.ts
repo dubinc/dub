@@ -18,11 +18,11 @@ test("POST /tags", async (ctx) => {
   });
 
   expect(status).toEqual(201);
-  expect(tag).toEqual({
+  expect(tag).toStrictEqual({
     ...expectedTag,
     name: "social",
     color: "red",
-    projectId: workspace.id,
+    projectId: workspaceId.replace("ws_", ""),
   });
 
   await h.deleteTag(tag.id);

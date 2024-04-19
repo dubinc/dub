@@ -1,26 +1,21 @@
 import { Project } from "@prisma/client";
 import { expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
-
-// TODO:
-// Retrieve workspace not owned by current user
 
 test("retrieve a workspace by invalid slug or id", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, apiKey } = await h.init();
-
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
+  const { http } = await h.init();
 
   const { status, data: error } = await http.get<Project>({
     path: `/workspaces/xxxx`,
   });
 
   expect(status).toEqual(404);
-  // Add error
+  expect(error).toStrictEqual({
+    error: {
+      code: "not_found",
+      message: "Workspace not found.",
+      doc_url: "https://dub.co/docs/api-reference/errors#not_found",
+    },
+  });
 });

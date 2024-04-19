@@ -1,32 +1,29 @@
 import { Project } from "@prisma/client";
+import { expectedWorkspace } from "tests/utils/schema";
 import { expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 
 test("GET /workspaces", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { apiKey } = await h.init();
-
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
+  const { workspace, http } = await h.init();
 
   const { status, data: workspaces } = await http.get<Project[]>({
     path: "/workspaces",
   });
 
+  const workspaceFound = workspaces.find(
+    (w) => w.slug === h.resources.workspace.slug,
+  );
+
   expect(status).toEqual(200);
-  expect(workspaces.length).greaterThanOrEqual(1);
-  // expect(workspaces).toMatchObject([
-  //   {
-  //     ...expectedWorkspace,
-  //     name: workspace.name,
-  //     slug: workspace.slug,
-  //     plan: "pro",
-  //     domains: [],
-  //   },
-  // ]);
+  expect(workspaces.length).toBeGreaterThanOrEqual(1);
+  expect(workspaceFound).toStrictEqual({
+    ...expectedWorkspace,
+    name: workspace.name,
+    slug: workspace.slug,
+    id: workspace.id,
+    plan: "pro",
+    domains: [],
+    users: [{ role: "owner" }],
+  });
 });

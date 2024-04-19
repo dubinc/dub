@@ -18,7 +18,7 @@ test("GET /metatags", async (ctx) => {
   });
 
   expect(status).toEqual(200);
-  expect(metatags).toMatchObject({
+  expect(metatags).toStrictEqual({
     title: "Dub.co - Link Management for Modern Marketing Teams",
     description:
       "Dub.co is the open-source link management infrastructure for modern marketing teams to create, share, and track short links.",

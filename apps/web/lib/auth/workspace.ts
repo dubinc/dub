@@ -207,6 +207,8 @@ export const withWorkspace = (
             slug: true,
             logo: true,
             usage: true,
+            aiUsage: true,
+            aiLimit: true,
             usageLimit: true,
             linksUsage: true,
             linksLimit: true,
@@ -217,6 +219,8 @@ export const withWorkspace = (
             stripeId: true,
             billingCycleStart: true,
             createdAt: true,
+            updatedAt: true,
+            monitoringId: true,
             users: {
               where: {
                 userId: session.user.id,
