@@ -46,7 +46,7 @@ test("GET /links/info", async (ctx) => {
     projectId,
     workspaceId,
     userId: user.id,
-    expiresAt: "2030-04-16T18:29:59.000Z",
+    expiresAt: "2030-04-16T23:59:59.000Z",
     shortLink: `https://${domain}/${newLink.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}?qr=1`,
     tags: [],
