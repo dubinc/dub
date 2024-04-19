@@ -201,22 +201,7 @@ export const withWorkspace = (
             id: id || undefined,
             slug: slug || undefined,
           },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logo: true,
-            usage: true,
-            usageLimit: true,
-            linksUsage: true,
-            linksLimit: true,
-            domainsLimit: true,
-            tagsLimit: true,
-            usersLimit: true,
-            plan: true,
-            stripeId: true,
-            billingCycleStart: true,
-            createdAt: true,
+          include: {
             users: {
               where: {
                 userId: session.user.id,
@@ -231,7 +216,6 @@ export const withWorkspace = (
                 primary: true,
               },
             },
-            inviteCode: true,
           },
         }),
         linkId

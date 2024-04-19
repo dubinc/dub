@@ -4,6 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
+import { WorkspaceSchema } from "@/lib/zod/schemas";
 import { DEFAULT_REDIRECTS, trim, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { NextResponse } from "next/server";
@@ -34,10 +35,10 @@ const updateWorkspaceSchema = z.object({
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(async ({ workspace, headers }) => {
   return NextResponse.json(
-    {
+    WorkspaceSchema.parse({
       ...workspace,
       id: `ws_${workspace.id}`,
-    },
+    }),
     { headers },
   );
 });
