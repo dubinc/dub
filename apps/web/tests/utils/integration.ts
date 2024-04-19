@@ -86,4 +86,14 @@ export class IntegrationHarness {
       query: { workspaceId },
     });
   }
+
+  // Delete tag
+  public async deleteTag(id: string) {
+    const { workspaceId } = this.resources.workspace;
+
+    await this.http.delete({
+      path: `/tags/${id}`,
+      query: { workspaceId },
+    });
+  }
 }

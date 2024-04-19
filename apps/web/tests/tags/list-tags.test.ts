@@ -1,18 +1,10 @@
 import { Tag } from "@prisma/client";
 import { expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 
 test("GET /tags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, apiKey } = await h.init();
-
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
+  const { workspace, http } = await h.init();
 
   const tagsToCreate = [
     { tag: "news", color: "red" },
@@ -46,4 +38,6 @@ test("GET /tags", async (ctx) => {
       color: "green",
     },
   ]);
+
+  await Promise.all(tags.map((tag) => h.deleteTag(tag.id)));
 });

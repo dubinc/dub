@@ -1,6 +1,5 @@
 import { Tag } from "@prisma/client";
 import { expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 
 const cases = [
@@ -45,15 +44,8 @@ const cases = [
 cases.forEach(({ name, body, expected }) => {
   test(name, async (ctx) => {
     const h = new IntegrationHarness(ctx);
-    const { workspace, apiKey } = await h.init();
+    const { workspace, http } = await h.init();
     const { workspaceId } = workspace;
-
-    const http = new HttpClient({
-      baseUrl: h.baseUrl,
-      headers: {
-        Authorization: `Bearer ${apiKey.token}`,
-      },
-    });
 
     const response = await http.post<Tag>({
       path: "/tags",
@@ -67,15 +59,8 @@ cases.forEach(({ name, body, expected }) => {
 
 test("create tag with existing name", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, apiKey } = await h.init();
+  const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
-
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
 
   await http.post({
     path: "/tags",
