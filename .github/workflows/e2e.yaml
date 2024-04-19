@@ -28,9 +28,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run tests
+      - name: Build
+        run: pnpm --filter web run build
+
+      - name: Configure tests
         working-directory: apps/web
         env:
-          # API_BASE_URL: ${{ github.event.deployment_status.environment_url }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: pnpm test
+          API_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          TOKEN: ${{ secrets.TOKEN }}
+          USER_ID: ${{ secrets.USER_ID }}
+
+      - name: Run tests
+        run: pnpm --filter web run test
