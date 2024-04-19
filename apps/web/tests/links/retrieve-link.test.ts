@@ -2,7 +2,6 @@ import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
 import { expectedLink } from "tests/utils/schema";
 import { expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 
@@ -10,15 +9,8 @@ const { domain, url } = link;
 
 test("GET /links/info", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, apiKey, user } = await h.init();
+  const { workspace, http, user } = await h.init();
   const { workspaceId, id: projectId } = workspace;
-
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
 
   const newLink: Partial<Link> = {
     url,
@@ -58,4 +50,6 @@ test("GET /links/info", async (ctx) => {
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}?qr=1`,
     tags: [],
   });
+
+  await h.deleteLink(link.id);
 });

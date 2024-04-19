@@ -1,7 +1,6 @@
 import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
-import { afterAll, describe, expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
+import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
@@ -13,19 +12,12 @@ const { domain, url } = link;
 
 describe("PUT /links/{linkId}", async () => {
   const h = new IntegrationHarness();
-  const { workspace, apiKey, user } = await h.init();
+  const { workspace, http, user } = await h.init();
   const { workspaceId, id: projectId } = workspace;
 
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
-
-  afterAll(async () => {
-    await h.teardown();
-  });
+  // afterAll(async () => {
+  //   await h.teardown();
+  // });
 
   test("update link", async () => {
     // Update the link with new data
@@ -87,6 +79,8 @@ describe("PUT /links/{linkId}", async () => {
       shortLink: `https://${domain}/${newLink.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${newLink.key}?qr=1`,
     }).toMatchObject(updatedLink);
+
+    await h.deleteLink(link.id);
   });
 
   // Archive the link
@@ -129,6 +123,8 @@ describe("PUT /links/{linkId}", async () => {
     });
 
     expect(archivedLink.archived).toEqual(true);
+
+    await h.deleteLink(link.id);
   });
 
   // Unarchive the link
@@ -171,5 +167,7 @@ describe("PUT /links/{linkId}", async () => {
     });
 
     expect(unarchivedLink.archived).toEqual(false);
+
+    await h.deleteLink(link.id);
   });
 });

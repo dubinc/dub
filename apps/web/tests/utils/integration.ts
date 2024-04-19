@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { Project, User } from "@prisma/client";
 import { inject, type TaskContext } from "vitest";
 import { z } from "zod";
+import { HttpClient } from "../utils/http";
 import { integrationTestEnv } from "./env";
 
 interface Resources {
@@ -15,19 +16,22 @@ export class IntegrationHarness {
   private env: z.infer<typeof integrationTestEnv>;
   public resources: Resources;
   public baseUrl: string;
+  public http: HttpClient;
 
   constructor(ctx?: TaskContext) {
     this.env = integrationTestEnv.parse(process.env);
 
     this.ctx = ctx;
     this.baseUrl = this.env.API_BASE_URL;
+    this.http = new HttpClient({
+      baseUrl: this.baseUrl,
+      headers: {
+        Authorization: `Bearer ${this.env.TOKEN}`,
+      },
+    });
   }
 
   async init() {
-    // this.ctx?.onTestFinished(async () => {
-    //   await this.teardown();
-    // });
-
     const user = {
       id: this.env.USER_ID,
     };
@@ -42,9 +46,9 @@ export class IntegrationHarness {
       user,
       workspace,
       apiKey,
-    } as const;
+    };
 
-    return this.resources;
+    return { ...this.resources, http: this.http };
   }
 
   public async teardown() {
@@ -65,10 +69,21 @@ export class IntegrationHarness {
 
   public async cleanup(id: string) {
     console.log("Deleting workspace", id);
+
     await prisma.project.delete({
       where: {
         id,
       },
+    });
+  }
+
+  // Delete link
+  public async deleteLink(id: string) {
+    const { workspaceId } = this.resources.workspace;
+
+    await this.http.delete({
+      path: `/links/${id}`,
+      query: { workspaceId },
     });
   }
 }

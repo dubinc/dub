@@ -1,6 +1,5 @@
 import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 
@@ -8,15 +7,8 @@ const { domain, url } = link;
 
 test("DELETE /links/{linkId}", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, apiKey } = await h.init();
+  const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
-
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
 
   const { data: link } = await http.post<Link>({
     path: "/links",

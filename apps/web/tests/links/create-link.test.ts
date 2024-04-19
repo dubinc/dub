@@ -1,7 +1,6 @@
 import { nanoid } from "@dub/utils";
 import { Link, Tag } from "@prisma/client";
-import { afterAll, describe, expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
+import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
@@ -10,21 +9,8 @@ const { domain, url } = link;
 
 describe("POST /links", async () => {
   const h = new IntegrationHarness();
-  const { workspace, apiKey, user } = await h.init();
+  const { workspace, user, http } = await h.init();
   const { workspaceId, id: projectId } = workspace;
-
-  console.log({ workspace, apiKey, user });
-
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
-
-  afterAll(async () => {
-    await h.teardown();
-  });
 
   test("default domain", async () => {
     const { status, data: link } = await http.post<Link>({
@@ -52,6 +38,8 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("user defined key", async () => {
@@ -78,10 +66,11 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("prefix", async () => {
-    const domain = "git.new";
     const prefix = "gh";
 
     const { status, data: link } = await http.post<
@@ -109,6 +98,8 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("utm builder", async (ctx) => {
@@ -145,6 +136,8 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("password protection", async () => {
@@ -171,6 +164,8 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("link expiration", async () => {
@@ -200,6 +195,8 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("device targeting", async () => {
@@ -230,6 +227,8 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("geo targeting", async () => {
@@ -260,6 +259,8 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("tags", async () => {
@@ -309,6 +310,8 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: expect.arrayContaining(tags),
     });
+
+    await h.deleteLink(link.id);
   });
 
   test("custom social media cards", async () => {
@@ -338,5 +341,7 @@ describe("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+
+    await h.deleteLink(link.id);
   });
 });

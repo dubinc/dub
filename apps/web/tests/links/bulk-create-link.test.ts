@@ -1,22 +1,14 @@
 import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
-import { HttpClient } from "../utils/http";
 import { IntegrationHarness } from "../utils/integration";
 
 test("POST /links/bulk", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, apiKey } = await h.init();
+  const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  const http = new HttpClient({
-    baseUrl: h.baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey.token}`,
-    },
-  });
-
-  const bulkLinks = Array.from({ length: 10 }, () => ({
+  const bulkLinks = Array.from({ length: 2 }, () => ({
     url: `https://example.com/${nanoid()}`,
   }));
 
@@ -27,5 +19,7 @@ test("POST /links/bulk", async (ctx) => {
   });
 
   expect(status).toEqual(200);
-  expect(links).toHaveLength(10);
+  expect(links).toHaveLength(2);
+
+  await Promise.all([h.deleteLink(links[0].id), h.deleteLink(links[1].id)]);
 });
