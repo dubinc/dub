@@ -9,7 +9,6 @@ const BUSINESS_PLAN_MODIFIER = ({
   domains = 40,
   tags = 150,
   users = 15,
-  ai = 10000,
   ids = [],
 }: {
   name: string;
@@ -19,7 +18,6 @@ const BUSINESS_PLAN_MODIFIER = ({
   clicks: number;
   domains: number;
   users: number;
-  ai: number;
   tags: number;
   ids: string[];
 }) => ({
@@ -37,7 +35,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     domains,
     tags,
     users,
-    ai,
+    ai: 10000000,
   },
   colors: {
     bg: "bg-sky-900",
@@ -58,7 +56,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: "2-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
-    { text: `∞ AI credits` },
+    { text: `Unlimited AI credits` },
     {
       text: `${nFormatter(tags, { full: true })} tags`,
       footnote: {
@@ -114,7 +112,7 @@ export const PLANS = [
       { text: "30-day analytics retention" },
       { text: "3 custom domains" },
       { text: "1 user" },
-      { text: "10 AI credits" },
+      { text: "10 AI credits/mo" },
       {
         text: "Community support",
         footnote: "Help center + GitHub discussions.",
@@ -151,7 +149,7 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       users: 5,
-      ai: 1000,
+      ai: 100,
     },
     colors: {
       bg: "bg-blue-500",
@@ -172,7 +170,7 @@ export const PLANS = [
       { text: "1-year analytics retention" },
       { text: "10 custom domains" },
       { text: "5 users" },
-      { text: "1,000 AI credits" },
+      { text: "100 AI credits/mo" },
       { text: "Basic support", footnote: "Basic email support." },
       {
         text: "Root domain redirect",
@@ -199,7 +197,6 @@ export const PLANS = [
     domains: 40,
     tags: 150,
     users: 15,
-    ai: 10000,
     ids: [
       "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
       "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
@@ -219,7 +216,6 @@ export const PLANS = [
     domains: 100,
     tags: 300,
     users: 40,
-    ai: 10000,
     ids: [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
       "price_1OnWu0AlJJEpqkPVkDWVriAB", // yearly (test)
@@ -236,7 +232,6 @@ export const PLANS = [
     domains: 250,
     tags: 500,
     users: 100,
-    ai: 10000,
     ids: [
       "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
       "price_1OnWvCAlJJEpqkPVHhCCvIOq", // yearly (test)
@@ -253,7 +248,6 @@ export const PLANS = [
     domains: 500,
     tags: 1000,
     users: 250,
-    ai: 10000,
     ids: [
       "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
       "price_1OnWwLAlJJEpqkPV4eMbOkNh", // yearly (test)
