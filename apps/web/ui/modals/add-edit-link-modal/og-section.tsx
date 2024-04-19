@@ -46,7 +46,7 @@ export default function OGSection({
     isLoading: generatingTitle,
     complete: completeTitle,
   } = useCompletion({
-    api: `/api/ai/metatags?workspaceId=${workspaceId}`,
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
     id: "metatags-title-ai",
     onError: (error) => {
       toast.error(error.message);
@@ -58,7 +58,7 @@ export default function OGSection({
 
   const generateTitle = async () => {
     completeTitle(
-      `Generate an SEO-optimized meta title tag (title only, max 120 characters) – given the current version: ${data.title}`,
+      `You are an SEO expert that specializes in creating SEO-optimized meta title & description tags. You receive a question like 'What is a suitable, new meta-title for Dub?' and you respond with a plain text answer, no quotes, no special characters, nothing other than the tag that you're generating. Try to keep it short and sweet. Generate an SEO-optimized meta title tag (title only, max 120 characters) – given the current version: ${data.title}`,
     );
   };
 
@@ -73,7 +73,7 @@ export default function OGSection({
     isLoading: generatingDescription,
     complete: completeDescription,
   } = useCompletion({
-    api: `/api/ai/metatags?workspaceId=${workspaceId}`,
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
     id: "metatags-description-ai",
     onError: (error) => {
       toast.error(error.message);
@@ -85,7 +85,7 @@ export default function OGSection({
 
   const generateDescription = async () => {
     completeDescription(
-      `Generate an SEO-optimized meta description tag (description only, max 240 characters) – given the current version: ${data.description}`,
+      `You are an SEO expert that specializes in creating SEO-optimized meta title & description tags. You receive a question like 'What is a suitable, new meta-title for Dub?' and you respond with a plain text answer, no quotes, no special characters, nothing other than the tag that you're generating. Try to keep it short and sweet. Generate an SEO-optimized meta description tag (description only, max 240 characters) – given the current version: ${data.description}`,
     );
   };
 

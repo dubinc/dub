@@ -83,12 +83,8 @@ export function ContactForm({
 
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const {
-    completion,
-    isLoading: generatingAIKey,
-    complete,
-  } = useCompletion({
-    api: `/api/ai/completion`,
+  const { completion, complete } = useCompletion({
+    api: `/api/ai/completion-internal`,
     onError: (error) => {
       toast.error(error.message);
     },

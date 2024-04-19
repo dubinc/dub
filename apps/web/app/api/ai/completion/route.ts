@@ -1,39 +1,35 @@
 import { anthropic } from "@/lib/anthropic";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { ratelimit } from "@/lib/upstash";
-import { ipAddress } from "@vercel/edge";
+import {
+  getWorkspaceViaEdge,
+  incrementWorkspaceAIUsage,
+} from "@/lib/planetscale";
+import { getSearchParams } from "@dub/utils";
 import { AnthropicStream, StreamingTextResponse } from "ai";
-import { getToken } from "next-auth/jwt";
+import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+// POST /api/ai/link – Generate a shortlink key from a prompt using AI
 export async function POST(req: NextRequest) {
+  const searchParams = getSearchParams(req.url);
+  const { workspaceId } = searchParams;
+  const workspace = await getWorkspaceViaEdge(workspaceId);
+
+  if (!workspace) {
+    return new Response("Workspace not found", { status: 404 });
+  }
+
+  if (workspace.aiUsage > workspace.aiLimit) {
+    return new Response(
+      "Exceeded AI usage limit. Upgrade to a higher plan to get more AI credits.",
+      { status: 429 },
+    );
+  }
+
   try {
-    const session = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-    if (!session?.email) {
-      throw new DubApiError({
-        code: "unauthorized",
-        message: "You must be logged in to access this resource",
-      });
-    }
-
-    const ip = ipAddress(req);
-    const { success } = await ratelimit(5, "1 m").limit(`ai-completion:${ip}`);
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Don't DDoS me pls 🥺",
-      });
-    }
-
-    // Extract the `prompt` from the body of the request
     const { prompt } = await req.json();
 
-    // Ask Claude for a streaming chat completion given the prompt
     const response = await anthropic.messages.create({
       messages: [
         {
@@ -46,12 +42,12 @@ export async function POST(req: NextRequest) {
       max_tokens: 300,
     });
 
-    // Convert the response into a friendly text-stream
     const stream = AnthropicStream(response);
 
-    // Respond with the stream
+    waitUntil(async () => await incrementWorkspaceAIUsage(workspaceId));
+
     return new StreamingTextResponse(stream);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return new Response(error.message, { status: 500 });
   }
 }

@@ -143,6 +143,18 @@ function AddEditLinkModal({
     }
   }, [showAddEditLinkModal, url]);
 
+  const runKeyChecks = async (value: string) => {
+    const res = await fetch(
+      `/api/links/verify?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
+    );
+    const { error } = await res.json();
+    if (error) {
+      setKeyError(error.message);
+    } else {
+      setKeyError(null);
+    }
+  };
+
   const [generatedKeys, setGeneratedKeys] = useState<string[]>(
     props ? [props.key] : [],
   );
@@ -152,13 +164,14 @@ function AddEditLinkModal({
     isLoading: generatingAIKey,
     complete,
   } = useCompletion({
-    api: `/api/ai/link?workspaceId=${workspaceId}`,
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
     onError: (error) => {
       toast.error(error.message);
     },
     onFinish: (_, completion) => {
       setGeneratedKeys((prev) => [...prev, completion]);
       revalidateAiUsage();
+      runKeyChecks(completion);
     },
   });
 
@@ -167,7 +180,7 @@ function AddEditLinkModal({
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
     complete(
-      `Generate a short link for the URL "${data.url}", meta-title "${data.title}" and meta-description "${data.description}"? Please respond with a unique key you haven't used before: ${generatedKeys.join(", ")}`,
+      `You are a helpful assistant and only answer in short link keys, e.g. you receive a question like 'What is the shortlink for meta-title Notion and meta-description The all in one workspace?' and you respond with e.g. 'notion-workspace'. Try to combine them in a shortlink that makes sense and is easy to share on social media. Don't use any special characters or spaces and only response with keys less than 20 characters long. If it makes sense, try to use acronyms/initials, e.g. techcrunch -> tc, github -> gh. Generate a short link for the URL "${data.url}", meta-title "${data.title}" and meta-description "${data.description}"? Please respond with a unique key you haven't used before: ${generatedKeys.join(", ")}`,
     );
   }, [data.url, data.title, data.description, generatedKeys]);
 
@@ -176,18 +189,6 @@ function AddEditLinkModal({
       setData((prev) => ({ ...prev, key: completion }));
     }
   }, [completion]);
-  const runKeyChecks = async (e: React.FocusEvent<HTMLInputElement>) => {
-    if (!e.target.value) return;
-    const res = await fetch(
-      `/api/links/verify?domain=${domain}&key=${e.target.value}&workspaceId=${workspaceId}`,
-    );
-    const { error } = await res.json();
-    if (error) {
-      setKeyError(error.message);
-    } else {
-      setKeyError(null);
-    }
-  };
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -326,13 +327,6 @@ function AddEditLinkModal({
     return linkConstructor({
       key: data.key,
       domain: data.domain,
-    });
-  }, [data.key, data.domain]);
-
-  const shortLinkPretty = useMemo(() => {
-    return linkConstructor({
-      key: data.key,
-      domain: data.domain,
       pretty: true,
     });
   }, [data.key, data.domain]);
@@ -379,7 +373,7 @@ function AddEditLinkModal({
           <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
             <LinkLogo apexDomain={getApexDomain(url)} />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-              {props ? `Edit ${shortLinkPretty}` : "Create a new link"}
+              {props ? `Edit ${shortLink}` : "Create a new link"}
             </h3>
           </div>
 
@@ -657,7 +651,9 @@ function AddEditLinkModal({
                         "Only letters, numbers, '-', '/', and emojis are allowed.",
                       );
                     }}
-                    onBlur={runKeyChecks}
+                    onBlur={(e) =>
+                      e.target.value && runKeyChecks(e.target.value)
+                    }
                     disabled={props && lockKey}
                     autoComplete="off"
                     className={cn(
@@ -705,11 +701,11 @@ function AddEditLinkModal({
                                   })}
                                 </p>
                               </div>
-                              {shortLinkPretty.length > 25 && (
+                              {shortLink.length > 25 && (
                                 <div className="mt-1 flex items-center space-x-2">
                                   <Twitter className="h-4 w-4" />
                                   <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
-                                    {truncate(shortLinkPretty, 25)}
+                                    {truncate(shortLink, 25)}
                                   </p>
                                 </div>
                               )}

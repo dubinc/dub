@@ -91,6 +91,7 @@ export default function TooltipButton() {
       >
         <button
           {...props}
+          type="button"
           disabled={props.disabled || (ai && ai?.data.usage >= ai?.data.limit)}
           className={cn(
             "flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed",
