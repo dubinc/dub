@@ -1,7 +1,6 @@
 import { anthropic } from "@/lib/anthropic";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
-import { ipAddress } from "@vercel/edge";
 import { AnthropicStream, StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
@@ -21,8 +20,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const ip = ipAddress(req);
-    const { success } = await ratelimit(5, "1 m").limit(`ai-completion:${ip}`);
+    // you can only generate a support completion 3 times per minute
+    const { success } = await ratelimit(3, "1 m").limit(
+      `ai-completion:${session.sub}`,
+    );
     if (!success) {
       throw new DubApiError({
         code: "rate_limit_exceeded",
@@ -38,7 +39,9 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "user",
-          content: prompt,
+          content: `Create a short but concise title that summarizes the following support request. Only return the generated title, and nothing else. Don't use quotation marks.
+          
+          ${prompt}`,
         },
       ],
       model: "claude-3-sonnet-20240229",
