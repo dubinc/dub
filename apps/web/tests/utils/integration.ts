@@ -1,13 +1,12 @@
-import prisma from "@/lib/prisma";
 import { Project, User } from "@prisma/client";
-import { inject, type TaskContext } from "vitest";
+import { type TaskContext } from "vitest";
 import { z } from "zod";
 import { HttpClient } from "../utils/http";
 import { integrationTestEnv } from "./env";
 
 interface Resources {
   user: Pick<User, "id">;
-  workspace: Project & { workspaceId: string };
+  workspace: Pick<Project, "id" | "slug" | "name"> & { workspaceId: string };
   apiKey: { token: string };
 }
 
@@ -32,49 +31,33 @@ export class IntegrationHarness {
   }
 
   async init() {
+    const { USER_ID, TOKEN, WORKSPACE_ID, WORKSPACE_SLUG, WORKSPACE_NAME } =
+      this.env;
+
     const user = {
-      id: this.env.USER_ID,
+      id: USER_ID,
     };
 
     const apiKey = {
-      token: this.env.TOKEN,
+      token: TOKEN,
     };
 
-    const workspace = inject("workspace");
+    const workspace = {
+      id: WORKSPACE_ID,
+      slug: WORKSPACE_SLUG,
+      name: WORKSPACE_NAME,
+    };
 
     this.resources = {
       user,
-      workspace,
       apiKey,
+      workspace: {
+        ...workspace,
+        workspaceId: workspace.id,
+      },
     };
 
     return { ...this.resources, http: this.http };
-  }
-
-  public async teardown() {
-    // await prisma.$transaction([
-    //   prisma.project.deleteMany({
-    //     where: {
-    //       users: {
-    //         some: {
-    //           userId: this.resources.user.id,
-    //         },
-    //       },
-    //     },
-    //   }),
-    //   prisma.user.delete({ where: { id: this.resources.user.id } }),
-    // ]);
-    // await prisma.$disconnect();
-  }
-
-  public async cleanup(id: string) {
-    console.log("Deleting workspace", id);
-
-    await prisma.project.delete({
-      where: {
-        id,
-      },
-    });
   }
 
   // Delete link
