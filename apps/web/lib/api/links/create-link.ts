@@ -33,13 +33,6 @@ export async function createLink(link: LinkWithTagIdsProps) {
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
-      ...(combinedTagIds.length > 0 && {
-        tags: {
-          createMany: {
-            data: combinedTagIds.map((tagId) => ({ tagId })),
-          },
-        },
-      }),
     },
     include: {
       tags: {
