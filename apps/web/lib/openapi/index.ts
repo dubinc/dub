@@ -1,5 +1,10 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { LinkSchema, TagSchema, WorkspaceSchema } from "@/lib/zod/schemas";
+import {
+  DomainSchema,
+  LinkSchema,
+  TagSchema,
+  WorkspaceSchema,
+} from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
 import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
@@ -47,6 +52,7 @@ export const openApiObject: ZodOpenApiObject = {
       LinkSchema,
       WorkspaceSchema,
       TagSchema,
+      DomainSchema,
     },
     securitySchemes: {
       token: {
