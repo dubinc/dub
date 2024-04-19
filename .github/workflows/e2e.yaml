@@ -40,7 +40,10 @@ jobs:
       - name: Run tests
         working-directory: apps/web
         env:
-          API_BASE_URL: ${{ github.event.deployment_status.environment_url }}
-          TOKEN: ${{ secrets.TOKEN }}
-          USER_ID: ${{ secrets.USER_ID }}
+          E2E_API_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
+          E2E_USER_ID: ${{ secrets.E2E_USER_ID }}
+          E2E_WORKSPACE_ID: ${{ secrets.E2E_WORKSPACE_ID }}
+          E2E_WORKSPACE_SLUG: ${{ secrets.E2E_WORKSPACE_SLUG }}
+          E2E_WORKSPACE_NAME: ${{ secrets.E2E_WORKSPACE_NAME }}
         run: pnpm test
