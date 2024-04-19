@@ -38,9 +38,11 @@ export const expectedTag: Partial<Tag> = {
   updatedAt: expect.any(String),
 };
 
+// TODO:
+// Make it dynamic based on the plan
 export const expectedWorkspace: Partial<Project> = {
-  logo: expect.any(Symbol),
-  plan: expect.any(Number),
+  logo: expect.any(String) || null,
+  plan: expect.any(String),
   stripeId: null,
   usage: expect.any(Number),
   usageLimit: 1000,
