@@ -1,7 +1,7 @@
-import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
 import { expectedLink } from "tests/utils/schema";
 import { expect, test } from "vitest";
+import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 
@@ -16,7 +16,7 @@ test("GET /links/info", async (ctx) => {
   const newLink: Partial<Link> = {
     url,
     domain,
-    key: nanoid(6),
+    key: randomId(),
     archived: true,
     publicStats: true,
     comments: "This is a test",

@@ -1,6 +1,6 @@
-import { nanoid } from "@dub/utils";
 import { Link, Tag } from "@prisma/client";
 import { describe, expect, test } from "vitest";
+import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
@@ -22,6 +22,7 @@ describe("POST /links", async () => {
         publicStats: true,
         comments: "This is a test",
         rewrite: true,
+        domain,
       },
     });
 
@@ -44,7 +45,7 @@ describe("POST /links", async () => {
   });
 
   test("user defined key", async () => {
-    const key = nanoid(6);
+    const key = randomId();
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
@@ -52,6 +53,7 @@ describe("POST /links", async () => {
       body: {
         url,
         key,
+        domain,
       },
     });
 
@@ -122,6 +124,7 @@ describe("POST /links", async () => {
       query: { workspaceId },
       body: {
         url: longUrl.href,
+        domain,
       },
     });
 
@@ -149,6 +152,7 @@ describe("POST /links", async () => {
       query: { workspaceId },
       body: {
         url,
+        domain,
         password,
       },
     });
@@ -178,6 +182,7 @@ describe("POST /links", async () => {
       query: { workspaceId },
       body: {
         url,
+        domain,
         expiresAt,
         expiredUrl,
       },
@@ -187,7 +192,7 @@ describe("POST /links", async () => {
     expect(link).toStrictEqual({
       ...expectedLink,
       url,
-      expiresAt: "2030-04-16T11:30:00.000Z",
+      expiresAt: "2030-04-16T17:00:00.000Z",
       expiredUrl,
       userId: user.id,
       projectId,
@@ -210,6 +215,7 @@ describe("POST /links", async () => {
       query: { workspaceId },
       body: {
         url,
+        domain,
         ios,
         android,
       },
@@ -244,6 +250,7 @@ describe("POST /links", async () => {
       query: { workspaceId },
       body: {
         url,
+        domain,
         geo,
       },
     });
@@ -266,8 +273,8 @@ describe("POST /links", async () => {
 
   test("tags", async () => {
     const tagsToCreate = [
-      { tag: nanoid(6), color: "red" },
-      { tag: nanoid(6), color: "green" },
+      { tag: randomId(), color: "red" },
+      { tag: randomId(), color: "green" },
     ];
 
     const response = await Promise.all(
@@ -294,6 +301,7 @@ describe("POST /links", async () => {
       query: { workspaceId },
       body: {
         url,
+        domain,
         tagIds,
       },
     });
@@ -327,6 +335,7 @@ describe("POST /links", async () => {
       query: { workspaceId },
       body: {
         url,
+        domain,
         title,
         description,
       },

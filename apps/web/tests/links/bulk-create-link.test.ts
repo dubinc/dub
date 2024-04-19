@@ -1,6 +1,6 @@
-import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
 import { expect, test } from "vitest";
+import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
 test("POST /links/bulk", async (ctx) => {
@@ -9,7 +9,7 @@ test("POST /links/bulk", async (ctx) => {
   const { workspaceId } = workspace;
 
   const bulkLinks = Array.from({ length: 2 }, () => ({
-    url: `https://example.com/${nanoid()}`,
+    url: `https://example.com/${randomId()}`,
   }));
 
   const { status, data: links } = await http.post<Link>({

@@ -41,7 +41,7 @@ test("GET /links", async (ctx) => {
       emailVerified: null,
       source: null,
       subscribed: true,
-      image: expect.any(String),
+      image: null,
       name: expect.any(String),
       createdAt: expect.any(String),
       email: expect.any(String),

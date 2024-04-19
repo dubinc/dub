@@ -1,6 +1,6 @@
-import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
 import { describe, expect, test } from "vitest";
+import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
@@ -25,7 +25,7 @@ describe("PUT /links/{linkId}", async () => {
     });
 
     const newLink: Partial<Link> = {
-      key: nanoid(),
+      key: randomId(),
       url: "https://github.com/dubinc/dub",
       title: "Dub Inc",
       description: "Open-source link management infrastructure.",
