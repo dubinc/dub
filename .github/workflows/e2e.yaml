@@ -1,17 +1,10 @@
-name: E2E Tests
+name: Public API Tests
 
 on:
-  push:
-    branches:
-      - main
-      - integration-tests
-  pull_request:
-    branches:
-      - main
   deployment_status:
 
 jobs:
-  run-e2es:
+  api-tests:
     timeout-minutes: 30
     if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
