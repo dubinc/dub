@@ -7,7 +7,7 @@ import { expectedLink } from "../utils/schema";
 
 const { domain, url } = link;
 
-describe("POST /links", async () => {
+describe.sequential("POST /links", async () => {
   const h = new IntegrationHarness();
   const { workspace, user, http } = await h.init();
   const { workspaceId } = workspace;

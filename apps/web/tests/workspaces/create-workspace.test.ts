@@ -1,7 +1,7 @@
-import { nanoid } from "@dub/utils";
 import { Project } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { expect, test } from "vitest";
+import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedWorkspace } from "../utils/schema";
 
@@ -11,7 +11,7 @@ test.skip("POST /workspaces", async (ctx) => {
   const { http } = await h.init();
 
   const name = "Dub Workspace";
-  const slug = slugify(`dub-${nanoid()}`);
+  const slug = slugify(`dub-${randomId()}`);
 
   const { status, data: workspace } = await http.post<Project>({
     path: "/workspaces",
