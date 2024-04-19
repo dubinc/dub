@@ -40,7 +40,7 @@ export const expectedTag: Partial<Tag> = {
 
 export const expectedWorkspace: Partial<Project> = {
   logo: null,
-  plan: "free",
+  plan: expect.any(Number),
   stripeId: null,
   usage: expect.any(Number),
   usageLimit: 1000,

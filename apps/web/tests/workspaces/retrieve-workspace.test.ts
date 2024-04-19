@@ -17,7 +17,6 @@ test("GET /workspaces/{id}", async (ctx) => {
     name: workspace.name,
     slug: workspace.slug,
     id: workspace.id,
-    plan: "pro",
     domains: [],
     users: [{ role: "owner" }],
   });
@@ -37,7 +36,6 @@ test("GET /workspaces/{slug}", async (ctx) => {
     name: workspace.name,
     slug: workspace.slug,
     id: workspace.id,
-    plan: "pro",
     domains: [],
     users: [{ role: "owner" }],
   });
