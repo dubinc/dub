@@ -2,13 +2,13 @@ import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { LinkWithTagIdsProps } from "@/lib/types";
+import { ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { combineTagIds, dubLinkChecks, transformLink } from "./utils";
+import { combineTagIds, transformLink } from "./utils";
 
-export async function createLink(link: LinkWithTagIdsProps) {
+export async function createLink(link: ProcessedLinkProps) {
   let { key, url, expiresAt, title, description, image, proxy, geo } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -16,7 +16,7 @@ export async function createLink(link: LinkWithTagIdsProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const { tagId, tagIds, ...rest } = link;
+  const { tagId, tagIds, tagNames, ...rest } = link;
 
   const response = await prisma.link.create({
     data: {
@@ -33,13 +33,33 @@ export async function createLink(link: LinkWithTagIdsProps) {
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
-      ...(combinedTagIds.length > 0 && {
-        tags: {
-          createMany: {
-            data: combinedTagIds.map((tagId) => ({ tagId })),
+
+      // Associate tags by tagNames
+      ...(tagNames?.length &&
+        link.projectId && {
+          tags: {
+            create: tagNames.map((tagName) => ({
+              tag: {
+                connect: {
+                  name_projectId: {
+                    name: tagName,
+                    projectId: link.projectId as string,
+                  },
+                },
+              },
+            })),
           },
-        },
-      }),
+        }),
+
+      // Associate tags by IDs (takes priority over tagNames)
+      ...(combinedTagIds &&
+        combinedTagIds.length > 0 && {
+          tags: {
+            createMany: {
+              data: combinedTagIds.map((tagId) => ({ tagId })),
+            },
+          },
+        }),
     },
     include: {
       tags: {
@@ -113,8 +133,6 @@ export async function createLink(link: LinkWithTagIdsProps) {
           },
         },
       }),
-    // if the link is a dub.sh link, do some checks
-    link.domain === "dub.sh" && dubLinkChecks(link),
   ]);
 
   return {

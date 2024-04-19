@@ -9,7 +9,6 @@ import {
   truncate,
 } from "@dub/utils";
 import { Archive, EyeOff, Globe } from "lucide-react";
-import punycode from "punycode/";
 
 export default function LinkPreviewTooltip({
   data,
@@ -59,7 +58,7 @@ export default function LinkPreviewTooltip({
             >
               {truncate(
                 linkConstructor({
-                  domain: punycode.toUnicode(data.domain || ""),
+                  domain: data.domain,
                   key: data.key,
                   pretty: true,
                 }),

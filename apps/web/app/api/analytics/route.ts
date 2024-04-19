@@ -1,7 +1,8 @@
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { getDomainOrLink } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import z, { domainKeySchema } from "@/lib/zod";
+import z from "@/lib/zod";
+import { domainKeySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 const updatePublicStatsSchema = z.object({
@@ -9,14 +10,14 @@ const updatePublicStatsSchema = z.object({
 });
 
 // GET /api/analytics – get the publicStats setting for a link
-export const GET = withAuth(async ({ searchParams }) => {
+export const GET = withWorkspace(async ({ searchParams }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);
   const response = await getDomainOrLink({ domain, key });
   return NextResponse.json(response);
 });
 
 // PUT /api/analytics – update the publicStats setting for a link
-export const PUT = withAuth(async ({ req, searchParams }) => {
+export const PUT = withWorkspace(async ({ req, searchParams }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);
   const { publicStats } = updatePublicStatsSchema.parse(await req.json());
   const response =

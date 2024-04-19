@@ -1,31 +1,56 @@
 import { getDomainWithoutWWW } from "@dub/utils";
-import { get } from "@vercel/edge-config";
+import { get, getAll } from "@vercel/edge-config";
 
-export const isBlacklistedDomain = async (domain: string) => {
-  let blacklistedDomains, blacklistedTerms;
-  try {
-    [blacklistedDomains, blacklistedTerms] = await Promise.all([
-      get("domains"),
-      get("terms"),
-    ]);
-  } catch (e) {
-    return false; // if blacklisted domains & terms don't exist, don't block
+export const isBlacklistedDomain = async ({
+  domain,
+  apexDomain,
+}: {
+  domain: string;
+  apexDomain: string;
+}): Promise<boolean | "whitelisted"> => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+    return false;
   }
 
-  const domainToTest = getDomainWithoutWWW(domain) || domain;
+  if (!domain) {
+    return false;
+  }
 
-  const blacklistedTermsRegex = new RegExp(
-    blacklistedTerms
-      .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-      .join("|"),
-  );
-  return (
-    blacklistedDomains.includes(domainToTest) ||
-    blacklistedTermsRegex.test(domainToTest)
-  );
+  try {
+    const {
+      domains: blacklistedDomains,
+      terms: blacklistedTerms,
+      whitelistedDomains,
+    } = await getAll(["domains", "terms", "whitelistedDomains"]);
+
+    const blacklistedTermsRegex = new RegExp(
+      blacklistedTerms
+        .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|"),
+    );
+
+    const isBlacklisted =
+      blacklistedDomains.includes(domain) || blacklistedTermsRegex.test(domain);
+
+    if (isBlacklisted) {
+      return true;
+    }
+
+    if (whitelistedDomains.includes(apexDomain)) {
+      return "whitelisted";
+    }
+
+    return false;
+  } catch (e) {
+    return false;
+  }
 };
 
 export const isBlacklistedReferrer = async (referrer: string | null) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+    return false;
+  }
+
   const hostname = referrer ? getDomainWithoutWWW(referrer) : "(direct)";
   let referrers;
   try {
@@ -37,6 +62,10 @@ export const isBlacklistedReferrer = async (referrer: string | null) => {
 };
 
 export const isBlacklistedKey = async (key: string) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+    return false;
+  }
+
   let blacklistedKeys;
   try {
     blacklistedKeys = await get("keys");
@@ -48,9 +77,13 @@ export const isBlacklistedKey = async (key: string) => {
 };
 
 export const isWhitelistedEmail = async (email: string) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+    return false;
+  }
+
   let whitelistedEmails;
   try {
-    whitelistedEmails = await get("whitelist");
+    whitelistedEmails = await get("whitelistedEmails");
   } catch (e) {
     whitelistedEmails = [];
   }
@@ -58,9 +91,10 @@ export const isWhitelistedEmail = async (email: string) => {
 };
 
 export const isBlacklistedEmail = async (email: string) => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
     return false;
   }
+
   let blacklistedEmails;
   try {
     blacklistedEmails = await get("emails");
@@ -72,9 +106,10 @@ export const isBlacklistedEmail = async (email: string) => {
 };
 
 export const isReservedKey = async (key: string) => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
     return false;
   }
+
   let reservedKeys;
   try {
     reservedKeys = await get("reserved");
@@ -85,9 +120,10 @@ export const isReservedKey = async (key: string) => {
 };
 
 export const isReservedUsername = async (key: string) => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
     return false;
   }
+
   let reservedUsernames;
   try {
     reservedUsernames = await get("reservedUsernames");
@@ -95,4 +131,44 @@ export const isReservedUsername = async (key: string) => {
     reservedUsernames = [];
   }
   return reservedUsernames.includes(key.toLowerCase());
+};
+
+export const updateConfig = async ({
+  key,
+  value,
+}: {
+  key:
+    | "domains"
+    | "whitelistedDomains"
+    | "terms"
+    | "referrers"
+    | "keys"
+    | "whitelist"
+    | "emails"
+    | "reserved"
+    | "reservedUsernames";
+  value: string;
+}) => {
+  const existingData = (await get(key)) as string[];
+  const newData = Array.from(new Set([...existingData, value]));
+
+  return await fetch(
+    `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        items: [
+          {
+            operation: "update",
+            key: key,
+            value: newData,
+          },
+        ],
+      }),
+    },
+  );
 };

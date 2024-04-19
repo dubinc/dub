@@ -5,8 +5,9 @@ import {
 } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { checkIfUserExists } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import { createWorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import { WorkspaceSchema, createWorkspaceSchema } from "@/lib/zod/schemas";
 import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -38,7 +39,9 @@ export const GET = withSession(async ({ session }) => {
     },
   });
   return NextResponse.json(
-    projects.map((project) => ({ ...project, id: `ws_${project.id}` })),
+    projects.map((project) =>
+      WorkspaceSchema.parse({ ...project, id: `ws_${project.id}` }),
+    ),
   );
 });
 
@@ -46,6 +49,15 @@ export const POST = withSession(async ({ req, session }) => {
   const { name, slug, domain } = await createWorkspaceSchema.parseAsync(
     await req.json(),
   );
+
+  const userExists = await checkIfUserExists(session.user.id);
+
+  if (!userExists) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Session expired. Please log in again.",
+    });
+  }
 
   const freeWorkspaces = await prisma.project.count({
     where: {
@@ -147,6 +159,7 @@ export const POST = withSession(async ({ req, session }) => {
 
   const response = {
     ...projectResponse,
+    id: `ws_${projectResponse.id}`,
     domains: projectResponse.domains.map(({ slug, primary }) => ({
       slug,
       primary,

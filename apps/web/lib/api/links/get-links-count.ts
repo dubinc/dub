@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
-import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
+import { getLinksCountQuerySchema } from "@/lib/zod/schemas";
 import { combineTagIds } from "./utils";
 
 export async function getLinksCount({
@@ -12,8 +12,16 @@ export async function getLinksCount({
   workspaceId: string;
   userId?: string | null;
 }) {
-  const { groupBy, search, domain, tagId, tagIds, showArchived, withTags } =
-    searchParams;
+  const {
+    groupBy,
+    search,
+    domain,
+    tagId,
+    tagIds,
+    tagNames,
+    showArchived,
+    withTags,
+  } = searchParams;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -59,15 +67,23 @@ export async function getLinksCount({
           some: {},
         },
       }),
-      ...(combinedTagIds.length > 0 && {
-        tags: {
-          some: {
-            tagId: {
-              in: tagIds,
-            },
-          },
-        },
-      }),
+      ...(combinedTagIds && combinedTagIds.length > 0
+        ? {
+            tags: { some: { tagId: { in: combinedTagIds } } },
+          }
+        : tagNames
+          ? {
+              tags: {
+                some: {
+                  tag: {
+                    name: {
+                      in: tagNames,
+                    },
+                  },
+                },
+              },
+            }
+          : {}),
     };
 
     if (groupBy === "domain") {

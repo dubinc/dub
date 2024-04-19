@@ -7,7 +7,7 @@ export function TabSelect({
   selectAction,
 }: {
   options: string[];
-  selected: string;
+  selected: string | null;
   selectAction: (option: string) => void;
 }) {
   return (

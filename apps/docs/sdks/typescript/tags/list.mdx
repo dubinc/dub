@@ -1,0 +1,46 @@
+---
+title: "List"
+"og:title": "dub.tags.list - Retrieve a list of tags - TypeScript SDK"
+description: "Retrieve a list of tags for the authenticated workspace."
+---
+
+## Response
+
+<ResponseField name="id" type="string" required>
+  The unique ID of the tag.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The name of the tag.
+</ResponseField>
+
+<ResponseField name="color" type="string" required>
+  The color of the tag.
+</ResponseField>
+
+<RequestExample>
+
+```ts
+await dub.tags.list({});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```ts
+[
+  {
+    id: "clv3j1h7o00032u1ngo8luv84",
+    name: "news",
+    color: "blue",
+  },
+  {
+    id: "cluibmjj5000975qol4hnx0t7",
+    name: "work",
+    color: "red",
+  },
+];
+```
+
+</ResponseExample>

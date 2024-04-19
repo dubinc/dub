@@ -1,9 +1,9 @@
 import { VALID_TINYBIRD_ENDPOINTS, getAnalytics } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
 import JSZip from "jszip";
@@ -21,7 +21,7 @@ const convertToCSV = (data: object[]) => {
 };
 
 // GET /api/analytics/[endpoint]/export – get export data for analytics
-export const GET = withAuth(
+export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
     const { domain, key, interval } = parsedParams;

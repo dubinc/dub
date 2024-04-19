@@ -10,7 +10,7 @@ async function main() {
     workspaceId: "xxx",
     endpoint: "top_links",
     interval: "30d",
-    excludeRoot: true,
+    root: false,
   }).then(async (data) => {
     return await Promise.all(
       data.map(

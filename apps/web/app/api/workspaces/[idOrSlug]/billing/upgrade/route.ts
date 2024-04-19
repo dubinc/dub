@@ -1,9 +1,9 @@
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-export const POST = withAuth(async ({ req, workspace, session }) => {
+export const POST = withWorkspace(async ({ req, workspace, session }) => {
   let { plan, period, baseUrl, comparePlans } = await req.json();
 
   if (!plan || !period) {

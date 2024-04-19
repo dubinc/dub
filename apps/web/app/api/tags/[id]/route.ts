@@ -1,12 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { updateTagBodySchema } from "@/lib/zod/schemas/tags";
+import { updateTagBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // PUT /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace
-export const PUT = withAuth(async ({ req, params, workspace }) => {
+export const PUT = withWorkspace(async ({ req, params, workspace }) => {
   const { id } = params;
   const { name, color } = updateTagBodySchema.parse(await req.json());
 
@@ -48,7 +48,7 @@ export const PUT = withAuth(async ({ req, params, workspace }) => {
 });
 
 // DELETE /api/workspaces/[idOrSlug]/tags/[id] – delete a tag for a workspace
-export const DELETE = withAuth(async ({ params, workspace }) => {
+export const DELETE = withWorkspace(async ({ params, workspace }) => {
   const { id } = params;
   try {
     const response = await prisma.tag.delete({
@@ -57,7 +57,7 @@ export const DELETE = withAuth(async ({ params, workspace }) => {
         projectId: workspace.id,
       },
       include: {
-        linksNew: true,
+        links: true,
       },
     });
 
@@ -70,7 +70,7 @@ export const DELETE = withAuth(async ({ params, workspace }) => {
 
     // update links metadata in tinybird after deleting a tag
     await Promise.all(
-      response.linksNew.map(async ({ linkId }) => {
+      response.links.map(async ({ linkId }) => {
         const link = await prisma.link.findUnique({
           where: {
             id: linkId,

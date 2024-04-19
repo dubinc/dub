@@ -1,16 +1,14 @@
-import { getIdentityHash } from "@/lib/edge";
 import { isWhitelistedEmail } from "@/lib/edge-config";
 import { DATABASE_URL, conn } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
+import { ipAddress } from "@vercel/edge";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
-  const identity_hash = await getIdentityHash(req);
-  const { success } = await ratelimit(5, "1 m").limit(
-    `account-exists:${identity_hash}`,
-  );
+  const ip = ipAddress(req);
+  const { success } = await ratelimit(5, "1 m").limit(`account-exists:${ip}`);
   if (!success) {
     return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }

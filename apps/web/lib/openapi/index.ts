@@ -1,11 +1,16 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { LinkSchema } from "@/lib/zod/schemas/links";
-import { TagSchema } from "@/lib/zod/schemas/tags";
-import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import {
+  DomainSchema,
+  LinkSchema,
+  TagSchema,
+  WorkspaceSchema,
+} from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
 import { ZodOpenApiObject } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
+import { domainsPaths } from "./domains";
 import { linksPaths } from "./links";
+import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { workspacesPaths } from "./workspaces";
@@ -39,18 +44,22 @@ export const openApiObject: ZodOpenApiObject = {
     ...analyticsPaths,
     ...workspacesPaths,
     ...tagsPaths,
+    ...domainsPaths,
+    ...metatagsPath,
   },
   components: {
     schemas: {
       LinkSchema,
       WorkspaceSchema,
       TagSchema,
+      DomainSchema,
     },
     securitySchemes: {
       token: {
         type: "http",
         description: "Default authentication mechanism",
         scheme: "bearer",
+        "x-speakeasy-example": "DUB_API_KEY",
       },
     },
     responses: {
