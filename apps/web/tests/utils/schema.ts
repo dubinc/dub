@@ -25,7 +25,6 @@ export const expectedLink: Partial<Link> = {
   clicks: 0,
   lastClicked: null,
   checkDisabled: false,
-  tagId: null,
   comments: null,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
