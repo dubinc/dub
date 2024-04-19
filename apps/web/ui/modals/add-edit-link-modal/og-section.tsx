@@ -62,7 +62,14 @@ export default function OGSection({
 
   const generateTitle = async () => {
     completeTitle(
-      `You are an SEO expert that specializes in creating SEO-optimized meta title & description tags. You receive a question like 'What is a suitable, new meta-title for Dub?' and you respond with a plain text answer, no quotes, no special characters, nothing other than the tag that you're generating. Try to keep it short and sweet. Generate an SEO-optimized meta title tag (title only, max 120 characters) – given the current version: ${data.title}`,
+      `Generate an SEO-optimized meta title tag (max 120 characters) for the following URL:
+      
+      - URL: ${data.url}
+      - Meta title: ${data.title}
+      - Meta description: ${data.description}. 
+
+      Only respond with the title tag without quotation marks or special characters.
+      `,
     );
   };
 
@@ -96,7 +103,13 @@ export default function OGSection({
 
   const generateDescription = async () => {
     completeDescription(
-      `You are an SEO expert that specializes in creating SEO-optimized meta title & description tags. You receive a question like 'What is a suitable, new meta-title for Dub?' and you respond with a plain text answer, no quotes, no special characters, nothing other than the tag that you're generating. Try to keep it short and sweet. Generate an SEO-optimized meta description tag (description only, max 240 characters) – given the current version: ${data.description}`,
+      `Generate an SEO-optimized meta description tag (max 240 characters) for the following URL:
+
+      - URL: ${data.url}
+      - Meta title: ${data.title}
+      - Meta description: ${data.description}.
+
+      Only respond with the description tag without quotation marks or special characters.`,
     );
   };
 

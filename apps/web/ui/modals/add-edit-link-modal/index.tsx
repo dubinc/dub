@@ -189,7 +189,15 @@ function AddEditLinkModal({
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
     complete(
-      `You are a helpful assistant and only answer in short link keys, e.g. you receive a question like 'What is the shortlink for meta-title Notion and meta-description The all in one workspace?' and you respond with e.g. 'notion-workspace'. Try to combine them in a shortlink that makes sense and is easy to share on social media. Don't use any special characters or spaces and only response with keys less than 20 characters long. If it makes sense, try to use acronyms/initials, e.g. techcrunch -> tc, github -> gh. Generate a short link for the URL "${data.url}", meta-title "${data.title}" and meta-description "${data.description}"? Please respond with a unique key you haven't used before: ${generatedKeys.join(", ")}`,
+      `For the following URL, suggest a relevant short link slug that is at most 12 characters long. 
+              
+        - URL: ${data.url}
+        - Meta title: ${data.title}
+        - Meta description: ${data.description}. 
+
+      Only respond with the short link slug without quotation marks or special characters.
+      
+      Make sure your answer does not exist in this list of generated slugs: ${generatedKeys.join(", ")}`,
     );
   }, [data.url, data.title, data.description, generatedKeys]);
 
