@@ -10,7 +10,7 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-// POST /api/ai/link – Generate a shortlink key from a prompt using AI
+// POST /api/ai/completion – Generate AI completion
 export async function POST(req: NextRequest) {
   const searchParams = getSearchParams(req.url);
   const { workspaceId } = searchParams;
