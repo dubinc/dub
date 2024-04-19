@@ -8,7 +8,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
   deployment_status:
 
 jobs:
@@ -33,9 +32,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-
-      # - name: Build
-      #   run: pnpm --filter web run build
 
       - name: Run tests
         working-directory: apps/web
