@@ -2,8 +2,10 @@ import { resizeImage } from "@/lib/images";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { UploadCloud } from "@/ui/shared/icons";
+import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
 import {
   BadgeTooltip,
+  ButtonTooltip,
   LoadingCircle,
   LoadingSpinner,
   Magic,
@@ -19,25 +21,20 @@ import { Crown, Link2 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
-import { ButtonWithTooltip } from "./tooltip-button";
 import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({
   props,
   data,
   setData,
-  aiUsage,
-  revalidateAiUsage,
   generatingMetatags,
 }: {
   props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
-  aiUsage?: number;
-  revalidateAiUsage: () => Promise<void>;
   generatingMetatags: boolean;
 }) {
-  const { id: workspaceId, aiLimit } = useWorkspace();
+  const { id: workspaceId, exceededAI, mutate } = useWorkspace();
 
   const { title, description, image, proxy } = data;
 
@@ -49,11 +46,13 @@ export default function OGSection({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     id: "metatags-title-ai",
     onError: (error) => {
-      toast.error(error.message);
+      if (error.message.includes("Upgrade to Pro")) {
+        toast.custom(() => <UpgradeToProToast message={error.message} />);
+      } else {
+        toast.error(error.message);
+      }
     },
-    onFinish: () => {
-      revalidateAiUsage();
-    },
+    onFinish: () => mutate(),
   });
 
   const generateTitle = async () => {
@@ -76,11 +75,13 @@ export default function OGSection({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     id: "metatags-description-ai",
     onError: (error) => {
-      toast.error(error.message);
+      if (error.message.includes("Upgrade to Pro")) {
+        toast.custom(() => <UpgradeToProToast message={error.message} />);
+      } else {
+        toast.error(error.message);
+      }
     },
-    onFinish: () => {
-      revalidateAiUsage();
-    },
+    onFinish: () => mutate(),
   });
 
   const generateDescription = async () => {
@@ -172,10 +173,8 @@ export default function OGSection({
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Image</p>
               <div className="flex items-center justify-between">
-                <ButtonWithTooltip
-                  tooltip={{
-                    content: "Paste a URL to an image.",
-                  }}
+                <ButtonTooltip
+                  tooltipContent="Paste a URL to an image."
                   onClick={() => {
                     const image = window.prompt(
                       "Paste a URL to an image.",
@@ -185,9 +184,10 @@ export default function OGSection({
                       setData((prev) => ({ ...prev, image }));
                     }
                   }}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   <Link2 className="h-4 w-4 text-gray-500" />
-                </ButtonWithTooltip>
+                </ButtonTooltip>
                 <Popover
                   content={
                     <UnsplashSearch
@@ -198,14 +198,13 @@ export default function OGSection({
                   openPopover={openPopover}
                   setOpenPopover={handleSet}
                 >
-                  <ButtonWithTooltip
+                  <ButtonTooltip
+                    tooltipContent="Find high-resolution photos on Unsplash."
                     onClick={handleSet}
-                    tooltip={{
-                      content: "Find high-resolution photos on Unsplash.",
-                    }}
+                    className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                   >
                     <Unsplash className="h-3 w-3 text-gray-500" />
-                  </ButtonWithTooltip>
+                  </ButtonTooltip>
                 </Popover>
               </div>
             </div>
@@ -312,31 +311,18 @@ export default function OGSection({
                 <p className="text-sm text-gray-500">
                   {title?.length || 0}/120
                 </p>
-                <ButtonWithTooltip
+                <ButtonTooltip
+                  tooltipContent="Generate an optimized title using AI."
                   onClick={generateTitle}
-                  disabled={generatingTitle || !title}
-                  tooltip={{
-                    ai:
-                      title && aiLimit && aiUsage
-                        ? {
-                            data: {
-                              limit: aiLimit,
-                              usage: aiUsage,
-                            },
-                            title: "Create a title using AI",
-                          }
-                        : undefined,
-                    content: !title
-                      ? "Please enter a title to generate one using AI."
-                      : "Create an optimized title using AI.",
-                  }}
+                  disabled={generatingTitle || !title || exceededAI}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   {generatingTitle ? (
                     <LoadingCircle />
                   ) : (
                     <Magic className="h-4 w-4" />
                   )}
-                </ButtonWithTooltip>
+                </ButtonTooltip>
               </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
@@ -370,31 +356,18 @@ export default function OGSection({
                 <p className="text-sm text-gray-500">
                   {description?.length || 0}/240
                 </p>
-                <ButtonWithTooltip
+                <ButtonTooltip
+                  tooltipContent="Generate an optimized description using AI."
                   onClick={generateDescription}
                   disabled={generatingDescription || !description}
-                  tooltip={{
-                    ai:
-                      description && aiLimit && aiUsage
-                        ? {
-                            data: {
-                              limit: aiLimit,
-                              usage: aiUsage,
-                            },
-                            title: "Create a description using AI",
-                          }
-                        : undefined,
-                    content: !description
-                      ? "Please enter a description to generate one using AI."
-                      : "Create an optimized description using AI.",
-                  }}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   {generatingDescription ? (
                     <LoadingCircle />
                   ) : (
                     <Magic className="h-4 w-4" />
                   )}
-                </ButtonWithTooltip>
+                </ButtonTooltip>
               </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">

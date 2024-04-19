@@ -149,7 +149,7 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       users: 5,
-      ai: 100,
+      ai: 10000000,
     },
     colors: {
       bg: "bg-blue-500",
@@ -170,7 +170,7 @@ export const PLANS = [
       { text: "1-year analytics retention" },
       { text: "10 custom domains" },
       { text: "5 users" },
-      { text: "100 AI credits/mo" },
+      { text: "Unlimited AI credits" },
       { text: "Basic support", footnote: "Basic email support." },
       {
         text: "Root domain redirect",

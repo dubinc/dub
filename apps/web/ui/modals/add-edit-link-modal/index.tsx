@@ -5,8 +5,10 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
+import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
 import {
   Button,
+  ButtonTooltip,
   LinkedIn,
   LoadingCircle,
   Magic,
@@ -31,8 +33,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { useCompletion } from "ai/react";
-import { Crown, TriangleAlert } from "lucide-react";
-import Link from "next/link";
+import { TriangleAlert } from "lucide-react";
 import {
   useParams,
   usePathname,
@@ -62,7 +63,6 @@ import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import Preview from "./preview";
 import TagsSection from "./tags-section";
-import { ButtonWithTooltip } from "./tooltip-button";
 import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
@@ -166,7 +166,11 @@ function AddEditLinkModal({
   } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     onError: (error) => {
-      toast.error(error.message);
+      if (error.message.includes("Upgrade to Pro")) {
+        toast.custom(() => <UpgradeToProToast message={error.message} />);
+      } else {
+        toast.error(error.message);
+      }
     },
     onFinish: (_, completion) => {
       setGeneratedKeys((prev) => [...prev, completion]);
@@ -429,67 +433,12 @@ function AddEditLinkModal({
                   if (error) {
                     if (error.message.includes("Upgrade to Pro")) {
                       toast.custom(() => (
-                        <div className="flex flex-col space-y-3 rounded-lg bg-white p-6 shadow-lg">
-                          <div className="flex items-center space-x-1.5">
-                            <Crown className="h-5 w-5 text-black" />{" "}
-                            <p className="font-semibold">
-                              You've discovered a Pro feature!
-                            </p>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            {error.message}
-                          </p>
-                          <Link
-                            href={
-                              queryParams({
-                                set: {
-                                  upgrade: "pro",
-                                },
-                                getNewPath: true,
-                              }) as string
-                            }
-                            className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
-                          >
-                            Upgrade to Pro
-                          </Link>
-                        </div>
+                        <UpgradeToProToast message={error.message} />
                       ));
                     } else {
                       toast.error(error.message);
                     }
                     const message = error.message.toLowerCase();
-
-                    if (message === "social media cards need a pro plan.") {
-                      toast.custom(
-                        () => (
-                          <div className="relative z-50 grid grid-cols-2 items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-md">
-                            <div>
-                              <p className="mb-1.5 text-sm text-gray-700">
-                                Social media cards need a Pro plan.
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Upgrade to Pro to get this feature.
-                              </p>
-                            </div>
-                            <Button
-                              text={`Upgrade to ${nextPlan.name}`}
-                              onClick={() => {
-                                queryParams({
-                                  set: {
-                                    upgrade: nextPlan.name.toLowerCase(),
-                                  },
-                                });
-                              }}
-                            />
-                          </div>
-                        ),
-                        {
-                          duration: 10000,
-                        },
-                      );
-                    } else {
-                      toast.error(error.message);
-                    }
 
                     if (message.includes("key") || message.includes("domain")) {
                       setKeyError(error.message);
@@ -574,48 +523,34 @@ function AddEditLinkModal({
                     </button>
                   ) : (
                     <div className="flex items-center">
-                      <ButtonWithTooltip
-                        tooltip={{
-                          content: "Generate a random key",
-                        }}
+                      <ButtonTooltip
+                        tooltipContent="Generate a random key"
                         onClick={generateRandomKey}
                         disabled={generatingRandomKey || generatingAIKey}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                       >
                         {generatingRandomKey ? (
                           <LoadingCircle />
                         ) : (
                           <Random className="h-3 w-3" />
                         )}
-                      </ButtonWithTooltip>
-                      <ButtonWithTooltip
+                      </ButtonTooltip>
+                      <ButtonTooltip
                         onClick={generateAIKey}
                         disabled={
                           generatingAIKey ||
                           (aiLimit && aiUsage && aiUsage >= aiLimit) ||
                           !url
                         }
-                        tooltip={{
-                          ai:
-                            url && aiLimit && aiUsage
-                              ? {
-                                  data: {
-                                    limit: aiLimit,
-                                    usage: aiUsage,
-                                  },
-                                  title: "AI Usage",
-                                }
-                              : undefined,
-                          content: url
-                            ? "Generate AI key"
-                            : "Enter a URL first",
-                        }}
+                        tooltipContent="Generate a key using AI"
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                       >
                         {generatingAIKey ? (
                           <LoadingCircle />
                         ) : (
                           <Magic className="h-4 w-4" />
                         )}
-                      </ButtonWithTooltip>
+                      </ButtonTooltip>
                     </div>
                   )}
                 </div>
@@ -763,11 +698,11 @@ function AddEditLinkModal({
             </div>
 
             <div className="grid gap-5 px-4 md:px-16">
-              {slug && <TagsSection {...{ props, data, setData }} />}
+              <TagsSection {...{ props, data, setData }} />
               <CommentsSection {...{ props, data, setData }} />
               <UTMSection {...{ props, data, setData }} />
               <OGSection
-                {...{ props, data, setData, aiUsage, revalidateAiUsage }}
+                {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
               />
               <CloakingSection {...{ data, setData }} />

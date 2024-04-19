@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   if (workspace.aiUsage > workspace.aiLimit) {
     return new Response(
-      "Exceeded AI usage limit. Upgrade to a higher plan to get more AI credits.",
+      "You've reached your AI usage limit. Upgrade to Pro to get unlimited AI credits.",
       { status: 429 },
     );
   }

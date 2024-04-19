@@ -1,8 +1,16 @@
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkWithTagsProps } from "@/lib/types";
+import { LinkWithTagsProps, TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
-import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
+import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
+import {
+  Badge,
+  LoadingCircle,
+  Magic,
+  SimpleTooltipContent,
+  Tooltip,
+} from "@dub/ui";
+import { useCompletion } from "ai/react";
 import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Tag, X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
@@ -18,9 +26,67 @@ export default function TagsSection({
 }) {
   const { id } = useWorkspace();
   const { tags: availableTags } = useTags();
-  const tags = data.tags;
+  const { url, title, description, tags } = data;
 
   const [inputValue, setInputValue] = useState("");
+
+  const {
+    id: workspaceId,
+    exceededAI,
+    mutate: mutateWorkspace,
+  } = useWorkspace();
+
+  const [suggestedTags, setSuggestedTags] = useState<TagProps[]>([]);
+
+  const { complete } = useCompletion({
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    onError: (error) => {
+      if (error.message.includes("Upgrade to Pro")) {
+        toast.custom(() => <UpgradeToProToast message={error.message} />);
+      } else {
+        toast.error(error.message);
+      }
+    },
+    onFinish: (_, completion) => {
+      mutateWorkspace();
+      console.log({ completion });
+      if (completion) {
+        const completionArr = completion.split(", ");
+        const suggestedTags = completionArr
+          .map((tag: string) => {
+            return availableTags?.find(({ name }) => name === tag) || null;
+          })
+          .filter(Boolean);
+        setSuggestedTags(suggestedTags as TagProps[]);
+      }
+    },
+  });
+
+  useEffect(() => {
+    // only show the completion if all the required fields are filled and not exceeded AI
+    if (
+      url &&
+      title &&
+      description &&
+      !exceededAI &&
+      suggestedTags.length === 0 &&
+      availableTags &&
+      availableTags.length > 0
+    ) {
+      complete(
+        `From the list of avaialble tags below, suggest relevant tags for this link: 
+        
+        - URL: ${url}
+        - Meta title: ${title}
+        - Meta description: ${description}. 
+        
+        Only return the tag names, and nothing else. If there are no relevant tags, return an empty string.
+        
+        Available tags: ${availableTags.map(({ name }) => name).join(", ")}`,
+      );
+    }
+  }, [url, title, description]);
+
   const [creatingTag, setCreatingTag] = useState(false);
 
   const createTag = async (tag: string) => {
@@ -103,7 +169,7 @@ export default function TagsSection({
   };
 
   return (
-    <div className="border-b border-gray-200 pb-5">
+    <div className="border-b border-gray-200 pb-2">
       <Command ref={commandRef} className="relative" loop>
         <div className="group rounded-md border border-gray-300 bg-white p-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
           <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
@@ -192,6 +258,40 @@ export default function TagsSection({
           </Command.List>
         )}
       </Command>
+      <div className="flex h-10 items-center space-x-2">
+        {suggestedTags.length > 0 && (
+          <>
+            <Tooltip content="AI-suggested tags based on the content of the link. Click to add.">
+              <div className="group">
+                <Magic className="h-4 w-4 transition-colors group-hover:text-gray-500" />
+              </div>
+            </Tooltip>
+            {suggestedTags.map((tag) => (
+              <button
+                type="button"
+                key={tag.id}
+                onClick={() => {
+                  setData({
+                    ...data,
+                    tags: [...tags, tag],
+                  });
+                  setSuggestedTags((tags) =>
+                    tags.filter(({ id }) => id !== tag.id),
+                  );
+                }}
+                className="group flex items-center transition-all active:scale-95"
+              >
+                <Badge
+                  variant="neutral"
+                  className="transition-colors group-hover:border-gray-700 group-hover:text-gray-700"
+                >
+                  {tag.name}
+                </Badge>
+              </button>
+            ))}
+          </>
+        )}
+      </div>
     </div>
   );
 }
