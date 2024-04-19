@@ -35,6 +35,10 @@
     {
       "name": "API Reference",
       "url": "api-reference"
+    },
+    {
+      "name": "SDKs",
+      "url": "sdks"
     }
   ],
   "anchors": [
@@ -56,7 +60,7 @@
     },
     {
       "group": "Resources",
-      "pages": ["integrations", "sdks", "examples"]
+      "pages": ["integrations", "examples"]
     },
     {
       "group": "API Reference",
@@ -115,6 +119,59 @@
     {
       "group": "Metatags",
       "pages": ["api-reference/endpoint/retrieve-metatags"]
+    },
+    {
+      "group": "SDKs",
+      "pages": ["sdks/overview"]
+    },
+    {
+      "group": "TypeScript",
+      "pages": [
+        "sdks/typescript/overview",
+        {
+          "group": "Links",
+          "pages": [
+            "sdks/typescript/links/create",
+            "sdks/typescript/links/get",
+            "sdks/typescript/links/update",
+            "sdks/typescript/links/delete",
+            "sdks/typescript/links/list",
+            "sdks/typescript/links/count",
+            "sdks/typescript/links/create-many"
+          ]
+        },
+        {
+          "group": "Analytics",
+          "pages": [
+            "sdks/typescript/analytics/clicks",
+            "sdks/typescript/analytics/timeseries",
+            "sdks/typescript/analytics/countries",
+            "sdks/typescript/analytics/cities",
+            "sdks/typescript/analytics/devices",
+            "sdks/typescript/analytics/browsers",
+            "sdks/typescript/analytics/os",
+            "sdks/typescript/analytics/referers",
+            "sdks/typescript/analytics/top-links",
+            "sdks/typescript/analytics/top-urls"
+          ]
+        },
+        {
+          "group": "Workspaces",
+          "pages": [
+            "sdks/typescript/workspaces/create",
+            "sdks/typescript/workspaces/get",
+            "sdks/typescript/workspaces/list"
+          ]
+        },
+        {
+          "group": "Tags",
+          "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
+        },
+        {
+          "group": "Metatags",
+          "pages": ["sdks/typescript/metatags/get"]
+        }
+      ]
     }
   ],
   "api": {
@@ -130,6 +187,10 @@
     "website": "https://dub.co"
   },
   "redirects": [
+    {
+      "source": "/sdks",
+      "destination": "/sdks/overview"
+    },
     {
       "source": "/integrations/:path*",
       "destination": "/integrations"

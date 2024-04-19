@@ -1,4 +1,5 @@
 export * from "./analytics";
+export * from "./domains";
 export * from "./links";
 export * from "./misc";
 export * from "./qr";

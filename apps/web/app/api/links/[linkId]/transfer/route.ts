@@ -1,6 +1,6 @@
 import { getAnalytics } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
@@ -16,7 +16,7 @@ const transferLinkBodySchema = z.object({
 });
 
 // POST /api/links/[linkId]/transfer – transfer a link to another workspace
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
     const { newWorkspaceId } = transferLinkBodySchema.parse(await req.json());
 
@@ -44,7 +44,7 @@ export const POST = withAuth(
         tags: true,
       },
     });
-    // technically this is not needed since the link is already checked in withAuth
+    // technically this is not needed since the link is already checked in withWorkspace
     if (!link) {
       throw new DubApiError({
         code: "not_found",

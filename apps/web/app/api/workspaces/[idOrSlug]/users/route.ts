@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { roles } from "@/lib/types";
 import z from "@/lib/zod";
@@ -19,7 +19,7 @@ const removeUserSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
-export const GET = withAuth(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const users = await prisma.projectUsers.findMany({
     where: {
       projectId: workspace.id,
@@ -46,7 +46,7 @@ export const GET = withAuth(async ({ workspace }) => {
 });
 
 // PUT /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
-export const PUT = withAuth(
+export const PUT = withWorkspace(
   async ({ req, workspace }) => {
     const { userId, role } = updateRoleSchema.parse(await req.json());
     const response = await prisma.projectUsers.update({
@@ -69,7 +69,7 @@ export const PUT = withAuth(
 
 // DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace
 
-export const DELETE = withAuth(
+export const DELETE = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const { userId } = removeUserSchema.parse(searchParams);
     const [projectUser, totalOwners] = await Promise.all([
