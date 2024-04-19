@@ -12,6 +12,7 @@
     },
     "clean": {
       "cache": false
-    }
+    },
+    "test": {}
   }
 }

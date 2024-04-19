@@ -25,11 +25,17 @@ jobs:
         with:
           version: 8
 
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build
-        run: pnpm --filter web run build
+      # - name: Build
+      #   run: pnpm --filter web run build
 
       - name: Run tests
         working-directory: apps/web
@@ -37,4 +43,4 @@ jobs:
           API_BASE_URL: ${{ github.event.deployment_status.environment_url }}
           TOKEN: ${{ secrets.TOKEN }}
           USER_ID: ${{ secrets.USER_ID }}
-        run: pnpm --filter web run test
+        run: pnpm test
