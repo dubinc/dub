@@ -21,31 +21,28 @@ export class IntegrationHarness {
     this.env = integrationTestEnv.parse(process.env);
 
     this.ctx = ctx;
-    this.baseUrl = this.env.API_BASE_URL;
+    this.baseUrl = this.env.E2E_API_BASE_URL;
     this.http = new HttpClient({
       baseUrl: this.baseUrl,
       headers: {
-        Authorization: `Bearer ${this.env.TOKEN}`,
+        Authorization: `Bearer ${this.env.E2E_TOKEN}`,
       },
     });
   }
 
   async init() {
-    const { USER_ID, TOKEN, WORKSPACE_ID, WORKSPACE_SLUG, WORKSPACE_NAME } =
-      this.env;
-
     const user = {
-      id: USER_ID,
+      id: this.env.E2E_USER_ID,
     };
 
     const apiKey = {
-      token: TOKEN,
+      token: this.env.E2E_TOKEN,
     };
 
     const workspace = {
-      id: WORKSPACE_ID,
-      slug: WORKSPACE_SLUG,
-      name: WORKSPACE_NAME,
+      id: this.env.E2E_WORKSPACE_ID,
+      slug: this.env.E2E_WORKSPACE_SLUG,
+      name: this.env.E2E_WORKSPACE_NAME,
     };
 
     this.resources = {
