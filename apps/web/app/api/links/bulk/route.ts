@@ -2,7 +2,7 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps } from "@/lib/types";
+import { ProcessedLinkProps } from "@/lib/types";
 import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
@@ -51,7 +51,7 @@ export const POST = withWorkspace(
     const processedLinks = await Promise.all(
       links.map(async (link) =>
         processLink({
-          payload: link as LinkWithTagIdsProps,
+          payload: link,
           workspace,
           userId: session.user.id,
           bulk: true,
@@ -60,11 +60,11 @@ export const POST = withWorkspace(
     );
 
     let validLinks = processedLinks
-      .filter(({ error }) => !error)
-      .map(({ link }) => link);
+      .filter(({ error }) => error == null)
+      .map(({ link }) => link) as ProcessedLinkProps[];
 
     let errorLinks = processedLinks
-      .filter(({ error }) => error)
+      .filter(({ error }) => error != null)
       .map(({ link, error, code }) => ({
         link,
         error,
@@ -78,14 +78,17 @@ export const POST = withWorkspace(
       },
       select: {
         id: true,
+        name: true,
       },
     });
     const workspaceTagIds = workspaceTags.map(({ id }) => id);
+    const workspaceTagNames = workspaceTags.map(({ name }) => name);
     validLinks.forEach((link, index) => {
-      const combinedTagIds = combineTagIds({
-        tagId: link.tagId,
-        tagIds: link.tagIds,
-      });
+      const combinedTagIds =
+        combineTagIds({
+          tagId: link.tagId,
+          tagIds: link.tagIds,
+        }) ?? [];
       const invalidTagIds = combinedTagIds.filter(
         (id) => !workspaceTagIds.includes(id),
       );
@@ -95,6 +98,18 @@ export const POST = withWorkspace(
         errorLinks.push({
           link,
           error: `Invalid tagIds detected: ${invalidTagIds.join(", ")}`,
+          code: "unprocessable_entity",
+        });
+      }
+
+      const invalidTagNames = link.tagNames?.filter(
+        (name) => !workspaceTagNames.includes(name),
+      );
+      if (invalidTagNames?.length) {
+        validLinks = validLinks.filter((_, i) => i !== index);
+        errorLinks.push({
+          link,
+          error: `Invalid tagNames detected: ${invalidTagNames.join(", ")}`,
           code: "unprocessable_entity",
         });
       }

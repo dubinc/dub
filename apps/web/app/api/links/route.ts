@@ -1,45 +1,44 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
-import { LinkWithTagIdsProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { createLinkBodySchema, getLinksQuerySchema } from "@/lib/zod/schemas";
-import { LOCALHOST_IP } from "@dub/utils";
+import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
-export const GET = withWorkspace(
-  async ({ headers, searchParams, workspace }) => {
-    const {
-      domain,
-      tagId,
-      tagIds,
-      search,
-      sort,
-      page,
-      userId,
-      showArchived,
-      withTags,
-    } = getLinksQuerySchema.parse(searchParams);
+export const GET = withWorkspace(async ({ req, headers, workspace }) => {
+  const searchParams = getSearchParamsWithArray(req.url);
 
-    const response = await getLinksForWorkspace({
-      workspaceId: workspace.id,
-      domain,
-      tagId,
-      tagIds,
-      search,
-      sort,
-      page,
-      userId,
-      showArchived,
-      withTags,
-    });
+  const {
+    domain,
+    tagId,
+    tagIds,
+    search,
+    sort,
+    page,
+    userId,
+    showArchived,
+    withTags,
+  } = getLinksQuerySchema.parse(searchParams);
 
-    return NextResponse.json(response, {
-      headers,
-    });
-  },
-);
+  const response = await getLinksForWorkspace({
+    workspaceId: workspace.id,
+    domain,
+    tagId,
+    tagIds,
+    search,
+    sort,
+    page,
+    userId,
+    showArchived,
+    withTags,
+  });
+
+  return NextResponse.json(response, {
+    headers,
+  });
+});
 
 // POST /api/links – create a new link
 export const POST = withWorkspace(
@@ -69,12 +68,12 @@ export const POST = withWorkspace(
     }
 
     const { link, error, code } = await processLink({
-      payload: body as LinkWithTagIdsProps,
+      payload: body,
       workspace,
       ...(session && { userId: session.user.id }),
     });
 
-    if (error) {
+    if (error != null) {
       throw new DubApiError({
         code: code as ErrorCodes,
         message: error,

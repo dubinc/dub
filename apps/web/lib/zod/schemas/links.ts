@@ -43,6 +43,13 @@ const LinksQuerySchema = z.object({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The tag IDs to filter the links by."),
+  tagNames: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The unique name of the tags assigned to the short link (case insensitive).",
+    ),
   search: z
     .string()
     .optional()
@@ -156,6 +163,13 @@ export const createLinkBodySchema = z.object({
     .optional()
     .describe("The unique IDs of the tags assigned to the short link.")
     .openapi({ example: ["clux0rgak00011..."] }),
+  tagNames: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The unique name of the tags assigned to the short link (case insensitive).",
+    ),
   comments: z.string().nullish().describe("The comments for the short link."),
   expiresAt: z
     .string()

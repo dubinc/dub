@@ -2,7 +2,7 @@ import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps, WorkspaceProps } from "@/lib/types";
+import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
   SHORT_DOMAIN,
@@ -16,19 +16,32 @@ import {
 } from "@dub/utils";
 import { combineTagIds, keyChecks, processKey } from "./utils";
 
-export async function processLink({
+export async function processLink<T extends Record<string, any>>({
   payload,
   workspace,
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
-  payload: LinkWithTagIdsProps;
+  payload: NewLinkProps & T;
   workspace?: WorkspaceProps;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
-}) {
+}): Promise<
+  | {
+      link: NewLinkProps & T;
+      error: string;
+      code?: string;
+      status?: number;
+    }
+  | {
+      link: ProcessedLinkProps & T;
+      error: null;
+      code?: never;
+      status?: never;
+    }
+> {
   let {
     domain,
     key,
@@ -37,13 +50,15 @@ export async function processLink({
     proxy,
     password,
     rewrite,
-    expiresAt,
     expiredUrl,
     ios,
     android,
     geo,
+    tagNames,
     createdAt,
   } = payload;
+
+  let expiresAt: string | Date | null | undefined = payload.expiresAt;
 
   const tagIds = combineTagIds(payload);
 
@@ -189,7 +204,7 @@ export async function processLink({
     // only perform tag validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
     // - tagIds are present
-  } else if (tagIds.length > 0) {
+  } else if (tagIds && tagIds.length > 0) {
     const tags = await prisma.tag.findMany({
       select: {
         id: true,
@@ -205,6 +220,31 @@ export async function processLink({
           tagIds
             .filter(
               (tagId) => tags.find(({ id }) => tagId === id) === undefined,
+            )
+            .join(", "),
+        code: "unprocessable_entity",
+      };
+    }
+  } else if (tagNames && tagNames.length > 0) {
+    const tags = await prisma.tag.findMany({
+      select: {
+        name: true,
+      },
+      where: {
+        projectId: workspace?.id,
+        name: { in: tagNames },
+      },
+    });
+
+    if (tags.length !== tagNames.length) {
+      return {
+        link: payload,
+        error:
+          "Invalid tagNames detected: " +
+          tagNames
+            .filter(
+              (tagName) =>
+                tags.find(({ name }) => tagName === name) === undefined,
             )
             .join(", "),
         code: "unprocessable_entity",

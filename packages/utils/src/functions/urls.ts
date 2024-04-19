@@ -28,6 +28,21 @@ export const getSearchParams = (url: string) => {
   return params;
 };
 
+export const getSearchParamsWithArray = (url: string) => {
+  let params = {} as Record<string, string | string[]>;
+
+  new URL(url).searchParams.forEach(function (val, key) {
+    if (key in params) {
+      const param = params[key];
+      Array.isArray(param) ? param.push(val) : (params[key] = [param, val]);
+    } else {
+      params[key] = val;
+    }
+  });
+
+  return params;
+};
+
 export const getParamsFromURL = (url: string) => {
   if (!url) return {};
   try {

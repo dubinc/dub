@@ -1,7 +1,7 @@
 import { Link, Project, Tag } from "@prisma/client";
 import { expect } from "vitest";
 
-export const expectedLink: Partial<Link> = {
+export const expectedLink: Partial<Link> & { tagId: string | null } = {
   id: expect.any(String),
   key: expect.any(String),
   domain: "dub.sh",
@@ -25,7 +25,7 @@ export const expectedLink: Partial<Link> = {
   clicks: 0,
   lastClicked: null,
   checkDisabled: false,
-  tagId: null,
+  tagId: null, // backwards compatibility
   comments: null,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
