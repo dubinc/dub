@@ -1,9 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
+import { WorkspaceSchema } from "@/lib/zod/schemas";
 import { DEFAULT_REDIRECTS, trim, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { NextResponse } from "next/server";
@@ -32,18 +33,18 @@ const updateWorkspaceSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
-export const GET = withAuth(async ({ workspace, headers }) => {
+export const GET = withWorkspace(async ({ workspace, headers }) => {
   return NextResponse.json(
-    {
+    WorkspaceSchema.parse({
       ...workspace,
       id: `ws_${workspace.id}`,
-    },
+    }),
     { headers },
   );
 });
 
 // PUT /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
-export const PUT = withAuth(
+export const PUT = withWorkspace(
   async ({ req, workspace }) => {
     try {
       const { name, slug } = await updateWorkspaceSchema.parseAsync(
@@ -77,7 +78,7 @@ export const PUT = withAuth(
 );
 
 // DELETE /api/workspaces/[idOrSlug] – delete a specific project
-export const DELETE = withAuth(
+export const DELETE = withWorkspace(
   async ({ workspace }) => {
     const response = await deleteWorkspace(workspace);
     return NextResponse.json(response);

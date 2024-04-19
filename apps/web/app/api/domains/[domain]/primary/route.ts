@@ -1,10 +1,10 @@
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DomainSchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // POST /api/domains/[domain]/primary – set a domain as primary
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ headers, workspace, domain }) => {
     const responses = await Promise.all([
       prisma.domain.update({

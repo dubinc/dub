@@ -1,13 +1,13 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
 import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
     if (!workspace) {
       throw new DubApiError({
