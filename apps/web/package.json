@@ -8,7 +8,7 @@
     "lint": "next lint",
     "start": "next start",
     "script": "tsx ./scripts/run.ts",
-    "test": "vitest"
+    "test": "vitest -no-file-parallelism"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.4",
