@@ -62,13 +62,13 @@ export default function OGSection({
 
   const generateTitle = async () => {
     completeTitle(
-      `Generate an SEO-optimized meta title tag (max 120 characters) for the following URL:
+      `You are an SEO expert. Generate an SEO-optimized meta title (max 120 characters) for the following URL:
       
       - URL: ${data.url}
       - Meta title: ${data.title}
       - Meta description: ${data.description}. 
 
-      Only respond with the title tag without quotation marks or special characters.
+      Only respond with the title without quotation marks or special characters.
       `,
     );
   };
@@ -103,13 +103,13 @@ export default function OGSection({
 
   const generateDescription = async () => {
     completeDescription(
-      `Generate an SEO-optimized meta description tag (max 240 characters) for the following URL:
+      `You are an SEO expert. Generate an SEO-optimized meta description (max 240 characters) for the following URL:
 
       - URL: ${data.url}
       - Meta title: ${data.title}
       - Meta description: ${data.description}.
 
-      Only respond with the description tag without quotation marks or special characters.`,
+      Only respond with the description without quotation marks or special characters.`,
     );
   };
 

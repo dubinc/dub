@@ -195,7 +195,7 @@ function AddEditLinkModal({
         - Meta title: ${data.title}
         - Meta description: ${data.description}. 
 
-      Only respond with the short link slug without quotation marks or special characters.
+      Only respond with the short link slug and nothing else. Don't use quotation marks or special characters (dash and slash are allowed).
       
       Make sure your answer does not exist in this list of generated slugs: ${generatedKeys.join(", ")}`,
     );

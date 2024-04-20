@@ -23,9 +23,8 @@ export default function TagsSection({
   data: LinkWithTagsProps;
   setData: Dispatch<SetStateAction<LinkWithTagsProps>>;
 }) {
-  const { id } = useWorkspace();
   const { tags: availableTags } = useTags();
-  const { url, title, description, tags } = data;
+  const { id: linkId, url, title, description, tags } = data;
 
   const [inputValue, setInputValue] = useState("");
 
@@ -58,12 +57,13 @@ export default function TagsSection({
   });
 
   useEffect(() => {
-    // only show the completion if all the required fields are filled and not exceeded AI
     if (
+      !linkId &&
       url &&
       title &&
       description &&
       !exceededAI &&
+      tags.length === 0 &&
       suggestedTags.length === 0 &&
       availableTags &&
       availableTags.length > 0
@@ -87,7 +87,7 @@ export default function TagsSection({
   const createTag = async (tag: string) => {
     setCreatingTag(true);
     setInputValue("");
-    fetch(`/api/tags?workspaceId=${id}`, {
+    fetch(`/api/tags?workspaceId=${workspaceId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -95,7 +95,7 @@ export default function TagsSection({
       body: JSON.stringify({ tag }),
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/tags?workspaceId=${id}`);
+        await mutate(`/api/tags?workspaceId=${workspaceId}`);
         const newTag = await res.json();
         setData({ ...data, tags: [...tags, newTag] });
         toast.success(`Successfully created tag!`);
