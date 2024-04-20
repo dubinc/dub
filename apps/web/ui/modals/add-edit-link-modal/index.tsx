@@ -196,7 +196,7 @@ function AddEditLinkModal({
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
     complete(
-      `For the following URL, suggest a relevant short link slug that is at most 12 characters long. 
+      `For the following URL, suggest a relevant short link slug that is at most ${Math.max(25 - domain.length, 12)} characters long. 
               
         - URL: ${data.url}
         - Meta title: ${data.title}

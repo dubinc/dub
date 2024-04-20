@@ -1,14 +1,24 @@
 import { anthropic } from "@/lib/anthropic";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import {
   getWorkspaceViaEdge,
   incrementWorkspaceAIUsage,
 } from "@/lib/planetscale";
+import z from "@/lib/zod";
 import { getSearchParams } from "@dub/utils";
 import { AnthropicStream, StreamingTextResponse } from "ai";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 import { NextRequest } from "next/server";
 
 export const runtime = "edge";
+
+const completionSchema = z.object({
+  prompt: z.string(),
+  model: z
+    .enum(["claude-3-haiku-20240307", "claude-3-sonnet-20240229"])
+    .optional()
+    .default("claude-3-sonnet-20240229"),
+});
 
 // POST /api/ai/completion – Generate AI completion
 export async function POST(req: NextRequest) {
@@ -31,8 +41,10 @@ export async function POST(req: NextRequest) {
     const {
       // comment for better diff
       prompt,
-      model = "claude-3-sonnet-20240229",
-    } = await req.json();
+      model,
+    } = completionSchema.parse(await req.json());
+
+    console.log("model", model);
 
     const response = await anthropic.messages.create({
       messages: [
@@ -48,10 +60,13 @@ export async function POST(req: NextRequest) {
 
     const stream = AnthropicStream(response);
 
-    waitUntil(async () => await incrementWorkspaceAIUsage(workspaceId));
+    // only count usage for the sonnet model
+    if (model === "claude-3-sonnet-20240229") {
+      waitUntil(async () => await incrementWorkspaceAIUsage(workspaceId));
+    }
 
     return new StreamingTextResponse(stream);
   } catch (error) {
-    return new Response(error.message, { status: 500 });
+    return handleAndReturnErrorResponse(error);
   }
 }
