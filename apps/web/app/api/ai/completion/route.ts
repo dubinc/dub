@@ -34,8 +34,6 @@ export async function POST(req: NextRequest) {
       model = "claude-3-sonnet-20240229",
     } = await req.json();
 
-    console.log({ model });
-
     const response = await anthropic.messages.create({
       messages: [
         {
