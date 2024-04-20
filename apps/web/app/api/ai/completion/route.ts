@@ -28,7 +28,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { prompt } = await req.json();
+    const {
+      // comment for better diff
+      prompt,
+      model = "claude-3-sonnet-20240229",
+    } = await req.json();
+
+    console.log({ model });
 
     const response = await anthropic.messages.create({
       messages: [
@@ -37,7 +43,7 @@ export async function POST(req: NextRequest) {
           content: prompt,
         },
       ],
-      model: "claude-3-sonnet-20240229",
+      model,
       stream: true,
       max_tokens: 300,
     });
