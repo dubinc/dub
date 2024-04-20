@@ -15,6 +15,7 @@ import {
   Unsplash,
 } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
+import va from "@vercel/analytics";
 import { useCompletion } from "ai/react";
 import { motion } from "framer-motion";
 import { Crown, Link2 } from "lucide-react";
@@ -57,7 +58,12 @@ export default function OGSection({
         toast.error(error.message);
       }
     },
-    onFinish: () => mutate(),
+    onFinish: (_, completion) => {
+      mutate();
+      va.track("Generated AI Meta Title", {
+        metadata: `Title: ${completion} | URL: ${data.url}`,
+      });
+    },
   });
 
   const generateTitle = async () => {
@@ -98,7 +104,12 @@ export default function OGSection({
         toast.error(error.message);
       }
     },
-    onFinish: () => mutate(),
+    onFinish: (_, completion) => {
+      mutate();
+      va.track("Generated AI Meta Description", {
+        metadata: `Description: ${completion} | URL: ${data.url}`,
+      });
+    },
   });
 
   const generateDescription = async () => {

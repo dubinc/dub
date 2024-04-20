@@ -32,6 +32,7 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
+import va from "@vercel/analytics";
 import { useCompletion } from "ai/react";
 import { TriangleAlert } from "lucide-react";
 import {
@@ -82,7 +83,12 @@ function AddEditLinkModal({
   const { slug } = params;
   const router = useRouter();
   const pathname = usePathname();
-  const { id: workspaceId, aiUsage, aiLimit, nextPlan } = useWorkspace();
+  const {
+    id: workspaceId,
+    aiUsage,
+    aiLimit,
+    mutate: mutateWorkspace,
+  } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -179,12 +185,13 @@ function AddEditLinkModal({
     },
     onFinish: (_, completion) => {
       setGeneratedKeys((prev) => [...prev, completion]);
-      revalidateAiUsage();
+      mutateWorkspace();
       runKeyChecks(completion);
+      va.track("Generated AI key", {
+        metadata: `Key: ${completion} | URL: ${data.url}`,
+      });
     },
   });
-
-  const revalidateAiUsage = async () => await mutate(`/api/workspaces/${slug}`);
 
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
