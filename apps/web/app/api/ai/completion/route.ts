@@ -44,8 +44,6 @@ export async function POST(req: NextRequest) {
       model,
     } = completionSchema.parse(await req.json());
 
-    console.log("model", model);
-
     const response = await anthropic.messages.create({
       messages: [
         {
