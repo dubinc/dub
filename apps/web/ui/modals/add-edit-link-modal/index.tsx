@@ -53,7 +53,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce, useDebouncedCallback } from "use-debounce";
+import { useDebounce } from "use-debounce";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -117,16 +117,19 @@ function AddEditLinkModal({
 
   const { domain, key, url, password, proxy } = data;
 
-  const generateRandomKey = useDebouncedCallback(async () => {
-    setKeyError(null);
-    setGeneratingRandomKey(true);
-    const res = await fetch(
-      `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
-    );
-    const key = await res.json();
-    setData((prev) => ({ ...prev, key }));
-    setGeneratingRandomKey(false);
-  }, 500);
+  const generateRandomKey = useCallback(async () => {
+    if (generatingRandomKey) return;
+    if (domain && workspaceId) {
+      setKeyError(null);
+      setGeneratingRandomKey(true);
+      const res = await fetch(
+        `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
+      );
+      const key = await res.json();
+      setData((prev) => ({ ...prev, key }));
+      setGeneratingRandomKey(false);
+    }
+  }, [domain, workspaceId]);
 
   useEffect(() => {
     // when someone pastes a URL
@@ -559,13 +562,14 @@ function AddEditLinkModal({
                         )}
                       </ButtonTooltip>
                       <ButtonTooltip
+                        tooltipContent="Generate a key using AI"
                         onClick={generateAIKey}
                         disabled={
+                          generatingRandomKey ||
                           generatingAIKey ||
                           (aiLimit && aiUsage && aiUsage >= aiLimit) ||
                           !url
                         }
-                        tooltipContent="Generate a key using AI"
                         className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                       >
                         {generatingAIKey ? (
