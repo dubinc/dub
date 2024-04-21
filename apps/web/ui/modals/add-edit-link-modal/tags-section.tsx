@@ -47,7 +47,6 @@ export default function TagsSection({
     },
     onFinish: (_, completion) => {
       mutateWorkspace();
-      console.log({ completion });
       if (completion) {
         const completionArr = completion.split(", ");
         const suggestedTags = completionArr
