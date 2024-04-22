@@ -3,7 +3,7 @@ import {
   domainExists,
   setRootDomain,
 } from "@/lib/api/domains";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
@@ -13,29 +13,27 @@ import { NextResponse } from "next/server";
 
 // GET /api/workspaces - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
-
   const projects = await prisma.project.findMany({
-      where: {
-        users: {
-          some: {
-            userId: session.user.id,
-          },
+    where: {
+      users: {
+        some: {
+          userId: session.user.id,
         },
       },
-      include: {
-        users: {
-          where: {
-            userId: session.user.id,
-          },
-          select: {
-            role: true,
-          },
+    },
+    include: {
+      users: {
+        where: {
+          userId: session.user.id,
         },
-        domains: {
-          select: {
-            slug: true,
-            primary: true,
-          },
+        select: {
+          role: true,
+        },
+      },
+      domains: {
+        select: {
+          slug: true,
+          primary: true,
         },
       },
     },
@@ -70,93 +68,94 @@ export const POST = withSession(async ({ req, session }) => {
           role: "owner",
         },
       },
+    },
+  });
+
+  if (freeWorkspaces >= FREE_WORKSPACES_LIMIT) {
+    throw new DubApiError({
+      code: "exceeded_limit",
+      message: `You can only create up to ${FREE_WORKSPACES_LIMIT} free workspaces. Additional workspaces require a paid plan.`,
     });
+  }
 
-    if (freeWorkspaces >= FREE_WORKSPACES_LIMIT) {
-      throw new DubApiError({
-        code: "exceeded_limit",
-        message: `You can only create up to ${FREE_WORKSPACES_LIMIT} free workspaces. Additional workspaces require a paid plan.`,
-      });
-    }
+  const [slugExist, domainExist] = await Promise.all([
+    prisma.project.findUnique({
+      where: {
+        slug,
+      },
+      select: {
+        slug: true,
+      },
+    }),
+    domain ? domainExists(domain) : false,
+  ]);
 
-    const [slugExist, domainExist] = await Promise.all([
-      prisma.project.findUnique({
-        where: {
-          slug,
-        },
-        select: {
-          slug: true,
-        },
-      }),
-      domain ? domainExists(domain) : false,
-    ]);
+  if (slugExist) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "Slug is already in use.",
+    });
+  }
 
-    if (slugExist) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "Slug is already in use.",
-      });
-    }
+  if (domainExist) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "Domain is already in use.",
+    });
+  }
 
-    if (domainExist) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "Domain is already in use.",
-      });
-    }
-
-    const [projectResponse, domainRepsonse] = await Promise.all([
-      prisma.project.create({
-        data: {
-          name,
-          slug,
-          users: {
-            create: {
-              userId: session.user.id,
-              role: "owner",
-            },
-          },
-          ...(domain && {
-            domains: {
-              create: {
-                slug: domain,
-                primary: true,
-              },
-            },
-          }),
-          billingCycleStart: new Date().getDate(),
-          inviteCode: nanoid(24),
-          defaultDomains: {
-            create: {}, // by default, we give users all the default domains when they create a project
+  const [projectResponse, domainRepsonse] = await Promise.all([
+    prisma.project.create({
+      data: {
+        name,
+        slug,
+        users: {
+          create: {
+            userId: session.user.id,
+            role: "owner",
           },
         },
-        include: {
+        ...(domain && {
           domains: {
-            select: {
-              id: true,
-              slug: true,
+            create: {
+              slug: domain,
               primary: true,
             },
           },
-          users: {
-            select: {
-              role: true,
-            },
+        }),
+        billingCycleStart: new Date().getDate(),
+        inviteCode: nanoid(24),
+        defaultDomains: {
+          create: {}, // by default, we give users all the default domains when they create a project
+        },
+      },
+      include: {
+        domains: {
+          select: {
+            id: true,
+            slug: true,
+            primary: true,
           },
         },
-      }),
-      domain && addDomainToVercel(domain),
-    ]);
+        users: {
+          select: {
+            role: true,
+          },
+        },
+      },
+    }),
+    domain && addDomainToVercel(domain),
+  ]);
 
-    // if domain is specified and it was successfully added to Vercel
-    // update it in Redis cache
-    if (domain && domainRepsonse && !domainRepsonse.error) {
-      await setRootDomain({
-        id: projectResponse.domains[0].id,
-        domain,
-        projectId: projectResponse.id,
-      });
-    }
+  // if domain is specified and it was successfully added to Vercel
+  // update it in Redis cache
+  if (domain && domainRepsonse && !domainRepsonse.error) {
+    await setRootDomain({
+      id: projectResponse.domains[0].id,
+      domain,
+      projectId: projectResponse.id,
+    });
+  }
 
   const response = {
     ...projectResponse,
@@ -167,5 +166,5 @@ export const POST = withSession(async ({ req, session }) => {
     })),
   };
 
-    return NextResponse.json(response);
+  return NextResponse.json(response);
 });
