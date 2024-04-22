@@ -140,7 +140,7 @@ export const createLinkBodySchema = z.object({
     .max(255)
     .nullish()
     .describe(
-      "This is the ID of the link in the your system. If set, it can be used to identify the link in the future.",
+      "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with 'ext_' when passed as a query parameter.",
     )
     .openapi({ example: "123456" }),
   prefix: z
@@ -263,7 +263,7 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe(
-        "This is the ID of the link in the your system. If set, it can be used to identify the link in the future.",
+        "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
     url: z.string().url().describe("The destination URL of the short link."),
     archived: z
