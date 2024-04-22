@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import LinkLogo from "../links/link-logo";
 
-const sendArchiveRequest = async ({
+const sendArchiveRequest = ({
   domain,
   archive,
   workspaceId,
@@ -22,7 +22,6 @@ const sendArchiveRequest = async ({
   archive: boolean;
   workspaceId?: string;
 }) => {
-  
   const baseUrl = `/api/domains/${domain}`;
   return fetch(`${baseUrl}?workspaceId=${workspaceId}`, {
     method: "PATCH",
@@ -30,7 +29,7 @@ const sendArchiveRequest = async ({
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ archived: archive }),
-  }).then((res) => res.json());
+  });
 };
 
 function ArchiveDomainModal({
