@@ -31,7 +31,7 @@ describe("PUT /links/{linkId}", async () => {
       description: "Open-source link management infrastructure.",
       publicStats: true,
       comments: "This is a comment.",
-      expiresAt: new Date("2030-04-16 23:59:59"),
+      expiresAt: new Date("2030-04-16T17:00:00.000Z"),
       expiredUrl: "https://github.com/expired",
       password: "link-password",
       ios: "https://apps.apple.com/app/1611158928",
@@ -51,7 +51,7 @@ describe("PUT /links/{linkId}", async () => {
     expect(updatedLink).toStrictEqual({
       ...expectedLink,
       ...newLink,
-      expiresAt: "2030-04-16T23:59:59.000Z",
+      expiresAt: "2030-04-16T17:00:00.000Z",
       domain,
       projectId,
       workspaceId,
