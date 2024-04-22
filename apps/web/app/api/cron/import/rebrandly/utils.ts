@@ -139,7 +139,7 @@ export const importLinksFromRebrandly = async ({
       prisma.tag.deleteMany({
         where: {
           projectId: workspaceId,
-          linksNew: {
+          links: {
             none: {},
           },
         },

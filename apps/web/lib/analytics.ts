@@ -89,8 +89,9 @@ export const VALID_ANALYTICS_FILTERS = [
   "browser",
   "os",
   "referer",
-  "excludeRoot",
   "tagId",
+  "qr",
+  "root",
 ];
 
 export const getAnalytics = async ({
@@ -160,10 +161,12 @@ export const getAnalytics = async ({
         new Date(Date.now()).toISOString().replace("T", " ").replace("Z", ""),
       );
 
-      url.searchParams.append(
-        "granularity",
-        intervalData[interval].granularity,
-      );
+    url.searchParams.append("granularity", intervalData[interval].granularity);
+  }
+
+  VALID_ANALYTICS_FILTERS.forEach((filter) => {
+    if (rest[filter] !== undefined) {
+      url.searchParams.append(filter, rest[filter]);
     }
 
     VALID_ANALYTICS_FILTERS.forEach((filter) => {

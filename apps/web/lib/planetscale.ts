@@ -24,6 +24,15 @@ export const getWorkspaceViaEdge = async (workspaceId: string) => {
     : null;
 };
 
+export const incrementWorkspaceAIUsage = async (workspaceId: string) => {
+  if (!DATABASE_URL) return null;
+
+  return await conn.execute(
+    "UPDATE Project p SET p.aiUsage = p.aiUsage + 1 WHERE id = ?",
+    [workspaceId.replace("ws_", "")],
+  );
+};
+
 export const getDomainViaEdge = async (domain: string) => {
   if (!DATABASE_URL) return null;
 
@@ -43,6 +52,16 @@ export const checkIfKeyExists = async (domain: string, key: string) => {
       "SELECT 1 FROM Link WHERE domain = ? AND `key` = ? LIMIT 1",
       [domain, punyEncode(decodeURIComponent(key))], // we need to make sure that the key is always URI-decoded + punycode-encoded (cause that's how we store it in MySQL)
     )) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0;
+};
+
+export const checkIfUserExists = async (userId: string) => {
+  if (!DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute("SELECT 1 FROM User WHERE id = ? LIMIT 1", [userId])) ||
+    {};
 
   return rows && Array.isArray(rows) && rows.length > 0;
 };

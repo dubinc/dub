@@ -72,7 +72,7 @@ export default function PlaceholderContent() {
           >
             {process.env.NEXT_PUBLIC_APP_NAME}
           </a>{" "}
-          - the link management infrastructure for modern marketing teams.
+          - the link management platform for modern marketing teams.
         </motion.p>
         <motion.a
           variants={STAGGER_CHILD_VARIANTS}

@@ -10,7 +10,6 @@ import { TagSchema } from "./tags";
 
 export const parseUrlSchema = z
   .string()
-  .describe("The destination URL of the short link.")
   .transform((v) => getUrlFromString(v))
   .refine((v) => isValidUrl(v), { message: "Invalid URL" });
 
@@ -44,6 +43,13 @@ const LinksQuerySchema = z.object({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The tag IDs to filter the links by."),
+  tagNames: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The unique name of the tags assigned to the short link (case insensitive).",
+    ),
   search: z
     .string()
     .optional()
@@ -129,7 +135,11 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
     ),
-  url: parseUrlSchema.describe("The destination URL of the short link."),
+  url: parseUrlSchema
+    .describe("The destination URL of the short link.")
+    .openapi({
+      example: "https://google/com",
+    }),
   archived: z
     .boolean()
     .optional()
@@ -151,7 +161,15 @@ export const createLinkBodySchema = z.object({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
-    .describe("The unique IDs of the tags assigned to the short link."),
+    .describe("The unique IDs of the tags assigned to the short link.")
+    .openapi({ example: ["clux0rgak00011..."] }),
+  tagNames: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The unique name of the tags assigned to the short link (case insensitive).",
+    ),
   comments: z.string().nullish().describe("The comments for the short link."),
   expiresAt: z
     .string()
@@ -212,7 +230,7 @@ export const createLinkBodySchema = z.object({
     ),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial();
+export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)

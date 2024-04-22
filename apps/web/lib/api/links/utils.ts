@@ -1,14 +1,15 @@
-import { isReservedKey, isReservedUsername } from "@/lib/edge-config";
+import {
+  isBlacklistedKey,
+  isReservedKey,
+  isReservedUsername,
+} from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { SimpleLinkProps, WorkspaceProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import {
   DEFAULT_REDIRECTS,
-  GOOGLE_FAVICON_URL,
   SHORT_DOMAIN,
-  getApexDomain,
   isDubDomain,
   linkConstructor,
-  log,
   punyEncode,
   validKeyRegex,
 } from "@dub/utils";
@@ -18,18 +19,21 @@ type LinkWithTags = Link & {
   tags: { tag: Pick<Tag, "id" | "name" | "color"> }[];
 };
 
+/**
+ * Combines tagIds into a single string array or undefined from tagId and tagIds arguments
+ */
 export function combineTagIds({
   tagId,
   tagIds,
 }: {
   tagId?: string | null;
   tagIds?: string[];
-}): string[] {
+}): string[] | undefined {
   // Use tagIds if present, fall back to tagId
-  if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+  if (tagIds && Array.isArray(tagIds)) {
     return tagIds;
   }
-  return tagId ? [tagId] : [];
+  return tagId === null ? [] : tagId !== undefined ? [tagId] : undefined;
 }
 
 export async function keyChecks({
@@ -66,14 +70,19 @@ export async function keyChecks({
   }
 
   if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
-    if (
-      domain === SHORT_DOMAIN &&
-      (DEFAULT_REDIRECTS[key] || (await isReservedKey(key)))
-    ) {
-      return {
-        error: "Duplicate key: This short link already exists.",
-        code: "conflict",
-      };
+    if (domain === SHORT_DOMAIN) {
+      if (DEFAULT_REDIRECTS[key] || (await isReservedKey(key))) {
+        return {
+          error: "Duplicate key: This short link already exists.",
+          code: "conflict",
+        };
+      }
+      if (await isBlacklistedKey(key)) {
+        return {
+          error: "Invalid key.",
+          code: "unprocessable_entity",
+        };
+      }
     }
 
     if (key.length <= 3 && (!workspace || workspace.plan === "free")) {
@@ -110,21 +119,6 @@ export function processKey(key: string) {
   key = punyEncode(key);
 
   return key;
-}
-
-export async function dubLinkChecks(link: SimpleLinkProps) {
-  const invalidFavicon = await fetch(
-    `${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`,
-  ).then((res) => !res.ok);
-
-  if (invalidFavicon) {
-    return await log({
-      message: `Suspicious link detected: ${link.domain}/${link.key} → ${link.url}`,
-      type: "links",
-      mention: true,
-    });
-  }
-  return null;
 }
 
 // Transform link with additional properties

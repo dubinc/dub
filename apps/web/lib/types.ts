@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
@@ -7,10 +8,6 @@ export type LinkProps = Link;
 
 export interface LinkWithTagsProps extends LinkProps {
   tags: TagProps[];
-}
-
-export interface LinkWithTagIdsProps extends LinkProps {
-  tagIds: string[];
 }
 
 export interface SimpleLinkProps {
@@ -75,6 +72,8 @@ export interface WorkspaceProps {
   logo: string | null;
   usage: number;
   usageLimit: number;
+  aiUsage: number;
+  aiLimit: number;
   linksUsage: number;
   linksLimit: number;
   domainsLimit: number;
@@ -103,8 +102,12 @@ export interface UserProps {
   email: string;
   image?: string;
   createdAt: Date;
+  source: string | null;
+  migratedWorkspace: string | null;
+}
+
+export interface WorkspaceUserProps extends UserProps {
   role: RoleProps;
-  projects?: { projectId: string }[];
 }
 
 export type DomainVerificationStatusProps =
@@ -163,6 +166,10 @@ export interface SAMLProviderProps {
 
 export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
 
+type ProcessedLinkOverrides = "domain" | "key" | "url" | "projectId";
+export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
+  Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] };
+
 export const plans = [
   "free",
   "pro",
@@ -184,3 +191,5 @@ export const tagColors = [
   "pink",
   "brown",
 ] as const;
+
+export type MetaTag = z.infer<typeof metaTagsSchema>;

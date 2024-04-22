@@ -9,6 +9,12 @@ import { z } from "zod";
 
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+  });
+
   const migratedWorkspace = await redis.hget(
     "migrated_links_users",
     session.user.id,
@@ -19,7 +25,7 @@ export const GET = withSession(async ({ session }) => {
   }
 
   return NextResponse.json({
-    ...session.user,
+    ...user,
     migratedWorkspace,
   });
 });
@@ -28,11 +34,12 @@ const updateUserSchema = z.object({
   name: z.preprocess(trim, z.string().min(1).max(64)).optional(),
   email: z.preprocess(trim, z.string().email()).optional(),
   image: z.string().url().optional(),
+  source: z.preprocess(trim, z.string().min(1).max(32)).optional(),
 });
 
 // PUT /api/user – edit a specific user
 export const PUT = withSession(async ({ req, session }) => {
-  let { name, email, image } = await updateUserSchema.parseAsync(
+  let { name, email, image, source } = await updateUserSchema.parseAsync(
     await req.json(),
   );
   try {
@@ -48,6 +55,7 @@ export const PUT = withSession(async ({ req, session }) => {
         ...(name && { name }),
         ...(email && { email }),
         ...(image && { image }),
+        ...(source && { source }),
       },
     });
     return NextResponse.json(response);

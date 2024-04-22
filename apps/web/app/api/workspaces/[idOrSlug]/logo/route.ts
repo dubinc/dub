@@ -1,4 +1,4 @@
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
@@ -9,7 +9,7 @@ const uploadLogoSchema = z.object({
 });
 
 // POST /api/workspaces/[idOrSlug]/logo – upload a new workspace logo
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const { image } = uploadLogoSchema.parse(await req.json());
 

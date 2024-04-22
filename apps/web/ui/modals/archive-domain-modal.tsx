@@ -22,12 +22,14 @@ const sendArchiveRequest = async ({
   archive: boolean;
   workspaceId?: string;
 }) => {
-  const baseUrl = `/api/domains/${domain}/archive`;
-  return await fetch(`${baseUrl}?workspaceId=${workspaceId}`, {
-    method: archive ? "POST" : "DELETE",
+  
+  const baseUrl = `/api/domains/${domain}`;
+  return fetch(`${baseUrl}?workspaceId=${workspaceId}`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({ archived: archive }),
   }).then((res) => res.json());
 };
 

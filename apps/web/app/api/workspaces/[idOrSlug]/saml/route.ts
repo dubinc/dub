@@ -1,4 +1,4 @@
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import jackson, { samlAudience } from "@/lib/jackson";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -24,7 +24,7 @@ const deleteSAMLConnectionSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/saml – get SAML connections for a specific workspace
-export const GET = withAuth(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const { apiController } = await jackson();
 
   const connections = await apiController.getConnections({
@@ -45,7 +45,7 @@ export const GET = withAuth(async ({ workspace }) => {
 });
 
 // POST /api/workspaces/[idOrSlug]/saml – create a new SAML connection
-export const POST = withAuth(
+export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const { metadataUrl, encodedRawMetadata } =
       createSAMLConnectionSchema.parse(await req.json());
@@ -71,7 +71,7 @@ export const POST = withAuth(
 
 // DELETE /api/workspaces/[idOrSlug]/saml – delete all SAML connections
 
-export const DELETE = withAuth(
+export const DELETE = withWorkspace(
   async ({ searchParams }) => {
     const { clientID, clientSecret } =
       deleteSAMLConnectionSchema.parse(searchParams);

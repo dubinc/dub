@@ -1,7 +1,7 @@
 "use client";
 
-import { Session } from "@/lib/auth";
 import useDomains from "@/lib/swr/use-domains";
+import useUser from "@/lib/swr/use-user";
 import { DomainProps, WorkspaceProps } from "@/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
 import {
@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
-import useSWRImmutable from "swr/immutable";
 import PlanBadge from "./plan-badge";
 import WorkspaceArrow from "./workspace-arrow";
 
@@ -51,9 +50,7 @@ export default function WorkspaceCard({
     fetcher,
   );
 
-  const { data: user } = useSWRImmutable<
-    Session["user"] & { migratedWorkspace: string | null }
-  >(`/api/user`, fetcher);
+  const { user } = useUser();
 
   const isMigratedWorkspace = user?.migratedWorkspace === id;
 

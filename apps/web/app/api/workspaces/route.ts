@@ -5,15 +5,16 @@ import {
 } from "@/lib/api/domains";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { checkIfUserExists } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import { createWorkspaceSchema } from "@/lib/zod/schemas";
+import { WorkspaceSchema, createWorkspaceSchema } from "@/lib/zod/schemas";
 import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
-  try {
-    const projects = await prisma.project.findMany({
+
+  const projects = await prisma.project.findMany({
       where: {
         users: {
           some: {
@@ -37,28 +38,36 @@ export const GET = withSession(async ({ session }) => {
           },
         },
       },
-    });
-    return NextResponse.json(
-      projects.map((project) => ({ ...project, id: `ws_${project.id}` })),
-    );
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
-  }
+    },
+  });
+  return NextResponse.json(
+    projects.map((project) =>
+      WorkspaceSchema.parse({ ...project, id: `ws_${project.id}` }),
+    ),
+  );
 });
 
 export const POST = withSession(async ({ req, session }) => {
   const { name, slug, domain } = await createWorkspaceSchema.parseAsync(
     await req.json(),
   );
-  try {
-    const freeWorkspaces = await prisma.project.count({
-      where: {
-        plan: "free",
-        users: {
-          some: {
-            userId: session.user.id,
-            role: "owner",
-          },
+
+  const userExists = await checkIfUserExists(session.user.id);
+
+  if (!userExists) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Session expired. Please log in again.",
+    });
+  }
+
+  const freeWorkspaces = await prisma.project.count({
+    where: {
+      plan: "free",
+      users: {
+        some: {
+          userId: session.user.id,
+          role: "owner",
         },
       },
     });
@@ -149,16 +158,14 @@ export const POST = withSession(async ({ req, session }) => {
       });
     }
 
-    const response = {
-      ...projectResponse,
-      domains: projectResponse.domains.map(({ slug, primary }) => ({
-        slug,
-        primary,
-      })),
-    };
+  const response = {
+    ...projectResponse,
+    id: `ws_${projectResponse.id}`,
+    domains: projectResponse.domains.map(({ slug, primary }) => ({
+      slug,
+      primary,
+    })),
+  };
 
     return NextResponse.json(response);
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
-  }
 });
