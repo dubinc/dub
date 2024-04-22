@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "./api/errors";
 import { DATABASE_URL, conn } from "./planetscale";
 import z from "./zod";
 import { getAnalyticsQuerySchema } from "./zod/schemas/analytics";
@@ -107,59 +106,59 @@ export const getAnalytics = async ({
   endpoint: (typeof VALID_TINYBIRD_ENDPOINTS)[number];
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
-  try {
-    if (
-      !DATABASE_URL ||
-      !process.env.TINYBIRD_API_KEY ||
-      !VALID_TINYBIRD_ENDPOINTS.includes(endpoint)
-    ) {
-      return [];
-    }
 
-    // get all-time clicks count if:
-    // 1. endpoint is /clicks
-    // 2. interval is not defined
-    // 3. linkId is defined
-    if (endpoint === "clicks" && !interval && linkId) {
-      let response = await conn.execute(
-        "SELECT clicks FROM Link WHERE `id` = ?",
+  if (
+    !DATABASE_URL ||
+    !process.env.TINYBIRD_API_KEY ||
+    !VALID_TINYBIRD_ENDPOINTS.includes(endpoint)
+  ) {
+    return [];
+  }
+
+  // get all-time clicks count if:
+  // 1. endpoint is /clicks
+  // 2. interval is not defined
+  // 3. linkId is defined
+  if (endpoint === "clicks" && !interval && linkId) {
+    let response = await conn.execute(
+      "SELECT clicks FROM Link WHERE `id` = ?",
+      [linkId],
+    );
+    if (response.rows.length === 0) {
+      response = await conn.execute(
+        "SELECT clicks FROM Domain WHERE `id` = ?",
         [linkId],
       );
       if (response.rows.length === 0) {
-        response = await conn.execute(
-          "SELECT clicks FROM Domain WHERE `id` = ?",
-          [linkId],
-        );
-        if (response.rows.length === 0) {
-          return 0;
-        }
+        return 0;
       }
-      return response.rows[0]["clicks"];
     }
+    return response.rows[0]["clicks"];
+  }
 
-    let url = new URL(
-      `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint}.json`,
+  let url = new URL(
+    `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint}.json`,
+  );
+  if (workspaceId) {
+    url.searchParams.append("projectId", workspaceId);
+  }
+  if (linkId) {
+    url.searchParams.append("linkId", linkId);
+  } else if (domain) {
+    url.searchParams.append("domain", domain);
+  }
+  if (interval) {
+    url.searchParams.append(
+      "start",
+      intervalData[interval].startDate
+        .toISOString()
+        .replace("T", " ")
+        .replace("Z", ""),
     );
-    if (workspaceId) {
-      url.searchParams.append("projectId", workspaceId);
-    }
-    if (linkId) {
-      url.searchParams.append("linkId", linkId);
-    } else if (domain) {
-      url.searchParams.append("domain", domain);
-    }
-    if (interval) {
-      url.searchParams.append(
-        "start",
-        intervalData[interval].startDate
-          .toISOString()
-          .replace("T", " ")
-          .replace("Z", ""),
-      );
-      url.searchParams.append(
-        "end",
-        new Date(Date.now()).toISOString().replace("T", " ").replace("Z", ""),
-      );
+    url.searchParams.append(
+      "end",
+      new Date(Date.now()).toISOString().replace("T", " ").replace("Z", ""),
+    );
 
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
@@ -168,37 +167,29 @@ export const getAnalytics = async ({
     if (rest[filter] !== undefined) {
       url.searchParams.append(filter, rest[filter]);
     }
+  });
 
-    VALID_ANALYTICS_FILTERS.forEach((filter) => {
-      if (rest[filter]) {
-        url.searchParams.append(filter, rest[filter]);
+  return await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+    },
+  })
+    .then(async (res) => {
+      if (res.ok) {
+        return res.json();
       }
-    });
-
-    return await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
+      const error = await res.text();
+      console.error(error);
     })
-      .then(async (res) => {
-        if (res.ok) {
-          return res.json();
+    .then(({ data }) => {
+      if (endpoint === "clicks") {
+        try {
+          const clicks = data[0]["count()"];
+          return clicks || 0;
+        } catch (e) {
+          console.log(e);
         }
-        const error = await res.text();
-        console.error(error);
-      })
-      .then(({ data }) => {
-        if (endpoint === "clicks") {
-          try {
-            const clicks = data[0]["count()"];
-            return clicks || 0;
-          } catch (e) {
-            console.log(e);
-          }
-        }
-        return data;
-      });
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
-  }
+      }
+      return data;
+    });
 };
