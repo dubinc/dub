@@ -1,6 +1,10 @@
 import { cn } from "@dub/utils";
 import { InputHTMLAttributes, ReactNode, forwardRef, useId } from "react";
 
+/*
+ * WIP
+ */
+
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: ReactNode;
   error?: string;
