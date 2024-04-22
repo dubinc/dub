@@ -221,7 +221,9 @@ export const withWorkspace = (
         linkId
           ? prisma.link.findUnique({
               where: {
-                id: linkId,
+                ...(linkId.startsWith("ext_")
+                  ? { externalId: linkId.replace("ext_", "") }
+                  : { id: linkId }),
               },
             })
           : domain &&

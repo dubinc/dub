@@ -117,6 +117,11 @@ export const domainKeySchema = z.object({
 });
 
 export const createLinkBodySchema = z.object({
+  url: parseUrlSchema
+    .describe("The destination URL of the short link.")
+    .openapi({
+      example: "https://google/com",
+    }),
   domain: z
     .string()
     .optional()
@@ -129,17 +134,21 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
     ),
+  externalId: z
+    .string()
+    .min(1)
+    .max(255)
+    .nullish()
+    .describe(
+      "This is the ID of the link in the your system. If set, it will be used to identify the link in the future.",
+    )
+    .openapi({ example: "123456" }),
   prefix: z
     .string()
     .optional()
     .describe(
       "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
     ),
-  url: parseUrlSchema
-    .describe("The destination URL of the short link.")
-    .openapi({
-      example: "https://google/com",
-    }),
   archived: z
     .boolean()
     .optional()
@@ -249,6 +258,12 @@ export const LinkSchema = z
       .string()
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
+      ),
+    externalId: z
+      .string()
+      .nullable()
+      .describe(
+        "This is the ID of the link in the your system. If set, it will be used to identify the link in the future.",
       ),
     url: z.string().url().describe("The destination URL of the short link."),
     archived: z
