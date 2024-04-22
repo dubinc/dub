@@ -51,6 +51,10 @@ export const WorkspaceSchema = z
         }),
       )
       .describe("The domains of the workspace."),
+    inviteCode: z
+      .string()
+      .nullable()
+      .describe("The invite code of the workspace."),
   })
   .openapi({
     title: "Workspace",
