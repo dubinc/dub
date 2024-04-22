@@ -35,6 +35,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     domains,
     tags,
     users,
+    ai: 1000,
   },
   colors: {
     bg: "bg-sky-900",
@@ -55,6 +56,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: "2-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
+    { text: `Unlimited AI credits` },
     {
       text: `${nFormatter(tags, { full: true })} tags`,
       footnote: {
@@ -90,6 +92,7 @@ export const PLANS = [
       domains: 3,
       tags: 5,
       users: 1,
+      ai: 10,
     },
     colors: {
       bg: "bg-black",
@@ -109,6 +112,7 @@ export const PLANS = [
       { text: "30-day analytics retention" },
       { text: "3 custom domains" },
       { text: "1 user" },
+      { text: "10 AI credits/mo" },
       {
         text: "Community support",
         footnote: "Help center + GitHub discussions.",
@@ -145,6 +149,7 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       users: 5,
+      ai: 1000,
     },
     colors: {
       bg: "bg-blue-500",
@@ -165,6 +170,7 @@ export const PLANS = [
       { text: "1-year analytics retention" },
       { text: "10 custom domains" },
       { text: "5 users" },
+      { text: "Unlimited AI credits" },
       { text: "Basic support", footnote: "Basic email support." },
       {
         text: "Root domain redirect",

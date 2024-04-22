@@ -72,6 +72,8 @@ export interface WorkspaceProps {
   logo: string | null;
   usage: number;
   usageLimit: number;
+  aiUsage: number;
+  aiLimit: number;
   linksUsage: number;
   linksLimit: number;
   domainsLimit: number;
