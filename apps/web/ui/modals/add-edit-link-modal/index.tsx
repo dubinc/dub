@@ -537,7 +537,7 @@ function AddEditLinkModal({
                   </label>
                   {props && lockKey ? (
                     <button
-                      className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                      className="flex h-6 items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
                       type="button"
                       onClick={() => {
                         window.confirm(
