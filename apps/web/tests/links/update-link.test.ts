@@ -45,7 +45,7 @@ describe.sequential("PUT /links/{linkId}", async () => {
     await h.deleteLink(link.id);
   });
 
-  test("update link", async () => {
+  test("update link using linkId", async () => {
     const { data: updatedLink } = await http.put<Link>({
       path: `/links/${link.id}`,
       query: { workspaceId },
