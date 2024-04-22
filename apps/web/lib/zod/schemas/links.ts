@@ -140,7 +140,7 @@ export const createLinkBodySchema = z.object({
     .max(255)
     .nullish()
     .describe(
-      "This is the ID of the link in the your system. If set, it will be used to identify the link in the future.",
+      "This is the ID of the link in the your system. If set, it can be used to identify the link in the future.",
     )
     .openapi({ example: "123456" }),
   prefix: z
