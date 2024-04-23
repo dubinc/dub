@@ -16,7 +16,7 @@ type LinkWithShortLink = Link & { shortLink: string };
 
 describe.sequential("Link Redirects", async () => {
   const h = new IntegrationHarness();
-  const { workspace, user, http } = await h.init();
+  const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
   test("root", async () => {
@@ -39,7 +39,10 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(link.shortLink, fetchOptions);
+    const response = await fetch(
+      `${h.env.E2E_BASE_URL}/${link.key}`,
+      fetchOptions,
+    );
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -61,7 +64,10 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(link.shortLink, fetchOptions);
+    const response = await fetch(
+      `${h.env.E2E_BASE_URL}/${link.key}`,
+      fetchOptions,
+    );
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -83,7 +89,10 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(link.shortLink, fetchOptions);
+    const response = await fetch(
+      `${h.env.E2E_BASE_URL}/${link.key}`,
+      fetchOptions,
+    );
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -105,7 +114,10 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(link.shortLink, fetchOptions);
+    const response = await fetch(
+      `${h.env.E2E_BASE_URL}/${link.key}`,
+      fetchOptions,
+    );
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -127,7 +139,10 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(`${link.shortLink}?pw=dub`, fetchOptions);
+    const response = await fetch(
+      `${h.env.E2E_BASE_URL}/${link.key}?pw=dub`,
+      fetchOptions,
+    );
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
