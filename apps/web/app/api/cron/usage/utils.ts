@@ -119,7 +119,7 @@ export const updateUsage = async (skip?: number) => {
                 workspaceId: workspace.id,
                 endpoint: "top_links",
                 interval: "30d",
-                excludeRoot: true,
+                root: false,
               }).then(async (data) => {
                 const topFive = data.slice(0, 5);
                 return await Promise.all(
@@ -205,8 +205,8 @@ export const updateUsage = async (skip?: number) => {
           ...(resetUsage && {
             usage: 0,
           }),
-          // always reset linksUsage since folks can never create more links than their limit
           linksUsage: 0,
+          aiUsage: 0,
           sentEmails: {
             deleteMany: {
               type: {

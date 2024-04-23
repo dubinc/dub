@@ -1,5 +1,5 @@
 import { addDomainToVercel } from "@/lib/api/domains";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -7,7 +7,7 @@ import { APP_DOMAIN_WITH_NGROK, fetchWithTimeout } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/import/short – get all short.io domains for a workspace
-export const GET = withAuth(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const accessToken = await redis.get(`import:short:${workspace.id}`);
   if (!accessToken) {
     return new Response("No Short.io access token found", { status: 400 });
@@ -52,14 +52,14 @@ export const GET = withAuth(async ({ workspace }) => {
 });
 
 // PUT /api/workspaces/[idOrSlug]/import/short - save Short.io API key
-export const PUT = withAuth(async ({ req, workspace }) => {
+export const PUT = withWorkspace(async ({ req, workspace }) => {
   const { apiKey } = await req.json();
   const response = await redis.set(`import:short:${workspace.id}`, apiKey);
   return NextResponse.json(response);
 });
 
 // POST /api/workspaces/[idOrSlug]/import/short - create job to import links from Short.io
-export const POST = withAuth(async ({ req, workspace, session }) => {
+export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const { selectedDomains, importTags } = await req.json();
 
   // check if there are domains that are not in the workspace

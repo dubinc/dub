@@ -43,6 +43,13 @@ const LinksQuerySchema = z.object({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The tag IDs to filter the links by."),
+  tagNames: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The unique name of the tags assigned to the short link (case insensitive).",
+    ),
   search: z
     .string()
     .optional()
@@ -110,6 +117,11 @@ export const domainKeySchema = z.object({
 });
 
 export const createLinkBodySchema = z.object({
+  url: parseUrlSchema
+    .describe("The destination URL of the short link.")
+    .openapi({
+      example: "https://google/com",
+    }),
   domain: z
     .string()
     .optional()
@@ -122,17 +134,21 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
     ),
+  externalId: z
+    .string()
+    .min(1)
+    .max(255)
+    .nullish()
+    .describe(
+      "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with 'ext_' when passed as a query parameter.",
+    )
+    .openapi({ example: "123456" }),
   prefix: z
     .string()
     .optional()
     .describe(
       "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
     ),
-  url: parseUrlSchema
-    .describe("The destination URL of the short link.")
-    .openapi({
-      example: "https://google/com",
-    }),
   archived: z
     .boolean()
     .optional()
@@ -156,6 +172,13 @@ export const createLinkBodySchema = z.object({
     .optional()
     .describe("The unique IDs of the tags assigned to the short link.")
     .openapi({ example: ["clux0rgak00011..."] }),
+  tagNames: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The unique name of the tags assigned to the short link (case insensitive).",
+    ),
   comments: z.string().nullish().describe("The comments for the short link."),
   expiresAt: z
     .string()
@@ -235,6 +258,12 @@ export const LinkSchema = z
       .string()
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
+      ),
+    externalId: z
+      .string()
+      .nullable()
+      .describe(
+        "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
     url: z.string().url().describe("The destination URL of the short link."),
     archived: z

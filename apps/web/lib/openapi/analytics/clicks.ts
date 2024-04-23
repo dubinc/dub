@@ -19,7 +19,7 @@ export const getClicksAnalytics: ZodOpenApiOperationObject = {
         "application/json": {
           schema: {
             type: "number",
-            description: "The number of clicks",
+            description: "The number of clicks matching the specified queries.",
           },
         },
       },

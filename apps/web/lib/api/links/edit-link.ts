@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { LinkWithTagIdsProps } from "@/lib/types";
+import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { SHORT_DOMAIN, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
@@ -14,7 +14,8 @@ export async function editLink({
 }: {
   oldDomain?: string;
   oldKey: string;
-  updatedLink: LinkWithTagIdsProps;
+  updatedLink: ProcessedLinkProps &
+    Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
 }) {
   let {
     id,
@@ -42,6 +43,7 @@ export async function editLink({
     updatedAt,
     tagId,
     tagIds,
+    tagNames,
     ...rest
   } = updatedLink;
 
@@ -55,63 +57,81 @@ export async function editLink({
     });
   }
 
-  const [response, ..._effects] = await Promise.all([
-    prisma.link.update({
-      where: {
-        id,
-      },
-      data: {
-        ...rest,
-        key,
-        title: truncate(title, 120),
-        description: truncate(description, 240),
-        image:
-          proxy && image && !isStored(image)
-            ? `${process.env.STORAGE_BASE_URL}/images/${id}`
-            : image,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_term,
-        utm_content,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-        geo: geo || Prisma.JsonNull,
-        tags: {
-          deleteMany: {
-            tagId: {
-              notIn: combinedTagIds,
-            },
+  const response = await prisma.link.update({
+    where: {
+      id,
+    },
+    data: {
+      ...rest,
+      key,
+      title: truncate(title, 120),
+      description: truncate(description, 240),
+      image:
+        proxy && image && !isStored(image)
+          ? `${process.env.STORAGE_BASE_URL}/images/${id}`
+          : image,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      geo: geo || Prisma.JsonNull,
+
+      // Associate tags by tagNames
+      ...(tagNames &&
+        updatedLink.projectId && {
+          tags: {
+            deleteMany: {},
+            create: tagNames.map((tagName) => ({
+              tag: {
+                connect: {
+                  name_projectId: {
+                    name: tagName,
+                    projectId: updatedLink.projectId as string,
+                  },
+                },
+              },
+            })),
           },
-          connectOrCreate: combinedTagIds.map((tagId) => ({
-            where: { linkId_tagId: { linkId: id, tagId } },
-            create: { tagId },
+        }),
+
+      // Associate tags by IDs (takes priority over tagNames)
+      ...(combinedTagIds && {
+        tags: {
+          deleteMany: {},
+          create: combinedTagIds.map((tagId) => ({
+            tagId,
           })),
         },
-      },
-      include: {
-        tags: {
-          select: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
+      }),
+    },
+    include: {
+      tags: {
+        select: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
             },
           },
         },
       },
-    }),
+    },
+  });
+
+  await Promise.all([
     // record link in Redis
     redis.hset(updatedLink.domain.toLowerCase(), {
-      [updatedLink.key.toLowerCase()]: await formatRedisLink(updatedLink),
+      [updatedLink.key.toLowerCase()]: await formatRedisLink(response),
     }),
     // record link in Tinybird
     recordLink({
       link: {
-        ...updatedLink,
-        tags: combinedTagIds.map((tagId) => ({
-          tagId,
+        ...response,
+        tags: response.tags.map(({ tag }) => ({
+          tagId: tag.id,
         })),
       },
     }),

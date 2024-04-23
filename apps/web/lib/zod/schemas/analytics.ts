@@ -6,6 +6,16 @@ import { booleanQuerySchema } from "./misc";
 export const getAnalyticsQuerySchema = z.object({
   domain: z.string().optional().describe("The domain of the short link."),
   key: z.string().optional().describe("The short link slug."),
+  linkId: z
+    .string()
+    .optional()
+    .describe("The unique ID of the short link on Dub."),
+  externalId: z
+    .string()
+    .optional()
+    .describe(
+      "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
+    ),
   interval: z
     .enum(intervals)
     .optional()
@@ -29,13 +39,20 @@ export const getAnalyticsQuerySchema = z.object({
     .optional()
     .describe("The referer to retrieve analytics for."),
   url: z.string().optional().describe("The URL to retrieve analytics for."),
-  excludeRoot: booleanQuerySchema
-    .optional()
-    .describe("Whether to exclude the root link from the response."),
   tagId: z
     .string()
     .optional()
     .describe("The tag ID to retrieve analytics for."),
+  qr: booleanQuerySchema
+    .optional()
+    .describe(
+      "Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+    ),
+  root: booleanQuerySchema
+    .optional()
+    .describe(
+      "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
+    ),
 });
 
 export const getAnalyticsEdgeQuerySchema = getAnalyticsQuerySchema.required({

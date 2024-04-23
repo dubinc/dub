@@ -1,12 +1,12 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { propagateBulkLinkChanges } from "@/lib/api/links";
-import { withAuth } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { SimpleLinkProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
-export const POST = withAuth(async ({ req, session, workspace }) => {
+export const POST = withWorkspace(async ({ req, session, workspace }) => {
   let links: SimpleLinkProps[] = [];
   try {
     links = await req.json();
