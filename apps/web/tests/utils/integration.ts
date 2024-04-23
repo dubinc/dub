@@ -21,9 +21,9 @@ export class IntegrationHarness {
     this.env = integrationTestEnv.parse(process.env);
 
     this.ctx = ctx;
-    this.baseUrl = this.env.E2E_API_BASE_URL;
+    this.baseUrl = this.env.E2E_BASE_URL;
     this.http = new HttpClient({
-      baseUrl: this.baseUrl,
+      baseUrl: `${this.baseUrl}/api`,
       headers: {
         Authorization: `Bearer ${this.env.E2E_TOKEN}`,
       },
