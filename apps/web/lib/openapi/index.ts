@@ -6,8 +6,6 @@ import {
   WorkspaceSchema,
 } from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
-import fs from "fs";
-import path from "path";
 import { createDocument } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
 import { domainsPaths } from "./domains";
@@ -91,5 +89,3 @@ export const document = createDocument({
     ],
   },
 });
-
-fs.writeFileSync(path.join("openapi.json"), JSON.stringify(document, null, 2));
