@@ -58,6 +58,6 @@ export default async function RootMiddleware(
     }
   } else {
     // For root links that have a destination URL, use 301 status code (for SEO purposes)
-    return NextResponse.redirect(url, { ...DUB_HEADERS, status: 301 });
+    return NextResponse.redirect(url, { ...DUB_HEADERS, status: 302 });
   }
 }
