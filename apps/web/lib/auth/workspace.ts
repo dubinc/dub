@@ -260,7 +260,7 @@ export const withWorkspace = (
 
       // edge case where linkId is an externalId and workspaceId was not provided (they must've used projectSlug instead)
       // in this case, we need to try fetching the link again
-      if (linkId.startsWith("ext_") && !link && !workspaceId) {
+      if (linkId && linkId.startsWith("ext_") && !link && !workspaceId) {
         link = (await prisma.link.findUnique({
           where: {
             projectId_externalId: {
