@@ -39,10 +39,7 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(
-      `${h.env.E2E_BASE_URL}/${link.key}`,
-      fetchOptions,
-    );
+    const response = await fetch(`${h.baseUrl}/${link.key}`, fetchOptions);
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -64,10 +61,7 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(
-      `${h.env.E2E_BASE_URL}/${link.key}`,
-      fetchOptions,
-    );
+    const response = await fetch(`${h.baseUrl}/${link.key}`, fetchOptions);
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -89,10 +83,7 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(
-      `${h.env.E2E_BASE_URL}/${link.key}`,
-      fetchOptions,
-    );
+    const response = await fetch(`${h.baseUrl}/${link.key}`, fetchOptions);
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -114,10 +105,7 @@ describe.sequential("Link Redirects", async () => {
       },
     });
 
-    const response = await fetch(
-      `${h.env.E2E_BASE_URL}/${link.key}`,
-      fetchOptions,
-    );
+    const response = await fetch(`${h.baseUrl}/${link.key}`, fetchOptions);
 
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -140,7 +128,7 @@ describe.sequential("Link Redirects", async () => {
     });
 
     const response = await fetch(
-      `${h.env.E2E_BASE_URL}/${link.key}?pw=dub`,
+      `${h.baseUrl}/${link.key}?pw=dub`,
       fetchOptions,
     );
 

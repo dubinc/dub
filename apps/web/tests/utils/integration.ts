@@ -12,7 +12,7 @@ interface Resources {
 
 export class IntegrationHarness {
   private readonly ctx?: TaskContext;
-  public env: z.infer<typeof integrationTestEnv>;
+  private env: z.infer<typeof integrationTestEnv>;
   public resources: Resources;
   public baseUrl: string;
   public http: HttpClient;
@@ -21,9 +21,9 @@ export class IntegrationHarness {
     this.env = integrationTestEnv.parse(process.env);
 
     this.ctx = ctx;
-    this.baseUrl = this.env.E2E_BASE_URL + "/api";
+    this.baseUrl = this.env.E2E_BASE_URL;
     this.http = new HttpClient({
-      baseUrl: this.baseUrl,
+      baseUrl: `${this.baseUrl}/api`,
       headers: {
         Authorization: `Bearer ${this.env.E2E_TOKEN}`,
       },
