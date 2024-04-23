@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const { prompt } = await req.json();
 
     // Ask Claude for a streaming chat completion given the prompt
-    const response = await anthropic?.messages.create({
+    const response = await anthropic.messages.create({
       messages: [
         {
           role: "user",
