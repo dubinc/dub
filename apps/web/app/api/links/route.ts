@@ -1,5 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import { createLinkBodySchema, getLinksQuerySchema } from "@/lib/zod/schemas";
@@ -43,15 +44,7 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
 // POST /api/links – create a new link
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
-    let bodyRaw;
-    try {
-      bodyRaw = await req.json();
-    } catch (error) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Invalid body – body must be a valid JSON.",
-      });
-    }
+    const bodyRaw = await parseRequestBody(req);
     const body = createLinkBodySchema.parse(bodyRaw);
 
     if (!session) {
