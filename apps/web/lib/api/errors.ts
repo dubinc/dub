@@ -145,8 +145,8 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
   return {
     error: {
       code: "internal_server_error",
-      message:
-        "An internal server error occurred. Please contact our support if the problem persists.",
+      message: error.message,
+      //"An internal server error occurred. Please contact our support if the problem persists.",
       doc_url: `${docErrorUrl}#internal_server_error`,
     },
     status: 500,
