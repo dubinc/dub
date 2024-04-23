@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { LinkProps, LinkWithTagIdsProps, RedisLinkProps } from "@/lib/types";
+import { LinkProps, ProcessedLinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { getParamsFromURL, truncate } from "@dub/utils";
 import { combineTagIds, transformLink } from "./utils";
@@ -8,14 +8,14 @@ import { combineTagIds, transformLink } from "./utils";
 export async function bulkCreateLinks({
   links,
 }: {
-  links: LinkWithTagIdsProps[];
+  links: ProcessedLinkProps[];
 }) {
   if (links.length === 0) return [];
 
   // create links via $transaction (because Prisma doesn't support nested createMany)
   // ref: https://github.com/prisma/prisma/issues/8131#issuecomment-997667070
   const createdLinks = await prisma.$transaction(
-    links.map(({ tagId, tagIds, ...link }) => {
+    links.map(({ tagId, tagIds, tagNames, ...link }) => {
       const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
         getParamsFromURL(link.url);
 
@@ -33,13 +33,33 @@ export async function bulkCreateLinks({
           utm_content,
           expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
           geo: link.geo || undefined,
-          ...(combinedTagIds.length > 0 && {
-            tags: {
-              createMany: {
-                data: combinedTagIds.map((tagId) => ({ tagId })),
+
+          // Associate tags by tagNames
+          ...(tagNames?.length &&
+            link.projectId && {
+              tags: {
+                create: tagNames.map((tagName) => ({
+                  tag: {
+                    connect: {
+                      name_projectId: {
+                        name: tagName,
+                        projectId: link.projectId as string,
+                      },
+                    },
+                  },
+                })),
               },
-            },
-          }),
+            }),
+
+          // Associate tags by IDs (takes priority over tagNames)
+          ...(combinedTagIds &&
+            combinedTagIds.length > 0 && {
+              tags: {
+                createMany: {
+                  data: combinedTagIds.map((tagId) => ({ tagId })),
+                },
+              },
+            }),
         },
         include: {
           tags: {

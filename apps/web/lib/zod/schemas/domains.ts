@@ -50,35 +50,41 @@ export const addDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "slug is required" })
     .min(1, "slug cannot be empty.")
-    .describe("Name of the domain."),
+    .describe("Name of the domain.")
+    .openapi({ example: "acme.com" }),
   type: z
     .enum(["redirect", "rewrite"])
     .optional()
     .default("redirect")
-    .describe("The type of redirect to use for this domain."),
+    .describe("The type of redirect to use for this domain.")
+    .openapi({ example: "redirect" }),
   target: parseUrlSchema
     .nullish()
     .describe(
       "The page your users will get redirected to when they visit your domain.",
-    ),
+    )
+    .openapi({ example: "https://acme.com/landing" }),
   expiredUrl: parseUrlSchema
     .nullish()
     .describe(
       "Redirect users to a specific URL when any link under this domain has expired.",
-    ),
+    )
+    .openapi({ example: "https://acme.com/expired" }),
   archived: z
     .boolean()
     .optional()
     .default(false)
     .describe(
       "Whether to archive this domain. `false` will unarchive a previously archived domain.",
-    ),
+    )
+    .openapi({ example: false }),
   placeholder: parseUrlSchema
     .nullish()
     .default("https://dub.co/help/article/what-is-dub")
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
-    ),
+    )
+    .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
 });
 
 export const updateDomainBodySchema = addDomainBodySchema.partial();

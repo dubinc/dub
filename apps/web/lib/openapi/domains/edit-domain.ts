@@ -6,6 +6,7 @@ import { workspaceParamsSchema } from "../request";
 export const editDomain: ZodOpenApiOperationObject = {
   operationId: "editDomain",
   "x-speakeasy-name-override": "update",
+  "x-speakeasy-max-method-params": 2,
   summary: "Edit a domain",
   description: "Edit a domain for the authenticated workspace.",
   requestParams: {

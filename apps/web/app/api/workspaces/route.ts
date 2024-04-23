@@ -7,7 +7,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import { createWorkspaceSchema } from "@/lib/zod/schemas";
+import { WorkspaceSchema, createWorkspaceSchema } from "@/lib/zod/schemas";
 import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -39,7 +39,9 @@ export const GET = withSession(async ({ session }) => {
     },
   });
   return NextResponse.json(
-    projects.map((project) => ({ ...project, id: `ws_${project.id}` })),
+    projects.map((project) =>
+      WorkspaceSchema.parse({ ...project, id: `ws_${project.id}` }),
+    ),
   );
 });
 

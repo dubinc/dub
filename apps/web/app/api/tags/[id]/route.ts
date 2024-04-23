@@ -57,7 +57,7 @@ export const DELETE = withWorkspace(async ({ params, workspace }) => {
         projectId: workspace.id,
       },
       include: {
-        linksNew: true,
+        links: true,
       },
     });
 
@@ -70,7 +70,7 @@ export const DELETE = withWorkspace(async ({ params, workspace }) => {
 
     // update links metadata in tinybird after deleting a tag
     await Promise.all(
-      response.linksNew.map(async ({ linkId }) => {
+      response.links.map(async ({ linkId }) => {
         const link = await prisma.link.findUnique({
           where: {
             id: linkId,

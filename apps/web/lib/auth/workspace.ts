@@ -69,7 +69,6 @@ export const withWorkspace = (
     { params }: { params: Record<string, string> | undefined },
   ) => {
     const searchParams = getSearchParams(req.url);
-    const { linkId } = params || {};
 
     let apiKey: string | undefined = undefined;
 
@@ -88,11 +87,16 @@ export const withWorkspace = (
 
       const domain = params?.domain || searchParams.domain;
       const key = searchParams.key;
+      const linkId =
+        params?.linkId ||
+        searchParams.linkId ||
+        searchParams.externalId ||
+        undefined;
 
       let session: Session | undefined;
       let headers = {};
-      let id: string | undefined;
-      let slug: string | undefined;
+      let workspaceId: string | undefined;
+      let workspaceSlug: string | undefined;
 
       const idOrSlug =
         params?.idOrSlug ||
@@ -121,9 +125,9 @@ export const withWorkspace = (
       }
 
       if (idOrSlug.startsWith("ws_")) {
-        id = idOrSlug.replace("ws_", "");
+        workspaceId = idOrSlug.replace("ws_", "");
       } else {
-        slug = idOrSlug;
+        workspaceSlug = idOrSlug;
       }
 
       if (apiKey) {
@@ -198,25 +202,10 @@ export const withWorkspace = (
       let [workspace, link] = (await Promise.all([
         prisma.project.findUnique({
           where: {
-            id: id || undefined,
-            slug: slug || undefined,
+            id: workspaceId || undefined,
+            slug: workspaceSlug || undefined,
           },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logo: true,
-            usage: true,
-            usageLimit: true,
-            linksUsage: true,
-            linksLimit: true,
-            domainsLimit: true,
-            tagsLimit: true,
-            usersLimit: true,
-            plan: true,
-            stripeId: true,
-            billingCycleStart: true,
-            createdAt: true,
+          include: {
             users: {
               where: {
                 userId: session.user.id,
@@ -231,13 +220,19 @@ export const withWorkspace = (
                 primary: true,
               },
             },
-            inviteCode: true,
           },
         }),
         linkId
           ? prisma.link.findUnique({
               where: {
-                id: linkId,
+                ...(linkId.startsWith("ext_") && workspaceId
+                  ? {
+                      projectId_externalId: {
+                        projectId: workspaceId,
+                        externalId: linkId.replace("ext_", ""),
+                      },
+                    }
+                  : { id: linkId }),
               },
             })
           : domain &&
@@ -264,6 +259,19 @@ export const withWorkspace = (
           code: "not_found",
           message: "Workspace not found.",
         });
+      }
+
+      // edge case where linkId is an externalId and workspaceId was not provided (they must've used projectSlug instead)
+      // in this case, we need to try fetching the link again
+      if (linkId && linkId.startsWith("ext_") && !link && !workspaceId) {
+        link = (await prisma.link.findUnique({
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId: linkId.replace("ext_", ""),
+            },
+          },
+        })) as LinkProps;
       }
 
       // if domain is defined:

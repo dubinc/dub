@@ -6,6 +6,7 @@ import { workspaceParamsSchema } from "../request";
 export const transferDomain: ZodOpenApiOperationObject = {
   operationId: "transferDomain",
   "x-speakeasy-name-override": "transfer",
+  "x-speakeasy-max-method-params": 2,
   summary: "Transfer a domain",
   description:
     "Transfer a domain to another workspace within the authenticated account.",

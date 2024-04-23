@@ -1,7 +1,12 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { LinkSchema, TagSchema, WorkspaceSchema } from "@/lib/zod/schemas";
+import {
+  DomainSchema,
+  LinkSchema,
+  TagSchema,
+  WorkspaceSchema,
+} from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
-import { ZodOpenApiObject } from "zod-openapi";
+import { createDocument } from "zod-openapi";
 import { analyticsPaths } from "./analytics";
 import { domainsPaths } from "./domains";
 import { linksPaths } from "./links";
@@ -10,7 +15,7 @@ import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { workspacesPaths } from "./workspaces";
 
-export const openApiObject: ZodOpenApiObject = {
+export const document = createDocument({
   openapi: "3.0.3",
   info: {
     title: "Dub.co API",
@@ -47,6 +52,7 @@ export const openApiObject: ZodOpenApiObject = {
       LinkSchema,
       WorkspaceSchema,
       TagSchema,
+      DomainSchema,
     },
     securitySchemes: {
       token: {
@@ -82,4 +88,4 @@ export const openApiObject: ZodOpenApiObject = {
       },
     ],
   },
-};
+});
