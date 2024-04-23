@@ -8,6 +8,11 @@ import { NextRequest } from "next/server";
 export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
+  if (!anthropic) {
+    console.error("Anthropic is not configured. Skipping the request.");
+    return new Response(null, { status: 200 });
+  }
+
   try {
     const session = await getToken({
       req,
@@ -35,7 +40,7 @@ export async function POST(req: NextRequest) {
     const { prompt } = await req.json();
 
     // Ask Claude for a streaming chat completion given the prompt
-    const response = await anthropic.messages.create({
+    const response = await anthropic?.messages.create({
       messages: [
         {
           role: "user",
