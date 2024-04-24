@@ -2,8 +2,8 @@ workflowVersion: 1.0.0
 sources:
     openapi:
         inputs:
-            - location: ../../apps/web/openapi.json
+            - location: ./apps/web/openapi.json
         overlays:
             - location: https://raw.githubusercontent.com/dubinc/dub-node/main/codeSamples.yaml
-        output: ../../apps/web/openapi_with_sdks.json
+        output: ./apps/web/openapi_with_sdks.json
 targets: {}
