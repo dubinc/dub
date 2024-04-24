@@ -1,42 +1,48 @@
+import z from "@/lib/zod";
+import { WorkspaceSchema } from "@/lib/zod/schemas";
 import { Project } from "@prisma/client";
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { expectedWorkspace } from "../utils/schema";
 
-test.skip("GET /workspaces/{id}", async (ctx) => {
-  const h = new IntegrationHarness(ctx);
+describe("GET /workspaces/{idOrSlug}", async () => {
+  const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
 
-  const { status, data: workspaceFetched } = await http.get<Project>({
-    path: `/workspaces/${workspace.workspaceId}`,
+  test("by id", async () => {
+    const { status, data: workspaceFetched } = await http.get<Project>({
+      path: `/workspaces/${workspace.workspaceId}`,
+    });
+
+    const { id, name, slug } = workspaceFetched;
+
+    expect(status).toEqual(200);
+    expect({ id, name, slug }).toStrictEqual({
+      id: workspace.id,
+      name: workspace.name,
+      slug: workspace.slug,
+    });
+
+    WorkspaceSchema.extend({ createdAt: z.string() })
+      .strict()
+      .parse(workspaceFetched);
   });
 
-  expect(status).toEqual(200);
-  expect(workspaceFetched).toMatchObject({
-    ...expectedWorkspace,
-    name: workspace.name,
-    slug: workspace.slug,
-    id: workspace.id,
-    domains: [],
-    users: [{ role: "owner" }],
-  });
-});
+  test("by slug", async () => {
+    const { status, data: workspaceFetched } = await http.get<Project>({
+      path: `/workspaces/${workspace.slug}`,
+    });
 
-test.skip("GET /workspaces/{slug}", async (ctx) => {
-  const h = new IntegrationHarness(ctx);
-  const { workspace, http } = await h.init();
+    const { id, name, slug } = workspaceFetched;
 
-  const { status, data: workspaceFetched } = await http.get<Project>({
-    path: `/workspaces/${workspace.slug}`,
-  });
+    expect(status).toEqual(200);
+    expect({ id, name, slug }).toStrictEqual({
+      id: workspace.id,
+      name: workspace.name,
+      slug: workspace.slug,
+    });
 
-  expect(status).toEqual(200);
-  expect(workspaceFetched).toStrictEqual({
-    ...expectedWorkspace,
-    name: workspace.name,
-    slug: workspace.slug,
-    id: workspace.id,
-    domains: [],
-    users: [{ role: "owner" }],
+    WorkspaceSchema.extend({ createdAt: z.string() })
+      .strict()
+      .parse(workspaceFetched);
   });
 });
