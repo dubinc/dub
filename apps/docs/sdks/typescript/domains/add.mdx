@@ -9,7 +9,7 @@ import DomainResponse from "/snippets/domain-response.mdx";
 ## Arguments
 
 <ParamField body="slug" type="string" required>
-  Name of the domain.
+  Name of the domain. Eg. `acme.com`.
 </ParamField>
 
 <ParamField body="type" type="enum<string>" default="redirect">
@@ -49,8 +49,6 @@ import DomainResponse from "/snippets/domain-response.mdx";
 ```ts
 await dub.domains.add({
   slug: "acme.com",
-  primary: true,
-  expiredUrl: "https://acme.com/expired",
 });
 ```
 
@@ -65,7 +63,7 @@ await dub.domains.add({
   primary: true,
   archived: false,
   placeholder: "https://dub.co/help/article/what-is-dub",
-  expiredUrl: "https://acme.com/expired",
+  expiredUrl: null,
   target: null,
   type: "redirect",
   clicks: 0

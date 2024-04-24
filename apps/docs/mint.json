@@ -110,6 +110,17 @@
       ]
     },
     {
+      "group": "Domains",
+      "pages": [
+        "api-reference/endpoint/add-a-domain",
+        "api-reference/endpoint/edit-a-domain",
+        "api-reference/endpoint/delete-a-domain",
+        "api-reference/endpoint/retrieve-a-list-of-domains",
+        "api-reference/endpoint/set-a-primary-domain",
+        "api-reference/endpoint/transfer-a-domain"
+      ]
+    },
+    {
       "group": "Tags",
       "pages": [
         "api-reference/endpoint/create-a-new-tag",
@@ -161,6 +172,17 @@
             "sdks/typescript/workspaces/create",
             "sdks/typescript/workspaces/get",
             "sdks/typescript/workspaces/list"
+          ]
+        },
+        {
+          "group": "Domains",
+          "pages": [
+            "sdks/typescript/domains/add",
+            "sdks/typescript/domains/update",
+            "sdks/typescript/domains/delete",
+            "sdks/typescript/domains/list",
+            "sdks/typescript/domains/set-primary",
+            "sdks/typescript/domains/transfer"
           ]
         },
         {
