@@ -175,6 +175,17 @@
           ]
         },
         {
+          "group": "Domains",
+          "pages": [
+            "sdks/typescript/domains/add",
+            "sdks/typescript/domains/update",
+            "sdks/typescript/domains/delete",
+            "sdks/typescript/domains/list",
+            "sdks/typescript/domains/set-primary",
+            "sdks/typescript/domains/transfer"
+          ]
+        },
+        {
           "group": "Tags",
           "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
         },
