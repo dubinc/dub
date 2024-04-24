@@ -16,7 +16,7 @@
   },
   "servers": [
     {
-      "url": "http://api.localhost:8888",
+      "url": "https://api.dub.co",
       "description": "Production API"
     }
   ],
