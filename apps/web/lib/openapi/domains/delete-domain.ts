@@ -6,6 +6,7 @@ import { workspaceParamsSchema } from "../request";
 export const deleteDomain: ZodOpenApiOperationObject = {
   operationId: "deleteDomain",
   "x-speakeasy-name-override": "delete",
+  "x-speakeasy-max-method-params": 1,
   summary: "Delete a domain",
   description: "Delete a domain from a workspace.",
   requestParams: {
