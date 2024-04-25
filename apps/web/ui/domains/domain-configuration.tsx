@@ -150,7 +150,6 @@ const DnsRecord = ({
   records: { type: string; name: string; value: string; ttl?: string }[];
   warning?: string;
 }) => {
-  console.log(records);
   const hasTtl = records.some((x) => x.ttl);
   return (
     <div className="my-3 text-left">
