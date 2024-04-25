@@ -1,4 +1,5 @@
 import { DomainVerificationStatusProps } from "@/lib/types";
+import { CopyButton } from "@dub/ui";
 import { getSubdomain } from "@dub/utils";
 import { useState } from "react";
 
@@ -149,6 +150,7 @@ const DnsRecord = ({
   records: { type: string; name: string; value: string; ttl?: string }[];
   warning?: string;
 }) => {
+  console.log(records);
   const hasTtl = records.some((x) => x.ttl);
   return (
     <div className="my-3 text-left">
@@ -174,7 +176,7 @@ const DnsRecord = ({
           <p className="text-sm font-bold">Value</p>
           {records.map((record) => (
             <p key={record.value} className="mt-2 font-mono text-sm">
-              {record.value}
+              {record.value} <CopyButton value={record.value} />
             </p>
           ))}
         </div>
