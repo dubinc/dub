@@ -4,6 +4,8 @@ title: "Create"
 description: "Create a new tag for the authenticated workspace."
 ---
 
+import TagResponse from "/snippets/tag-response.mdx";
+
 ## Arguments
 
 <ParamField body="tag" type="string" required>
@@ -17,17 +19,7 @@ description: "Create a new tag for the authenticated workspace."
 
 ## Response
 
-<ResponseField name="id" type="string" required>
-  The unique ID of the tag.
-</ResponseField>
-
-<ResponseField name="name" type="string" required>
-  The name of the tag.
-</ResponseField>
-
-<ResponseField name="color" type="string" required>
-  The color of the tag.
-</ResponseField>
+<TagResponse />
 
 <RequestExample>
 
