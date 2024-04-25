@@ -56,7 +56,7 @@
   "navigation": [
     {
       "group": "Getting Started",
-      "pages": ["introduction", "quickstart", "data-model"]
+      "pages": ["introduction", "data-model"]
     },
     {
       "group": "Resources",
