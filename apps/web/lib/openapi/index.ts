@@ -34,7 +34,7 @@ export const document = createDocument({
   },
   servers: [
     {
-      url: "https://3102-103-177-27-64.ngrok-free.app/api",
+      url: API_DOMAIN,
       description: "Production API",
     },
   ],
