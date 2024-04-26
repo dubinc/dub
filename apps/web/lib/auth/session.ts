@@ -64,8 +64,8 @@ export const withSession =
         }
 
         const { success, limit, reset, remaining } = await ratelimit(
-          10,
-          "1 s",
+          600,
+          "1 m",
         ).limit(apiKey);
 
         headers = {

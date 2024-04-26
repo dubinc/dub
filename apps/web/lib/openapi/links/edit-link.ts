@@ -15,7 +15,7 @@ export const editLink: ZodOpenApiOperationObject = {
     path: z.object({
       linkId: z.string().openapi({
         description:
-          "The id of the link to edit. You can get this via the `getLinkInfo` endpoint.",
+          "The id of the link to edit. You may use either `linkId` (obtained via `/links/info` endpoint) or `externalId` prefixed with `ext_`.",
       }),
     }),
   },
