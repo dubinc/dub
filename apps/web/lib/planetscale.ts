@@ -123,9 +123,12 @@ export const getLinkViaEdgeByURL = async (url: string) => {
         publicStats: number;
       })
     : null;
-}
+};
 
-export const getAffiliateViaEdge = async (projectId: string, username: string) => {
+export const getAffiliateViaEdge = async (
+  projectId: string,
+  username: string,
+) => {
   if (!process.env.DATABASE_URL) return null;
 
   const { rows } =
@@ -143,7 +146,7 @@ export const getAffiliateViaEdge = async (projectId: string, username: string) =
         userId?: string;
       })
     : null;
-}
+};
 
 export const getUserFromApiKeyViaEdge = async (hashedKey: string) => {
   if (!process.env.DATABASE_URL) return null;
@@ -161,16 +164,19 @@ export const getUserFromApiKeyViaEdge = async (hashedKey: string) => {
         email: string;
       })
     : null;
-}
+};
 
-export const updateApiKeyViaEdge = async (hashedKey: string, lastUsed: Date) => {
+export const updateApiKeyViaEdge = async (
+  hashedKey: string,
+  lastUsed: Date,
+) => {
   if (!process.env.DATABASE_URL) return null;
 
   return await conn.execute(
     "UPDATE Token SET lastUsed = ? WHERE hashedKey = ?",
     [lastUsed, hashedKey],
   );
-}
+};
 
 export async function getDomainOrLink({
   domain,
