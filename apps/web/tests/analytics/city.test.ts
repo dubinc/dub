@@ -1,9 +1,10 @@
 import z from "@/lib/zod";
 import { analyticsResponseSchema } from "@/lib/zod/schemas";
 import { expect, test } from "vitest";
+import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 
-test("GET /analytics/city", async (ctx) => {
+test.runIf(env.CI)("GET /analytics/city", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;

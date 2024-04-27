@@ -1,7 +1,8 @@
 import { expect, test } from "vitest";
+import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 
-test("GET /analytics/clicks", async (ctx) => {
+test.runIf(env.CI)("GET /analytics/clicks", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;

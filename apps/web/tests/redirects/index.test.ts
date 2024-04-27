@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 
 const poweredBy = "Dub.co - Link management for modern marketing teams";
@@ -10,7 +11,7 @@ const fetchOptions: RequestInit = {
   },
 };
 
-describe.sequential("Link Redirects", async () => {
+describe.runIf(env.CI)("Link Redirects", async () => {
   const h = new IntegrationHarness();
 
   test("root", async () => {
