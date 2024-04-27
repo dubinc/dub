@@ -35,6 +35,7 @@ export * from "./content";
 // misc
 export * from "./blur-image";
 export * from "./client-only";
+export * from "./copiable-logo";
 export * from "./copy-button";
 export * from "./counting-numbers";
 export * from "./icon-menu";
