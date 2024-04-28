@@ -1,8 +1,8 @@
 import { LinkProps } from "@/lib/types";
-import { BadgeTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import { SimpleTooltipContent, Switch } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Crown } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function AndroidSection({
@@ -36,7 +36,7 @@ export default function AndroidSection({
           <h2 className="text-sm font-medium text-gray-900">
             Android Targeting
           </h2>
-          <BadgeTooltip
+          <ProBadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Redirect your Android users to a different link."
@@ -44,12 +44,7 @@ export default function AndroidSection({
                 href="https://dub.co/help/article/device-targeting"
               />
             }
-          >
-            <div className="flex items-center space-x-1">
-              <Crown size={12} />
-              <p>PRO</p>
-            </div>
-          </BadgeTooltip>
+          />
         </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
