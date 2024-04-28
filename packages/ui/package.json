@@ -26,6 +26,7 @@
     "@dub/utils": "workspace:*",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.47",
+    "@types/react-dom": "^18.2.14",
     "autoprefixer": "^10.4.16",
     "next": "14.2.0-canary.67",
     "postcss": "^8.4.31",
