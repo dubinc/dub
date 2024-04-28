@@ -56,11 +56,15 @@
   "navigation": [
     {
       "group": "Getting Started",
-      "pages": ["introduction", "local-development", "self-hosting"]
+      "pages": ["introduction", "data-model"]
     },
     {
       "group": "Resources",
       "pages": ["integrations", "examples"]
+    },
+    {
+      "group": "Open source",
+      "pages": ["local-development", "self-hosting"]
     },
     {
       "group": "API Reference",
