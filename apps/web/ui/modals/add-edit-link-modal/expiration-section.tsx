@@ -1,6 +1,6 @@
 import { LinkProps } from "@/lib/types";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
-  BadgeTooltip,
   ExpandingArrow,
   InfoTooltip,
   SimpleTooltipContent,
@@ -13,7 +13,6 @@ import {
   parseDateTime,
 } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Crown } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 export default function ExpirationSection({
@@ -48,7 +47,7 @@ export default function ExpirationSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">Link Expiration</h2>
-          <BadgeTooltip
+          <ProBadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Set an expiration date for your links – after which it won't be accessible."
@@ -56,12 +55,7 @@ export default function ExpirationSection({
                 href="https://dub.co/help/article/link-expiration"
               />
             }
-          >
-            <div className="flex items-center space-x-1">
-              <Crown size={12} />
-              <p>PRO</p>
-            </div>
-          </BadgeTooltip>
+          />
         </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
