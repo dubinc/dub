@@ -237,7 +237,7 @@ const DomainsFilter = () => {
     if (options.length > 0) {
       setCollapsed(false);
     }
-  }, [options]);
+  }, []);
 
   return (
     <fieldset className="overflow-hidden py-6">
