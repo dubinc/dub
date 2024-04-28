@@ -40,7 +40,7 @@ export default function TagsSection({
   const { complete } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     body: {
-      model: "claude-3-haiku-20240307",
+      model: "llama3-8b-8192",
     },
     onError: (error) => {
       toast.error(error.message);

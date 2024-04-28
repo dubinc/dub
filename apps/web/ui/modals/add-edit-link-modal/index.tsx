@@ -1,5 +1,6 @@
 "use client";
 
+import { shortLinkGenerator } from "@/lib/ai/prompts";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
@@ -174,6 +175,9 @@ function AddEditLinkModal({
     complete,
   } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    body: {
+      systemMessage: shortLinkGenerator,
+    },
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
@@ -199,15 +203,14 @@ function AddEditLinkModal({
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
     complete(
-      `For the following URL, suggest a relevant short link slug that is at most ${Math.max(25 - domain.length, 12)} characters long. 
-              
-        - URL: ${data.url}
-        - Meta title: ${data.title}
-        - Meta description: ${data.description}. 
-
-      Only respond with the short link slug and nothing else. Don't use quotation marks or special characters (dash and slash are allowed).
+      `Meta Title:
+      [${data.title}]
       
-      Make sure your answer does not exist in this list of generated slugs: ${generatedKeys.join(", ")}`,
+      Meta Description:
+      [${data.description}]
+      
+      Non-Available Links:
+      [${generatedKeys.join(", ")}]`,
     );
   }, [data.url, data.title, data.description, generatedKeys]);
 

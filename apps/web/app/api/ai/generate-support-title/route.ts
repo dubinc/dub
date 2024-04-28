@@ -1,18 +1,13 @@
-import { anthropic } from "@/lib/anthropic";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { groq } from "@/lib/groq";
 import { ratelimit } from "@/lib/upstash";
-import { AnthropicStream, StreamingTextResponse } from "ai";
+import { OpenAIStream, StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
-  if (!anthropic) {
-    console.error("Anthropic is not configured. Skipping the request.");
-    return new Response(null, { status: 200 });
-  }
-
   try {
     const session = await getToken({
       req,
@@ -39,8 +34,8 @@ export async function POST(req: NextRequest) {
     // Extract the `prompt` from the body of the request
     const { prompt } = await req.json();
 
-    // Ask Claude for a streaming chat completion given the prompt
-    const response = await anthropic.messages.create({
+    // Ask the AI to generate a support title
+    const response = await groq.chat.completions.create({
       messages: [
         {
           role: "user",
@@ -49,13 +44,12 @@ export async function POST(req: NextRequest) {
           ${prompt}`,
         },
       ],
-      model: "claude-3-sonnet-20240229",
+      model: "llama3-70b-8192",
       stream: true,
-      max_tokens: 300,
     });
 
     // Convert the response into a friendly text-stream
-    const stream = AnthropicStream(response);
+    const stream = OpenAIStream(response);
 
     // Respond with the stream
     return new StreamingTextResponse(stream);
