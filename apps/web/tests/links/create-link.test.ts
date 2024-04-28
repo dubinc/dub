@@ -14,6 +14,8 @@ describe.sequential("POST /links", async () => {
   const projectId = workspaceId.replace("ws_", "");
 
   test("default domain", async () => {
+    const externalId = randomId();
+
     const { status, data: link } = await http.post<Link>({
       path: "/links",
       query: { workspaceId },
@@ -23,6 +25,7 @@ describe.sequential("POST /links", async () => {
         comments: "This is a test",
         rewrite: true,
         domain,
+        externalId,
       },
     });
 
@@ -30,6 +33,7 @@ describe.sequential("POST /links", async () => {
     expect(link).toStrictEqual({
       ...expectedLink,
       url,
+      externalId,
       publicStats: true,
       comments: "This is a test",
       rewrite: true,
@@ -174,7 +178,7 @@ describe.sequential("POST /links", async () => {
   });
 
   test("link expiration", async () => {
-    const expiresAt = "Apr 16, 2030, 5:00 PM";
+    const expiresAt = new Date("2030-04-16T17:00:00.000Z");
     const expiredUrl = "https://github.com/expired";
 
     const { status, data: link } = await http.post<Link>({

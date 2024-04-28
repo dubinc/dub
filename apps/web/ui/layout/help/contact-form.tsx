@@ -83,12 +83,8 @@ export function ContactForm({
 
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const {
-    completion,
-    isLoading: generatingAIKey,
-    complete,
-  } = useCompletion({
-    api: `/api/ai/completion`,
+  const { completion, complete } = useCompletion({
+    api: `/api/ai/generate-support-title`,
     onError: (error) => {
       toast.error(error.message);
     },
@@ -179,9 +175,7 @@ export function ContactForm({
                 value={data.message}
                 onBlur={() => {
                   if (!data.title && data.message) {
-                    complete(`Create a short but concise title that summarizes the following support request. Only return the generated title, and nothing else. Don't use quotation marks
-                    
-                    ${data.message}`);
+                    complete(data.message);
                   }
                 }}
                 onChange={(e) =>

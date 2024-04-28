@@ -30,6 +30,7 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
   expiredUrl: null,
+  externalId: null,
 };
 
 export const expectedTag: Partial<Tag> = {
@@ -38,12 +39,11 @@ export const expectedTag: Partial<Tag> = {
   updatedAt: expect.any(String),
 };
 
-// TODO:
-// Make it dynamic based on the plan
 export const expectedWorkspace: Partial<Project> = {
-  logo: expect.any(String) || null,
-  plan: expect.any(String),
-  stripeId: expect.any(String),
+  id: expect.any(String),
+  name: expect.any(String),
+  slug: expect.any(String),
+  logo: expect.any(String),
   usage: expect.any(Number),
   usageLimit: expect.any(Number),
   linksUsage: expect.any(Number),
@@ -51,12 +51,9 @@ export const expectedWorkspace: Partial<Project> = {
   domainsLimit: expect.any(Number),
   tagsLimit: expect.any(Number),
   usersLimit: expect.any(Number),
-  aiLimit: expect.any(Number),
-  aiUsage: expect.any(Number),
-  monitoringId: null,
-  id: expect.any(String),
+  plan: expect.any(String),
+  stripeId: expect.any(String),
   billingCycleStart: expect.any(Number),
   inviteCode: expect.any(String),
   createdAt: expect.any(String),
-  updatedAt: expect.any(String),
 };

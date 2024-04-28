@@ -205,8 +205,8 @@ export const updateUsage = async (skip?: number) => {
           ...(resetUsage && {
             usage: 0,
           }),
-          // always reset linksUsage since folks can never create more links than their limit
           linksUsage: 0,
+          aiUsage: 0,
           sentEmails: {
             deleteMany: {
               type: {

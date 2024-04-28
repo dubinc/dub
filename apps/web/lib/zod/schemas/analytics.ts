@@ -6,6 +6,16 @@ import { booleanQuerySchema } from "./misc";
 export const getAnalyticsQuerySchema = z.object({
   domain: z.string().optional().describe("The domain of the short link."),
   key: z.string().optional().describe("The short link slug."),
+  linkId: z
+    .string()
+    .optional()
+    .describe("The unique ID of the short link on Dub."),
+  externalId: z
+    .string()
+    .optional()
+    .describe(
+      "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
+    ),
   interval: z
     .enum(intervals)
     .optional()

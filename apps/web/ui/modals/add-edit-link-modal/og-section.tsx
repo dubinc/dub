@@ -1,20 +1,27 @@
 import { resizeImage } from "@/lib/images";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { UploadCloud } from "@/ui/shared/icons";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
 import {
-  BadgeTooltip,
+  ButtonTooltip,
   LoadingCircle,
   LoadingSpinner,
+  Magic,
   Popover,
   SimpleTooltipContent,
   Switch,
   Unsplash,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS, truncate } from "@dub/utils";
+import va from "@vercel/analytics";
+import { useCompletion } from "ai/react";
 import { motion } from "framer-motion";
-import { Crown, Link2 } from "lucide-react";
+import { Link2 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
+import { toast } from "sonner";
 import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({
@@ -28,7 +35,100 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
+  const { id: workspaceId, exceededAI, mutate } = useWorkspace();
+
   const { title, description, image, proxy } = data;
+
+  const {
+    completion: completionTitle,
+    isLoading: generatingTitle,
+    complete: completeTitle,
+  } = useCompletion({
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    id: "metatags-title-ai",
+    onError: (error) => {
+      if (error.message.includes("Upgrade to Pro")) {
+        toast.custom(() => (
+          <UpgradeToProToast
+            title="You've exceeded your AI usage limit"
+            message={error.message}
+          />
+        ));
+      } else {
+        toast.error(error.message);
+      }
+    },
+    onFinish: (_, completion) => {
+      mutate();
+      va.track("Generated AI Meta Title", {
+        metadata: `Title: ${truncate(completion, 255 - (18 + data.url.length))} | URL: ${data.url}`,
+      });
+    },
+  });
+
+  const generateTitle = async () => {
+    completeTitle(
+      `You are an SEO expert. Generate an SEO-optimized meta title (max 120 characters) for the following URL:
+      
+      - URL: ${data.url}
+      - Meta title: ${data.title}
+      - Meta description: ${data.description}. 
+
+      Only respond with the title without quotation marks or special characters.
+      `,
+    );
+  };
+
+  useEffect(() => {
+    if (completionTitle) {
+      setData((prev) => ({ ...prev, title: completionTitle }));
+    }
+  }, [completionTitle]);
+
+  const {
+    completion: completionDescription,
+    isLoading: generatingDescription,
+    complete: completeDescription,
+  } = useCompletion({
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    id: "metatags-description-ai",
+    onError: (error) => {
+      if (error.message.includes("Upgrade to Pro")) {
+        toast.custom(() => (
+          <UpgradeToProToast
+            title="You've exceeded your AI usage limit"
+            message={error.message}
+          />
+        ));
+      } else {
+        toast.error(error.message);
+      }
+    },
+    onFinish: (_, completion) => {
+      mutate();
+      va.track("Generated AI Meta Description", {
+        metadata: `Description: ${truncate(completion, 255 - (25 + data.url.length))} | URL: ${data.url}`,
+      });
+    },
+  });
+
+  const generateDescription = async () => {
+    completeDescription(
+      `You are an SEO expert. Generate an SEO-optimized meta description (max 240 characters) for the following URL:
+
+      - URL: ${data.url}
+      - Meta title: ${data.title}
+      - Meta description: ${data.description}.
+
+      Only respond with the description without quotation marks or special characters.`,
+    );
+  };
+
+  useEffect(() => {
+    if (completionDescription) {
+      setData((prev) => ({ ...prev, description: completionDescription }));
+    }
+  }, [completionDescription]);
 
   const [resizing, setResizing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -69,6 +169,7 @@ export default function OGSection({
       setCooldown(false);
     }, 200);
   }
+
   return (
     <div className="relative grid gap-5 border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
@@ -76,7 +177,7 @@ export default function OGSection({
           <h2 className="text-sm font-medium text-gray-900">
             Custom Social Media Cards
           </h2>
-          <BadgeTooltip
+          <ProBadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Customize how your links look when shared on social media."
@@ -84,19 +185,13 @@ export default function OGSection({
                 href="https://dub.co/help/article/custom-social-media-cards"
               />
             }
-          >
-            <div className="flex items-center space-x-1">
-              <Crown size={12} />
-              <p>PRO</p>
-            </div>
-          </BadgeTooltip>
+          />
         </div>
         <Switch
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
           checked={proxy}
         />
       </div>
-
       {proxy && (
         <motion.div
           key="og-options"
@@ -107,9 +202,8 @@ export default function OGSection({
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Image</p>
               <div className="flex items-center justify-between">
-                <button
-                  className="mr-1 flex h-6 w-6 items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
-                  type="button"
+                <ButtonTooltip
+                  tooltipContent="Paste a URL to an image."
                   onClick={() => {
                     const image = window.prompt(
                       "Paste a URL to an image.",
@@ -119,9 +213,10 @@ export default function OGSection({
                       setData((prev) => ({ ...prev, image }));
                     }
                   }}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   <Link2 className="h-4 w-4 text-gray-500" />
-                </button>
+                </ButtonTooltip>
                 <Popover
                   content={
                     <UnsplashSearch
@@ -132,12 +227,13 @@ export default function OGSection({
                   openPopover={openPopover}
                   setOpenPopover={handleSet}
                 >
-                  <div
+                  <ButtonTooltip
+                    tooltipContent="Find high-resolution photos on Unsplash."
                     onClick={handleSet}
-                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
+                    className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                   >
                     <Unsplash className="h-3 w-3 text-gray-500" />
-                  </div>
+                  </ButtonTooltip>
                 </Popover>
               </div>
             </div>
@@ -240,7 +336,23 @@ export default function OGSection({
           <div>
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Title</p>
-              <p className="text-sm text-gray-500">{title?.length || 0}/120</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">
+                  {title?.length || 0}/120
+                </p>
+                <ButtonTooltip
+                  tooltipContent="Generate an optimized title using AI."
+                  onClick={generateTitle}
+                  disabled={generatingTitle || !title || exceededAI}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                >
+                  {generatingTitle ? (
+                    <LoadingCircle />
+                  ) : (
+                    <Magic className="h-4 w-4" />
+                  )}
+                </ButtonTooltip>
+              </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
@@ -269,9 +381,23 @@ export default function OGSection({
               <p className="block text-sm font-medium text-gray-700">
                 Description
               </p>
-              <p className="text-sm text-gray-500">
-                {description?.length || 0}/240
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">
+                  {description?.length || 0}/240
+                </p>
+                <ButtonTooltip
+                  tooltipContent="Generate an optimized description using AI."
+                  onClick={generateDescription}
+                  disabled={generatingDescription || !description}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                >
+                  {generatingDescription ? (
+                    <LoadingCircle />
+                  ) : (
+                    <Magic className="h-4 w-4" />
+                  )}
+                </ButtonTooltip>
+              </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
