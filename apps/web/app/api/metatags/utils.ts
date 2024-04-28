@@ -78,12 +78,12 @@ export const getMetaTags = async (url: string) => {
 
   const title = object["og:title"] || object["twitter:title"] || titleTag;
 
-  const getDescription =
+  const rawDescription =
     object["description"] ||
     object["og:description"] ||
     object["twitter:description"];
 
-  const description = getDescription ? parse(getDescription).text : null;
+  const description = rawDescription ? parse(rawDescription).text : null;
 
   const image =
     object["og:image"] ||
