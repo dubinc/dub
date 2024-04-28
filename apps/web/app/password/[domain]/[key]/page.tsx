@@ -6,7 +6,7 @@ import PasswordForm from "./form";
 
 const title = "Password Required";
 const description =
-  "This link is password protected. Please enter the password to view it.";
+  "Access to this link is secured with a password. Please enter the password to proceed.";
 const image = "https://assets.dub.co/misc/password-protected.png";
 
 export async function generateMetadata({
