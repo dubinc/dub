@@ -3,10 +3,10 @@ import { BadgeTooltip, InfoTooltip, type TooltipProps } from "@dub/ui";
 import { Crown } from "lucide-react";
 
 /**
- * A dynamic badge w/ tooltip based on the workspace plan:
+ * A dynamic badge/icon w/ tooltip based on the workspace plan:
  *
  * For a free workspace: a "Pro" badge
- * For a Pro workspace: an info badge (question mark circle icon)
+ * For a Pro workspace: an info icon (question mark circle)
  */
 export function ProBadgeTooltip(props: Omit<TooltipProps, "children">) {
   const { plan } = useWorkspace();
