@@ -3,6 +3,7 @@ import { analyticsResponseSchema } from "@/lib/zod/schemas";
 import { expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
+import { filter } from "./utils";
 
 test.runIf(env.CI)("GET /analytics/top_links", async (ctx) => {
   const h = new IntegrationHarness(ctx);
@@ -11,7 +12,7 @@ test.runIf(env.CI)("GET /analytics/top_links", async (ctx) => {
 
   const { status, data } = await http.get<any[]>({
     path: "/analytics/top_links",
-    query: { workspaceId },
+    query: { workspaceId, ...filter },
   });
 
   expect(status).toEqual(200);
