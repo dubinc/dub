@@ -1,7 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
-import { COUNTRY_CODES } from "@dub/utils";
+import {
+  analyticsResponseSchema,
+  getAnalyticsQuerySchema,
+} from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
@@ -19,19 +21,7 @@ export const getCityAnalytics: ZodOpenApiOperationObject = {
       description: "The top cities by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(
-            z.object({
-              city: z.string().describe("The name of the city"),
-              country: z
-                .enum(COUNTRY_CODES)
-                .describe(
-                  "The 2-letter country code of the city: https://d.to/geo",
-                ),
-              clicks: z
-                .number()
-                .describe("The number of clicks from this city"),
-            }),
-          ),
+          schema: z.array(analyticsResponseSchema["city"]),
         },
       },
     },
