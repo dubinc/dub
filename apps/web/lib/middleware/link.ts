@@ -80,7 +80,7 @@ export default async function LinkMiddleware(
     id: linkId,
     url,
     password,
-    trackConversion = true,
+    trackConversion,
     proxy,
     rewrite,
     iframeable,
