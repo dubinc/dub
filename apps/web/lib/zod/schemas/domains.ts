@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { parseUrlSchema } from "./links";
 
 export const DomainSchema = z.object({
+  id: z.string().describe("The unique identifier of the domain."),
   slug: z
     .string()
     .describe("The domain name.")
