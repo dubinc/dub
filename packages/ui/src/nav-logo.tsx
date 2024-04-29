@@ -76,7 +76,12 @@ export function NavLogo({
           {variant === "full" ? (
             <LogoType className={className} />
           ) : (
-            <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
+            <Logo
+              className={cn(
+                "h-8 w-8 transition-all duration-75 active:scale-95",
+                className,
+              )}
+            />
           )}
         </div>
       </Popover.Anchor>
