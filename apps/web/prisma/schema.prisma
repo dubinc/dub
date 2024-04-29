@@ -213,7 +213,7 @@ model Link {
   password   String? // password to access the link
   externalId String? 
 
-  trackConversion Boolean?
+  trackConversion Boolean @default(false) // whether to track conversions or not
 
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
