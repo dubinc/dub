@@ -1,8 +1,7 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
-import { BoxSelect, Home, Type } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Home, LayoutGrid, Type } from "lucide-react";
 import { MouseEvent, useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./button";
@@ -54,9 +53,15 @@ async function copy(text: string) {
  * The Dub logo with a custom context menu for copying/navigation,
  * for use in the top site nav
  */
-export default function NavLogo({ className }: { className?: string }) {
-  const router = useRouter();
-
+export function NavLogo({
+  variant = "full",
+  isInApp = true,
+  className,
+}: {
+  variant?: "full" | "symbol";
+  isInApp?: boolean;
+  className?: string;
+}) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const handleContextMenu = useCallback((e: MouseEvent<HTMLDivElement>) => {
@@ -68,7 +73,11 @@ export default function NavLogo({ className }: { className?: string }) {
     <Popover.Root open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <Popover.Anchor asChild>
         <div onContextMenu={handleContextMenu}>
-          <LogoType className={className} />
+          {variant === "full" ? (
+            <LogoType className={className} />
+          ) : (
+            <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
+          )}
         </div>
       </Popover.Anchor>
       <Popover.Portal>
@@ -96,20 +105,31 @@ export default function NavLogo({ className }: { className?: string }) {
               icon={<Type strokeWidth={2} className="h-4 w-4" />}
               className="h-9 justify-start px-3 font-medium hover:text-gray-700"
             />
-            <Button
+            {/* TODO: Uncomment once /brand page is live */}
+            {/* <Button
               text="Brand Guidelines"
               variant="outline"
               onClick={() => window.open("https://dub.co/brand", "_blank")}
               icon={<BoxSelect strokeWidth={2} className="h-4 w-4" />}
               className="h-9 justify-start px-3 font-medium hover:text-gray-700"
-            />
-            <Button
-              text="Home Page"
-              variant="outline"
-              onClick={() => window.open("https://dub.co", "_blank")}
-              icon={<Home strokeWidth={2} className="h-4 w-4" />}
-              className="h-9 justify-start px-3 font-medium hover:text-gray-700"
-            />
+            /> */}
+            {isInApp ? (
+              <Button
+                text="Home Page"
+                variant="outline"
+                onClick={() => window.open("https://dub.co", "_blank")}
+                icon={<Home strokeWidth={2} className="h-4 w-4" />}
+                className="h-9 justify-start px-3 font-medium hover:text-gray-700"
+              />
+            ) : (
+              <Button
+                text="Dashboard"
+                variant="outline"
+                onClick={() => window.open("https://app.dub.co", "_blank")}
+                icon={<LayoutGrid strokeWidth={2} className="h-4 w-4" />}
+                className="h-9 justify-start px-3 font-medium hover:text-gray-700"
+              />
+            )}
           </div>
         </Popover.Content>
       </Popover.Portal>

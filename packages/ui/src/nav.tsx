@@ -10,7 +10,7 @@ import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
 import { useScroll } from "./hooks";
 import { MaxWidthWrapper } from "./max-width-wrapper";
-import NavLogo from "./nav-logo";
+import { NavLogo } from "./nav-logo";
 
 export const navItems = [
   {

@@ -5,7 +5,7 @@ import UserDropdown from "@/ui/layout/user-dropdown";
 import UserSurveyPopup from "@/ui/layout/user-survey";
 import WorkspaceSwitcher from "@/ui/layout/workspace-switcher";
 import { Divider } from "@/ui/shared/icons";
-import { Logo, MaxWidthWrapper } from "@dub/ui";
+import { MaxWidthWrapper, NavLogo } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <div className="flex h-16 items-center justify-between">
               <div className="flex items-center">
                 <Link href="/" className="hidden sm:block">
-                  <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
+                  <NavLogo variant="symbol" />
                 </Link>
                 <Divider className="hidden h-8 w-8 text-gray-200 sm:ml-3 sm:block" />
                 <WorkspaceSwitcher />
