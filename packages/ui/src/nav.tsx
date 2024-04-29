@@ -8,9 +8,9 @@ import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
-import CopiableLogo from "./copiable-logo";
 import { useScroll } from "./hooks";
 import { MaxWidthWrapper } from "./max-width-wrapper";
+import NavLogo from "./nav-logo";
 
 export const navItems = [
   {
@@ -69,7 +69,7 @@ export function Nav() {
                 },
               })}
             >
-              <CopiableLogo />
+              <NavLogo />
             </Link>
             <NavigationMenuPrimitive.Root
               delayDuration={0}
