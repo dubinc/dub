@@ -407,3 +407,20 @@ export const LinkSchema = z
       .openapi({ deprecated: true }),
   })
   .openapi({ title: "Link" });
+
+export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
+  z.object({
+    linkId: z
+      .string()
+      .optional()
+      .describe("The unique ID of the short link.")
+      .openapi({ example: "clux0rgak00011..." }),
+    externalId: z
+      .string()
+      .optional()
+      .describe(
+        "This is the ID of the link in the your database. Must be prefixed with `ext_`. when provided.",
+      )
+      .openapi({ example: "ext_123456" }),
+  }),
+);

@@ -68,3 +68,58 @@ export const analyticsEndpointSchema = z.object({
     },
   }),
 });
+
+// Analytics response schemas
+export const analyticsResponseSchema = {
+  timeseries: z.object({
+    start: z.string().describe("The starting timestamp of the interval"),
+    clicks: z.number().describe("The number of clicks in the interval"),
+  }),
+
+  country: z.object({
+    country: z
+      .enum(COUNTRY_CODES)
+      .describe("The 2-letter country code: https://d.to/geo"),
+    clicks: z.number().describe("The number of clicks from this country"),
+  }),
+
+  city: z.object({
+    city: z.string().describe("The name of the city"),
+    country: z
+      .enum(COUNTRY_CODES)
+      .describe("The 2-letter country code of the city: https://d.to/geo"),
+    clicks: z.number().describe("The number of clicks from this city"),
+  }),
+
+  device: z.object({
+    device: z.string().describe("The name of the device"),
+    clicks: z.number().describe("The number of clicks from this device"),
+  }),
+
+  browser: z.object({
+    browser: z.string().describe("The name of the browser"),
+    clicks: z.number().describe("The number of clicks from this browser"),
+  }),
+
+  os: z.object({
+    os: z.string().describe("The name of the OS"),
+    clicks: z.number().describe("The number of clicks from this OS"),
+  }),
+
+  referer: z.object({
+    referer: z
+      .string()
+      .describe("The name of the referer. If unknown, this will be `(direct)`"),
+    clicks: z.number().describe("The number of clicks from this referer"),
+  }),
+
+  topLinks: z.object({
+    link: z.string().describe("The unique ID of the short link"),
+    clicks: z.number().describe("The number of clicks from this link"),
+  }),
+
+  topUrls: z.object({
+    url: z.string().describe("The destination URL"),
+    clicks: z.number().describe("The number of clicks from this URL"),
+  }),
+} as const;

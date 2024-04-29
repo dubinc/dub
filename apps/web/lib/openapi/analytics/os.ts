@@ -1,6 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
+import {
+  analyticsResponseSchema,
+  getAnalyticsQuerySchema,
+} from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
@@ -18,12 +21,7 @@ export const getOSAnalytics: ZodOpenApiOperationObject = {
       description: "The top OS by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(
-            z.object({
-              os: z.string().describe("The name of the OS"),
-              clicks: z.number().describe("The number of clicks from this OS"),
-            }),
-          ),
+          schema: z.array(analyticsResponseSchema["os"]),
         },
       },
     },

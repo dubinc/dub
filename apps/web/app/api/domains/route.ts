@@ -7,6 +7,7 @@ import { exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import z from "@/lib/zod";
 import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
@@ -16,19 +17,9 @@ export const GET = withWorkspace(async ({ workspace }) => {
     where: {
       projectId: workspace.id,
     },
-    select: {
-      slug: true,
-      verified: true,
-      primary: true,
-      archived: true,
-      target: true,
-      type: true,
-      placeholder: true,
-      clicks: true,
-      expiredUrl: true,
-    },
   });
-  return NextResponse.json(domains);
+
+  return NextResponse.json(z.array(DomainSchema).parse(domains));
 });
 
 // POST /api/domains - add a domain
