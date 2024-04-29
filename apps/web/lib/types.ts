@@ -25,6 +25,7 @@ export interface QRLinkProps {
 export interface RedisLinkProps {
   id: string;
   url: string;
+  trackConversion?: boolean;
   password?: boolean;
   proxy?: boolean;
   rewrite?: boolean;
