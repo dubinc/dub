@@ -15,7 +15,7 @@ import {
 } from "@dub/utils";
 import { Link, Tag } from "@prisma/client";
 
-type LinkWithTags = Link & {
+export type LinkWithTags = Link & {
   tags: { tag: Pick<Tag, "id" | "name" | "color"> }[];
 };
 
