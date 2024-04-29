@@ -6,6 +6,7 @@ import {
   getDomainWithoutWWW,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
+import { nanoid } from "ai";
 import { NextRequest, userAgent } from "next/server";
 import { detectBot, detectQr, getIdentityHash } from "./middleware/utils";
 import { conn } from "./planetscale";
@@ -24,7 +25,7 @@ export async function recordClick({
 }: {
   req: NextRequest;
   linkId: string;
-  clickId: string;
+  clickId?: string;
   url?: string;
   root?: boolean;
 }) {
@@ -59,7 +60,7 @@ export async function recordClick({
         body: JSON.stringify({
           timestamp: new Date(Date.now()).toISOString(),
           identity_hash,
-          click_id: clickId,
+          click_id: clickId || nanoid(16),
           link_id: linkId,
           alias_link_id: "",
           url: url || "",
