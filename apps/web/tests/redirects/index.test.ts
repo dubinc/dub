@@ -23,7 +23,10 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   });
 
   test("regular", async () => {
-    const response = await fetch(`${h.baseUrl}/checkly-check`, fetchOptions);
+    const response = await fetch(`${h.baseUrl}/checkly-check`, {
+      ...fetchOptions,
+      headers: {},
+    });
 
     expect(response.headers.get("location")).toBe("https://www.checklyhq.com/");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);

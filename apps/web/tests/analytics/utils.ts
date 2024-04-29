@@ -1,5 +1,5 @@
 export const filter = {
   domain: "dub.sh",
-  key: "dummy",
+  key: "checkly-check",
   interval: "30d",
 };
