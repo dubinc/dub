@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@dub/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { Home, LayoutGrid, Type } from "lucide-react";
 import { MouseEvent, useCallback, useState } from "react";
