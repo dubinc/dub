@@ -26,6 +26,11 @@ export async function POST(req: NextRequest) {
   const { workspaceId } = searchParams;
   const workspace = await getWorkspaceViaEdge(workspaceId);
 
+  if (!anthropic) {
+    console.error("Anthropic is not configured. Skipping the request.");
+    return new Response(null, { status: 200 });
+  }
+
   if (!workspace) {
     return new Response("Workspace not found", { status: 404 });
   }
