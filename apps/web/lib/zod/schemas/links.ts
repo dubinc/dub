@@ -272,7 +272,6 @@ export const LinkSchema = z
       .describe("Whether the short link is archived."),
     expiresAt: z
       .string()
-      .datetime()
       .nullable()
       .describe(
         "The date and time when the short link will expire in ISO-8601 format.",
@@ -432,6 +431,7 @@ export const LinkSchemaExtended = LinkSchema.extend({
   createdAt: z.date(),
   updatedAt: z.date(),
   expiresAt: z.date().nullable(),
+  lastClicked: z.date().nullable(),
 });
 
 export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
