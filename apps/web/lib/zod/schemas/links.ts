@@ -433,10 +433,3 @@ export const LinkSchemaExtended = LinkSchema.extend({
   expiresAt: z.date().nullable(),
   lastClicked: z.date().nullable(),
 });
-
-export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
-  z.object({
-    // Only Dub UI uses includeUser query parameter
-    includeUser: booleanQuerySchema.default("false"),
-  }),
-);

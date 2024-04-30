@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
-import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas";
+import { getLinksQuerySchema } from "@/lib/zod/schemas";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function getLinksForWorkspace({
@@ -15,8 +15,7 @@ export async function getLinksForWorkspace({
   userId,
   showArchived,
   withTags,
-  includeUser,
-}: z.infer<typeof getLinksQuerySchemaExtended> & {
+}: z.infer<typeof getLinksQuerySchema> & {
   workspaceId: string;
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
@@ -61,7 +60,6 @@ export async function getLinksForWorkspace({
       ...(userId && { userId }),
     },
     include: {
-      user: includeUser,
       tags: {
         include: {
           tag: {

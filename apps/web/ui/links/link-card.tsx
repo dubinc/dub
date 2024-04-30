@@ -1,4 +1,5 @@
 import useDomains from "@/lib/swr/use-domains";
+import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
@@ -74,7 +75,7 @@ export default function LinkCard({
     archived,
     tags,
     comments,
-    user,
+    userId,
   } = props;
 
   const searchParams = useSearchParams();
@@ -385,39 +386,7 @@ export default function LinkCard({
               )}
             </div>
             <div className="flex max-w-fit items-center space-x-1">
-              <Tooltip
-                content={
-                  <div className="w-full p-4">
-                    <Avatar user={user} className="h-10 w-10" />
-                    <div className="mt-2 flex items-center space-x-1.5">
-                      <p className="text-sm font-semibold text-gray-700">
-                        {user?.name || user?.email || "Anonymous User"}
-                      </p>
-                      {!slug && // this is only shown in admin mode (where there's no slug)
-                        user?.email && (
-                          <CopyButton
-                            value={user.email}
-                            icon={Mail}
-                            className="[&>*]:h-3 [&>*]:w-3"
-                          />
-                        )}
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      Created{" "}
-                      {new Date(createdAt).toLocaleDateString("en-us", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                }
-              >
-                {/* Without the wrapping div, the Tooltip won't be triggered for some reason */}
-                <div className="w-4">
-                  <Avatar user={user} className="h-4 w-4" />
-                </div>
-              </Tooltip>
+              <LinkUser userId={userId} createdAt={createdAt} />
               <p>•</p>
               <p
                 className="whitespace-nowrap text-sm text-gray-500"
@@ -626,6 +595,52 @@ export default function LinkCard({
         </div>
       </div>
     </li>
+  );
+}
+
+function LinkUser({
+  userId,
+  createdAt,
+}: {
+  userId: string | null;
+  createdAt: Date;
+}) {
+  const { user } = userId ? useUser({ userId }) : { user: null };
+  const { slug } = useParams() as { slug?: string };
+  return (
+    <Tooltip
+      content={
+        <div className="w-full p-4">
+          <Avatar user={user} className="h-10 w-10" />
+          <div className="mt-2 flex items-center space-x-1.5">
+            <p className="text-sm font-semibold text-gray-700">
+              {user?.name || user?.email || "Anonymous User"}
+            </p>
+            {!slug && // this is only shown in admin mode (where there's no slug)
+              user?.email && (
+                <CopyButton
+                  value={user.email}
+                  icon={Mail}
+                  className="[&>*]:h-3 [&>*]:w-3"
+                />
+              )}
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Created{" "}
+            {new Date(createdAt).toLocaleDateString("en-us", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+      }
+    >
+      {/* Without the wrapping div, the Tooltip won't be triggered for some reason */}
+      <div className="w-4">
+        <Avatar user={user} className="h-4 w-4" />
+      </div>
+    </Tooltip>
   );
 }
 
