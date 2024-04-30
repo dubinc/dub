@@ -2,7 +2,7 @@ import useTags from "@/lib/swr/use-tags";
 import { InputSelect, useRouterStuff } from "@dub/ui";
 import { Tag } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { use } from "react";
 import { ModalContext } from "../modals/provider";
 
 export default function TagSelector() {
@@ -11,7 +11,7 @@ export default function TagSelector() {
   const { tags } = useTags();
   const searchParams = useSearchParams();
   const selectedTagId = searchParams?.get("tagId");
-  const { setShowAddEditTagModal } = useContext(ModalContext);
+  const { setShowAddEditTagModal } = use(ModalContext);
 
   return (
     <InputSelect

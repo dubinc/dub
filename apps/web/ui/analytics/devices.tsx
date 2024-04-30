@@ -2,7 +2,7 @@ import { DeviceTabs } from "@/lib/analytics";
 import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
-import { useContext, useState } from "react";
+import { use, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import BarList from "./bar-list";
@@ -11,7 +11,7 @@ import DeviceIcon from "./device-icon";
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");
 
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString } = use(AnalyticsContext);
 
   const { data } = useSWR<
     ({

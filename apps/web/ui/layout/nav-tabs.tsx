@@ -9,7 +9,7 @@ import { Badge } from "@dub/ui";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
-import { useContext, useMemo } from "react";
+import { use, useMemo } from "react";
 
 export default function NavTabs() {
   const pathname = usePathname();
@@ -60,7 +60,7 @@ export default function NavTabs() {
   );
 }
 const OnboardingChecklist = () => {
-  const { setShowCompleteSetupModal } = useContext(ModalContext);
+  const { setShowCompleteSetupModal } = use(ModalContext);
   const { verified } = useDomains();
   const { data: links } = useLinksCount();
   const { users } = useUsers();

@@ -13,7 +13,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronRight, Globe } from "lucide-react";
-import { useContext, useState } from "react";
+import { use, useState } from "react";
 import { UserSurveyContext } from ".";
 
 const options = [
@@ -59,7 +59,7 @@ export default function SurveyForm({
   const [source, setSource] = useState<string | undefined>(undefined);
   const [otherSource, setOtherSource] = useState<string | undefined>(undefined);
 
-  const { status } = useContext(UserSurveyContext);
+  const { status } = use(UserSurveyContext);
 
   return (
     <div className="flex flex-col space-y-4">

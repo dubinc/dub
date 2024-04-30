@@ -11,13 +11,13 @@ import {
 import { APP_DOMAIN, cn } from "@dub/utils";
 import { Calendar, ChevronDown, Lock } from "lucide-react";
 import Link from "next/link";
-import { useContext, useMemo, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
 
 export default function DateRangePicker() {
   const { queryParams } = useRouterStuff();
 
-  const { basePath, interval, admin } = useContext(AnalyticsContext);
+  const { basePath, interval, admin } = use(AnalyticsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 

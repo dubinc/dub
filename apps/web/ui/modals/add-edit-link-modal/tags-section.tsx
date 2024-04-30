@@ -128,7 +128,7 @@ export default function TagsSection({
   const CommandInput = () => {
     const isEmpty = useCommandState((state) => state.filtered.count === 0);
     return (
-      <Command.Input
+      (<Command.Input
         placeholder="Select tags..."
         // hack to focus on the input when the dropdown opens
         autoFocus={openCommandList}
@@ -162,7 +162,7 @@ export default function TagsSection({
           }
         }}
         className="block grow rounded-md border-none px-0 py-1 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
-      />
+      />)
     );
   };
 

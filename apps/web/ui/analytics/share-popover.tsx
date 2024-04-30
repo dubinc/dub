@@ -8,14 +8,14 @@ import {
 } from "@dub/ui";
 import { linkConstructor } from "@dub/utils";
 import { Share2 } from "lucide-react";
-import { useContext, useState } from "react";
+import { use, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from ".";
 
 export default function SharePopover() {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { baseApiPath, queryString, domain, key } = useContext(
+  const { baseApiPath, queryString, domain, key } = use(
     AnalyticsContext,
   ) as {
     baseApiPath: string;

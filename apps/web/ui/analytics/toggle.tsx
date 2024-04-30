@@ -6,7 +6,7 @@ import {
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
-import { useContext } from "react";
+import { use } from "react";
 import { AnalyticsContext } from ".";
 import DateRangePicker from "./date-range-picker";
 import ExportButton from "./export-button";
@@ -14,7 +14,7 @@ import FilterBar from "./filter-bar";
 import SharePopover from "./share-popover";
 
 export default function Toggle() {
-  const { basePath, domain, key, url, admin } = useContext(AnalyticsContext);
+  const { basePath, domain, key, url, admin } = use(AnalyticsContext);
 
   const scrolled = useScroll(80);
 

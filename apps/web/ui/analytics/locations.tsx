@@ -2,7 +2,7 @@ import { LocationTabs } from "@/lib/analytics";
 import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
-import { useContext, useState } from "react";
+import { use, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import BarList from "./bar-list";
@@ -10,7 +10,7 @@ import BarList from "./bar-list";
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
 
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString } = use(AnalyticsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
     `${baseApiPath}/${tab}?${queryString}`,
