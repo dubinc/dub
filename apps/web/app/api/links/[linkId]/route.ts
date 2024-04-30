@@ -42,9 +42,7 @@ export const GET = withWorkspace(async ({ headers, link }) => {
     }),
   });
 
-  return NextResponse.json(LinkSchemaExtended.parse(response), {
-    headers,
-  });
+  return NextResponse.json(response, { headers });
 });
 
 // PUT /api/links/[linkId] – update a link
