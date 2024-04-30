@@ -3,13 +3,19 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
+import z from "@/lib/zod";
 import {
   LinkSchemaExtended,
   createLinkBodySchema,
-  getLinksQuerySchema,
+  getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas";
+import { UserSchema } from "@/lib/zod/schemas/users";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
+
+const LinkSchemaWithUser = LinkSchemaExtended.extend({
+  user: UserSchema.extend({ createdAt: z.date() }),
+});
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(async ({ req, headers, workspace }) => {
@@ -25,7 +31,8 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     userId,
     showArchived,
     withTags,
-  } = getLinksQuerySchema.parse(searchParams);
+    includeUser,
+  } = getLinksQuerySchemaExtended.parse(searchParams);
 
   const response = await getLinksForWorkspace({
     workspaceId: workspace.id,
@@ -38,9 +45,14 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     userId,
     showArchived,
     withTags,
+    includeUser,
   });
 
-  return NextResponse.json(LinkSchemaExtended.array().parse(response), {
+  const links = (includeUser ? LinkSchemaWithUser : LinkSchemaExtended)
+    .array()
+    .parse(response);
+
+  return NextResponse.json(links, {
     headers,
   });
 });

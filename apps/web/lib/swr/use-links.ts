@@ -23,7 +23,7 @@ export default function useLinks() {
   >(
     id
       ? `/api/links${getQueryString(
-          { workspaceId: id },
+          { workspaceId: id, includeUser: "true" },
           {
             ignore: ["import", "upgrade", "newLink"],
           },
