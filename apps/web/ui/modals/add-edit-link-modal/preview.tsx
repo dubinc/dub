@@ -10,7 +10,7 @@ import {
   Twitter,
 } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
-import { cn, getDomainWithoutWWW } from "@dub/utils";
+import { getDomainWithoutWWW } from "@dub/utils";
 import { Edit2, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -123,7 +123,8 @@ export default function Preview({
               </div>
             </div>
           </div>
-          <div className="border border-gray-300">
+          <div className="relative border border-gray-300">
+            <EditPreviewPopover />
             {previewImage}
             <div className="grid gap-1 border-t border-gray-300 bg-[#f2f3f5] p-3">
               {hostname ? (
@@ -170,7 +171,8 @@ export default function Preview({
               </div>
             </div>
           </div>
-          <div className="overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_2px_3px_rgba(0,0,0,0.2)]">
+          <div className="relative overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_2px_3px_rgba(0,0,0,0.2)]">
+            <EditPreviewPopover />
             {previewImage}
             <div className="grid gap-1 border-t border-gray-300 bg-white p-3">
               {title ? (
@@ -226,14 +228,7 @@ const EditPreviewPopover = () => {
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
     >
-      <div
-        className={cn(
-          "absolute right-2 top-2 z-10 opacity-0 transition-all group-hover:opacity-100",
-          {
-            "opacity-100": openPopover,
-          },
-        )}
-      >
+      <div className="absolute right-2 top-2 z-10">
         <Button
           variant="secondary"
           onClick={() => setOpenPopover(!openPopover)}
