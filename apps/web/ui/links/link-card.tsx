@@ -607,6 +607,13 @@ function LinkUser({
 }) {
   const { user } = userId ? useUser({ userId }) : { user: null };
   const { slug } = useParams() as { slug?: string };
+
+  if (!user) {
+    return (
+      <div className="h-4 w-4 animate-pulse rounded-full border border-gray-100 bg-gray-200" />
+    );
+  }
+
   return (
     <Tooltip
       content={
