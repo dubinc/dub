@@ -3,7 +3,11 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
-import { createLinkBodySchema, getLinksQuerySchema } from "@/lib/zod/schemas";
+import {
+  LinkSchemaExtended,
+  createLinkBodySchema,
+  getLinksQuerySchema,
+} from "@/lib/zod/schemas";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -36,7 +40,7 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     withTags,
   });
 
-  return NextResponse.json(response, {
+  return NextResponse.json(LinkSchemaExtended.array().parse(response), {
     headers,
   });
 });
@@ -75,7 +79,7 @@ export const POST = withWorkspace(
 
     const response = await createLink(link);
 
-    return NextResponse.json(response, { headers });
+    return NextResponse.json(LinkSchemaExtended.parse(response), { headers });
   },
   {
     needNotExceededLinks: true,

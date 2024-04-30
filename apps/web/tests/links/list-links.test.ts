@@ -36,16 +36,16 @@ test("GET /links", async (ctx) => {
     tags: [],
     shortLink: `https://${domain}/${firstLink.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
-    user: {
-      id: user.id,
-      emailVerified: null,
-      source: null,
-      subscribed: true,
-      image: expect.anything(),
-      name: expect.any(String),
-      createdAt: expect.any(String),
-      email: expect.any(String),
-    },
+    // user: {
+    //   id: user.id,
+    //   emailVerified: null,
+    //   source: null,
+    //   subscribed: true,
+    //   image: expect.anything(),
+    //   name: expect.any(String),
+    //   createdAt: expect.any(String),
+    //   email: expect.any(String),
+    // },
   });
 
   await h.deleteLink(firstLink.id);

@@ -76,10 +76,13 @@ describe.sequential("PUT /links/{linkId}", async () => {
       ...expectedLink,
       ...toUpdate,
       domain,
+      workspaceId,
       externalId,
       userId: user.id,
       expiresAt: "2030-04-16T17:00:00.000Z",
       projectId: workspaceId.replace("ws_", ""),
+      shortLink: `https://${domain}/${toUpdate.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
       tags: [],
     });
   });

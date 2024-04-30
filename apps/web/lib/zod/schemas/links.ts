@@ -424,3 +424,11 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .openapi({ example: "ext_123456" }),
   }),
 );
+
+// Used in API routes to parse the response before sending it back to the client
+// TODO: Better name for this schema
+export const LinkSchemaExtended = LinkSchema.extend({
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  expiresAt: z.date().nullable(),
+});
