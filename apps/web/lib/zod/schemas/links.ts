@@ -388,14 +388,14 @@ export const LinkSchema = z
       .number()
       .default(0)
       .describe("The number of clicks on the short link."),
-    lastClicked: z
+    lastClicked: z.coerce
       .string()
       .nullable()
       .describe("The date and time when the short link was last clicked."),
-    createdAt: z
+    createdAt: z.coerce
       .string()
       .describe("The date and time when the short link was created."),
-    updatedAt: z
+    updatedAt: z.coerce
       .string()
       .describe("The date and time when the short link was last updated."),
     projectId: z
@@ -428,10 +428,7 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
 // This is because Prisma returns a `Date` object
 // TODO: Find a better way to handle this
 export const LinkSchemaExtended = LinkSchema.extend({
-  createdAt: z.date(),
-  updatedAt: z.date(),
   expiresAt: z.date().nullable(),
-  lastClicked: z.date().nullable(),
 });
 
 export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
