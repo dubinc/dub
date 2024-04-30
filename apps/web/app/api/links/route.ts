@@ -4,7 +4,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import {
-  LinkSchemaExtended,
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas";
@@ -42,11 +41,7 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     includeUser,
   });
 
-  const links = includeUser
-    ? response
-    : LinkSchemaExtended.array().parse(response);
-
-  return NextResponse.json(links, {
+  return NextResponse.json(response, {
     headers,
   });
 });
@@ -85,7 +80,7 @@ export const POST = withWorkspace(
 
     const response = await createLink(link);
 
-    return NextResponse.json(LinkSchemaExtended.parse(response), { headers });
+    return NextResponse.json(response, { headers });
   },
   {
     needNotExceededLinks: true,
