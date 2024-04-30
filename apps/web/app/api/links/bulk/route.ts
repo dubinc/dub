@@ -3,10 +3,7 @@ import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
-import {
-  LinkSchemaExtended,
-  bulkCreateLinksBodySchema,
-} from "@/lib/zod/schemas";
+import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links
@@ -121,12 +118,9 @@ export const POST = withWorkspace(
     const validLinksResponse =
       validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
 
-    return NextResponse.json(
-      [...LinkSchemaExtended.array().parse(validLinksResponse), ...errorLinks],
-      {
-        headers,
-      },
-    );
+    return NextResponse.json([...validLinksResponse, ...errorLinks], {
+      headers,
+    });
   },
   {
     needNotExceededLinks: true,
