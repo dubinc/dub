@@ -272,7 +272,6 @@ export const LinkSchema = z
       .describe("Whether the short link is archived."),
     expiresAt: z
       .string()
-      .datetime()
       .nullable()
       .describe(
         "The date and time when the short link will expire in ISO-8601 format.",
@@ -422,5 +421,22 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
         "This is the ID of the link in the your database. Must be prefixed with `ext_`. when provided.",
       )
       .openapi({ example: "ext_123456" }),
+  }),
+);
+
+// Used in API routes to parse the response before sending it back to the client
+// This is because Prisma returns a `Date` object
+// TODO: Find a better way to handle this
+export const LinkSchemaExtended = LinkSchema.extend({
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  expiresAt: z.date().nullable(),
+  lastClicked: z.date().nullable(),
+});
+
+export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
+  z.object({
+    // Only Dub UI uses includeUser query parameter
+    includeUser: booleanQuerySchema.default("false"),
   }),
 );

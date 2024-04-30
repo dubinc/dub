@@ -3,7 +3,11 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
-import { createLinkBodySchema, getLinksQuerySchema } from "@/lib/zod/schemas";
+import {
+  LinkSchemaExtended,
+  createLinkBodySchema,
+  getLinksQuerySchemaExtended,
+} from "@/lib/zod/schemas";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -21,7 +25,8 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     userId,
     showArchived,
     withTags,
-  } = getLinksQuerySchema.parse(searchParams);
+    includeUser,
+  } = getLinksQuerySchemaExtended.parse(searchParams);
 
   const response = await getLinksForWorkspace({
     workspaceId: workspace.id,
@@ -34,9 +39,14 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     userId,
     showArchived,
     withTags,
+    includeUser,
   });
 
-  return NextResponse.json(response, {
+  const links = includeUser
+    ? response
+    : LinkSchemaExtended.array().parse(response);
+
+  return NextResponse.json(links, {
     headers,
   });
 });
@@ -75,7 +85,7 @@ export const POST = withWorkspace(
 
     const response = await createLink(link);
 
-    return NextResponse.json(response, { headers });
+    return NextResponse.json(LinkSchemaExtended.parse(response), { headers });
   },
   {
     needNotExceededLinks: true,
