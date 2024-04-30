@@ -12,7 +12,7 @@ export const getCityAnalytics: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "cities",
   summary: "Retrieve city analytics",
   description:
-    "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top cities by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(getAnalyticsQuerySchema),
   },
