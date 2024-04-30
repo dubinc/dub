@@ -8,7 +8,7 @@ import {
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
-import { LinkSchemaExtended, updateLinkBodySchema } from "@/lib/zod/schemas";
+import { updateLinkBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
@@ -101,7 +101,7 @@ export const PUT = withWorkspace(async ({ req, headers, workspace, link }) => {
     updatedLink: processedLink,
   });
 
-  return NextResponse.json(LinkSchemaExtended.parse(response), {
+  return NextResponse.json(response, {
     headers,
   });
 });
