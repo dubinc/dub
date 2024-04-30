@@ -3,10 +3,11 @@
 import { cn } from "@dub/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { Home, LayoutGrid, Type } from "lucide-react";
-import { MouseEvent, useCallback, useState } from "react";
+import { MouseEvent, useCallback, useContext, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "./button";
+import { Button, ButtonProps } from "./button";
 import { Logo, LogoType } from "./icons";
+import { NavContext } from "./nav";
 
 const logoSvg = `<svg width="191" height="191" viewBox="0 0 191 191" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0_36_30)">
@@ -63,6 +64,8 @@ export function NavLogo({
   isInApp?: boolean;
   className?: string;
 }) {
+  const { theme } = useContext(NavContext);
+
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const handleContextMenu = useCallback((e: MouseEvent<HTMLDivElement>) => {
@@ -90,55 +93,62 @@ export function NavLogo({
         <Popover.Content
           sideOffset={14}
           align="start"
-          className="z-50 items-center rounded-lg border border-gray-200 bg-white drop-shadow-sm"
+          className={cn("z-50", theme === "dark" && "dark")}
           onClick={(e) => {
             e.stopPropagation();
             setIsPopoverOpen(false);
           }}
         >
-          <div className="grid gap-1 p-1 sm:min-w-[240px]">
-            <Button
+          <div className="grid gap-1 rounded-lg border border-gray-200 bg-white p-1 drop-shadow-sm dark:border-white/[0.15] dark:bg-black sm:min-w-[240px]">
+            <ContextMenuButton
               text="Copy Logo as SVG"
               variant="outline"
               onClick={() => copy(logoSvg)}
               icon={<Logo className="h-4 w-4" />}
-              className="h-9 justify-start px-3 font-medium hover:text-gray-700"
             />
-            <Button
+            <ContextMenuButton
               text="Copy Wordmark as SVG"
               variant="outline"
               onClick={() => copy(wordmarkSvg)}
               icon={<Type strokeWidth={2} className="h-4 w-4" />}
-              className="h-9 justify-start px-3 font-medium hover:text-gray-700"
             />
             {/* TODO: Uncomment once /brand page is live */}
-            {/* <Button
+            {/* <ContextMenuButton
               text="Brand Guidelines"
               variant="outline"
               onClick={() => window.open("https://dub.co/brand", "_blank")}
               icon={<BoxSelect strokeWidth={2} className="h-4 w-4" />}
-              className="h-9 justify-start px-3 font-medium hover:text-gray-700"
             /> */}
             {isInApp ? (
-              <Button
+              <ContextMenuButton
                 text="Home Page"
                 variant="outline"
                 onClick={() => window.open("https://dub.co", "_blank")}
                 icon={<Home strokeWidth={2} className="h-4 w-4" />}
-                className="h-9 justify-start px-3 font-medium hover:text-gray-700"
               />
             ) : (
-              <Button
+              <ContextMenuButton
                 text="Dashboard"
                 variant="outline"
                 onClick={() => window.open("https://app.dub.co", "_blank")}
                 icon={<LayoutGrid strokeWidth={2} className="h-4 w-4" />}
-                className="h-9 justify-start px-3 font-medium hover:text-gray-700"
               />
             )}
           </div>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
+  );
+}
+
+function ContextMenuButton({ className, ...rest }: ButtonProps) {
+  return (
+    <Button
+      className={cn(
+        "h-9 justify-start px-3 font-medium hover:text-gray-700 dark:text-white/70 dark:hover:bg-white/[0.15] dark:hover:text-white",
+        className,
+      )}
+      {...rest}
+    />
   );
 }

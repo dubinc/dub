@@ -8,7 +8,7 @@ export default function Logo({ className }: { className?: string }) {
       viewBox="0 0 191 191"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn("h-10 w-10 text-black", className)}
+      className={cn("h-10 w-10 text-black dark:text-white", className)}
     >
       <g clipPath="url(#clip0_1301_107)">
         <path
@@ -21,7 +21,13 @@ export default function Logo({ className }: { className?: string }) {
       </g>
       <defs>
         <clipPath id="clip0_1301_107">
-          <rect width="191" height="191" rx="95.5" fill="white" />
+          <rect
+            width="191"
+            height="191"
+            rx="95.5"
+            className="text-white dark:text-black"
+            fill="currentColor"
+          />
         </clipPath>
       </defs>
     </svg>
