@@ -1,3 +1,4 @@
+import { LinkSchema } from "@/lib/zod/schemas";
 import { Link, Tag } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
@@ -44,6 +45,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });
@@ -73,6 +75,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });
@@ -105,6 +108,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });
@@ -144,6 +148,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });
@@ -173,6 +178,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });
@@ -205,6 +211,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });
@@ -238,6 +245,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });
@@ -271,6 +279,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });
@@ -323,6 +332,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: expect.arrayContaining(tags),
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await Promise.all([
       ...tagIds.map((id) => h.deleteTag(id)),
@@ -358,6 +368,7 @@ describe.sequential("POST /links", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
       tags: [],
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
     await h.deleteLink(link.id);
   });

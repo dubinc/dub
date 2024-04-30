@@ -1,9 +1,14 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { deleteLink, editLink, processLink } from "@/lib/api/links";
+import {
+  deleteLink,
+  editLink,
+  processLink,
+  transformLink,
+} from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
-import { updateLinkBodySchema } from "@/lib/zod/schemas";
+import { LinkSchemaExtended, updateLinkBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
@@ -29,16 +34,17 @@ export const GET = withWorkspace(async ({ headers, link }) => {
       color: true,
     },
   });
-  return NextResponse.json(
-    {
-      ...link,
-      tagId: tags?.[0]?.id ?? null, // backwards compatibility
-      tags,
-    },
-    {
-      headers,
-    },
-  );
+
+  const response = transformLink({
+    ...link,
+    tags: tags.map((tag) => {
+      return { tag };
+    }),
+  });
+
+  return NextResponse.json(LinkSchemaExtended.parse(response), {
+    headers,
+  });
 });
 
 // PUT /api/links/[linkId] – update a link
@@ -97,7 +103,7 @@ export const PUT = withWorkspace(async ({ req, headers, workspace, link }) => {
     updatedLink: processedLink,
   });
 
-  return NextResponse.json(response, {
+  return NextResponse.json(LinkSchemaExtended.parse(response), {
     headers,
   });
 });
