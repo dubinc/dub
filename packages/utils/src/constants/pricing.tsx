@@ -56,7 +56,15 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: "2-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
-    { text: `Unlimited AI credits` },
+    {
+      text: `Unlimited AI credits`,
+      footnote: {
+        title:
+          "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
+        cta: "Learn more.",
+        href: "https://dub.co/blog/introducing-dub-ai",
+      },
+    },
     {
       text: `${nFormatter(tags, { full: true })} tags`,
       footnote: {
@@ -170,7 +178,15 @@ export const PLANS = [
       { text: "1-year analytics retention" },
       { text: "10 custom domains" },
       { text: "5 users" },
-      { text: "Unlimited AI credits" },
+      {
+        text: "Unlimited AI credits",
+        footnote: {
+          title:
+            "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
+          cta: "Learn more.",
+          href: "https://dub.co/blog/introducing-dub-ai",
+        },
+      },
       { text: "Basic support", footnote: "Basic email support." },
       {
         text: "Root domain redirect",

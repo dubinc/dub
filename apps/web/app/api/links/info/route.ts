@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { LinkWithTags, transformLink } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { LinkSchemaExtended, getLinkInfoQuerySchema } from "@/lib/zod/schemas";
+import { getLinkInfoQuerySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link
@@ -52,10 +52,7 @@ export const GET = withWorkspace(async ({ headers, searchParams, link }) => {
     ? { ...link, ...tagsAndUser }
     : { ...link, tags: [] };
 
-  return NextResponse.json(
-    LinkSchemaExtended.parse(transformLink(linkWithTags)),
-    {
-      headers,
-    },
-  );
+  return NextResponse.json(transformLink(linkWithTags), {
+    headers,
+  });
 });
