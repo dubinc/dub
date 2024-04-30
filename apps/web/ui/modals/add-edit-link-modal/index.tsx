@@ -275,7 +275,7 @@ function AddEditLinkModal({
   const endpoint = useMemo(() => {
     if (props?.key) {
       return {
-        method: "PUT",
+        method: "PATCH",
         url: `/api/links/${props.id}?workspaceId=${workspaceId}`,
       };
     } else {

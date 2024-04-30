@@ -20,7 +20,7 @@ export const linksPaths: ZodOpenApiPathsObject = {
     get: getLinkInfo,
   },
   "/links/{linkId}": {
-    put: editLink,
+    patch: editLink,
     delete: deleteLink,
   },
   "/links/bulk": {
