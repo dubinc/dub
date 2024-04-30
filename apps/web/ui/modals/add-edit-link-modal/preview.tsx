@@ -6,10 +6,13 @@ import {
   LinkedIn,
   LoadingCircle,
   Photo,
+  Popover,
   Twitter,
 } from "@dub/ui";
-import { getDomainWithoutWWW } from "@dub/utils";
-import { useMemo } from "react";
+import { Button } from "@dub/ui/src/button";
+import { cn, getDomainWithoutWWW } from "@dub/utils";
+import { Edit2, Upload } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 export default function Preview({
@@ -88,7 +91,8 @@ export default function Preview({
               </div>
             </div>
           </div>
-          <div className="relative overflow-hidden rounded-2xl border border-gray-300">
+          <div className="group relative overflow-hidden rounded-2xl border border-gray-300">
+            <EditPreviewPopover />
             {previewImage}
             {title && (
               <div className="absolute bottom-2 left-2 rounded-md bg-[#414142] px-1.5 py-px">
@@ -188,3 +192,55 @@ export default function Preview({
     </div>
   );
 }
+
+const EditPreviewPopover = () => {
+  const [openPopover, setOpenPopover] = useState(false);
+
+  return (
+    <Popover
+      content={
+        <div className="grid w-full gap-px p-2 sm:w-40">
+          <Button
+            text="Upload"
+            variant="outline"
+            icon={<Upload className="h-4 w-4" />}
+            className="h-9 px-2 font-medium"
+          />
+          <Button
+            text="Upload"
+            variant="outline"
+            icon={<Upload className="h-4 w-4" />}
+            className="h-9 px-2 font-medium"
+          />
+          <Button
+            text="Upload"
+            variant="outline"
+            onClick={() => {
+              setOpenPopover(false);
+            }}
+            icon={<Upload className="h-4 w-4" />}
+            className="h-9 px-2 font-medium"
+          />
+        </div>
+      }
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+    >
+      <div
+        className={cn(
+          "absolute right-2 top-2 z-10 opacity-0 transition-all group-hover:opacity-100",
+          {
+            "opacity-100": openPopover,
+          },
+        )}
+      >
+        <Button
+          variant="secondary"
+          onClick={() => setOpenPopover(!openPopover)}
+          icon={<Edit2 className="h-3 w-3" />}
+          className="h-8 w-8 rounded-md p-0 transition-all hover:bg-gray-100"
+        />
+      </div>
+    </Popover>
+  );
+};
