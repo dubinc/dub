@@ -8,13 +8,8 @@ import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas";
-import { UserSchema } from "@/lib/zod/schemas/users";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
-
-const LinkSchemaWithUser = LinkSchemaExtended.extend({
-  user: UserSchema.nullable(),
-});
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(async ({ req, headers, workspace }) => {
@@ -47,9 +42,9 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     includeUser,
   });
 
-  const links = (includeUser ? LinkSchemaWithUser : LinkSchemaExtended)
-    .array()
-    .parse(response);
+  const links = includeUser
+    ? response
+    : LinkSchemaExtended.array().parse(response);
 
   return NextResponse.json(links, {
     headers,
