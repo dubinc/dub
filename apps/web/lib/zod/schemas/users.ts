@@ -8,5 +8,4 @@ export const UserSchema = z.object({
   image: z.string().nullable(),
   subscribed: z.boolean().nullable(),
   source: z.string().nullable(),
-  createdAt: z.string(),
 });
