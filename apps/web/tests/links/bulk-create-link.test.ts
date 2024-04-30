@@ -17,6 +17,7 @@ test("POST /links/bulk", async (ctx) => {
 
   const bulkLinks = Array.from({ length: 2 }, () => ({
     url: `https://example.com/${randomId()}`,
+    domain,
   }));
 
   const { status, data: links } = await http.post<Link[]>({

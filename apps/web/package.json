@@ -8,7 +8,7 @@
     "lint": "next lint",
     "start": "next start",
     "script": "tsx ./scripts/run.ts",
-    "test": "vitest -no-file-parallelism",
+    "test": "vitest -no-file-parallelism list-links",
     "generate-openapi": "tsx ./scripts/generate-openapi.ts"
   },
   "dependencies": {
