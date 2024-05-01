@@ -2,7 +2,7 @@
 
 import { cn } from "@dub/utils";
 import * as Popover from "@radix-ui/react-popover";
-import { Home, LayoutGrid, Type } from "lucide-react";
+import { BoxSelect, Home, LayoutGrid, Type } from "lucide-react";
 import { MouseEvent, useCallback, useContext, useState } from "react";
 import { toast } from "sonner";
 import { Button, ButtonProps } from "./button";
@@ -71,13 +71,16 @@ export function NavLogo({
         <Popover.Content
           sideOffset={14}
           align="start"
-          className={cn("z-50", theme === "dark" && "dark")}
+          className={cn(
+            "z-50 -mt-1.5 -translate-x-10",
+            theme === "dark" && "dark",
+          )}
           onClick={(e) => {
             e.stopPropagation();
             setIsPopoverOpen(false);
           }}
         >
-          <div className="grid gap-1 rounded-lg border border-gray-200 bg-white p-1 drop-shadow-sm dark:border-white/[0.15] dark:bg-black sm:min-w-[240px]">
+          <div className="grid gap-1 rounded-lg border border-gray-200 bg-white p-2 drop-shadow-sm sm:min-w-[240px] dark:border-white/[0.15] dark:bg-black">
             <ContextMenuButton
               text="Copy Logo as SVG"
               variant="outline"
@@ -90,13 +93,12 @@ export function NavLogo({
               onClick={() => copy(wordmarkSvg)}
               icon={<Type strokeWidth={2} className="h-4 w-4" />}
             />
-            {/* TODO: Uncomment once /brand page is live */}
-            {/* <ContextMenuButton
+            <ContextMenuButton
               text="Brand Guidelines"
               variant="outline"
               onClick={() => window.open("https://dub.co/brand", "_blank")}
               icon={<BoxSelect strokeWidth={2} className="h-4 w-4" />}
-            /> */}
+            />
             {isInApp ? (
               <ContextMenuButton
                 text="Home Page"

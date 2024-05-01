@@ -71,7 +71,7 @@ export function Nav({ theme = "light" }: { theme?: Theme }) {
                 HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout),
             },
           )}
-        ></div>
+        />
         <MaxWidthWrapper className="relative">
           <div className="flex h-14 items-center justify-between">
             <div className="flex items-center space-x-12">
@@ -97,7 +97,7 @@ export function Nav({ theme = "light" }: { theme?: Theme }) {
                     <NavigationMenuPrimitive.Trigger className="group flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 focus:outline-none dark:hover:bg-white/10">
                       <p
                         className={cn(
-                          "text-sm font-medium text-gray-500 transition-colors ease-out group-hover:text-black dark:text-white dark:group-hover:text-white",
+                          "text-sm font-medium text-gray-500 transition-colors ease-out group-hover:text-black dark:text-white/70 dark:group-hover:text-white",
                           {
                             "text-black dark:text-white":
                               selectedLayout === "features",
@@ -165,7 +165,7 @@ export function Nav({ theme = "light" }: { theme?: Theme }) {
                           },
                         })}
                         className={cn(
-                          "rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black dark:text-white dark:hover:text-white/70",
+                          "rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black dark:text-white/70 dark:hover:text-white",
                           {
                             "text-black dark:text-white":
                               selectedLayout === slug,
