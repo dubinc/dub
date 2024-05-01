@@ -236,6 +236,10 @@
     {
       "source": "/api-reference/endpoint/edit-a-link",
       "destination": "/api-reference/endpoint/update-a-link"
+    },
+    {
+      "source": "/api-reference/endpoint/edit-a-domain",
+      "destination": "/api-reference/endpoint/update-a-domain"
     }
   ]
 }
