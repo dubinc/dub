@@ -6,8 +6,9 @@ import { Home, LayoutGrid, Type } from "lucide-react";
 import { MouseEvent, useCallback, useContext, useState } from "react";
 import { toast } from "sonner";
 import { Button, ButtonProps } from "./button";
-import { Logo, LogoType } from "./icons";
+import { Logo } from "./logo";
 import { NavContext } from "./nav";
+import { Wordmark } from "./wordmark";
 
 const logoSvg = `<svg width="191" height="191" viewBox="0 0 191 191" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0_36_30)">
@@ -78,7 +79,7 @@ export function NavLogo({
       <Popover.Anchor asChild>
         <div onContextMenu={handleContextMenu}>
           {variant === "full" ? (
-            <LogoType className={className} />
+            <Wordmark className={className} />
           ) : (
             <Logo
               className={cn(

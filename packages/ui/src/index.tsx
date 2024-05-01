@@ -41,7 +41,11 @@ export * from "./icon-menu";
 export * from "./inline-snippet";
 export * from "./link-logo";
 export * from "./link-preview";
-export * from "./nav-logo";
 export * from "./popup";
 export * from "./progress-bar";
 export * from "./tab-select";
+
+// logos
+export * from "./logo";
+export * from "./nav-logo";
+export * from "./wordmark";
