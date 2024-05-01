@@ -13,9 +13,11 @@ import { useScroll } from "./hooks";
 import { MaxWidthWrapper } from "./max-width-wrapper";
 import { NavLogo } from "./nav-logo";
 
-type Theme = "light" | "dark";
+export type NavTheme = "light" | "dark";
 
-export const NavContext = createContext<{ theme: Theme }>({ theme: "light" });
+export const NavContext = createContext<{ theme: NavTheme }>({
+  theme: "light",
+});
 
 export const navItems = [
   {
@@ -40,7 +42,7 @@ export const navItems = [
   },
 ];
 
-export function Nav({ theme = "light" }: { theme?: Theme }) {
+export function Nav({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
   const scrolled = useScroll(80);
   const selectedLayout = useSelectedLayoutSegment();
