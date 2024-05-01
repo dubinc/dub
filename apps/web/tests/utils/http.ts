@@ -26,7 +26,7 @@ export class HttpClient {
   }
 
   private async request<TResponse>(
-    method: "GET" | "POST" | "PUT" | "DELETE",
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
     req: Request,
   ): Promise<Response<TResponse>> {
     const headers = {
@@ -57,6 +57,10 @@ export class HttpClient {
 
   public async post<TResponse>(req: Request) {
     return await this.request<TResponse>("POST", req);
+  }
+
+  public async patch<TResponse>(req: Request) {
+    return await this.request<TResponse>("PATCH", req);
   }
 
   public async put<TResponse>(req: Request) {

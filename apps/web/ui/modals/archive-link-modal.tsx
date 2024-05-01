@@ -23,9 +23,9 @@ const sendArchiveRequest = ({
   archive: boolean;
   workspaceId?: string;
 }) => {
-  const baseUrl = `/api/links/${linkId}/archive`;
-  return fetch(`${baseUrl}?workspaceId=${workspaceId}`, {
-    method: archive ? "POST" : "DELETE",
+  return fetch(`/api/links/${linkId}?workspaceId=${workspaceId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ archived: archive }),
     headers: {
       "Content-Type": "application/json",
     },

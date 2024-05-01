@@ -71,6 +71,7 @@ export const withWorkspace = (
     const searchParams = getSearchParams(req.url);
 
     let apiKey: string | undefined = undefined;
+    let headers = {};
 
     try {
       const authorizationHeader = req.headers.get("Authorization");
@@ -94,7 +95,6 @@ export const withWorkspace = (
         undefined;
 
       let session: Session | undefined;
-      let headers = {};
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
 
@@ -160,7 +160,6 @@ export const withWorkspace = (
           600,
           "1 m",
         ).limit(apiKey);
-
         headers = {
           "Retry-After": reset.toString(),
           "X-RateLimit-Limit": limit.toString(),
@@ -424,7 +423,7 @@ export const withWorkspace = (
         link,
       });
     } catch (error) {
-      return handleAndReturnErrorResponse(error);
+      return handleAndReturnErrorResponse(error, headers);
     }
   };
 };
