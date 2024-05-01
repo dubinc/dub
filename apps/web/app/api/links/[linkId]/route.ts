@@ -1,9 +1,9 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import {
   deleteLink,
-  editLink,
   processLink,
   transformLink,
+  updateLink,
 } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -96,7 +96,7 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const response = await editLink({
+    const response = await updateLink({
       oldDomain: link.domain,
       oldKey: link.key,
       updatedLink: processedLink,

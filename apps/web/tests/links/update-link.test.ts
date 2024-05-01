@@ -46,6 +46,48 @@ describe.sequential("PUT /links/{linkId}", async () => {
   });
 
   test("update link using linkId", async () => {
+    const { data: updatedLink } = await http.patch<Link>({
+      path: `/links/${link.id}`,
+      query: { workspaceId },
+      body: { ...toUpdate },
+    });
+
+    expect(updatedLink).toStrictEqual({
+      ...expectedLink,
+      ...toUpdate,
+      domain,
+      workspaceId,
+      externalId,
+      userId: user.id,
+      expiresAt: "2030-04-16T17:00:00.000Z",
+      projectId: workspaceId.replace("ws_", ""),
+      shortLink: `https://${domain}/${toUpdate.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
+      tags: [],
+    });
+
+    // Fetch the link
+    const { data: fetchedLink } = await http.get<Link>({
+      path: `/links/${link.id}`,
+      query: { workspaceId },
+    });
+
+    expect(fetchedLink).toStrictEqual({
+      ...expectedLink,
+      ...toUpdate,
+      domain,
+      workspaceId,
+      externalId,
+      userId: user.id,
+      expiresAt: "2030-04-16T17:00:00.000Z",
+      projectId: workspaceId.replace("ws_", ""),
+      shortLink: `https://${domain}/${toUpdate.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
+      tags: [],
+    });
+  });
+
+  test("update link using PUT (backwards compatibility)", async () => {
     const { data: updatedLink } = await http.put<Link>({
       path: `/links/${link.id}`,
       query: { workspaceId },
@@ -89,7 +131,7 @@ describe.sequential("PUT /links/{linkId}", async () => {
 
   // Archive the link
   test("archive link", async () => {
-    const { status, data: updatedLink } = await http.put<Link>({
+    const { status, data: updatedLink } = await http.patch<Link>({
       path: `/links/${link.id}`,
       query: { workspaceId },
       body: {
@@ -124,7 +166,7 @@ describe.sequential("PUT /links/{linkId}", async () => {
 
   // Unarchive the link
   test("unarchive link", async () => {
-    const { status, data: updatedLink } = await http.put<Link>({
+    const { status, data: updatedLink } = await http.patch<Link>({
       path: `/links/${link.id}`,
       query: { workspaceId },
       body: {
@@ -159,7 +201,7 @@ describe.sequential("PUT /links/{linkId}", async () => {
 
   // Update the link using externalId
   test("update link using externalId", async () => {
-    const { status, data: updatedLink } = await http.put<Link>({
+    const { status, data: updatedLink } = await http.patch<Link>({
       path: `/links/ext_${externalId}`,
       query: { workspaceId },
       body: {

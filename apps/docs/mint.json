@@ -232,6 +232,10 @@
     {
       "source": "/api-reference/endpoint/retrieve-a-list-of-projects",
       "destination": "/api-reference/endpoint/retrieve-a-list-of-workspaces"
+    },
+    {
+      "source": "/api-reference/endpoint/edit-a-link",
+      "destination": "/api-reference/endpoint/update-a-link"
     }
   ]
 }
