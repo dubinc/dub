@@ -12,6 +12,7 @@ import { detectBot, detectQr, getIdentityHash } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
+import { ConversionEvent, clickEventSchema } from "./zod/schemas/conversions";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -155,4 +156,39 @@ export async function recordLink({
       }),
     },
   ).then((res) => res.json());
+}
+
+// TODO:
+// Review this is the right way to fetch
+export async function getClickEvent(clickId: string) {
+  const url = new URL(
+    `${process.env.TINYBIRD_API_URL}/v0/pipes/click_by_id.json`,
+  );
+
+  url.searchParams.append("clickId", clickId);
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+    },
+  });
+
+  if (!response.ok) {
+    console.error("Error fetching click event from Tinybird", response);
+    return null;
+  }
+
+  const { rows, data } = await response.json();
+
+  if (rows === 0) {
+    console.error("No click event found in Tinybird", clickId);
+    return null;
+  }
+
+  return clickEventSchema.parse(data[0]);
+}
+
+// Record conversion event in Tinybird
+export async function recordConversion(event: ConversionEvent) {
+  console.log("event", event);
 }
