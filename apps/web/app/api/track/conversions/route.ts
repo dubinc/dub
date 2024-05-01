@@ -1,5 +1,5 @@
 import { parseRequestBody } from "@/lib/api/utils";
-import { withWorkspace } from "@/lib/auth";
+import { withSessionEdge } from "@/lib/auth";
 import { getClickEvent, recordConversion } from "@/lib/tinybird";
 import { conversionRequestSchema } from "@/lib/zod/schemas/conversions";
 import { NextResponse } from "next/server";
@@ -11,10 +11,11 @@ import { NextResponse } from "next/server";
 // Replace withWorkspace
 
 // POST /api/track/conversions – post conversion event
-export const POST = withWorkspace(async ({ req }) => {
+export const POST = withSessionEdge(async ({ req }) => {
   const body = await parseRequestBody(req);
-  const { clickId, eventName, eventType, metadata, customerId } =
-    conversionRequestSchema.parse(body);
+  const parsed = conversionRequestSchema.parse(body);
+
+  const { clickId, eventName, eventType, metadata, customerId } = parsed;
 
   const clickEvent = await getClickEvent(clickId);
 

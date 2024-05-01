@@ -4,7 +4,7 @@ import { getSearchParams } from "@dub/utils";
 import { ratelimit } from "../upstash";
 import { Session, getSession, hashToken } from "./utils";
 
-interface WithSessionHandler {
+export interface WithSessionHandler {
   ({
     req,
     params,
