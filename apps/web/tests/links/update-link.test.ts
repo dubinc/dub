@@ -87,42 +87,6 @@ describe.sequential("PATCH /links/{linkId}", async () => {
     });
   });
 
-  // Update the link using externalId
-  test("update link using externalId", async () => {
-    const { status, data: updatedLink } = await http.patch<Link>({
-      path: `/links/ext_${externalId}`,
-      query: { workspaceId },
-      body: {
-        url: "https://github.com/dubinc",
-      },
-    });
-
-    expect(status).toEqual(200);
-    expect(updatedLink).toStrictEqual({
-      ...expectedLink,
-      ...toUpdate,
-      domain,
-      workspaceId,
-      externalId,
-      archived: false,
-      userId: user.id,
-      url: "https://github.com/dubinc",
-      expiresAt: "2030-04-16T17:00:00.000Z",
-      projectId: workspaceId.replace("ws_", ""),
-      shortLink: `https://${domain}/${toUpdate.key}`,
-      qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
-      tags: [],
-    });
-
-    // Fetch the link
-    const { data: linkUpdated } = await http.get<Link>({
-      path: `/links/ext_${externalId}`,
-      query: { workspaceId },
-    });
-
-    expect(linkUpdated.url).toEqual("https://github.com/dubinc");
-  });
-
   // Archive the link
   test("archive link", async () => {
     const { status, data: updatedLink } = await http.patch<Link>({
@@ -191,6 +155,42 @@ describe.sequential("PATCH /links/{linkId}", async () => {
     });
 
     expect(unarchivedLink.archived).toEqual(false);
+  });
+
+  // Update the link using externalId
+  test("update link using externalId", async () => {
+    const { status, data: updatedLink } = await http.patch<Link>({
+      path: `/links/ext_${externalId}`,
+      query: { workspaceId },
+      body: {
+        url: "https://github.com/dubinc",
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(updatedLink).toStrictEqual({
+      ...expectedLink,
+      ...toUpdate,
+      domain,
+      workspaceId,
+      externalId,
+      archived: false,
+      userId: user.id,
+      url: "https://github.com/dubinc",
+      expiresAt: "2030-04-16T17:00:00.000Z",
+      projectId: workspaceId.replace("ws_", ""),
+      shortLink: `https://${domain}/${toUpdate.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
+      tags: [],
+    });
+
+    // Fetch the link
+    const { data: linkUpdated } = await http.get<Link>({
+      path: `/links/ext_${externalId}`,
+      query: { workspaceId },
+    });
+
+    expect(linkUpdated.url).toEqual("https://github.com/dubinc");
   });
 });
 
