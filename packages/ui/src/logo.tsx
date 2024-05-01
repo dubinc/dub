@@ -3,33 +3,19 @@ import { cn } from "@dub/utils";
 export function Logo({ className }: { className?: string }) {
   return (
     <svg
-      width="191"
-      height="191"
-      viewBox="0 0 191 191"
+      width="64"
+      height="64"
+      viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("h-10 w-10 text-black dark:text-white", className)}
     >
-      <g clipPath="url(#clip0_1301_107)">
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M122 -14H144 9.17859 129.788 5.96937 122 3.72462V-14ZM122 3.72462C113.586 1.29941 104.695 0 95.5 0C42.7568 0 0 42.7568 0 95.5C0 148.243 42.7568 191 95.5 191C148.243 191 191 148.243 191 95.5C191 60.462 172.131 29.8311 144 13.2146V100V148H122V140.897C114.258 146.018 104.977 149 95 149C67.938 149 46 127.062 46 100C46 72.938 67.938 51 95 51C104.977 51 114.258 53.982 122 59.1034V3.72462Z"
-          fill="currentColor"
-          shapeRendering="geometricPrecision"
-        />
-      </g>
-      <defs>
-        <clipPath id="clip0_1301_107">
-          <rect
-            width="191"
-            height="191"
-            rx="95.5"
-            className="text-white dark:text-black"
-            fill="currentColor"
-          />
-        </clipPath>
-      </defs>
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M32 64C49.6731 64 64 49.6731 64 32C64 20.1555 57.5648 9.81398 48 4.28103V31.9999V47.9999H40V45.8594C37.6466 47.2208 34.9143 47.9999 32 47.9999C23.1634 47.9999 16 40.8365 16 31.9999C16 23.1634 23.1634 15.9999 32 15.9999C34.9143 15.9999 37.6466 16.7791 40 18.1404V1.00814C37.443 0.350024 34.7624 0 32 0C14.3269 0 0 14.3269 0 32C0 49.6731 14.3269 64 32 64Z"
+        fill="currentColor"
+      />
     </svg>
   );
 }

@@ -74,7 +74,7 @@ export function Nav({ theme = "light" }: { theme?: Theme }) {
         ></div>
         <MaxWidthWrapper className="relative">
           <div className="flex h-14 items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-12">
               <Link
                 href={domain === "dub.co" ? "/" : `https://dub.co`}
                 {...(domain !== "dub.co" && {
