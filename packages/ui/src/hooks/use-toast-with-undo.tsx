@@ -34,7 +34,7 @@ function ToastWithUndo({
         <p className="font-medium">{message}</p>
       </div>
       <button
-        className="rounded border border-black bg-black px-2 py-1 text-xs font-normal text-white transition-all duration-75 active:scale-95"
+        className="whitespace-nowrap rounded border border-black bg-black px-2 py-1 text-xs font-normal text-white transition-all duration-75 active:scale-95"
         onClick={undoAndDismiss}
       >
         Undo
