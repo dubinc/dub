@@ -61,13 +61,16 @@ export function Nav({ theme = "light" }: { theme?: Theme }) {
         )}
       >
         <div
-          className={cn("-z-1 absolute inset-0 transition-all dark:bg-black", {
-            "border-b border-gray-200 bg-white/75 backdrop-blur-lg dark:border-white/10 dark:bg-black/75":
-              scrolled,
-            "border-b border-gray-200 bg-white dark:border-white/10 dark:bg-black":
-              selectedLayout &&
-              HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout),
-          })}
+          className={cn(
+            "-z-1 absolute inset-0 border-transparent transition-all dark:bg-black",
+            {
+              "border-b border-gray-200 bg-white/75 backdrop-blur-lg dark:border-white/10 dark:bg-black/75":
+                scrolled,
+              "border-b border-gray-200 bg-white dark:border-white/10 dark:bg-black":
+                selectedLayout &&
+                HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout),
+            },
+          )}
         ></div>
         <MaxWidthWrapper className="relative">
           <div className="flex h-14 items-center justify-between">
