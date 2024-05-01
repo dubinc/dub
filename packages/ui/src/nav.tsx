@@ -64,7 +64,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
       >
         <div
           className={cn(
-            "-z-1 absolute inset-0 border-transparent transition-all dark:bg-black",
+            "-z-1 absolute inset-0 border-transparent transition-all",
             {
               "border-b border-gray-200 bg-white/75 backdrop-blur-lg dark:border-white/10 dark:bg-black/75":
                 scrolled,
