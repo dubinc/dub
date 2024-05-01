@@ -7,7 +7,7 @@ import { SHORT_DOMAIN, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { combineTagIds, transformLink } from "./utils";
 
-export async function editLink({
+export async function updateLink({
   oldDomain = SHORT_DOMAIN,
   oldKey,
   updatedLink,
