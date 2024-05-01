@@ -1,7 +1,7 @@
 ---
 title: "Get"
 "og:title": "dub.links.get - Retrieve a link - TypeScript SDK"
-description: "Retrieve the info for a link from their domain and key."
+description: "Retrieve info for a link by specifying either the domain and key or the linkId or externalId"
 ---
 
 import LinkResponse from "/snippets/link-response.mdx";
@@ -17,6 +17,15 @@ import LinkResponse from "/snippets/link-response.mdx";
   The key of the link to retrieve. E.g. for `d.to/github`, the key is `github`.
 </ParamField>
 
+<ParamField body="linkId" type="string">
+  The unique ID of the short link.
+</ParamField>
+
+<ParamField body="externalId" type="string">
+  This is the ID of the link in the your database. Must be prefixed with `ext_`.
+  when provided.
+</ParamField>
+
 ## Response
 
 <LinkResponse />
@@ -24,9 +33,20 @@ import LinkResponse from "/snippets/link-response.mdx";
 <RequestExample>
 
 ```ts
+// Retrieve a link by domain and key
 await dub.links.get({
   domain: "dub.sh",
   key: "e7qzMuI",
+});
+
+// Retrieve a link by linkId
+await dub.links.get({
+  linkId: "clv3o9p9q000au1h0mc7r6l63",
+});
+
+// Retrieve a link by externalId
+await dub.links.get({
+  externalId: "ext_123",
 });
 ```
 
