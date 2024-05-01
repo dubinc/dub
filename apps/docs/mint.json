@@ -79,7 +79,7 @@
       "pages": [
         "api-reference/endpoint/create-a-new-link",
         "api-reference/endpoint/retrieve-a-link",
-        "api-reference/endpoint/edit-a-link",
+        "api-reference/endpoint/update-a-link",
         "api-reference/endpoint/delete-a-link",
         "api-reference/endpoint/retrieve-a-list-of-links",
         "api-reference/endpoint/retrieve-number-of-links",
@@ -117,7 +117,7 @@
       "group": "Domains",
       "pages": [
         "api-reference/endpoint/add-a-domain",
-        "api-reference/endpoint/edit-a-domain",
+        "api-reference/endpoint/updatae-a-domain",
         "api-reference/endpoint/delete-a-domain",
         "api-reference/endpoint/retrieve-a-list-of-domains",
         "api-reference/endpoint/set-a-primary-domain",
@@ -232,6 +232,14 @@
     {
       "source": "/api-reference/endpoint/retrieve-a-list-of-projects",
       "destination": "/api-reference/endpoint/retrieve-a-list-of-workspaces"
+    },
+    {
+      "source": "/api-reference/endpoint/edit-a-link",
+      "destination": "/api-reference/endpoint/update-a-link"
+    },
+    {
+      "source": "/api-reference/endpoint/edit-a-domain",
+      "destination": "/api-reference/endpoint/update-a-domain"
     }
   ]
 }

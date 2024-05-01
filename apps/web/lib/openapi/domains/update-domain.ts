@@ -3,12 +3,12 @@ import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
-export const editDomain: ZodOpenApiOperationObject = {
-  operationId: "editDomain",
+export const updateDomain: ZodOpenApiOperationObject = {
+  operationId: "updateDomain",
   "x-speakeasy-name-override": "update",
   "x-speakeasy-max-method-params": 2,
-  summary: "Edit a domain",
-  description: "Edit a domain for the authenticated workspace.",
+  summary: "Update a domain",
+  description: "Update a domain for the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema,
     path: DomainSchema.pick({ slug: true }),
