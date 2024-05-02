@@ -44,6 +44,9 @@ export const navItems = [
 
 export function Nav({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
+  const createHref = (href: string) =>
+    domain === "dub.co" ? href : `https://dub.co${href}`;
+
   const scrolled = useScroll(80);
   const selectedLayout = useSelectedLayoutSegment();
   const { data: session, isLoading } = useSWR(
@@ -78,7 +81,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
           <div className="flex h-14 items-center justify-between">
             <div className="flex items-center space-x-12">
               <Link
-                href={domain === "dub.co" ? "/" : `https://dub.co`}
+                href={createHref("/")}
                 {...(domain !== "dub.co" && {
                   onClick: () => {
                     va.track("Referred from custom domain", {
@@ -117,11 +120,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                           ({ slug, icon: Icon, title, shortTitle }) => (
                             <Link
                               key={slug}
-                              href={
-                                domain === "dub.co"
-                                  ? `/${slug}`
-                                  : `https://dub.co/${slug}`
-                              }
+                              href={createHref(`/${slug}`)}
                               {...(domain !== "dub.co" && {
                                 onClick: () => {
                                   va.track("Referred from custom domain", {
@@ -153,11 +152,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                       <Link
                         id={`nav-${slug}`}
                         key={slug}
-                        href={
-                          domain === "dub.co"
-                            ? `/${slug}`
-                            : `https://dub.co/${slug}`
-                        }
+                        href={createHref(`/${slug}`)}
                         {...(domain !== "dub.co" && {
                           onClick: () => {
                             va.track("Referred from custom domain", {
