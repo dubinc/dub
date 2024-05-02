@@ -213,7 +213,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                         });
                       },
                     })}
-                    className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black dark:border-white dark:bg-white dark:text-black dark:hover:bg-black dark:hover:text-white"
+                    className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-gray-800 hover:ring-4 hover:ring-gray-200 dark:border-white dark:bg-white dark:text-black dark:hover:bg-gray-100"
                   >
                     Sign Up
                   </Link>
