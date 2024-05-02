@@ -607,7 +607,7 @@ function AddEditLinkModal({
                     id={`key-${randomIdx}`}
                     required
                     // allow letters, numbers, '-', '/' and emojis
-                    pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
+                    pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}\/🗺️]+"
                     onInvalid={(e) => {
                       e.currentTarget.setCustomValidity(
                         "Only letters, numbers, '-', '/', and emojis are allowed.",
