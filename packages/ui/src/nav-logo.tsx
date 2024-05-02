@@ -3,6 +3,7 @@
 import { cn } from "@dub/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { BoxSelect, Home, LayoutGrid, Type } from "lucide-react";
+import { useParams } from "next/navigation";
 import { MouseEvent, useCallback, useContext, useState } from "react";
 import { toast } from "sonner";
 import { Button, ButtonProps } from "./button";
@@ -35,13 +36,15 @@ async function copy(text: string) {
  */
 export function NavLogo({
   variant = "full",
-  isInApp = true,
+  isInApp,
   className,
 }: {
   variant?: "full" | "symbol";
   isInApp?: boolean;
   className?: string;
 }) {
+  const { domain = "dub.co" } = useParams() as { domain: string };
+
   const { theme } = useContext(NavContext);
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -80,7 +83,7 @@ export function NavLogo({
             setIsPopoverOpen(false);
           }}
         >
-          <div className="grid gap-1 rounded-lg border border-gray-200 bg-white p-2 drop-shadow-sm dark:border-white/[0.15] dark:bg-black sm:min-w-[240px]">
+          <div className="grid gap-1 rounded-lg border border-gray-200 bg-white p-2 drop-shadow-sm sm:min-w-[240px] dark:border-white/[0.15] dark:bg-black">
             <ContextMenuButton
               text="Copy Logo as SVG"
               variant="outline"
@@ -99,7 +102,8 @@ export function NavLogo({
               onClick={() => window.open("https://dub.co/brand", "_blank")}
               icon={<BoxSelect strokeWidth={2} className="h-4 w-4" />}
             />
-            {isInApp ? (
+            {/* If it's in the app or it's a domain placeholder page (not dub.co homepage), show the home button */}
+            {isInApp || domain != "dub.co" ? (
               <ContextMenuButton
                 text="Home Page"
                 variant="outline"
