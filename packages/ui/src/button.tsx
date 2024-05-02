@@ -68,7 +68,7 @@ export function Button({
         props.disabled || loading
           ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
           : {
-              "border-black bg-black text-white hover:bg-white hover:text-black":
+              "border-black bg-black text-white hover:bg-gray-800 hover:ring-4 hover:ring-gray-200":
                 variant === "primary",
               "border-gray-200 bg-white text-gray-600 hover:bg-gray-100":
                 variant === "secondary",
