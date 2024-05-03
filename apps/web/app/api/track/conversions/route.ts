@@ -14,7 +14,6 @@ export const POST = withSessionEdge(async ({ req }) => {
 
   waitUntil(async () => {
     const clickEvent = await getClickEvent(clickId);
-    console.log("click event", clickEvent);
 
     if (!clickEvent) {
       return;
