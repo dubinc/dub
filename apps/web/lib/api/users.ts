@@ -1,4 +1,5 @@
-import { Session, hashToken } from "@/lib/auth";
+import { Session } from "@/lib/auth";
+import { hashToken } from "@/lib/auth/hash";
 import prisma from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";

@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { hashToken } from "@/lib/auth/hash";
 import prisma from "@/lib/prisma";
 import {
   API_DOMAIN,
@@ -10,7 +11,7 @@ import { Link as LinkProps } from "@prisma/client";
 import { exceededLimitError } from "../api/errors";
 import { PlanProps, WorkspaceProps } from "../types";
 import { ratelimit } from "../upstash";
-import { Session, getSession, hashToken } from "./utils";
+import { Session, getSession } from "./utils";
 
 interface WithWorkspaceHandler {
   ({
