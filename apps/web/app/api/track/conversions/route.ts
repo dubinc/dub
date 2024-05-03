@@ -1,5 +1,5 @@
 import { parseRequestBody } from "@/lib/api/utils";
-import { withSessionEdge } from "@/lib/auth/edge";
+import { withSessionEdge } from "@/lib/auth/session-edge";
 import { getClickEvent, recordConversion } from "@/lib/tinybird";
 import { conversionRequestSchema } from "@/lib/zod/schemas/conversions";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";

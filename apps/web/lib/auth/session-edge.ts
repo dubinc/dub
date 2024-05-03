@@ -1,6 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { hashToken } from "@/lib/auth/hash";
+import { hashToken } from "@/lib/auth";
 import { getSearchParams } from "@dub/utils";
+import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 import { getToken, updateTokenLastUsed } from "../planetscale";
 import { ratelimit } from "../upstash";
 import { WithSessionHandler } from "./session";
@@ -31,7 +32,7 @@ export const withSessionEdge =
       }
 
       const apiKey = authorizationHeader.replace("Bearer ", "");
-      const hashedKey = await hashToken(apiKey, { noSecret: true });
+      const hashedKey = await hashToken(apiKey);
       const user = await getToken(hashedKey);
 
       if (!user) {
@@ -62,7 +63,7 @@ export const withSessionEdge =
       }
 
       // Update token last used
-      await updateTokenLastUsed(hashedKey);
+      waitUntil(() => updateTokenLastUsed(hashedKey));
 
       const session = {
         user: {

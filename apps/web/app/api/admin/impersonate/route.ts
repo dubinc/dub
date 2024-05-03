@@ -1,5 +1,4 @@
-import { withAdmin } from "@/lib/auth";
-import { hashToken } from "@/lib/auth/hash";
+import { hashToken, withAdmin } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { randomBytes } from "crypto";

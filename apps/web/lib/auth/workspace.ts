@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { hashToken } from "@/lib/auth/hash";
+import { hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   API_DOMAIN,
@@ -132,9 +132,7 @@ export const withWorkspace = (
       }
 
       if (apiKey) {
-        const hashedKey = await hashToken(apiKey, {
-          noSecret: true,
-        });
+        const hashedKey = await hashToken(apiKey);
 
         const user = await prisma.user.findFirst({
           where: {

@@ -1,5 +1,4 @@
-import { Session } from "@/lib/auth";
-import { hashToken } from "@/lib/auth/hash";
+import { Session, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
@@ -44,7 +43,7 @@ export async function inviteUser({
   await prisma.verificationToken.create({
     data: {
       identifier: email,
-      token: await hashToken(token),
+      token: await hashToken(token, { secret: true }),
       expires,
     },
   });
