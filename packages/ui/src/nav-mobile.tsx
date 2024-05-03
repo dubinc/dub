@@ -7,9 +7,9 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
-import { navItems } from "./nav";
+import { navItems, type NavTheme } from "./nav";
 
-export function NavMobile() {
+export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
   const [open, setOpen] = useState(false);
   const [openFeatures, setOpenFeatures] = useState(false);
@@ -31,27 +31,27 @@ export function NavMobile() {
   );
 
   return (
-    <>
+    <div className={cn(theme === "dark" && "dark")}>
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden",
+          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden dark:hover:bg-white/20 dark:active:bg-white/30",
           open && "hover:bg-gray-100 active:bg-gray-200",
         )}
       >
         {open ? (
-          <X className="h-5 w-5 text-gray-600" />
+          <X className="h-5 w-5 text-gray-600 dark:text-white/70" />
         ) : (
-          <Menu className="h-5 w-5 text-gray-600" />
+          <Menu className="h-5 w-5 text-gray-600 dark:text-white/70" />
         )}
       </button>
       <nav
         className={cn(
-          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 lg:hidden",
+          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/70",
           open && "block",
         )}
       >
-        <ul className="grid divide-y divide-gray-200">
+        <ul className="grid divide-y divide-gray-200 dark:divide-white/[0.15]">
           <li className="py-3">
             <button
               className="flex w-full justify-between"
@@ -60,7 +60,7 @@ export function NavMobile() {
               <p className="font-semibold">Features</p>
               <ChevronDown
                 className={cn(
-                  "h-5 w-5 text-gray-500 transition-all",
+                  "h-5 w-5 text-gray-500 transition-all dark:text-white/50",
                   openFeatures && "rotate-180",
                 )}
               />
@@ -78,7 +78,7 @@ export function NavMobile() {
                     onClick={() => setOpen(false)}
                     className="flex w-full space-x-2"
                   >
-                    <Icon className="h-5 w-5 text-gray-500" />
+                    <Icon className="h-5 w-5 text-gray-500 dark:text-white/80" />
                     <span className="text-sm">{shortTitle}</span>
                   </Link>
                 ))}
@@ -131,6 +131,6 @@ export function NavMobile() {
           )}
         </ul>
       </nav>
-    </>
+    </div>
   );
 }

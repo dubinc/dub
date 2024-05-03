@@ -138,6 +138,7 @@ export const DUB_DOMAINS = [
             "amazon.co.uk",
             "amazon.ca",
             "amazon.es",
+            "amazon.fr",
           ],
           projectId: DUB_WORKSPACE_ID,
         },

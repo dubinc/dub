@@ -1,17 +1,1 @@
-<svg width="191" height="191" viewBox="0 0 191 191" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_36_30)">
-<path d="M191 95.5C191 148.243 148.243 191 95.5 191C42.7568 191 0 148.243 0 95.5C0 42.7568 42.7568 0 95.5 0C148.243 0 191 42.7568 191 95.5Z" fill="black"/>
-<mask id="mask0_36_30" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="191" height="191">
-<path d="M191 95.5C191 148.243 148.243 191 95.5 191C42.7568 191 0 148.243 0 95.5C0 42.7568 42.7568 0 95.5 0C148.243 0 191 42.7568 191 95.5Z" fill="black"/>
-</mask>
-<g mask="url(#mask0_36_30)">
-<circle cx="95" cy="100" r="49" fill="white"/>
-<path d="M122 -14H144V148H122V-14Z" fill="white"/>
-</g>
-</g>
-<defs>
-<clipPath id="clip0_36_30">
-<rect width="191" height="191" fill="white"/>
-</clipPath>
-</defs>
-</svg>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M32 64c17.673 0 32-14.327 32-32 0-11.844-6.435-22.186-16-27.719V48h-8v-2.14A15.9 15.9 0 0 1 32 48c-8.837 0-16-7.163-16-16s7.163-16 16-16c2.914 0 5.647.78 8 2.14V1.008A32 32 0 0 0 32 0C14.327 0 0 14.327 0 32s14.327 32 32 32" fill="#000"/></svg>
