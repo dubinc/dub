@@ -8,11 +8,9 @@ import {
 import { ipAddress } from "@vercel/edge";
 import { nanoid } from "ai";
 import { NextRequest, userAgent } from "next/server";
-import { detectBot, detectQr, getIdentityHash } from "./middleware/utils";
-import { conn } from "./planetscale";
-import { LinkProps } from "./types";
-import { ratelimit } from "./upstash";
-import { ConversionEvent, clickEventSchemaTB } from "./zod/schemas/conversions";
+import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
+import { conn } from "../planetscale";
+import { ratelimit } from "../upstash";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -126,79 +124,4 @@ export async function recordClick({
           ),
         ],
   ]);
-}
-
-export async function recordLink({
-  link,
-  deleted,
-}: {
-  link: Partial<LinkProps> & {
-    tags?: { tagId: string }[];
-  };
-  deleted?: boolean;
-}) {
-  return await fetch(
-    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_links_metadata&wait=true`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-      body: JSON.stringify({
-        timestamp: new Date(Date.now()).toISOString(),
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tagIds: link.tags?.map(({ tagId }) => tagId) || [],
-        project_id: link.projectId || "",
-        deleted: deleted ? 1 : 0,
-      }),
-    },
-  ).then((res) => res.json());
-}
-
-export async function getClickEvent(clickId: string) {
-  const url = new URL(
-    `${process.env.TINYBIRD_API_URL}/v0/pipes/click_by_id.json`,
-  );
-
-  url.searchParams.append("clickId", clickId);
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-    },
-  });
-
-  if (!response.ok) {
-    console.error("Error fetching click event from Tinybird", response);
-    return null;
-  }
-
-  const { rows, data } = await response.json();
-
-  if (rows === 0) {
-    console.error("No click event found in Tinybird", clickId);
-    return null;
-  }
-
-  return clickEventSchemaTB.parse(data[0]);
-}
-
-// Record conversion event in Tinybird
-export async function recordConversion(event: ConversionEvent) {
-  return await fetch(
-    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_conversion_events&wait=true`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-      body: JSON.stringify({
-        ...event,
-        timestamp: new Date(Date.now()).toISOString(),
-      }),
-    },
-  );
 }
