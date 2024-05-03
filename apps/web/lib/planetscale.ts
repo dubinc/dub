@@ -1,5 +1,6 @@
 import { nanoid, punyEncode } from "@dub/utils";
 import { connect } from "@planetscale/database";
+import { User } from "@prisma/client";
 import { DomainProps, WorkspaceProps } from "./types";
 
 export const DATABASE_URL =
@@ -139,3 +140,20 @@ export async function getRandomKey({
     return key;
   }
 }
+
+export const getToken = async (hashedKey: string) => {
+  const { rows } = await conn.execute<User>(
+    // "SELECT User.id, User.name, User.email FROM Token JOIN User ON Token.userId = User.id WHERE hashedKey = ? LIMIT 1",
+    "SELECT * FROM User WHERE User.ID IN (SELECT userId FROM Token WHERE hashedKey = ? AND userId IS NOT NULL) LIMIT 1",
+    [hashedKey],
+  );
+
+  return rows.length > 0 ? rows[0] : null;
+};
+
+export const updateTokenLastUsed = async (hashedKey: string) => {
+  return await conn.execute(
+    "UPDATE Token SET lastUsed = NOW() WHERE hashedKey = ?",
+    [hashedKey],
+  );
+};

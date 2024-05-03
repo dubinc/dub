@@ -1,9 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import prisma from "@/lib/prisma";
+import { hashToken } from "@/lib/auth/hash";
 import { getSearchParams } from "@dub/utils";
+import { getToken, updateTokenLastUsed } from "../planetscale";
 import { ratelimit } from "../upstash";
 import { WithSessionHandler } from "./session";
-import { hashToken } from "./utils";
 
 export const withSessionEdge =
   (handler: WithSessionHandler) =>
@@ -31,25 +31,8 @@ export const withSessionEdge =
       }
 
       const apiKey = authorizationHeader.replace("Bearer ", "");
-      const hashedKey = hashToken(apiKey, {
-        noSecret: true,
-      });
-
-      // Find user by token
-      const user = await prisma.user.findFirst({
-        where: {
-          tokens: {
-            some: {
-              hashedKey,
-            },
-          },
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      });
+      const hashedKey = await hashToken(apiKey, { noSecret: true });
+      const user = await getToken(hashedKey);
 
       if (!user) {
         throw new DubApiError({
@@ -79,14 +62,7 @@ export const withSessionEdge =
       }
 
       // Update token last used
-      await prisma.token.update({
-        where: {
-          hashedKey,
-        },
-        data: {
-          lastUsed: new Date(),
-        },
-      });
+      await updateTokenLastUsed(hashedKey);
 
       const session = {
         user: {

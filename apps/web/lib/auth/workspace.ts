@@ -132,7 +132,7 @@ export const withWorkspace = (
       }
 
       if (apiKey) {
-        const hashedKey = hashToken(apiKey, {
+        const hashedKey = await hashToken(apiKey, {
           noSecret: true,
         });
 

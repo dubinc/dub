@@ -37,7 +37,7 @@ export const withSession =
         }
         const apiKey = authorizationHeader.replace("Bearer ", "");
 
-        const hashedKey = hashToken(apiKey, {
+        const hashedKey = await hashToken(apiKey, {
           noSecret: true,
         });
 
