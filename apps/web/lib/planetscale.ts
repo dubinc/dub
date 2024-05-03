@@ -143,7 +143,6 @@ export async function getRandomKey({
 
 export const getToken = async (hashedKey: string) => {
   const { rows } = await conn.execute<User>(
-    // "SELECT User.id, User.name, User.email FROM Token JOIN User ON Token.userId = User.id WHERE hashedKey = ? LIMIT 1",
     "SELECT * FROM User WHERE User.ID IN (SELECT userId FROM Token WHERE hashedKey = ? AND userId IS NOT NULL) LIMIT 1",
     [hashedKey],
   );
