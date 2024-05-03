@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <div className="flex h-16 items-center justify-between">
               <div className="flex items-center">
                 <Link href="/" className="hidden sm:block">
-                  <NavLogo variant="symbol" />
+                  <NavLogo variant="symbol" isInApp />
                 </Link>
                 <Divider className="hidden h-8 w-8 text-gray-200 sm:ml-3 sm:block" />
                 <WorkspaceSwitcher />
