@@ -42,7 +42,7 @@ export default function BarChart() {
 
   const [CHART_WIDTH, CHART_HEIGHT] = useMemo(() => {
     const width = screenWidth
-      ? Math.min(screenWidth * 0.8, CHART_MAX_WIDTH)
+      ? Math.min(screenWidth * 0.5, CHART_MAX_WIDTH)
       : CHART_MAX_WIDTH;
     const height = screenWidth
       ? Math.min(screenWidth * 0.5, CHART_MAX_HEIGHT)
