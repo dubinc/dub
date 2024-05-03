@@ -26,7 +26,7 @@ export default function LinkSort() {
   const { queryParams } = useRouterStuff();
 
   const selectedSort = useMemo(() => {
-    return sortOptions.find((s) => s.slug === sort) || sortOptions[0];
+    return sortOptions.find((s) => s.slug === sort) || sortOptions[1];
   }, [sort]);
 
   return (
