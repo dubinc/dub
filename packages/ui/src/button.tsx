@@ -68,7 +68,7 @@ export function Button({
         props.disabled || loading
           ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
           : {
-              "border-black bg-black text-white hover:bg-white hover:text-black":
+              "border-black bg-black text-white hover:bg-gray-800 hover:ring-4 hover:ring-gray-200":
                 variant === "primary",
               "border-gray-200 bg-white text-gray-600 hover:bg-gray-100":
                 variant === "secondary",
@@ -76,7 +76,7 @@ export function Button({
                 variant === "outline",
               "border-blue-500 bg-blue-500 text-white hover:bg-white hover:text-blue-500":
                 variant === "success",
-              "border-red-500 bg-red-500 text-white hover:bg-white hover:text-red-500":
+              "border-red-500 bg-red-500 text-white hover:bg-red-600 hover:ring-4 hover:ring-red-100":
                 variant === "danger",
               "border-transparent bg-white text-red-500 hover:bg-red-600 hover:text-white":
                 variant === "danger-outline",
@@ -93,13 +93,12 @@ export function Button({
           className={cn(
             "hidden rounded px-2 py-0.5 text-xs font-light transition-all duration-75 md:inline-block",
             {
-              "bg-gray-700 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-500":
+              "bg-gray-700 text-gray-400 group-hover:text-gray-300":
                 variant === "primary",
-              "bg-gray-200 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-500":
+              "bg-gray-200 text-gray-400 group-hover:text-gray-300":
                 variant === "secondary",
-              "bg-gray-100 text-gray-500 group-hover:bg-gray-200":
-                variant === "outline",
-              "bg-red-100 text-red-600 group-hover:bg-red-500 group-hover:text-white":
+              "bg-gray-100 text-gray-50": variant === "outline",
+              "bg-red-100 text-red-600 group-hover:text-red-400":
                 variant === "danger-outline",
             },
           )}

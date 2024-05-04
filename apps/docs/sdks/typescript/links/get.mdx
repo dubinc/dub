@@ -8,12 +8,12 @@ import LinkResponse from "/snippets/link-response.mdx";
 
 ## Arguments
 
-<ParamField body="domain" type="string" required>
+<ParamField body="domain" type="string">
   The domain of the link to retrieve. E.g. for `d.to/github`, the domain is
   `d.to`.
 </ParamField>
 
-<ParamField body="key" type="string" required>
+<ParamField body="key" type="string">
   The key of the link to retrieve. E.g. for `d.to/github`, the key is `github`.
 </ParamField>
 
@@ -22,7 +22,7 @@ import LinkResponse from "/snippets/link-response.mdx";
 </ParamField>
 
 <ParamField body="externalId" type="string">
-  This is the ID of the link in the your database. Must be prefixed with `ext_`.
+  This is the ID of the link in the your database. Must be prefixed with `ext_`
   when provided.
 </ParamField>
 
@@ -59,6 +59,7 @@ await dub.links.get({
   id: 'clv3o9p9q000au1h0mc7r6l63',
   domain: 'dub.sh',
   key: 'e7qzMuI',
+  externalId: "123",
   url: 'https://www.google.com',
   archived: false,
   expiresAt: null,

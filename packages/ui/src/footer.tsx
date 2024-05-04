@@ -8,8 +8,9 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
-import { Github, LinkedIn, LogoType, Twitter, YouTube } from "./icons";
+import { Github, LinkedIn, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
+import { NavLogo } from "./nav-logo";
 
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
@@ -18,10 +19,11 @@ const navigation = {
   })),
   product: [
     { name: "Blog", href: "/blog" },
+    { name: "Brand", href: "/brand" },
     { name: "Changelog", href: "/changelog" },
     { name: "Customers", href: "/customers" },
-    { name: "Pricing", href: "/pricing" },
     { name: "Enterprise", href: "/enterprise" },
+    { name: "Pricing", href: "/pricing" },
     { name: "Help Center", href: "/help" },
   ],
   compare: COMPARE_PAGES.map(({ name, slug }) => ({
@@ -56,15 +58,16 @@ export function Footer() {
                 onClick: () => {
                   va.track("Referred from custom domain", {
                     domain,
-                    medium: `footer item (logo)`,
+                    medium: "footer item (logo)",
                   });
                 },
               })}
+              className="block max-w-fit"
             >
               <span className="sr-only">
                 {process.env.NEXT_PUBLIC_APP_NAME} Logo
               </span>
-              <LogoType className="h-7 text-gray-800" />
+              <NavLogo className="h-8 text-gray-800" />
             </Link>
             <p className="max-w-xs text-sm text-gray-500">
               Giving modern marketing teams superpowers with short links that
