@@ -138,6 +138,8 @@ export const createLinkBodySchema = z.object({
     .string()
     .min(1)
     .max(255)
+    // remove `ext_` prefix if user passes it
+    .transform((v) => (v?.startsWith("ext_") ? v.slice(4) : v))
     .nullish()
     .describe(
       "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with `ext_` when passed as a query parameter.",
@@ -418,7 +420,7 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .string()
       .optional()
       .describe(
-        "This is the ID of the link in the your database. Must be prefixed with `ext_`. when provided.",
+        "This is the ID of the link in the your database. Must be prefixed with `ext_` when passed as a query parameter.",
       )
       .openapi({ example: "ext_123456" }),
   }),
