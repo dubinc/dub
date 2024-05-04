@@ -78,9 +78,22 @@ export const POST = withWorkspace(
       });
     }
 
-    const response = await createLink(link);
+    try {
+      const response = await createLink(link);
+      return NextResponse.json(response, { headers });
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "A link with this externalId already exists.",
+        });
+      }
 
-    return NextResponse.json(response, { headers });
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: error.message,
+      });
+    }
   },
   {
     needNotExceededLinks: true,
