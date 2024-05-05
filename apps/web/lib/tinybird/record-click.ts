@@ -4,26 +4,27 @@ import {
   LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
-  nanoid,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
+import { nanoid } from "ai";
 import { NextRequest, userAgent } from "next/server";
-import { detectBot, detectQr, getIdentityHash } from "./middleware/utils";
-import { conn } from "./planetscale";
-import { LinkProps } from "./types";
-import { ratelimit } from "./upstash";
+import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
+import { conn } from "../planetscale";
+import { ratelimit } from "../upstash";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
  **/
 export async function recordClick({
   req,
-  id,
+  linkId,
+  clickId,
   url,
   root,
 }: {
   req: NextRequest;
-  id: string;
+  linkId: string;
+  clickId?: string;
   url?: string;
   root?: boolean;
 }) {
@@ -40,7 +41,7 @@ export async function recordClick({
   // if in production / preview env, deduplicate clicks from the same IP address + link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${ip}:${id}`,
+      `recordClick:${ip}:${linkId}`,
     );
     if (!success) {
       return null;
@@ -58,8 +59,8 @@ export async function recordClick({
         body: JSON.stringify({
           timestamp: new Date(Date.now()).toISOString(),
           identity_hash,
-          click_id: nanoid(16),
-          link_id: id,
+          click_id: clickId || nanoid(16),
+          link_id: linkId,
           alias_link_id: "",
           url: url || "",
           ip:
@@ -103,54 +104,24 @@ export async function recordClick({
       ? [
           conn.execute(
             "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-            [id],
+            [linkId],
           ),
           // only increment workspace clicks if there is a destination URL configured (not placeholder landing page)
           url &&
             conn.execute(
               "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.id = ?",
-              [id],
+              [linkId],
             ),
         ]
       : [
           conn.execute(
             "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-            [id],
+            [linkId],
           ),
           conn.execute(
             "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
-            [id],
+            [linkId],
           ),
         ],
   ]);
-}
-
-export async function recordLink({
-  link,
-  deleted,
-}: {
-  link: Partial<LinkProps> & {
-    tags?: { tagId: string }[];
-  };
-  deleted?: boolean;
-}) {
-  return await fetch(
-    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_links_metadata&wait=true`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-      body: JSON.stringify({
-        timestamp: new Date(Date.now()).toISOString(),
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tagIds: link.tags?.map(({ tagId }) => tagId) || [],
-        project_id: link.projectId || "",
-        deleted: deleted ? 1 : 0,
-      }),
-    },
-  ).then((res) => res.json());
 }

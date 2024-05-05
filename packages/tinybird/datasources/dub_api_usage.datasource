@@ -1,0 +1,11 @@
+
+SCHEMA >
+  `timestamp`     DateTime64(3) `json:$.timestamp`,
+  `workspaceId`   String `json:$.workspaceId`,
+  `tokenId`       String `json:$.tokenId`,
+  `endpoint`      String `json:$.endpoint`,
+  `type`          String `json:$.type`,
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "workspaceId,tokenId"
