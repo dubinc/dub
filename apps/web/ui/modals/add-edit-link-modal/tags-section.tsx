@@ -36,6 +36,9 @@ export default function TagsSection({
   } = useWorkspace();
 
   const [suggestedTags, setSuggestedTags] = useState<TagProps[]>([]);
+  const tagMatch = availableTags
+    ?.map(({ name }) => name)
+    .includes(inputValue.trim());
 
   const { complete } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
@@ -168,7 +171,12 @@ export default function TagsSection({
 
   return (
     <div className="border-b border-gray-200 pb-2">
-      <Command ref={commandRef} className="relative" loop>
+      <Command
+        ref={commandRef}
+        className="relative"
+        loop
+        filter={(value, search) => (value.includes(search.trim()) ? 1 : 0)}
+      >
         <div className="group rounded-md border border-gray-300 bg-white p-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
           <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
             {creatingTag ? (
@@ -253,6 +261,22 @@ export default function TagsSection({
                 )}
               </Command.Item>
             ))}
+
+            {inputValue.length > 0 && !tagMatch && (
+              <Command.Item
+                key="create-tag"
+                value={inputValue}
+                onSelect={(tag) => createTag(tag)}
+                className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+              >
+                <div className="flex items-center">
+                  Create tag{" "}
+                  <span className="ml-1.5 rounded-md bg-gray-200 px-2 py-0.5 text-gray-800">
+                    {inputValue}
+                  </span>
+                </div>
+              </Command.Item>
+            )}
           </Command.List>
         )}
       </Command>
