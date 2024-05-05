@@ -43,7 +43,7 @@ export async function inviteUser({
   await prisma.verificationToken.create({
     data: {
       identifier: email,
-      token: hashToken(token),
+      token: await hashToken(token, { secret: true }),
       expires,
     },
   });

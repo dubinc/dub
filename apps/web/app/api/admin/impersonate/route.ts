@@ -90,7 +90,7 @@ async function getImpersonateUrl(email: string) {
   await prisma.verificationToken.create({
     data: {
       identifier: email,
-      token: hashToken(token),
+      token: await hashToken(token),
       expires: new Date(Date.now() + 60000),
     },
   });

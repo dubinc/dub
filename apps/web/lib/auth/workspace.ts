@@ -10,7 +10,8 @@ import { Link as LinkProps } from "@prisma/client";
 import { exceededLimitError } from "../api/errors";
 import { PlanProps, WorkspaceProps } from "../types";
 import { ratelimit } from "../upstash";
-import { Session, getSession, hashToken } from "./utils";
+import { hashToken } from "./hash-token";
+import { Session, getSession } from "./utils";
 
 interface WithWorkspaceHandler {
   ({
@@ -131,9 +132,7 @@ export const withWorkspace = (
       }
 
       if (apiKey) {
-        const hashedKey = hashToken(apiKey, {
-          noSecret: true,
-        });
+        const hashedKey = await hashToken(apiKey);
 
         const user = await prisma.user.findFirst({
           where: {

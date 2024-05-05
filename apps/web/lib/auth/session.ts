@@ -2,7 +2,8 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { getSearchParams } from "@dub/utils";
 import { ratelimit } from "../upstash";
-import { Session, getSession, hashToken } from "./utils";
+import { hashToken } from "./hash-token";
+import { Session, getSession } from "./utils";
 
 interface WithSessionHandler {
   ({
@@ -36,9 +37,7 @@ export const withSession =
         }
         const apiKey = authorizationHeader.replace("Bearer ", "");
 
-        const hashedKey = hashToken(apiKey, {
-          noSecret: true,
-        });
+        const hashedKey = await hashToken(apiKey);
 
         const user = await prisma.user.findFirst({
           where: {
