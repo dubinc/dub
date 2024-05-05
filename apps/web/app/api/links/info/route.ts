@@ -14,12 +14,18 @@ export const GET = withWorkspace(async ({ headers, searchParams, link }) => {
     throw new DubApiError({
       code: "bad_request",
       message:
-        "You must provide a domain and key, or linkId or externalId to retrieve a link.",
+        "You must provide a domain and a key or a linkId or an externalId to retrieve a link.",
       docUrl: "https://dub.co/docs/api-reference/endpoint/retrieve-a-link",
     });
   }
 
   if (!link) {
+    if (externalId && !externalId.startsWith("ext_")) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid externalId. Did you forget to prefix it with `ext_`?",
+      });
+    }
     throw new DubApiError({
       code: "not_found",
       message: "Link not found.",
