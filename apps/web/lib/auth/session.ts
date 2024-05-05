@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getSearchParams } from "@dub/utils";
 import { ratelimit } from "../upstash";
 import { Session, getSession, hashToken } from "./utils";

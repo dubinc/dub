@@ -1,5 +1,5 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import {

@@ -2,7 +2,7 @@ import { deleteWorkspaceAdmin } from "@/lib/api/workspaces";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
 import { unsubscribe } from "@/lib/flodesk";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { get } from "@vercel/edge-config";
 import { NextResponse } from "next/server";

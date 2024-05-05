@@ -6,7 +6,7 @@ import {
   updateLink,
 } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
