@@ -17,14 +17,12 @@ import { ratelimit } from "../upstash";
  **/
 export async function recordClick({
   req,
-  linkId,
-  clickId,
+  id,
   url,
   root,
 }: {
   req: NextRequest;
-  linkId: string;
-  clickId?: string;
+  id: string;
   url?: string;
   root?: boolean;
 }) {
@@ -41,7 +39,7 @@ export async function recordClick({
   // if in production / preview env, deduplicate clicks from the same IP address + link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${ip}:${linkId}`,
+      `recordClick:${ip}:${id}`,
     );
     if (!success) {
       return null;
@@ -59,8 +57,8 @@ export async function recordClick({
         body: JSON.stringify({
           timestamp: new Date(Date.now()).toISOString(),
           identity_hash,
-          click_id: clickId || nanoid(16),
-          link_id: linkId,
+          click_id: nanoid(16),
+          link_id: id,
           alias_link_id: "",
           url: url || "",
           ip:
@@ -104,23 +102,23 @@ export async function recordClick({
       ? [
           conn.execute(
             "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-            [linkId],
+            [id],
           ),
           // only increment workspace clicks if there is a destination URL configured (not placeholder landing page)
           url &&
             conn.execute(
               "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.id = ?",
-              [linkId],
+              [id],
             ),
         ]
       : [
           conn.execute(
             "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-            [linkId],
+            [id],
           ),
           conn.execute(
             "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
-            [linkId],
+            [id],
           ),
         ],
   ]);
