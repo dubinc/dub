@@ -34,12 +34,14 @@ function ImportBitlyModal({
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
-  const { id } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const [redirecting, setRedirecting] = useState(false);
 
   const { data: groups, isLoading } = useSWRImmutable<BitlyGroupProps[]>(
-    id && showImportBitlyModal && `/api/workspaces/${id}/import/bitly`,
+    workspaceId &&
+      showImportBitlyModal &&
+      `/api/workspaces/${workspaceId}/import/bitly`,
     fetcher,
     {
       onError: (err) => {
@@ -62,14 +64,14 @@ function ImportBitlyModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "bitly") {
-      mutate(`/api/workspaces/${id}/import/bitly`);
+      mutate(`/api/workspaces/${workspaceId}/import/bitly`);
       setShowImportBitlyModal(true);
     } else {
       setShowImportBitlyModal(false);
     }
   }, [searchParams]);
 
-  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}&state=${id}`;
+  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}&state=${workspaceId}`;
 
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
@@ -105,7 +107,7 @@ function ImportBitlyModal({
       </div>
 
       <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        {isLoading || !groups ? (
+        {isLoading || !workspaceId ? (
           <button className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
             <p className="text-sm text-gray-500">Connecting to Bitly</p>
@@ -116,7 +118,7 @@ function ImportBitlyModal({
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/workspaces/${id}/import/bitly`, {
+                fetch(`/api/workspaces/${workspaceId}/import/bitly`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -127,7 +129,7 @@ function ImportBitlyModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?workspaceId=${id}`);
+                    await mutate(`/api/domains?workspaceId=${workspaceId}`);
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
