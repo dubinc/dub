@@ -93,12 +93,13 @@ export function Button({
           className={cn(
             "hidden rounded px-2 py-0.5 text-xs font-light transition-all duration-75 md:inline-block",
             {
-              "bg-gray-700 text-gray-400 group-hover:text-gray-300":
+              "bg-gray-700 text-gray-400 group-hover:bg-gray-600 group-hover:text-gray-300":
                 variant === "primary",
-              "bg-gray-200 text-gray-400 group-hover:text-gray-300":
+              "bg-gray-200 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-500":
                 variant === "secondary",
-              "bg-gray-100 text-gray-50": variant === "outline",
-              "bg-red-100 text-red-600 group-hover:text-red-400":
+              "bg-gray-100 text-gray-500 group-hover:bg-gray-200":
+                variant === "outline",
+              "bg-red-100 text-red-600 group-hover:bg-red-500 group-hover:text-white":
                 variant === "danger-outline",
             },
           )}
