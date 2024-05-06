@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -8,7 +8,13 @@ export async function GET(req: Request) {
 
   // get code and workspace id from query params
   const code = searchParams.get("code") as string;
-  const workspaceId = searchParams.get("state") as string;
+  let workspaceId = searchParams.get("state") as string;
+
+  if (!code || !workspaceId) {
+    return NextResponse.redirect(APP_DOMAIN);
+  }
+
+  workspaceId = workspaceId.replace("ws_", "");
 
   // get access token from bitly
   const response = await fetch("https://api-ssl.bitly.com/oauth/access_token", {
@@ -16,7 +22,7 @@ export async function GET(req: Request) {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: `client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&client_secret=${process.env.BITLY_CLIENT_SECRET}&code=${code}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}`,
+    body: `client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&client_secret=${process.env.BITLY_CLIENT_SECRET}&code=${code}&redirect_uri=${APP_DOMAIN_WITH_NGROK}/api/callback/bitly`,
   }).then((r) => r.text());
 
   if (!response || response.includes("error")) {
