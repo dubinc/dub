@@ -2,7 +2,6 @@ import type {
   IConnectionAPIController,
   IDirectorySyncController,
   IOAuthController,
-  ISPSAMLConfig,
   JacksonOption,
 } from "@boxyhq/saml-jackson";
 import jackson from "@boxyhq/saml-jackson";
@@ -34,34 +33,26 @@ const opts: JacksonOption = {
 };
 
 declare global {
-  var connectionController: IConnectionAPIController | undefined;
   var apiController: IConnectionAPIController | undefined;
   var oauthController: IOAuthController | undefined;
-  var samlSPConfig: ISPSAMLConfig | undefined;
   var directorySyncController: IDirectorySyncController | undefined;
 }
 
 export default async function init() {
   if (
-    !globalThis.connectionController ||
     !globalThis.apiController ||
     !globalThis.oauthController ||
-    !globalThis.samlSPConfig ||
     !globalThis.directorySyncController
   ) {
     const ret = await jackson(opts);
-    globalThis.connectionController = ret.connectionAPIController;
     globalThis.apiController = ret.connectionAPIController;
     globalThis.oauthController = ret.oauthController;
-    globalThis.samlSPConfig = ret.spConfig;
     globalThis.directorySyncController = ret.directorySyncController;
   }
 
   return {
-    connectionController: globalThis.connectionController,
     apiController: globalThis.apiController,
     oauthController: globalThis.oauthController,
-    samlSPConfig: globalThis.samlSPConfig,
     directorySyncController: globalThis.directorySyncController,
   };
 }

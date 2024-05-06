@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.4",
-    "@boxyhq/saml-jackson": "^1.14.2",
+    "@boxyhq/saml-jackson": "1.23.6",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
