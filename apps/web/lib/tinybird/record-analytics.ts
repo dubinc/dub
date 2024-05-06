@@ -5,7 +5,7 @@ export async function recordApiUsage({
   workspaceId: string;
 }): Promise<Response> {
   return await fetch(
-    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_conversion_events&wait=true`,
+    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_api_usage&wait=true`,
     {
       method: "POST",
       headers: {
