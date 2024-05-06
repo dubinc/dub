@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { LinkWithTags, transformLink } from "@/lib/api/links";
+import { transformLink } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { getLinkInfoQuerySchema } from "@/lib/zod/schemas";
@@ -32,33 +32,29 @@ export const GET = withWorkspace(async ({ headers, searchParams, link }) => {
     });
   }
 
-  // TODO:
-  // Find a better way, we already have a link object
-  const tagsAndUser = await prisma.link.findUnique({
+  const tags = await prisma.tag.findMany({
     where: {
-      id: link.id,
-    },
-    select: {
-      user: true,
-      tags: {
-        select: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
-          },
+      links: {
+        some: {
+          linkId: link.id,
         },
       },
     },
+    select: {
+      id: true,
+      name: true,
+      color: true,
+    },
   });
 
-  const linkWithTags: LinkWithTags = tagsAndUser
-    ? { ...link, ...tagsAndUser }
-    : { ...link, tags: [] };
+  const response = transformLink({
+    ...link,
+    tags: tags.map((tag) => {
+      return { tag };
+    }),
+  });
 
-  return NextResponse.json(transformLink(linkWithTags), {
+  return NextResponse.json(response, {
     headers,
   });
 });
