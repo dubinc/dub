@@ -19,9 +19,12 @@ export const GET = withWorkspace(async ({ workspace }) => {
       Authorization: accessToken as string,
     },
   });
-  console.log("response.status: ", response.status);
+
+  const text = await response.text();
+  console.log({ text });
+
   const data = await response.json();
-  console.log("data: ", data);
+
   if (data.error === "Unauthorized") {
     return new Response("Invalid Short.io access token", { status: 403 });
   }
