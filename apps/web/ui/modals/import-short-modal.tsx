@@ -23,7 +23,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
+import useSWRImmutable from "swr/immutable";
 
 function ImportShortModal({
   showImportShortModal,
@@ -36,18 +37,14 @@ function ImportShortModal({
   const { id, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
-  const { data: domains, isLoading } = useSWR<ImportedDomainCountProps[]>(
+  const { data: domains, isLoading } = useSWRImmutable<
+    ImportedDomainCountProps[]
+  >(
     id && showImportShortModal && `/api/workspaces/${id}/import/short`,
     fetcher,
     {
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-      revalidateOnReconnect: false,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
       onError: (err) => {
-        if (err.message !== "No Short.io access token found") {
+        if (err.message !== "No Bitly access token found") {
           toast.error(err.message);
         }
       },
@@ -108,7 +105,7 @@ function ImportShortModal({
       </div>
 
       <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        {isLoading ? (
+        {isLoading || !domains ? (
           <button className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
             <p className="text-sm text-gray-500">Connecting to Short.io</p>
