@@ -23,7 +23,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import useSWRImmutable from "swr/immutable";
 
 function ImportShortModal({
   showImportShortModal,
@@ -33,19 +33,19 @@ function ImportShortModal({
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { id, slug } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
-  const { data: domains, isLoading } = useSWR<ImportedDomainCountProps[]>(
-    id && showImportShortModal && `/api/workspaces/${id}/import/short`,
+  const {
+    data: domains,
+    isLoading,
+    mutate,
+  } = useSWRImmutable<ImportedDomainCountProps[]>(
+    workspaceId &&
+      showImportShortModal &&
+      `/api/workspaces/${workspaceId}/import/short`,
     fetcher,
     {
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-      revalidateOnReconnect: false,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
       onError: (err) => {
         if (err.message !== "No Short.io access token found") {
           toast.error(err.message);
@@ -65,7 +65,7 @@ function ImportShortModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "short") {
-      mutate(`/api/workspaces/${id}/import/short`);
+      mutate();
       setShowImportShortModal(true);
     } else {
       setShowImportShortModal(false);
@@ -108,18 +108,18 @@ function ImportShortModal({
       </div>
 
       <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        {isLoading ? (
-          <button className="flex flex-col items-center justify-center space-y-4 bg-none">
+        {isLoading || !workspaceId ? (
+          <div className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
             <p className="text-sm text-gray-500">Connecting to Short.io</p>
-          </button>
+          </div>
         ) : domains ? (
           <form
             onSubmit={async (e) => {
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/workspaces/${id}/import/short`, {
+                fetch(`/api/workspaces/${workspaceId}/import/short`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -130,7 +130,7 @@ function ImportShortModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?workspaceId=${id}`);
+                    await mutate();
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
@@ -201,7 +201,7 @@ function ImportShortModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSubmitting(true);
-              fetch(`/api/workspaces/${id}/import/short`, {
+              fetch(`/api/workspaces/${workspaceId}/import/short`, {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
@@ -211,7 +211,7 @@ function ImportShortModal({
                 }),
               }).then(async (res) => {
                 if (res.ok) {
-                  await mutate(`/api/workspaces/${id}/import/short`);
+                  await mutate();
                   toast.success("Successfully added API key");
                 } else {
                   toast.error("Error adding API key");
