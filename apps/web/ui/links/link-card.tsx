@@ -37,6 +37,7 @@ import {
   Archive,
   Copy,
   CopyPlus,
+  CreditCard,
   Edit3,
   EyeOff,
   FolderInput,
@@ -67,6 +68,7 @@ export default function LinkCard({
     key,
     domain,
     url,
+    trackConversion,
     rewrite,
     password,
     expiresAt,
@@ -473,18 +475,40 @@ export default function LinkCard({
         </div>
 
         <div className="flex items-center space-x-2">
-          <NumberTooltip value={clicks} lastClicked={lastClicked}>
+          {trackConversion ? (
             <Link
               href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-              className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
+              className="flex items-center space-x-2 rounded-md bg-gray-100 px-2 hover:bg-gray-200/75"
             >
-              <Chart className="h-4 w-4" />
-              <p className="whitespace-nowrap text-sm text-gray-500">
-                {nFormatter(clicks)}
-                <span className="ml-1 hidden sm:inline-block">clicks</span>
-              </p>
+              <div className="flex items-center space-x-1 p-0.5">
+                <Chart className="h-4 w-4 text-gray-700" />
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {nFormatter(clicks)}
+                </p>
+              </div>
+              <div className="flex items-center space-x-1 p-0.5">
+                <Magic className="h-4 w-4 text-gray-700" />
+                <p className="whitespace-nowrap text-sm text-gray-500">0</p>
+              </div>
+              <div className="flex items-center space-x-1 p-0.5">
+                <CreditCard className="h-4 w-4 text-gray-700" />
+                <p className="whitespace-nowrap text-sm text-gray-500">0</p>
+              </div>
             </Link>
-          </NumberTooltip>
+          ) : (
+            <NumberTooltip value={clicks} lastClicked={lastClicked}>
+              <Link
+                href={`/${slug}/analytics?domain=${domain}&key=${key}`}
+                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:bg-gray-200/75"
+              >
+                <Chart className="h-4 w-4 text-gray-700" />
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {nFormatter(clicks)}
+                  <span className="ml-1 hidden sm:inline-block">clicks</span>
+                </p>
+              </Link>
+            </NumberTooltip>
+          )}
           <Popover
             content={
               <div className="w-full sm:w-48">

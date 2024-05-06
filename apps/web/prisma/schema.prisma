@@ -263,6 +263,7 @@ model Link {
   @@unique([projectId, externalId])
   @@index(projectId)
   @@index(domain)
+  @@index(trackConversion)
   @@index(proxy)
   @@index(password)
   @@index(createdAt(sort: Desc))
