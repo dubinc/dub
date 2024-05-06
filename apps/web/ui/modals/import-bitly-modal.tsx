@@ -21,7 +21,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
+import useSWRImmutable from "swr/immutable";
 
 function ImportBitlyModal({
   showImportBitlyModal,
@@ -37,16 +38,10 @@ function ImportBitlyModal({
 
   const [redirecting, setRedirecting] = useState(false);
 
-  const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
+  const { data: groups, isLoading } = useSWRImmutable<BitlyGroupProps[]>(
     id && showImportBitlyModal && `/api/workspaces/${id}/import/bitly`,
     fetcher,
     {
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-      revalidateOnReconnect: false,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
       onError: (err) => {
         if (err.message !== "No Bitly access token found") {
           toast.error(err.message);
@@ -110,7 +105,7 @@ function ImportBitlyModal({
       </div>
 
       <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        {isLoading ? (
+        {isLoading || !groups ? (
           <button className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
             <p className="text-sm text-gray-500">Connecting to Bitly</p>
