@@ -13,6 +13,8 @@ export const GET = withWorkspace(async ({ workspace }) => {
     return new Response("No Short.io access token found", { status: 400 });
   }
 
+  console.log({ accessToken });
+
   const response = await fetch(`https://api.short.io/api/domains`, {
     headers: {
       "Content-Type": "application/json",
@@ -20,10 +22,14 @@ export const GET = withWorkspace(async ({ workspace }) => {
     },
   });
 
-  const text = await response.text();
-  console.log({ text });
+  console.log({
+    status: response.status,
+    statusText: response.statusText,
+  });
 
   const data = await response.json();
+
+  console.log({ data });
 
   if (data.error === "Unauthorized") {
     return new Response("Invalid Short.io access token", { status: 403 });
