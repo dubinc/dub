@@ -6,7 +6,7 @@ import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
-import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
+import { Chart, CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
   BadgeTooltip,
@@ -36,7 +36,6 @@ import {
 import {
   Archive,
   Copy,
-  CopyCheck,
   CopyPlus,
   Edit3,
   EyeOff,
@@ -530,7 +529,7 @@ export default function LinkCard({
                     onClick={() => copyLinkId()}
                     icon={
                       copiedLinkId ? (
-                        <CopyCheck className="h-4 w-4" />
+                        <CheckCircleFill className="h-4 w-4" />
                       ) : (
                         <Copy className="h-4 w-4" />
                       )
