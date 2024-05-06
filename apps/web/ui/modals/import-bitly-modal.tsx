@@ -21,7 +21,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import useSWRImmutable from "swr/immutable";
 
 function ImportBitlyModal({
@@ -38,7 +37,11 @@ function ImportBitlyModal({
 
   const [redirecting, setRedirecting] = useState(false);
 
-  const { data: groups, isLoading } = useSWRImmutable<BitlyGroupProps[]>(
+  const {
+    data: groups,
+    isLoading,
+    mutate,
+  } = useSWRImmutable<BitlyGroupProps[]>(
     workspaceId &&
       showImportBitlyModal &&
       `/api/workspaces/${workspaceId}/import/bitly`,
@@ -64,7 +67,7 @@ function ImportBitlyModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "bitly") {
-      mutate(`/api/workspaces/${workspaceId}/import/bitly`);
+      mutate();
       setShowImportBitlyModal(true);
     } else {
       setShowImportBitlyModal(false);
@@ -129,7 +132,7 @@ function ImportBitlyModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?workspaceId=${workspaceId}`);
+                    await mutate();
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);

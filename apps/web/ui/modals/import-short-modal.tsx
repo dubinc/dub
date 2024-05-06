@@ -23,7 +23,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import useSWRImmutable from "swr/immutable";
 
 function ImportShortModal({
@@ -37,9 +36,11 @@ function ImportShortModal({
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
-  const { data: domains, isLoading } = useSWRImmutable<
-    ImportedDomainCountProps[]
-  >(
+  const {
+    data: domains,
+    isLoading,
+    mutate,
+  } = useSWRImmutable<ImportedDomainCountProps[]>(
     workspaceId &&
       showImportShortModal &&
       `/api/workspaces/${workspaceId}/import/short`,
@@ -64,7 +65,7 @@ function ImportShortModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "short") {
-      mutate(`/api/workspaces/${workspaceId}/import/short`);
+      mutate();
       setShowImportShortModal(true);
     } else {
       setShowImportShortModal(false);
@@ -129,7 +130,7 @@ function ImportShortModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?workspaceId=${workspaceId}`);
+                    await mutate();
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
@@ -210,7 +211,7 @@ function ImportShortModal({
                 }),
               }).then(async (res) => {
                 if (res.ok) {
-                  await mutate(`/api/workspaces/${workspaceId}/import/short`);
+                  await mutate();
                   toast.success("Successfully added API key");
                 } else {
                   toast.error("Error adding API key");
