@@ -67,7 +67,6 @@ export default function LinkCard({
     key,
     domain,
     url,
-    trackConversion,
     rewrite,
     password,
     expiresAt,
