@@ -12,7 +12,7 @@ interface Resources {
 
 export class IntegrationHarness {
   private readonly ctx?: TaskContext;
-  private env: z.infer<typeof integrationTestEnv>;
+  public env: z.infer<typeof integrationTestEnv>;
   public resources: Resources;
   public baseUrl: string;
   public http: HttpClient;
