@@ -28,7 +28,7 @@ function ToastWithUndo({
   }, []);
 
   return (
-    <div className="flex w-full items-center justify-between">
+    <div className="flex w-full items-center justify-between space-x-2">
       <div className="flex items-center space-x-2">
         <Success />
         <p className="font-medium">{message}</p>
