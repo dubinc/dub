@@ -111,10 +111,10 @@ function ImportBitlyModal({
 
       <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
         {isLoading || !workspaceId ? (
-          <button className="flex flex-col items-center justify-center space-y-4 bg-none">
+          <div className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
             <p className="text-sm text-gray-500">Connecting to Bitly</p>
-          </button>
+          </div>
         ) : groups ? (
           <form
             onSubmit={async (e) => {
