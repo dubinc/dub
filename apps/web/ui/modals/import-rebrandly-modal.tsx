@@ -23,7 +23,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import useSWRImmutable from "swr/immutable";
 
 function ImportRebrandlyModal({
@@ -43,6 +42,7 @@ function ImportRebrandlyModal({
       tagsCount: null,
     },
     isLoading,
+    mutate,
   } = useSWRImmutable<{
     domains: ImportedDomainCountProps[] | null;
     tagsCount: number | null;
@@ -71,7 +71,7 @@ function ImportRebrandlyModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "rebrandly") {
-      mutate(`/api/workspaces/${workspaceId}/import/rebrandly`);
+      mutate();
       setShowImportRebrandlyModal(true);
     } else {
       setShowImportRebrandlyModal(false);
@@ -136,7 +136,7 @@ function ImportRebrandlyModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?workspaceId=${workspaceId}`);
+                    await mutate();
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
@@ -221,9 +221,7 @@ function ImportRebrandlyModal({
                 }),
               }).then(async (res) => {
                 if (res.ok) {
-                  await mutate(
-                    `/api/workspaces/${workspaceId}/import/rebrandly`,
-                  );
+                  await mutate();
                   toast.success("Successfully added API key");
                 } else {
                   toast.error("Error adding API key");
