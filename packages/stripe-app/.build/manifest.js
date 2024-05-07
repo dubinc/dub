@@ -1,4 +1,12 @@
-{
+
+
+
+export * from '@stripe/ui-extension-sdk/version';
+export const BUILD_TIME = '2024-05-07 18:04:51.75841 +0530 IST m=+137.022160334';
+
+export {  };
+
+export default {
   "id": "com.example.dub",
   "version": "0.0.7",
   "name": "Dub",
@@ -33,4 +41,4 @@
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"
-}
+};
