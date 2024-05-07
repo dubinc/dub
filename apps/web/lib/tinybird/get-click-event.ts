@@ -1,26 +1,11 @@
+import z from "../zod";
 import { clickEventSchemaTB } from "../zod/schemas/conversions";
+import { tb } from "./client";
 
-export async function getClickEvent(clickId: string) {
-  const response = await fetch(
-    `${process.env.TINYBIRD_API_URL}/v0/pipes/click_by_id.json?clickId=${clickId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-    },
-  );
-
-  if (!response.ok) {
-    console.error("Error fetching click event from Tinybird", response);
-    return null;
-  }
-
-  const { rows, data } = await response.json();
-
-  if (rows === 0) {
-    console.error("No click event found in Tinybird", clickId);
-    return null;
-  }
-
-  return clickEventSchemaTB.parse(data[0]);
-}
+export const getClickEvent = tb.buildPipe({
+  pipe: "get_click_event",
+  parameters: z.object({
+    clickId: z.string(),
+  }),
+  data: clickEventSchemaTB,
+});

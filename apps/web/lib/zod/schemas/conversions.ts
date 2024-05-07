@@ -1,12 +1,10 @@
 import z from "@/lib/zod";
 
-export const eventType = z
-  .union([z.literal("lead"), z.literal("sale")], {
-    errorMap: () => ({
-      message: "Must be either 'lead' or 'sale'",
-    }),
-  })
-  .default("lead");
+export const eventType = z.enum(["lead", "sale"], {
+  errorMap: () => ({
+    message: "Must be either 'lead' or 'sale'",
+  }),
+});
 
 export const clickEventSchemaTB = z.object({
   timestamp: z.string(),
@@ -56,7 +54,7 @@ export const conversionRequestSchema = z.object({
     .min(1)
     .max(50)
     .default(""),
-  eventType: eventType.default("lead"),
+  eventType,
   metadata: z
     .record(z.unknown())
     .nullish()

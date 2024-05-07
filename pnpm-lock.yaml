@@ -40,6 +40,9 @@ importers:
       '@boxyhq/saml-jackson':
         specifier: 1.23.6
         version: 1.23.6(@aws-sdk/client-sso-oidc@3.569.0)(@aws-sdk/client-sts@3.569.0)
+      '@chronark/zod-bird':
+        specifier: ^0.3.7
+        version: 0.3.7
       '@dub/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
@@ -3232,6 +3235,12 @@ packages:
       xmlbuilder: 15.1.1
     dev: false
 
+  /@chronark/zod-bird@0.3.7:
+    resolution: {integrity: sha512-6IbCXqaaWtjxsYMbPHOUBZYCRRct4JufZ55LW9zHgyQNM0fP1KO7SQG2sIGD2ZHjd9P9OIESNmeYaxBxXTqWgA==}
+    dependencies:
+      zod: 3.22.4
+    dev: false
+
   /@emnapi/runtime@1.1.1:
     resolution: {integrity: sha512-3bfqkzuR1KLx57nZfjr2NLnFOobvyS0aTszaEGCGqmYMVDRaGvgIZbjGSV/MHSSmLgQ/b9JFHQ5xm5WRZYd+XQ==}
     requiresBuild: true
@@ -6368,7 +6377,7 @@ packages:
       node-stream-zip: 1.15.0
       ora: 5.4.1
       prompts: 2.4.2
-      semver: 7.5.4
+      semver: 7.6.0
       strip-ansi: 5.2.0
       sudo-prompt: 9.2.1
       wcwidth: 1.0.1
@@ -6465,7 +6474,7 @@ packages:
       node-fetch: 2.7.0(encoding@0.1.13)
       open: 6.4.0
       ora: 5.4.1
-      semver: 7.5.4
+      semver: 7.6.0
       shell-quote: 1.8.1
     transitivePeerDependencies:
       - encoding
@@ -6498,7 +6507,7 @@ packages:
       fs-extra: 8.1.0
       graceful-fs: 4.2.11
       prompts: 2.4.2
-      semver: 7.5.4
+      semver: 7.6.0
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -15330,7 +15339,6 @@ packages:
     dependencies:
       lru-cache: 6.0.0
     dev: false
-    optional: true
 
   /send@0.18.0:
     resolution: {integrity: sha512-qqWzuOjSFOuqPjFe4NOsMLafToQQwBSOEpS+FwEt3A2V3vKubTquT3vmLTQpFgMXp8AlFWFuP1qKaJZOtPpVXg==}
