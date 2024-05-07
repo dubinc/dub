@@ -98,8 +98,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       '@vercel/functions':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@vercel/og':
         specifier: ^0.6.2
         version: 0.6.2
@@ -7601,8 +7601,8 @@ packages:
     resolution: {integrity: sha512-NdJxoaUI/AMvSu9dBM5MA1mxzk+Xo1sMrjyNRtNGsH5iKYyMdMWNUEvHdkyn1kN6opM03rQHYOYgXhBwNyIfdQ==}
     dev: false
 
-  /@vercel/functions@1.0.0:
-    resolution: {integrity: sha512-eF4G5IhTNYg4BbF5RgCdpwQfd3EakHh50tE8Rvs8/wgE2Ec7RIE5agj2fHbPMMjfkNkJQ95kpof+HVO0KDYPLg==}
+  /@vercel/functions@1.0.1:
+    resolution: {integrity: sha512-YBOEKITWgRWQJg2/0TJaiZOAsJz/OqjBfZO87lBA5PtddNjjEUQQxSlon/ank+RC7laJ/51zMKkv9rgprmLMow==}
     engines: {node: '>= 16'}
     dev: false
 

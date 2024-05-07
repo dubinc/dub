@@ -4,9 +4,9 @@ import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { waitUntil } from "@/lib/vercel";
 import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
