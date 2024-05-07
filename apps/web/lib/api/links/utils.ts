@@ -159,7 +159,6 @@ export async function fetchMetatagsAndUpdateLink({
   linkId: string;
 }) {
   const { title, description, image } = await getMetaTags(url);
-  console.log({ title, description, image });
   await prisma.link.update({
     where: {
       id: linkId,
