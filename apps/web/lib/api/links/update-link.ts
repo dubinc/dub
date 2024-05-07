@@ -5,6 +5,7 @@ import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { SHORT_DOMAIN, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function updateLink({
@@ -48,14 +49,6 @@ export async function updateLink({
   } = updatedLink;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
-
-  if (proxy && image && !isStored(image)) {
-    // only upload image if proxy is true and image is not stored in R2
-    await storage.upload(`images/${id}`, image, {
-      width: 1200,
-      height: 630,
-    });
-  }
 
   const response = await prisma.link.update({
     where: {
@@ -121,24 +114,34 @@ export async function updateLink({
     },
   });
 
-  await Promise.all([
-    // record link in Redis
-    redis.hset(updatedLink.domain.toLowerCase(), {
-      [updatedLink.key.toLowerCase()]: await formatRedisLink(response),
-    }),
-    // record link in Tinybird
-    recordLink({
-      link: {
-        ...response,
-        tags: response.tags.map(({ tag }) => ({
-          tagId: tag.id,
-        })),
-      },
-    }),
-    // if key is changed: delete the old key in Redis
-    (changedDomain || changedKey) &&
-      redis.hdel(oldDomain.toLowerCase(), oldKey.toLowerCase()),
-  ]);
+  waitUntil(
+    Promise.all([
+      // record link in Redis
+      redis.hset(updatedLink.domain.toLowerCase(), {
+        [updatedLink.key.toLowerCase()]: await formatRedisLink(response),
+      }),
+      // record link in Tinybird
+      recordLink({
+        link: {
+          ...response,
+          tags: response.tags.map(({ tag }) => ({
+            tagId: tag.id,
+          })),
+        },
+      }),
+      // if key is changed: delete the old key in Redis
+      (changedDomain || changedKey) &&
+        redis.hdel(oldDomain.toLowerCase(), oldKey.toLowerCase()),
+      // only upload image if proxy is true and image is not stored in R2
+      proxy &&
+        image &&
+        !isStored(image) &&
+        storage.upload(`images/${id}`, image, {
+          width: 1200,
+          height: 630,
+        }),
+    ]),
+  );
 
   return transformLink(response);
 }

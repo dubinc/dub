@@ -10,6 +10,7 @@ import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
@@ -129,10 +130,10 @@ export const PUT = PATCH;
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withWorkspace(async ({ headers, link }) => {
-  await deleteLink(link!.id);
+  waitUntil(deleteLink(link!.id));
 
   return NextResponse.json(
-    { id: link?.id },
+    { id: link!.id },
     {
       headers,
     },
