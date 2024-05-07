@@ -1,0 +1,38 @@
+{
+  "id": "com.example.dub",
+  "version": "0.0.4",
+  "name": "Dub",
+  "icon": "",
+  "permissions": [
+    {
+      "permission": "customer_read",
+      "purpose": "Receive access to the customer’s phone number"
+    },
+    {
+      "permission": "customer_write",
+      "purpose": "Update the customer’s phone number"
+    },
+    {
+      "permission": "webhook_read",
+      "purpose": "Update the customer’s phone number"
+    }
+  ],
+  "ui_extension": {
+    "views": [
+      {
+        "viewport": "stripe.dashboard.customer.detail",
+        "component": "App"
+      }
+    ],
+    "content_security_policy": {
+      "connect-src": null,
+      "image-src": null,
+      "purpose": ""
+    }
+  },
+  "allowed_redirect_uris": [
+    "https://5eee-2409-40f3-1090-581e-e08c-f6b3-fb85-f643.ngrok-free.app/api/callback"
+  ],
+  "stripe_api_access_type": "oauth",
+  "distribution_type": "public"
+}
