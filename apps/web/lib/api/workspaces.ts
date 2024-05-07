@@ -40,9 +40,9 @@ export async function deleteWorkspace(
     }),
   ]);
 
-  const response = await prisma.project.delete({
+  const response = await prisma.projectUsers.deleteMany({
     where: {
-      slug: workspace.slug,
+      projectId: workspace.id,
     },
   });
 
@@ -64,6 +64,7 @@ export async function deleteWorkspace(
         pipeline.hdel(domain.toLowerCase(), ...links);
       });
 
+      // delete all domains, links, and uploaded images associated with the workspace
       await Promise.allSettled([
         ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
         // delete all default domain links from redis
@@ -74,11 +75,20 @@ export async function deleteWorkspace(
             ? storage.delete(`images/${id}`)
             : Promise.resolve(),
         ),
+      ]);
+
+      await Promise.all([
         // delete workspace logo if it's a custom logo stored in R2
         workspace.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
           storage.delete(`logos/${workspace.id}`),
         // if they have a Stripe subscription, cancel it
         workspace.stripeId && cancelSubscription(workspace.stripeId),
+        // delete the workspace
+        prisma.project.delete({
+          where: {
+            slug: workspace.slug,
+          },
+        }),
       ]);
     })(),
   );
