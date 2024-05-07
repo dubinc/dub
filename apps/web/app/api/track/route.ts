@@ -1,13 +1,13 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
-import { getClickEvent } from "@/lib/tinybird";
+import { getClickEvent, recordConversion } from "@/lib/tinybird";
 import { conversionRequestSchema } from "@/lib/zod/schemas/conversions";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-// POST /api/track/conversions – Post a conversion event
+// POST /api/track – Post a conversion event
 export const POST = withSessionEdge(async ({ req }) => {
   const body = conversionRequestSchema.parse(await parseRequestBody(req));
   const { clickId, eventName, eventType, metadata, customerId } = body;
@@ -21,12 +21,13 @@ export const POST = withSessionEdge(async ({ req }) => {
 
     console.log("clickEvent", clickEvent.data[0]);
 
-    // await recordConversion({
-    //   ...clickEvent.data[0],
-    //   metadata,
-    //   event_name: eventName,
-    //   event_type: eventType,
-    // });
+    await recordConversion({
+      ...clickEvent.data[0],
+      metadata,
+      event_name: eventName,
+      event_type: eventType,
+      timestamp: new Date(Date.now()).toISOString(),
+    });
   });
 
   return NextResponse.json({ success: true });

@@ -61,7 +61,3 @@ export const conversionRequestSchema = z.object({
     .transform((val) => (val ? JSON.stringify(val) : "")),
   customerId: z.string().max(100).nullish().default(""),
 });
-
-export type ConversionEvent = z.infer<typeof conversionEventSchemaTB> & {
-  metadata: string;
-};
