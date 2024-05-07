@@ -9,6 +9,7 @@ import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -77,15 +78,17 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     },
   });
 
-  await setRootDomain({
-    id: response.id,
-    domain,
-    projectId: workspace.id,
-    ...(workspace.plan !== "free" && {
-      url: target || undefined,
+  waitUntil(
+    setRootDomain({
+      id: response.id,
+      domain,
+      projectId: workspace.id,
+      ...(workspace.plan !== "free" && {
+        url: target || undefined,
+      }),
+      rewrite: type === "rewrite",
     }),
-    rewrite: type === "rewrite",
-  });
+  );
 
   return NextResponse.json(DomainSchema.parse(response), { status: 201 });
 });
