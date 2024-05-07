@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import z from "@/lib/zod";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 const transferLinkBodySchema = z.object({
@@ -72,60 +73,63 @@ export const POST = withWorkspace(
       interval: "30d",
     });
 
-    const response = await Promise.all([
-      prisma.link.update({
-        where: {
-          id: link.id,
+    const response = await prisma.link.update({
+      where: {
+        id: link.id,
+      },
+      data: {
+        projectId: newWorkspaceId,
+        // remove tags when transferring link
+        tags: {
+          deleteMany: {},
         },
-        data: {
-          projectId: newWorkspaceId,
-          // remove tags when transferring link
-          tags: {
-            deleteMany: {},
-          },
-        },
-      }),
-      redis.hset(link.domain.toLowerCase(), {
-        [link.key.toLowerCase()]: await formatRedisLink({
-          ...link,
-          projectId: newWorkspaceId,
+      },
+    });
+
+    waitUntil(
+      Promise.all([
+        redis.hset(link.domain.toLowerCase(), {
+          [link.key.toLowerCase()]: await formatRedisLink({
+            ...link,
+            projectId: newWorkspaceId,
+          }),
         }),
-      }),
-      recordLink({
-        link: {
-          ...link,
-          projectId: newWorkspaceId,
-        },
-      }),
-      // decrement old workspace usage
-      prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          usage: {
-            decrement: linkClicks,
+        recordLink({
+          link: {
+            ...link,
+            projectId: newWorkspaceId,
           },
-          linksUsage: {
-            decrement: 1,
+        }),
+        // decrement old workspace usage
+        prisma.project.update({
+          where: {
+            id: workspace.id,
           },
-        },
-      }),
-      // increment new workspace usage
-      prisma.project.update({
-        where: {
-          id: newWorkspaceId,
-        },
-        data: {
-          usage: {
-            increment: linkClicks,
+          data: {
+            usage: {
+              decrement: linkClicks,
+            },
+            linksUsage: {
+              decrement: 1,
+            },
           },
-          linksUsage: {
-            increment: 1,
+        }),
+        // increment new workspace usage
+        prisma.project.update({
+          where: {
+            id: newWorkspaceId,
           },
-        },
-      }),
-    ]);
+          data: {
+            usage: {
+              increment: linkClicks,
+            },
+            linksUsage: {
+              increment: 1,
+            },
+          },
+        }),
+      ]),
+    );
 
     return NextResponse.json(response, {
       headers,
