@@ -2,10 +2,11 @@ import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { ProcessedLinkProps } from "@/lib/types";
+import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
@@ -76,9 +77,32 @@ export async function createLink(link: ProcessedLinkProps) {
     },
   });
 
-  const uploadedImageUrl = `${process.env.STORAGE_BASE_URL}/images/${response.id}`;
+  if (process.env.VERCEL === "1") {
+    waitUntil(createLinkEffects({ link, response }));
+  } else {
+    await createLinkEffects({ link, response });
+  }
 
-  await Promise.all([
+  return {
+    ...transformLink(response),
+    // optimistically set the image URL to the uploaded image URL
+    image:
+      proxy && image && !isStored(image)
+        ? `${process.env.STORAGE_BASE_URL}/images/${response.id}`
+        : response.image,
+  };
+}
+
+async function createLinkEffects({
+  link,
+  response,
+}: {
+  link: ProcessedLinkProps;
+  response: LinkProps & { tags: { tag: { id: string } }[] };
+}) {
+  const { image, proxy } = link;
+
+  return await Promise.all([
     // record link in Redis
     redis.hset(link.domain.toLowerCase(), {
       [link.key.toLowerCase()]: await formatRedisLink(response),
@@ -106,7 +130,7 @@ export async function createLink(link: ProcessedLinkProps) {
               id: response.id,
             },
             data: {
-              image: uploadedImageUrl,
+              image: `${process.env.STORAGE_BASE_URL}/images/${response.id}`,
             },
           }),
         ]
@@ -134,11 +158,4 @@ export async function createLink(link: ProcessedLinkProps) {
         },
       }),
   ]);
-
-  return {
-    ...transformLink(response),
-    // optimistically set the image URL to the uploaded image URL
-    image:
-      proxy && image && !isStored(image) ? uploadedImageUrl : response.image,
-  };
 }

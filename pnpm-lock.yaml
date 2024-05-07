@@ -97,6 +97,9 @@ importers:
       '@vercel/edge-config':
         specifier: ^0.4.1
         version: 0.4.1
+      '@vercel/functions':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@vercel/og':
         specifier: ^0.6.2
         version: 0.6.2
@@ -7596,6 +7599,11 @@ packages:
 
   /@vercel/edge@0.3.1:
     resolution: {integrity: sha512-NdJxoaUI/AMvSu9dBM5MA1mxzk+Xo1sMrjyNRtNGsH5iKYyMdMWNUEvHdkyn1kN6opM03rQHYOYgXhBwNyIfdQ==}
+    dev: false
+
+  /@vercel/functions@1.0.0:
+    resolution: {integrity: sha512-eF4G5IhTNYg4BbF5RgCdpwQfd3EakHh50tE8Rvs8/wgE2Ec7RIE5agj2fHbPMMjfkNkJQ95kpof+HVO0KDYPLg==}
+    engines: {node: '>= 16'}
     dev: false
 
   /@vercel/og@0.6.2:
