@@ -6,7 +6,11 @@ import { formatRedisLink, redis } from "@/lib/upstash";
 import { SHORT_DOMAIN, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { combineTagIds, transformLink } from "./utils";
+import {
+  combineTagIds,
+  fetchMetatagsAndUpdateLink,
+  transformLink,
+} from "./utils";
 
 export async function updateLink({
   oldDomain = SHORT_DOMAIN,
@@ -132,14 +136,19 @@ export async function updateLink({
       // if key is changed: delete the old key in Redis
       (changedDomain || changedKey) &&
         redis.hdel(oldDomain.toLowerCase(), oldKey.toLowerCase()),
-      // only upload image if proxy is true and image is not stored in R2
-      proxy &&
-        image &&
-        !isStored(image) &&
-        storage.upload(`images/${id}`, image, {
-          width: 1200,
-          height: 630,
-        }),
+      // if proxy is true and image is not stored in R2, upload image to R2
+      proxy && image && !isStored(image)
+        ? storage.upload(`images/${id}`, image, {
+            width: 1200,
+            height: 630,
+          })
+        : // if there is no title or description provided, try fetching and storing it
+          !proxy && !title && !description
+          ? fetchMetatagsAndUpdateLink({
+              url,
+              linkId: id,
+            })
+          : null,
     ]),
   );
 

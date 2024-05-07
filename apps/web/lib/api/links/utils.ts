@@ -4,6 +4,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
+import prisma from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import {
   DEFAULT_REDIRECTS,
@@ -11,9 +12,11 @@ import {
   isDubDomain,
   linkConstructor,
   punyEncode,
+  truncate,
   validKeyRegex,
 } from "@dub/utils";
 import { Link, Tag } from "@prisma/client";
+import { getMetaTags } from "app/api/metatags/utils";
 
 export type LinkWithTags = Link & {
   tags: { tag: Pick<Tag, "id" | "name" | "color"> }[];
@@ -147,3 +150,24 @@ export const transformLink = (link: LinkWithTags) => {
     workspaceId: `ws_${link.projectId}`,
   };
 };
+
+export async function fetchMetatagsAndUpdateLink({
+  url,
+  linkId,
+}: {
+  url: string;
+  linkId: string;
+}) {
+  const { title, description, image } = await getMetaTags(url);
+  console.log({ title, description, image });
+  await prisma.link.update({
+    where: {
+      id: linkId,
+    },
+    data: {
+      title: truncate(title, 120),
+      description: truncate(description, 240),
+      image: image || null,
+    },
+  });
+}

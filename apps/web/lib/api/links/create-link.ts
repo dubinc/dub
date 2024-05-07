@@ -7,7 +7,11 @@ import { formatRedisLink, redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { combineTagIds, transformLink } from "./utils";
+import {
+  combineTagIds,
+  fetchMetatagsAndUpdateLink,
+  transformLink,
+} from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
   let { key, url, expiresAt, title, description, image, proxy, geo } = link;
@@ -112,7 +116,15 @@ export async function createLink(link: ProcessedLinkProps) {
               },
             }),
           ]
-        : []),
+        : // if there is no title or description provided, try fetching and storing it
+          !proxy && !title && !description
+          ? [
+              fetchMetatagsAndUpdateLink({
+                url,
+                linkId: response.id,
+              }),
+            ]
+          : []),
       // delete public links after 30 mins
       !response.userId &&
         qstash.publishJSON({
