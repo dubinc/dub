@@ -6,6 +6,7 @@ import { ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
@@ -78,62 +79,64 @@ export async function createLink(link: ProcessedLinkProps) {
 
   const uploadedImageUrl = `${process.env.STORAGE_BASE_URL}/images/${response.id}`;
 
-  await Promise.all([
-    // record link in Redis
-    redis.hset(link.domain.toLowerCase(), {
-      [link.key.toLowerCase()]: await formatRedisLink(response),
-    }),
-    // record link in Tinybird
-    recordLink({
-      link: {
-        ...response,
-        tags: response.tags.map(({ tag }) => ({
-          tagId: tag.id,
-        })),
-      },
-    }),
-    // if proxy image is set, upload image to R2 and update the link with the uploaded image URL
-    ...(proxy && image && !isStored(image)
-      ? [
-          // upload image to R2
-          storage.upload(`images/${response.id}`, image, {
-            width: 1200,
-            height: 630,
-          }),
-          // update the null image we set earlier to the uploaded image URL
-          prisma.link.update({
-            where: {
-              id: response.id,
-            },
-            data: {
-              image: uploadedImageUrl,
-            },
-          }),
-        ]
-      : []),
-    // delete public links after 30 mins
-    !response.userId &&
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
-        // delete after 30 mins
-        delay: 30 * 60,
-        body: {
-          linkId: response.id,
+  waitUntil(
+    Promise.all([
+      // record link in Redis
+      redis.hset(link.domain.toLowerCase(), {
+        [link.key.toLowerCase()]: await formatRedisLink(response),
+      }),
+      // record link in Tinybird
+      recordLink({
+        link: {
+          ...response,
+          tags: response.tags.map(({ tag }) => ({
+            tagId: tag.id,
+          })),
         },
       }),
-    // update links usage for workspace
-    link.projectId &&
-      prisma.project.update({
-        where: {
-          id: link.projectId,
-        },
-        data: {
-          linksUsage: {
-            increment: 1,
+      // if proxy image is set, upload image to R2 and update the link with the uploaded image URL
+      ...(proxy && image && !isStored(image)
+        ? [
+            // upload image to R2
+            storage.upload(`images/${response.id}`, image, {
+              width: 1200,
+              height: 630,
+            }),
+            // update the null image we set earlier to the uploaded image URL
+            prisma.link.update({
+              where: {
+                id: response.id,
+              },
+              data: {
+                image: uploadedImageUrl,
+              },
+            }),
+          ]
+        : []),
+      // delete public links after 30 mins
+      !response.userId &&
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
+          // delete after 30 mins
+          delay: 30 * 60,
+          body: {
+            linkId: response.id,
           },
-        },
-      }),
-  ]);
+        }),
+      // update links usage for workspace
+      link.projectId &&
+        prisma.project.update({
+          where: {
+            id: link.projectId,
+          },
+          data: {
+            linksUsage: {
+              increment: 1,
+            },
+          },
+        }),
+    ]),
+  );
 
   return {
     ...transformLink(response),

@@ -10,6 +10,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
@@ -76,40 +77,42 @@ export const PATCH = withWorkspace(
       }
     }
 
-    const response = await Promise.all([
-      prisma.domain.update({
-        where: {
-          slug: domain,
-        },
-        data: {
-          slug: newDomain,
-          type,
-          archived,
-          ...(placeholder && { placeholder }),
-          ...(workspace.plan !== "free" && {
-            target,
-            expiredUrl,
-          }),
-        },
-      }),
-      // remove old domain from Vercel
-      newDomain !== domain && removeDomainFromVercel(domain),
-    ]);
-
-    await setRootDomain({
-      id: response[0].id,
-      domain,
-      ...(workspace.plan !== "free" && {
-        url: target || undefined,
-      }),
-      rewrite: type === "rewrite",
-      ...(newDomain !== domain && {
-        newDomain,
-      }),
-      projectId: workspace.id,
+    const response = await prisma.domain.update({
+      where: {
+        slug: domain,
+      },
+      data: {
+        slug: newDomain,
+        type,
+        archived,
+        ...(placeholder && { placeholder }),
+        ...(workspace.plan !== "free" && {
+          target,
+          expiredUrl,
+        }),
+      },
     });
 
-    return NextResponse.json(DomainSchema.parse(response[0]));
+    waitUntil(
+      Promise.all([
+        setRootDomain({
+          id: response.id,
+          domain,
+          ...(workspace.plan !== "free" && {
+            url: target || undefined,
+          }),
+          rewrite: type === "rewrite",
+          ...(newDomain !== domain && {
+            newDomain,
+          }),
+          projectId: workspace.id,
+        }),
+        // remove old domain from Vercel
+        newDomain !== domain && removeDomainFromVercel(domain),
+      ]),
+    );
+
+    return NextResponse.json(DomainSchema.parse(response));
   },
   {
     domainChecks: true,

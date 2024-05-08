@@ -132,7 +132,7 @@ export const DELETE = withWorkspace(async ({ headers, link }) => {
   await deleteLink(link!.id);
 
   return NextResponse.json(
-    { id: link?.id },
+    { id: link!.id },
     {
       headers,
     },
