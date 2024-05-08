@@ -83,7 +83,6 @@ async function handleChargeSucceeded(event: Stripe.Event) {
     event_id: nanoid(16),
     event_name: "Subscribed to plan",
     event_type: "sale",
-    metadata: "",
     customer_id: customerId,
     metadata: "",
   });
