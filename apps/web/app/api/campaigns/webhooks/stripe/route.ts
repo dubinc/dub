@@ -20,8 +20,8 @@ export const POST = async (req: Request) => {
   try {
     const event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
 
+    // Ignore unsupported events
     if (!SUPPORTED_STRIPE_EVENTS.includes(event.type)) {
-      // Ignore unsupported events
       return new Response("OK", {
         status: 200,
       });
@@ -38,6 +38,10 @@ export const POST = async (req: Request) => {
     });
   } catch (error: any) {
     console.log("Stripe webhook error:", error);
+
+    return new Response("Error", {
+      status: 400,
+    });
   }
 };
 
@@ -55,15 +59,16 @@ async function handleChargeSucceeded(event: Stripe.Event) {
   const customer = (await stripe.customers.retrieve(
     charge.customer as string,
   )) as Stripe.Customer;
-  const customerKey = customer.metadata?.customerKey || null;
 
-  if (!customerKey) {
+  const customerId = customer.metadata?.customerId || null;
+
+  if (!customerId) {
     return;
   }
 
   console.log("customer", customer);
 
-  // Check customerKey exists in TB
+  // Check customerId exists in TB
 
   // TODO: Update clickId
   const clickEvent = await getClickEvent({ clickId: "jlNZlZKVa2X6ZCcZ" });
@@ -77,7 +82,7 @@ async function handleChargeSucceeded(event: Stripe.Event) {
     event_name: "",
     event_type: "sale",
     event_metadata: "",
-    customer_id: customerKey,
+    customer_id: customerId,
     timestamp: new Date(Date.now()).toISOString(),
   });
 }
