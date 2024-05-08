@@ -1,5 +1,3 @@
-## Response
-
 <ResponseField name="id" type="string" required>
   The unique ID of the short link.
 </ResponseField>
@@ -12,6 +10,12 @@
 <ResponseField name="key" type="string" required>
   The short link slug. If not provided, a random 7-character slug will be
   generated.
+</ResponseField>
+
+<ResponseField name="externalId" type="string | null" required>
+  This is the ID of the link in your database. If set, it can be used to
+  identify the link in the future. Must be prefixed with `ext_` when provided to
+  `links.get`, `links.update`, and `links.delete` methods.
 </ResponseField>
 
 <ResponseField name="url" type="string" required>

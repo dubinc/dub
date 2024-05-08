@@ -44,3 +44,9 @@ export * from "./link-preview";
 export * from "./popup";
 export * from "./progress-bar";
 export * from "./tab-select";
+
+// logos
+export * from "./composite-logo";
+export * from "./logo";
+export * from "./nav-logo";
+export * from "./wordmark";

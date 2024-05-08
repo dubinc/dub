@@ -22,6 +22,11 @@ import LinkResponse from "/snippets/link-response.mdx";
   generated.
 </ParamField>
 
+<ParamField body="externalId" type="string | null">
+  This is the ID of the link in your database. If set, it can be used to
+  identify the link in the future.
+</ParamField>
+
 <ParamField body="prefix" type="string">
   The prefix of the short link slug for randomly-generated keys (e.g. if prefix
   is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if
@@ -92,6 +97,8 @@ import LinkResponse from "/snippets/link-response.mdx";
   The Android destination URL for the short link for Android device targeting.
 </ParamField>
 
+## Response
+
 <LinkResponse />
 
 <RequestExample>
@@ -117,6 +124,7 @@ await dub.links.createMany([
     id: "clv3u86ej0008y9nm1f1yto2w",
     domain: "dub.sh",
     key: "FTC1AXj",
+    externalId: "123",
     url: "https://www.google.com",
     archived: false,
     expiresAt: null,
@@ -136,6 +144,7 @@ await dub.links.createMany([
     id: "clv3u86ej000ay9nm55qgbh5r",
     domain: "dub.sh",
     key: "B6qpMch",
+    externalId: "123",
     url: "https://github.com",
     archived: false,
     expiresAt: null,

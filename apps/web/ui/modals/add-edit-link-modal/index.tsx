@@ -5,10 +5,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
+import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
 import {
   Button,
+  ButtonTooltip,
   LinkedIn,
   LoadingCircle,
+  Magic,
   Modal,
   Tooltip,
   TooltipContent,
@@ -21,7 +24,6 @@ import {
   cn,
   deepEqual,
   getApexDomain,
-  getDomainWithoutWWW,
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
@@ -29,8 +31,9 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
-import { Crown, TriangleAlert } from "lucide-react";
-import Link from "next/link";
+import va from "@vercel/analytics";
+import { useCompletion } from "ai/react";
+import { TriangleAlert } from "lucide-react";
 import {
   useParams,
   usePathname,
@@ -79,11 +82,16 @@ function AddEditLinkModal({
   const { slug } = params;
   const router = useRouter();
   const pathname = usePathname();
-  const { id: workspaceId } = useWorkspace();
+  const {
+    id: workspaceId,
+    aiUsage,
+    aiLimit,
+    mutate: mutateWorkspace,
+  } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
-  const [generatingKey, setGeneratingKey] = useState(false);
+  const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const {
@@ -109,41 +117,30 @@ function AddEditLinkModal({
   const { domain, key, url, password, proxy } = data;
 
   const generateRandomKey = useDebouncedCallback(async () => {
-    setKeyError(null);
-    setGeneratingKey(true);
-    const res = await fetch(
-      `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
-    );
-    const key = await res.json();
-    setData((prev) => ({ ...prev, key }));
-    setGeneratingKey(false);
+    if (generatingRandomKey) return;
+
+    if (domain && workspaceId) {
+      setKeyError(null);
+      setGeneratingRandomKey(true);
+      const res = await fetch(
+        `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
+      );
+      const key = await res.json();
+      setData((prev) => ({ ...prev, key }));
+      setGeneratingRandomKey(false);
+    }
   }, 500);
 
   useEffect(() => {
-    // when someone pastes a URL
-    if (showAddEditLinkModal && url.length > 0) {
-      // if it's a new link and there are matching default domains, set it as the domain
-      if (!props && activeDefaultDomains) {
-        const urlDomain = getDomainWithoutWWW(url) || "";
-        const defaultDomain = activeDefaultDomains.find(
-          ({ allowedHostnames }) => allowedHostnames?.includes(urlDomain),
-        );
-        if (defaultDomain) {
-          setData((prev) => ({ ...prev, domain: defaultDomain.slug }));
-        }
-      }
-
-      // if there's no key, generate a random key
-      if (!key) {
-        generateRandomKey();
-      }
+    // if there's no key, generate a random key
+    if (showAddEditLinkModal && url.length > 0 && !key) {
+      generateRandomKey();
     }
   }, [showAddEditLinkModal, url]);
 
-  const runKeyChecks = async (e: React.FocusEvent<HTMLInputElement>) => {
-    if (!e.target.value) return;
+  const runKeyChecks = async (value: string) => {
     const res = await fetch(
-      `/api/links/verify?domain=${domain}&key=${e.target.value}&workspaceId=${workspaceId}`,
+      `/api/links/verify?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
     );
     const { error } = await res.json();
     if (error) {
@@ -152,6 +149,59 @@ function AddEditLinkModal({
       setKeyError(null);
     }
   };
+
+  const [generatedKeys, setGeneratedKeys] = useState<string[]>(
+    props ? [props.key] : [],
+  );
+
+  const {
+    completion,
+    isLoading: generatingAIKey,
+    complete,
+  } = useCompletion({
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    onError: (error) => {
+      if (error.message.includes("Upgrade to Pro")) {
+        toast.custom(() => (
+          <UpgradeToProToast
+            title="You've exceeded your AI usage limit"
+            message={error.message}
+          />
+        ));
+      } else {
+        toast.error(error.message);
+      }
+    },
+    onFinish: (_, completion) => {
+      setGeneratedKeys((prev) => [...prev, completion]);
+      mutateWorkspace();
+      runKeyChecks(completion);
+      va.track("Generated AI key", {
+        metadata: `Key: ${completion} | URL: ${data.url}`,
+      });
+    },
+  });
+
+  const generateAIKey = useCallback(async () => {
+    setKeyError(null);
+    complete(
+      `For the following URL, suggest a relevant short link slug that is at most ${Math.max(25 - domain.length, 12)} characters long. 
+              
+        - URL: ${data.url}
+        - Meta title: ${data.title}
+        - Meta description: ${data.description}. 
+
+      Only respond with the short link slug and nothing else. Don't use quotation marks or special characters (dash and slash are allowed).
+      
+      Make sure your answer does not exist in this list of generated slugs: ${generatedKeys.join(", ")}`,
+    );
+  }, [data.url, data.title, data.description, generatedKeys]);
+
+  useEffect(() => {
+    if (completion) {
+      setData((prev) => ({ ...prev, key: completion }));
+    }
+  }, [completion]);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -211,7 +261,7 @@ function AddEditLinkModal({
   const endpoint = useMemo(() => {
     if (props?.key) {
       return {
-        method: "PUT",
+        method: "PATCH",
         url: `/api/links/${props.id}?workspaceId=${workspaceId}`,
       };
     } else {
@@ -290,13 +340,6 @@ function AddEditLinkModal({
     return linkConstructor({
       key: data.key,
       domain: data.domain,
-    });
-  }, [data.key, data.domain]);
-
-  const shortLinkPretty = useMemo(() => {
-    return linkConstructor({
-      key: data.key,
-      domain: data.domain,
       pretty: true,
     });
   }, [data.key, data.domain]);
@@ -343,7 +386,7 @@ function AddEditLinkModal({
           <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
             <LinkLogo apexDomain={getApexDomain(url)} />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-              {props ? `Edit ${shortLinkPretty}` : "Create a new link"}
+              {props ? `Edit ${shortLink}` : "Create a new link"}
             </h3>
           </div>
 
@@ -351,6 +394,7 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
+              generateRandomKey.cancel();
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
               const bodyData = {
@@ -399,35 +443,16 @@ function AddEditLinkModal({
                   if (error) {
                     if (error.message.includes("Upgrade to Pro")) {
                       toast.custom(() => (
-                        <div className="flex flex-col space-y-3 rounded-lg bg-white p-6 shadow-lg">
-                          <div className="flex items-center space-x-1.5">
-                            <Crown className="h-5 w-5 text-black" />{" "}
-                            <p className="font-semibold">
-                              You've discovered a Pro feature!
-                            </p>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            {error.message}
-                          </p>
-                          <Link
-                            href={
-                              queryParams({
-                                set: {
-                                  upgrade: "pro",
-                                },
-                                getNewPath: true,
-                              }) as string
-                            }
-                            className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
-                          >
-                            Upgrade to Pro
-                          </Link>
-                        </div>
+                        <UpgradeToProToast
+                          title="You've discovered a Pro feature!"
+                          message={error.message}
+                        />
                       ));
                     } else {
                       toast.error(error.message);
                     }
                     const message = error.message.toLowerCase();
+
                     if (message.includes("key") || message.includes("domain")) {
                       setKeyError(error.message);
                     } else if (message.includes("url")) {
@@ -449,11 +474,15 @@ function AddEditLinkModal({
                   >
                     Destination URL
                   </label>
-                  {urlError && (
+                  {urlError ? (
                     <p className="text-sm text-red-600" id="key-error">
                       Invalid URL
                     </p>
-                  )}
+                  ) : url ? (
+                    <div className="animate-text-appear text-xs font-normal text-gray-500">
+                      press <strong>Enter</strong> ↵ to submit
+                    </div>
+                  ) : null}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
                   <input
@@ -499,7 +528,7 @@ function AddEditLinkModal({
                   </label>
                   {props && lockKey ? (
                     <button
-                      className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                      className="flex h-6 items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
                       type="button"
                       onClick={() => {
                         window.confirm(
@@ -508,22 +537,39 @@ function AddEditLinkModal({
                       }}
                     >
                       <Lock className="h-3 w-3" />
-                      <p>Unlock</p>
                     </button>
                   ) : (
-                    <button
-                      className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                      onClick={generateRandomKey}
-                      disabled={generatingKey}
-                      type="button"
-                    >
-                      {generatingKey ? (
-                        <LoadingCircle />
-                      ) : (
-                        <Random className="h-3 w-3" />
-                      )}
-                      <p>{generatingKey ? "Generating" : "Randomize"}</p>
-                    </button>
+                    <div className="flex items-center">
+                      <ButtonTooltip
+                        tooltipContent="Generate a random key"
+                        onClick={generateRandomKey}
+                        disabled={generatingRandomKey || generatingAIKey}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                      >
+                        {generatingRandomKey ? (
+                          <LoadingCircle />
+                        ) : (
+                          <Random className="h-3 w-3" />
+                        )}
+                      </ButtonTooltip>
+                      <ButtonTooltip
+                        tooltipContent="Generate a key using AI"
+                        onClick={generateAIKey}
+                        disabled={
+                          generatingRandomKey ||
+                          generatingAIKey ||
+                          (aiLimit && aiUsage && aiUsage >= aiLimit) ||
+                          !url
+                        }
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                      >
+                        {generatingAIKey ? (
+                          <LoadingCircle />
+                        ) : (
+                          <Magic className="h-4 w-4" />
+                        )}
+                      </ButtonTooltip>
+                    </div>
                   )}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
@@ -550,7 +596,6 @@ function AddEditLinkModal({
                     type="text"
                     name="key"
                     id={`key-${randomIdx}`}
-                    required
                     // allow letters, numbers, '-', '/' and emojis
                     pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
                     onInvalid={(e) => {
@@ -558,7 +603,9 @@ function AddEditLinkModal({
                         "Only letters, numbers, '-', '/', and emojis are allowed.",
                       );
                     }}
-                    onBlur={runKeyChecks}
+                    onBlur={(e) =>
+                      e.target.value && runKeyChecks(e.target.value)
+                    }
                     disabled={props && lockKey}
                     autoComplete="off"
                     className={cn(
@@ -572,7 +619,7 @@ function AddEditLinkModal({
                           props && lockKey,
                       },
                     )}
-                    placeholder="github"
+                    placeholder="(optional)"
                     value={punycode(key)}
                     onChange={(e) => {
                       setKeyError(null);
@@ -606,11 +653,11 @@ function AddEditLinkModal({
                                   })}
                                 </p>
                               </div>
-                              {shortLinkPretty.length > 25 && (
+                              {shortLink.length > 25 && (
                                 <div className="mt-1 flex items-center space-x-2">
                                   <Twitter className="h-4 w-4" />
                                   <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
-                                    {truncate(shortLinkPretty, 25)}
+                                    {truncate(shortLink, 25)}
                                   </p>
                                 </div>
                               )}
@@ -668,7 +715,7 @@ function AddEditLinkModal({
             </div>
 
             <div className="grid gap-5 px-4 md:px-16">
-              {slug && <TagsSection {...{ props, data, setData }} />}
+              <TagsSection {...{ props, data, setData }} />
               <CommentsSection {...{ props, data, setData }} />
               <UTMSection {...{ props, data, setData }} />
               <OGSection

@@ -9,7 +9,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -21,7 +21,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import useSWRImmutable from "swr/immutable";
 
 function ImportBitlyModal({
   showImportBitlyModal,
@@ -33,20 +33,20 @@ function ImportBitlyModal({
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
-  const { id } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const [redirecting, setRedirecting] = useState(false);
 
-  const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
-    id && showImportBitlyModal && `/api/workspaces/${id}/import/bitly`,
+  const {
+    data: groups,
+    isLoading,
+    mutate,
+  } = useSWRImmutable<BitlyGroupProps[]>(
+    workspaceId &&
+      showImportBitlyModal &&
+      `/api/workspaces/${workspaceId}/import/bitly`,
     fetcher,
     {
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-      revalidateOnReconnect: false,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
       onError: (err) => {
         if (err.message !== "No Bitly access token found") {
           toast.error(err.message);
@@ -67,14 +67,14 @@ function ImportBitlyModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "bitly") {
-      mutate(`/api/workspaces/${id}/import/bitly`);
+      mutate();
       setShowImportBitlyModal(true);
     } else {
       setShowImportBitlyModal(false);
     }
   }, [searchParams]);
 
-  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}&state=${id}`;
+  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${APP_DOMAIN_WITH_NGROK}/api/callback/bitly&state=${workspaceId}`;
 
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
@@ -110,18 +110,18 @@ function ImportBitlyModal({
       </div>
 
       <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        {isLoading ? (
-          <button className="flex flex-col items-center justify-center space-y-4 bg-none">
+        {isLoading || !workspaceId ? (
+          <div className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
             <p className="text-sm text-gray-500">Connecting to Bitly</p>
-          </button>
+          </div>
         ) : groups ? (
           <form
             onSubmit={async (e) => {
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/workspaces/${id}/import/bitly`, {
+                fetch(`/api/workspaces/${workspaceId}/import/bitly`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -132,7 +132,7 @@ function ImportBitlyModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?workspaceId=${id}`);
+                    await mutate();
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
@@ -190,23 +190,25 @@ function ImportBitlyModal({
                         />
                       </div>
                     ))}
-                    <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
-                      <p className="text-xs text-gray-500">
-                        {tags.length} tags found. Import all?
-                      </p>
-                      <Switch
-                        fn={() => {
-                          if (selectedGroupTags.includes(guid)) {
-                            setSelectedGroupTags((prev) =>
-                              prev.filter((g) => g !== guid),
-                            );
-                          } else {
-                            setSelectedGroupTags((prev) => [...prev, guid]);
-                          }
-                        }}
-                        checked={selectedGroupTags.includes(guid)}
-                      />
-                    </div>
+                    {tags.length > 0 && (
+                      <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
+                        <p className="text-xs text-gray-500">
+                          {tags.length} tags found. Import all?
+                        </p>
+                        <Switch
+                          fn={() => {
+                            if (selectedGroupTags.includes(guid)) {
+                              setSelectedGroupTags((prev) =>
+                                prev.filter((g) => g !== guid),
+                              );
+                            } else {
+                              setSelectedGroupTags((prev) => [...prev, guid]);
+                            }
+                          }}
+                          checked={selectedGroupTags.includes(guid)}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))
               ) : (

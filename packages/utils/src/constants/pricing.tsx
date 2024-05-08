@@ -35,6 +35,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     domains,
     tags,
     users,
+    ai: 1000,
   },
   colors: {
     bg: "bg-sky-900",
@@ -44,7 +45,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     text: "Get started with Business",
     shortText: "Get started",
     href: "https://app.dub.co/register",
-    color: "bg-sky-900 border-sky-900 hover:text-sky-900",
+    color: "bg-sky-900 hover:bg-sky-800 hover:ring-sky-100",
   },
   featureTitle: "Everything in Pro, plus:",
   features: [
@@ -55,6 +56,15 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: "2-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
+    {
+      text: `Unlimited AI credits`,
+      footnote: {
+        title:
+          "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
+        cta: "Learn more.",
+        href: "https://dub.co/blog/introducing-dub-ai",
+      },
+    },
     {
       text: `${nFormatter(tags, { full: true })} tags`,
       footnote: {
@@ -90,6 +100,7 @@ export const PLANS = [
       domains: 3,
       tags: 5,
       users: 1,
+      ai: 10,
     },
     colors: {
       bg: "bg-black",
@@ -98,7 +109,7 @@ export const PLANS = [
     cta: {
       text: "Start for free",
       href: "https://app.dub.co/register",
-      color: "bg-black border-black hover:text-black",
+      color: "bg-black hover:bg-gray-800 hover:ring-gray-200",
     },
     featureTitle: "What's included:",
     features: [
@@ -109,6 +120,7 @@ export const PLANS = [
       { text: "30-day analytics retention" },
       { text: "3 custom domains" },
       { text: "1 user" },
+      { text: "10 AI credits/mo" },
       {
         text: "Community support",
         footnote: "Help center + GitHub discussions.",
@@ -145,6 +157,7 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       users: 5,
+      ai: 1000,
     },
     colors: {
       bg: "bg-blue-500",
@@ -154,7 +167,7 @@ export const PLANS = [
       text: "Get started with Pro",
       shortText: "Get started",
       href: "https://app.dub.co/register",
-      color: "bg-blue-500 border-blue-500 hover:text-blue-500",
+      color: "bg-blue-500 hover:bg-blue-600 hover:ring-blue-100",
     },
     featureTitle: "Everything in Free, plus:",
     features: [
@@ -165,6 +178,15 @@ export const PLANS = [
       { text: "1-year analytics retention" },
       { text: "10 custom domains" },
       { text: "5 users" },
+      {
+        text: "Unlimited AI credits",
+        footnote: {
+          title:
+            "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
+          cta: "Learn more.",
+          href: "https://dub.co/blog/introducing-dub-ai",
+        },
+      },
       { text: "Basic support", footnote: "Basic email support." },
       {
         text: "Root domain redirect",
@@ -270,7 +292,7 @@ export const PLANS = [
     cta: {
       text: "Contact us",
       href: "/enterprise",
-      color: "bg-violet-600 border-violet-600 hover:text-violet-600",
+      color: "bg-violet-600 hover:bg-violet-700 hover:ring-violet-100",
     },
     featureTitle: "Everything in Business, plus:",
     features: [

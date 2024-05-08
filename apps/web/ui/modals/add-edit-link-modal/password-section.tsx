@@ -1,9 +1,9 @@
 import { LinkProps } from "@/lib/types";
 import { Eye, EyeOff } from "@/ui/shared/icons";
-import { BadgeTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import { SimpleTooltipContent, Switch } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Crown } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function PasswordSection({
@@ -39,7 +39,7 @@ export default function PasswordSection({
           <h2 className="text-sm font-medium text-gray-900">
             Password Protection
           </h2>
-          <BadgeTooltip
+          <ProBadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Restrict access to your short links by encrypting it with a password."
@@ -47,12 +47,7 @@ export default function PasswordSection({
                 href="https://dub.co/help/article/password-protected-links"
               />
             }
-          >
-            <div className="flex items-center space-x-1">
-              <Crown size={12} />
-              <p>PRO</p>
-            </div>
-          </BadgeTooltip>
+          />
         </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>

@@ -139,7 +139,7 @@ export const importLinksFromRebrandly = async ({
       prisma.tag.deleteMany({
         where: {
           projectId: workspaceId,
-          linksNew: {
+          links: {
             none: {},
           },
         },
@@ -199,8 +199,26 @@ export const importLinksFromRebrandly = async ({
       )
       .filter(Boolean);
 
+    // check if links are already in the database
+    const alreadyCreatedLinks = await prisma.link.findMany({
+      where: {
+        domain,
+        key: {
+          in: importedLinks.map((link) => link.key),
+        },
+      },
+      select: {
+        key: true,
+      },
+    });
+
+    // filter out links that are already in the database
+    const linksToCreate = importedLinks.filter(
+      (link) => !alreadyCreatedLinks.some((l) => l.key === link.key),
+    );
+
     // bulk create links
-    await bulkCreateLinks({ links: importedLinks });
+    await bulkCreateLinks({ links: linksToCreate });
 
     count += importedLinks.length;
 

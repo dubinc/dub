@@ -1,39 +1,54 @@
 import { anthropic } from "@/lib/anthropic";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { ratelimit } from "@/lib/upstash";
-import { ipAddress } from "@vercel/edge";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import {
+  getWorkspaceViaEdge,
+  incrementWorkspaceAIUsage,
+} from "@/lib/planetscale";
+import z from "@/lib/zod";
+import { getSearchParams } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { AnthropicStream, StreamingTextResponse } from "ai";
-import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+const completionSchema = z.object({
+  prompt: z.string(),
+  model: z
+    .enum(["claude-3-haiku-20240307", "claude-3-sonnet-20240229"])
+    .optional()
+    .default("claude-3-sonnet-20240229"),
+});
+
+// POST /api/ai/completion – Generate AI completion
 export async function POST(req: NextRequest) {
+  const searchParams = getSearchParams(req.url);
+  const { workspaceId } = searchParams;
+  const workspace = await getWorkspaceViaEdge(workspaceId);
+
+  if (!anthropic) {
+    console.error("Anthropic is not configured. Skipping the request.");
+    return new Response(null, { status: 200 });
+  }
+
+  if (!workspace) {
+    return new Response("Workspace not found", { status: 404 });
+  }
+
+  if (workspace.aiUsage > workspace.aiLimit) {
+    return new Response(
+      "You've reached your AI usage limit. Upgrade to Pro to get unlimited AI credits.",
+      { status: 429 },
+    );
+  }
+
   try {
-    const session = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-    if (!session?.email) {
-      throw new DubApiError({
-        code: "unauthorized",
-        message: "You must be logged in to access this resource",
-      });
-    }
+    const {
+      // comment for better diff
+      prompt,
+      model,
+    } = completionSchema.parse(await req.json());
 
-    const ip = ipAddress(req);
-    const { success } = await ratelimit(5, "1 m").limit(`ai-completion:${ip}`);
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Don't DDoS me pls 🥺",
-      });
-    }
-
-    // Extract the `prompt` from the body of the request
-    const { prompt } = await req.json();
-
-    // Ask Claude for a streaming chat completion given the prompt
     const response = await anthropic.messages.create({
       messages: [
         {
@@ -41,15 +56,18 @@ export async function POST(req: NextRequest) {
           content: prompt,
         },
       ],
-      model: "claude-3-sonnet-20240229",
+      model,
       stream: true,
       max_tokens: 300,
     });
 
-    // Convert the response into a friendly text-stream
     const stream = AnthropicStream(response);
 
-    // Respond with the stream
+    // only count usage for the sonnet model
+    if (model === "claude-3-sonnet-20240229") {
+      waitUntil(incrementWorkspaceAIUsage(workspaceId));
+    }
+
     return new StreamingTextResponse(stream);
   } catch (error) {
     return handleAndReturnErrorResponse(error);

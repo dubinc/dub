@@ -20,6 +20,11 @@ import LinkResponse from "/snippets/link-response.mdx";
   The short link slug.
 </ParamField>
 
+<ParamField body="externalId" type="string | null">
+  This is the ID of the link in your database. If set, it can be used to
+  identify the link in the future.
+</ParamField>
+
 <ParamField body="prefix" type="string">
   The prefix of the short link slug for randomly-generated keys (e.g. if prefix
   is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if
@@ -90,12 +95,20 @@ import LinkResponse from "/snippets/link-response.mdx";
   The Android destination URL for the short link for Android device targeting.
 </ParamField>
 
+## Response
+
 <LinkResponse />
 
 <RequestExample>
 
 ```ts
+// Update a link linkId
 await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
+  tagIds: ["clv3j1h7o00032u1ngo8luv84"],
+});
+
+// Update a link externalId
+await dub.links.update("ext_123", {
   tagIds: ["clv3j1h7o00032u1ngo8luv84"],
 });
 ```
@@ -109,6 +122,7 @@ await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
   id: 'clv3o9p9q000au1h0mc7r6l63',
   domain: 'dub.sh',
   key: 'e7qzMuI',
+  externalId: "123",
   url: 'https://www.google.com',
   archived: false,
   expiresAt: null,

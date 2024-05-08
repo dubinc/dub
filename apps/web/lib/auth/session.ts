@@ -1,7 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
+import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
-import { ratelimit } from "../upstash";
+import { waitUntil } from "@vercel/functions";
 import { Session, getSession, hashToken } from "./utils";
 
 interface WithSessionHandler {
@@ -62,8 +63,8 @@ export const withSession =
         }
 
         const { success, limit, reset, remaining } = await ratelimit(
-          10,
-          "1 s",
+          600,
+          "1 m",
         ).limit(apiKey);
 
         headers = {
@@ -79,14 +80,16 @@ export const withSession =
             headers,
           });
         }
-        await prisma.token.update({
-          where: {
-            hashedKey,
-          },
-          data: {
-            lastUsed: new Date(),
-          },
-        });
+        waitUntil(
+          prisma.token.update({
+            where: {
+              hashedKey,
+            },
+            data: {
+              lastUsed: new Date(),
+            },
+          }),
+        );
         session = {
           user: {
             id: user.id,
