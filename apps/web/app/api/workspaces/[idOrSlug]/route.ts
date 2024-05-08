@@ -80,8 +80,9 @@ export const PUT = withWorkspace(
 // DELETE /api/workspaces/[idOrSlug] – delete a specific project
 export const DELETE = withWorkspace(
   async ({ workspace }) => {
-    const response = await deleteWorkspace(workspace);
-    return NextResponse.json(response);
+    await deleteWorkspace(workspace);
+
+    return NextResponse.json(workspace);
   },
   {
     requiredRole: ["owner"],

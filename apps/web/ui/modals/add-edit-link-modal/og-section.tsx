@@ -227,13 +227,12 @@ export default function OGSection({
                   openPopover={openPopover}
                   setOpenPopover={handleSet}
                 >
-                  <ButtonTooltip
-                    tooltipContent="Find high-resolution photos on Unsplash."
+                  <button
                     onClick={handleSet}
                     className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                   >
                     <Unsplash className="h-3 w-3 text-gray-500" />
-                  </ButtonTooltip>
+                  </button>
                 </Popover>
               </div>
             </div>
