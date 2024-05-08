@@ -21,8 +21,6 @@ export const POST = withSessionEdge(async ({ req }) => {
         return;
       }
 
-      console.log(body);
-
       await recordConversion({
         ...clickEvent.data[0],
         timestamp: new Date(Date.now()).toISOString(),

@@ -48,7 +48,10 @@ export const conversionEventSchemaTB = clickEventSchemaTB
 
 export const conversionRequestSchema = z.object({
   clickId: z.string({ required_error: "clickId is required" }),
-  eventName: z.string().max(50).default(""),
+  eventName: z
+    .string({ required_error: "eventName is required" })
+    .min(1)
+    .max(50),
   eventType,
   metadata: z
     .record(z.unknown())
