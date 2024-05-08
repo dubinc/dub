@@ -6,6 +6,7 @@ import {
   isIframeable,
   validDomainRegex,
 } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { storage } from "../storage";
 import { recordLink } from "../tinybird";
 
@@ -208,13 +209,7 @@ export async function setRootDomain({
 }
 
 /* Delete a domain and all links & images associated with it */
-export async function deleteDomainAndLinks(
-  domain: string,
-  {
-    // Note: in certain cases, we don't need to remove the domain from the Prisma
-    skipPrismaDelete = false,
-  } = {},
-) {
+export async function deleteDomainAndLinks(domain: string) {
   const [domainData, allLinks] = await Promise.all([
     prisma.domain.findUnique({
       where: {
@@ -235,6 +230,7 @@ export async function deleteDomainAndLinks(
         domain: true,
         key: true,
         url: true,
+        image: true,
         projectId: true,
         tags: true,
       },
@@ -243,34 +239,40 @@ export async function deleteDomainAndLinks(
   if (!domainData) {
     return null;
   }
-  return await Promise.allSettled([
-    // delete all links from redis
-    redis.del(domain.toLowerCase()),
-    // record deletes in tinybird for domain & links
-    recordLink({
-      link: {
-        id: domainData.id,
-        domain,
-        key: "_root",
-        url: domainData.target || "",
-        projectId: domainData.projectId,
-      },
-      deleted: true,
-    }),
-    ...allLinks.flatMap((link) => [
+
+  const response = await prisma.domain.delete({
+    where: {
+      slug: domain,
+    },
+  });
+
+  waitUntil(
+    Promise.allSettled([
+      // delete all links from redis
+      redis.del(domain.toLowerCase()),
+      // record deletes in tinybird for domain & links
       recordLink({
-        link,
+        link: {
+          id: domainData.id,
+          domain,
+          key: "_root",
+          url: domainData.target || "",
+          projectId: domainData.projectId,
+        },
         deleted: true,
       }),
-      storage.delete(`images/${link.id}`),
+      ...allLinks.flatMap((link) => [
+        recordLink({
+          link,
+          deleted: true,
+        }),
+        link.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+          storage.delete(`images/${link.id}`),
+      ]),
+      // remove the domain from Vercel
+      removeDomainFromVercel(domain),
     ]),
-    // remove the domain from Vercel
-    removeDomainFromVercel(domain),
-    !skipPrismaDelete &&
-      prisma.domain.delete({
-        where: {
-          slug: domain,
-        },
-      }),
-  ]);
+  );
+
+  return response;
 }

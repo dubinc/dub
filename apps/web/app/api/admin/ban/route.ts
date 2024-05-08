@@ -4,7 +4,7 @@ import { updateConfig } from "@/lib/edge-config";
 import { unsubscribe } from "@/lib/flodesk";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { get } from "@vercel/edge-config";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/admin/ban
@@ -41,34 +41,32 @@ export const POST = withAdmin(async ({ req }) => {
     return new Response("No user found", { status: 404 });
   }
 
-  const blacklistedEmails = (await get("emails")) as string[];
-
-  await Promise.allSettled(
-    user.projects.map(({ project }) =>
-      deleteWorkspaceAdmin({
-        id: project.id,
-        slug: project.slug,
-        stripeId: project.stripeId || null,
-        logo: project.logo || null,
+  waitUntil(
+    Promise.allSettled([
+      ...user.projects.map(({ project }) =>
+        deleteWorkspaceAdmin({
+          id: project.id,
+          slug: project.slug,
+          stripeId: project.stripeId || null,
+          logo: project.logo || null,
+        }),
+      ),
+      // delete user
+      prisma.user.delete({
+        where: {
+          id: user.id,
+        },
       }),
-    ),
+      // if the user has a custom avatar, delete it
+      user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+        storage.delete(`avatars/${user.id}`),
+      unsubscribe(email),
+      updateConfig({
+        key: "emails",
+        value: email,
+      }),
+    ]),
   );
-
-  await Promise.allSettled([
-    prisma.user.delete({
-      where: {
-        id: user.id,
-      },
-    }),
-    // if the user has a custom avatar, delete it
-    user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-      storage.delete(`avatars/${user.id}`),
-    unsubscribe(email),
-    updateConfig({
-      key: "emails",
-      value: email,
-    }),
-  ]);
 
   return NextResponse.json({ success: true });
 });

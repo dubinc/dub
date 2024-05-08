@@ -1,5 +1,11 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import {
+  DubApiError,
+  exceededLimitError,
+  handleAndReturnErrorResponse,
+} from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
+import { PlanProps, WorkspaceProps } from "@/lib/types";
+import { ratelimit } from "@/lib/upstash";
 import {
   API_DOMAIN,
   DUB_WORKSPACE_ID,
@@ -7,9 +13,7 @@ import {
   isDubDomain,
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
-import { exceededLimitError } from "../api/errors";
-import { PlanProps, WorkspaceProps } from "../types";
-import { ratelimit } from "../upstash";
+import { waitUntil } from "@vercel/functions";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -172,14 +176,16 @@ export const withWorkspace = (
             message: "Too many requests.",
           });
         }
-        await prisma.token.update({
-          where: {
-            hashedKey,
-          },
-          data: {
-            lastUsed: new Date(),
-          },
-        });
+        waitUntil(
+          prisma.token.update({
+            where: {
+              hashedKey,
+            },
+            data: {
+              lastUsed: new Date(),
+            },
+          }),
+        );
         session = {
           user: {
             id: user.id,

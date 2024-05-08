@@ -3,13 +3,13 @@ import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import "dotenv-flow/config";
 
-const filters = {
-  domain: "song.fyi",
-};
+const domain = "song.fyi";
 
 async function main() {
   const links = await prisma.link.findMany({
-    where: filters,
+    where: {
+      domain,
+    },
     select: {
       id: true,
       domain: true,
@@ -20,11 +20,11 @@ async function main() {
     },
   });
   const response = await Promise.all([
-    // prisma.link.deleteMany({
-    //   where: filters,
-    // }),
+    prisma.link.deleteMany({
+      where: { domain },
+    }),
+    redis.del(domain),
     ...links.flatMap((link) => [
-      redis.hdel(link.domain.toLowerCase(), link.key.toLowerCase()),
       recordLink({
         link,
         deleted: true,

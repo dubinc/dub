@@ -1,5 +1,6 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
@@ -16,7 +17,8 @@ export const POST = withWorkspace(
           "Missing workspace. Bulk link creation is only available for custom domain workspaces.",
       });
     }
-    const links = bulkCreateLinksBodySchema.parse(await req.json());
+    const bodyRaw = await parseRequestBody(req);
+    const links = bulkCreateLinksBodySchema.parse(bodyRaw);
     if (
       workspace.linksUsage + links.length > workspace.linksLimit &&
       (workspace.plan === "free" || workspace.plan === "pro")

@@ -5,6 +5,7 @@ import {
   transformLink,
   updateLink,
 } from "@/lib/api/links";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
@@ -55,7 +56,8 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const body = updateLinkBodySchema.parse(await req.json());
+    const bodyRaw = await parseRequestBody(req);
+    const body = updateLinkBodySchema.parse(bodyRaw);
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
@@ -130,7 +132,7 @@ export const DELETE = withWorkspace(async ({ headers, link }) => {
   await deleteLink(link!.id);
 
   return NextResponse.json(
-    { id: link?.id },
+    { id: link!.id },
     {
       headers,
     },

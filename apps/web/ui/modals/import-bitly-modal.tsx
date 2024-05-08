@@ -9,7 +9,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -74,7 +74,7 @@ function ImportBitlyModal({
     }
   }, [searchParams]);
 
-  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}&state=${workspaceId}`;
+  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${APP_DOMAIN_WITH_NGROK}/api/callback/bitly&state=${workspaceId}`;
 
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
@@ -190,23 +190,25 @@ function ImportBitlyModal({
                         />
                       </div>
                     ))}
-                    <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
-                      <p className="text-xs text-gray-500">
-                        {tags.length} tags found. Import all?
-                      </p>
-                      <Switch
-                        fn={() => {
-                          if (selectedGroupTags.includes(guid)) {
-                            setSelectedGroupTags((prev) =>
-                              prev.filter((g) => g !== guid),
-                            );
-                          } else {
-                            setSelectedGroupTags((prev) => [...prev, guid]);
-                          }
-                        }}
-                        checked={selectedGroupTags.includes(guid)}
-                      />
-                    </div>
+                    {tags.length > 0 && (
+                      <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
+                        <p className="text-xs text-gray-500">
+                          {tags.length} tags found. Import all?
+                        </p>
+                        <Switch
+                          fn={() => {
+                            if (selectedGroupTags.includes(guid)) {
+                              setSelectedGroupTags((prev) =>
+                                prev.filter((g) => g !== guid),
+                              );
+                            } else {
+                              setSelectedGroupTags((prev) => [...prev, guid]);
+                            }
+                          }}
+                          checked={selectedGroupTags.includes(guid)}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))
               ) : (

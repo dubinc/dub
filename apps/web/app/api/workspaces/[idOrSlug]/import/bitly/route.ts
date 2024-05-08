@@ -57,6 +57,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const doaminsNotInWorkspace = selectedDomains.filter(
     ({ domain }) => !workspace.domains?.find((d) => d.slug === domain),
   );
+
   if (doaminsNotInWorkspace.length > 0) {
     await Promise.allSettled([
       prisma.domain.createMany({
@@ -69,7 +70,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
         })),
         skipDuplicates: true,
       }),
-      doaminsNotInWorkspace.map(({ slug }) => addDomainToVercel(slug)),
+      doaminsNotInWorkspace.map(({ domain }) => addDomainToVercel(domain)),
     ]);
   }
 
