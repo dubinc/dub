@@ -38,6 +38,7 @@ export const conversionEventSchemaTB = clickEventSchemaTB
   .omit({ url: true })
   .and(
     z.object({
+      event_id: z.string(),
       event_name: z.string(),
       event_type: eventType,
       metadata: z.string(), // TODO: Fix the type
