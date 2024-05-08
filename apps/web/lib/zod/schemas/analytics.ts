@@ -2,6 +2,7 @@ import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
+import { parseDateSchema } from "./utils";
 
 export const getAnalyticsQuerySchema = z.object({
   domain: z.string().optional().describe("The domain of the short link."),
@@ -20,14 +21,11 @@ export const getAnalyticsQuerySchema = z.object({
     .enum(intervals)
     .optional()
     .describe("The interval to retrieve analytics for."),
-  startDate: z
-    .string()
-    .datetime()
+  start: parseDateSchema
     .refine(
-      (value) => {
-        const inputDate = new Date(value);
+      (value: Date) => {
         const foundingDate = new Date("2022-09-22T00:00:00.000Z"); // Dub.co founding date
-        return inputDate >= foundingDate;
+        return value >= foundingDate;
       },
       {
         message: "The start date cannot be earlier than September 22, 2022.",
@@ -35,14 +33,11 @@ export const getAnalyticsQuerySchema = z.object({
     )
     .optional()
     .describe("The start date and time when to retrieve analytics from."),
-  endDate: z
-    .string()
-    .datetime()
+  end: parseDateSchema
     .refine(
-      (value) => {
+      (value: Date) => {
         const todaysDate = new Date();
-        const inputDate = new Date(value);
-        return inputDate <= todaysDate;
+        return value <= todaysDate;
       },
       {
         message: "The end date cannot be in future.",

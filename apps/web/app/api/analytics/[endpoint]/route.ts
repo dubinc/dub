@@ -1,4 +1,4 @@
-import { getAnalytics } from "@/lib/analytics";
+import { getAnalytics, validDateRangeForPlan } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
@@ -14,28 +14,47 @@ export const GET = withWorkspace(
     const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
 
-    const { domain, key, interval, startDate, endDate } = parsedParams;
+    const { domain, key, interval, start, end } = parsedParams;
 
     // Either interval can be provided, or both start and end date
-    if (
-      (interval && startDate && endDate) ||
-      (startDate && !endDate) ||
-      (!startDate && endDate)
-    ) {
+    if ((interval && start && end) || (start && !end) || (!start && end)) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: "Either provide interval or start and end date, not both",
       });
     }
 
-    // return 403 if workspace is on the free plan and interval is 90d or allI do
+    // Free plan users can only get analytics for 30 days
     if (
-      workspace?.plan === "free" &&
-      (interval === "all" || interval === "90d")
+      workspace.plan === "free" &&
+      !validDateRangeForPlan({
+        plan: workspace.plan,
+        interval,
+        start,
+        end,
+      })
     ) {
       throw new DubApiError({
         code: "forbidden",
-        message: "Require higher plan",
+        message:
+          "You can only get analytics for up to 30 days on a Free plan. Upgrade to Pro or Business to get analytics for longer periods.",
+      });
+    }
+
+    // Pro plan users can only get analytics for 1 year
+    if (
+      workspace.plan === "pro" &&
+      !validDateRangeForPlan({
+        plan: workspace.plan,
+        interval,
+        start,
+        end,
+      })
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You can only get analytics for up to 1 year on a Pro plan. Upgrade to Business to get analytics for longer periods.",
       });
     }
 
