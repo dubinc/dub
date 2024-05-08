@@ -6,8 +6,8 @@ import {
 } from "@/lib/planetscale";
 import z from "@/lib/zod";
 import { getSearchParams } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { AnthropicStream, StreamingTextResponse } from "ai";
-import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 import { NextRequest } from "next/server";
 
 export const runtime = "edge";
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     // only count usage for the sonnet model
     if (model === "claude-3-sonnet-20240229") {
-      waitUntil(async () => await incrementWorkspaceAIUsage(workspaceId));
+      waitUntil(incrementWorkspaceAIUsage(workspaceId));
     }
 
     return new StreamingTextResponse(stream);
