@@ -2,8 +2,8 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Dub.co Docs",
   "logo": {
-    "dark": "/logos/logotype-dark.svg",
-    "light": "/logos/logotype.svg",
+    "dark": "/logos/wordmark-dark.svg",
+    "light": "/logos/wordmark.svg",
     "href": "https://dub.co"
   },
   "favicon": "/logos/favicon.png",
