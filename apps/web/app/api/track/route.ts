@@ -1,6 +1,6 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
-import { getClickEvent } from "@/lib/tinybird";
+import { getClickEvent, recordConversion } from "@/lib/tinybird";
 import { conversionRequestSchema } from "@/lib/zod/schemas/conversions";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -20,15 +20,14 @@ export const POST = withSessionEdge(async ({ req }) => {
         return;
       }
 
-      console.log({ clickId, eventName, eventType, eventMetadata, customerId });
-
-      // await recordConversion({
-      //   ...clickEvent.data[0],
-      //   event_name: eventName,
-      //   event_type: eventType,
-      //   event_metadata: eventMetadata,
-      //   customer_id: customerId,
-      // });
+      await recordConversion({
+        ...clickEvent.data[0],
+        event_name: eventName,
+        event_type: eventType,
+        event_metadata: eventMetadata,
+        customer_id: customerId,
+        timestamp: new Date(Date.now()).toISOString(),
+      });
     })(),
   );
 

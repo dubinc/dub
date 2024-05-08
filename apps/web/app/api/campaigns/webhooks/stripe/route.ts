@@ -74,10 +74,10 @@ async function handleChargeSucceeded(event: Stripe.Event) {
 
   await recordConversion({
     ...clickEvent.data[0],
-    metadata: "",
-    customer_key: customerKey,
     event_name: "",
     event_type: "sale",
+    event_metadata: "",
+    customer_id: customerKey,
     timestamp: new Date(Date.now()).toISOString(),
   });
 }
