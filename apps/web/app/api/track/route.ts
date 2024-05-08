@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-// POST /api/track – Post a conversion event
+// POST /api/track – Track a click conversion event
 export const POST = withSessionEdge(async ({ req }) => {
   const body = conversionRequestSchema.parse(await parseRequestBody(req));
   const { clickId, eventName, eventType, metadata, customerId } = body;
