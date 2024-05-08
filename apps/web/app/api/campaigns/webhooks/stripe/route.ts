@@ -81,9 +81,9 @@ async function handleChargeSucceeded(event: Stripe.Event) {
   await recordConversion({
     ...clickEvent.data[0],
     event_id: nanoid(16),
-    timestamp: new Date(Date.now()).toISOString(),
-    event_name: "",
+    event_name: "Subscribed to plan",
     event_type: "sale",
+    metadata: "",
     customer_id: customerId,
     metadata: "",
   });
