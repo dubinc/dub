@@ -2,7 +2,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
 import { getClickEvent, recordConversion } from "@/lib/tinybird";
 import { conversionRequestSchema } from "@/lib/zod/schemas/conversions";
-import { nanoid } from "@dub/utils";
+import { log, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -29,6 +29,12 @@ export const POST = withSessionEdge(async ({ req }) => {
         event_type: eventType,
         customer_id: customerId,
         metadata,
+      });
+
+      // TODO: Remove this before launch
+      await log({
+        message: `*Conversion event recorded*: Customer *${customerId}* converted on click *${clickId}* with event *${eventName}*.`,
+        type: "alerts",
       });
     })(),
   );
