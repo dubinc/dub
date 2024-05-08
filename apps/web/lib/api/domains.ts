@@ -230,6 +230,7 @@ export async function deleteDomainAndLinks(domain: string) {
         domain: true,
         key: true,
         url: true,
+        image: true,
         projectId: true,
         tags: true,
       },
@@ -265,7 +266,8 @@ export async function deleteDomainAndLinks(domain: string) {
           link,
           deleted: true,
         }),
-        storage.delete(`images/${link.id}`),
+        link.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+          storage.delete(`images/${link.id}`),
       ]),
       // remove the domain from Vercel
       removeDomainFromVercel(domain),

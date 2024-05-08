@@ -51,7 +51,7 @@ export const POST = withAdmin(async ({ req }) => {
           logo: project.logo || null,
         }),
       ),
-
+      // delete user
       prisma.user.delete({
         where: {
           id: user.id,
