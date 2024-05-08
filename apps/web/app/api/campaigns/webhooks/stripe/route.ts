@@ -1,5 +1,6 @@
 import { stripe } from "@/lib/stripe";
 import { getClickEvent, recordConversion } from "@/lib/tinybird";
+import { nanoid } from "@dub/utils";
 import type Stripe from "stripe";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -79,9 +80,10 @@ async function handleChargeSucceeded(event: Stripe.Event) {
 
   await recordConversion({
     ...clickEvent.data[0],
-    event_name: "",
+    event_id: nanoid(16),
+    event_name: "Subscribed to plan",
     event_type: "sale",
-    event_metadata: "",
+    metadata: "",
     customer_id: customerId,
     timestamp: new Date(Date.now()).toISOString(),
   });
