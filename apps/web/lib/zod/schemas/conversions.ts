@@ -1,10 +1,12 @@
 import z from "@/lib/zod";
 
-export const eventType = z.enum(["lead", "sale"], {
-  errorMap: () => ({
-    message: "Must be either 'lead' or 'sale'",
-  }),
-});
+export const eventType = z
+  .enum(["lead", "sale"], {
+    errorMap: () => ({
+      message: "Must be either 'lead' or 'sale'",
+    }),
+  })
+  .default("lead");
 
 export const clickEventSchemaTB = z.object({
   timestamp: z.string(),
@@ -38,26 +40,24 @@ export const conversionEventSchemaTB = clickEventSchemaTB
     z.object({
       event_name: z.string(),
       event_type: eventType,
-      metadata: z.string().nullable(), // TODO: Fix the type
-      customer_id: z.string().nullish(),
+      metadata: z.string(), // TODO: Fix the type
+      customer_key: z.string(),
     }),
   );
 
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-type Literal = z.infer<typeof literalSchema>;
-type Json = Literal | { [key: string]: Json } | Json[];
-
 export const conversionRequestSchema = z.object({
   clickId: z.string({ required_error: "clickId is required" }),
-  eventName: z
-    .string({ required_error: "eventName is required" })
-    .min(1)
-    .max(50)
-    .default(""),
-  eventType,
+  name: z.string().max(50).default(""),
+  event: eventType,
   metadata: z
     .record(z.unknown())
     .nullish()
     .transform((val) => (val ? JSON.stringify(val) : "")),
-  customerId: z.string().max(100).nullish().default(""),
+  customerKey: z
+    .string()
+    .max(100)
+    .default("")
+    .describe(
+      "This is the identifier for the customer in the client's app. This is used to track the customer's journey.",
+    ),
 });
