@@ -10,7 +10,7 @@ export const runtime = "edge";
 // POST /api/track – Post a conversion event
 export const POST = withSessionEdge(async ({ req }) => {
   const body = conversionRequestSchema.parse(await parseRequestBody(req));
-  const { clickId, eventName, eventType, eventMetadata, customerId } = body;
+  const { clickId, eventName, eventType, metadata, customerId } = body;
 
   waitUntil(
     (async () => {
@@ -20,13 +20,14 @@ export const POST = withSessionEdge(async ({ req }) => {
         return;
       }
 
+      console.log(body);
+
       await recordConversion({
         ...clickEvent.data[0],
         event_name: eventName,
         event_type: eventType,
-        event_metadata: eventMetadata,
+        metadata,
         customer_id: customerId,
-        timestamp: new Date(Date.now()).toISOString(),
       });
     })(),
   );

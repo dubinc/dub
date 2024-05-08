@@ -40,7 +40,7 @@ export const conversionEventSchemaTB = clickEventSchemaTB
     z.object({
       event_name: z.string(),
       event_type: eventType,
-      event_metadata: z.string(), // TODO: Fix the type
+      metadata: z.string(), // TODO: Fix the type
       customer_id: z.string(),
     }),
   );
@@ -49,7 +49,7 @@ export const conversionRequestSchema = z.object({
   clickId: z.string({ required_error: "clickId is required" }),
   eventName: z.string().max(50).default(""),
   eventType,
-  eventMetadata: z
+  metadata: z
     .record(z.unknown())
     .nullish()
     .transform((val) => (val ? JSON.stringify(val) : "")),

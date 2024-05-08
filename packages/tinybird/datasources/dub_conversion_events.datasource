@@ -1,12 +1,12 @@
 
 SCHEMA >
   `timestamp` DateTime64(3) `json:$.timestamp`,
-  `link_id` String `json:$.link_id`,
-  `click_id` String `json:$.click_id`,
   `event_name` LowCardinality(String) `json:$.event_name`,
   `event_type` LowCardinality(String) `json:$.event_type`,
   `metadata` String `json:$.metadata`,
-  `customer_key` String `json:$.customer_key`,            
+  `customer_id` String `json:$.customer_id`,   
+  `click_id` String `json:$.click_id`,
+  `link_id` String `json:$.link_id`,         
   `country` LowCardinality(String) `json:$.country`,
   `city` String `json:$.city`,
   `region` String `json:$.region`,
@@ -29,4 +29,4 @@ SCHEMA >
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "timestamp, link_id, click_id, customer_key"
+ENGINE_SORTING_KEY "timestamp, link_id, click_id"
