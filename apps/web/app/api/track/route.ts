@@ -21,16 +21,14 @@ export const POST = withSessionEdge(async ({ req }) => {
         return;
       }
 
-      console.log(body);
-
       await recordConversion({
         ...clickEvent.data[0],
         timestamp: new Date(Date.now()).toISOString(),
         event_id: nanoid(16),
         event_name: eventName,
         event_type: eventType,
-        metadata,
         customer_id: customerId,
+        metadata,
       });
     })(),
   );
