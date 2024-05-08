@@ -84,11 +84,11 @@ export const getAnalytics = async ({
   if (start && end) {
     url.searchParams.append(
       "start",
-      start.toString().replace("T", " ").replace("Z", ""),
+      new Date(start).toISOString().replace("T", " ").replace("Z", ""),
     );
     url.searchParams.append(
       "end",
-      end.toString().replace("T", " ").replace("Z", ""),
+      new Date(end).toISOString().replace("T", " ").replace("Z", ""),
     );
 
     url.searchParams.append(
