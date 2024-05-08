@@ -21,21 +21,22 @@ export const POST = withSessionEdge(async ({ req }) => {
         return;
       }
 
-      await recordConversion({
-        ...clickEvent.data[0],
-        timestamp: new Date(Date.now()).toISOString(),
-        event_id: nanoid(16),
-        event_name: eventName,
-        event_type: eventType,
-        customer_id: customerId,
-        metadata,
-      });
-
-      // TODO: Remove this before launch
-      await log({
-        message: `*Conversion event recorded*: Customer *${customerId}* converted on click *${clickId}* with event *${eventName}*.`,
-        type: "alerts",
-      });
+      await Promise.all([
+        recordConversion({
+          ...clickEvent.data[0],
+          timestamp: new Date(Date.now()).toISOString(),
+          event_id: nanoid(16),
+          event_name: eventName,
+          event_type: eventType,
+          customer_id: customerId,
+          metadata,
+        }),
+        // TODO: Remove this before launch
+        log({
+          message: `*Conversion event recorded*: Customer *${customerId}* converted on click *${clickId}* with event *${eventName}*.`,
+          type: "alerts",
+        }),
+      ]);
     })(),
   );
 
