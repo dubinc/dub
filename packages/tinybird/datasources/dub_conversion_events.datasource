@@ -1,12 +1,13 @@
 
 SCHEMA >
   `timestamp` DateTime64(3) `json:$.timestamp`,
-  `link_id` String `json:$.link_id`,
-  `click_id` String `json:$.click_id`,
+  `event_id` String `json:$.event_id`,
   `event_name` LowCardinality(String) `json:$.event_name`,
   `event_type` LowCardinality(String) `json:$.event_type`,
-  `event_metadata` String `json:$.event_metadata`,
-  `customer_id` String `json:$.customer_id`,            
+  `metadata` String `json:$.metadata`,
+  `customer_id` String `json:$.customer_id`,   
+  `click_id` String `json:$.click_id`,
+  `link_id` String `json:$.link_id`,         
   `country` LowCardinality(String) `json:$.country`,
   `city` String `json:$.city`,
   `region` String `json:$.region`,

@@ -2,6 +2,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
 import { getClickEvent, recordConversion } from "@/lib/tinybird";
 import { conversionRequestSchema } from "@/lib/zod/schemas/conversions";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -10,7 +11,7 @@ export const runtime = "edge";
 // POST /api/track – Post a conversion event
 export const POST = withSessionEdge(async ({ req }) => {
   const body = conversionRequestSchema.parse(await parseRequestBody(req));
-  const { clickId, eventName, eventType, eventMetadata, customerId } = body;
+  const { clickId, eventName, eventType, metadata, customerId } = body;
 
   waitUntil(
     (async () => {
@@ -20,13 +21,16 @@ export const POST = withSessionEdge(async ({ req }) => {
         return;
       }
 
+      console.log(body);
+
       await recordConversion({
         ...clickEvent.data[0],
+        timestamp: new Date(Date.now()).toISOString(),
+        event_id: nanoid(16),
         event_name: eventName,
         event_type: eventType,
-        event_metadata: eventMetadata,
+        metadata,
         customer_id: customerId,
-        timestamp: new Date(Date.now()).toISOString(),
       });
     })(),
   );
