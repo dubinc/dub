@@ -169,7 +169,7 @@ function AddEditDomainModal({
                 type="button"
                 onClick={() => {
                   window.confirm(
-                    "Warning: Changing your workspace's domain will break all existing short links and reset their analytics. Are you sure you want to continue?",
+                    "Warning: Changing your workspace's domain will break all existing short links. Are you sure you want to continue?",
                   ) && setLockDomain(false);
                 }}
               >
