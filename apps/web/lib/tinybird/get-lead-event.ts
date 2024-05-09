@@ -5,7 +5,7 @@ import { tb } from "./client";
 export const getLeadEvent = tb.buildPipe({
   pipe: "get_lead_event",
   parameters: z.object({
-    customerId: z.string(),
+    customer_id: z.string(),
   }),
   data: leadEventSchemaTB,
 });

@@ -1,7 +1,7 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { trackSaleEventSchema } from "@/lib/zod/schemas";
+import { trackSaleRequestSchema } from "@/lib/zod/schemas";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -21,11 +21,11 @@ export const POST = withSessionEdge(async ({ req }) => {
     recurringIntervalCount,
     refunded,
     metadata,
-  } = trackSaleEventSchema.parse(await parseRequestBody(req));
+  } = trackSaleRequestSchema.parse(await parseRequestBody(req));
 
   waitUntil(
     (async () => {
-      const leadEvent = await getLeadEvent({ customerId });
+      const leadEvent = await getLeadEvent({ customer_id: customerId });
 
       if (!leadEvent || leadEvent.data.length === 0) {
         return;

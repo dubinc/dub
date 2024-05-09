@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { clickEventSchemaTB } from "./clicks";
 
-export const trackSaleEventSchema = z.object({
+export const trackSaleRequestSchema = z.object({
   customerId: z.string(),
   paymentProcessor: z.enum(["stripe", "shopify", "paddle"]),
   productId: z.string(),
@@ -11,7 +11,10 @@ export const trackSaleEventSchema = z.object({
   recurringInterval: z.enum(["month", "year"]).default("month"),
   recurringIntervalCount: z.number().int().positive().default(1),
   refunded: z.boolean().default(false),
-  metadata: z.record(z.unknown()).nullish(),
+  metadata: z
+    .record(z.unknown())
+    .nullish()
+    .transform((val) => (val ? JSON.stringify(val) : "")),
 });
 
 export const saleEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
@@ -26,9 +29,6 @@ export const saleEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
     recurring_interval: z.enum(["month", "year"]).default("month"),
     recurring_interval_count: z.number().int().positive().default(1),
     refunded: z.boolean().default(false),
-    metadata: z
-      .record(z.unknown())
-      .nullish()
-      .transform((val) => (val ? JSON.stringify(val) : "")),
+    metadata: z.string().default(""),
   }),
 );
