@@ -73,6 +73,9 @@ export const withSessionEdge =
         },
       };
 
+      // TODO:
+      // Extract workspaceId and validate it
+
       // Fetch search params
       const searchParams = getSearchParams(req.url);
 

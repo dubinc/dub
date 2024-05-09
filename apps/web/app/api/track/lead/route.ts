@@ -30,27 +30,31 @@ export const POST = withSessionEdge(async ({ req, searchParams }) => {
         return;
       }
 
+      const timestamp = new Date(Date.now()).toISOString();
+      const customerInfoPresent =
+        Boolean(customerName) ||
+        Boolean(customerEmail) ||
+        Boolean(customerAvatar);
+
       await Promise.all([
         recordLead({
           ...clickEvent.data[0],
-          timestamp: new Date(Date.now()).toISOString(),
+          timestamp,
           event_name: eventName,
           event_id: nanoid(16),
           customer_id: customerId,
           metadata,
         }),
-        ...(customerName || customerEmail || customerAvatar
-          ? [
-              recordCustomer({
-                timestamp: new Date(Date.now()).toISOString(),
-                customer_id: customerId,
-                name: customerName,
-                email: customerEmail,
-                avatar: customerAvatar,
-                workspace_id: workspaceId,
-              }),
-            ]
-          : []),
+
+        customerInfoPresent &&
+          recordCustomer({
+            timestamp,
+            customer_id: customerId,
+            name: customerName,
+            email: customerEmail,
+            avatar: customerAvatar,
+            workspace_id: workspaceId,
+          }),
       ]);
     })(),
   );

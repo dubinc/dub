@@ -20,7 +20,7 @@ export const trackLeadRequestSchema = z.object({
   customerName: z
     .string()
     .max(100)
-    .optional()
+    .nullish()
     .describe(
       "This is the name of the customer in the client's app. This is used to track the customer's journey.",
     ),
@@ -28,14 +28,14 @@ export const trackLeadRequestSchema = z.object({
     .string()
     .email()
     .max(100)
-    .optional()
+    .nullish()
     .describe(
       "This is the email of the customer in the client's app. This is used to track the customer's journey.",
     ),
   customerAvatar: z
     .string()
     .max(100)
-    .optional()
+    .nullish()
     .describe(
       "This is the avatar of the customer in the client's app. This is used to track the customer's journey.",
     ),

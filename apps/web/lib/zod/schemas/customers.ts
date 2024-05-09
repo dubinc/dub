@@ -11,8 +11,8 @@ export const customersMetadataSchema = z.object({
   timestamp: z.string(),
   customer_id: z.string(),
   name: z.string().nullish().default(""),
-  email: z.string().email().nullish().default(""),
-  avatar: z.string().url().nullish().default(""),
+  email: z.string().nullish().default(""),
+  avatar: z.string().nullish().default(""),
   workspace_id: z.string(),
   deleted: z.boolean().default(false),
 });
