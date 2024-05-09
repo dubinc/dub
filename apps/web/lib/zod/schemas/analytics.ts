@@ -15,7 +15,7 @@ export const clickAnalyticsQuerySchema = z.object({
     })
     .optional()
     .describe(
-      "The group by endpoint. If left empty, returns the total click count.",
+      "The field to group the analytics by. If undefined, returns the total click count.",
     ),
   domain: z.string().optional().describe("The domain to filter analytics for."),
   key: z.string().optional().describe("The short link slug."),

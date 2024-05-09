@@ -1,5 +1,12 @@
 ## Arguments
 
+<ParamField body="groupBy" type="enum<string>">
+  The field to group the analytics by. If undefined, returns the total click count.
+
+Available options are `timeseries`, `country`, `city`, `device`, `browser`, `os`, `referer`, `top_links`, and `top_urls`.
+
+</ParamField>
+
 <ParamField body="domain" type="string">
   The domain of the short link.
 </ParamField>

@@ -87,7 +87,6 @@ export const intervalData: Record<
 };
 
 export const VALID_TINYBIRD_ENDPOINTS = [
-  "clicks",
   "timeseries",
   "country",
   "city",
