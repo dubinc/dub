@@ -1,4 +1,4 @@
-import { saleEventSchemaTB } from "../zod/schemas/conversions";
+import { saleEventSchemaTB } from "../zod/schemas";
 import { tb } from "./client";
 
 export const recordSale = tb.buildIngestEndpoint({

@@ -5,7 +5,6 @@ SCHEMA >
   `metadata` String `json:$.metadata`,
   `customer_id` String `json:$.customer_id`,
   `payment_processor` LowCardinality(String) `json:$.payment_processor`,
-  `stripe_customer_id` String `json:$.stripe_customer_id`,
   `product_id` String `json:$.product_id`,
   `amount` UInt32 `json:$.amount`,
   `currency` LowCardinality(String) `json:$.currency`,

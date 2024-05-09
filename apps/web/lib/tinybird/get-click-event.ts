@@ -1,5 +1,5 @@
 import z from "../zod";
-import { clickEventSchemaTB } from "../zod/schemas/conversions";
+import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { tb } from "./client";
 
 export const getClickEvent = tb.buildPipe({

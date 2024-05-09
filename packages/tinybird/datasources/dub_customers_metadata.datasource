@@ -1,0 +1,11 @@
+SCHEMA >
+    `timestamp` DateTime `json:$.timestamp`,
+    `customer_id` String `json:$.customer_id`,
+    `name` String `json:$.name`,
+    `email` String `json:$.email`,
+    `avatar` String `json:$.avatar`,
+    `project_id` String `json:$.project_id`,
+    `deleted` UInt8 `json:$.deleted`
+
+ENGINE "MergeTree"
+ENGINE_SORTING_KEY "timestamp, customer_id, project_id, deleted"
