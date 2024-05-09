@@ -9,8 +9,13 @@ export const runtime = "edge";
 
 // POST /api/track/customer – Track a customer object
 export const POST = withSessionEdge(async ({ req }) => {
-  const { customerId, customerName, customerEmail, customerAvatar } =
-    trackCustomerRequestSchema.parse(await parseRequestBody(req));
+  const {
+    customerId,
+    customerName,
+    customerEmail,
+    customerAvatar,
+    workspaceId,
+  } = trackCustomerRequestSchema.parse(await parseRequestBody(req));
 
   waitUntil(
     recordCustomer({
@@ -19,7 +24,7 @@ export const POST = withSessionEdge(async ({ req }) => {
       name: customerName,
       email: customerEmail,
       avatar: customerAvatar,
-      project_id: "",
+      workspace_id: workspaceId,
     }),
   );
 

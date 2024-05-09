@@ -18,6 +18,7 @@ export const POST = withSessionEdge(async ({ req }) => {
     customerName,
     customerEmail,
     customerAvatar,
+    workspaceId,
   } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
   waitUntil(
@@ -45,7 +46,7 @@ export const POST = withSessionEdge(async ({ req }) => {
                 name: customerName,
                 email: customerEmail,
                 avatar: customerAvatar,
-                project_id: "",
+                workspace_id: workspaceId,
               }),
             ]
           : []),

@@ -1,6 +1,7 @@
 import z from "@/lib/zod";
 
 export const trackCustomerRequestSchema = z.object({
+  workspaceId: z.string({ required_error: "workspaceId is required" }),
   customerId: z.string({ required_error: "customerId is required" }),
   customerName: z.string().nullish().default(""),
   customerEmail: z.string().email().nullish().default(""),
@@ -13,6 +14,6 @@ export const customersMetadataSchema = z.object({
   name: z.string().nullish().default(""),
   email: z.string().email().nullish().default(""),
   avatar: z.string().url().nullish().default(""),
-  project_id: z.string(),
+  workspace_id: z.string(),
   deleted: z.boolean().default(false),
 });
