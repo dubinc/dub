@@ -105,8 +105,6 @@ export const getAnalytics = async ({
     }
   });
 
-  console.log(url.toString());
-
   return await fetch(url.toString(), {
     headers: {
       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,

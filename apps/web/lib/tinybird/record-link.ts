@@ -1,31 +1,17 @@
-import { LinkProps } from "../types";
+import z from "@/lib/zod";
+import { tb } from "./client";
 
-export async function recordLink({
-  link,
-  deleted,
-}: {
-  link: Partial<LinkProps> & {
-    tags?: { tagId: string }[];
-  };
-  deleted?: boolean;
-}) {
-  return await fetch(
-    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_links_metadata&wait=true`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-      body: JSON.stringify({
-        timestamp: new Date(Date.now()).toISOString(),
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tagIds: link.tags?.map(({ tagId }) => tagId) || [],
-        project_id: link.projectId || "",
-        deleted: deleted ? 1 : 0,
-      }),
-    },
-  ).then((res) => res.json());
-}
+export const recordLink = tb.buildIngestEndpoint({
+  datasource: "dub_links_metadata",
+  event: z.object({
+    timestamp: z.string().default(new Date(Date.now()).toISOString()),
+    link_id: z.string(),
+    domain: z.string(),
+    key: z.string(),
+    url: z.string().default(""),
+    tagIds: z.array(z.string()).default([]),
+    project_id: z.string().nullish().default(""),
+    deleted: z.boolean().default(false),
+  }),
+  wait: true,
+});

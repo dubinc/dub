@@ -122,12 +122,12 @@ export async function updateLink({
       }),
       // record link in Tinybird
       recordLink({
-        link: {
-          ...response,
-          tags: response.tags.map(({ tag }) => ({
-            tagId: tag.id,
-          })),
-        },
+        link_id: response.id,
+        domain: response.domain,
+        key: response.key,
+        url: response.url,
+        tagIds: response.tags.map(({ tag }) => tag.id),
+        project_id: response.projectId,
       }),
       // if key is changed: delete the old key in Redis
       (changedDomain || changedKey) &&

@@ -149,7 +149,14 @@ export const POST = withSession(async ({ req, session }) => {
     waitUntil(
       (async () => {
         const domainRepsonse = await addDomainToVercel(domain);
-        if (!domainRepsonse.error) {
+        if (domainRepsonse.error) {
+          await prisma.domain.delete({
+            where: {
+              slug: domain,
+              projectId: projectResponse.id,
+            },
+          });
+        } else {
           await setRootDomain({
             id: projectResponse.domains[0].id,
             domain,

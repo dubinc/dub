@@ -102,9 +102,6 @@ export async function propagateBulkLinkChanges(
       // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
       const formattedLink = await formatRedisLink(link);
       linksByDomain[domain][key.toLowerCase()] = formattedLink;
-
-      // record link in Tinybird
-      await recordLink({ link });
     }),
   );
 
@@ -115,6 +112,17 @@ export async function propagateBulkLinkChanges(
   await Promise.all([
     // update Redis
     pipeline.exec(),
+    // update Tinybird
+    recordLink(
+      links.map((link) => ({
+        link_id: link.id,
+        domain: link.domain,
+        key: link.key,
+        url: link.url,
+        tagIds: link.tags.map((tag) => tag.tagId),
+        project_id: link.projectId,
+      })),
+    ),
     // update links usage for workspace
     prisma.project.update({
       where: {

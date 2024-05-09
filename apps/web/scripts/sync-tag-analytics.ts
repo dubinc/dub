@@ -19,7 +19,16 @@ async function main() {
     take: 1000,
   });
 
-  const res = await Promise.all(links.map((link) => recordLink({ link })));
+  const res = await recordLink(
+    links.map((link) => ({
+      link_id: link.id,
+      domain: link.domain,
+      key: link.key,
+      url: link.url,
+      tagIds: link.tags.map((tag) => tag.tagId),
+      project_id: link.projectId,
+    })),
+  );
 
   console.log(res);
 }
