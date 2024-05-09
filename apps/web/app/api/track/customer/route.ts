@@ -1,7 +1,7 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
 import { recordCustomer } from "@/lib/tinybird";
-import { trackCustomerRequestSchema } from "@/lib/zod/schemas/customers";
+import { trackCustomerRequestSchema } from "@/lib/zod/schemas";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

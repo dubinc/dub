@@ -1,6 +1,5 @@
 import z from "@/lib/zod";
-import { getUrlQuerySchema } from "@/lib/zod/schemas";
-import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
+import { getUrlQuerySchema, metaTagsSchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
 const getMetatags: ZodOpenApiOperationObject = {

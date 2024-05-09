@@ -1,5 +1,6 @@
 export * from "./analytics";
 export * from "./clicks";
+export * from "./customers";
 export * from "./domains";
 export * from "./leads";
 export * from "./links";
