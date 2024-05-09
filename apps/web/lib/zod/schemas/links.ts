@@ -1,17 +1,8 @@
 import z from "@/lib/zod";
-import {
-  COUNTRY_CODES,
-  getUrlFromString,
-  isValidUrl,
-  validDomainRegex,
-} from "@dub/utils";
+import { COUNTRY_CODES, validDomainRegex } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
-
-export const parseUrlSchema = z
-  .string()
-  .transform((v) => getUrlFromString(v))
-  .refine((v) => isValidUrl(v), { message: "Invalid URL" });
+import { parseUrlSchema } from "./utils";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
