@@ -29,6 +29,8 @@ export const saleEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
     recurring_interval: z.enum(["month", "year"]).default("month"),
     recurring_interval_count: z.number().int().positive().default(1),
     refunded: z.boolean().default(false),
-    metadata: z.string().default(""),
+    metadata: z
+      .record(z.unknown())
+      .transform((val) => (val ? JSON.stringify(val) : "")),
   }),
 );

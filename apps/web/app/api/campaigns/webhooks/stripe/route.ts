@@ -5,8 +5,11 @@ import type Stripe from "stripe";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-// "customer.created"
-const SUPPORTED_STRIPE_EVENTS = ["charge.succeeded"];
+const relevantEvents = new Set([
+  "charge.succeeded",
+  "payment_intent.succeeded",
+  "checkout.session.completed",
+]);
 
 export const POST = async (req: Request) => {
   const buf = await req.text();
@@ -22,15 +25,17 @@ export const POST = async (req: Request) => {
     const event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
 
     // Ignore unsupported events
-    if (!SUPPORTED_STRIPE_EVENTS.includes(event.type)) {
+    if (!relevantEvents.has(event.type)) {
       return new Response("OK", {
         status: 200,
       });
     }
 
     switch (event.type) {
-      case "charge.succeeded":
-        await handleChargeSucceeded(event);
+      // case "charge.succeeded":
+      // case "payment_intent.succeeded":
+      case "checkout.session.completed":
+        await checkoutSessionCompleted(event);
         break;
     }
 
@@ -46,51 +51,36 @@ export const POST = async (req: Request) => {
   }
 };
 
-// Handle the "charge.succeeded" event
-async function handleChargeSucceeded(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
-
-  console.log("event", charge);
-
-  if (!charge.customer) {
-    return;
-  }
-
-  // Find customer details using charge.customer
-  const customer = (await stripe.customers.retrieve(
-    charge.customer as string,
-  )) as Stripe.Customer;
-
-  const customerId = customer.metadata?.customerId || null;
+async function checkoutSessionCompleted(event: Stripe.Event) {
+  const charge = event.data.object as Stripe.Checkout.Session;
+  const customerId = charge.metadata?.dubCustomerId || null;
 
   if (!customerId) {
+    console.error("No `dubCustomerId` found in metadata", charge);
     return;
   }
 
-  console.log("customer", customer);
-
-  // Check customerId exists in TB
-
-  // TODO: Update clickId
   const leadEvent = await getLeadEvent({ customer_id: customerId });
 
   if (!leadEvent || leadEvent.data.length === 0) {
+    console.error("No lead event found for `dubCustomerId`", customerId);
     return;
   }
 
   await recordSale({
     ...leadEvent.data[0],
+    timestamp: new Date(Date.now()).toISOString(),
     event_id: nanoid(16),
     payment_processor: "stripe",
     product_id: "",
-    amount: charge.amount,
-    currency: charge.currency,
+    amount: charge.amount_total || 0,
+    currency: charge.currency || "usd",
     recurring: true, // TODO: Update this
     recurring_interval: "month", // TODO: Update this
     recurring_interval_count: 1, // TODO: Update this
     refunded: false,
     metadata: {
       charge,
-    } as any, // TODO: Fix this type
+    },
   });
 }

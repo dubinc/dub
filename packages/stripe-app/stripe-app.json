@@ -1,6 +1,6 @@
 {
   "id": "com.example.dub",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "name": "Dub",
   "icon": "",
   "permissions": [
@@ -19,6 +19,10 @@
     {
       "permission": "charge_read",
       "purpose": "Allows Dub to read charge information."
+    },
+    {
+      "permission": "checkout_session_read",
+      "purpose": "Allows Dub to read checkout session information."
     }
   ],
   "ui_extension": {
@@ -29,7 +33,7 @@
     }
   },
   "allowed_redirect_uris": [
-    "https://4eaf-103-181-40-87.ngrok-free.app/api/stripe-app/callback"
+    "https://1402-103-181-40-112.ngrok-free.app/api/campaigns/callback/stripe"
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"
