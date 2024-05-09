@@ -48,6 +48,15 @@ export const saleEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
     event_id: z.string(),
     metadata: z.string(), // TODO: Fix the type
     customer_id: z.string(),
+    payment_processor: z.string().default("stripe"),
+    stripe_customer_id: z.string(),
+    product_id: z.string(),
+    amount: z.number().int().positive().default(0),
+    currency: z.string().default("usd"),
+    recurring: z.boolean().default(false),
+    recurring_interval: z.enum(["month", "year"]).default("month"),
+    recurring_interval_count: z.number().int().positive().default(1),
+    refunded: z.boolean().default(false),
   }),
 );
 

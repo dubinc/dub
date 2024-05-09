@@ -37,6 +37,17 @@ export const POST = withSessionEdge(async ({ req }) => {
             })
           : recordSale({
               ...conversionEvent,
+
+              // TODO: Fix this
+              payment_processor: "stripe",
+              stripe_customer_id: "",
+              product_id: "",
+              amount: 1000,
+              currency: "usd",
+              recurring: true,
+              recurring_interval: "month",
+              recurring_interval_count: 1,
+              refunded: false,
             }),
 
         // TODO: Remove this before launch
