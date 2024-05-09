@@ -7,9 +7,9 @@ import { NextResponse } from "next/server";
 // GET /api/analytics/clicks – get click analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
-    const parsedProps = clickAnalyticsQuerySchema.parse(searchParams);
+    const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
 
-    let { domain, key, interval, start, end } = parsedProps;
+    let { domain, key, interval, start, end } = parsedParams;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -26,7 +26,7 @@ export const GET = withWorkspace(
         : null;
 
     const response = await getClicks({
-      ...parsedProps,
+      ...parsedParams,
       ...(linkId && { linkId }),
       workspaceId: workspace.id,
     });

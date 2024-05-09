@@ -6,10 +6,7 @@ import {
 } from "@/lib/api/errors";
 import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import {
-  analyticsEndpointSchema,
-  clickAnalyticsQuerySchema,
-} from "@/lib/zod/schemas";
+import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
@@ -22,9 +19,8 @@ export const GET = async (
 ) => {
   try {
     const searchParams = getSearchParams(req.url);
-    const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
-    const { domain, key, interval } = parsedParams;
+    const { groupBy, domain, key, interval } = parsedParams;
 
     let link;
 
@@ -37,10 +33,9 @@ export const GET = async (
       // Rate limit in production
       if (process.env.NODE_ENV !== "development") {
         const ip = ipAddress(req);
-        const { success } = await ratelimit(
-          15,
-          endpoint === "clicks" ? "10 s" : "1 m",
-        ).limit(`demo-analytics:${demoLink.id}:${ip}:${endpoint}`);
+        const { success } = await ratelimit(15, groupBy ? "1 m" : "10 s").limit(
+          `demo-analytics:${demoLink.id}:${ip}:${groupBy}`,
+        );
 
         if (!success) {
           throw new DubApiError({
@@ -53,7 +48,7 @@ export const GET = async (
         id: demoLink.id,
         projectId: DUB_WORKSPACE_ID,
       };
-    } else {
+    } else if (domain) {
       link = await getDomainOrLink({ domain, key });
       // if the link is explicitly private (publicStats === false)
       if (!link?.publicStats) {
@@ -86,11 +81,10 @@ export const GET = async (
     }
 
     const response = await getClicks({
+      ...parsedParams,
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
       ...(link.projectId && { workspaceId: link.projectId }),
       linkId: link.id,
-      endpoint,
-      ...parsedParams,
     });
 
     return NextResponse.json(response);
