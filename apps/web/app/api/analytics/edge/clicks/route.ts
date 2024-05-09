@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics";
+import { getClicks, validDateRangeForPlan } from "@/lib/analytics";
 import {
   DubApiError,
   exceededLimitError,
@@ -18,9 +18,12 @@ export const GET = async (
   { params }: { params: Record<string, string> },
 ) => {
   try {
+    let { groupBy: oldGroupBy } = clickAnalyticsQuerySchema.parse(params);
+
     const searchParams = getSearchParams(req.url);
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
-    const { groupBy, domain, key, interval } = parsedParams;
+
+    let { groupBy, domain, key, interval } = parsedParams;
 
     let link;
 
@@ -59,15 +62,13 @@ export const GET = async (
       }
       const workspace =
         link?.projectId && (await getWorkspaceViaEdge(link.projectId));
-      if (
-        (!workspace || workspace.plan === "free") &&
-        (interval === "all" || interval === "90d")
-      ) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "Need higher plan",
-        });
-      }
+
+      validDateRangeForPlan({
+        plan: workspace.plan,
+        interval,
+        throwError: true,
+      });
+
       if (workspace && workspace.usage > workspace.usageLimit) {
         throw new DubApiError({
           code: "forbidden",
@@ -84,6 +85,7 @@ export const GET = async (
       ...parsedParams,
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
       ...(link.projectId && { workspaceId: link.projectId }),
+      groupBy: groupBy || oldGroupBy,
       linkId: link.id,
     });
 

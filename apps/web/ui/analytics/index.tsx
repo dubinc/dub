@@ -79,7 +79,7 @@ export default function Analytics({
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: "/api/analytics/edge",
+        baseApiPath: "/api/analytics/edge/clicks",
         domain: staticDomain,
       };
     }
