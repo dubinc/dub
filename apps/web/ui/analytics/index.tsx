@@ -66,13 +66,13 @@ export default function Analytics({
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/admin/analytics`,
+        baseApiPath: `/api/admin/analytics/clicks`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics`,
+        baseApiPath: `/api/analytics/clicks`,
         domain: domainSlug,
       };
     } else {
@@ -106,7 +106,7 @@ export default function Analytics({
   }, [id, domain, key, searchParams, interval, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/clicks?${queryString}`,
+    `${baseApiPath}?${queryString}`,
     fetcher,
   );
 

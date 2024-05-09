@@ -1,4 +1,4 @@
-import { getAnalytics } from "@/lib/analytics";
+import { getClicks } from "@/lib/analytics";
 import {
   DubApiError,
   exceededLimitError,
@@ -8,7 +8,7 @@ import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import {
   analyticsEndpointSchema,
-  getAnalyticsEdgeQuerySchema,
+  clickAnalyticsQuerySchema,
 } from "@/lib/zod/schemas";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
@@ -23,7 +23,7 @@ export const GET = async (
   try {
     const searchParams = getSearchParams(req.url);
     const { endpoint } = analyticsEndpointSchema.parse(params);
-    const parsedParams = getAnalyticsEdgeQuerySchema.parse(searchParams);
+    const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
     const { domain, key, interval } = parsedParams;
 
     let link;
@@ -85,7 +85,7 @@ export const GET = async (
       }
     }
 
-    const response = await getAnalytics({
+    const response = await getClicks({
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
       ...(link.projectId && { workspaceId: link.projectId }),
       linkId: link.id,

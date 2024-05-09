@@ -1,4 +1,4 @@
-import { getAnalytics } from "@/lib/analytics";
+import { getClicks } from "@/lib/analytics";
 import prisma from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
@@ -6,9 +6,9 @@ import * as fs from "fs";
 import * as Papa from "papaparse";
 
 async function main() {
-  const topLinks = await getAnalytics({
+  const topLinks = await getClicks({
     workspaceId: "xxx",
-    endpoint: "top_links",
+    groupBy: "top_links",
     interval: "30d",
     root: false,
   }).then(async (data) => {

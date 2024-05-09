@@ -1,4 +1,4 @@
-import { getAnalytics } from "@/lib/analytics";
+import { getClicks } from "@/lib/analytics";
 import { getDomainOrLink } from "@/lib/planetscale";
 import {
   GOOGLE_FAVICON_URL,
@@ -26,11 +26,11 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const data = await getAnalytics({
+  const data = await getClicks({
     // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
     ...(link.projectId && { workspaceId: link.projectId }),
     linkId: link.id,
-    endpoint: "timeseries",
+    groupBy: "timeseries",
     interval: "24h",
   });
 

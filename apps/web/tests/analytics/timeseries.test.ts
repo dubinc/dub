@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { analyticsResponseSchema } from "@/lib/zod/schemas";
+import { getClickAnalyticsResponse } from "@/lib/zod/schemas";
 import { expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
@@ -18,6 +18,6 @@ test.runIf(env.CI)("GET /analytics/timeseries", async (ctx) => {
   expect(status).toEqual(200);
   expect(data.length).toBeGreaterThanOrEqual(0);
   expect(
-    z.array(analyticsResponseSchema["timeseries"].strict()).safeParse(data),
+    z.array(getClickAnalyticsResponse["timeseries"].strict()).safeParse(data),
   ).toBeTruthy();
 });

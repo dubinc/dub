@@ -44,7 +44,13 @@ export const INTERVALS = [
   },
 ];
 
-export const intervalData = {
+export const intervalData: Record<
+  string,
+  {
+    startDate: Date;
+    granularity: "minute" | "hour" | "day" | "month";
+  }
+> = {
   "1h": {
     startDate: new Date(Date.now() - 3600000),
     granularity: "minute",

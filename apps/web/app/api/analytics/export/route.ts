@@ -1,9 +1,9 @@
-import { VALID_TINYBIRD_ENDPOINTS, getAnalytics } from "@/lib/analytics";
+import { VALID_TINYBIRD_ENDPOINTS, getClicks } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
+import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
 import JSZip from "jszip";
@@ -23,7 +23,7 @@ const convertToCSV = (data: object[]) => {
 // GET /api/analytics/[endpoint]/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
-    const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
+    const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
     const { domain, key, interval } = parsedParams;
 
     // return 403 if project is on the free plan and interval is 90d or all
@@ -52,9 +52,9 @@ export const GET = withWorkspace(
           // since this is just a single link
           if (linkId) return;
 
-          const data = await getAnalytics({
+          const data = await getClicks({
             workspaceId: workspace.id,
-            endpoint: "top_links",
+            groupBy: "top_links",
             ...parsedParams,
           });
 
@@ -124,10 +124,10 @@ export const GET = withWorkspace(
           // we're not fetching top URLs data if linkId is not defined
           if (endpoint === "top_urls" && !linkId) return;
 
-          const response = await getAnalytics({
+          const response = await getClicks({
             workspaceId: workspace.id,
             ...(linkId && { linkId }),
-            endpoint,
+            groupBy: endpoint,
             ...parsedParams,
           });
           if (!response || response.length === 0) return;

@@ -10,7 +10,7 @@ export default function Referer() {
   const { baseApiPath, queryString } = useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${baseApiPath}/referer?${queryString}`,
+    `${baseApiPath}?${queryString}&groupBy=referer`,
     fetcher,
   );
 

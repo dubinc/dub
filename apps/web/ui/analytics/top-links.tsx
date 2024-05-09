@@ -27,7 +27,7 @@ export default function TopLinks() {
     ({ domain: string; key: string } & {
       [key in TopLinksTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher);
+  >(`${baseApiPath}?${queryString}&groupBy=top_${tab}s`, fetcher);
 
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();

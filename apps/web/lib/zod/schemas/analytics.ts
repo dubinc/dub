@@ -4,8 +4,20 @@ import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
-export const getAnalyticsQuerySchema = z.object({
-  domain: z.string().optional().describe("The domain of the short link."),
+export const clickAnalyticsQuerySchema = z.object({
+  groupBy: z
+    .enum(VALID_TINYBIRD_ENDPOINTS, {
+      errorMap: (_issue, _ctx) => {
+        return {
+          message: `Invalid groupBy value. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
+        };
+      },
+    })
+    .optional()
+    .describe(
+      "The group by endpoint. If left empty, returns the total click count.",
+    ),
+  domain: z.string().optional().describe("The domain to filter analytics for."),
   key: z.string().optional().describe("The short link slug."),
   linkId: z
     .string()
@@ -84,27 +96,37 @@ export const getAnalyticsQuerySchema = z.object({
     ),
 });
 
-export const getAnalyticsEdgeQuerySchema = getAnalyticsQuerySchema.required({
-  domain: true,
-});
-
-export const analyticsEndpointSchema = z.object({
-  endpoint: z.enum(VALID_TINYBIRD_ENDPOINTS, {
-    errorMap: (_issue, _ctx) => {
-      return {
-        message: `Invalid endpoint. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
-      };
-    },
-  }),
-});
+export const getClickAnalytics = clickAnalyticsQuerySchema
+  .omit({
+    groupBy: true,
+    interval: true,
+    externalId: true,
+    key: true,
+    start: true,
+    end: true,
+    root: true,
+    qr: true,
+  })
+  .extend({
+    projectId: z.string().optional(),
+    root: z.boolean().optional(),
+    qr: z.boolean().optional(),
+    start: z.string(),
+    end: z.string(),
+    granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
+  });
 
 // Analytics response schemas
-export const analyticsResponseSchema = {
+export const getClickAnalyticsResponse = {
+  clicks: z
+    .object({
+      "count()": z.number().describe("The total number of clicks"),
+    })
+    .transform((data) => data["count()"]),
   timeseries: z.object({
     start: z.string().describe("The starting timestamp of the interval"),
     clicks: z.number().describe("The number of clicks in the interval"),
   }),
-
   country: z.object({
     country: z
       .enum(COUNTRY_CODES)
@@ -142,12 +164,12 @@ export const analyticsResponseSchema = {
     clicks: z.number().describe("The number of clicks from this referer"),
   }),
 
-  topLinks: z.object({
+  top_links: z.object({
     link: z.string().describe("The unique ID of the short link"),
     clicks: z.number().describe("The number of clicks from this link"),
   }),
 
-  topUrls: z.object({
+  top_urls: z.object({
     url: z.string().describe("The destination URL"),
     clicks: z.number().describe("The number of clicks from this URL"),
   }),
