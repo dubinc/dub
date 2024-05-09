@@ -1,7 +1,6 @@
 import z from "@/lib/zod";
 
 export const trackCustomerRequestSchema = z.object({
-  workspaceId: z.string({ required_error: "workspaceId is required" }),
   customerId: z.string({ required_error: "customerId is required" }),
   customerName: z.string().nullish().default(""),
   customerEmail: z.string().email().nullish().default(""),

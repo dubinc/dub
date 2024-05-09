@@ -9,7 +9,9 @@ import { NextResponse } from "next/server";
 export const runtime = "edge";
 
 // POST /api/track/lead – Track a lead conversion event
-export const POST = withSessionEdge(async ({ req }) => {
+export const POST = withSessionEdge(async ({ req, searchParams }) => {
+  const { workspaceId } = searchParams;
+
   const {
     clickId,
     eventName,
@@ -18,7 +20,6 @@ export const POST = withSessionEdge(async ({ req }) => {
     customerName,
     customerEmail,
     customerAvatar,
-    workspaceId,
   } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
   waitUntil(

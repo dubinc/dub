@@ -8,14 +8,11 @@ import { NextResponse } from "next/server";
 export const runtime = "edge";
 
 // POST /api/track/customer – Track a customer object
-export const POST = withSessionEdge(async ({ req }) => {
-  const {
-    customerId,
-    customerName,
-    customerEmail,
-    customerAvatar,
-    workspaceId,
-  } = trackCustomerRequestSchema.parse(await parseRequestBody(req));
+export const POST = withSessionEdge(async ({ req, searchParams }) => {
+  const { workspaceId } = searchParams;
+
+  const { customerId, customerName, customerEmail, customerAvatar } =
+    trackCustomerRequestSchema.parse(await parseRequestBody(req));
 
   waitUntil(
     recordCustomer({

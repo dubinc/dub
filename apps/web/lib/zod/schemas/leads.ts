@@ -2,7 +2,6 @@ import z from "@/lib/zod";
 import { clickEventSchemaTB } from "./clicks";
 
 export const trackLeadRequestSchema = z.object({
-  workspaceId: z.string({ required_error: "workspaceId is required" }),
   clickId: z.string({ required_error: "clickId is required" }),
   eventName: z
     .string({ required_error: "eventName is required" })
