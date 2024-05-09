@@ -1,5 +1,4 @@
 import { getAnalytics, validDateRangeForPlan } from "@/lib/analytics";
-import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import {
@@ -14,49 +13,20 @@ export const GET = withWorkspace(
     const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
 
-    const { domain, key, interval, start, end } = parsedParams;
+    let { domain, key, interval, start, end } = parsedParams;
 
-    // Either interval can be provided, or both start and end date
-    if ((interval && start && end) || (start && !end) || (!start && end)) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: "Either provide interval or start and end date, not both",
-      });
+    // swap start and end if start is greater than end
+    if (start && end && start > end) {
+      [start, end] = [end, start];
     }
 
-    // Free plan users can only get analytics for 30 days
-    if (
-      workspace.plan === "free" &&
-      !validDateRangeForPlan({
-        plan: workspace.plan,
-        interval,
-        start,
-        end,
-      })
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only get analytics for up to 30 days on a Free plan. Upgrade to Pro or Business to get analytics for longer periods.",
-      });
-    }
-
-    // Pro plan users can only get analytics for 1 year
-    if (
-      workspace.plan === "pro" &&
-      !validDateRangeForPlan({
-        plan: workspace.plan,
-        interval,
-        start,
-        end,
-      })
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only get analytics for up to 1 year on a Pro plan. Upgrade to Business to get analytics for longer periods.",
-      });
-    }
+    validDateRangeForPlan({
+      plan: workspace.plan,
+      interval,
+      start,
+      end,
+      throwError: true,
+    });
 
     const linkId = link
       ? link.id
@@ -69,6 +39,8 @@ export const GET = withWorkspace(
       ...(linkId && { linkId }),
       endpoint,
       ...parsedParams,
+      start,
+      end,
     });
 
     return NextResponse.json(response);

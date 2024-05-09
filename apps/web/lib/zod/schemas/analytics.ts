@@ -20,7 +20,9 @@ export const getAnalyticsQuerySchema = z.object({
   interval: z
     .enum(intervals)
     .optional()
-    .describe("The interval to retrieve analytics for."),
+    .describe(
+      "The interval to retrieve analytics for. Takes precedence over start and end.",
+    ),
   start: parseDateSchema
     .refine(
       (value: Date) => {
@@ -44,7 +46,9 @@ export const getAnalyticsQuerySchema = z.object({
       },
     )
     .optional()
-    .describe("The end date and time when to retrieve analytics from."),
+    .describe(
+      "The end date and time when to retrieve analytics from. If not provided, defaults to the current date.",
+    ),
   country: z
     .enum(COUNTRY_CODES)
     .optional()

@@ -79,13 +79,15 @@ export const getAnalytics = async ({
     );
 
     url.searchParams.append("granularity", intervalData[interval].granularity);
-  }
-
-  if (start && end) {
+  } else if (start) {
     url.searchParams.append(
       "start",
       new Date(start).toISOString().replace("T", " ").replace("Z", ""),
     );
+    if (!end) {
+      end = new Date(Date.now());
+    }
+
     url.searchParams.append(
       "end",
       new Date(end).toISOString().replace("T", " ").replace("Z", ""),
@@ -102,6 +104,8 @@ export const getAnalytics = async ({
       url.searchParams.append(filter, rest[filter]);
     }
   });
+
+  console.log(url.toString());
 
   return await fetch(url.toString(), {
     headers: {
