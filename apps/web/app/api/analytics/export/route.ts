@@ -119,8 +119,6 @@ export const GET = withWorkspace(
 
           zip.file(`${endpoint}.csv`, csvData);
         } else {
-          // skip clicks endpoint
-          if (endpoint === "clicks") return;
           // we're not fetching top URLs data if linkId is not defined
           if (endpoint === "top_urls" && !linkId) return;
 
