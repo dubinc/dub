@@ -11,6 +11,7 @@ export const getCityAnalytics: ZodOpenApiOperationObject = {
   operationId: "getCityAnalytics",
   "x-speakeasy-name-override": "cities",
   summary: "Retrieve city analytics",
+  deprecated: true,
   description:
     "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {

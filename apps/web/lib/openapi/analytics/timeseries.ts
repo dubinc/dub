@@ -11,6 +11,7 @@ export const getTimeseriesAnalytics: ZodOpenApiOperationObject = {
   operationId: "getTimeseriesAnalytics",
   "x-speakeasy-name-override": "timeseries",
   summary: "Retrieve timeseries analytics",
+  deprecated: true,
   description:
     "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
   requestParams: {

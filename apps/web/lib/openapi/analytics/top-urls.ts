@@ -11,6 +11,7 @@ export const getTopURLs: ZodOpenApiOperationObject = {
   operationId: "getTopURLs",
   "x-speakeasy-name-override": "topUrls",
   summary: "Retrieve top URLs",
+  deprecated: true,
   description:
     "Retrieve the top URLs by number of clicks for a given short link.",
   requestParams: {

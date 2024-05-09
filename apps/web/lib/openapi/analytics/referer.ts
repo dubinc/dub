@@ -11,6 +11,7 @@ export const getRefererAnalytics: ZodOpenApiOperationObject = {
   operationId: "getRefererAnalytics",
   "x-speakeasy-name-override": "referers",
   summary: "Retrieve referer analytics",
+  deprecated: true,
   description:
     "Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
