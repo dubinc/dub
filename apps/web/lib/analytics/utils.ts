@@ -16,7 +16,11 @@ export const validDateRangeForPlan = ({
     (interval === "all" ||
       interval === "90d" ||
       interval === "1y" ||
-      (start && end && getDaysDifference(start, end) > 30))
+      interval === "ytd" ||
+      (start &&
+        end &&
+        (getDaysDifference(start, new Date(Date.now())) > 30 ||
+          getDaysDifference(start, end) > 30)))
   ) {
     return false;
   }
@@ -24,7 +28,10 @@ export const validDateRangeForPlan = ({
   if (
     plan === "pro" &&
     (interval === "all" ||
-      (start && end && getDaysDifference(start, end) > 365))
+      (start &&
+        end &&
+        (getDaysDifference(start, new Date(Date.now())) > 365 ||
+          getDaysDifference(start, end) > 365)))
   ) {
     return false;
   }

@@ -4,6 +4,7 @@ export const intervals = [
   "7d",
   "30d",
   "90d",
+  "ytd",
   "1y",
   "all",
 ] as const;
@@ -28,6 +29,10 @@ export const INTERVALS = [
   {
     display: "Last 3 months",
     value: "90d",
+  },
+  {
+    display: "Year to Date",
+    value: "ytd",
   },
   {
     display: "Last 12 months",
@@ -59,6 +64,10 @@ export const intervalData = {
   "90d": {
     startDate: new Date(Date.now() - 7776000000),
     granularity: "day",
+  },
+  ytd: {
+    startDate: new Date(new Date().getFullYear(), 0, 1),
+    granularity: "month",
   },
   "1y": {
     startDate: new Date(Date.now() - 31556952000),

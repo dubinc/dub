@@ -34,6 +34,7 @@ export default function ClicksChart() {
             hour: "numeric",
             minute: "numeric",
           });
+        case "ytd":
         case "1y":
         case "all":
           return date.toLocaleDateString("en-US", {
