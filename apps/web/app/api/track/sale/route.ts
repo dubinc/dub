@@ -42,7 +42,7 @@ export const POST = withSessionEdge(async ({ req }) => {
         recurring_interval: recurringInterval,
         recurring_interval_count: recurringIntervalCount,
         refunded,
-        metadata,
+        metadata: metadata ? JSON.stringify(metadata) : "",
       });
     })(),
   );

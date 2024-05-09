@@ -79,8 +79,8 @@ async function checkoutSessionCompleted(event: Stripe.Event) {
     recurring_interval: "month", // TODO: Update this
     recurring_interval_count: 1, // TODO: Update this
     refunded: false,
-    metadata: {
+    metadata: JSON.stringify({
       charge,
-    },
+    }),
   });
 }
