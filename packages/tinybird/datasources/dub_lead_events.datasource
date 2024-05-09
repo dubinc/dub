@@ -3,7 +3,6 @@ SCHEMA >
   `timestamp` DateTime64(3) `json:$.timestamp`,
   `event_id` String `json:$.event_id`,
   `event_name` LowCardinality(String) `json:$.event_name`,
-  `event_type` LowCardinality(String) `json:$.event_type`,
   `metadata` String `json:$.metadata`,
   `customer_id` String `json:$.customer_id`,   
   `click_id` String `json:$.click_id`,

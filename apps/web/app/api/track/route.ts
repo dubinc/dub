@@ -1,6 +1,6 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
-import { getClickEvent, recordConversion } from "@/lib/tinybird";
+import { getClickEvent, recordLead, recordSale } from "@/lib/tinybird";
 import { conversionRequestSchema } from "@/lib/zod/schemas/conversions";
 import { log, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -21,16 +21,24 @@ export const POST = withSessionEdge(async ({ req }) => {
         return;
       }
 
+      const conversionEvent = {
+        ...clickEvent.data[0],
+        timestamp: new Date(Date.now()).toISOString(),
+        event_id: nanoid(16),
+        customer_id: customerId,
+        metadata,
+      };
+
       await Promise.all([
-        recordConversion({
-          ...clickEvent.data[0],
-          timestamp: new Date(Date.now()).toISOString(),
-          event_id: nanoid(16),
-          event_name: eventName,
-          event_type: eventType,
-          customer_id: customerId,
-          metadata,
-        }),
+        eventType === "lead"
+          ? recordLead({
+              ...conversionEvent,
+              event_name: eventName,
+            })
+          : recordSale({
+              ...conversionEvent,
+            }),
+
         // TODO: Remove this before launch
         log({
           message: `*Conversion event recorded*: Customer *${customerId}* converted on click *${clickId}* with event *${eventName}*.`,

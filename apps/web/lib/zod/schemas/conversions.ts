@@ -34,17 +34,22 @@ export const clickEventSchemaTB = z.object({
   referer_url: z.string().nullable(),
 });
 
-export const conversionEventSchemaTB = clickEventSchemaTB
-  .omit({ url: true })
-  .and(
-    z.object({
-      event_id: z.string(),
-      event_name: z.string(),
-      event_type: eventType,
-      metadata: z.string(), // TODO: Fix the type
-      customer_id: z.string(),
-    }),
-  );
+export const leadEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
+  z.object({
+    event_id: z.string(),
+    event_name: z.string(),
+    metadata: z.string(), // TODO: Fix the type
+    customer_id: z.string(),
+  }),
+);
+
+export const saleEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
+  z.object({
+    event_id: z.string(),
+    metadata: z.string(), // TODO: Fix the type
+    customer_id: z.string(),
+  }),
+);
 
 export const conversionRequestSchema = z.object({
   clickId: z.string({ required_error: "clickId is required" }),
