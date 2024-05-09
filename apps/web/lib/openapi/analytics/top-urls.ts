@@ -22,7 +22,7 @@ export const getTopURLs: ZodOpenApiOperationObject = {
       description: "The top URLs by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(getClickAnalyticsResponse["topUrls"]),
+          schema: z.array(getClickAnalyticsResponse["top_urls"]),
         },
       },
     },
