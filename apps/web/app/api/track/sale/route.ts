@@ -2,6 +2,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { trackSaleEventSchema } from "@/lib/zod/schemas";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -32,6 +33,7 @@ export const POST = withSessionEdge(async ({ req }) => {
 
       await recordSale({
         ...leadEvent.data[0],
+        event_id: nanoid(16),
         payment_processor: paymentProcessor,
         product_id: productId,
         amount,

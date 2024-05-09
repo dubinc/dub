@@ -1,5 +1,5 @@
 import { stripe } from "@/lib/stripe";
-import { getClickEvent, recordConversion } from "@/lib/tinybird";
+import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { nanoid } from "@dub/utils";
 import type Stripe from "stripe";
 
@@ -72,18 +72,25 @@ async function handleChargeSucceeded(event: Stripe.Event) {
   // Check customerId exists in TB
 
   // TODO: Update clickId
-  const clickEvent = await getClickEvent({ clickId: "jlNZlZKVa2X6ZCcZ" });
+  const leadEvent = await getLeadEvent({ customerId });
 
-  if (!clickEvent || clickEvent.data.length === 0) {
+  if (!leadEvent || leadEvent.data.length === 0) {
     return;
   }
 
-  await recordConversion({
-    ...clickEvent.data[0],
+  await recordSale({
+    ...leadEvent.data[0],
     event_id: nanoid(16),
-    event_name: "Subscribed to plan",
-    event_type: "sale",
-    customer_id: customerId,
-    metadata: "",
+    payment_processor: "stripe",
+    product_id: "",
+    amount: charge.amount,
+    currency: charge.currency,
+    recurring: true, // TODO: Update this
+    recurring_interval: "month", // TODO: Update this
+    recurring_interval_count: 1, // TODO: Update this
+    refunded: false,
+    metadata: {
+      charge,
+    },
   });
 }
