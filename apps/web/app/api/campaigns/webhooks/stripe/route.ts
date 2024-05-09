@@ -72,7 +72,7 @@ async function handleChargeSucceeded(event: Stripe.Event) {
   // Check customerId exists in TB
 
   // TODO: Update clickId
-  const leadEvent = await getLeadEvent({ customerId });
+  const leadEvent = await getLeadEvent({ customer_id: customerId });
 
   if (!leadEvent || leadEvent.data.length === 0) {
     return;
@@ -91,6 +91,6 @@ async function handleChargeSucceeded(event: Stripe.Event) {
     refunded: false,
     metadata: {
       charge,
-    },
+    } as any, // TODO: Fix this type
   });
 }
