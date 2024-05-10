@@ -14,8 +14,6 @@ export const trackSaleRequestSchema = z.object({
   metadata: z.record(z.unknown()).nullish(),
 });
 
-type a = z.infer<typeof trackSaleRequestSchema>;
-
 export const saleEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
   z.object({
     event_id: z.string(),
