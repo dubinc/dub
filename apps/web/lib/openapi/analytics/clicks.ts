@@ -1,5 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas";
+import z from "@/lib/zod";
+import {
+  clickAnalyticsQuerySchema,
+  getClickAnalyticsResponse,
+} from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
@@ -17,10 +21,18 @@ export const getClicksAnalytics: ZodOpenApiOperationObject = {
       description: "The number of clicks",
       content: {
         "application/json": {
-          schema: {
-            type: "number",
-            description: "The number of clicks matching the specified queries.",
-          },
+          schema: z.union([
+            z.number().describe("The total number of clicks"),
+            z.array(getClickAnalyticsResponse["timeseries"]),
+            z.array(getClickAnalyticsResponse["country"]),
+            z.array(getClickAnalyticsResponse["city"]),
+            z.array(getClickAnalyticsResponse["device"]),
+            z.array(getClickAnalyticsResponse["browser"]),
+            z.array(getClickAnalyticsResponse["os"]),
+            z.array(getClickAnalyticsResponse["referer"]),
+            z.array(getClickAnalyticsResponse["top_links"]),
+            z.array(getClickAnalyticsResponse["top_urls"]),
+          ]),
         },
       },
     },
