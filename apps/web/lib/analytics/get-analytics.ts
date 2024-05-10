@@ -54,7 +54,7 @@ export const getAnalytics = async ({
   }
 
   let url = new URL(
-    `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint}_new.json`,
+    `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint}.json`,
   );
   if (workspaceId) {
     url.searchParams.append("workspaceId", `ws_${workspaceId}`);

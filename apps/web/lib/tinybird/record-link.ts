@@ -10,8 +10,14 @@ export const dubLinksMetadataSchema = z.object({
   workspace_id: z
     .string()
     .nullish()
-    .default("")
-    .transform((v) => (v && !v.startsWith("ws_") ? `ws_${v}` : v)),
+    .transform((v) => {
+      if (!v) return ""; // return empty string if null or undefined
+      if (!v.startsWith("ws_")) {
+        return `ws_${v}`;
+      } else {
+        return v;
+      }
+    }),
   created_at: z
     .date()
     .transform((v) => v.toISOString().replace("T", " ").replace("Z", "")),
@@ -22,7 +28,7 @@ export const dubLinksMetadataSchema = z.object({
 });
 
 export const recordLink = tb.buildIngestEndpoint({
-  datasource: "dub_links_metadata_new",
+  datasource: "dub_links_metadata",
   event: dubLinksMetadataSchema,
   wait: true,
 });
