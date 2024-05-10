@@ -57,7 +57,7 @@ export const getAnalytics = async ({
     `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint}.json`,
   );
   if (workspaceId) {
-    url.searchParams.append("projectId", workspaceId);
+    url.searchParams.append("workspaceId", `ws_${workspaceId}`);
   }
   if (linkId) {
     url.searchParams.append("linkId", linkId);
@@ -104,8 +104,6 @@ export const getAnalytics = async ({
       url.searchParams.append(filter, rest[filter]);
     }
   });
-
-  console.log(url.toString());
 
   return await fetch(url.toString(), {
     headers: {

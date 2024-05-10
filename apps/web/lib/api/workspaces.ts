@@ -8,6 +8,7 @@ import {
   LEGAL_WORKSPACE_ID,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { recordLink } from "../tinybird";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
 
@@ -34,8 +35,16 @@ export async function deleteWorkspace(
         id: true,
         domain: true,
         key: true,
+        url: true,
+        tags: {
+          select: {
+            tagId: true,
+          },
+        },
         proxy: true,
         image: true,
+        projectId: true,
+        createdAt: true,
       },
     }),
   ]);
@@ -69,6 +78,19 @@ export async function deleteWorkspace(
         ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
         // delete all default domain links from redis
         pipeline.exec(),
+        // record deletes in Tinybird for default domain links
+        recordLink(
+          defaultDomainLinks.map((link) => ({
+            link_id: link.id,
+            domain: link.domain,
+            key: link.key,
+            url: link.url,
+            tag_ids: link.tags.map((tag) => tag.tagId),
+            workspace_id: link.projectId,
+            created_at: link.createdAt,
+            deleted: true,
+          })),
+        ),
         // remove all images from R2
         ...defaultDomainLinks.map(({ id, proxy, image }) =>
           proxy && image?.startsWith(process.env.STORAGE_BASE_URL as string)
