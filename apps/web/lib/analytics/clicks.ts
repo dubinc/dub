@@ -66,7 +66,7 @@ export const getClicks = async (
   const res = await pipe(
     getClickAnalytics.parse({
       ...props,
-      projectId: workspaceId,
+      workspaceId,
       start: start.toISOString().replace("T", " ").replace("Z", ""),
       end: end.toISOString().replace("T", " ").replace("Z", ""),
       granularity,

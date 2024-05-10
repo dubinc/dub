@@ -108,7 +108,16 @@ export const getClickAnalytics = clickAnalyticsQuerySchema
     qr: true,
   })
   .extend({
-    projectId: z.string().optional(),
+    workspaceId: z
+      .string()
+      .optional()
+      .transform((v) => {
+        if (v && !v.startsWith("ws_")) {
+          return `ws_${v}`;
+        } else {
+          return v;
+        }
+      }),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
     start: z.string(),
