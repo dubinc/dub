@@ -4,7 +4,7 @@ import { tb } from "./client";
 export const recordLink = tb.buildIngestEndpoint({
   datasource: "dub_links_metadata",
   event: z.object({
-    timestamp: z.string().default(new Date(Date.now()).toISOString()),
+    timestamp: z.string().default(new Date().toISOString()),
     link_id: z.string(),
     domain: z.string(),
     key: z.string(),
