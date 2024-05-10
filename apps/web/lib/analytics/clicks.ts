@@ -73,5 +73,7 @@ export const getClicks = async (
     }),
   );
 
-  return res.data;
+  // for total clicks (groupBy undefined), we return just the value;
+  // everything else we return an array of values
+  return groupBy ? res.data : res.data[0];
 };
