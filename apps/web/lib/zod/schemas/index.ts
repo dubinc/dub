@@ -9,4 +9,5 @@ export * from "./misc";
 export * from "./qr";
 export * from "./sales";
 export * from "./tags";
+export * from "./utils";
 export * from "./workspaces";

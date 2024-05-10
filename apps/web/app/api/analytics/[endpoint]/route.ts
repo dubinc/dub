@@ -1,5 +1,4 @@
-import { getAnalytics } from "@/lib/analytics";
-import { DubApiError } from "@/lib/api/errors";
+import { getAnalytics, validDateRangeForPlan } from "@/lib/analytics";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import {
@@ -13,18 +12,21 @@ export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
     const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
-    const { domain, key, interval } = parsedParams;
 
-    // return 403 if workspace is on the free plan and interval is 90d or all
-    if (
-      workspace?.plan === "free" &&
-      (interval === "all" || interval === "90d")
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Require higher plan",
-      });
+    let { domain, key, interval, start, end } = parsedParams;
+
+    // swap start and end if start is greater than end
+    if (start && end && start > end) {
+      [start, end] = [end, start];
     }
+
+    validDateRangeForPlan({
+      plan: workspace.plan,
+      interval,
+      start,
+      end,
+      throwError: true,
+    });
 
     const linkId = link
       ? link.id
@@ -37,7 +39,10 @@ export const GET = withWorkspace(
       ...(linkId && { linkId }),
       endpoint,
       ...parsedParams,
+      start,
+      end,
     });
+
     return NextResponse.json(response);
   },
   {

@@ -1,4 +1,4 @@
-import { INTERVALS } from "@/lib/analytics";
+import { INTERVALS, validDateRangeForPlan } from "@/lib/analytics";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   IconMenu,
@@ -8,7 +8,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { APP_DOMAIN, cn } from "@dub/utils";
+import { APP_DOMAIN, cn, getNextPlan } from "@dub/utils";
 import { Calendar, ChevronDown, Lock } from "lucide-react";
 import Link from "next/link";
 import { useContext, useMemo, useState } from "react";
@@ -34,15 +34,16 @@ export default function DateRangePicker() {
       content={
         <div className="grid w-full p-2 md:w-48">
           {INTERVALS.map(({ display, value }) =>
-            (value === "all" || value === "90d") &&
-            (!plan || plan === "free") &&
-            !admin ? (
+            !validDateRangeForPlan({
+              plan,
+              interval: value,
+            }) && !admin ? (
               <Tooltip
                 key={value}
                 content={
                   <TooltipContent
-                    title={`${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`}
-                    cta="Upgrade to Pro"
+                    title={`${display} stats can only be viewed on a ${value === "all" ? "Business" : getNextPlan(plan).name} plan or higher. Upgrade now to view all-time stats.`}
+                    cta={`Upgrade to ${value === "all" ? "Business" : getNextPlan(plan).name}`}
                     {...(isPublicStatsPage
                       ? {
                           href: APP_DOMAIN,
@@ -52,7 +53,10 @@ export default function DateRangePicker() {
                             setOpenDatePopover(false);
                             queryParams({
                               set: {
-                                upgrade: "pro",
+                                upgrade:
+                                  value === "all"
+                                    ? "business"
+                                    : getNextPlan(plan).name.toLowerCase(),
                               },
                             });
                           },
