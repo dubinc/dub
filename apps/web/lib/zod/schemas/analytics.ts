@@ -1,4 +1,4 @@
-import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics";
+import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
