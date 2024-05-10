@@ -108,6 +108,7 @@ export const POST = withWorkspace(
       setRootDomain({
         id: domainRecord.id,
         domain,
+        domainCreatedAt: domainRecord.createdAt,
         projectId: newWorkspaceId,
         ...(newWorkspace.plan !== "free" &&
           domainRecord.target && {

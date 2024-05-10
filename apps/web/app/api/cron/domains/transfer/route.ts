@@ -68,8 +68,9 @@ export async function POST(req: Request) {
           domain: link.domain,
           key: link.key,
           url: link.url,
-          tagIds: [],
-          project_id: newWorkspaceId,
+          tag_ids: [],
+          workspace_id: newWorkspaceId,
+          created_at: link.createdAt,
         })),
       ),
     ]);

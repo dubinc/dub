@@ -5,6 +5,7 @@ import { recordLink } from "../../tinybird";
 export async function setRootDomain({
   id,
   domain,
+  domainCreatedAt,
   projectId,
   url,
   rewrite,
@@ -12,11 +13,21 @@ export async function setRootDomain({
 }: {
   id: string;
   domain: string;
+  domainCreatedAt: Date;
   projectId: string;
   url?: string;
   rewrite?: boolean;
   newDomain?: string; // if the domain is changed, this will be the new domain
 }) {
+  console.log({
+    id,
+    domain,
+    domainCreatedAt,
+    projectId,
+    url,
+    rewrite,
+    newDomain,
+  });
   if (newDomain) {
     await redis.rename(domain.toLowerCase(), newDomain.toLowerCase());
   }
@@ -45,7 +56,8 @@ export async function setRootDomain({
       domain: newDomain || domain,
       key: "_root",
       url: url || "",
-      project_id: projectId,
+      workspace_id: projectId,
+      created_at: domainCreatedAt,
     }),
   ]);
 }

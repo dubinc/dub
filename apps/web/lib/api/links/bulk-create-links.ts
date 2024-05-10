@@ -119,8 +119,9 @@ export async function propagateBulkLinkChanges(
         domain: link.domain,
         key: link.key,
         url: link.url,
-        tagIds: link.tags.map((tag) => tag.tagId),
-        project_id: link.projectId,
+        tag_ids: link.tags.map((tag) => tag.tagId),
+        workspace_id: link.projectId,
+        created_at: link.createdAt,
       })),
     ),
     // update links usage for workspace

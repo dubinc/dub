@@ -126,8 +126,9 @@ export async function updateLink({
         domain: response.domain,
         key: response.key,
         url: response.url,
-        tagIds: response.tags.map(({ tag }) => tag.id),
-        project_id: response.projectId,
+        tag_ids: response.tags.map(({ tag }) => tag.id),
+        workspace_id: response.projectId,
+        created_at: response.createdAt,
       }),
       // if key is changed: delete the old key in Redis
       (changedDomain || changedKey) &&
