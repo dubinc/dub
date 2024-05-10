@@ -19,15 +19,6 @@ export async function setRootDomain({
   rewrite?: boolean;
   newDomain?: string; // if the domain is changed, this will be the new domain
 }) {
-  console.log({
-    id,
-    domain,
-    domainCreatedAt,
-    projectId,
-    url,
-    rewrite,
-    newDomain,
-  });
   if (newDomain) {
     await redis.rename(domain.toLowerCase(), newDomain.toLowerCase());
   }
