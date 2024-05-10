@@ -67,6 +67,7 @@ export const DELETE = withWorkspace(async ({ params, workspace }) => {
                 domain: true,
                 key: true,
                 url: true,
+                createdAt: true,
               },
             },
           },
@@ -88,8 +89,9 @@ export const DELETE = withWorkspace(async ({ params, workspace }) => {
         domain: link.domain,
         key: link.key,
         url: link.url,
-        tagIds: [],
-        project_id: workspace.id,
+        tag_ids: [],
+        workspace_id: workspace.id,
+        created_at: link.createdAt,
       })),
     );
 

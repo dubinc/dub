@@ -135,6 +135,7 @@ export const POST = withSession(async ({ req, session }) => {
           id: true,
           slug: true,
           primary: true,
+          createdAt: true,
         },
       },
       users: {
@@ -160,6 +161,7 @@ export const POST = withSession(async ({ req, session }) => {
           await setRootDomain({
             id: projectResponse.domains[0].id,
             domain,
+            domainCreatedAt: projectResponse.domains[0].createdAt,
             projectId: projectResponse.id,
           });
         }

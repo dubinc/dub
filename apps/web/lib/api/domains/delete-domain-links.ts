@@ -16,6 +16,7 @@ export async function deleteDomainAndLinks(domain: string) {
         id: true,
         target: true,
         projectId: true,
+        createdAt: true,
       },
     }),
     prisma.link.findMany({
@@ -30,6 +31,7 @@ export async function deleteDomainAndLinks(domain: string) {
         image: true,
         projectId: true,
         tags: true,
+        createdAt: true,
       },
     }),
   ]);
@@ -55,7 +57,8 @@ export async function deleteDomainAndLinks(domain: string) {
             domain,
             key: "_root",
             url: domainData.target || "",
-            project_id: domainData.projectId,
+            workspace_id: domainData.projectId,
+            created_at: domainData.createdAt,
             deleted: true,
           },
           ...allLinks.map((link) => ({
@@ -63,8 +66,9 @@ export async function deleteDomainAndLinks(domain: string) {
             domain: link.domain,
             key: link.key,
             url: link.url,
-            tagIds: link.tags.map((tag) => tag.tagId),
-            project_id: link.projectId,
+            tag_ids: link.tags.map((tag) => tag.tagId),
+            workspace_id: link.projectId,
+            created_at: link.createdAt,
             deleted: true,
           })),
         ]),

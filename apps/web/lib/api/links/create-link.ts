@@ -88,11 +88,12 @@ export async function createLink(link: ProcessedLinkProps) {
       // record link in Tinybird
       recordLink({
         link_id: response.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tagIds: response.tags.map(({ tag }) => tag.id),
-        project_id: link.projectId,
+        domain: response.domain,
+        key: response.key,
+        url: response.url,
+        tag_ids: response.tags.map(({ tag }) => tag.id),
+        workspace_id: response.projectId,
+        created_at: response.createdAt,
       }),
       // if proxy image is set, upload image to R2 and update the link with the uploaded image URL
       ...(proxy && image && !isStored(image)

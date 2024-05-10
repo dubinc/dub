@@ -5,6 +5,7 @@ import { recordLink } from "../../tinybird";
 export async function setRootDomain({
   id,
   domain,
+  domainCreatedAt,
   projectId,
   url,
   rewrite,
@@ -12,6 +13,7 @@ export async function setRootDomain({
 }: {
   id: string;
   domain: string;
+  domainCreatedAt: Date;
   projectId: string;
   url?: string;
   rewrite?: boolean;
@@ -45,7 +47,8 @@ export async function setRootDomain({
       domain: newDomain || domain,
       key: "_root",
       url: url || "",
-      project_id: projectId,
+      workspace_id: projectId,
+      created_at: domainCreatedAt,
     }),
   ]);
 }
