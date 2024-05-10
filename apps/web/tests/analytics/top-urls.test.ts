@@ -18,6 +18,6 @@ test.runIf(env.CI)("GET /analytics/top_urls", async (ctx) => {
   expect(status).toEqual(200);
   expect(data.length).toBeGreaterThanOrEqual(0);
   expect(
-    z.array(getClickAnalyticsResponse["topUrls"].strict()).safeParse(data),
+    z.array(getClickAnalyticsResponse["top_urls"].strict()).safeParse(data),
   ).toBeTruthy();
 });
