@@ -1,13 +1,10 @@
 import { qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import {
-  domainTransferredEmail,
-  recordLinks,
-  updateLinksInRedis,
-} from "./utils";
+import { domainTransferredEmail, updateLinksInRedis } from "./utils";
 
 const schema = z.object({
   currentWorkspaceId: z.string(),
@@ -65,7 +62,17 @@ export async function POST(req: Request) {
         where: { linkId: { in: linkIds } },
       }),
       updateLinksInRedis({ links, newWorkspaceId, domain }),
-      recordLinks({ links, newWorkspaceId }),
+      recordLink(
+        links.map((link) => ({
+          link_id: link.id,
+          domain: link.domain,
+          key: link.key,
+          url: link.url,
+          tag_ids: [],
+          workspace_id: newWorkspaceId,
+          created_at: link.createdAt,
+        })),
+      ),
     ]);
 
     // wait 500 ms before making another request

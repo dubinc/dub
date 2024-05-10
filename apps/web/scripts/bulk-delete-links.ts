@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import "dotenv-flow/config";
 
 const domain = "song.fyi";
@@ -17,23 +16,36 @@ async function main() {
       url: true,
       projectId: true,
       tags: true,
+      createdAt: true,
     },
+    // take: 10000,
   });
-  const response = await Promise.all([
+  const response = await Promise.allSettled([
     prisma.link.deleteMany({
-      where: { domain },
+      where: {
+        domain,
+        id: {
+          in: links.map((link) => link.id),
+        },
+      },
     }),
-    redis.del(domain),
-    ...links.flatMap((link) => [
-      recordLink({
-        link,
+    // redis.del(domain),
+    recordLink(
+      links.map((link) => ({
+        link_id: link.id,
+        domain: link.domain,
+        key: link.key,
+        url: link.url,
+        tag_ids: link.tags.map((tag) => tag.tagId),
+        workspace_id: link.projectId,
+        created_at: link.createdAt,
         deleted: true,
-      }),
-    ]),
+      })),
+    ),
   ]);
 
   console.log(links.length);
-  console.table(links.slice(0, 10), ["domain", "key"]);
+  console.table(links.slice(-10), ["domain", "key"]);
   console.log(response);
 }
 
