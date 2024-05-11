@@ -1,7 +1,7 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
-import { trackLeadRequestSchema } from "@/lib/zod/schemas";
+import { clickEventSchemaTB, trackLeadRequestSchema } from "@/lib/zod/schemas";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -30,7 +30,10 @@ export const POST = withSessionEdge(async ({ req, searchParams }) => {
         return;
       }
 
-      const timestamp = new Date(Date.now()).toISOString();
+      const clickData = clickEventSchemaTB
+        .omit({ timestamp: true }) // timestamp is auto generated on insert
+        .parse(clickEvent.data[0]);
+
       const customerInfoPresent =
         Boolean(customerName) ||
         Boolean(customerEmail) ||
@@ -38,8 +41,7 @@ export const POST = withSessionEdge(async ({ req, searchParams }) => {
 
       await Promise.all([
         recordLead({
-          ...clickEvent.data[0],
-          timestamp,
+          ...clickData,
           event_name: eventName,
           event_id: nanoid(16),
           customer_id: customerId,
@@ -48,7 +50,6 @@ export const POST = withSessionEdge(async ({ req, searchParams }) => {
 
         customerInfoPresent &&
           recordCustomer({
-            timestamp,
             customer_id: customerId,
             name: customerName,
             email: customerEmail,

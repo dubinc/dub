@@ -14,18 +14,20 @@ export const trackSaleRequestSchema = z.object({
   metadata: z.record(z.unknown()).nullish(),
 });
 
-export const saleEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
-  z.object({
-    event_id: z.string(),
-    customer_id: z.string(),
-    payment_processor: z.string(),
-    product_id: z.string(),
-    amount: z.number().int().positive(),
-    currency: z.string(),
-    recurring: z.boolean(),
-    recurring_interval: z.string(),
-    recurring_interval_count: z.number().int().positive(),
-    refunded: z.boolean(),
-    metadata: z.string(),
-  }),
-);
+export const saleEventSchemaTB = clickEventSchemaTB
+  .omit({ timestamp: true })
+  .and(
+    z.object({
+      event_id: z.string(),
+      customer_id: z.string(),
+      payment_processor: z.string(),
+      product_id: z.string(),
+      amount: z.number().int().positive(),
+      currency: z.string(),
+      recurring: z.boolean(),
+      recurring_interval: z.string(),
+      recurring_interval_count: z.number().int().positive(),
+      refunded: z.boolean(),
+      metadata: z.string(),
+    }),
+  );

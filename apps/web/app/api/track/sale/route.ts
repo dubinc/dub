@@ -32,7 +32,7 @@ export const POST = withSessionEdge(async ({ req }) => {
       }
 
       await recordSale({
-        ...leadEvent.data[0],
+        ...leadEvent.data[0], // TODO: need to omit `timestamp` so we can let Tinybird auto-generate it on insert
         event_id: nanoid(16),
         payment_processor: paymentProcessor,
         product_id: productId,

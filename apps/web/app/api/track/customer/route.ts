@@ -16,7 +16,6 @@ export const POST = withSessionEdge(async ({ req, searchParams }) => {
 
   waitUntil(
     recordCustomer({
-      timestamp: new Date(Date.now()).toISOString(),
       customer_id: customerId,
       name: customerName,
       email: customerEmail,

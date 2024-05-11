@@ -41,11 +41,13 @@ export const trackLeadRequestSchema = z.object({
     ),
 });
 
-export const leadEventSchemaTB = clickEventSchemaTB.omit({ url: true }).and(
-  z.object({
-    event_id: z.string(),
-    event_name: z.string(),
-    metadata: z.string(), // TODO: Fix the type
-    customer_id: z.string(),
-  }),
-);
+export const leadEventSchemaTB = clickEventSchemaTB
+  .omit({ timestamp: true })
+  .and(
+    z.object({
+      event_id: z.string(),
+      event_name: z.string(),
+      metadata: z.string(), // TODO: Fix the type
+      customer_id: z.string(),
+    }),
+  );

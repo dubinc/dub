@@ -1,6 +1,6 @@
 
 SCHEMA >
-  `timestamp` DateTime64(3) `json:$.timestamp`,
+  `timestamp` DateTime `json:$.timestamp` DEFAULT now(),
   `event_id` String `json:$.event_id`,
   `metadata` String `json:$.metadata`,
   `customer_id` String `json:$.customer_id`,
@@ -13,7 +13,8 @@ SCHEMA >
   `recurring_interval_count` UInt8 `json:$.recurring_interval_count`,
   `refunded` UInt8 `json:$.refunded`,
   `click_id` String `json:$.click_id`,
-  `link_id` String `json:$.link_id`,         
+  `link_id` String `json:$.link_id`, 
+  `url` String `json:$.url`,        
   `country` LowCardinality(String) `json:$.country`,
   `city` String `json:$.city`,
   `region` String `json:$.region`,
