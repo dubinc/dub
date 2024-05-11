@@ -69,16 +69,15 @@ async function checkoutSessionCompleted(event: Stripe.Event) {
 
   await recordSale({
     ...leadEvent.data[0],
-    timestamp: new Date(Date.now()).toISOString(),
     event_id: nanoid(16),
     payment_processor: "stripe",
     product_id: "",
     amount: charge.amount_total || 0,
     currency: charge.currency || "usd",
-    recurring: true, // TODO: Update this
+    recurring: 1, // TODO: Update this
     recurring_interval: "month", // TODO: Update this
     recurring_interval_count: 1, // TODO: Update this
-    refunded: false,
+    refunded: 0,
     metadata: JSON.stringify({
       charge,
     }),
