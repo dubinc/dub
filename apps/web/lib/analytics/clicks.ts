@@ -19,8 +19,8 @@ export const getClicks = async (
   // get all-time clicks count if:
   // 1. linkId is defined
   // 2. groupBy is not defined
-  // 3. interval is not defined
-  if (linkId && !groupBy && !interval) {
+  // 3. interval is all time
+  if (linkId && !groupBy && interval === "all") {
     let response = await conn.execute(
       "SELECT clicks FROM Link WHERE `id` = ?",
       [linkId],
