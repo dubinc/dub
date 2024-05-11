@@ -24,10 +24,10 @@ export const saleEventSchemaTB = clickEventSchemaTB
       product_id: z.string(),
       amount: z.number().int().positive(),
       currency: z.string(),
-      recurring: z.boolean(),
+      recurring: z.number(),
       recurring_interval: z.string(),
       recurring_interval_count: z.number().int().positive(),
-      refunded: z.boolean(),
+      refunded: z.number(),
       metadata: z.string(),
     }),
   );
