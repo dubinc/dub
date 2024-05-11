@@ -111,6 +111,7 @@ model Project {
   links      Link[]
   domains    Domain[]
   tags       Tag[]
+  customers   Customer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -299,6 +300,22 @@ model LinkTag {
   @@unique([linkId, tagId])
   @@index(linkId)
   @@index(tagId)
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  name        String?
+  email       String?
+  avatar      String?
+  externalId  String?
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@unique([projectId, externalId])
 }
 
 model jackson_index {
