@@ -15,7 +15,9 @@ export const getOSAnalytics: ZodOpenApiOperationObject = {
   description:
     "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema.omit({ groupBy: true }),),
+    query: workspaceParamsSchema.merge(
+      clickAnalyticsQuerySchema.omit({ groupBy: true }),
+    ),
   },
   responses: {
     "200": {

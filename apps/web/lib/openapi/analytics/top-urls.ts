@@ -15,7 +15,9 @@ export const getTopURLs: ZodOpenApiOperationObject = {
   description:
     "Retrieve the top URLs by number of clicks for a given short link.",
   requestParams: {
-    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema.omit({ groupBy: true }),),
+    query: workspaceParamsSchema.merge(
+      clickAnalyticsQuerySchema.omit({ groupBy: true }),
+    ),
   },
   responses: {
     "200": {
