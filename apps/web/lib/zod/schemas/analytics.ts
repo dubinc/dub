@@ -34,7 +34,7 @@ export const clickAnalyticsQuerySchema = z.object({
     .optional()
     .default("24h")
     .describe(
-      "The interval to retrieve analytics for. Takes precedence over start and end.",
+      "The interval to retrieve analytics for. Takes precedence over start and end. If undefined, defaults to 24h.",
     ),
   start: parseDateSchema
     .refine(
