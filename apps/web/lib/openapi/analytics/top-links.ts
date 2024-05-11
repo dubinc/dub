@@ -13,7 +13,7 @@ export const getTopLinks: ZodOpenApiOperationObject = {
   summary: "Retrieve top links",
   deprecated: true,
   description:
-    "Retrieve the top links by number of clicks for a domain or the authenticated workspace.",
+    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'top_links' }) instead. Retrieve the top links by number of clicks for a domain or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(
       clickAnalyticsQuerySchema.omit({ groupBy: true }),

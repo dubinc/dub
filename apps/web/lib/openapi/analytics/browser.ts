@@ -13,7 +13,7 @@ export const getBrowserAnalytics: ZodOpenApiOperationObject = {
   summary: "Retrieve browser analytics",
   deprecated: true,
   description:
-    "Retrieve the top browsers by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'browser' }) instead. Retrieve the top browsers by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(
       clickAnalyticsQuerySchema.omit({ groupBy: true }),

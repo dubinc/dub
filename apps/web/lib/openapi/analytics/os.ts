@@ -13,7 +13,7 @@ export const getOSAnalytics: ZodOpenApiOperationObject = {
   summary: "Retrieve OS analytics",
   deprecated: true,
   description:
-    "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'os' }) instead. Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(
       clickAnalyticsQuerySchema.omit({ groupBy: true }),

@@ -13,7 +13,7 @@ export const getRefererAnalytics: ZodOpenApiOperationObject = {
   summary: "Retrieve referer analytics",
   deprecated: true,
   description:
-    "Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'referer' }) instead. Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(
       clickAnalyticsQuerySchema.omit({ groupBy: true }),

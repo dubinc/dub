@@ -13,7 +13,7 @@ export const getTopURLs: ZodOpenApiOperationObject = {
   summary: "Retrieve top URLs",
   deprecated: true,
   description:
-    "Retrieve the top URLs by number of clicks for a given short link.",
+    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'top_urls' }) instead. Retrieve the top URLs by number of clicks for a given short link.",
   requestParams: {
     query: workspaceParamsSchema.merge(
       clickAnalyticsQuerySchema.omit({ groupBy: true }),

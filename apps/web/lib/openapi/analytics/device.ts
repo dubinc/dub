@@ -13,7 +13,7 @@ export const getDeviceAnalytics: ZodOpenApiOperationObject = {
   summary: "Retrieve device analytics",
   deprecated: true,
   description:
-    "Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'device' }) instead. Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(
       clickAnalyticsQuerySchema.omit({ groupBy: true }),

@@ -13,7 +13,7 @@ export const getTimeseriesAnalytics: ZodOpenApiOperationObject = {
   summary: "Retrieve timeseries analytics",
   deprecated: true,
   description:
-    "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
+    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'timeseries' }) instead. Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
   requestParams: {
     query: workspaceParamsSchema.merge(
       clickAnalyticsQuerySchema.omit({ groupBy: true }),
