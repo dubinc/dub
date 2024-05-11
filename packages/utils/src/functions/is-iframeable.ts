@@ -31,6 +31,9 @@ export const isIframeable = async ({
     /frame-ancestors\s+([\s\S]+?)(?=;|$)/i,
   );
   if (frameAncestorsMatch) {
+    if (frameAncestorsMatch[1] === "*") {
+      return true;
+    }
     const allowedOrigins = frameAncestorsMatch[1].split(/\s+/);
     if (allowedOrigins.includes(requestDomain)) {
       return true;
