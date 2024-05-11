@@ -112,7 +112,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
           label: "",
         },
       }),
-      doc_url: `${docErrorUrl}#unprocessable_entity`,
+      doc_url: `${docErrorUrl}#unprocessable-entity`,
     },
   };
 }
@@ -147,7 +147,7 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
       code: "internal_server_error",
       message:
         "An internal server error occurred. Please contact our support if the problem persists.",
-      doc_url: `${docErrorUrl}#internal_server_error`,
+      doc_url: `${docErrorUrl}#internal-server-error`,
     },
     status: 500,
   };
@@ -193,7 +193,7 @@ export const errorSchemaFactory = (
                   type: "string",
                   description:
                     "A link to our documentation with more details about this error code",
-                  example: `${docErrorUrl}#${code}`,
+                  example: `${docErrorUrl}#${code.replace("_", "-")}`,
                 },
               },
               required: ["code", "message"],
