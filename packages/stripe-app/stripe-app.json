@@ -1,6 +1,6 @@
 {
   "id": "com.example.dub",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "name": "Dub",
   "icon": "",
   "permissions": [
@@ -33,7 +33,7 @@
     }
   },
   "allowed_redirect_uris": [
-    "https://1402-103-181-40-112.ngrok-free.app/api/campaigns/callback/stripe"
+    "https://bd67-103-177-27-104.ngrok-free.app/api/campaigns/callback/stripe"
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"

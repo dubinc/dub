@@ -2,9 +2,9 @@ import z from "@/lib/zod";
 
 export const trackCustomerRequestSchema = z.object({
   customerId: z.string({ required_error: "customerId is required" }),
-  customerName: z.string().nullish().default(""),
-  customerEmail: z.string().email().nullish().default(""),
-  customerAvatar: z.string().url().nullish().default(""),
+  customerName: z.string().nullish(),
+  customerEmail: z.string().email().nullish(),
+  customerAvatar: z.string().url().nullish(),
 });
 
 export const customersMetadataSchema = z.object({
