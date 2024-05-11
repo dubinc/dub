@@ -15,7 +15,7 @@ export const getTimeseriesAnalytics: ZodOpenApiOperationObject = {
   description:
     "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
   requestParams: {
-    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
+    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema.omit({ groupBy: true }),),
   },
   responses: {
     "200": {
