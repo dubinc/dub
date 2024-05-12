@@ -1,7 +1,7 @@
 ---
-title: "Create"
-"og:title": "dub.links.create - Create a new link - TypeScript SDK"
-description: "Create a new link for the authenticated workspace."
+title: "Upsert"
+"og:title": "dub.links.upsert - Upsert a new link - TypeScript SDK"
+description: "Upsert a link for the authenticated workspace by its URL. If a link with the same URL already exists, return it (or update it if there are any changes). Otherwise, a new link will be created."
 ---
 
 import LinkArguments from "/snippets/link-arguments.mdx";
@@ -22,9 +22,11 @@ import LinkResponse from "/snippets/link-response.mdx";
 <RequestExample>
 
 ```ts
-await dub.links.create({
+const { shortLink } = await dub.links.upsert({
   url: "https://www.google.com",
 });
+
+console.log(shortLink); // will always be https://dub.sh/xnjk23d
 ```
 
 </RequestExample>
