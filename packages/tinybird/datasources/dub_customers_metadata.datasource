@@ -1,7 +1,6 @@
 SCHEMA >
   `timestamp` DateTime `json:$.timestamp` DEFAULT now(),
   `customer_id` String `json:$.customer_id`,
-  `external_id` String `json:$.external_id`,
   `name` String `json:$.name`,
   `email` String `json:$.email`,
   `avatar` String `json:$.avatar`,
