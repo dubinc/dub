@@ -1,5 +1,10 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, processLink, updateLink } from "@/lib/api/links";
+import {
+  createLink,
+  processLink,
+  transformLink,
+  updateLink,
+} from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -19,6 +24,19 @@ export const PUT = withWorkspace(
         projectId: workspace.id,
         url: body.url,
       },
+      include: {
+        tags: {
+          select: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (link) {
@@ -35,7 +53,7 @@ export const PUT = withWorkspace(
 
       // if link and updatedLink are identical, return the link
       if (deepEqual(link, updatedLink)) {
-        return NextResponse.json(link, { headers });
+        return NextResponse.json(transformLink(link), { headers });
       }
 
       if (updatedLink.projectId !== link?.projectId) {

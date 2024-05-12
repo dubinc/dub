@@ -28,6 +28,6 @@ export const linksPaths: ZodOpenApiPathsObject = {
     post: createBulkLink,
   },
   "/links/upsert": {
-    post: upsertLink,
+    put: upsertLink,
   },
 };

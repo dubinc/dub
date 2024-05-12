@@ -1,5 +1,5 @@
 import { Link } from "@prisma/client";
-import { describe, expect, test } from "vitest";
+import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
@@ -16,12 +16,18 @@ describe.sequential("PUT /links/upsert", async () => {
 
   let createdLink: Link;
 
+  afterAll(async () => {
+    await h.deleteLink(createdLink.id);
+  });
+
   test("New link", async () => {
-    const { data: createdLink } = await http.put<Link>({
+    const { data } = await http.put<Link>({
       path: "/links/upsert",
       query: { workspaceId },
       body: { domain, url },
     });
+
+    createdLink = data;
 
     expect(createdLink).toStrictEqual({
       ...expectedLink,
@@ -34,8 +40,6 @@ describe.sequential("PUT /links/upsert", async () => {
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${createdLink.key}?qr=1`,
       tags: [],
     });
-
-    await h.deleteLink(createdLink.id);
   });
 
   test("Existing link", async () => {
@@ -45,6 +49,16 @@ describe.sequential("PUT /links/upsert", async () => {
       body: { domain, url },
     });
 
-    expect(updatedLink).toStrictEqual(createdLink);
+    expect(updatedLink).toStrictEqual({
+      ...expectedLink,
+      domain,
+      url,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${createdLink.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${createdLink.key}?qr=1`,
+      tags: [],
+    });
   });
 });
