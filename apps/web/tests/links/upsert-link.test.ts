@@ -1,59 +1,47 @@
 import { Link } from "@prisma/client";
-import { afterAll, describe, expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
+import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
 
 const { domain } = link;
-const url = "https://github.com/dubinc/dub/pull/888";
+const url = `https://example.com/${randomId}`;
 
 describe.sequential("PUT /links/upsert", async () => {
   const h = new IntegrationHarness();
-  const { workspace, user, http } = await h.init();
+  const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  const { data: link } = await http.post<Link>({
-    path: "/links",
-    query: { workspaceId },
-    body: {
-      url,
-      domain,
-    },
-  });
-
-  afterAll(async () => {
-    await h.deleteLink(link.id);
-  });
-
-  test("Existing link", async () => {
-    const { data: updatedLink } = await http.put<Link>({
-      path: `/links/upsert`,
-      query: { workspaceId },
-      body: { url },
-    });
-
-    expect(updatedLink).toStrictEqual({
-      ...expectedLink,
-      workspaceId,
-      domain,
-      key: link.key,
-      url,
-    });
-  });
-
   test("New link", async () => {
-    const newUrl = "https://github.com/dubinc/dub/pull/889";
     const { data: createdLink } = await http.put<Link>({
-      path: `/links/upsert`,
+      path: "/links/upsert",
       query: { workspaceId },
-      body: { url: newUrl },
+      body: { domain, url },
     });
 
     expect(createdLink).toStrictEqual({
       ...expectedLink,
-      workspaceId,
       domain,
-      url: newUrl,
+      url,
+      workspaceId,
+    });
+
+    test("Existing link", async () => {
+      const { data: updatedLink } = await http.put<Link>({
+        path: "/links/upsert",
+        query: { workspaceId },
+        body: { url },
+      });
+
+      expect(updatedLink).toStrictEqual({
+        ...expectedLink,
+        id: createdLink.id,
+        domain,
+        key: createdLink.key,
+        url,
+        workspaceId,
+      });
     });
 
     await h.deleteLink(createdLink.id);
