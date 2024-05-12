@@ -6,16 +6,10 @@ import {
 } from "@/lib/qr/constants";
 import z from "@/lib/zod";
 import { booleanQuerySchema } from "./misc";
+import { parseUrlSchema } from "./utils";
 
 export const getQRCodeQuerySchema = z.object({
-  url: z
-    .string()
-    .url()
-    .optional()
-    .default("https://dub.co")
-    .describe(
-      "The URL to generate a QR code for. Defaults to `https://dub.co` if not provided.",
-    ),
+  url: parseUrlSchema.describe("The URL to generate a QR code for."),
   size: z.coerce
     .number()
     .optional()
