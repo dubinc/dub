@@ -315,11 +315,11 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([projectId, externalId])
+  @@unique([projectConnectId, externalId])
   @@index(projectId)
   @@index(projectConnectId)
   @@index(externalId)
-  @@unique([projectId, externalId])
-  @@unique([projectConnectId, externalId])
 }
 
 model jackson_index {
