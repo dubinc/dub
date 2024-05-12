@@ -73,7 +73,6 @@ export const PATCH = withWorkspace(
 
     // if link and updatedLink are identical, return the link
     if (deepEqual(link, updatedLink)) {
-      console.log("Link is identical to updated link.");
       return NextResponse.json(link, { headers });
     }
 
