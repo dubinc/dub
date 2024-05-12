@@ -55,7 +55,7 @@ const cases = [
           code: "unprocessable_entity",
           message: "Invalid tagIds detected: invalid",
           doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+            "https://dub.co/docs/api-reference/errors#unprocessable_entity",
         },
       },
     },
