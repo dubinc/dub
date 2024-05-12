@@ -7,6 +7,7 @@ import { getLinkInfo } from "./get-link-info";
 import { getLinks } from "./get-links";
 import { getLinksCount } from "./get-links-count";
 import { updateLink } from "./update-link";
+import { upsertLink } from "./upsert-link";
 
 export const linksPaths: ZodOpenApiPathsObject = {
   "/links": {
@@ -25,5 +26,8 @@ export const linksPaths: ZodOpenApiPathsObject = {
   },
   "/links/bulk": {
     post: createBulkLink,
+  },
+  "/links/upsert": {
+    post: upsertLink,
   },
 };
