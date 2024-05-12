@@ -103,7 +103,7 @@ model Project {
   domainsLimit      Int     @default(3)
   tagsLimit         Int     @default(5)
   usersLimit        Int     @default(1)
-  monitoringId      String? @unique // cron job ID for monitoring
+  stripeConnectId   String? @unique // for Stripe Connect
 
   users      ProjectUsers[]
   invites    ProjectInvite[]
@@ -111,7 +111,7 @@ model Project {
   links      Link[]
   domains    Domain[]
   tags       Tag[]
-  customers   Customer[]
+  customers  Customer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -212,7 +212,7 @@ model Link {
   expiresAt  DateTime? // when the link expires – stored on Redis via ttl
   expiredUrl String?   @db.LongText // URL to redirect the user to when the link is expired
   password   String? // password to access the link
-  externalId String? 
+  externalId String?
 
   trackConversion Boolean @default(false) // whether to track conversions or not
 
@@ -246,14 +246,14 @@ model Link {
   // Relational reference to the project domain
   projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
 
-  publicStats   Boolean   @default(false) // whether to show public stats or not
-  clicks        Int       @default(0) // number of clicks
-  lastClicked   DateTime? // when the link was last clicked
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  publicStats Boolean   @default(false) // whether to show public stats or not
+  clicks      Int       @default(0) // number of clicks
+  lastClicked DateTime? // when the link was last clicked
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Link tags
-  tags  LinkTag[]
+  tags LinkTag[]
 
   // Comments on the particular shortlink
   comments String? @db.LongText
@@ -303,19 +303,22 @@ model LinkTag {
 }
 
 model Customer {
-  id          String   @id @default(cuid())
-  name        String?
-  email       String?
-  avatar      String?
-  externalId  String?
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id               String  @id @default(cuid())
+  name             String?
+  email            String?
+  avatar           String?
+  externalId       String?
+  project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId        String
+  projectConnectId String
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([projectId])
-  @@unique([projectId, externalId])
+  @@index(projectId)
+  @@index(projectConnectId)
+  @@index(externalId)
+  @@unique([projectConnectId, externalId])
 }
 
 model jackson_index {
