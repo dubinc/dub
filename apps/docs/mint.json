@@ -80,11 +80,11 @@
         "api-reference/endpoint/create-a-new-link",
         "api-reference/endpoint/retrieve-a-link",
         "api-reference/endpoint/update-a-link",
+        "api-reference/endpoint/upsert-a-link",
         "api-reference/endpoint/delete-a-link",
         "api-reference/endpoint/retrieve-a-list-of-links",
         "api-reference/endpoint/retrieve-number-of-links",
-        "api-reference/endpoint/bulk-create-links",
-        "api-reference/endpoint/upsert-a-link"
+        "api-reference/endpoint/bulk-create-links"
       ]
     },
     {
@@ -150,6 +150,7 @@
             "sdks/typescript/links/create",
             "sdks/typescript/links/get",
             "sdks/typescript/links/update",
+            "sdks/typescript/links/upsert",
             "sdks/typescript/links/delete",
             "sdks/typescript/links/list",
             "sdks/typescript/links/count",
