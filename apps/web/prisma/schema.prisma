@@ -267,7 +267,6 @@ model Link {
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
   @@index(userId)
-  @@index([projectId, url(length: 255)])
   @@fulltext([key, url])
 }
 
