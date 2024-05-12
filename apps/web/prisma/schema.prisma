@@ -318,6 +318,7 @@ model Customer {
   @@index(projectId)
   @@index(projectConnectId)
   @@index(externalId)
+  @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
 }
 
