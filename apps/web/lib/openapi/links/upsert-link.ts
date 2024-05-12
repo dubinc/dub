@@ -9,7 +9,7 @@ export const upsertLink: ZodOpenApiOperationObject = {
   "x-speakeasy-usage-example": true,
   summary: "Upsert a link",
   description:
-    "Upsert a link for the authenticated workspace. If a link with the same URL already exists, it will be updated. Otherwise, a new link will be created.",
+    "Upsert a link for the authenticated workspace by its URL. If a link with the same URL already exists, returns as is if there's no change, or update it. Otherwise, a new link will be created.",
   requestParams: {
     query: workspaceParamsSchema,
   },
