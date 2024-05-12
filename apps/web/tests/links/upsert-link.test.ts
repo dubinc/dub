@@ -6,7 +6,7 @@ import { link } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
 
 const { domain } = link;
-const url = `https://example.com/${randomId}`;
+const url = `https://example.com/${randomId()}`;
 
 describe.sequential("PUT /links/upsert", async () => {
   const h = new IntegrationHarness();
@@ -31,7 +31,7 @@ describe.sequential("PUT /links/upsert", async () => {
       const { data: updatedLink } = await http.put<Link>({
         path: "/links/upsert",
         query: { workspaceId },
-        body: { url },
+        body: { domain, url },
       });
 
       expect(updatedLink).toStrictEqual({
