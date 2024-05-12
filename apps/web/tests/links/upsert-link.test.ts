@@ -14,6 +14,8 @@ describe.sequential("PUT /links/upsert", async () => {
   const { workspaceId } = workspace;
   const projectId = workspaceId.replace("ws_", "");
 
+  let createdLink: Link;
+
   test("New link", async () => {
     const { data: createdLink } = await http.put<Link>({
       path: "/links/upsert",
@@ -33,16 +35,16 @@ describe.sequential("PUT /links/upsert", async () => {
       tags: [],
     });
 
-    test("Existing link", async () => {
-      const { data: updatedLink } = await http.put<Link>({
-        path: "/links/upsert",
-        query: { workspaceId },
-        body: { domain, url },
-      });
+    await h.deleteLink(createdLink.id);
+  });
 
-      expect(updatedLink).toStrictEqual(createdLink);
+  test("Existing link", async () => {
+    const { data: updatedLink } = await http.put<Link>({
+      path: "/links/upsert",
+      query: { workspaceId },
+      body: { domain, url },
     });
 
-    await h.deleteLink(createdLink.id);
+    expect(updatedLink).toStrictEqual(createdLink);
   });
 });
