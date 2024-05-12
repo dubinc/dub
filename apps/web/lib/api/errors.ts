@@ -83,7 +83,7 @@ export class DubApiError extends Error {
   }) {
     super(message);
     this.code = code;
-    this.docUrl = docUrl ?? `${docErrorUrl}#${code}`;
+    this.docUrl = docUrl ?? `${docErrorUrl}#${code.replace("_", "-")}`;
   }
 }
 
