@@ -10,8 +10,9 @@ const url = `https://example.com/${randomId()}`;
 
 describe.sequential("PUT /links/upsert", async () => {
   const h = new IntegrationHarness();
-  const { workspace, http } = await h.init();
+  const { workspace, user, http } = await h.init();
   const { workspaceId } = workspace;
+  const projectId = workspaceId.replace("ws_", "");
 
   test("New link", async () => {
     const { data: createdLink } = await http.put<Link>({
@@ -24,7 +25,12 @@ describe.sequential("PUT /links/upsert", async () => {
       ...expectedLink,
       domain,
       url,
+      userId: user.id,
+      projectId,
       workspaceId,
+      shortLink: `https://${domain}/${createdLink.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${createdLink.key}?qr=1`,
+      tags: [],
     });
 
     test("Existing link", async () => {
@@ -34,14 +40,7 @@ describe.sequential("PUT /links/upsert", async () => {
         body: { domain, url },
       });
 
-      expect(updatedLink).toStrictEqual({
-        ...expectedLink,
-        id: createdLink.id,
-        domain,
-        key: createdLink.key,
-        url,
-        workspaceId,
-      });
+      expect(updatedLink).toStrictEqual(createdLink);
     });
 
     await h.deleteLink(createdLink.id);
