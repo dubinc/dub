@@ -36,7 +36,7 @@ const cases = [
           code: "unprocessable_entity",
           message: "custom: url: Invalid URL",
           doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable_entity",
+            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
         },
       },
     },
