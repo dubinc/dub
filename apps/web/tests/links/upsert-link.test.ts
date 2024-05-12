@@ -1,9 +1,10 @@
 import { Link } from "@prisma/client";
 import { afterAll, describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
+import { link } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
 
-const domain = "dub.sh";
+const { domain } = link;
 const url = "https://github.com/dubinc/dub/pull/888";
 
 describe.sequential("PUT /links/upsert", async () => {
