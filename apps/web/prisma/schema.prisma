@@ -103,7 +103,6 @@ model Project {
   domainsLimit      Int     @default(3)
   tagsLimit         Int     @default(5)
   usersLimit        Int     @default(1)
-  monitoringId      String? @unique // cron job ID for monitoring
 
   users      ProjectUsers[]
   invites    ProjectInvite[]

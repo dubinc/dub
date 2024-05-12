@@ -267,7 +267,7 @@ export const LinkSchema = z
     trackConversion: z
       .boolean()
       .default(false)
-      .describe("Whether to track conversions for the short link."),
+      .describe("[BETA] Whether to track conversions for the short link."),
     archived: z
       .boolean()
       .default(false)
