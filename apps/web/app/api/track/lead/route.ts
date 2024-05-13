@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
-import { createCustomer, getCustomer } from "@/lib/planetscale";
+import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { clickEventSchemaTB, trackLeadRequestSchema } from "@/lib/zod/schemas";
 import { nanoid } from "@dub/utils";
@@ -24,9 +24,13 @@ export const POST = withWorkspaceEdge(
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
     if (externalId) {
-      const customer = await getCustomer({
-        externalId,
-        workspaceId: workspace.id,
+      const customer = await prismaEdge.customer.findUnique({
+        where: {
+          projectId_externalId: {
+            projectId: workspace.id,
+            externalId,
+          },
+        },
       });
 
       if (customer) {
@@ -59,25 +63,28 @@ export const POST = withWorkspaceEdge(
             metadata,
           }),
 
-          workspace.stripeConnectId &&
-            externalId &&
-            (createCustomer({
-              id: customerId,
-              name: customerName || "",
-              email: customerEmail || "",
-              avatar: customerAvatar || "",
-              externalId,
-              projectId: workspace.id,
-              projectConnectId: workspace.stripeConnectId,
-              stripeCustomerId: null,
-            }),
-            recordCustomer({
-              customer_id: customerId,
-              name: customerName,
-              email: customerEmail,
-              avatar: customerAvatar,
-              workspace_id: workspace.id,
-            })),
+          ...(workspace.stripeConnectId && externalId
+            ? [
+                prismaEdge.customer.create({
+                  data: {
+                    id: customerId,
+                    name: customerName || "", // TODO: generate random name if not provided
+                    email: customerEmail,
+                    avatar: customerAvatar,
+                    externalId,
+                    projectId: workspace.id,
+                    projectConnectId: workspace.stripeConnectId,
+                  },
+                }),
+                recordCustomer({
+                  customer_id: customerId,
+                  name: customerName,
+                  email: customerEmail,
+                  avatar: customerAvatar,
+                  workspace_id: workspace.id,
+                }),
+              ]
+            : []),
         ]);
       })(),
     );

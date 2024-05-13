@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prismaEdge } from "@/lib/prisma/edge";
 import { stripe } from "@/lib/stripe";
 import {
   getClickEvent,
@@ -62,7 +62,7 @@ async function paymentIntentSucceeded(event: Stripe.Event) {
   const stripeCustomerId = charge.customer as string;
 
   // Find customer
-  const customer = await prisma.customer.findFirst({
+  const customer = await prismaEdge.customer.findFirst({
     where: {
       projectConnectId: stripeAccountId,
       stripeCustomerId,
@@ -110,7 +110,7 @@ async function checkoutSessionCompleted(event: Stripe.Event) {
   }
 
   // Find customer
-  const customer = await prisma.customer.findFirst({
+  const customer = await prismaEdge.customer.findFirst({
     where: {
       externalId,
       projectConnectId: event.account,
@@ -170,7 +170,7 @@ async function customerCreated(event: Stripe.Event) {
     .parse(clickEvent.data[0]);
 
   // Create customer
-  const customer = await prisma.customer.create({
+  const customer = await prismaEdge.customer.create({
     data: {
       name: stripeCustomer.name,
       email: stripeCustomer.email,

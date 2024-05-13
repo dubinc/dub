@@ -1,6 +1,5 @@
 import { nanoid, punyEncode } from "@dub/utils";
 import { connect } from "@planetscale/database";
-import { Customer } from "@prisma/client";
 import { DomainProps, WorkspaceProps } from "./types";
 
 export const DATABASE_URL =
@@ -140,51 +139,3 @@ export async function getRandomKey({
     return key;
   }
 }
-
-export const createCustomer = async ({
-  id,
-  name,
-  email,
-  avatar,
-  externalId,
-  projectId,
-  projectConnectId,
-}: Omit<Customer, "createdAt" | "updatedAt">) => {
-  return await conn.execute(
-    "INSERT INTO Customer (id, name, email, avatar, externalId, projectId, projectConnectId, updatedAt) VALUES (?, ?, ?, ?, ?, ? ,?, ?)",
-    [
-      id,
-      name,
-      email,
-      avatar,
-      externalId,
-      projectId,
-      projectConnectId,
-      new Date(),
-    ],
-  );
-};
-
-export const getCustomer = async (params: GetCustomerParams) => {
-  const { externalId } = params;
-
-  // By workspaceId
-  if ("workspaceId" in params) {
-    const { rows } = await conn.execute<Customer>(
-      "SELECT * FROM Customer WHERE externalId = ? AND projectId = ? LIMIT 1",
-      [externalId, params.workspaceId],
-    );
-
-    return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-  }
-
-  // By projectConnectId
-  if ("projectConnectId" in params) {
-    const { rows } = await conn.execute<Customer>(
-      "SELECT * FROM Customer WHERE externalId = ? AND projectConnectId = ? LIMIT 1",
-      [externalId, params.projectConnectId],
-    );
-
-    return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-  }
-};

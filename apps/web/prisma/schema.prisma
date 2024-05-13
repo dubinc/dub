@@ -311,7 +311,7 @@ model Customer {
   project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId        String
   projectConnectId String
-  stripeCustomerId String?
+  stripeCustomerId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -321,7 +321,6 @@ model Customer {
   @@index(projectId)
   @@index(projectConnectId)
   @@index(externalId)
-  @@index(stripeCustomerId)
 }
 
 model jackson_index {
