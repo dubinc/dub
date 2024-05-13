@@ -95,10 +95,13 @@ export const POST = withWorkspace(
           }),
         }),
         recordLink({
-          link: {
-            ...link,
-            projectId: newWorkspaceId,
-          },
+          link_id: link.id,
+          domain: link.domain,
+          key: link.key,
+          url: link.url,
+          tag_ids: [],
+          workspace_id: newWorkspaceId,
+          created_at: link.createdAt,
         }),
         // decrement old workspace usage
         prisma.project.update({

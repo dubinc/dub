@@ -40,6 +40,9 @@ importers:
       '@boxyhq/saml-jackson':
         specifier: 1.23.6
         version: 1.23.6(@aws-sdk/client-sso-oidc@3.569.0)(@aws-sdk/client-sts@3.569.0)
+      '@chronark/zod-bird':
+        specifier: ^0.3.9
+        version: 0.3.9
       '@dub/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
@@ -3236,6 +3239,12 @@ packages:
       xml-encryption: 3.0.2
       xml2js: 0.6.2
       xmlbuilder: 15.1.1
+    dev: false
+
+  /@chronark/zod-bird@0.3.9:
+    resolution: {integrity: sha512-5+W0KUBDZKWl86OFgKZJ9/pLRg1jbhAEPKDIKBJUEAAJblwRU3FBrnkcEAqW4/JfPBFiiEC5wxG16A8UzgphAQ==}
+    dependencies:
+      zod: 3.22.4
     dev: false
 
   /@emotion/is-prop-valid@0.8.8:

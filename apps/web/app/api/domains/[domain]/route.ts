@@ -98,6 +98,7 @@ export const PATCH = withWorkspace(
         setRootDomain({
           id: response.id,
           domain,
+          domainCreatedAt: response.createdAt,
           ...(workspace.plan !== "free" && {
             url: target || undefined,
           }),

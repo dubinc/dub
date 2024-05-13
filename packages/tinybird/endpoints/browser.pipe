@@ -2,7 +2,7 @@ DESCRIPTION >
 	Top browsers by clicks
 
 
-TOKEN "browser_endpoint_read_5885" READ
+TOKEN "browser_new_endpoint_read_0773" READ
 
 NODE endpoint
 DESCRIPTION >
@@ -14,23 +14,26 @@ SQL >
     SELECT browser, COUNT(browser) as clicks
     FROM
         dub_click_events_mv
-        {% if not defined(linkId) %}
+        {% if not defined(linkId) and defined(workspaceId) %}
             PREWHERE link_id in (
                 SELECT link_id
                 from dub_links_metadata_latest FINAL
                 WHERE
-                    project_id
+                    workspace_id
                     = {{
                         String(
-                            projectId,
+                            workspaceId,
                             'cl7wsy2836920mjrb352g5wfx',
-                            description="The ID of the project",
-                            required=True
+                            description="The ID of the workspace",
+                            required=True,
                         )
                     }}
                     AND deleted == 0
                     {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
-                    {% if defined(excludeRoot) %} AND key != '_root' {% end %}
+                    {% if defined(tagId) %} AND has(tag_ids, {{ tagId }}) {% end %}
+                    {% if defined(root) %}
+                        {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
+                    {% end %}
             )
         {% end %}
     WHERE
@@ -45,6 +48,7 @@ SQL >
                 )
             }}
         {% end %}
+        {% if defined(qr) %} AND qr = {{ Boolean(qr)}} {% end %}
         AND browser != 'Unknown'
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
@@ -52,6 +56,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
     GROUP BY browser

@@ -20,7 +20,16 @@ export async function deleteLink(linkId: string) {
         link.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
         storage.delete(`images/${link.id}`),
       redis.hdel(link.domain.toLowerCase(), link.key.toLowerCase()),
-      recordLink({ link, deleted: true }),
+      recordLink({
+        link_id: link.id,
+        domain: link.domain,
+        key: link.key,
+        url: link.url,
+        tag_ids: link.tags.map((tag) => tag.tagId),
+        workspace_id: link.projectId,
+        created_at: link.createdAt,
+        deleted: true,
+      }),
       link.projectId &&
         prisma.project.update({
           where: {

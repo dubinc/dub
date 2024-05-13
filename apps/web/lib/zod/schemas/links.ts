@@ -1,17 +1,8 @@
 import z from "@/lib/zod";
-import {
-  COUNTRY_CODES,
-  getUrlFromString,
-  isValidUrl,
-  validDomainRegex,
-} from "@dub/utils";
+import { COUNTRY_CODES, validDomainRegex } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
-
-export const parseUrlSchema = z
-  .string()
-  .transform((v) => getUrlFromString(v))
-  .refine((v) => isValidUrl(v), { message: "Invalid URL" });
+import { parseUrlSchema } from "./utils";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
@@ -268,6 +259,10 @@ export const LinkSchema = z
         "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
     url: z.string().url().describe("The destination URL of the short link."),
+    trackConversion: z
+      .boolean()
+      .default(false)
+      .describe("[BETA] Whether to track conversions for the short link."),
     archived: z
       .boolean()
       .default(false)

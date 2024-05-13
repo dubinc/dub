@@ -2,8 +2,8 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Dub.co Docs",
   "logo": {
-    "dark": "/logos/logotype-dark.svg",
-    "light": "/logos/logotype.svg",
+    "dark": "/logos/wordmark-dark.svg",
+    "light": "/logos/wordmark.svg",
     "href": "https://dub.co"
   },
   "favicon": "/logos/favicon.png",
@@ -80,6 +80,7 @@
         "api-reference/endpoint/create-a-new-link",
         "api-reference/endpoint/retrieve-a-link",
         "api-reference/endpoint/update-a-link",
+        "api-reference/endpoint/upsert-a-link",
         "api-reference/endpoint/delete-a-link",
         "api-reference/endpoint/retrieve-a-list-of-links",
         "api-reference/endpoint/retrieve-number-of-links",
@@ -149,6 +150,7 @@
             "sdks/typescript/links/create",
             "sdks/typescript/links/get",
             "sdks/typescript/links/update",
+            "sdks/typescript/links/upsert",
             "sdks/typescript/links/delete",
             "sdks/typescript/links/list",
             "sdks/typescript/links/count",

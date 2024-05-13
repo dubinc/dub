@@ -82,6 +82,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     setRootDomain({
       id: response.id,
       domain,
+      domainCreatedAt: response.createdAt,
       projectId: workspace.id,
       ...(workspace.plan !== "free" && {
         url: target || undefined,
