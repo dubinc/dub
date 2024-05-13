@@ -1,6 +1,6 @@
 import { deleteLink } from "@/lib/api/links";
 import { receiver } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   const body = await req.json();

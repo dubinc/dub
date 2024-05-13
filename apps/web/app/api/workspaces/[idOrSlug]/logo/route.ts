@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";

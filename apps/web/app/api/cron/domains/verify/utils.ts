@@ -1,6 +1,6 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { limiter } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { sendEmail } from "emails";
 import DomainDeleted from "emails/domain-deleted";
