@@ -1,12 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { updateTagBodySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
-// PUT /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace
-export const PUT = withWorkspace(async ({ req, params, workspace }) => {
+// PATCH /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace
+export const PATCH = withWorkspace(async ({ req, params, workspace }) => {
   const { id } = params;
   const { name, color } = updateTagBodySchema.parse(await req.json());
 
@@ -47,6 +47,8 @@ export const PUT = withWorkspace(async ({ req, params, workspace }) => {
   }
 });
 
+export const PUT = PATCH;
+
 // DELETE /api/workspaces/[idOrSlug]/tags/[id] – delete a tag for a workspace
 export const DELETE = withWorkspace(async ({ params, workspace }) => {
   const { id } = params;
@@ -57,7 +59,19 @@ export const DELETE = withWorkspace(async ({ params, workspace }) => {
         projectId: workspace.id,
       },
       include: {
-        links: true,
+        links: {
+          select: {
+            link: {
+              select: {
+                id: true,
+                domain: true,
+                key: true,
+                url: true,
+                createdAt: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -69,21 +83,16 @@ export const DELETE = withWorkspace(async ({ params, workspace }) => {
     }
 
     // update links metadata in tinybird after deleting a tag
-    await Promise.all(
-      response.links.map(async ({ linkId }) => {
-        const link = await prisma.link.findUnique({
-          where: {
-            id: linkId,
-          },
-          include: {
-            tags: true,
-          },
-        });
-        if (!link) {
-          return null;
-        }
-        return await recordLink({ link });
-      }),
+    await recordLink(
+      response.links.map(({ link }) => ({
+        link_id: link.id,
+        domain: link.domain,
+        key: link.key,
+        url: link.url,
+        tag_ids: [],
+        workspace_id: workspace.id,
+        created_at: link.createdAt,
+      })),
     );
 
     return NextResponse.json(response);

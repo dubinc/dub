@@ -24,7 +24,6 @@ import {
   cn,
   deepEqual,
   getApexDomain,
-  getDomainWithoutWWW,
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
@@ -53,7 +52,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
+import { useDebounce, useDebouncedCallback } from "use-debounce";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -117,8 +116,9 @@ function AddEditLinkModal({
 
   const { domain, key, url, password, proxy } = data;
 
-  const generateRandomKey = useCallback(async () => {
+  const generateRandomKey = useDebouncedCallback(async () => {
     if (generatingRandomKey) return;
+
     if (domain && workspaceId) {
       setKeyError(null);
       setGeneratingRandomKey(true);
@@ -129,26 +129,12 @@ function AddEditLinkModal({
       setData((prev) => ({ ...prev, key }));
       setGeneratingRandomKey(false);
     }
-  }, [domain, workspaceId]);
+  }, 500);
 
   useEffect(() => {
-    // when someone pastes a URL
-    if (showAddEditLinkModal && url.length > 0) {
-      // if it's a new link and there are matching default domains, set it as the domain
-      if (!props && activeDefaultDomains) {
-        const urlDomain = getDomainWithoutWWW(url) || "";
-        const defaultDomain = activeDefaultDomains.find(
-          ({ allowedHostnames }) => allowedHostnames?.includes(urlDomain),
-        );
-        if (defaultDomain) {
-          setData((prev) => ({ ...prev, domain: defaultDomain.slug }));
-        }
-      }
-
-      // if there's no key, generate a random key
-      if (!key) {
-        generateRandomKey();
-      }
+    // if there's no key, generate a random key
+    if (showAddEditLinkModal && url.length > 0 && !key) {
+      generateRandomKey();
     }
   }, [showAddEditLinkModal, url]);
 
@@ -275,7 +261,7 @@ function AddEditLinkModal({
   const endpoint = useMemo(() => {
     if (props?.key) {
       return {
-        method: "PUT",
+        method: "PATCH",
         url: `/api/links/${props.id}?workspaceId=${workspaceId}`,
       };
     } else {
@@ -408,6 +394,7 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
+              generateRandomKey.cancel();
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
               const bodyData = {
@@ -487,11 +474,15 @@ function AddEditLinkModal({
                   >
                     Destination URL
                   </label>
-                  {urlError && (
+                  {urlError ? (
                     <p className="text-sm text-red-600" id="key-error">
                       Invalid URL
                     </p>
-                  )}
+                  ) : url ? (
+                    <div className="animate-text-appear text-xs font-normal text-gray-500">
+                      press <strong>Enter</strong> ↵ to submit
+                    </div>
+                  ) : null}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
                   <input
@@ -605,7 +596,6 @@ function AddEditLinkModal({
                     type="text"
                     name="key"
                     id={`key-${randomIdx}`}
-                    required
                     // allow letters, numbers, '-', '/' and emojis
                     pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
                     onInvalid={(e) => {
@@ -629,7 +619,7 @@ function AddEditLinkModal({
                           props && lockKey,
                       },
                     )}
-                    placeholder="github"
+                    placeholder="(optional)"
                     value={punycode(key)}
                     onChange={(e) => {
                       setKeyError(null);

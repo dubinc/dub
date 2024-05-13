@@ -6,9 +6,10 @@ import {
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceSchema, createWorkspaceSchema } from "@/lib/zod/schemas";
 import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces - get all projects for the current user
@@ -104,57 +105,68 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  const [projectResponse, domainRepsonse] = await Promise.all([
-    prisma.project.create({
-      data: {
-        name,
-        slug,
-        users: {
-          create: {
-            userId: session.user.id,
-            role: "owner",
-          },
-        },
-        ...(domain && {
-          domains: {
-            create: {
-              slug: domain,
-              primary: true,
-            },
-          },
-        }),
-        billingCycleStart: new Date().getDate(),
-        inviteCode: nanoid(24),
-        defaultDomains: {
-          create: {}, // by default, we give users all the default domains when they create a project
+  const projectResponse = await prisma.project.create({
+    data: {
+      name,
+      slug,
+      users: {
+        create: {
+          userId: session.user.id,
+          role: "owner",
         },
       },
-      include: {
+      ...(domain && {
         domains: {
-          select: {
-            id: true,
-            slug: true,
+          create: {
+            slug: domain,
             primary: true,
           },
         },
-        users: {
-          select: {
-            role: true,
-          },
+      }),
+      billingCycleStart: new Date().getDate(),
+      inviteCode: nanoid(24),
+      defaultDomains: {
+        create: {}, // by default, we give users all the default domains when they create a project
+      },
+    },
+    include: {
+      domains: {
+        select: {
+          id: true,
+          slug: true,
+          primary: true,
+          createdAt: true,
         },
       },
-    }),
-    domain && addDomainToVercel(domain),
-  ]);
+      users: {
+        select: {
+          role: true,
+        },
+      },
+    },
+  });
 
-  // if domain is specified and it was successfully added to Vercel
-  // update it in Redis cache
-  if (domain && domainRepsonse && !domainRepsonse.error) {
-    await setRootDomain({
-      id: projectResponse.domains[0].id,
-      domain,
-      projectId: projectResponse.id,
-    });
+  if (domain) {
+    waitUntil(
+      (async () => {
+        const domainRepsonse = await addDomainToVercel(domain);
+        if (domainRepsonse.error) {
+          await prisma.domain.delete({
+            where: {
+              slug: domain,
+              projectId: projectResponse.id,
+            },
+          });
+        } else {
+          await setRootDomain({
+            id: projectResponse.domains[0].id,
+            domain,
+            domainCreatedAt: projectResponse.domains[0].createdAt,
+            projectId: projectResponse.id,
+          });
+        }
+      })(),
+    );
   }
 
   const response = {

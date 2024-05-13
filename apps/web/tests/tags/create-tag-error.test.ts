@@ -17,7 +17,7 @@ const cases = [
           message:
             "invalid_enum_value: color: Invalid color. Must be one of: red, yellow, green, blue, purple, pink, brown",
           doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable_entity",
+            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
         },
       },
     },
@@ -34,7 +34,7 @@ const cases = [
           code: "unprocessable_entity",
           message: "invalid_type: tag: Required",
           doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable_entity",
+            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
         },
       },
     },

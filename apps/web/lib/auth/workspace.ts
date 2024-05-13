@@ -1,5 +1,11 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import prisma from "@/lib/prisma";
+import {
+  DubApiError,
+  exceededLimitError,
+  handleAndReturnErrorResponse,
+} from "@/lib/api/errors";
+import { prisma } from "@/lib/prisma";
+import { PlanProps, WorkspaceProps } from "@/lib/types";
+import { ratelimit } from "@/lib/upstash";
 import {
   API_DOMAIN,
   DUB_WORKSPACE_ID,
@@ -7,10 +13,9 @@ import {
   isDubDomain,
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
-import { exceededLimitError } from "../api/errors";
-import { PlanProps, WorkspaceProps } from "../types";
-import { ratelimit } from "../upstash";
-import { Session, getSession, hashToken } from "./utils";
+import { waitUntil } from "@vercel/functions";
+import { hashToken } from "./hash-token";
+import { Session, getSession } from "./utils";
 
 interface WithWorkspaceHandler {
   ({
@@ -71,6 +76,7 @@ export const withWorkspace = (
     const searchParams = getSearchParams(req.url);
 
     let apiKey: string | undefined = undefined;
+    let headers = {};
 
     try {
       const authorizationHeader = req.headers.get("Authorization");
@@ -94,7 +100,6 @@ export const withWorkspace = (
         undefined;
 
       let session: Session | undefined;
-      let headers = {};
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
 
@@ -131,9 +136,7 @@ export const withWorkspace = (
       }
 
       if (apiKey) {
-        const hashedKey = hashToken(apiKey, {
-          noSecret: true,
-        });
+        const hashedKey = await hashToken(apiKey);
 
         const user = await prisma.user.findFirst({
           where: {
@@ -160,7 +163,6 @@ export const withWorkspace = (
           600,
           "1 m",
         ).limit(apiKey);
-
         headers = {
           "Retry-After": reset.toString(),
           "X-RateLimit-Limit": limit.toString(),
@@ -174,14 +176,16 @@ export const withWorkspace = (
             message: "Too many requests.",
           });
         }
-        await prisma.token.update({
-          where: {
-            hashedKey,
-          },
-          data: {
-            lastUsed: new Date(),
-          },
-        });
+        waitUntil(
+          prisma.token.update({
+            where: {
+              hashedKey,
+            },
+            data: {
+              lastUsed: new Date(),
+            },
+          }),
+        );
         session = {
           user: {
             id: user.id,
@@ -424,7 +428,7 @@ export const withWorkspace = (
         link,
       });
     } catch (error) {
-      return handleAndReturnErrorResponse(error);
+      return handleAndReturnErrorResponse(error, headers);
     }
   };
 };

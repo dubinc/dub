@@ -1,6 +1,6 @@
 import { getAnalytics } from "@/lib/analytics";
 import { limiter, qstash, sendLimitEmail } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,

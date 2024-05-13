@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { parseUrlSchema } from "./links";
+import { parseUrlSchema } from "./utils";
 
 export const DomainSchema = z.object({
   id: z.string().describe("The unique identifier of the domain."),

@@ -64,7 +64,7 @@ function AddEditTagModal({
     () =>
       id
         ? {
-            method: "PUT",
+            method: "PATCH",
             url: `/api/tags/${id}?workspaceId=${workspaceId}`,
             successMessage: "Successfully updated tag!",
           }

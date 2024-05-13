@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { WorkspaceSchema } from "@/lib/zod/schemas";
 import { DEFAULT_REDIRECTS, trim, validSlugRegex } from "@dub/utils";
@@ -80,8 +80,9 @@ export const PUT = withWorkspace(
 // DELETE /api/workspaces/[idOrSlug] – delete a specific project
 export const DELETE = withWorkspace(
   async ({ workspace }) => {
-    const response = await deleteWorkspace(workspace);
-    return NextResponse.json(response);
+    await deleteWorkspace(workspace);
+
+    return NextResponse.json(workspace);
   },
   {
     requiredRole: ["owner"],

@@ -11,10 +11,6 @@ export { default as LoadingCircle } from "./loading-circle";
 export { default as LoadingDots } from "./loading-dots";
 export { default as LoadingSpinner } from "./loading-spinner";
 
-// dub logos
-export { default as Logo } from "./logo";
-export { default as LogoType } from "./logotype";
-
 // brand logos
 export { default as Facebook } from "./facebook";
 export { default as Github } from "./github";

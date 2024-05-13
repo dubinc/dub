@@ -1,6 +1,6 @@
 import { withSession } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import { trim } from "@dub/utils";
