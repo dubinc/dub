@@ -9,7 +9,8 @@ export const updateLink: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "update",
   "x-speakeasy-max-method-params": 2,
   summary: "Update a link",
-  description: "Update a link for the authenticated workspace.",
+  description:
+    "Update a link for the authenticated workspace. If there's no change, returns it as it is.",
   requestParams: {
     query: workspaceParamsSchema,
     path: z.object({

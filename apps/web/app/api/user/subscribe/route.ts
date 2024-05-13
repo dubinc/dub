@@ -1,6 +1,6 @@
 import { withSession } from "@/lib/auth";
 import { subscribe, unsubscribe } from "@/lib/flodesk";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 

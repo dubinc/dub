@@ -2,7 +2,7 @@ import { VALID_TINYBIRD_ENDPOINTS, getClicks } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
