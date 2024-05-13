@@ -185,20 +185,22 @@ async function customerCreated(event: Stripe.Event) {
     },
   });
 
-  // Record customer in TB
-  await recordCustomer({
-    workspace_id: customer.projectId,
-    customer_id: customer.id,
-    name: customer.name || "",
-    email: customer.email || "",
-    avatar: customer.avatar || "",
-  });
+  await Promise.all([
+    // Record customer in TB
+    recordCustomer({
+      workspace_id: customer.projectId,
+      customer_id: customer.id,
+      name: customer.name || "",
+      email: customer.email || "",
+      avatar: customer.avatar || "",
+    }),
 
-  // Record lead
-  recordLead({
-    ...clickData,
-    event_id: nanoid(16),
-    event_name: "Customer created",
-    customer_id: customer.id,
-  });
+    // Record lead
+    recordLead({
+      ...clickData,
+      event_id: nanoid(16),
+      event_name: "Customer created",
+      customer_id: customer.id,
+    }),
+  ]);
 }
