@@ -21,17 +21,47 @@ export const getClicksAnalytics: ZodOpenApiOperationObject = {
       description: "The number of clicks",
       content: {
         "application/json": {
-          schema: z.union([
-            z.number().describe("The total number of clicks"),
-            z.array(getClickAnalyticsResponse["timeseries"]),
-            z.array(getClickAnalyticsResponse["country"]),
-            z.array(getClickAnalyticsResponse["city"]),
-            z.array(getClickAnalyticsResponse["device"]),
-            z.array(getClickAnalyticsResponse["browser"]),
-            z.array(getClickAnalyticsResponse["os"]),
-            z.array(getClickAnalyticsResponse["referer"]),
-            z.array(getClickAnalyticsResponse["top_links"]),
-            z.array(getClickAnalyticsResponse["top_urls"]),
+          schema: z.discriminatedUnion("groupBy", [
+            z.object({
+              groupBy: z.undefined(),
+              response: z.number().describe("The total number of clicks"),
+            }),
+            z.object({
+              groupBy: z.literal("timeseries"),
+              response: z.array(getClickAnalyticsResponse["timeseries"]),
+            }),
+            z.object({
+              groupBy: z.literal("country"),
+              response: z.array(getClickAnalyticsResponse["country"]),
+            }),
+            z.object({
+              groupBy: z.literal("city"),
+              response: z.array(getClickAnalyticsResponse["city"]),
+            }),
+            z.object({
+              groupBy: z.literal("device"),
+              response: z.array(getClickAnalyticsResponse["device"]),
+            }),
+            z.object({
+              groupBy: z.literal("browser"),
+              response: z.array(getClickAnalyticsResponse["browser"]),
+            }),
+            z.object({
+              groupBy: z.literal("os"),
+              response: z.array(getClickAnalyticsResponse["os"]),
+            }),
+            z.object({
+              groupBy: z.literal("referer"),
+              response: z.array(getClickAnalyticsResponse["referer"]),
+            }),
+            z.object({
+              groupBy: z.literal("top_links"),
+              response: z.array(getClickAnalyticsResponse["top_links"]),
+            }),
+            z.object({
+              groupBy: z.literal("top_urls"),
+              response: z.array(getClickAnalyticsResponse["top_urls"]),
+            }),
           ]),
         },
       },
