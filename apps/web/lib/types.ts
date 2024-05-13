@@ -83,6 +83,7 @@ export interface WorkspaceProps {
   plan: PlanProps;
   stripeId: string | null;
   billingCycleStart: number;
+  stripeConnectId: string | null;
   createdAt: Date;
   domains: {
     slug: string;

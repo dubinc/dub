@@ -1,6 +1,6 @@
 import { nanoid, punyEncode } from "@dub/utils";
 import { connect } from "@planetscale/database";
-import { Customer, Project, User } from "@prisma/client";
+import { Customer, Project } from "@prisma/client";
 import { DomainProps } from "./types";
 
 export const DATABASE_URL =
@@ -139,40 +139,6 @@ export async function getRandomKey({
     return key;
   }
 }
-
-export const getToken = async (hashedKey: string) => {
-  const { rows } = await conn.execute<User>(
-    "SELECT * FROM User WHERE User.ID IN (SELECT userId FROM Token WHERE hashedKey = ? AND userId IS NOT NULL) LIMIT 1",
-    [hashedKey],
-  );
-
-  return rows.length > 0 ? rows[0] : null;
-};
-
-export const updateTokenLastUsed = async (hashedKey: string) => {
-  return await conn.execute(
-    "UPDATE Token SET lastUsed = NOW() WHERE hashedKey = ?",
-    [hashedKey],
-  );
-};
-
-export const getWorkspaceById = async (workspaceId: string) => {
-  const { rows } = await conn.execute<Project>(
-    "SELECT * FROM Project WHERE id = ? LIMIT 1",
-    [workspaceId.replace("ws_", "")],
-  );
-
-  return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-};
-
-export const getWorkspaceBySlug = async (workspaceSlug: string) => {
-  const { rows } = await conn.execute<Project>(
-    "SELECT * FROM Project WHERE slug = ? LIMIT 1",
-    [workspaceSlug],
-  );
-
-  return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-};
 
 export const createCustomer = async ({
   id,
