@@ -14,6 +14,7 @@ export const trackLeadRequestSchema = z.object({
   customerId: z
     .string()
     .max(100)
+    .nullish()
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),

@@ -1,6 +1,6 @@
 import { nanoid, punyEncode } from "@dub/utils";
 import { connect } from "@planetscale/database";
-import { Project, User } from "@prisma/client";
+import { Customer, Project, User } from "@prisma/client";
 import { DomainProps } from "./types";
 
 export const DATABASE_URL =
@@ -168,6 +168,45 @@ export const getWorkspaceBySlug = async (workspaceSlug: string) => {
   const { rows } = await conn.execute<Project>(
     "SELECT * FROM Project WHERE slug = ? LIMIT 1",
     [workspaceSlug],
+  );
+
+  return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+};
+
+export const createCustomer = async ({
+  id,
+  name,
+  email,
+  avatar,
+  externalId,
+  projectId,
+  projectConnectId,
+}: Omit<Customer, "createdAt" | "updatedAt">) => {
+  return await conn.execute(
+    "INSERT INTO Customer (id, name, email, avatar, externalId, projectId, projectConnectId, updatedAt) VALUES (?, ?, ?, ?, ?, ? ,?, ?)",
+    [
+      id,
+      name,
+      email,
+      avatar,
+      externalId,
+      projectId,
+      projectConnectId,
+      new Date(),
+    ],
+  );
+};
+
+export const getCustomer = async ({
+  externalId,
+  workspaceId,
+}: {
+  externalId: string;
+  workspaceId: string;
+}) => {
+  const { rows } = await conn.execute<Customer>(
+    "SELECT * FROM Customer WHERE externalId = ? AND projectId = ? LIMIT 1",
+    [externalId, workspaceId],
   );
 
   return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;

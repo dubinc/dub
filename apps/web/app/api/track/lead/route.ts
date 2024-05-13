@@ -1,5 +1,7 @@
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSessionEdge } from "@/lib/auth/session-edge";
+import { createCustomer, getCustomer } from "@/lib/planetscale";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { clickEventSchemaTB, trackLeadRequestSchema } from "@/lib/zod/schemas";
 import { nanoid } from "@dub/utils";
@@ -14,11 +16,25 @@ export const POST = withSessionEdge(async ({ req, workspace }) => {
     clickId,
     eventName,
     metadata,
-    customerId,
     customerName,
     customerEmail,
     customerAvatar,
+    customerId: externalId,
   } = trackLeadRequestSchema.parse(await parseRequestBody(req));
+
+  if (externalId) {
+    const customer = await getCustomer({
+      externalId,
+      workspaceId: workspace.id,
+    });
+
+    if (customer) {
+      throw new DubApiError({
+        code: "conflict",
+        message: `A customer with the customerId ${externalId} already exists in this workspace.`,
+      });
+    }
+  }
 
   waitUntil(
     (async () => {
@@ -28,14 +44,10 @@ export const POST = withSessionEdge(async ({ req, workspace }) => {
         return;
       }
 
+      const customerId = nanoid(16);
       const clickData = clickEventSchemaTB
-        .omit({ timestamp: true }) // timestamp is auto generated on insert
+        .omit({ timestamp: true })
         .parse(clickEvent.data[0]);
-
-      const customerInfoPresent =
-        Boolean(customerName) ||
-        Boolean(customerEmail) ||
-        Boolean(customerAvatar);
 
       await Promise.all([
         recordLead({
@@ -46,14 +58,24 @@ export const POST = withSessionEdge(async ({ req, workspace }) => {
           metadata,
         }),
 
-        customerInfoPresent &&
+        workspace.stripeConnectId &&
+          externalId &&
+          (createCustomer({
+            id: customerId,
+            name: customerName || "",
+            email: customerEmail || "",
+            avatar: customerAvatar || "",
+            externalId,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+          }),
           recordCustomer({
             customer_id: customerId,
             name: customerName,
             email: customerEmail,
             avatar: customerAvatar,
             workspace_id: workspace.id,
-          }),
+          })),
       ]);
     })(),
   );
