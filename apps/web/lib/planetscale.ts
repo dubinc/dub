@@ -1,7 +1,7 @@
 import { nanoid, punyEncode } from "@dub/utils";
 import { connect } from "@planetscale/database";
-import { User } from "@prisma/client";
-import { DomainProps, WorkspaceProps } from "./types";
+import { Project, User } from "@prisma/client";
+import { DomainProps } from "./types";
 
 export const DATABASE_URL =
   process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL;
@@ -16,13 +16,11 @@ export const getWorkspaceViaEdge = async (workspaceId: string) => {
   if (!DATABASE_URL) return null;
 
   const { rows } =
-    (await conn.execute("SELECT * FROM Project WHERE id = ?", [
+    (await conn.execute<Project>("SELECT * FROM Project WHERE id = ? LIMIT 1", [
       workspaceId.replace("ws_", ""),
     ])) || {};
 
-  return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as WorkspaceProps)
-    : null;
+  return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 };
 
 export const incrementWorkspaceAIUsage = async (workspaceId: string) => {
@@ -155,4 +153,22 @@ export const updateTokenLastUsed = async (hashedKey: string) => {
     "UPDATE Token SET lastUsed = NOW() WHERE hashedKey = ?",
     [hashedKey],
   );
+};
+
+export const getWorkspaceById = async (workspaceId: string) => {
+  const { rows } = await conn.execute<Project>(
+    "SELECT * FROM Project WHERE id = ? LIMIT 1",
+    [workspaceId.replace("ws_", "")],
+  );
+
+  return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+};
+
+export const getWorkspaceBySlug = async (workspaceSlug: string) => {
+  const { rows } = await conn.execute<Project>(
+    "SELECT * FROM Project WHERE slug = ? LIMIT 1",
+    [workspaceSlug],
+  );
+
+  return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 };

@@ -6,7 +6,7 @@ import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { Session, getSession } from "./utils";
 
-export interface WithSessionHandler {
+interface WithSessionHandler {
   ({
     req,
     params,

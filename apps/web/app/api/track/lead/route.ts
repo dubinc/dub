@@ -9,9 +9,7 @@ import { NextResponse } from "next/server";
 export const runtime = "edge";
 
 // POST /api/track/lead – Track a lead conversion event
-export const POST = withSessionEdge(async ({ req, searchParams }) => {
-  const { workspaceId } = searchParams;
-
+export const POST = withSessionEdge(async ({ req, workspace }) => {
   const {
     clickId,
     eventName,
@@ -54,7 +52,7 @@ export const POST = withSessionEdge(async ({ req, searchParams }) => {
             name: customerName,
             email: customerEmail,
             avatar: customerAvatar,
-            workspace_id: workspaceId,
+            workspace_id: workspace.id,
           }),
       ]);
     })(),

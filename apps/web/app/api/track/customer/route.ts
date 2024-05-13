@@ -1,12 +1,14 @@
 import { parseRequestBody } from "@/lib/api/utils";
-import { withWorkspace } from "@/lib/auth";
+import { withSessionEdge } from "@/lib/auth/session-edge";
 import { recordCustomer } from "@/lib/tinybird";
 import { trackCustomerRequestSchema } from "@/lib/zod/schemas";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // POST /api/track/customer – Track a customer object
-export const POST = withWorkspace(async ({ req, workspace }) => {
+export const POST = withSessionEdge(async ({ req, workspace }) => {
   const { customerId, customerName, customerEmail, customerAvatar } =
     trackCustomerRequestSchema.parse(await parseRequestBody(req));
 

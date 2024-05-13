@@ -1,15 +1,26 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSearchParams } from "@dub/utils";
+import { Project } from "@prisma/client";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
-import { getToken, updateTokenLastUsed } from "../planetscale";
+import {
+  getToken,
+  getWorkspaceById,
+  getWorkspaceBySlug,
+  updateTokenLastUsed,
+} from "../planetscale";
 import { ratelimit } from "../upstash";
 import { hashToken } from "./hash-token";
-import { WithSessionHandler } from "./session";
+
+interface Handler {
+  ({ req, workspace }: { req: Request; workspace: Project }): Promise<Response>;
+}
 
 export const withSessionEdge =
-  (handler: WithSessionHandler) =>
+  (handler: Handler) =>
   async (req: Request, { params }: { params: Record<string, string> }) => {
     let headers = {};
+    let workspace: Project | null = null;
+    const searchParams = getSearchParams(req.url);
     const authorizationHeader = req.headers.get("Authorization");
 
     try {
@@ -62,24 +73,41 @@ export const withSessionEdge =
         });
       }
 
+      // Fetch workspace
+      const idOrSlug =
+        params?.idOrSlug ||
+        searchParams.workspaceId ||
+        params?.slug ||
+        searchParams.projectSlug;
+
+      if (!idOrSlug) {
+        throw new DubApiError({
+          code: "not_found",
+          message:
+            "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
+        });
+      }
+
+      if (idOrSlug.startsWith("ws_")) {
+        workspace = await getWorkspaceById(idOrSlug);
+      } else {
+        workspace = await getWorkspaceBySlug(idOrSlug);
+      }
+
+      // TODO:
+      // Check user/apiKey has access to workspace
+
+      if (!workspace) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Workspace not found.",
+        });
+      }
+
       // Update token last used
       waitUntil(() => updateTokenLastUsed(hashedKey));
 
-      const session = {
-        user: {
-          id: user.id,
-          name: user.name || "",
-          email: user.email || "",
-        },
-      };
-
-      // TODO:
-      // Extract workspaceId and validate it
-
-      // Fetch search params
-      const searchParams = getSearchParams(req.url);
-
-      return await handler({ req, params, searchParams, session });
+      return await handler({ req, workspace });
     } catch (error) {
       return handleAndReturnErrorResponse(error, headers);
     }
