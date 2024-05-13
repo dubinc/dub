@@ -170,8 +170,10 @@ async function customerCreated(event: Stripe.Event) {
     .parse(clickEvent.data[0]);
 
   // Create customer
+  const customerId = nanoid(16);
   const customer = await prismaEdge.customer.create({
     data: {
+      id: customerId,
       name: stripeCustomer.name,
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
