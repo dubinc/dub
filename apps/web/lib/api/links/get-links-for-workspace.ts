@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas";
 import { combineTagIds, transformLink } from "./utils";

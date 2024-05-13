@@ -1,6 +1,10 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { hashToken } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import {
+  DubApiError,
+  exceededLimitError,
+  handleAndReturnErrorResponse,
+} from "@/lib/api/errors";
+import { prisma } from "@/lib/prisma";
+import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {
   API_DOMAIN,
@@ -10,8 +14,7 @@ import {
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { exceededLimitError } from "../api/errors";
-import { PlanProps, WorkspaceProps } from "../types";
+import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
 interface WithWorkspaceHandler {

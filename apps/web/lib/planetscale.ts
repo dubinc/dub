@@ -23,15 +23,6 @@ export const getWorkspaceViaEdge = async (workspaceId: string) => {
   return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 };
 
-export const incrementWorkspaceAIUsage = async (workspaceId: string) => {
-  if (!DATABASE_URL) return null;
-
-  return await conn.execute(
-    "UPDATE Project p SET p.aiUsage = p.aiUsage + 1 WHERE id = ?",
-    [workspaceId.replace("ws_", "")],
-  );
-};
-
 export const getDomainViaEdge = async (domain: string) => {
   if (!DATABASE_URL) return null;
 

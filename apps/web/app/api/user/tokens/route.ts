@@ -1,6 +1,6 @@
 import { hashToken, withSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 

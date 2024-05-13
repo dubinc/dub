@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { WorkspaceSchema } from "@/lib/zod/schemas";
 import { DEFAULT_REDIRECTS, trim, validSlugRegex } from "@dub/utils";

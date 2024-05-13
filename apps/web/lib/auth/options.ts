@@ -1,6 +1,6 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
