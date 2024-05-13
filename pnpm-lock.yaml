@@ -56,10 +56,13 @@ importers:
         specifier: ^1.0.5
         version: 1.0.5(@prisma/client@5.13.0)(next-auth@4.24.4)
       '@planetscale/database':
-        specifier: ^1.16.0
-        version: 1.16.0
+        specifier: ^1.18.0
+        version: 1.18.0
+      '@prisma/adapter-planetscale':
+        specifier: ^5.13.0
+        version: 5.13.0(@planetscale/database@1.18.0)
       '@prisma/client':
-        specifier: ^5.9.1
+        specifier: ^5.13.0
         version: 5.13.0(prisma@5.13.0)
       '@react-email/components':
         specifier: ^0.0.14
@@ -215,7 +218,7 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2
       prisma:
-        specifier: ^5.9.1
+        specifier: ^5.13.0
         version: 5.13.0
       react:
         specifier: ^18.2.0
@@ -4482,9 +4485,18 @@ packages:
     dev: false
     optional: true
 
-  /@planetscale/database@1.16.0:
-    resolution: {integrity: sha512-HNUrTqrd8aTRZYMDcsoZ62s36sIWkMMmKZBOehoCWR2WrfNPKq+Q1yQef5okl3pSVlldFnu2h/dbHjOsDTHXug==}
+  /@planetscale/database@1.18.0:
+    resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
+    dev: false
+
+  /@prisma/adapter-planetscale@5.13.0(@planetscale/database@1.18.0):
+    resolution: {integrity: sha512-ygQ1BNDS7IBJxfAAJzcuM8LSmtY6dS6vGbtp4peI7QQpgeFW7j+y86oodmC1oGvE3yqbVJpvX6JaD05fBJgiWQ==}
+    peerDependencies:
+      '@planetscale/database': ^1.15.0
+    dependencies:
+      '@planetscale/database': 1.18.0
+      '@prisma/driver-adapter-utils': 5.13.0
     dev: false
 
   /@prisma/client@5.13.0(prisma@5.13.0):
@@ -4502,6 +4514,12 @@ packages:
 
   /@prisma/debug@5.13.0:
     resolution: {integrity: sha512-699iqlEvzyCj9ETrXhs8o8wQc/eVW+FigSsHpiskSFydhjVuwTJEfj/nIYqTaWFYuxiWQRfm3r01meuW97SZaQ==}
+    dev: false
+
+  /@prisma/driver-adapter-utils@5.13.0:
+    resolution: {integrity: sha512-SaimwvGuvXJTsWH+FOfl7PlkZZlPiRGeMEchC0kvB08Xw9B3CLYo/Q7zaY5Fp+u5D8asrpcFQmCjXEgDvOmPkg==}
+    dependencies:
+      '@prisma/debug': 5.13.0
     dev: false
 
   /@prisma/engines-version@5.13.0-23.b9a39a7ee606c28e3455d0fd60e78c3ba82b1a2b:

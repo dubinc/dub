@@ -7,7 +7,7 @@ import {
 } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { createLinkBodySchema } from "@/lib/zod/schemas";
 import { deepEqual } from "@dub/utils";

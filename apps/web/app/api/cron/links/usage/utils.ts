@@ -1,5 +1,5 @@
 import { sendLimitEmail } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { log } from "@dub/utils";
 import { Project, SentEmail } from "@prisma/client";

@@ -1,5 +1,5 @@
 import { verifySignature } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { sendLinksUsageEmail } from "./utils";
 
