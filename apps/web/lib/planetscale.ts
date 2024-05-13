@@ -1,7 +1,7 @@
 import { nanoid, punyEncode } from "@dub/utils";
 import { connect } from "@planetscale/database";
-import { Customer, Project } from "@prisma/client";
-import { DomainProps } from "./types";
+import { Customer } from "@prisma/client";
+import { DomainProps, WorkspaceProps } from "./types";
 
 export const DATABASE_URL =
   process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL;
@@ -26,9 +26,10 @@ export const getWorkspaceViaEdge = async (workspaceId: string) => {
   if (!DATABASE_URL) return null;
 
   const { rows } =
-    (await conn.execute<Project>("SELECT * FROM Project WHERE id = ? LIMIT 1", [
-      workspaceId.replace("ws_", ""),
-    ])) || {};
+    (await conn.execute<WorkspaceProps>(
+      "SELECT * FROM Project WHERE id = ? LIMIT 1",
+      [workspaceId.replace("ws_", "")],
+    )) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 };

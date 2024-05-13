@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
