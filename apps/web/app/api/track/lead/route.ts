@@ -69,6 +69,7 @@ export const POST = withWorkspaceEdge(
               externalId,
               projectId: workspace.id,
               projectConnectId: workspace.stripeConnectId,
+              stripeCustomerId: null,
             }),
             recordCustomer({
               customer_id: customerId,

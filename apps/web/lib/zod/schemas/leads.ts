@@ -48,7 +48,7 @@ export const leadEventSchemaTB = clickEventSchemaTB
     z.object({
       event_id: z.string(),
       event_name: z.string(),
-      metadata: z.string(), // TODO: Fix the type
-      customer_id: z.string(),
+      customer_id: z.string().default(""),
+      metadata: z.string().default(""),
     }),
   );

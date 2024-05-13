@@ -1,6 +1,13 @@
-import { getCustomer } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import {
+  getClickEvent,
+  getLeadEvent,
+  recordCustomer,
+  recordLead,
+  recordSale,
+} from "@/lib/tinybird";
+import { clickEventSchemaTB } from "@/lib/zod/schemas";
 import { nanoid } from "@dub/utils";
 import type Stripe from "stripe";
 
@@ -8,7 +15,6 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 const relevantEvents = new Set([
   "customer.created",
-  "charge.succeeded",
   "payment_intent.succeeded",
   "checkout.session.completed",
 ]);
@@ -33,14 +39,15 @@ export const POST = async (req: Request) => {
   }
 
   switch (event.type) {
-    // case "charge.succeeded":
-    // case "payment_intent.succeeded":
-    case "checkout.session.completed":
-      await checkoutSessionCompleted(event);
-      break;
     case "customer.created":
       await customerCreated(event);
       break;
+    case "payment_intent.succeeded":
+      await paymentIntentSucceeded(event);
+      break;
+    // case "checkout.session.completed":
+    //   await checkoutSessionCompleted(event);
+    //   break;
   }
 
   return new Response("OK", {
@@ -48,20 +55,78 @@ export const POST = async (req: Request) => {
   });
 };
 
-// Handle event "checkout.session.completed"
-async function checkoutSessionCompleted(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Checkout.Session;
-  const customerId = charge.metadata?.dubCustomerId || null;
+// Handle event "payment_intent.succeeded"
+async function paymentIntentSucceeded(event: Stripe.Event) {
+  const charge = event.data.object as Stripe.PaymentIntent;
+  const stripeAccountId = event.account as string;
+  const stripeCustomerId = charge.customer as string;
 
-  if (!customerId) {
-    console.error("No `dubCustomerId` found in metadata", charge);
+  // Find customer
+  const customer = await prisma.customer.findFirst({
+    where: {
+      projectConnectId: stripeAccountId,
+      stripeCustomerId,
+    },
+  });
+
+  if (!customer) {
     return;
   }
 
-  const leadEvent = await getLeadEvent({ customer_id: customerId });
+  // Find lead
+  const leadEvent = await getLeadEvent({ customer_id: customer.id });
+  if (!leadEvent || leadEvent.data.length === 0) {
+    return;
+  }
+
+  // Record sale
+  await recordSale({
+    ...leadEvent.data[0],
+    event_id: nanoid(16),
+    payment_processor: "stripe",
+    amount: charge.amount_received,
+    currency: charge.currency,
+    refunded: 0,
+
+    // How do we get these?
+    recurring: 0,
+    product_id: "",
+    recurring_interval: "month",
+    recurring_interval_count: 1,
+
+    metadata: JSON.stringify({
+      charge,
+    }),
+  });
+}
+
+// Handle event "checkout.session.completed"
+async function checkoutSessionCompleted(event: Stripe.Event) {
+  const charge = event.data.object as Stripe.Checkout.Session;
+  const externalId = charge.metadata?.dubCustomerId || null;
+
+  if (!externalId) {
+    return;
+  }
+
+  // Find customer
+  const customer = await prisma.customer.findFirst({
+    where: {
+      externalId,
+      projectConnectId: event.account,
+    },
+  });
+
+  // TODO:
+  // Should we create a customer if not found?
+
+  if (!customer) {
+    return;
+  }
+
+  const leadEvent = await getLeadEvent({ customer_id: customer.id });
 
   if (!leadEvent || leadEvent.data.length === 0) {
-    console.error("No lead event found for `dubCustomerId`", customerId);
     return;
   }
 
@@ -69,13 +134,13 @@ async function checkoutSessionCompleted(event: Stripe.Event) {
     ...leadEvent.data[0],
     event_id: nanoid(16),
     payment_processor: "stripe",
-    product_id: "",
     amount: charge.amount_total || 0,
     currency: charge.currency || "usd",
-    recurring: 1, // TODO: Update this
+    recurring: charge.mode === "subscription" ? 1 : 0,
+    refunded: 0,
+    product_id: "", // TODO: How do we get this?
     recurring_interval: "month", // TODO: Update this
     recurring_interval_count: 1, // TODO: Update this
-    refunded: 0,
     metadata: JSON.stringify({
       charge,
     }),
@@ -85,22 +150,55 @@ async function checkoutSessionCompleted(event: Stripe.Event) {
 // Handle event "customer.created"
 async function customerCreated(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
-  const externalId = stripeCustomer.metadata?.dubCustomerId || null;
-  const projectConnectId = event.account;
+  const stripeAccountId = event.account as string;
+  const externalId = stripeCustomer.metadata.dubCustomerId || null;
+  const clickId = stripeCustomer.metadata.dubClickId || null;
 
-  console.log("Customer created", stripeCustomer);
-
-  if (!externalId || !projectConnectId) {
+  // The client app should always send dubClickId via metadata
+  if (!clickId) {
     return;
   }
 
-  const customer = await getCustomer({ externalId, projectConnectId });
-
-  if (!customer) {
-    console.error("No customer found for `dubCustomerId`", externalId);
+  // Find click
+  const clickEvent = await getClickEvent({ clickId });
+  if (!clickEvent || clickEvent.data.length === 0) {
     return;
   }
 
-  // TODO:
-  // Create a customer in Tinybird + MySQL
+  const clickData = clickEventSchemaTB
+    .omit({ timestamp: true })
+    .parse(clickEvent.data[0]);
+
+  // Create customer
+  const customer = await prisma.customer.create({
+    data: {
+      name: stripeCustomer.name,
+      email: stripeCustomer.email,
+      stripeCustomerId: stripeCustomer.id,
+      projectConnectId: stripeAccountId,
+      externalId,
+      project: {
+        connect: {
+          stripeConnectId: stripeAccountId,
+        },
+      },
+    },
+  });
+
+  // Record customer in TB
+  await recordCustomer({
+    workspace_id: customer.projectId,
+    customer_id: customer.id,
+    name: customer.name || "",
+    email: customer.email || "",
+    avatar: customer.avatar || "",
+  });
+
+  // Record lead
+  recordLead({
+    ...clickData,
+    event_id: nanoid(16),
+    event_name: "Customer created",
+    customer_id: customer.id,
+  });
 }
