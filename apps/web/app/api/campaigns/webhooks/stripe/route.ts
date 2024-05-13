@@ -1,4 +1,4 @@
-import { getCustomer } from "@/lib/planetscale";
+import { prismaEdge } from "@/lib/prisma/edge";
 import { stripe } from "@/lib/stripe";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { nanoid } from "@dub/utils";
@@ -94,7 +94,14 @@ async function customerCreated(event: Stripe.Event) {
     return;
   }
 
-  const customer = await getCustomer({ externalId, projectConnectId });
+  const customer = await prismaEdge.customer.findUnique({
+    where: {
+      projectConnectId_externalId: {
+        projectConnectId,
+        externalId,
+      },
+    },
+  });
 
   if (!customer) {
     console.error("No customer found for `dubCustomerId`", externalId);
