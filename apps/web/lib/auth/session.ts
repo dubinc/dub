@@ -1,9 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { hashToken } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
 interface WithSessionHandler {

@@ -213,10 +213,10 @@ export const exceededLimitError = ({
 }: {
   plan: PlanProps;
   limit: number;
-  type: "clicks" | "links" | "domains" | "tags" | "users";
+  type: "clicks" | "links" | "AI" | "domains" | "tags" | "users";
 }) => {
   return `You've reached your ${
-    type === "links" ? "monthly" : ""
+    type === "links" || type === "AI" ? "monthly" : ""
   } limit of ${limit} ${
     limit === 1 ? type.slice(0, -1) : type
   } on the ${capitalize(plan)} plan. Please upgrade to add more ${type}.`;
