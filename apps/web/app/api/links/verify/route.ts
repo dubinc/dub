@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { keyChecks, processKey } from "@/lib/api/links";
+import { keyChecks, processKey } from "@/lib/api/links/utils";
 import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { workspaceIdSchema } from "@/lib/zod";
 import { domainKeySchema } from "@/lib/zod/schemas";
