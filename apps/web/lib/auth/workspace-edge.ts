@@ -10,9 +10,10 @@ import { waitUntil } from "@vercel/functions";
 import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
+import { isBetaTester } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
-import { Session } from "./utils";
+import type { Session } from "./utils";
 
 interface WithWorkspaceEdgeHandler {
   ({
@@ -48,20 +49,16 @@ export const withWorkspaceEdge = (
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
-    allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     allowSelf, // special case for removing yourself from a workspace
-    skipLinkChecks, // special case for /api/links/exists – skip link checks
-    domainChecks,
+    betaFeature, // if the action is a beta feature
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredRole?: Array<"owner" | "member">;
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     needNotExceededAI?: boolean;
-    allowAnonymous?: boolean;
     allowSelf?: boolean;
-    skipLinkChecks?: boolean;
-    domainChecks?: boolean;
+    betaFeature?: boolean;
   } = {},
 ) => {
   return async (
@@ -106,22 +103,11 @@ export const withWorkspaceEdge = (
 
       // if there's no workspace ID or slug
       if (!idOrSlug) {
-        // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
-        if (allowAnonymous && !apiKey) {
-          // @ts-expect-error
-          return await handler({
-            req,
-            params: params || {},
-            searchParams,
-            headers,
-          });
-        } else {
-          throw new DubApiError({
-            code: "not_found",
-            message:
-              "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
-          });
-        }
+        throw new DubApiError({
+          code: "not_found",
+          message:
+            "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
+        });
       }
 
       if (idOrSlug.startsWith("ws_")) {
@@ -231,6 +217,17 @@ export const withWorkspaceEdge = (
           code: "not_found",
           message: "Workspace not found.",
         });
+      }
+
+      // beta feature checks
+      if (betaFeature) {
+        const betaTester = await isBetaTester(workspace.id);
+        if (!betaTester) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "Unauthorized: Beta feature.",
+          });
+        }
       }
 
       // workspace exists but user is not part of it
