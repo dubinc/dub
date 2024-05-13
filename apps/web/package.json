@@ -19,7 +19,7 @@
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
     "@next-auth/prisma-adapter": "^1.0.5",
-    "@planetscale/database": "^1.16.0",
+    "@planetscale/database": "^1.18.0",
     "@prisma/adapter-planetscale": "^5.13.0",
     "@prisma/client": "^5.13.0",
     "@react-email/components": "^0.0.14",
