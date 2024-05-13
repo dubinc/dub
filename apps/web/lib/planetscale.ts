@@ -12,6 +12,16 @@ export const pscale_config = {
 
 export const conn = connect(pscale_config);
 
+type GetCustomerParams =
+  | {
+      externalId: string;
+      workspaceId: string;
+    }
+  | {
+      externalId: string;
+      projectConnectId: string;
+    };
+
 export const getWorkspaceViaEdge = async (workspaceId: string) => {
   if (!DATABASE_URL) return null;
 
@@ -197,17 +207,26 @@ export const createCustomer = async ({
   );
 };
 
-export const getCustomer = async ({
-  externalId,
-  workspaceId,
-}: {
-  externalId: string;
-  workspaceId: string;
-}) => {
-  const { rows } = await conn.execute<Customer>(
-    "SELECT * FROM Customer WHERE externalId = ? AND projectId = ? LIMIT 1",
-    [externalId, workspaceId],
-  );
+export const getCustomer = async (params: GetCustomerParams) => {
+  const { externalId } = params;
 
-  return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  // By workspaceId
+  if ("workspaceId" in params) {
+    const { rows } = await conn.execute<Customer>(
+      "SELECT * FROM Customer WHERE externalId = ? AND projectId = ? LIMIT 1",
+      [externalId, params.workspaceId],
+    );
+
+    return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  }
+
+  // By projectConnectId
+  if ("projectConnectId" in params) {
+    const { rows } = await conn.execute<Customer>(
+      "SELECT * FROM Customer WHERE externalId = ? AND projectConnectId = ? LIMIT 1",
+      [externalId, params.projectConnectId],
+    );
+
+    return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  }
 };

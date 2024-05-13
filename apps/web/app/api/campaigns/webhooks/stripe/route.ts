@@ -1,3 +1,4 @@
+import { getCustomer } from "@/lib/planetscale";
 import { stripe } from "@/lib/stripe";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { nanoid } from "@dub/utils";
@@ -6,6 +7,7 @@ import type Stripe from "stripe";
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 const relevantEvents = new Set([
+  "customer.created",
   "charge.succeeded",
   "payment_intent.succeeded",
   "checkout.session.completed",
@@ -21,36 +23,32 @@ export const POST = async (req: Request) => {
     });
   }
 
-  try {
-    const event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+  const event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
 
-    // Ignore unsupported events
-    if (!relevantEvents.has(event.type)) {
-      return new Response("OK", {
-        status: 200,
-      });
-    }
-
-    switch (event.type) {
-      // case "charge.succeeded":
-      // case "payment_intent.succeeded":
-      case "checkout.session.completed":
-        await checkoutSessionCompleted(event);
-        break;
-    }
-
+  // Ignore unsupported events
+  if (!relevantEvents.has(event.type)) {
     return new Response("OK", {
       status: 200,
     });
-  } catch (error: any) {
-    console.log("Stripe webhook error:", error);
-
-    return new Response("Error", {
-      status: 400,
-    });
   }
+
+  switch (event.type) {
+    // case "charge.succeeded":
+    // case "payment_intent.succeeded":
+    case "checkout.session.completed":
+      await checkoutSessionCompleted(event);
+      break;
+    case "customer.created":
+      await customerCreated(event);
+      break;
+  }
+
+  return new Response("OK", {
+    status: 200,
+  });
 };
 
+// Handle event "checkout.session.completed"
 async function checkoutSessionCompleted(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Checkout.Session;
   const customerId = charge.metadata?.dubCustomerId || null;
@@ -82,4 +80,27 @@ async function checkoutSessionCompleted(event: Stripe.Event) {
       charge,
     }),
   });
+}
+
+// Handle event "customer.created"
+async function customerCreated(event: Stripe.Event) {
+  const stripeCustomer = event.data.object as Stripe.Customer;
+  const externalId = stripeCustomer.metadata?.dubCustomerId || null;
+  const projectConnectId = event.account;
+
+  console.log("Customer created", stripeCustomer);
+
+  if (!externalId || !projectConnectId) {
+    return;
+  }
+
+  const customer = await getCustomer({ externalId, projectConnectId });
+
+  if (!customer) {
+    console.error("No customer found for `dubCustomerId`", externalId);
+    return;
+  }
+
+  // TODO:
+  // Create a customer in Tinybird + MySQL
 }
