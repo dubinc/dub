@@ -20,6 +20,7 @@ import { Link2 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { usePromptModal } from "../prompt-modal";
 import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({
@@ -34,6 +35,19 @@ export default function OGSection({
   generatingMetatags: boolean;
 }) {
   const { id: workspaceId, exceededAI, mutate } = useWorkspace();
+
+  const { setShowPromptModal, PromptModal } = usePromptModal({
+    title: "Choose image from URL",
+    description:
+      "Paste an image URL to use for your link's social media cards.",
+    label: "Image URL",
+    inputProps: {
+      placeholder: "https://example.com/og.png",
+    },
+    onSubmit: (image) => {
+      if (image) setData((prev) => ({ ...prev, image }));
+    },
+  });
 
   const { title, description, image, proxy } = data;
 
@@ -202,15 +216,7 @@ export default function OGSection({
               <div className="flex items-center justify-between">
                 <ButtonTooltip
                   tooltipContent="Paste a URL to an image."
-                  onClick={() => {
-                    const image = window.prompt(
-                      "Paste a URL to an image.",
-                      "https://",
-                    );
-                    if (image) {
-                      setData((prev) => ({ ...prev, image }));
-                    }
-                  }}
+                  onClick={() => setShowPromptModal(true)}
                   className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   <Link2 className="h-4 w-4 text-gray-500" />
@@ -334,6 +340,7 @@ export default function OGSection({
           </div>
         </motion.div>
       )}
+      <PromptModal />
     </div>
   );
 }

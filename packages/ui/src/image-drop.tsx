@@ -66,7 +66,7 @@ export function ImageDrop({
       )}
     >
       {loading && (
-        <div className="absolute inset-0 z-[5] flex items-center justify-center bg-white">
+        <div className="absolute inset-0 z-[5] flex items-center justify-center rounded-[inherit] bg-white">
           <LoadingCircle />
         </div>
       )}
