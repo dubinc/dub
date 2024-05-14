@@ -15,6 +15,7 @@ export const POST = withWorkspaceEdge(
       customerId,
       paymentProcessor,
       productId,
+      invoiceId,
       amount,
       currency,
       recurring,
@@ -29,6 +30,7 @@ export const POST = withWorkspaceEdge(
         const leadEvent = await getLeadEvent({ customer_id: customerId });
 
         if (!leadEvent || leadEvent.data.length === 0) {
+          console.log("No lead event found for customer_id:", customerId);
           return;
         }
 
@@ -42,6 +44,7 @@ export const POST = withWorkspaceEdge(
           event_id: nanoid(16),
           payment_processor: paymentProcessor,
           product_id: productId,
+          invoice_id: invoiceId,
           amount,
           currency,
           recurring: recurring ? 1 : 0,
