@@ -15,8 +15,8 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 const relevantEvents = new Set([
   "customer.created",
-  "payment_intent.succeeded",
   "checkout.session.completed",
+  "invoice.paid",
 ]);
 
 export const POST = async (req: Request) => {
@@ -42,11 +42,11 @@ export const POST = async (req: Request) => {
     case "customer.created":
       await customerCreated(event);
       break;
-    case "payment_intent.succeeded":
-      await paymentIntentSucceeded(event);
-      break;
     case "checkout.session.completed":
       await checkoutSessionCompleted(event);
+      break;
+    case "invoice.paid":
+      await invoicePaid(event);
       break;
   }
 
@@ -54,103 +54,6 @@ export const POST = async (req: Request) => {
     status: 200,
   });
 };
-
-// Handle event "payment_intent.succeeded"
-async function paymentIntentSucceeded(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.PaymentIntent;
-  const stripeAccountId = event.account as string;
-  const stripeCustomerId = charge.customer as string;
-
-  // Find customer
-  const customer = await prismaEdge.customer.findFirst({
-    where: {
-      projectConnectId: stripeAccountId,
-      stripeCustomerId,
-    },
-  });
-
-  if (!customer) {
-    return;
-  }
-
-  // Find lead
-  const leadEvent = await getLeadEvent({ customer_id: customer.id });
-  if (!leadEvent || leadEvent.data.length === 0) {
-    return;
-  }
-
-  // Record sale
-  await recordSale({
-    ...leadEvent.data[0],
-    event_id: nanoid(16),
-    payment_processor: "stripe",
-    amount: charge.amount_received,
-    currency: charge.currency,
-    refunded: 0,
-
-    // How do we get these?
-    recurring: 0,
-    product_id: "",
-    recurring_interval: "month",
-    recurring_interval_count: 1,
-
-    metadata: JSON.stringify({
-      charge,
-    }),
-  });
-}
-
-// Handle event "checkout.session.completed"
-async function checkoutSessionCompleted(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Checkout.Session;
-  const externalId = charge.metadata?.dubCustomerId || null;
-  const stripeAccountId = event.account as string;
-  const stripeCustomerId = charge.customer as string;
-
-  if (!externalId) {
-    return;
-  }
-
-  // Find customer
-  const customer = await prismaEdge.customer.findFirst({
-    where: {
-      externalId,
-      projectConnectId: stripeAccountId,
-    },
-  });
-
-  // TODO:
-  // Should we create a customer if not found?
-  if (!customer) {
-    return;
-  }
-
-  // Find lead
-  const leadEvent = await getLeadEvent({ customer_id: customer.id });
-  if (!leadEvent || leadEvent.data.length === 0) {
-    return;
-  }
-
-  // Record sale
-  await recordSale({
-    ...leadEvent.data[0],
-    event_id: nanoid(16),
-    payment_processor: "stripe",
-    amount: charge.amount_total!,
-    currency: charge.currency!,
-    refunded: 0,
-
-    // How do we get these?
-    recurring: 0,
-    product_id: "",
-    recurring_interval: "month",
-    recurring_interval_count: 1,
-
-    metadata: JSON.stringify({
-      charge,
-    }),
-  });
-}
 
 // Handle event "customer.created"
 async function customerCreated(event: Stripe.Event) {
@@ -210,4 +113,104 @@ async function customerCreated(event: Stripe.Event) {
       customer_id: customer.id,
     }),
   ]);
+}
+
+// Handle event "checkout.session.completed"
+async function checkoutSessionCompleted(event: Stripe.Event) {
+  const charge = event.data.object as Stripe.Checkout.Session;
+  const externalId = charge.metadata?.dubCustomerId || null;
+  const stripeAccountId = event.account as string;
+  const stripeCustomerId = charge.customer as string;
+
+  if (!externalId) {
+    return;
+  }
+
+  // Find customer
+  const customer = await prismaEdge.customer.findFirst({
+    where: {
+      externalId,
+      projectConnectId: stripeAccountId,
+    },
+  });
+
+  // TODO:
+  // Should we create a customer if not found?
+  if (!customer) {
+    return;
+  }
+
+  // Find lead
+  const leadEvent = await getLeadEvent({ customer_id: customer.id });
+  if (!leadEvent || leadEvent.data.length === 0) {
+    return;
+  }
+
+  // Record sale
+  await recordSale({
+    ...leadEvent.data[0],
+    event_id: nanoid(16),
+    payment_processor: "stripe",
+    amount: charge.amount_total!,
+    currency: charge.currency!,
+    refunded: 0,
+
+    // How do we get these?
+    recurring: 0,
+    product_id: "",
+    recurring_interval: "month",
+    recurring_interval_count: 1,
+
+    metadata: JSON.stringify({
+      charge,
+    }),
+  });
+}
+
+// Handle event "invoice.paid"
+async function invoicePaid(event: Stripe.Event) {
+  const invoice = event.data.object as Stripe.Invoice;
+  const stripeAccountId = event.account as string;
+  const stripeCustomerId = invoice.customer as string;
+
+  // Find customer
+  const customer = await prismaEdge.customer.findFirst({
+    where: {
+      projectConnectId: stripeAccountId,
+      stripeCustomerId,
+    },
+  });
+
+  if (!customer) {
+    return;
+  }
+
+  // Find lead
+  const leadEvent = await getLeadEvent({ customer_id: customer.id });
+  if (!leadEvent || leadEvent.data.length === 0) {
+    return;
+  }
+
+  // Find the product from line items
+  const stripeProductId = invoice.lines.data[0]?.plan?.product as string;
+
+  // Record sale
+  await recordSale({
+    ...leadEvent.data[0],
+    event_id: nanoid(16),
+    payment_processor: "stripe",
+    amount: invoice.amount_paid,
+    currency: invoice.currency,
+    refunded: 0,
+
+    // How do we get these?
+    recurring: 0,
+    product_id: stripeProductId,
+    recurring_interval: "month",
+    recurring_interval_count: 1,
+
+    metadata: JSON.stringify({
+      invoice,
+    }),
+  });
 }
