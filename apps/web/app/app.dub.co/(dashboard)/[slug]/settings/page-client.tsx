@@ -13,8 +13,31 @@ export default function WorkspaceSettingsClient() {
   const router = useRouter();
   const { id, name, slug, isOwner } = useWorkspace();
 
+  const redirectToStripe = async () => {
+    const response = await fetch(
+      `/api/campaigns/connect-stripe?workspaceId=${id}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const { url } = await response.json();
+
+    window.location.href = url;
+  };
+
   return (
     <>
+      {/* TODO: Move the button to proper place */}
+      <button
+        onClick={redirectToStripe}
+        className="group flex h-10 w-44 items-center justify-center space-x-2 rounded-md border border-black bg-black px-4 text-sm text-white"
+      >
+        Connect to Stripe
+      </button>
       <Form
         title="Workspace Name"
         description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}

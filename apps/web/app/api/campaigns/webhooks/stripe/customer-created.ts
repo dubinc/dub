@@ -45,7 +45,7 @@ export async function customerCreated(event: Stripe.Event) {
   });
 
   await Promise.all([
-    // Record customer in TB
+    // Record customer
     recordCustomer({
       workspace_id: customer.projectId,
       customer_id: customer.id,
