@@ -1,10 +1,10 @@
-import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { clickEventSchemaTB, trackLeadRequestSchema } from "@/lib/zod/schemas";
 import { nanoid } from "@dub/utils";
+import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -23,23 +23,12 @@ export const POST = withWorkspaceEdge(
       customerId: externalId,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
-    if (externalId) {
-      const customer = await prismaEdge.customer.findUnique({
-        where: {
-          projectId_externalId: {
-            projectId: workspace.id,
-            externalId,
-          },
-        },
-      });
-
-      if (customer) {
-        throw new DubApiError({
-          code: "conflict",
-          message: `A customer with the customerId ${externalId} already exists in this workspace.`,
-        });
-      }
-    }
+    // if (externalId && !workspace.stripeConnectId) {
+    //   throw new DubApiError({
+    //     code: "bad_request",
+    //     message: `Please connect your Stripe account to track customers.`,
+    //   });
+    // }
 
     waitUntil(
       (async () => {
@@ -49,35 +38,53 @@ export const POST = withWorkspaceEdge(
           return;
         }
 
-        const customerId = nanoid(16);
         const clickData = clickEventSchemaTB
           .omit({ timestamp: true })
           .parse(clickEvent.data[0]);
 
+        // TODO: generate random name if not provided
+
+        // Find customer
+        let customer: null | Customer = null;
+
+        if (externalId && workspace.stripeConnectId) {
+          customer = await prismaEdge.customer.upsert({
+            where: {
+              projectId_externalId: {
+                projectId: workspace.id,
+                externalId,
+              },
+            },
+            create: {
+              id: nanoid(16),
+              name: customerName,
+              email: customerEmail,
+              avatar: customerAvatar,
+              externalId,
+              projectId: workspace.id,
+              projectConnectId: workspace.stripeConnectId,
+            },
+            update: {
+              name: customerName,
+              email: customerEmail,
+              avatar: customerAvatar,
+            },
+          });
+        }
+
         await Promise.all([
           recordLead({
             ...clickData,
-            event_name: eventName,
             event_id: nanoid(16),
-            customer_id: customerId,
+            event_name: eventName,
+            customer_id: customer?.id,
             metadata,
           }),
 
-          ...(workspace.stripeConnectId && externalId
+          ...(customer
             ? [
-                prismaEdge.customer.create({
-                  data: {
-                    id: customerId,
-                    name: customerName || "", // TODO: generate random name if not provided
-                    email: customerEmail,
-                    avatar: customerAvatar,
-                    externalId,
-                    projectId: workspace.id,
-                    projectConnectId: workspace.stripeConnectId,
-                  },
-                }),
                 recordCustomer({
-                  customer_id: customerId,
+                  customer_id: customer?.id,
                   name: customerName,
                   email: customerEmail,
                   avatar: customerAvatar,
