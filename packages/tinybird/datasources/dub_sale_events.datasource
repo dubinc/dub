@@ -5,6 +5,7 @@ SCHEMA >
   `metadata` String `json:$.metadata`,
   `customer_id` String `json:$.customer_id`,
   `payment_processor` LowCardinality(String) `json:$.payment_processor`,
+  `invoice_id` String `json:$.invoice_id`,
   `product_id` String `json:$.product_id`,
   `amount` UInt32 `json:$.amount`,
   `currency` LowCardinality(String) `json:$.currency`,
@@ -37,4 +38,4 @@ SCHEMA >
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "timestamp, link_id, click_id, customer_id"
+ENGINE_SORTING_KEY "timestamp, link_id"
