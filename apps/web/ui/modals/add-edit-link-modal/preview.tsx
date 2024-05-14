@@ -1,4 +1,3 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import {
   Facebook,
@@ -7,10 +6,7 @@ import {
   LoadingCircle,
   Photo,
   Popover,
-  SimpleTooltipContent,
-  Tooltip,
   Twitter,
-  useRouterStuff,
 } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
 import { getDomainWithoutWWW, resizeImage } from "@dub/utils";
@@ -18,7 +14,6 @@ import { Edit2, Link2, Upload } from "lucide-react";
 import {
   ChangeEvent,
   Dispatch,
-  PropsWithChildren,
   SetStateAction,
   useCallback,
   useMemo,
@@ -45,7 +40,7 @@ export default function Preview({
   }, [password, debouncedUrl]);
 
   const onImageChange = (image: string) =>
-    setData((prev) => ({ ...prev, image }));
+    setData((prev) => ({ ...prev, image, proxy: true }));
 
   return (
     <div>
@@ -191,9 +186,6 @@ const ImagePreview = ({
   onImageChange: (image: string) => void;
   generatingMetatags?: boolean;
 }) => {
-  const { plan } = useWorkspace();
-  const isFreePlan = plan === "free";
-
   const inputFileRef = useRef<HTMLInputElement>(null);
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -263,6 +255,7 @@ const ImagePreview = ({
 
   return (
     <>
+      {previewImage}
       <Popover
         align="end"
         content={
@@ -289,21 +282,15 @@ const ImagePreview = ({
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
-        <div className="absolute right-2 top-2 z-10">
-          <ProGuard isFreePlan={isFreePlan}>
-            <div>
-              <Button
-                variant="secondary"
-                onClick={() => setOpenPopover(!openPopover)}
-                icon={<Edit2 className="h-3 w-3" />}
-                className="h-8 w-8 rounded-md p-0 transition-all hover:bg-gray-100"
-                disabled={isFreePlan}
-              />
-            </div>
-          </ProGuard>
+        <div className="absolute right-2 top-2">
+          <Button
+            variant="secondary"
+            onClick={() => setOpenPopover(!openPopover)}
+            icon={<Edit2 className="h-3 w-3" />}
+            className="h-8 w-8 rounded-md p-0 transition-all hover:bg-gray-100"
+          />
         </div>
       </Popover>
-      {previewImage}
       <input
         ref={inputFileRef}
         onChange={onInputFileChange}
@@ -312,35 +299,5 @@ const ImagePreview = ({
       />
       <PromptModal />
     </>
-  );
-};
-
-const ProGuard = ({
-  isFreePlan,
-  children,
-}: PropsWithChildren<{ isFreePlan: boolean }>) => {
-  const { queryParams } = useRouterStuff();
-
-  return isFreePlan ? (
-    <Tooltip
-      content={
-        <SimpleTooltipContent
-          title="Custom Social Media Cards are a Pro feature."
-          cta="Upgrade to Pro"
-          href={
-            queryParams({
-              set: {
-                upgrade: "pro",
-              },
-              getNewPath: true,
-            }) as string
-          }
-        />
-      }
-    >
-      {children}
-    </Tooltip>
-  ) : (
-    children
   );
 };
