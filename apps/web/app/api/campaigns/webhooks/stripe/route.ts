@@ -45,9 +45,9 @@ export const POST = async (req: Request) => {
     case "payment_intent.succeeded":
       await paymentIntentSucceeded(event);
       break;
-    // case "checkout.session.completed":
-    //   await checkoutSessionCompleted(event);
-    //   break;
+    case "checkout.session.completed":
+      await checkoutSessionCompleted(event);
+      break;
   }
 
   return new Response("OK", {
@@ -104,6 +104,8 @@ async function paymentIntentSucceeded(event: Stripe.Event) {
 async function checkoutSessionCompleted(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Checkout.Session;
   const externalId = charge.metadata?.dubCustomerId || null;
+  const stripeAccountId = event.account as string;
+  const stripeCustomerId = charge.customer as string;
 
   if (!externalId) {
     return;
@@ -113,34 +115,37 @@ async function checkoutSessionCompleted(event: Stripe.Event) {
   const customer = await prismaEdge.customer.findFirst({
     where: {
       externalId,
-      projectConnectId: event.account,
+      projectConnectId: stripeAccountId,
     },
   });
 
   // TODO:
   // Should we create a customer if not found?
-
   if (!customer) {
     return;
   }
 
+  // Find lead
   const leadEvent = await getLeadEvent({ customer_id: customer.id });
-
   if (!leadEvent || leadEvent.data.length === 0) {
     return;
   }
 
+  // Record sale
   await recordSale({
     ...leadEvent.data[0],
     event_id: nanoid(16),
     payment_processor: "stripe",
-    amount: charge.amount_total || 0,
-    currency: charge.currency || "usd",
-    recurring: charge.mode === "subscription" ? 1 : 0,
+    amount: charge.amount_total!,
+    currency: charge.currency!,
     refunded: 0,
-    product_id: "", // TODO: How do we get this?
-    recurring_interval: "month", // TODO: Update this
-    recurring_interval_count: 1, // TODO: Update this
+
+    // How do we get these?
+    recurring: 0,
+    product_id: "",
+    recurring_interval: "month",
+    recurring_interval_count: 1,
+
     metadata: JSON.stringify({
       charge,
     }),

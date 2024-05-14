@@ -42,9 +42,10 @@ export const POST = withWorkspaceEdge(
           .omit({ timestamp: true })
           .parse(clickEvent.data[0]);
 
-        // TODO: generate random name if not provided
+        // TODO
+        // Generate random name if not provided
 
-        // Find customer
+        // Find customer or create if not exists
         let customer: null | Customer = null;
 
         if (externalId && workspace.stripeConnectId) {
