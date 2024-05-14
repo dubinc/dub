@@ -3,6 +3,23 @@ import { UploadCloud } from "lucide-react";
 import { DragEvent, useId, useState } from "react";
 import { LoadingCircle, LoadingSpinner } from "./icons";
 
+import { cva, VariantProps } from "class-variance-authority";
+
+const imageDropVariants = cva(
+  "group relative isolate flex aspect-[1200/630] w-full flex-col items-center justify-center overflow-hidden bg-white transition-all hover:bg-gray-50",
+  {
+    variants: {
+      variant: {
+        default: "rounded-md border border-gray-300 shadow-sm",
+        plain: "",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+);
+
 export type ImageDropProps = {
   src: string | null;
   onChange?: (src: string) => void;
@@ -14,6 +31,16 @@ export type ImageDropProps = {
   loading?: boolean;
 
   /**
+   * Whether to allow clicking on the area to upload
+   */
+  clickToUpload?: boolean;
+
+  /**
+   * Whether to show instruction overlay when hovered
+   */
+  showHoverOverlay?: boolean;
+
+  /**
    * Desired resolution to suggest and automatically resize to
    */
   targetResolution?: { width: number; height: number };
@@ -22,13 +49,16 @@ export type ImageDropProps = {
    * Accessibility label for screen readers
    */
   accessibilityLabel?: string;
-};
+} & VariantProps<typeof imageDropVariants>;
 
 export function ImageDrop({
   src,
   onChange,
+  variant,
   className,
   loading = false,
+  clickToUpload = true,
+  showHoverOverlay = true,
   targetResolution = { width: 1200, height: 630 },
   accessibilityLabel = "Image upload",
 }: ImageDropProps) {
@@ -61,7 +91,8 @@ export function ImageDrop({
     <label
       htmlFor={inputId}
       className={cn(
-        "group relative isolate mt-1 flex aspect-[1200/630] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50",
+        imageDropVariants({ variant }),
+        clickToUpload && "cursor-pointer",
         className,
       )}
     >
@@ -99,7 +130,9 @@ export function ImageDrop({
           "absolute inset-0 z-[3] flex flex-col items-center justify-center rounded-[inherit] bg-white transition-all",
           dragActive &&
             "cursor-copy border-2 border-black bg-gray-50 opacity-100",
-          src ? "opacity-0 group-hover:opacity-100" : "group-hover:bg-gray-50",
+          src
+            ? cn("opacity-0", showHoverOverlay && "group-hover:opacity-100")
+            : "group-hover:bg-gray-50",
         )}
       >
         {resizing ? (
@@ -118,7 +151,7 @@ export function ImageDrop({
               )}
             />
             <p className="mt-2 text-center text-sm text-gray-500">
-              Drag and drop or click to upload.
+              Drag and drop {clickToUpload && "or click"} to upload.
             </p>
             <p className="mt-2 text-center text-sm text-gray-500">
               Recommended: {targetResolution.width} x {targetResolution.height}{" "}
@@ -135,15 +168,17 @@ export function ImageDrop({
           className="h-full w-full rounded-[inherit] object-cover"
         />
       )}
-      <div className="sr-only mt-1 flex shadow-sm">
-        <input
-          id={inputId}
-          name="image"
-          type="file"
-          accept="image/*"
-          onChange={onImageChange}
-        />
-      </div>
+      {clickToUpload && (
+        <div className="sr-only mt-1 flex shadow-sm">
+          <input
+            id={inputId}
+            name="image"
+            type="file"
+            accept="image/*"
+            onChange={onImageChange}
+          />
+        </div>
+      )}
     </label>
   );
 }

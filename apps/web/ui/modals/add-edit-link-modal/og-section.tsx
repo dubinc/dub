@@ -37,7 +37,7 @@ export default function OGSection({
   const { id: workspaceId, exceededAI, mutate } = useWorkspace();
 
   const { setShowPromptModal, PromptModal } = usePromptModal({
-    title: "Choose image from URL",
+    title: "Use image from URL",
     description:
       "Paste an image URL to use for your link's social media cards.",
     label: "Image URL",
@@ -225,12 +225,14 @@ export default function OGSection({
                 </Popover>
               </div>
             </div>
-            <ImageDrop
-              src={image}
-              onChange={(image) => setData((prev) => ({ ...prev, image }))}
-              loading={generatingMetatags}
-              accessibilityLabel="OG image upload"
-            />
+            <div className="mt-1">
+              <ImageDrop
+                src={image}
+                onChange={(image) => setData((prev) => ({ ...prev, image }))}
+                loading={generatingMetatags}
+                accessibilityLabel="OG image upload"
+              />
+            </div>
           </div>
 
           <div>
