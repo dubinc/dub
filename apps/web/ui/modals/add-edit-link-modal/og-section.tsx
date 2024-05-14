@@ -12,7 +12,7 @@ import {
   Switch,
   Unsplash,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, resizeImage, truncate } from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS, truncate } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useCompletion } from "ai/react";
 import { motion } from "framer-motion";
@@ -141,21 +141,6 @@ export default function OGSection({
       setData((prev) => ({ ...prev, description: completionDescription }));
     }
   }, [completionDescription]);
-
-  const [resizing, setResizing] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-
-  const onChangePicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    setResizing(true);
-    const image = await resizeImage(file);
-    setData((prev) => ({ ...prev, image }));
-    // delay to prevent flickering
-    setTimeout(() => {
-      setResizing(false);
-    }, 500);
-  };
 
   useEffect(() => {
     if (proxy && props) {
