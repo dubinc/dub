@@ -91,7 +91,7 @@ export const DUB_DOMAINS = [
           type: "redirect",
           placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
           clicks: 0,
-          allowedHostnames: ["chat.openai.com"],
+          allowedHostnames: ["chat.openai.com", "chatgpt.com"],
           projectId: DUB_WORKSPACE_ID,
         },
         {
