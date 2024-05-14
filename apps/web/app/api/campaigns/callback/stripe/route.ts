@@ -16,7 +16,7 @@ export const GET = async (req: NextRequest) => {
   const parsed = schema.safeParse(getSearchParams(req.url));
 
   if (!parsed.success) {
-    console.error(parsed.error);
+    console.error("[Stripe OAuth callback] Error", parsed.error);
     return new Response("Invalid request", { status: 400 });
   }
 
@@ -26,7 +26,7 @@ export const GET = async (req: NextRequest) => {
   const workspaceId = await redis.get(`stripe:install:state:${state}`);
 
   if (!workspaceId) {
-    console.error("Invalid state", state);
+    console.error("[Stripe OAuth callback] Invalid state", state);
     return new Response("Invalid request", { status: 400 });
   }
 
