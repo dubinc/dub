@@ -1,6 +1,6 @@
 {
   "id": "com.example.dub",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "name": "Dub",
   "icon": "",
   "permissions": [
@@ -39,6 +39,14 @@
     {
       "permission": "connected_account_read",
       "purpose": "Allows reading basic data from connected accounts, such as account name and id."
+    },
+    {
+      "permission": "webhook_read",
+      "purpose": "Allows Dub to read webhook information."
+    },
+    {
+      "permission": "event_read",
+      "purpose": "Allows Dub to read event information."
     }
   ],
   "ui_extension": {
