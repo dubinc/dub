@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import LinkLogo from "../links/link-logo";
 
 type PromptModelProps = {
   title: string;
@@ -40,8 +41,9 @@ function PromptModal({
 
   return (
     <Modal showModal={showPromptModal} setShowModal={setShowPromptModal}>
-      <div className="flex flex-col items-center justify-center border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <h3 className="mb-3 text-lg font-medium">{title}</h3>
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+        <LinkLogo />
+        <h3 className="text-lg font-medium">{title}</h3>
         {description && <p className="text-sm text-gray-500">{description}</p>}
       </div>
 
