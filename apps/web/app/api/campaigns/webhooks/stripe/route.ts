@@ -3,7 +3,7 @@ import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerCreated } from "./customer-created";
 import { invoicePaid } from "./invoice-paid";
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const webhookSecret = process.env.STRIPE_APP_WEBHOOK_SECRET;
 
 const relevantEvents = new Set([
   "customer.created",
