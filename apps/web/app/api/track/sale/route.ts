@@ -27,7 +27,7 @@ export const POST = withWorkspaceEdge(
 
     waitUntil(
       (async () => {
-        const leadEvent = await getLeadEvent({ customer_id: customerId });
+        const leadEvent = await getLeadEvent({ customerId });
 
         if (!leadEvent || leadEvent.data.length === 0) {
           console.log("No lead event found for customer_id:", customerId);
