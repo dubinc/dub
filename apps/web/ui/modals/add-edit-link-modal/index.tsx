@@ -751,7 +751,11 @@ function AddEditLinkModal({
           </form>
         </div>
         <div className="scrollbar-hide rounded-r-2xl md:max-h-[95vh] md:overflow-auto">
-          <Preview data={data} generatingMetatags={generatingMetatags} />
+          <Preview
+            data={data}
+            setData={setData}
+            generatingMetatags={generatingMetatags}
+          />
         </div>
       </div>
     </Modal>
