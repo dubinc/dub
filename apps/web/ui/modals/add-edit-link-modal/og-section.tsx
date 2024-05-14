@@ -1,20 +1,18 @@
-import { resizeImage } from "@/lib/images";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import { UploadCloud } from "@/ui/shared/icons";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
 import {
   ButtonTooltip,
+  ImageDrop,
   LoadingCircle,
-  LoadingSpinner,
   Magic,
   Popover,
   SimpleTooltipContent,
   Switch,
   Unsplash,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, truncate } from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS, resizeImage, truncate } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useCompletion } from "ai/react";
 import { motion } from "framer-motion";
@@ -236,100 +234,12 @@ export default function OGSection({
                 </Popover>
               </div>
             </div>
-            <label
-              htmlFor="image"
-              className="group relative mt-1 flex aspect-[1200/630] w-full cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
-            >
-              {generatingMetatags && (
-                <div className="absolute z-[5] flex h-full w-full items-center justify-center rounded-md bg-white">
-                  <LoadingCircle />
-                </div>
-              )}
-              <div
-                className="absolute z-[5] h-full w-full rounded-md"
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragActive(true);
-                }}
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragActive(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragActive(false);
-                }}
-                onDrop={async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragActive(false);
-                  const file = e.dataTransfer.files && e.dataTransfer.files[0];
-                  if (!file) return;
-                  setResizing(true);
-                  const image = await resizeImage(file);
-                  setData((prev) => ({ ...prev, image }));
-                  // delay to prevent flickering
-                  setTimeout(() => {
-                    setResizing(false);
-                  }, 500);
-                }}
-              />
-              <div
-                className={`${
-                  dragActive
-                    ? "cursor-copy border-2 border-black bg-gray-50 opacity-100"
-                    : ""
-                } absolute z-[3] flex h-full w-full flex-col items-center justify-center rounded-md bg-white transition-all ${
-                  image
-                    ? "opacity-0 group-hover:opacity-100"
-                    : "group-hover:bg-gray-50"
-                }`}
-              >
-                {resizing ? (
-                  <>
-                    <LoadingSpinner />
-                    <p className="mt-2 text-center text-sm text-gray-500">
-                      Resizing image...
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <UploadCloud
-                      className={`${
-                        dragActive ? "scale-110" : "scale-100"
-                      } h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95`}
-                    />
-                    <p className="mt-2 text-center text-sm text-gray-500">
-                      Drag and drop or click to upload.
-                    </p>
-                    <p className="mt-2 text-center text-sm text-gray-500">
-                      Recommended: 1200 x 630 pixels
-                    </p>
-                  </>
-                )}
-                <span className="sr-only">OG image upload</span>
-              </div>
-              {image && (
-                <img
-                  src={image}
-                  alt="Preview"
-                  className="h-full w-full rounded-md object-cover"
-                />
-              )}
-            </label>
-            <div className="mt-1 flex rounded-md shadow-sm">
-              <input
-                id="image"
-                name="image"
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={onChangePicture}
-              />
-            </div>
+            <ImageDrop
+              src={image}
+              onChange={(image) => setData((prev) => ({ ...prev, image }))}
+              loading={generatingMetatags}
+              accessibilityLabel="OG image upload"
+            />
           </div>
 
           <div>
