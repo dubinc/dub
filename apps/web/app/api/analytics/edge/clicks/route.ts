@@ -6,7 +6,10 @@ import {
 } from "@/lib/api/errors";
 import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas";
+import {
+  analyticsEndpointSchema,
+  clickAnalyticsQuerySchema,
+} from "@/lib/zod/schemas";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
@@ -18,12 +21,19 @@ export const GET = async (
   { params }: { params: Record<string, string> },
 ) => {
   try {
-    let { groupBy: oldGroupBy } = clickAnalyticsQuerySchema.parse(params);
+    const { endpoint } = analyticsEndpointSchema.parse(params);
 
     const searchParams = getSearchParams(req.url);
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
 
-    let { groupBy, domain, key, interval } = parsedParams;
+    const { domain, key, interval } = parsedParams;
+
+    if (!domain || !key) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Missing domain or key query parameter",
+      });
+    }
 
     let link;
 
@@ -36,9 +46,10 @@ export const GET = async (
       // Rate limit in production
       if (process.env.NODE_ENV !== "development") {
         const ip = ipAddress(req);
-        const { success } = await ratelimit(15, groupBy ? "1 m" : "10 s").limit(
-          `demo-analytics:${demoLink.id}:${ip}:${groupBy}`,
-        );
+        const { success } = await ratelimit(
+          15,
+          endpoint ? "1 m" : "10 s",
+        ).limit(`demo-analytics:${demoLink.id}:${ip}:${endpoint || "clicks"}`);
 
         if (!success) {
           throw new DubApiError({
@@ -85,7 +96,7 @@ export const GET = async (
       ...parsedParams,
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
       ...(link.projectId && { workspaceId: link.projectId }),
-      groupBy: groupBy || oldGroupBy,
+      endpoint,
       linkId: link.id,
     });
 

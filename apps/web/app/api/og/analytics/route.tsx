@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
     ...(link.projectId && { workspaceId: link.projectId }),
     linkId: link.id,
-    groupBy: "timeseries",
+    endpoint: "timeseries",
     interval: "24h",
   });
 

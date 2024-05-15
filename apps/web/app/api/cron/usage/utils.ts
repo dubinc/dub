@@ -117,7 +117,7 @@ export const updateUsage = async (skip?: number) => {
           workspace.usage > 0
             ? await getClicks({
                 workspaceId: workspace.id,
-                groupBy: "top_links",
+                endpoint: "top_links",
                 interval: "30d",
                 root: false,
               }).then(async (data) => {

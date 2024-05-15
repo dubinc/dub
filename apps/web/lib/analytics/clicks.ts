@@ -12,7 +12,7 @@ import {
 export const getClicks = async (
   props: z.infer<typeof clickAnalyticsQuerySchema> & {
     workspaceId?: string;
-    endpoint: AnalyticsEndpoints;
+    endpoint?: AnalyticsEndpoints;
   },
 ) => {
   let { workspaceId, endpoint, linkId, interval, start, end } = props;

@@ -66,7 +66,7 @@ export default function Analytics({
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/admin/analytics/clicks`,
+        baseApiPath: `/api/analytics/admin/clicks`,
         domain: domainSlug,
       };
     } else if (slug) {

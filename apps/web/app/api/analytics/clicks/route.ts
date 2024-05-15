@@ -10,10 +10,10 @@ import { NextResponse } from "next/server";
 // GET /api/analytics/clicks – get click analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
-    let { endpoint } = analyticsEndpointSchema.parse(params);
+    const { endpoint } = analyticsEndpointSchema.parse(params);
 
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
-    let { domain, key, interval, start, end } = parsedParams;
+    const { domain, key, interval, start, end } = parsedParams;
 
     validDateRangeForPlan({
       plan: workspace.plan,

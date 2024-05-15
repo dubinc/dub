@@ -54,7 +54,7 @@ export const GET = withWorkspace(
 
           const data = await getClicks({
             workspaceId: workspace.id,
-            groupBy: "top_links",
+            endpoint: "top_links",
             ...parsedParams,
           });
 
@@ -125,7 +125,7 @@ export const GET = withWorkspace(
           const response = await getClicks({
             workspaceId: workspace.id,
             ...(linkId && { linkId }),
-            groupBy: endpoint,
+            endpoint,
             ...parsedParams,
           });
           if (!response || response.length === 0) return;
