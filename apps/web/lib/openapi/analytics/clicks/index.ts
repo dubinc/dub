@@ -47,6 +47,7 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/clicks": {
     get: {
       ...getClicksCount,
+      operationId: "getClicksCountDeprecated",
       "x-speakeasy-name-override": "clicks",
       tags: ["analytics"],
       deprecated: true,
@@ -55,6 +56,7 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/timeseries": {
     get: {
       ...getTimeseriesByClicks,
+      operationId: "getTimeseriesByClicksDeprecated",
       tags: ["analytics"],
       deprecated: true,
     },
@@ -62,6 +64,7 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/country": {
     get: {
       ...getCountriesByClicks,
+      operationId: "getCountriesByClicksDeprecated",
       "x-speakeasy-name-override": "country",
       tags: ["analytics"],
       deprecated: true,
@@ -70,6 +73,7 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/city": {
     get: {
       ...getCitiesByClicks,
+      operationId: "getCitiesByClicksDeprecated",
       "x-speakeasy-name-override": "city",
       tags: ["analytics"],
       deprecated: true,
@@ -78,6 +82,7 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/device": {
     get: {
       ...getDevicesByClicks,
+      operationId: "getDevicesByClicksDeprecated",
       "x-speakeasy-name-override": "device",
       tags: ["analytics"],
       deprecated: true,
@@ -86,28 +91,41 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/browser": {
     get: {
       ...getBrowsersByClicks,
+      operationId: "getBrowsersByClicksDeprecated",
       "x-speakeasy-name-override": "browser",
       tags: ["analytics"],
       deprecated: true,
     },
   },
   "/analytics/os": {
-    get: { ...getOSByClicks, tags: ["analytics"], deprecated: true },
+    get: {
+      ...getOSByClicks,
+      operationId: "getOSByClicksDeprecated",
+      tags: ["analytics"],
+      deprecated: true,
+    },
   },
   "/analytics/referer": {
     get: {
       ...getReferersByClicks,
+      operationId: "getReferersByClicksDeprecated",
       "x-speakeasy-name-override": "referer",
       tags: ["analytics"],
       deprecated: true,
     },
   },
   "/analytics/top_links": {
-    get: { ...getTopLinksByClicks, tags: ["analytics"], deprecated: true },
+    get: {
+      ...getTopLinksByClicks,
+      operationId: "getTopLinksByClicksDeprecated",
+      tags: ["analytics"],
+      deprecated: true,
+    },
   },
   "/analytics/top_urls": {
     get: {
       ...getTopURLsByClicks,
+      operationId: "getTopURLsByClicksDeprecated",
       tags: ["analytics"],
       deprecated: true,
     },
