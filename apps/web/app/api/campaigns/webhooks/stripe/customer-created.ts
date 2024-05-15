@@ -22,9 +22,21 @@ export async function customerCreated(event: Stripe.Event) {
     return;
   }
 
-  const clickData = clickEventSchemaTB
-    .omit({ timestamp: true })
-    .parse(clickEvent.data[0]);
+  // Check the customer is not already created
+  const customerFound = await prisma.customer.findFirst({
+    where: {
+      projectConnectId: stripeAccountId,
+      externalId,
+    },
+  });
+
+  if (customerFound) {
+    console.info(
+      "[Stripe Webhook] Found existing customer with externalId",
+      externalId,
+    );
+    return;
+  }
 
   // Create customer
   const customerId = nanoid(16);
@@ -43,6 +55,10 @@ export async function customerCreated(event: Stripe.Event) {
       },
     },
   });
+
+  const clickData = clickEventSchemaTB
+    .omit({ timestamp: true })
+    .parse(clickEvent.data[0]);
 
   await Promise.all([
     // Record customer
