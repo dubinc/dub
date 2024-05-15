@@ -15,7 +15,7 @@
     "react-dom": "^18"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^1.3.3",
+    "@chromatic-com/storybook": "^1.4.0",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@storybook/addon-essentials": "^8.1.1",
