@@ -4,7 +4,7 @@ import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
 import {
   ButtonTooltip,
-  ImageDrop,
+  ImageUpload,
   LoadingCircle,
   Magic,
   Popover,
@@ -226,7 +226,7 @@ export default function OGSection({
               </div>
             </div>
             <div className="mt-1">
-              <ImageDrop
+              <ImageUpload
                 src={image}
                 onChange={(image) => setData((prev) => ({ ...prev, image }))}
                 loading={generatingMetatags}

@@ -1,7 +1,7 @@
 import { LinkProps } from "@/lib/types";
 import {
   Facebook,
-  ImageDrop,
+  ImageUpload,
   LinkedIn,
   LoadingCircle,
   Photo,
@@ -232,7 +232,7 @@ const ImagePreview = ({
     }
     if (image) {
       return (
-        <ImageDrop
+        <ImageUpload
           variant="plain"
           src={image}
           onChange={onImageChange}

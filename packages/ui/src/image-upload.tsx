@@ -5,7 +5,7 @@ import { LoadingCircle, LoadingSpinner } from "./icons";
 
 import { cva, VariantProps } from "class-variance-authority";
 
-const imageDropVariants = cva(
+const imageUploadVariants = cva(
   "group relative isolate flex aspect-[1200/630] w-full flex-col items-center justify-center overflow-hidden bg-white transition-all hover:bg-gray-50",
   {
     variants: {
@@ -20,7 +20,7 @@ const imageDropVariants = cva(
   },
 );
 
-export type ImageDropProps = {
+export type ImageUploadProps = {
   src: string | null;
   onChange?: (src: string) => void;
   className?: string;
@@ -41,17 +41,22 @@ export type ImageDropProps = {
   showHoverOverlay?: boolean;
 
   /**
-   * Desired resolution to suggest and automatically resize to
+   * Desired resolution to suggest and optionally resize to
    */
   targetResolution?: { width: number; height: number };
+
+  /**
+   * Whether to automatically resize the uploaded image to the target resolution
+   */
+  resize?: boolean;
 
   /**
    * Accessibility label for screen readers
    */
   accessibilityLabel?: string;
-} & VariantProps<typeof imageDropVariants>;
+} & VariantProps<typeof imageUploadVariants>;
 
-export function ImageDrop({
+export function ImageUpload({
   src,
   onChange,
   variant,
@@ -60,8 +65,9 @@ export function ImageDrop({
   clickToUpload = true,
   showHoverOverlay = true,
   targetResolution = { width: 1200, height: 630 },
+  resize = true,
   accessibilityLabel = "Image upload",
-}: ImageDropProps) {
+}: ImageUploadProps) {
   const inputId = useId();
 
   const [resizing, setResizing] = useState(false);
@@ -76,22 +82,27 @@ export function ImageDrop({
         : e.target.files && e.target.files[0];
     if (!file) return;
 
-    setResizing(true);
+    if (resize) {
+      setResizing(true);
 
-    const src = await resizeImage(file, { ...targetResolution, quality: 1 });
-    onChange?.(src);
+      onChange?.(await resizeImage(file, { ...targetResolution, quality: 1 }));
 
-    // Delay to prevent flickering
-    setTimeout(() => {
-      setResizing(false);
-    }, 500);
+      // Delay to prevent flickering
+      setTimeout(() => {
+        setResizing(false);
+      }, 500);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => onChange?.(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
     <label
       htmlFor={inputId}
       className={cn(
-        imageDropVariants({ variant }),
+        imageUploadVariants({ variant }),
         clickToUpload && "cursor-pointer",
         className,
       )}
