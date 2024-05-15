@@ -38,4 +38,22 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
       expect(parsed.success).toBeTruthy();
     });
   });
+
+  // deprecated, backwards compatiblity
+  VALID_TINYBIRD_ENDPOINTS.map((endpoint) => {
+    test(`by ${endpoint}`, async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/analytics/${endpoint}`,
+        query: { workspaceId, ...filter },
+      });
+
+      const parsed = z
+        .array(getClickAnalyticsResponse[endpoint].strict())
+        .safeParse(data);
+
+      expect(status).toEqual(200);
+      expect(data.length).toBeGreaterThanOrEqual(0);
+      expect(parsed.success).toBeTruthy();
+    });
+  });
 });
