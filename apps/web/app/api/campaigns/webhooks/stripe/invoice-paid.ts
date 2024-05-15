@@ -2,12 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { nanoid } from "@dub/utils";
 import type Stripe from "stripe";
+import { retrieveSubscription } from "./subscription";
 
 // Handle event "invoice.paid"
 export async function invoicePaid(event: Stripe.Event) {
   const invoice = event.data.object as Stripe.Invoice;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
+  const subscriptionId = invoice.subscription as string;
 
   // Find customer
   const customer = await prisma.customer.findFirst({
@@ -27,8 +29,8 @@ export async function invoicePaid(event: Stripe.Event) {
     return;
   }
 
-  // Find the product from line items
-  const stripeProductId = invoice.lines.data[0]?.plan?.product as string;
+  // Retrieve subscription if available
+  const subscription = await retrieveSubscription(subscriptionId);
 
   // Record sale
   await recordSale({
@@ -38,13 +40,11 @@ export async function invoicePaid(event: Stripe.Event) {
     amount: invoice.amount_paid,
     currency: invoice.currency,
     refunded: 0,
-
-    // How do we get these?
-    recurring: 0,
-    product_id: stripeProductId,
-    recurring_interval: "month",
-    recurring_interval_count: 1,
-
+    invoice_id: invoice.id,
+    recurring: subscription?.recurring || 0,
+    product_id: subscription?.productId || "",
+    recurring_interval: subscription?.recurringInterval || "",
+    recurring_interval_count: subscription?.recurringIntervalCount || 0,
     metadata: JSON.stringify({
       invoice,
     }),

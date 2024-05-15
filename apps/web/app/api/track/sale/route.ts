@@ -1,7 +1,8 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { clickEventSchemaTB, trackSaleRequestSchema } from "@/lib/zod/schemas";
+import { trackSaleRequestSchema } from "@/lib/zod/schemas";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -10,9 +11,9 @@ export const runtime = "edge";
 
 // POST /api/track/sale – Track a sale conversion event
 export const POST = withWorkspaceEdge(
-  async ({ req }) => {
+  async ({ req, workspace }) => {
     const {
-      customerId,
+      customerId: externalId,
       paymentProcessor,
       productId,
       invoiceId,
@@ -27,23 +28,37 @@ export const POST = withWorkspaceEdge(
 
     waitUntil(
       (async () => {
-        const leadEvent = await getLeadEvent({ customerId });
+        // Find customer
+        const customer = await prismaEdge.customer.findUnique({
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId,
+            },
+          },
+        });
 
-        if (!leadEvent || leadEvent.data.length === 0) {
-          console.log("No lead event found for customer_id:", customerId);
+        if (!customer) {
+          console.log("No customer found for externalId:", externalId);
           return;
         }
 
-        const clickData = clickEventSchemaTB
-          .omit({ timestamp: true })
-          .parse(leadEvent.data[0]);
+        // Find lead
+        const leadEvent = await getLeadEvent({ customerId: customer.id });
+        if (!leadEvent || leadEvent.data.length === 0) {
+          console.log("No lead event found for customerId:", customer.id);
+          return;
+        }
+
+        // const clickData = clickEventSchemaTB
+        //   .omit({ timestamp: true })
+        //   .parse(leadEvent.data[0]);
 
         await recordSale({
-          ...clickData,
-          customer_id: customerId,
+          ...leadEvent.data[0],
           event_id: nanoid(16),
           payment_processor: paymentProcessor,
-          product_id: productId,
+          product_id: productId || "",
           invoice_id: invoiceId,
           amount,
           currency,
