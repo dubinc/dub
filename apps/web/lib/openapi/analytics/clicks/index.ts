@@ -11,7 +11,7 @@ import { getTopLinksByClicks } from "./top-links";
 import { getTopURLsByClicks } from "./top-urls";
 
 export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
-  "/analytics/clicks": {
+  "/analytics/clicks/count": {
     get: getClicksCount,
   },
   "/analytics/clicks/timeseries": {

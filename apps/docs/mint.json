@@ -91,7 +91,7 @@
       "group": "Click Analytics",
       "pages": [
         "api-reference/endpoint/retrieve-clicks-count",
-        "api-reference/endpoint/retrieve-timeseries-by-clicks",
+        "api-reference/endpoint/retrieve-timeseries-clicks",
         "api-reference/endpoint/retrieve-browser-by-clicks",
         "api-reference/endpoint/retrieve-city-by-clicks",
         "api-reference/endpoint/retrieve-country-by-clicks",
@@ -278,7 +278,7 @@
     },
     {
       "source": "/api-reference/endpoint/retrieve-timeseries",
-      "destination": "/api-reference/endpoint/retrieve-timeseries-by-clicks"
+      "destination": "/api-reference/endpoint/retrieve-timeseries-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-top-links",
