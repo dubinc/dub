@@ -169,7 +169,7 @@ function AddEditDomainModal({
                 type="button"
                 onClick={() => {
                   window.confirm(
-                    "Warning: Changing your workspace's domain will break all existing short links and reset their analytics. Are you sure you want to continue?",
+                    "Warning: Changing your workspace's domain will break all existing short links. Are you sure you want to continue?",
                   ) && setLockDomain(false);
                 }}
               >
@@ -222,7 +222,6 @@ function AddEditDomainModal({
           ) : (
             <div className="relative mt-2 rounded-md shadow-sm">
               <input
-                type="url"
                 name="target"
                 id="target"
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"

@@ -7,6 +7,7 @@ import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
 import { Badge } from "./badge";
+import { ButtonProps } from "./button";
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
@@ -16,7 +17,7 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   );
 }
 
-interface TooltipProps {
+export interface TooltipProps {
   children: ReactNode;
   content: ReactNode | string;
   side?: "top" | "bottom" | "left" | "right";
@@ -190,6 +191,25 @@ export function BadgeTooltip({ children, content, ...props }: TooltipProps) {
         >
           {children}
         </Badge>
+      </div>
+    </Tooltip>
+  );
+}
+
+export function ButtonTooltip({
+  tooltipContent,
+  children,
+  ...props
+}: {
+  tooltipContent: ReactNode | string;
+  children: ReactNode;
+} & ButtonProps) {
+  return (
+    <Tooltip content={tooltipContent}>
+      <div className="flex cursor-pointer items-center">
+        <button type="button" {...props}>
+          {children}
+        </button>
       </div>
     </Tooltip>
   );

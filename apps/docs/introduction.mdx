@@ -1,53 +1,63 @@
 ---
 title: Introduction
-"og:title": "Getting Started with Dub.co - Documentation"
-description: "Dub.co is the open-source link management infrastructure for modern marketing teams."
+"og:title": "Getting Started with Dub - Documentation"
+description: "Dub is the link management platform for modern marketing teams."
 ---
 
 <Frame>
   <img
     className="rounded-lg border border-gray-100"
-    src="https://assets.dub.co/thumbnail.jpg"
-    alt="Dub.co Thumbnail"
+    src="/images/thumbnail.jpg"
+    alt="Dub Thumbnail"
     width="1200"
     height="630"
   />
 </Frame>
 
+Our mission is to reimagine the role of links – one of the most foundational pieces of the web – from being a simple **"resource locator"** (URL) to a full **attribution engine** – visualizing the user journey from the first click to the final conversion event.
+
 ## Features
 
 Here are some of the features that Dub offers:
 
-- [Advanced Analytics](https://dub.co/features/analytics)
-- [Branded Links](https://dub.co/features/branded-links)
-- [QR Codes](https://dub.co/features/qr-codes)
-- [Personalization](https://dub.co/features/personalization)
-- [Team Collaboration](https://dub.co/features/collaboration)
-
-## Tech Stack
-
-Dub's codebase is [fully open-source](https://d.to/github) and is built on top of the following technologies:
-
-- [Next.js](https://nextjs.org/) – framework
-- [TypeScript](https://www.typescriptlang.org/) – language
-- [Tailwind](https://tailwindcss.com/) – CSS
-- [Upstash](https://upstash.com/) – redis
-- [Tinybird](https://tinybird.com/) – analytics
-- [PlanetScale](https://planetscale.com/) – database
-- [NextAuth.js](https://next-auth.js.org/) – auth
-- [BoxyHQ](https://boxyhq.com/enterprise-sso) – SSO/SAML
-- [Turborepo](https://turbo.build/repo) – monorepo
-- [Stripe](https://stripe.com/) – payments
-- [Postmark](https://postmarkapp.com/) – emails
-- [Vercel](https://vercel.com/) – deployments
+<AccordionGroup>
+  <Accordion title="Advanced Analytics" icon="chart-line">
+    Dub provides powerful analytics for your links, including geolocation,
+    device, browser, and referrer information. [Learn
+    more](https://Dub/features/analytics)
+  </Accordion>
+  <Accordion title="Branded Links" icon="link">
+    Dub offers free custom domains on all plans for you to create branded links
+    that stand out. [Learn more](https://Dub/features/branded-links)
+  </Accordion>
+  <Accordion title="QR Codes" icon="qrcode">
+    QR codes and short links are like peas in a pod. Dub offers free QR codes
+    for every short link you create – both via our dashboard and
+    [programmatically](/api-reference/endpoint/retrieve-a-qr-code). [Learn
+    more](https://Dub/features/qr-codes)
+  </Accordion>
+  <Accordion title="Personalization" icon="user">
+    Customize your link's behavior with [device
+    targeting](https://Dub/help/article/device-targeting), [geo
+    targeting](https://Dub/help/article/geo-targeting), [link
+    expiration](https://Dub/help/article/link-expiration), [link
+    cloaking](https://Dub/help/article/link-cloaking), and more. [Learn
+    more](https://Dub/features/personalization)
+  </Accordion>
+  <Accordion title="Team Collaboration" icon="users">
+    Invite your teammates to collaborate on your links. For enterprises, Dub
+    offers [SAML SSO](https://Dub/help/category/saml-sso) for better security.
+    [Learn more](https://Dub/features/collaboration)
+  </Accordion>
+</AccordionGroup>
 
 ## Getting Started
 
 To get started with Dub, you can do any of the following:
 
 <CardGroup cols={2}>
-  <Card title="Create a free account" icon="code" href="https://app.dub.co">
-    Create a free account to get started with Dub
+  <Card title="Quickstart Guide" icon="code" href="/quickstart">
+    Follow our quickstart guide to get started with Dub
   </Card>
   <Card title="Try our API" icon="code" href="/api-reference/introduction">
     Learn how to use Dub's API to create and manage links programmatically

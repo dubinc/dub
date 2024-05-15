@@ -1,5 +1,5 @@
 import { limiter } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
 import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
@@ -77,6 +77,7 @@ export const POST = async (req: Request) => {
             usageLimit: plan.limits.clicks!,
             linksLimit: plan.limits.links!,
             domainsLimit: plan.limits.domains!,
+            aiLimit: plan.limits.ai!,
             tagsLimit: plan.limits.tags!,
             usersLimit: plan.limits.users!,
           },
@@ -164,6 +165,7 @@ export const POST = async (req: Request) => {
               usageLimit: plan.limits.clicks!,
               linksLimit: plan.limits.links!,
               domainsLimit: plan.limits.domains!,
+              aiLimit: plan.limits.ai!,
               tagsLimit: plan.limits.tags!,
               usersLimit: plan.limits.users!,
             },
@@ -235,6 +237,7 @@ export const POST = async (req: Request) => {
               usageLimit: FREE_PLAN.limits.clicks!,
               linksLimit: FREE_PLAN.limits.links!,
               domainsLimit: FREE_PLAN.limits.domains!,
+              aiLimit: FREE_PLAN.limits.ai!,
               tagsLimit: FREE_PLAN.limits.tags!,
               usersLimit: FREE_PLAN.limits.users!,
             },

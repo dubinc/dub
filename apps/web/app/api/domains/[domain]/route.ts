@@ -7,13 +7,14 @@ import {
 } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import { withAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
-export const GET = withAuth(
+export const GET = withWorkspace(
   async ({ domain }) => {
     const data = await prisma.domain.findUnique({
       where: {
@@ -47,7 +48,7 @@ export const GET = withAuth(
 );
 
 // PUT /api/domains/[domain] – edit a workspace's domain
-export const PATCH = withAuth(
+export const PATCH = withWorkspace(
   async ({ req, workspace, domain }) => {
     const body = await parseRequestBody(req);
     const {
@@ -76,40 +77,43 @@ export const PATCH = withAuth(
       }
     }
 
-    const response = await Promise.all([
-      prisma.domain.update({
-        where: {
-          slug: domain,
-        },
-        data: {
-          slug: newDomain,
-          type,
-          archived,
-          ...(placeholder && { placeholder }),
-          ...(workspace.plan !== "free" && {
-            target,
-            expiredUrl,
-          }),
-        },
-      }),
-      // remove old domain from Vercel
-      newDomain !== domain && removeDomainFromVercel(domain),
-    ]);
-
-    await setRootDomain({
-      id: response[0].id,
-      domain,
-      ...(workspace.plan !== "free" && {
-        url: target || undefined,
-      }),
-      rewrite: type === "rewrite",
-      ...(newDomain !== domain && {
-        newDomain,
-      }),
-      projectId: workspace.id,
+    const response = await prisma.domain.update({
+      where: {
+        slug: domain,
+      },
+      data: {
+        slug: newDomain,
+        type,
+        archived,
+        ...(placeholder && { placeholder }),
+        ...(workspace.plan !== "free" && {
+          target,
+          expiredUrl,
+        }),
+      },
     });
 
-    return NextResponse.json(DomainSchema.parse(response[0]));
+    waitUntil(
+      Promise.all([
+        setRootDomain({
+          id: response.id,
+          domain,
+          domainCreatedAt: response.createdAt,
+          ...(workspace.plan !== "free" && {
+            url: target || undefined,
+          }),
+          rewrite: type === "rewrite",
+          ...(newDomain !== domain && {
+            newDomain,
+          }),
+          projectId: workspace.id,
+        }),
+        // remove old domain from Vercel
+        newDomain !== domain && removeDomainFromVercel(domain),
+      ]),
+    );
+
+    return NextResponse.json(DomainSchema.parse(response));
   },
   {
     domainChecks: true,
@@ -118,7 +122,7 @@ export const PATCH = withAuth(
 );
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
-export const DELETE = withAuth(
+export const DELETE = withWorkspace(
   async ({ domain }) => {
     await deleteDomainAndLinks(domain);
     return NextResponse.json({ slug: domain });

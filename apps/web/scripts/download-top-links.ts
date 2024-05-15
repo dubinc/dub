@@ -1,5 +1,5 @@
 import { getAnalytics } from "@/lib/analytics";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
@@ -10,7 +10,7 @@ async function main() {
     workspaceId: "xxx",
     endpoint: "top_links",
     interval: "30d",
-    excludeRoot: true,
+    root: false,
   }).then(async (data) => {
     return await Promise.all(
       data.map(

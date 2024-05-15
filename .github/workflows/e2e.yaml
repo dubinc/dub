@@ -1,0 +1,42 @@
+name: Public API Tests
+
+on:
+  deployment_status:
+
+jobs:
+  api-tests:
+    timeout-minutes: 30
+    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build utils
+        working-directory: packages/utils
+        run: pnpm build
+
+      - name: Run tests
+        working-directory: apps/web
+        env:
+          E2E_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
+          E2E_USER_ID: ${{ secrets.E2E_USER_ID }}
+          E2E_WORKSPACE_ID: ${{ secrets.E2E_WORKSPACE_ID }}
+          E2E_WORKSPACE_SLUG: ${{ secrets.E2E_WORKSPACE_SLUG }}
+          E2E_WORKSPACE_NAME: ${{ secrets.E2E_WORKSPACE_NAME }}
+        run: pnpm test

@@ -3,10 +3,11 @@ import { ZodOpenApiPathsObject } from "zod-openapi";
 import { createBulkLink } from "./create-bulk-link";
 import { createLink } from "./create-link";
 import { deleteLink } from "./delete-link";
-import { editLink } from "./edit-link";
 import { getLinkInfo } from "./get-link-info";
 import { getLinks } from "./get-links";
 import { getLinksCount } from "./get-links-count";
+import { updateLink } from "./update-link";
+import { upsertLink } from "./upsert-link";
 
 export const linksPaths: ZodOpenApiPathsObject = {
   "/links": {
@@ -20,10 +21,13 @@ export const linksPaths: ZodOpenApiPathsObject = {
     get: getLinkInfo,
   },
   "/links/{linkId}": {
-    put: editLink,
+    patch: updateLink,
     delete: deleteLink,
   },
   "/links/bulk": {
     post: createBulkLink,
+  },
+  "/links/upsert": {
+    put: upsertLink,
   },
 };

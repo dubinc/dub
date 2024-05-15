@@ -1,5 +1,4 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
-import useDomains from "@/lib/swr/use-domains";
 import useTags from "@/lib/swr/use-tags";
 import { Chart } from "@/ui/shared/icons";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
@@ -14,17 +13,16 @@ import ClicksChart from "./clicks-chart";
 export default function Clicks() {
   const { totalClicks } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
-  const domain = searchParams?.get("domain");
-  const key = searchParams?.get("key");
+  const domain = searchParams.get("domain");
+  const key = searchParams.get("key");
   const { queryParams } = useRouterStuff();
 
   // Tag related
-  const tagId = searchParams?.get("tagId");
+  const tagId = searchParams.get("tagId");
   const { tags } = useTags();
 
-  // Domain related
-  const domainSlug = searchParams?.get("domainSlug");
-  const { allActiveDomains: domains } = useDomains();
+  // Root domain related
+  const root = searchParams.get("root");
 
   return (
     <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">
@@ -99,8 +97,26 @@ export default function Clicks() {
               <X className="h-4 w-4" />
             </Link>
           )}
+          {root && (
+            <Link
+              href={
+                queryParams({
+                  del: "root",
+                  getNewPath: true,
+                }) as string
+              }
+              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
+            >
+              <strong className="text-gray-800">
+                {root === "true" ? "Domains" : "Links"}
+              </strong>
+              <p>Only</p>
+              <X className="h-4 w-4" />
+            </Link>
+          )}
           {VALID_ANALYTICS_FILTERS.map((filter) => {
-            if (filter === "excludeRoot" || filter === "tagId") return null;
+            if (filter === "tagId" || filter === "qr" || filter === "root")
+              return null;
             const value = searchParams?.get(filter);
             if (!value) return null;
             return (

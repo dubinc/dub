@@ -1,5 +1,5 @@
 import { TopLinksTabs } from "@/lib/analytics";
-import { LoadingSpinner, Modal, Switch, useRouterStuff } from "@dub/ui";
+import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
 import Link from "next/link";
@@ -31,7 +31,7 @@ export default function TopLinks() {
 
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
-  const excludeRoot = !!searchParams.get("excludeRoot");
+  const root = searchParams.get("root");
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -65,14 +65,16 @@ export default function TopLinks() {
         className="max-w-lg"
       >
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-lg font-semibold">Top Links</h1>
+          <h1 className="text-lg font-semibold">
+            {tab === "link" ? "Links" : "URLs"}
+          </h1>
         </div>
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold capitalize">
-            Top {tab === "link" ? "Links" : "URLs"}
+            {tab === "link" ? "Links" : "URLs"}
           </h1>
           {domain && key ? (
             !basePath.startsWith("/stats") && (
@@ -92,31 +94,25 @@ export default function TopLinks() {
               </Link>
             )
           ) : (
-            <Link
-              href={
+            <TabSelect
+              options={["Links", "Domains"]}
+              selected={
+                root === "false" ? "Links" : root === "true" ? "Domains" : null
+              }
+              selectAction={(option) =>
                 queryParams({
-                  ...(excludeRoot
-                    ? {
-                        del: "excludeRoot",
-                      }
+                  ...((root === "false" && option === "Links") ||
+                  (root === "true" && option === "Domains")
+                    ? { del: ["root"] }
                     : {
                         set: {
-                          excludeRoot: "true",
+                          root: option === "Links" ? "false" : "true",
                         },
                       }),
-                  getNewPath: true,
-                }) as string
+                  replace: true,
+                })
               }
-              className="flex items-center space-x-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 hover:bg-gray-100"
-            >
-              <p className="text-sm font-medium">Exclude Root Domains</p>
-              <Switch
-                checked={excludeRoot}
-                trackDimensions="h-3 w-6"
-                thumbDimensions="w-2 h-2"
-                thumbTranslate="translate-x-3"
-              />
-            </Link>
+            />
           )}
         </div>
         {data ? (
