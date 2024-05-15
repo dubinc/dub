@@ -41,7 +41,9 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/clicks/top_urls": {
     get: getTopURLsByClicks,
   },
-  // Deprecated endpoints
+  /**
+   * DEPRECATED ENDPOINTS
+   */
   "/analytics/clicks": {
     get: {
       ...getClicksCount,
