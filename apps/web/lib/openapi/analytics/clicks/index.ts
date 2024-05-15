@@ -41,4 +41,73 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/clicks/top_urls": {
     get: getTopURLsByClicks,
   },
+  // Deprecated endpoints
+  "/analytics/clicks": {
+    get: {
+      ...getClicksCount,
+      "x-speakeasy-name-override": "clicks",
+      tags: ["analytics"],
+      deprecated: true,
+    },
+  },
+  "/analytics/timeseries": {
+    get: {
+      ...getTimeseriesByClicks,
+      tags: ["analytics"],
+      deprecated: true,
+    },
+  },
+  "/analytics/country": {
+    get: {
+      ...getCountriesByClicks,
+      "x-speakeasy-name-override": "country",
+      tags: ["analytics"],
+      deprecated: true,
+    },
+  },
+  "/analytics/city": {
+    get: {
+      ...getCitiesByClicks,
+      "x-speakeasy-name-override": "city",
+      tags: ["analytics"],
+      deprecated: true,
+    },
+  },
+  "/analytics/device": {
+    get: {
+      ...getDevicesByClicks,
+      "x-speakeasy-name-override": "device",
+      tags: ["analytics"],
+      deprecated: true,
+    },
+  },
+  "/analytics/browser": {
+    get: {
+      ...getBrowsersByClicks,
+      "x-speakeasy-name-override": "browser",
+      tags: ["analytics"],
+      deprecated: true,
+    },
+  },
+  "/analytics/os": {
+    get: { ...getOSByClicks, tags: ["analytics"], deprecated: true },
+  },
+  "/analytics/referer": {
+    get: {
+      ...getReferersByClicks,
+      "x-speakeasy-name-override": "referer",
+      tags: ["analytics"],
+      deprecated: true,
+    },
+  },
+  "/analytics/top_links": {
+    get: { ...getTopLinksByClicks, tags: ["analytics"], deprecated: true },
+  },
+  "/analytics/top_urls": {
+    get: {
+      ...getTopURLsByClicks,
+      tags: ["analytics"],
+      deprecated: true,
+    },
+  },
 };
