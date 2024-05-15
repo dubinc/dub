@@ -92,12 +92,12 @@
       "pages": [
         "api-reference/endpoint/retrieve-clicks-count",
         "api-reference/endpoint/retrieve-timeseries-clicks",
-        "api-reference/endpoint/retrieve-browser-by-clicks",
-        "api-reference/endpoint/retrieve-city-by-clicks",
-        "api-reference/endpoint/retrieve-country-by-clicks",
-        "api-reference/endpoint/retrieve-device-by-clicks",
+        "api-reference/endpoint/retrieve-browsers-by-clicks",
+        "api-reference/endpoint/retrieve-cities-by-clicks",
+        "api-reference/endpoint/retrieve-countries-by-clicks",
+        "api-reference/endpoint/retrieve-devices-by-clicks",
         "api-reference/endpoint/retrieve-os-by-clicks",
-        "api-reference/endpoint/retrieve-referer-by-clicks",
+        "api-reference/endpoint/retrieve-referers-by-clicks",
         "api-reference/endpoint/retrieve-top-links-by-clicks",
         "api-reference/endpoint/retrieve-top-urls-by-clicks"
       ]
@@ -250,11 +250,11 @@
     },
     {
       "source": "/api-reference/endpoint/retrieve-browser",
-      "destination": "/api-reference/endpoint/retrieve-browser-by-clicks"
+      "destination": "/api-reference/endpoint/retrieve-browsers-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-city",
-      "destination": "/api-reference/endpoint/retrieve-city-by-clicks"
+      "destination": "/api-reference/endpoint/retrieve-cities-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-clicks",
@@ -262,11 +262,11 @@
     },
     {
       "source": "/api-reference/endpoint/retrieve-country",
-      "destination": "/api-reference/endpoint/retrieve-country-by-clicks"
+      "destination": "/api-reference/endpoint/retrieve-countries-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-device",
-      "destination": "/api-reference/endpoint/retrieve-device-by-clicks"
+      "destination": "/api-reference/endpoint/retrieve-devices-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-os",
@@ -274,7 +274,7 @@
     },
     {
       "source": "/api-reference/endpoint/retrieve-referer",
-      "destination": "/api-reference/endpoint/retrieve-referer-by-clicks"
+      "destination": "/api-reference/endpoint/retrieve-referers-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-timeseries",
