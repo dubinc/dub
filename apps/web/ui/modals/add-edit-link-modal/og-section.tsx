@@ -209,7 +209,9 @@ export default function OGSection({
                 <Popover
                   content={
                     <UnsplashSearch
-                      setData={setData}
+                      onImageSelected={(image) =>
+                        setData((prev) => ({ ...prev, image }))
+                      }
                       setOpenPopover={handleSet}
                     />
                   }
