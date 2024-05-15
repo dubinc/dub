@@ -329,10 +329,15 @@ const ImagePreviewPopoverContent = ({
       <div ref={contentWrapperRef} className="inline-block w-full sm:w-auto">
         <AnimatePresence>
           {state === "unsplash" && (
-            <UnsplashSearch
-              onImageSelected={onImageChange}
-              setOpenPopover={setOpenPopover}
-            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+            >
+              <UnsplashSearch
+                onImageSelected={onImageChange}
+                setOpenPopover={setOpenPopover}
+              />
+            </motion.div>
           )}
 
           {state === "default" && (
