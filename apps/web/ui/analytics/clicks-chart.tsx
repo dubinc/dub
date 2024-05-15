@@ -12,7 +12,7 @@ export default function ClicksChart() {
   const { baseApiPath, queryString, interval } = useContext(AnalyticsContext);
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
-    `${baseApiPath}?${queryString}&groupBy=timeseries`,
+    `${baseApiPath}/timeseries?${queryString}`,
     fetcher,
   );
 

@@ -17,7 +17,7 @@ export default function Devices() {
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}?${queryString}&groupBy=${tab}`, fetcher);
+  >(`${baseApiPath}/${tab}?${queryString}`, fetcher);
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);

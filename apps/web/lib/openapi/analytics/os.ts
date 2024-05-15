@@ -11,13 +11,10 @@ export const getOSAnalytics: ZodOpenApiOperationObject = {
   operationId: "getOSAnalytics",
   "x-speakeasy-name-override": "os",
   summary: "Retrieve OS analytics",
-  deprecated: true,
   description:
-    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'os' }) instead. Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: workspaceParamsSchema.merge(
-      clickAnalyticsQuerySchema.omit({ groupBy: true }),
-    ),
+    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {

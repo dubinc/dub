@@ -4,12 +4,12 @@ import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
-export const clickAnalyticsQuerySchema = z.object({
-  groupBy: z
+export const analyticsEndpointSchema = z.object({
+  endpoint: z
     .enum(VALID_TINYBIRD_ENDPOINTS, {
       errorMap: (_issue, _ctx) => {
         return {
-          message: `Invalid groupBy value. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
+          message: `Invalid endpoint value. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
         };
       },
     })
@@ -17,6 +17,9 @@ export const clickAnalyticsQuerySchema = z.object({
     .describe(
       "The field to group the analytics by. If undefined, returns the total click count.",
     ),
+});
+
+export const clickAnalyticsQuerySchema = z.object({
   domain: z.string().optional().describe("The domain to filter analytics for."),
   key: z.string().optional().describe("The short link slug."),
   linkId: z

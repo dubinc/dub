@@ -2,7 +2,7 @@ import { conn } from "@/lib/planetscale";
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
-import { intervalData } from ".";
+import { AnalyticsEndpoints, intervalData } from ".";
 import {
   clickAnalyticsQuerySchema,
   getClickAnalytics,
@@ -12,15 +12,16 @@ import {
 export const getClicks = async (
   props: z.infer<typeof clickAnalyticsQuerySchema> & {
     workspaceId?: string;
+    endpoint: AnalyticsEndpoints;
   },
 ) => {
-  let { workspaceId, groupBy, linkId, interval, start, end } = props;
+  let { workspaceId, endpoint, linkId, interval, start, end } = props;
 
   // get all-time clicks count if:
   // 1. linkId is defined
-  // 2. groupBy is not defined
+  // 2. endpoint is not defined
   // 3. interval is all time
-  if (linkId && !groupBy && interval === "all") {
+  if (linkId && !endpoint && interval === "all") {
     let response = await conn.execute(
       "SELECT clicks FROM Link WHERE `id` = ?",
       [linkId],
@@ -39,9 +40,9 @@ export const getClicks = async (
   }
 
   const pipe = tb.buildPipe({
-    pipe: groupBy || "clicks",
+    pipe: endpoint || "clicks",
     parameters: getClickAnalytics,
-    data: getClickAnalyticsResponse[groupBy || "clicks"],
+    data: getClickAnalyticsResponse[endpoint || "clicks"],
   });
 
   let granularity: "minute" | "hour" | "day" | "month" = "day";
@@ -73,7 +74,7 @@ export const getClicks = async (
     }),
   );
 
-  // for total clicks (groupBy undefined), we return just the value;
+  // for total clicks (endpoint undefined), we return just the value;
   // everything else we return an array of values
-  return groupBy ? res.data : res.data[0];
+  return endpoint ? res.data : res.data[0];
 };

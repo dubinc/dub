@@ -11,13 +11,10 @@ export const getTopURLs: ZodOpenApiOperationObject = {
   operationId: "getTopURLs",
   "x-speakeasy-name-override": "topUrls",
   summary: "Retrieve top URLs",
-  deprecated: true,
   description:
-    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'top_urls' }) instead. Retrieve the top URLs by number of clicks for a given short link.",
+    "Retrieve the top URLs by number of clicks for a given short link.",
   requestParams: {
-    query: workspaceParamsSchema.merge(
-      clickAnalyticsQuerySchema.omit({ groupBy: true }),
-    ),
+    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {

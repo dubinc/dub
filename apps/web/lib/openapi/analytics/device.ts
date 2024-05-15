@@ -11,13 +11,10 @@ export const getDeviceAnalytics: ZodOpenApiOperationObject = {
   operationId: "getDeviceAnalytics",
   "x-speakeasy-name-override": "devices",
   summary: "Retrieve device analytics",
-  deprecated: true,
   description:
-    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'device' }) instead. Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: workspaceParamsSchema.merge(
-      clickAnalyticsQuerySchema.omit({ groupBy: true }),
-    ),
+    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {

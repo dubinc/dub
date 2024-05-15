@@ -1,17 +1,19 @@
 import { getClicks, validDateRangeForPlan } from "@/lib/analytics";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
-import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas";
+import {
+  analyticsEndpointSchema,
+  clickAnalyticsQuerySchema,
+} from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/clicks – get click analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
-    let { groupBy: oldGroupBy } = clickAnalyticsQuerySchema.parse(params);
+    let { endpoint } = analyticsEndpointSchema.parse(params);
 
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
-
-    let { groupBy, domain, key, interval, start, end } = parsedParams;
+    let { domain, key, interval, start, end } = parsedParams;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -29,7 +31,7 @@ export const GET = withWorkspace(
 
     const response = await getClicks({
       ...parsedParams,
-      groupBy: groupBy || oldGroupBy,
+      endpoint,
       ...(linkId && { linkId }),
       workspaceId: workspace.id,
     });

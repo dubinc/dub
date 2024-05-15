@@ -14,31 +14,31 @@ export const analyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/clicks": {
     get: getClicksAnalytics,
   },
-  "/analytics/timeseries": {
+  "/analytics/clicks/timeseries": {
     get: getTimeseriesAnalytics,
   },
-  "/analytics/country": {
+  "/analytics/clicks/country": {
     get: getCountryAnalytics,
   },
-  "/analytics/city": {
+  "/analytics/clicks/city": {
     get: getCityAnalytics,
   },
-  "/analytics/device": {
+  "/analytics/clicks/device": {
     get: getDeviceAnalytics,
   },
-  "/analytics/browser": {
+  "/analytics/clicks/browser": {
     get: getBrowserAnalytics,
   },
-  "/analytics/os": {
+  "/analytics/clicks/os": {
     get: getOSAnalytics,
   },
-  "/analytics/referer": {
+  "/analytics/clicks/referer": {
     get: getRefererAnalytics,
   },
-  "/analytics/top_links": {
+  "/analytics/clicks/top_links": {
     get: getTopLinks,
   },
-  "/analytics/top_urls": {
+  "/analytics/clicks/top_urls": {
     get: getTopURLs,
   },
 };

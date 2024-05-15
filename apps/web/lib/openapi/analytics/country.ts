@@ -11,13 +11,10 @@ export const getCountryAnalytics: ZodOpenApiOperationObject = {
   operationId: "getCountryAnalytics",
   "x-speakeasy-name-override": "countries",
   summary: "Retrieve country analytics",
-  deprecated: true,
   description:
-    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'country' }) instead. Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: workspaceParamsSchema.merge(
-      clickAnalyticsQuerySchema.omit({ groupBy: true }),
-    ),
+    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {

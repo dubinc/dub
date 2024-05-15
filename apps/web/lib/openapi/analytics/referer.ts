@@ -11,13 +11,10 @@ export const getRefererAnalytics: ZodOpenApiOperationObject = {
   operationId: "getRefererAnalytics",
   "x-speakeasy-name-override": "referers",
   summary: "Retrieve referer analytics",
-  deprecated: true,
   description:
-    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'referer' }) instead. Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: workspaceParamsSchema.merge(
-      clickAnalyticsQuerySchema.omit({ groupBy: true }),
-    ),
+    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {

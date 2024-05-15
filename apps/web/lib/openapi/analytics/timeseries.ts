@@ -11,13 +11,10 @@ export const getTimeseriesAnalytics: ZodOpenApiOperationObject = {
   operationId: "getTimeseriesAnalytics",
   "x-speakeasy-name-override": "timeseries",
   summary: "Retrieve timeseries analytics",
-  deprecated: true,
   description:
-    "Deprecated: Use dub.anlaytics.clicks({ groupBy: 'timeseries' }) instead. Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
+    "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
   requestParams: {
-    query: workspaceParamsSchema.merge(
-      clickAnalyticsQuerySchema.omit({ groupBy: true }),
-    ),
+    query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {
