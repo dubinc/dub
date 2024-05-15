@@ -30,7 +30,7 @@ export default function UnsplashSearch({
 
   return (
     <div
-      className="h-[24rem] w-full overflow-auto p-3 md:w-[24rem]"
+      className="scrollbar-hide h-[24rem] w-full overflow-auto p-3 md:w-[24rem]"
       // Fixes a Webkit issue where elements outside of the visible area are still interactable
       style={{ WebkitClipPath: "inset(0 0 0 0)" }}
     >

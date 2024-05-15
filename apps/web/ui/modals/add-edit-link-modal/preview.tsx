@@ -8,6 +8,7 @@ import {
   Popover,
   Twitter,
   Unsplash,
+  useMediaQuery,
   useResizeObserver,
 } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
@@ -310,18 +311,22 @@ const ImagePreviewPopoverContent = ({
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const resizeObserverEntry = useResizeObserver(contentWrapperRef);
 
+  const { isMobile } = useMediaQuery();
+
   const [state, setState] = useState<"default" | "unsplash">("default");
 
   return (
     <motion.div
       className="relative overflow-hidden"
       animate={{
-        width: resizeObserverEntry?.borderBoxSize[0].inlineSize ?? "auto",
+        width: isMobile
+          ? "100%"
+          : resizeObserverEntry?.borderBoxSize[0].inlineSize ?? "auto",
         height: resizeObserverEntry?.borderBoxSize[0].blockSize ?? "auto",
       }}
       transition={{ type: "spring", duration: 0.3, bounce: 0.15 }}
     >
-      <div ref={contentWrapperRef} className="inline-block">
+      <div ref={contentWrapperRef} className="inline-block w-full sm:w-auto">
         <AnimatePresence>
           {state === "unsplash" && (
             <UnsplashSearch
