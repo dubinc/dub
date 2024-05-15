@@ -292,6 +292,7 @@ const ImagePreview = ({
         </div>
       </Popover>
       <input
+        key={image}
         ref={inputFileRef}
         onChange={onInputFileChange}
         type="file"

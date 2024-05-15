@@ -199,8 +199,8 @@ export function ImageUpload({
       {clickToUpload && (
         <div className="sr-only mt-1 flex shadow-sm">
           <input
+            key={src}
             id={inputId}
-            name="image"
             type="file"
             accept="image/*"
             onChange={onImageChange}
