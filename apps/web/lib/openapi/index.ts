@@ -7,7 +7,7 @@ import {
 } from "@/lib/zod/schemas";
 import { API_DOMAIN } from "@dub/utils";
 import { createDocument } from "zod-openapi";
-import { analyticsPaths } from "./analytics";
+import { clickAnalyticsPaths } from "./analytics/clicks";
 import { domainsPaths } from "./domains";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
@@ -41,7 +41,7 @@ export const document = createDocument({
   paths: {
     ...linksPaths,
     ...qrCodePaths,
-    ...analyticsPaths,
+    ...clickAnalyticsPaths,
     ...workspacesPaths,
     ...tagsPaths,
     ...domainsPaths,

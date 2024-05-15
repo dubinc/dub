@@ -5,23 +5,23 @@ import {
   getClickAnalyticsResponse,
 } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../../request";
 
-export const getRefererAnalytics: ZodOpenApiOperationObject = {
-  operationId: "getRefererAnalytics",
-  "x-speakeasy-name-override": "referers",
-  summary: "Retrieve referer analytics",
+export const getOSByClicks: ZodOpenApiOperationObject = {
+  operationId: "getOSByClicks",
+  "x-speakeasy-name-override": "os",
+  summary: "Retrieve top OS by clicks",
   description:
-    "Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {
-      description: "The top referers by number of clicks",
+      description: "The top OS by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(getClickAnalyticsResponse["referer"]),
+          schema: z.array(getClickAnalyticsResponse["os"]),
         },
       },
     },

@@ -5,23 +5,23 @@ import {
   getClickAnalyticsResponse,
 } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../../request";
 
-export const getBrowserAnalytics: ZodOpenApiOperationObject = {
-  operationId: "getBrowserAnalytics",
-  "x-speakeasy-name-override": "browsers",
-  summary: "Retrieve browser analytics",
+export const getTopLinksByClicks: ZodOpenApiOperationObject = {
+  operationId: "getTopLinksByClicks",
+  "x-speakeasy-name-override": "topLinks",
+  summary: "Retrieve top links by clicks",
   description:
-    "Retrieve the top browsers by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top links by number of clicks for a domain or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {
-      description: "The top browsers by number of clicks",
+      description: "The top links by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(getClickAnalyticsResponse["browser"]),
+          schema: z.array(getClickAnalyticsResponse["top_links"]),
         },
       },
     },

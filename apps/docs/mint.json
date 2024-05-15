@@ -88,8 +88,19 @@
       ]
     },
     {
-      "group": "Analytics",
-      "pages": ["api-reference/endpoint/retrieve-clicks-analytics"]
+      "group": "Click Analytics",
+      "pages": [
+        "api-reference/endpoint/retrieve-clicks-analytics",
+        "api-reference/endpoint/retrieve-browser-by-clicks",
+        "api-reference/endpoint/retrieve-city-by-clicks",
+        "api-reference/endpoint/retrieve-country-by-clicks",
+        "api-reference/endpoint/retrieve-device-by-clicks",
+        "api-reference/endpoint/retrieve-os-by-clicks",
+        "api-reference/endpoint/retrieve-referer-by-clicks",
+        "api-reference/endpoint/retrieve-timeseries-by-clicks",
+        "api-reference/endpoint/retrieve-top-links-by-clicks",
+        "api-reference/endpoint/retrieve-top-urls-by-clicks"
+      ]
     },
     {
       "group": "QR Codes",
@@ -148,7 +159,23 @@
         },
         {
           "group": "Analytics",
-          "pages": ["sdks/typescript/analytics/clicks"]
+          "pages": [
+            {
+              "group": "Clicks",
+              "pages": [
+                "sdks/typescript/analytics/clicks",
+                "sdks/typescript/analytics/clicks/browsers",
+                "sdks/typescript/analytics/clicks/cities",
+                "sdks/typescript/analytics/clicks/countries",
+                "sdks/typescript/analytics/clicks/devices",
+                "sdks/typescript/analytics/clicks/os",
+                "sdks/typescript/analytics/clicks/referers",
+                "sdks/typescript/analytics/clicks/timeseries",
+                "sdks/typescript/analytics/clicks/top-links",
+                "sdks/typescript/analytics/clicks/top-urls"
+              ]
+            }
+          ]
         },
         {
           "group": "Workspaces",
@@ -223,11 +250,11 @@
     },
     {
       "source": "/api-reference/endpoint/retrieve-browser",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-browser-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-city",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-city-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-clicks",
@@ -235,35 +262,35 @@
     },
     {
       "source": "/api-reference/endpoint/retrieve-country",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-country-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-device",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-device-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-os",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-os-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-referer",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-referer-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-timeseries",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-timeseries-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-top-links",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-top-links-by-clicks"
     },
     {
       "source": "/api-reference/endpoint/retrieve-top-urls",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-top-urls-by-clicks"
     },
     {
       "source": "/sdks/typescript/analytics/:path*",
-      "destination": "/sdks/typescript/analytics/clicks"
+      "destination": "/sdks/typescript/analytics/clicks/:path*"
     }
   ]
 }

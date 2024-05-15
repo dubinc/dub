@@ -5,12 +5,12 @@ import {
   getClickAnalyticsResponse,
 } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../../request";
 
-export const getCountryAnalytics: ZodOpenApiOperationObject = {
-  operationId: "getCountryAnalytics",
-  "x-speakeasy-name-override": "countries",
-  summary: "Retrieve country analytics",
+export const getCityByClicks: ZodOpenApiOperationObject = {
+  operationId: "getCityByClicks",
+  "x-speakeasy-name-override": "cities",
+  summary: "Retrieve top cities by clicks",
   description:
     "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
@@ -18,10 +18,10 @@ export const getCountryAnalytics: ZodOpenApiOperationObject = {
   },
   responses: {
     "200": {
-      description: "The top countries by number of clicks",
+      description: "The top cities by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(getClickAnalyticsResponse["country"]),
+          schema: z.array(getClickAnalyticsResponse["city"]),
         },
       },
     },

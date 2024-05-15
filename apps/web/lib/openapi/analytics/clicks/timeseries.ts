@@ -5,12 +5,12 @@ import {
   getClickAnalyticsResponse,
 } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../../request";
 
-export const getTimeseriesAnalytics: ZodOpenApiOperationObject = {
-  operationId: "getTimeseriesAnalytics",
+export const getTimeseriesByClicks: ZodOpenApiOperationObject = {
+  operationId: "getTimeseriesByClicks",
   "x-speakeasy-name-override": "timeseries",
-  summary: "Retrieve timeseries analytics",
+  summary: "Retrieve timeseries analytics by clicks",
   description:
     "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
   requestParams: {

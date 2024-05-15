@@ -5,23 +5,23 @@ import {
   getClickAnalyticsResponse,
 } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
+import { workspaceParamsSchema } from "../../request";
 
-export const getCityAnalytics: ZodOpenApiOperationObject = {
-  operationId: "getCityAnalytics",
-  "x-speakeasy-name-override": "cities",
-  summary: "Retrieve city analytics",
+export const getDeviceByClicks: ZodOpenApiOperationObject = {
+  operationId: "getDeviceByClicks",
+  "x-speakeasy-name-override": "devices",
+  summary: "Retrieve top devices by clicks",
   description:
-    "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {
-      description: "The top cities by number of clicks",
+      description: "The top devices by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(getClickAnalyticsResponse["city"]),
+          schema: z.array(getClickAnalyticsResponse["device"]),
         },
       },
     },
