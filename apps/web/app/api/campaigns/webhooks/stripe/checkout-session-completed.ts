@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import { nanoid } from "@dub/utils";
 import type Stripe from "stripe";
 import { retrieveSubscription } from "./subscription";
@@ -33,6 +34,20 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   // Find lead
   const leadEvent = await getLeadEvent({ customerId: customer.id });
   if (!leadEvent || leadEvent.data.length === 0) {
+    return;
+  }
+
+  // Skip if invoice id is already processed
+  const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
+    ex: 60 * 60 * 24 * 7,
+    nx: true,
+  });
+
+  if (!ok) {
+    console.info(
+      "[Stripe Webhook] Skipping already processed invoice.",
+      invoiceId,
+    );
     return;
   }
 
