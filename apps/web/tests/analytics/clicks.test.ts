@@ -45,7 +45,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   });
 
   // deprecated, backwards compatiblity
-  test("deprecated: clicks count", async () => {
+  test("deprecated: by count", async () => {
     const { status, data: clicks } = await http.get<number>({
       path: "/analytics/clicks",
       query: { workspaceId, ...filter },
