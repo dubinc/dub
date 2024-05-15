@@ -29,6 +29,10 @@ const meta: Meta = {
         "danger-outline",
       ],
     },
+    type: {
+      control: "select",
+      options: ["button", "submit"],
+    },
   },
   args: {
     text: "Click Me",
