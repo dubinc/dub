@@ -89,12 +89,17 @@ export const intervalData: Record<
 export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
   "timeseries",
-  "country",
-  "city",
-  "device",
-  "browser",
+  "country", // backwards compatibility
+  "countries",
+  "city", // backwards compatibility
+  "cities",
+  "device", // backwards compatibility
+  "devices",
+  "browser", // backwards compatibility
+  "browsers",
   "os",
-  "referer",
+  "referer", // backwards compatibility
+  "referers",
   "top_links",
   "top_urls",
 ] as const;

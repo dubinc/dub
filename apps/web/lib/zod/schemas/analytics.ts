@@ -1,3 +1,4 @@
+import { formatAnalyticsEndpoint } from "@/lib/analytics";
 import {
   intervals,
   VALID_ANALYTICS_ENDPOINTS,
@@ -16,6 +17,7 @@ export const analyticsEndpointSchema = z.object({
         };
       },
     })
+    .transform((v) => formatAnalyticsEndpoint(v, "plural"))
     .optional()
     .describe(
       "The field to group the analytics by. If undefined, returns the total click count.",
@@ -141,48 +143,41 @@ export const getClickAnalyticsResponse = {
     start: z.string().describe("The starting timestamp of the interval"),
     clicks: z.number().describe("The number of clicks in the interval"),
   }),
-  country: z.object({
+  countries: z.object({
     country: z
       .enum(COUNTRY_CODES)
       .describe("The 2-letter country code: https://d.to/geo"),
     clicks: z.number().describe("The number of clicks from this country"),
   }),
-
-  city: z.object({
+  cities: z.object({
     city: z.string().describe("The name of the city"),
     country: z
       .enum(COUNTRY_CODES)
       .describe("The 2-letter country code of the city: https://d.to/geo"),
     clicks: z.number().describe("The number of clicks from this city"),
   }),
-
-  device: z.object({
+  devices: z.object({
     device: z.string().describe("The name of the device"),
     clicks: z.number().describe("The number of clicks from this device"),
   }),
-
-  browser: z.object({
+  browsers: z.object({
     browser: z.string().describe("The name of the browser"),
     clicks: z.number().describe("The number of clicks from this browser"),
   }),
-
   os: z.object({
     os: z.string().describe("The name of the OS"),
     clicks: z.number().describe("The number of clicks from this OS"),
   }),
-
-  referer: z.object({
+  referers: z.object({
     referer: z
       .string()
       .describe("The name of the referer. If unknown, this will be `(direct)`"),
     clicks: z.number().describe("The number of clicks from this referer"),
   }),
-
   top_links: z.object({
     link: z.string().describe("The unique ID of the short link"),
     clicks: z.number().describe("The number of clicks from this link"),
   }),
-
   top_urls: z.object({
     url: z.string().describe("The destination URL"),
     clicks: z.number().describe("The number of clicks from this URL"),

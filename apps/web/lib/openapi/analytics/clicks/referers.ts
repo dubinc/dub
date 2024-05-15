@@ -7,21 +7,21 @@ import {
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../../request";
 
-export const getCityByClicks: ZodOpenApiOperationObject = {
-  operationId: "getCityByClicks",
-  "x-speakeasy-name-override": "cities",
-  summary: "Retrieve top cities by clicks",
+export const getReferersByClicks: ZodOpenApiOperationObject = {
+  operationId: "getReferersByClicks",
+  "x-speakeasy-name-override": "referers",
+  summary: "Retrieve top referers by clicks",
   description:
-    "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {
-      description: "The top cities by number of clicks",
+      description: "The top referers by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(getClickAnalyticsResponse["city"]),
+          schema: z.array(getClickAnalyticsResponse["referers"]),
         },
       },
     },

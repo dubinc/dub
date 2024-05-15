@@ -7,21 +7,21 @@ import {
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../../request";
 
-export const getDeviceByClicks: ZodOpenApiOperationObject = {
-  operationId: "getDeviceByClicks",
-  "x-speakeasy-name-override": "devices",
-  summary: "Retrieve top devices by clicks",
+export const getBrowsersByClicks: ZodOpenApiOperationObject = {
+  operationId: "getBrowsersByClicks",
+  "x-speakeasy-name-override": "browsers",
+  summary: "Retrieve top browsers by clicks",
   description:
-    "Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the top browsers by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
   responses: {
     "200": {
-      description: "The top devices by number of clicks",
+      description: "The top browsers by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(getClickAnalyticsResponse["device"]),
+          schema: z.array(getClickAnalyticsResponse["browsers"]),
         },
       },
     },

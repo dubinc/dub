@@ -4,14 +4,14 @@ export type IntervalProps = (typeof intervals)[number];
 export type AnalyticsEndpoints =
   | "count"
   | "timeseries"
-  | "country"
-  | "city"
-  | "device"
-  | "browser"
+  | "countries"
+  | "cities"
+  | "devices"
+  | "browsers"
   | "os"
-  | "referer"
+  | "referers"
   | "top_links"
   | "top_urls";
-export type LocationTabs = "country" | "city";
+export type LocationTabs = "countries" | "cities";
 export type TopLinksTabs = "link" | "url";
-export type DeviceTabs = "device" | "browser" | "os";
+export type DeviceTabs = "devices" | "browsers" | "os";

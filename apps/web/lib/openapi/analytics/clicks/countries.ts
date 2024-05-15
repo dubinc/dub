@@ -7,7 +7,7 @@ import {
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../../request";
 
-export const getCountryByClicks: ZodOpenApiOperationObject = {
+export const getCountriesByClicks: ZodOpenApiOperationObject = {
   operationId: "getCountryByClicks",
   "x-speakeasy-name-override": "countries",
   summary: "Retrieve top countries by clicks",
@@ -21,7 +21,7 @@ export const getCountryByClicks: ZodOpenApiOperationObject = {
       description: "The top countries by number of clicks",
       content: {
         "application/json": {
-          schema: z.array(getClickAnalyticsResponse["country"]),
+          schema: z.array(getClickAnalyticsResponse["countries"]),
         },
       },
     },
