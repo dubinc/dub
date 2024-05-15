@@ -1,22 +1,35 @@
-import { isStored } from "@/lib/storage";
 import { LinkProps } from "@/lib/types";
 import {
-  BlurImage,
   Facebook,
+  ImageDrop,
   LinkedIn,
   LoadingCircle,
   Photo,
+  Popover,
   Twitter,
 } from "@dub/ui";
-import { getDomainWithoutWWW } from "@dub/utils";
-import { useMemo } from "react";
+import { Button } from "@dub/ui/src/button";
+import { getDomainWithoutWWW, resizeImage } from "@dub/utils";
+import { Edit2, Link2, Upload } from "lucide-react";
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useDebounce } from "use-debounce";
+import { usePromptModal } from "../prompt-modal";
 
 export default function Preview({
   data,
+  setData,
   generatingMetatags,
 }: {
   data: LinkProps;
+  setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
   const { title, description, image, url, password } = data;
@@ -26,45 +39,8 @@ export default function Preview({
     return getDomainWithoutWWW(debouncedUrl);
   }, [password, debouncedUrl]);
 
-  const previewImage = useMemo(() => {
-    if (generatingMetatags) {
-      return (
-        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 bg-gray-100">
-          <LoadingCircle />
-        </div>
-      );
-    }
-    if (image) {
-      if (isStored(image)) {
-        return (
-          <BlurImage
-            src={image}
-            alt="Preview"
-            width={1200}
-            height={627}
-            className="h-[250px] w-full object-cover"
-          />
-        );
-      } else {
-        return (
-          <img
-            src={image}
-            alt="Preview"
-            className="h-[250px] w-full object-cover"
-          />
-        );
-      }
-    } else {
-      return (
-        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 bg-gray-100">
-          <Photo className="h-8 w-8 text-gray-400" />
-          <p className="text-sm text-gray-400">
-            Enter a link to generate a preview.
-          </p>
-        </div>
-      );
-    }
-  }, [image, generatingMetatags]);
+  const onImageChange = (image: string) =>
+    setData((prev) => ({ ...prev, image, proxy: true }));
 
   return (
     <div>
@@ -88,8 +64,12 @@ export default function Preview({
               </div>
             </div>
           </div>
-          <div className="relative overflow-hidden rounded-2xl border border-gray-300">
-            {previewImage}
+          <div className="group relative overflow-hidden rounded-2xl border border-gray-300">
+            <ImagePreview
+              image={image}
+              onImageChange={onImageChange}
+              generatingMetatags={generatingMetatags}
+            />
             {title && (
               <div className="absolute bottom-2 left-2 rounded-md bg-[#414142] px-1.5 py-px">
                 <h3 className="max-w-sm truncate text-sm text-white">
@@ -119,8 +99,12 @@ export default function Preview({
               </div>
             </div>
           </div>
-          <div className="border border-gray-300">
-            {previewImage}
+          <div className="relative border border-gray-300">
+            <ImagePreview
+              image={image}
+              onImageChange={onImageChange}
+              generatingMetatags={generatingMetatags}
+            />
             <div className="grid gap-1 border-t border-gray-300 bg-[#f2f3f5] p-3">
               {hostname ? (
                 <p className="text-[0.8rem] uppercase text-[#606770]">
@@ -166,8 +150,12 @@ export default function Preview({
               </div>
             </div>
           </div>
-          <div className="overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_2px_3px_rgba(0,0,0,0.2)]">
-            {previewImage}
+          <div className="relative overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_2px_3px_rgba(0,0,0,0.2)]">
+            <ImagePreview
+              image={image}
+              onImageChange={onImageChange}
+              generatingMetatags={generatingMetatags}
+            />
             <div className="grid gap-1 border-t border-gray-300 bg-white p-3">
               {title ? (
                 <h3 className="truncate font-semibold text-[#000000E6]">
@@ -188,3 +176,128 @@ export default function Preview({
     </div>
   );
 }
+
+const ImagePreview = ({
+  image,
+  onImageChange,
+  generatingMetatags,
+}: {
+  image: string | null;
+  onImageChange: (image: string) => void;
+  generatingMetatags?: boolean;
+}) => {
+  const inputFileRef = useRef<HTMLInputElement>(null);
+
+  const [openPopover, setOpenPopover] = useState(false);
+  const [resizing, setResizing] = useState(false);
+
+  const { setShowPromptModal, PromptModal } = usePromptModal({
+    title: "Use image from URL",
+    description:
+      "Paste an image URL to use for your link's social media cards.",
+    label: "Image URL",
+    inputProps: {
+      placeholder: "https://example.com/og.png",
+    },
+    onSubmit: (image) => {
+      if (image) onImageChange(image);
+    },
+  });
+
+  const onInputFileChange = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      setResizing(true);
+
+      const src = await resizeImage(file);
+      onImageChange(src);
+
+      // Delay to prevent flickering
+      setTimeout(() => {
+        setResizing(false);
+      }, 500);
+    },
+    [],
+  );
+
+  const previewImage = useMemo(() => {
+    if (generatingMetatags || resizing) {
+      return (
+        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 bg-gray-100">
+          <LoadingCircle />
+        </div>
+      );
+    }
+    if (image) {
+      return (
+        <ImageDrop
+          variant="plain"
+          src={image}
+          onChange={onImageChange}
+          loading={generatingMetatags}
+          clickToUpload={false}
+          showHoverOverlay={false}
+        />
+      );
+    } else {
+      return (
+        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 bg-gray-100">
+          <Photo className="h-8 w-8 text-gray-400" />
+          <p className="text-sm text-gray-400">
+            Enter a link to generate a preview.
+          </p>
+        </div>
+      );
+    }
+  }, [image, generatingMetatags, resizing]);
+
+  return (
+    <>
+      {previewImage}
+      <Popover
+        align="end"
+        content={
+          <div className="grid w-full gap-px p-2">
+            <Button
+              text="Upload image"
+              variant="outline"
+              icon={<Upload className="h-4 w-4" />}
+              className="h-9 justify-start px-2 font-medium disabled:border-none disabled:bg-transparent"
+              onClick={() => {
+                inputFileRef.current?.click();
+                setOpenPopover(false);
+              }}
+            />
+            <Button
+              text="Use image from URL"
+              variant="outline"
+              icon={<Link2 className="h-4 w-4" />}
+              className="h-9 justify-start px-2 font-medium"
+              onClick={() => setShowPromptModal(true)}
+            />
+          </div>
+        }
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <div className="absolute right-2 top-2">
+          <Button
+            variant="secondary"
+            onClick={() => setOpenPopover(!openPopover)}
+            icon={<Edit2 className="h-3 w-3" />}
+            className="h-8 w-8 rounded-md p-0 transition-all hover:bg-gray-100"
+          />
+        </div>
+      </Popover>
+      <input
+        ref={inputFileRef}
+        onChange={onInputFileChange}
+        type="file"
+        className="hidden"
+      />
+      <PromptModal />
+    </>
+  );
+};
