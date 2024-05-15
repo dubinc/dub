@@ -1,9 +1,9 @@
 import { cn, resizeImage } from "@dub/utils";
+import { VariantProps, cva } from "class-variance-authority";
 import { UploadCloud } from "lucide-react";
-import { DragEvent, ReactNode, useId, useState } from "react";
+import { DragEvent, ReactNode, useState } from "react";
+import { toast } from "sonner";
 import { LoadingCircle, LoadingSpinner } from "./icons";
-
-import { cva, VariantProps } from "class-variance-authority";
 
 const imageUploadVariants = cva(
   "group relative isolate flex aspect-[1200/630] w-full flex-col items-center justify-center overflow-hidden bg-white transition-all hover:bg-gray-50",
@@ -22,7 +22,7 @@ const imageUploadVariants = cva(
 
 export type ImageUploadProps = {
   src: string | null;
-  onChange?: (src: string) => void;
+  onChange?: (src: string, file: File) => void;
   className?: string;
   iconClassName?: string;
 
@@ -57,6 +57,11 @@ export type ImageUploadProps = {
   resize?: boolean;
 
   /**
+   * A maximum file size (in megabytes) to check upon file selection
+   */
+  maxFileSizeMB?: number;
+
+  /**
    * Accessibility label for screen readers
    */
   accessibilityLabel?: string;
@@ -74,10 +79,9 @@ export function ImageUpload({
   content,
   targetResolution = { width: 1200, height: 630 },
   resize = true,
+  maxFileSizeMB = 0,
   accessibilityLabel = "Image upload",
 }: ImageUploadProps) {
-  const inputId = useId();
-
   const [resizing, setResizing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
@@ -90,10 +94,18 @@ export function ImageUpload({
         : e.target.files && e.target.files[0];
     if (!file) return;
 
+    if (maxFileSizeMB > 0 && file.size / 1024 / 1024 > maxFileSizeMB) {
+      toast.error(`File size too big (max ${maxFileSizeMB} MB)`);
+      return;
+    }
+
     if (resize) {
       setResizing(true);
 
-      onChange?.(await resizeImage(file, { ...targetResolution, quality: 1 }));
+      onChange?.(
+        await resizeImage(file, { ...targetResolution, quality: 1 }),
+        file,
+      );
 
       // Delay to prevent flickering
       setTimeout(() => {
@@ -101,14 +113,13 @@ export function ImageUpload({
       }, 500);
     } else {
       const reader = new FileReader();
-      reader.onload = (e) => onChange?.(e.target?.result as string);
+      reader.onload = (e) => onChange?.(e.target?.result as string, file);
       reader.readAsDataURL(file);
     }
   };
 
   return (
     <label
-      htmlFor={inputId}
       className={cn(
         imageUploadVariants({ variant }),
         clickToUpload && "cursor-pointer",
@@ -200,7 +211,6 @@ export function ImageUpload({
         <div className="sr-only mt-1 flex shadow-sm">
           <input
             key={src}
-            id={inputId}
             type="file"
             accept="image/*"
             onChange={onImageChange}
