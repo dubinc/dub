@@ -5,7 +5,7 @@ import { workspaceParamsSchema } from "../../request";
 
 export const getClicksAnalytics: ZodOpenApiOperationObject = {
   operationId: "getClicksAnalytics",
-  "x-speakeasy-name-override": "clicks",
+  "x-speakeasy-name-override": "",
   summary: "Retrieve clicks analytics",
   description:
     "Retrieve the number of clicks for a link, a domain, or the authenticated workspace.",
@@ -26,6 +26,6 @@ export const getClicksAnalytics: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["analytics"],
+  tags: ["analytics.clicks"],
   security: [{ token: [] }],
 };
