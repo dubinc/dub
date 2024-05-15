@@ -104,6 +104,14 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "top_urls",
 ] as const;
 
+export const DEPRECATED_ANALYTICS_ENDPOINTS = [
+  "country",
+  "city",
+  "device",
+  "browser",
+  "referer",
+];
+
 export const VALID_ANALYTICS_FILTERS = [
   "country",
   "city",

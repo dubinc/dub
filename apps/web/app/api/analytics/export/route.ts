@@ -1,4 +1,9 @@
-import { VALID_ANALYTICS_ENDPOINTS, getClicks } from "@/lib/analytics";
+import {
+  AnalyticsEndpoints,
+  DEPRECATED_ANALYTICS_ENDPOINTS,
+  VALID_ANALYTICS_ENDPOINTS,
+  getClicks,
+} from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
@@ -121,11 +126,15 @@ export const GET = withWorkspace(
         } else {
           // we're not fetching top URLs data if linkId is not defined
           if (endpoint === "top_urls" && !linkId) return;
+          // skip clicks count
+          if (endpoint === "count") return;
+          // skip deprecated endpoints
+          if (DEPRECATED_ANALYTICS_ENDPOINTS.includes(endpoint)) return;
 
           const response = await getClicks({
             workspaceId: workspace.id,
             ...(linkId && { linkId }),
-            endpoint,
+            endpoint: endpoint as AnalyticsEndpoints,
             ...parsedParams,
           });
           if (!response || response.length === 0) return;
