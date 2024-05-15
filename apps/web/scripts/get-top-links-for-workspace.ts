@@ -36,7 +36,7 @@ async function main() {
   }
   const topLinks = await getClicks({
     workspaceId: workspace.id,
-    groupBy: "top_links",
+    endpoint: "top_links",
     interval: "30d",
     root: false,
   }).then(async (data) => {
