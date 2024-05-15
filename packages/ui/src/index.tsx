@@ -9,6 +9,7 @@ export * from "./button";
 export * from "./checkbox";
 export * from "./form";
 export * from "./image-drop";
+export * from "./input";
 export * from "./input-select";
 export * from "./label";
 export * from "./modal";

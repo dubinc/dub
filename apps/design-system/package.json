@@ -1,0 +1,36 @@
+{
+  "name": "design-system",
+  "version": "0.1.0",
+  "private": true,
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "storybook dev -p 6006 --no-open",
+    "build": "storybook build"
+  },
+  "dependencies": {
+    "next": "14.2.2",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@chromatic-com/storybook": "^1.4.0",
+    "@dub/tailwind-config": "workspace:*",
+    "@dub/ui": "workspace:*",
+    "@storybook/addon-essentials": "^8.1.1",
+    "@storybook/addon-links": "^8.1.1",
+    "@storybook/blocks": "^8.1.1",
+    "@storybook/nextjs": "^8.1.1",
+    "@storybook/react": "^8.1.1",
+    "@storybook/test": "^8.1.1",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8",
+    "storybook": "^8.1.1",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5"
+  }
+}
