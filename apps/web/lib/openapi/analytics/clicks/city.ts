@@ -27,6 +27,6 @@ export const getCityByClicks: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["Analytics"],
+  tags: ["analytics.clicks"],
   security: [{ token: [] }],
 };

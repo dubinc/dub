@@ -27,6 +27,6 @@ export const getCountryByClicks: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["Analytics"],
+  tags: ["analytics.clicks"],
   security: [{ token: [] }],
 };
