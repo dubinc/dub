@@ -1,7 +1,7 @@
 ---
-title: "Clicks"
-"og:title": "dub.analytics.clicks - Retrieve clicks analytics - TypeScript SDK"
-description: "Retrieve clicks analytics for a link, a domain, or the authenticated workspace."
+title: "Count"
+"og:title": "dub.analytics.clicks.count - Retrieve total clicks count - TypeScript SDK"
+description: "Retrieve total clicks count for a link, a domain, or the authenticated workspace."
 ---
 
 import AnalyticsArguments from "/snippets/analytics-arguments.mdx";
@@ -20,7 +20,7 @@ The number of clicks matching the specified queries.
 <RequestExample>
 
 ```typescript
-await dub.analytics.clicks({
+await dub.analytics.clicks.count({
   key: "dummy",
   domain: "dub.sh",
   interval: "30d",

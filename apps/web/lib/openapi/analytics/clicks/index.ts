@@ -1,7 +1,7 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
 import { getBrowserByClicks } from "./browser";
 import { getCityByClicks } from "./city";
-import { getClicksAnalytics } from "./clicks";
+import { getClicksCount } from "./clicks";
 import { getCountryByClicks } from "./country";
 import { getDeviceByClicks } from "./device";
 import { getOSByClicks } from "./os";
@@ -12,7 +12,7 @@ import { getTopURLsByClicks } from "./top-urls";
 
 export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   "/analytics/clicks": {
-    get: getClicksAnalytics,
+    get: getClicksCount,
   },
   "/analytics/clicks/timeseries": {
     get: getTimeseriesByClicks,

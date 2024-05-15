@@ -90,14 +90,14 @@
     {
       "group": "Click Analytics",
       "pages": [
-        "api-reference/endpoint/retrieve-clicks-analytics",
+        "api-reference/endpoint/retrieve-clicks-count",
+        "api-reference/endpoint/retrieve-timeseries-by-clicks",
         "api-reference/endpoint/retrieve-browser-by-clicks",
         "api-reference/endpoint/retrieve-city-by-clicks",
         "api-reference/endpoint/retrieve-country-by-clicks",
         "api-reference/endpoint/retrieve-device-by-clicks",
         "api-reference/endpoint/retrieve-os-by-clicks",
         "api-reference/endpoint/retrieve-referer-by-clicks",
-        "api-reference/endpoint/retrieve-timeseries-by-clicks",
         "api-reference/endpoint/retrieve-top-links-by-clicks",
         "api-reference/endpoint/retrieve-top-urls-by-clicks"
       ]
@@ -163,14 +163,14 @@
             {
               "group": "Clicks",
               "pages": [
-                "sdks/typescript/analytics/clicks",
+                "sdks/typescript/analytics/clicks/count",
+                "sdks/typescript/analytics/clicks/timeseries",
                 "sdks/typescript/analytics/clicks/browsers",
                 "sdks/typescript/analytics/clicks/cities",
                 "sdks/typescript/analytics/clicks/countries",
                 "sdks/typescript/analytics/clicks/devices",
                 "sdks/typescript/analytics/clicks/os",
                 "sdks/typescript/analytics/clicks/referers",
-                "sdks/typescript/analytics/clicks/timeseries",
                 "sdks/typescript/analytics/clicks/top-links",
                 "sdks/typescript/analytics/clicks/top-urls"
               ]
@@ -258,7 +258,7 @@
     },
     {
       "source": "/api-reference/endpoint/retrieve-clicks",
-      "destination": "/api-reference/endpoint/retrieve-clicks-analytics"
+      "destination": "/api-reference/endpoint/retrieve-clicks-count"
     },
     {
       "source": "/api-reference/endpoint/retrieve-country",
@@ -287,6 +287,10 @@
     {
       "source": "/api-reference/endpoint/retrieve-top-urls",
       "destination": "/api-reference/endpoint/retrieve-top-urls-by-clicks"
+    },
+    {
+      "source": "/sdks/typescript/analytics/clicks",
+      "destination": "/sdks/typescript/analytics/clicks/count"
     },
     {
       "source": "/sdks/typescript/analytics/:path*",

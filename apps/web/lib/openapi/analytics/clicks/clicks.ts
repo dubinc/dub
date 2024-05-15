@@ -3,12 +3,12 @@ import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../../request";
 
-export const getClicksAnalytics: ZodOpenApiOperationObject = {
-  operationId: "getClicksAnalytics",
-  "x-speakeasy-name-override": "",
-  summary: "Retrieve clicks analytics",
+export const getClicksCount: ZodOpenApiOperationObject = {
+  operationId: "getClicksCount",
+  "x-speakeasy-name-override": "count",
+  summary: "Retrieve the total clicks count",
   description:
-    "Retrieve the number of clicks for a link, a domain, or the authenticated workspace.",
+    "Retrieve the total number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },
