@@ -44,15 +44,15 @@ export const clickAnalyticsPaths: ZodOpenApiPathsObject = {
   /**
    * DEPRECATED ENDPOINTS
    */
-  "/analytics/clicks": {
-    get: {
-      ...getClicksCount,
-      operationId: "getClicksCountDeprecated",
-      "x-speakeasy-name-override": "clicks",
-      tags: ["analytics"],
-      deprecated: true,
-    },
-  },
+  // "/analytics/clicks": {
+  //   get: {
+  //     ...getClicksCount,
+  //     operationId: "getClicksCountDeprecated",
+  //     "x-speakeasy-name-override": "clicks",
+  //     tags: ["analytics"],
+  //     deprecated: true,
+  //   },
+  // },
   "/analytics/timeseries": {
     get: {
       ...getTimeseriesByClicks,

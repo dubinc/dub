@@ -1,4 +1,8 @@
-import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics";
+import {
+  DEPRECATED_ANALYTICS_ENDPOINTS,
+  VALID_ANALYTICS_ENDPOINTS,
+  formatAnalyticsEndpoint,
+} from "@/lib/analytics";
 import z from "@/lib/zod";
 import { getClickAnalyticsResponse } from "@/lib/zod/schemas";
 import { describe, expect, test } from "vitest";
@@ -11,7 +15,9 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
+  VALID_ANALYTICS_ENDPOINTS.filter(
+    (endpoint) => !DEPRECATED_ANALYTICS_ENDPOINTS.includes(endpoint),
+  ).map((endpoint) => {
     test(`by ${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/clicks/${endpoint}`,
@@ -24,7 +30,11 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
         expect(data).toBeGreaterThanOrEqual(0);
       } else {
         const parsed = z
-          .array(getClickAnalyticsResponse[endpoint].strict())
+          .array(
+            getClickAnalyticsResponse[
+              formatAnalyticsEndpoint(endpoint, "plural")
+            ].strict(),
+          )
           .safeParse(data);
 
         expect(status).toEqual(200);
@@ -47,8 +57,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   });
 
   // deprecated, backwards compatiblity
-  VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
-    if (endpoint === "count") return;
+  DEPRECATED_ANALYTICS_ENDPOINTS.map((endpoint) => {
     test(`deprecated: by ${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/${endpoint}`,
@@ -56,7 +65,11 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
       });
 
       const parsed = z
-        .array(getClickAnalyticsResponse[endpoint].strict())
+        .array(
+          getClickAnalyticsResponse[
+            formatAnalyticsEndpoint(endpoint, "plural")
+          ].strict(),
+        )
         .safeParse(data);
 
       expect(status).toEqual(200);
