@@ -1,6 +1,6 @@
 import { cn, resizeImage } from "@dub/utils";
 import { UploadCloud } from "lucide-react";
-import { DragEvent, useId, useState } from "react";
+import { DragEvent, ReactNode, useId, useState } from "react";
 import { LoadingCircle, LoadingSpinner } from "./icons";
 
 import { cva, VariantProps } from "class-variance-authority";
@@ -24,6 +24,7 @@ export type ImageUploadProps = {
   src: string | null;
   onChange?: (src: string) => void;
   className?: string;
+  iconClassName?: string;
 
   /**
    * Whether to display a loading spinner
@@ -39,6 +40,11 @@ export type ImageUploadProps = {
    * Whether to show instruction overlay when hovered
    */
   showHoverOverlay?: boolean;
+
+  /**
+   * Content to display below the upload icon (null to only display the icon)
+   */
+  content?: ReactNode | null;
 
   /**
    * Desired resolution to suggest and optionally resize to
@@ -61,9 +67,11 @@ export function ImageUpload({
   onChange,
   variant,
   className,
+  iconClassName,
   loading = false,
   clickToUpload = true,
   showHoverOverlay = true,
+  content,
   targetResolution = { width: 1200, height: 630 },
   resize = true,
   accessibilityLabel = "Image upload",
@@ -159,15 +167,24 @@ export function ImageUpload({
               className={cn(
                 "h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95",
                 dragActive ? "scale-110" : "scale-100",
+                iconClassName,
               )}
             />
-            <p className="mt-2 text-center text-sm text-gray-500">
-              Drag and drop {clickToUpload && "or click"} to upload.
-            </p>
-            <p className="mt-2 text-center text-sm text-gray-500">
-              Recommended: {targetResolution.width} x {targetResolution.height}{" "}
-              pixels
-            </p>
+            {content !== null && (
+              <div className="mt-2 text-center text-sm text-gray-500">
+                {content ?? (
+                  <>
+                    <p>
+                      Drag and drop {clickToUpload && "or click"} to upload.
+                    </p>
+                    <p className="mt-2">
+                      Recommended: {targetResolution.width} x{" "}
+                      {targetResolution.height} pixels
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
           </>
         )}
         <span className="sr-only">{accessibilityLabel}</span>
