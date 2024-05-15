@@ -86,7 +86,8 @@ export const intervalData: Record<
   },
 };
 
-export const VALID_TINYBIRD_ENDPOINTS = [
+export const VALID_ANALYTICS_ENDPOINTS = [
+  "count",
   "timeseries",
   "country",
   "city",
@@ -96,7 +97,6 @@ export const VALID_TINYBIRD_ENDPOINTS = [
   "referer",
   "top_links",
   "top_urls",
-  // "top_aliases",
 ] as const;
 
 export const VALID_ANALYTICS_FILTERS = [

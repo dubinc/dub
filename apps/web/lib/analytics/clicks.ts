@@ -21,7 +21,7 @@ export const getClicks = async (
   // 1. linkId is defined
   // 2. endpoint is not defined
   // 3. interval is all time
-  if (linkId && !endpoint && interval === "all") {
+  if (linkId && endpoint === "count" && interval === "all") {
     let response = await conn.execute(
       "SELECT clicks FROM Link WHERE `id` = ?",
       [linkId],
@@ -40,9 +40,9 @@ export const getClicks = async (
   }
 
   const pipe = tb.buildPipe({
-    pipe: endpoint || "clicks",
+    pipe: `clicks_${endpoint || "count"}`,
     parameters: getClickAnalytics,
-    data: getClickAnalyticsResponse[endpoint || "clicks"],
+    data: getClickAnalyticsResponse[endpoint || "count"],
   });
 
   let granularity: "minute" | "hour" | "day" | "month" = "day";
@@ -74,7 +74,7 @@ export const getClicks = async (
     }),
   );
 
-  // for total clicks (endpoint undefined), we return just the value;
+  // for total clicks, we return just the value;
   // everything else we return an array of values
-  return endpoint ? res.data : res.data[0];
+  return endpoint === "count" ? res.data[0].clicks : res.data;
 };

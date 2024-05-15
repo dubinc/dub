@@ -1,4 +1,4 @@
-import { VALID_TINYBIRD_ENDPOINTS, getClicks } from "@/lib/analytics";
+import { VALID_ANALYTICS_ENDPOINTS, getClicks } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
@@ -46,7 +46,7 @@ export const GET = withWorkspace(
     const zip = new JSZip();
 
     await Promise.all(
-      VALID_TINYBIRD_ENDPOINTS.map(async (endpoint) => {
+      VALID_ANALYTICS_ENDPOINTS.map(async (endpoint) => {
         if (endpoint === "top_links") {
           // no need to fetch top links data if linkId is defined
           // since this is just a single link

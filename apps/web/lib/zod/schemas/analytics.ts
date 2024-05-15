@@ -1,4 +1,7 @@
-import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics/constants";
+import {
+  intervals,
+  VALID_ANALYTICS_ENDPOINTS,
+} from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
@@ -6,10 +9,10 @@ import { parseDateSchema } from "./utils";
 
 export const analyticsEndpointSchema = z.object({
   endpoint: z
-    .enum(VALID_TINYBIRD_ENDPOINTS, {
+    .enum(VALID_ANALYTICS_ENDPOINTS, {
       errorMap: (_issue, _ctx) => {
         return {
-          message: `Invalid endpoint value. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
+          message: `Invalid endpoint value. Valid endpoints are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
         };
       },
     })
@@ -131,11 +134,9 @@ export const getClickAnalytics = clickAnalyticsQuerySchema
 
 // Analytics response schemas
 export const getClickAnalyticsResponse = {
-  clicks: z
-    .object({
-      "count()": z.number().describe("The total number of clicks"),
-    })
-    .transform((data) => data["count()"]),
+  count: z.object({
+    clicks: z.number().describe("The total number of clicks"),
+  }),
   timeseries: z.object({
     start: z.string().describe("The starting timestamp of the interval"),
     clicks: z.number().describe("The number of clicks in the interval"),

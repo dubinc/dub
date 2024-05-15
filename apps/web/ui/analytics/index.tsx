@@ -106,7 +106,7 @@ export default function Analytics({
   }, [id, domain, key, searchParams, interval, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}?${queryString}`,
+    `${baseApiPath}/count?${queryString}`,
     fetcher,
   );
 

@@ -2,7 +2,7 @@ import { intervals } from "./constants";
 
 export type IntervalProps = (typeof intervals)[number];
 export type AnalyticsEndpoints =
-  | undefined
+  | "count"
   | "timeseries"
   | "country"
   | "city"
@@ -14,4 +14,4 @@ export type AnalyticsEndpoints =
   | "top_urls";
 export type LocationTabs = "country" | "city";
 export type TopLinksTabs = "link" | "url";
-export type DeviceTabs = "device" | "browser" | "os" | "ua";
+export type DeviceTabs = "device" | "browser" | "os";
