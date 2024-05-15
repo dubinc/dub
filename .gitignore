@@ -38,6 +38,7 @@ next-env.d.ts
 
 # miscellaneous
 /pages/api/scripts*
+apps/docs/openapi.json
 .react-email
 .contentlayer
 .vscode
