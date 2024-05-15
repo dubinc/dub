@@ -10,9 +10,9 @@ import { workspaceParamsSchema } from "../../request";
 export const getTimeseriesByClicks: ZodOpenApiOperationObject = {
   operationId: "getTimeseriesByClicks",
   "x-speakeasy-name-override": "timeseries",
-  summary: "Retrieve timeseries analytics by clicks",
+  summary: "Retrieve timeseries click analytics",
   description:
-    "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
+    "Retrieve timeseries click analytics for a link, a domain, or the authenticated workspace over a period of time.",
   requestParams: {
     query: workspaceParamsSchema.merge(clickAnalyticsQuerySchema),
   },

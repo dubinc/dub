@@ -1,7 +1,7 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
 import { getBrowserByClicks } from "./browser";
 import { getCityByClicks } from "./city";
-import { getClicksCount } from "./clicks";
+import { getClicksCount } from "./count";
 import { getCountryByClicks } from "./country";
 import { getDeviceByClicks } from "./device";
 import { getOSByClicks } from "./os";
