@@ -28,7 +28,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   });
 
   // Find lead
-  const leadEvent = await getLeadEvent({ customer_id: customer.id });
+  const leadEvent = await getLeadEvent({ customerId: customer.id });
   if (!leadEvent || leadEvent.data.length === 0) {
     return;
   }
