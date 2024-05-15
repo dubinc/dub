@@ -288,6 +288,7 @@ const ImagePreview = ({
         ref={inputFileRef}
         onChange={onInputFileChange}
         type="file"
+        accept="image/*"
         className="hidden"
       />
       <PromptModal />
