@@ -30,8 +30,6 @@ export function ContactForm({
     }[]
   >([]);
 
-  const [dragActive, setDragActive] = useState(false);
-
   const handleUpload = async (file: File) => {
     setImages((prev) => [...prev, { file, uploading: true }]);
 

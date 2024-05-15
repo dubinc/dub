@@ -2,7 +2,7 @@
 
 import { Button, ImageUpload } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function UploadAvatar() {
@@ -18,28 +18,6 @@ export default function UploadAvatar() {
           : null),
     );
   }, [session]);
-
-  const [dragActive, setDragActive] = useState(false);
-
-  const onChangePicture = useCallback(
-    (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        if (file.size / 1024 / 1024 > 2) {
-          toast.error("File size too big (max 2MB)");
-        } else if (file.type !== "image/png" && file.type !== "image/jpeg") {
-          toast.error("File type not supported (.png or .jpg only)");
-        } else {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            setImage(e.target?.result as string);
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-    },
-    [setImage],
-  );
 
   const [uploading, setUploading] = useState(false);
 
