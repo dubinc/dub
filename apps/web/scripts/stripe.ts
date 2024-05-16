@@ -24,19 +24,30 @@ async function main() {
 
   // Create checkout session for this customer
   const { url } = await stripe.checkout.sessions.create({
-    customer_email: "jackson@dub.co",
+    customer_email: "kiran@example.com",
     success_url: "https://dub.co?session_id={CHECKOUT_SESSION_ID}",
     cancel_url: "https://dub.co",
     line_items: [
+      // Recurring
       {
         price: "price_1PE8VYSIvbPMbbGzw4JsqFye",
-        quantity: 1,
+        quantity: 2,
       },
+
+      // One-time
+      // {
+      //   price: "price_1PGxy6SIvbPMbbGz8xFJOPkD",
+      //   quantity: 2,
+      // },
     ],
+    // invoice_creation: {
+    //   enabled: true,
+    // },
     mode: "subscription",
     metadata: {
-      dubCustomerId: "jackson@dub.co",
+      dubCustomerId: "kiran",
     },
+    // customer_creation: "always",
   });
 
   console.log(url);
