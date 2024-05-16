@@ -1,19 +1,24 @@
 import { LinkProps } from "@/lib/types";
 import {
   Facebook,
-  ImageDrop,
+  ImageUpload,
   LinkedIn,
   LoadingCircle,
   Photo,
   Popover,
   Twitter,
+  Unsplash,
+  useMediaQuery,
+  useResizeObserver,
 } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
 import { getDomainWithoutWWW, resizeImage } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import { Edit2, Link2, Upload } from "lucide-react";
 import {
   ChangeEvent,
   Dispatch,
+  RefObject,
   SetStateAction,
   useCallback,
   useMemo,
@@ -22,6 +27,7 @@ import {
 } from "react";
 import { useDebounce } from "use-debounce";
 import { usePromptModal } from "../prompt-modal";
+import UnsplashSearch from "./unsplash-search";
 
 export default function Preview({
   data,
@@ -232,7 +238,7 @@ const ImagePreview = ({
     }
     if (image) {
       return (
-        <ImageDrop
+        <ImageUpload
           variant="plain"
           src={image}
           onChange={onImageChange}
@@ -259,25 +265,12 @@ const ImagePreview = ({
       <Popover
         align="end"
         content={
-          <div className="grid w-full gap-px p-2">
-            <Button
-              text="Upload image"
-              variant="outline"
-              icon={<Upload className="h-4 w-4" />}
-              className="h-9 justify-start px-2 font-medium disabled:border-none disabled:bg-transparent"
-              onClick={() => {
-                inputFileRef.current?.click();
-                setOpenPopover(false);
-              }}
-            />
-            <Button
-              text="Use image from URL"
-              variant="outline"
-              icon={<Link2 className="h-4 w-4" />}
-              className="h-9 justify-start px-2 font-medium"
-              onClick={() => setShowPromptModal(true)}
-            />
-          </div>
+          <ImagePreviewPopoverContent
+            onImageChange={onImageChange}
+            inputFileRef={inputFileRef}
+            setOpenPopover={setOpenPopover}
+            setShowPromptModal={setShowPromptModal}
+          />
         }
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
@@ -292,12 +285,91 @@ const ImagePreview = ({
         </div>
       </Popover>
       <input
+        key={image}
         ref={inputFileRef}
         onChange={onInputFileChange}
         type="file"
+        accept="image/*"
         className="hidden"
       />
       <PromptModal />
     </>
+  );
+};
+
+const ImagePreviewPopoverContent = ({
+  onImageChange,
+  inputFileRef,
+  setOpenPopover,
+  setShowPromptModal,
+}: {
+  onImageChange: (image: string) => void;
+  inputFileRef: RefObject<HTMLInputElement>;
+  setOpenPopover: Dispatch<SetStateAction<boolean>>;
+  setShowPromptModal: Dispatch<SetStateAction<boolean>>;
+}) => {
+  const contentWrapperRef = useRef<HTMLDivElement>(null);
+  const resizeObserverEntry = useResizeObserver(contentWrapperRef);
+
+  const { isMobile } = useMediaQuery();
+
+  const [state, setState] = useState<"default" | "unsplash">("default");
+
+  return (
+    <motion.div
+      className="relative overflow-hidden"
+      animate={{
+        width: isMobile
+          ? "100%"
+          : resizeObserverEntry?.borderBoxSize[0].inlineSize ?? "auto",
+        height: resizeObserverEntry?.borderBoxSize[0].blockSize ?? "auto",
+      }}
+      transition={{ type: "spring", duration: 0.3, bounce: 0.15 }}
+    >
+      <div ref={contentWrapperRef} className="inline-block w-full sm:w-auto">
+        <AnimatePresence>
+          {state === "unsplash" && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+            >
+              <UnsplashSearch
+                onImageSelected={onImageChange}
+                setOpenPopover={setOpenPopover}
+              />
+            </motion.div>
+          )}
+
+          {state === "default" && (
+            <div className="grid gap-px p-2">
+              <Button
+                text="Upload image"
+                variant="outline"
+                icon={<Upload className="h-4 w-4" />}
+                className="h-9 justify-start px-2 font-medium disabled:border-none disabled:bg-transparent"
+                onClick={() => {
+                  inputFileRef.current?.click();
+                  setOpenPopover(false);
+                }}
+              />
+              <Button
+                text="Use image from URL"
+                variant="outline"
+                icon={<Link2 className="h-4 w-4" />}
+                className="h-9 justify-start px-2 font-medium"
+                onClick={() => setShowPromptModal(true)}
+              />
+              <Button
+                text="Use image from Unsplash"
+                variant="outline"
+                icon={<Unsplash className="h-4 w-4 p-0.5" />}
+                className="h-9 justify-start px-2 font-medium"
+                onClick={() => setState("unsplash")}
+              />
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
