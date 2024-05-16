@@ -24,19 +24,6 @@ export const PUT = withWorkspace(
         projectId: workspace.id,
         url: body.url,
       },
-      include: {
-        tags: {
-          select: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
     });
 
     if (link) {
@@ -53,7 +40,31 @@ export const PUT = withWorkspace(
 
       // if link and updatedLink are identical, return the link
       if (deepEqual(link, updatedLink)) {
-        return NextResponse.json(transformLink(link), { headers });
+        const tags = await prisma.tag.findMany({
+          where: {
+            links: {
+              some: {
+                linkId: link.id,
+              },
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        });
+
+        const response = transformLink({
+          ...link,
+          tags: tags.map((tag) => ({
+            tag,
+          })),
+        });
+
+        return NextResponse.json(response, {
+          headers,
+        });
       }
 
       if (updatedLink.projectId !== link?.projectId) {

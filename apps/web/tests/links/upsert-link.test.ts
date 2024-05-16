@@ -46,7 +46,7 @@ describe.sequential("PUT /links/upsert", async () => {
     const { data: updatedLink } = await http.put<Link>({
       path: "/links/upsert",
       query: { workspaceId },
-      body: { domain, url },
+      body: { domain, url, comments: "Updated comment" },
     });
 
     expect(updatedLink).toStrictEqual({
@@ -56,6 +56,7 @@ describe.sequential("PUT /links/upsert", async () => {
       userId: user.id,
       projectId,
       workspaceId,
+      comments: "Updated comment",
       shortLink: `https://${domain}/${createdLink.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${createdLink.key}?qr=1`,
       tags: [],
