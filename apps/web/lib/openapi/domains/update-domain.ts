@@ -1,5 +1,8 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
+import {
+  DomainSchema,
+  updateDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 

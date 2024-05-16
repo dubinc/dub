@@ -1,10 +1,13 @@
-import { getClicks } from "@/lib/analytics";
+import { getClicks } from "@/lib/analytics/clicks";
 import { setRootDomain } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { DomainSchema, transferDomainBodySchema } from "@/lib/zod/schemas";
+import {
+  DomainSchema,
+  transferDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 

@@ -6,8 +6,15 @@ import {
   validSlugRegex,
 } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { planSchema, roleSchema } from ".";
 import { DomainSchema } from "./domains";
+import { planSchema, roleSchema } from "./misc";
+
+export const workspaceIdSchema = z.object({
+  workspaceId: z
+    .string()
+    .min(1, "Workspace ID is required.")
+    .describe("The ID of the workspace the link belongs to."),
+});
 
 export const WorkspaceSchema = z
   .object({

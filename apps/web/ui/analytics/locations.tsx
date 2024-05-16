@@ -1,4 +1,5 @@
-import { LocationTabs, formatAnalyticsEndpoint } from "@/lib/analytics";
+import { LocationTabs } from "@/lib/analytics/types";
+import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";

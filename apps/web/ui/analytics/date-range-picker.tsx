@@ -1,4 +1,5 @@
-import { INTERVALS, validDateRangeForPlan } from "@/lib/analytics";
+import { INTERVALS } from "@/lib/analytics/constants";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   IconMenu,

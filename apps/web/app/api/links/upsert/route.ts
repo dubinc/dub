@@ -9,7 +9,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
-import { createLinkBodySchema } from "@/lib/zod/schemas";
+import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 

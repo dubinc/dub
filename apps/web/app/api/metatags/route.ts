@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
-import { getUrlQuerySchema } from "@/lib/zod/schemas";
+import { getUrlQuerySchema } from "@/lib/zod/schemas/links";
 import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
