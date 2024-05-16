@@ -1,4 +1,4 @@
-import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useTags from "@/lib/swr/use-tags";
 import { Chart } from "@/ui/shared/icons";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";

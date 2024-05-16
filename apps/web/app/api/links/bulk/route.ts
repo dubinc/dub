@@ -4,7 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
-import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas";
+import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links

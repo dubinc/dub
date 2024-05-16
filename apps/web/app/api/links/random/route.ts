@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getRandomKey } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import { domainKeySchema } from "@/lib/zod/schemas";
+import { domainKeySchema } from "@/lib/zod/schemas/links";
 import { getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";

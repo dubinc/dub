@@ -8,7 +8,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
-import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas";
+import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

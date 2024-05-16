@@ -5,7 +5,7 @@
   2. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
 */
 
-import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
 import { useParams, usePathname, useSearchParams } from "next/navigation";

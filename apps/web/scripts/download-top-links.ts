@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics";
+import { getClicks } from "@/lib/analytics/clicks";
 import { prisma } from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";

@@ -2,12 +2,13 @@ import { conn } from "@/lib/planetscale";
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
-import { AnalyticsEndpoints, intervalData } from ".";
 import {
   clickAnalyticsQuerySchema,
   getClickAnalytics,
   getClickAnalyticsResponse,
-} from "../zod/schemas";
+} from "../zod/schemas/analytics";
+import { intervalData } from "./constants";
+import { AnalyticsEndpoints } from "./types";
 
 export const getClicks = async (
   props: z.infer<typeof clickAnalyticsQuerySchema> & {

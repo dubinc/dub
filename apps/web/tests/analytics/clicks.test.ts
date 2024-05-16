@@ -1,10 +1,10 @@
 import {
   DEPRECATED_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
-  formatAnalyticsEndpoint,
-} from "@/lib/analytics";
+} from "@/lib/analytics/constants";
+import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import z from "@/lib/zod";
-import { getClickAnalyticsResponse } from "@/lib/zod/schemas";
+import { getClickAnalyticsResponse } from "@/lib/zod/schemas/analytics";
 import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
