@@ -11,7 +11,8 @@
     "module": "esnext",
     "resolveJsonModule": true,
     "strict": true,
-    "target": "esnext"
+    "target": "esnext",
+    "outDir": "./dist",
   },
   "include": ["./"],
   "exclude": ["node_modules", "dist"]
