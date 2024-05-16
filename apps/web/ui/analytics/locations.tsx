@@ -1,14 +1,18 @@
-import { LocationTabs } from "@/lib/analytics";
+import { LocationTabs, formatAnalyticsEndpoint } from "@/lib/analytics";
 import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import BarList from "./bar-list";
 
 export default function Locations() {
-  const [tab, setTab] = useState<LocationTabs>("country");
+  const [tab, setTab] = useState<LocationTabs>("countries");
+  const singularTabName = useMemo(
+    () => formatAnalyticsEndpoint(tab, "singular"),
+    [tab],
+  );
 
   const { baseApiPath, queryString } = useContext(AnalyticsContext);
 
@@ -22,7 +26,7 @@ export default function Locations() {
 
   const barList = (limit?: number) => (
     <BarList
-      tab={tab}
+      tab={singularTabName}
       data={
         data?.map((d) => ({
           icon: (
@@ -32,10 +36,10 @@ export default function Locations() {
               className="h-3 w-5"
             />
           ),
-          title: tab === "country" ? COUNTRIES[d.country] : d.city,
+          title: tab === "countries" ? COUNTRIES[d.country] : d.city,
           href: queryParams({
             set: {
-              [tab]: d[tab],
+              [singularTabName]: d[singularTabName],
             },
             getNewPath: true,
           }) as string,
@@ -65,7 +69,7 @@ export default function Locations() {
         <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold">Locations</h1>
           <TabSelect
-            options={["country", "city"]}
+            options={["countries", "cities"]}
             selected={tab}
             // @ts-ignore
             selectAction={setTab}

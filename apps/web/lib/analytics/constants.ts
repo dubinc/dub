@@ -44,7 +44,13 @@ export const INTERVALS = [
   },
 ];
 
-export const intervalData = {
+export const intervalData: Record<
+  string,
+  {
+    startDate: Date;
+    granularity: "minute" | "hour" | "day" | "month";
+  }
+> = {
   "1h": {
     startDate: new Date(Date.now() - 3600000),
     granularity: "minute",
@@ -80,19 +86,31 @@ export const intervalData = {
   },
 };
 
-export const VALID_TINYBIRD_ENDPOINTS = [
-  "clicks",
+export const VALID_ANALYTICS_ENDPOINTS = [
+  "count",
   "timeseries",
+  "country", // backwards compatibility
+  "countries",
+  "city", // backwards compatibility
+  "cities",
+  "device", // backwards compatibility
+  "devices",
+  "browser", // backwards compatibility
+  "browsers",
+  "os",
+  "referer", // backwards compatibility
+  "referers",
+  "top_links",
+  "top_urls",
+] as const;
+
+export const DEPRECATED_ANALYTICS_ENDPOINTS = [
   "country",
   "city",
   "device",
   "browser",
-  "os",
   "referer",
-  "top_links",
-  "top_urls",
-  // "top_aliases",
-] as const;
+];
 
 export const VALID_ANALYTICS_FILTERS = [
   "country",

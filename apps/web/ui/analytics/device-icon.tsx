@@ -11,7 +11,7 @@ export default function DeviceIcon({
   tab: DeviceTabs;
   className: string;
 }) {
-  if (tab === "device") {
+  if (tab === "devices") {
     return (
       <BlurImage
         src={
@@ -26,7 +26,7 @@ export default function DeviceIcon({
         className={className}
       />
     );
-  } else if (tab === "browser") {
+  } else if (tab === "browsers") {
     if (display === "Chrome") {
       return <Chrome className={className} />;
     } else if (display === "Safari" || display === "Mobile Safari") {

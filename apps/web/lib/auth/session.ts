@@ -22,7 +22,10 @@ interface WithSessionHandler {
 
 export const withSession =
   (handler: WithSessionHandler) =>
-  async (req: Request, { params }: { params: Record<string, string> }) => {
+  async (
+    req: Request,
+    { params = {} }: { params: Record<string, string> | undefined },
+  ) => {
     try {
       let session: Session | undefined;
       let headers = {};
