@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, ImageUpload } from "@dub/ui";
+import { Button, FileUpload } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -51,13 +51,14 @@ export default function UploadAvatar() {
           This is your avatar image on {process.env.NEXT_PUBLIC_APP_NAME}.
         </p>
         <div className="mt-1">
-          <ImageUpload
+          <FileUpload
+            accept="images"
             className="h-24 w-24 rounded-full border border-gray-300"
             iconClassName="w-5 h-5"
             variant="plain"
-            src={image ?? null}
-            onChange={(src) => setImage(src)}
-            resize={false}
+            imageSrc={image}
+            readFile
+            onChange={({ src }) => setImage(src)}
             content={null}
             maxFileSizeMB={2}
           />

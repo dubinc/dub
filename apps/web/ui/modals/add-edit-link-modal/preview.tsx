@@ -1,7 +1,7 @@
 import { LinkProps } from "@/lib/types";
 import {
   Facebook,
-  ImageUpload,
+  FileUpload,
   LinkedIn,
   LoadingCircle,
   Photo,
@@ -25,6 +25,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { usePromptModal } from "../prompt-modal";
 import UnsplashSearch from "./unsplash-search";
@@ -215,15 +216,18 @@ const ImagePreview = ({
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
+      if (file.size / 1024 / 1024 > 2) {
+        toast.error(`File size too big (max 2 MB)`);
+        return;
+      }
+
       setResizing(true);
 
       const src = await resizeImage(file);
       onImageChange(src);
 
       // Delay to prevent flickering
-      setTimeout(() => {
-        setResizing(false);
-      }, 500);
+      setTimeout(() => setResizing(false), 500);
     },
     [],
   );
@@ -238,13 +242,22 @@ const ImagePreview = ({
     }
     if (image) {
       return (
-        <ImageUpload
+        <FileUpload
+          accept="images"
           variant="plain"
-          src={image}
-          onChange={onImageChange}
-          loading={generatingMetatags}
+          imageSrc={image}
+          onChange={async ({ file }) => {
+            setResizing(true);
+
+            onImageChange(await resizeImage(file));
+
+            // Delay to prevent flickering
+            setTimeout(() => setResizing(false), 500);
+          }}
+          loading={generatingMetatags || resizing}
           clickToUpload={false}
           showHoverOverlay={false}
+          accessibilityLabel="OG image upload"
         />
       );
     } else {
@@ -289,7 +302,7 @@ const ImagePreview = ({
         ref={inputFileRef}
         onChange={onInputFileChange}
         type="file"
-        accept="image/*"
+        accept="image/png,image/jpeg"
         className="hidden"
       />
       <PromptModal />

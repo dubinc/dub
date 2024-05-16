@@ -4,7 +4,7 @@ import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
 import {
   ButtonTooltip,
-  ImageUpload,
+  FileUpload,
   LoadingCircle,
   Magic,
   Popover,
@@ -12,7 +12,7 @@ import {
   Switch,
   Unsplash,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, truncate } from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS, resizeImage, truncate } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useCompletion } from "ai/react";
 import { motion } from "framer-motion";
@@ -154,6 +154,8 @@ export default function OGSection({
     }
   }, [proxy]);
 
+  const [resizingImage, setResizingImage] = useState(false);
+
   const [cooldown, setCooldown] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -228,11 +230,29 @@ export default function OGSection({
               </div>
             </div>
             <div className="mt-1">
-              <ImageUpload
-                src={image}
-                onChange={(image) => setData((prev) => ({ ...prev, image }))}
-                loading={generatingMetatags}
+              <FileUpload
+                accept="images"
+                imageSrc={image}
+                onChange={async ({ file }) => {
+                  setResizingImage(true);
+
+                  const image = await resizeImage(file);
+                  setData((prev) => ({
+                    ...prev,
+                    image,
+                  }));
+
+                  // Delay to prevent flickering
+                  setTimeout(() => setResizingImage(false), 500);
+                }}
+                loading={generatingMetatags || resizingImage}
                 accessibilityLabel="OG image upload"
+                content={
+                  <>
+                    <p>Drag and drop or click to upload.</p>
+                    <p className="mt-2">Recommended: 1200 x 630 pixels</p>
+                  </>
+                }
               />
             </div>
           </div>
