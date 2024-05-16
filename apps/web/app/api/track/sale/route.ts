@@ -2,7 +2,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { trackSaleRequestSchema } from "@/lib/zod/schemas";
+import { clickEventSchemaTB, trackSaleRequestSchema } from "@/lib/zod/schemas";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -50,15 +50,16 @@ export const POST = withWorkspaceEdge(
           return;
         }
 
-        // const clickData = clickEventSchemaTB
-        //   .omit({ timestamp: true })
-        //   .parse(leadEvent.data[0]);
+        const clickData = clickEventSchemaTB
+          .omit({ timestamp: true })
+          .parse(leadEvent.data[0]);
 
         await recordSale({
-          ...leadEvent.data[0],
+          ...clickData,
+          customer_id: customer.id,
           event_id: nanoid(16),
           payment_processor: paymentProcessor,
-          product_id: productId || "",
+          product_id: productId,
           invoice_id: invoiceId,
           amount,
           currency,
