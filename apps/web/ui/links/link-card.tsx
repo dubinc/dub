@@ -123,8 +123,13 @@ export default function LinkCard({
     isVisible &&
       workspaceId &&
       !exceededClicks &&
-      `/api/analytics/clicks?workspaceId=${workspaceId}&linkId=${id}&interval=all`,
-    fetcher,
+      `/api/analytics/clicks?workspaceId=${workspaceId}&linkId=${id}&interval=all&`,
+    (url) =>
+      fetcher(url, {
+        headers: {
+          "Request-Source": "app.dub.co",
+        },
+      }),
     {
       fallbackData: props.clicks,
       dedupingInterval: 60000,

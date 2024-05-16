@@ -69,7 +69,12 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const { data: clicks } = useSWR<number>(
     workspaceId &&
       `/api/analytics/clicks?workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all`,
-    fetcher,
+    (url) =>
+      fetcher(url, {
+        headers: {
+          "Request-Source": "app.dub.co",
+        },
+      }),
     {
       fallbackData: props.clicks,
       dedupingInterval: 15000,
