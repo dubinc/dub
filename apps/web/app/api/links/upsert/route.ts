@@ -48,6 +48,7 @@ export const PUT = withWorkspace(
             ? link.expiresAt.toISOString()
             : link.expiresAt,
         geo: link.geo as NewLinkProps["geo"],
+        tagIds: (link.tags || []).map(({ tag }) => tag.id),
         ...body,
       };
 
