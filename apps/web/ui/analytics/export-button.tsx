@@ -1,13 +1,13 @@
 import { LoadingSpinner, Tooltip, TooltipContent } from "@dub/ui";
 import { Download } from "lucide-react";
-import { useContext, useState } from "react";
+import { use, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from ".";
 
 export default function ExportButton() {
   const [loading, setLoading] = useState(false);
-  const { totalClicks } = useContext(AnalyticsContext);
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { totalClicks } = use(AnalyticsContext);
+  const { baseApiPath, queryString } = use(AnalyticsContext);
 
   async function exportData() {
     setLoading(true);

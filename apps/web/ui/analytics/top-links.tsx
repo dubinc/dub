@@ -4,7 +4,7 @@ import { fetcher, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import BarList from "./bar-list";
@@ -13,7 +13,7 @@ export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
 
   const { basePath, baseApiPath, queryString, domain, key } =
-    useContext(AnalyticsContext);
+    use(AnalyticsContext);
 
   useEffect(() => {
     if (domain && key) {

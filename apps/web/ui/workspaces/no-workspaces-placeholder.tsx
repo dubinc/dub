@@ -1,10 +1,10 @@
 "use client";
 
 import { ModalContext } from "@/ui/modals/provider";
-import { useContext } from "react";
+import { use } from "react";
 
 export default function NoWorkspacesPlaceholder() {
-  const { setShowAddWorkspaceModal } = useContext(ModalContext);
+  const { setShowAddWorkspaceModal } = use(ModalContext);
 
   return (
     <div className="col-span-3 flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">

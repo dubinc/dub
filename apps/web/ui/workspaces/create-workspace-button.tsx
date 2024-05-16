@@ -5,10 +5,10 @@ import { ModalContext } from "@/ui/modals/provider";
 import { Button } from "@dub/ui";
 import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FREE_WORKSPACES_LIMIT } from "@dub/utils";
-import { useContext } from "react";
+import { use } from "react";
 
 export default function CreateWorkspaceButton() {
-  const { setShowAddWorkspaceModal } = useContext(ModalContext);
+  const { setShowAddWorkspaceModal } = use(ModalContext);
   const { freeWorkspaces, exceedingFreeWorkspaces } = useWorkspaces();
 
   return (

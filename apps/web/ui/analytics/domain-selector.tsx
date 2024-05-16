@@ -3,7 +3,7 @@ import { InputSelect, useRouterStuff } from "@dub/ui";
 import { DUB_LOGO, GOOGLE_FAVICON_URL, getApexDomain } from "@dub/utils";
 import { Globe } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useContext, useMemo } from "react";
+import { use, useMemo } from "react";
 import { ModalContext } from "../modals/provider";
 
 export default function DomainSelector() {
@@ -15,7 +15,7 @@ export default function DomainSelector() {
     const domain = searchParams.get("domain");
     return domains.find(({ slug }) => slug === domain);
   }, [searchParams, domains]);
-  const { setShowAddEditDomainModal } = useContext(ModalContext);
+  const { setShowAddEditDomainModal } = use(ModalContext);
 
   return domains ? (
     <InputSelect

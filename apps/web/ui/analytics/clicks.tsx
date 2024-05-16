@@ -6,12 +6,12 @@ import { COUNTRIES, capitalize, linkConstructor, truncate } from "@dub/utils";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { use } from "react";
 import { AnalyticsContext } from ".";
 import ClicksChart from "./clicks-chart";
 
 export default function Clicks() {
-  const { totalClicks } = useContext(AnalyticsContext);
+  const { totalClicks } = use(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams.get("domain");
   const key = searchParams.get("key");
