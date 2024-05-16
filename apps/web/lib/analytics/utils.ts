@@ -1,6 +1,33 @@
 import { getDaysDifference } from "@dub/utils";
 import { DubApiError } from "../api/errors";
 
+export const formatAnalyticsEndpoint = (
+  endpoint: string,
+  type: "plural" | "singular",
+) => {
+  const plural = {
+    country: "countries",
+    city: "cities",
+    device: "devices",
+    browser: "browsers",
+    referer: "referers",
+  };
+
+  const singular = {
+    countries: "country",
+    cities: "city",
+    devices: "device",
+    browsers: "browser",
+    referers: "referer",
+  };
+
+  if (type === "plural") {
+    return plural[endpoint] || endpoint;
+  } else if (type === "singular") {
+    return singular[endpoint] || endpoint;
+  }
+};
+
 export const validDateRangeForPlan = ({
   plan,
   interval,

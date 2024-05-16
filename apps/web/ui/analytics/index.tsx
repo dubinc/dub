@@ -66,20 +66,20 @@ export default function Analytics({
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/admin/analytics`,
+        baseApiPath: `/api/analytics/admin/clicks`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics`,
+        baseApiPath: `/api/analytics/clicks`,
         domain: domainSlug,
       };
     } else {
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: "/api/analytics/edge",
+        baseApiPath: "/api/analytics/edge/clicks",
         domain: staticDomain,
       };
     }
@@ -106,7 +106,7 @@ export default function Analytics({
   }, [id, domain, key, searchParams, interval, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/clicks?${queryString}`,
+    `${baseApiPath}/count?${queryString}`,
     fetcher,
   );
 

@@ -7,12 +7,12 @@ import { AnalyticsContext } from ".";
 export default function ExportButton() {
   const [loading, setLoading] = useState(false);
   const { totalClicks } = useContext(AnalyticsContext);
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { queryString } = useContext(AnalyticsContext);
 
   async function exportData() {
     setLoading(true);
     try {
-      const response = await fetch(`${baseApiPath}/export?${queryString}`, {
+      const response = await fetch(`/api/analytics/export?${queryString}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -20,6 +20,7 @@ export default function ExportButton() {
       });
 
       if (!response.ok) {
+        setLoading(false);
         throw new Error(response.statusText);
       }
 
