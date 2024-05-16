@@ -8,6 +8,17 @@ DESCRIPTION >
   undefined
 
 SQL >
-  % SELECT * FROM dub_lead_events WHERE customer_id = {{ customerId }} LIMIT 1
 
-  
+%
+SELECT *
+FROM dub_lead_events
+WHERE
+    customer_id
+    = {{
+        String(
+            customerId,
+            "Otgts60IekQ17PMZ",
+            description="The unique ID for a given customer.",
+            required=True,
+        )
+    }}

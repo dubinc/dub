@@ -37,22 +37,26 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return;
   }
 
-  // Skip if invoice id is already processed
-  const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-    ex: 60 * 60 * 24 * 7,
-    nx: true,
-  });
+  if (invoiceId) {
+    // Skip if invoice id is already processed
+    const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
+      ex: 60 * 60 * 24 * 7,
+      nx: true,
+    });
 
-  if (!ok) {
-    console.info(
-      "[Stripe Webhook] Skipping already processed invoice.",
-      invoiceId,
-    );
-    return;
+    if (!ok) {
+      console.info(
+        "[Stripe Webhook] Skipping already processed invoice.",
+        invoiceId,
+      );
+      return;
+    }
   }
 
   // Retrieve subscription if available
-  const subscription = await retrieveSubscription(subscriptionId);
+  const subscription = subscriptionId
+    ? await retrieveSubscription(subscriptionId)
+    : null;
 
   // Record sale
   await recordSale({
@@ -61,7 +65,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     payment_processor: "stripe",
     amount: charge.amount_total!,
     currency: charge.currency!,
-    invoice_id: invoiceId,
+    invoice_id: invoiceId || "",
     recurring: subscription?.recurring || 0,
     product_id: subscription?.productId || "",
     recurring_interval: subscription?.recurringInterval || "",
