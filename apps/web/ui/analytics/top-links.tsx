@@ -1,4 +1,4 @@
-import { TopLinksTabs } from "@/lib/analytics";
+import { TopLinksTabs } from "@/lib/analytics/types";
 import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";

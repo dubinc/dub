@@ -1,9 +1,10 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { Session, getSession, hashToken } from "./utils";
+import { hashToken } from "./hash-token";
+import { Session, getSession } from "./utils";
 
 interface WithSessionHandler {
   ({
@@ -21,7 +22,10 @@ interface WithSessionHandler {
 
 export const withSession =
   (handler: WithSessionHandler) =>
-  async (req: Request, { params }: { params: Record<string, string> }) => {
+  async (
+    req: Request,
+    { params = {} }: { params: Record<string, string> | undefined },
+  ) => {
     try {
       let session: Session | undefined;
       let headers = {};
@@ -37,9 +41,7 @@ export const withSession =
         }
         const apiKey = authorizationHeader.replace("Bearer ", "");
 
-        const hashedKey = hashToken(apiKey, {
-          noSecret: true,
-        });
+        const hashedKey = await hashToken(apiKey);
 
         const user = await prisma.user.findFirst({
           where: {

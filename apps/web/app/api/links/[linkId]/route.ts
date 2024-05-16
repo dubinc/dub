@@ -7,9 +7,10 @@ import {
 } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
-import { updateLinkBodySchema } from "@/lib/zod/schemas";
+import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
+import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
@@ -70,11 +71,16 @@ export const PATCH = withWorkspace(
       ...body,
     };
 
+    // if link and updatedLink are identical, return the link
+    if (deepEqual(link, updatedLink)) {
+      return NextResponse.json(link, { headers });
+    }
+
     if (updatedLink.projectId !== link?.projectId) {
       throw new DubApiError({
         code: "forbidden",
         message:
-          "Transferring links to another workspace is only allowed via the /links/[linkId]transfer endpoint.",
+          "Transferring links to another workspace is only allowed via the /links/[linkId]/transfer endpoint.",
       });
     }
 

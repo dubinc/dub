@@ -1,6 +1,6 @@
-import { getAnalytics } from "@/lib/analytics";
+import { getClicks } from "@/lib/analytics/clicks";
 import { limiter, qstash, sendLimitEmail } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -115,7 +115,7 @@ export const updateUsage = async (skip?: number) => {
       ) {
         const topLinks =
           workspace.usage > 0
-            ? await getAnalytics({
+            ? await getClicks({
                 workspaceId: workspace.id,
                 endpoint: "top_links",
                 interval: "30d",

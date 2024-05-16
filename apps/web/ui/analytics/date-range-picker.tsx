@@ -1,4 +1,5 @@
-import { INTERVALS, validDateRangeForPlan } from "@/lib/analytics";
+import { INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   IconMenu,
@@ -22,7 +23,10 @@ export default function DateRangePicker() {
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
   const selectedInterval = useMemo(() => {
-    return INTERVALS.find((s) => s.value === interval) || INTERVALS[1];
+    return (
+      INTERVAL_DISPLAYS.find((s) => s.value === interval) ||
+      INTERVAL_DISPLAYS[1]
+    );
   }, [interval]);
 
   const { plan } = useWorkspace();
@@ -33,7 +37,7 @@ export default function DateRangePicker() {
     <Popover
       content={
         <div className="grid w-full p-2 md:w-48">
-          {INTERVALS.map(({ display, value }) =>
+          {INTERVAL_DISPLAYS.map(({ display, value }) =>
             !validDateRangeForPlan({
               plan,
               interval: value,
