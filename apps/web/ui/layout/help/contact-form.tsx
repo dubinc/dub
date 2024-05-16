@@ -1,8 +1,8 @@
 import { CheckCircleFill } from "@/ui/shared/icons";
-import { Button, ImageUpload, LoadingSpinner, useEnterSubmit } from "@dub/ui";
+import { Button, FileUpload, LoadingSpinner, useEnterSubmit } from "@dub/ui";
 import { useCompletion } from "ai/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, Image, Trash2 } from "lucide-react";
+import { ChevronLeft, Paperclip, Trash2 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ export function ContactForm({
     attachmentIds: [],
   });
 
-  const [images, setImages] = useState<
+  const [uploads, setUploads] = useState<
     {
       file: File;
       uploading: boolean;
@@ -31,7 +31,7 @@ export function ContactForm({
   >([]);
 
   const handleUpload = async (file: File) => {
-    setImages((prev) => [...prev, { file, uploading: true }]);
+    setUploads((prev) => [...prev, { file, uploading: true }]);
 
     const {
       attachment: { id: attachmentId },
@@ -60,11 +60,11 @@ export function ContactForm({
         console.error("Error uploading file:", err.message ? err.message : err);
       });
 
-    setImages((prev) =>
-      prev.map((image) =>
-        image.file === file
-          ? { ...image, uploading: false, attachmentId }
-          : image,
+    setUploads((prev) =>
+      prev.map((upload) =>
+        upload.file === file
+          ? { ...upload, uploading: false, attachmentId }
+          : upload,
       ),
     );
     setData((prev) => ({
@@ -188,31 +188,31 @@ export function ContactForm({
             </label>
 
             <div className="grid w-full gap-2">
-              {images.map((image) => (
+              {uploads.map((upload) => (
                 <div
-                  key={image.attachmentId}
+                  key={upload.attachmentId}
                   className="flex w-full items-center justify-between rounded-md border border-gray-200"
                 >
                   <div className="flex flex-1 items-center space-x-2 p-2">
-                    {image.uploading ? (
+                    {upload.uploading ? (
                       <LoadingSpinner className="h-4 w-4" />
                     ) : (
-                      <Image className="h-4 w-4 text-gray-500" />
+                      <Paperclip className="h-4 w-4 text-gray-500" />
                     )}
                     <p className="text-center text-sm text-gray-500">
-                      {image.file.name}
+                      {upload.file.name}
                     </p>
                   </div>
                   <button
                     className="h-full rounded-r-md border-l border-gray-200 p-2"
                     onClick={() => {
-                      setImages((prev) =>
-                        prev.filter((i) => i.file.name !== image.file.name),
+                      setUploads((prev) =>
+                        prev.filter((i) => i.file.name !== upload.file.name),
                       );
                       setData((prev) => ({
                         ...prev,
                         attachmentIds: prev.attachmentIds.filter(
-                          (id) => id !== image.attachmentId,
+                          (id) => id !== upload.attachmentId,
                         ),
                       }));
                     }}
@@ -222,14 +222,12 @@ export function ContactForm({
                 </div>
               ))}
             </div>
-            <ImageUpload
-              key={images.length}
+            <FileUpload
+              accept="any"
               className="aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
               iconClassName="w-5 h-5"
               variant="plain"
-              src={null}
-              onChange={async (_, file) => await handleUpload(file)}
-              resize={false}
+              onChange={async ({ file }) => await handleUpload(file)}
               content="Drag and drop or click to upload."
             />
 
