@@ -1,4 +1,4 @@
-import { leadEventSchemaTB } from "../zod/schemas";
+import { leadEventSchemaTB } from "../zod/schemas/leads";
 import { tb } from "./client";
 
 export const recordLead = tb.buildIngestEndpoint({
