@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { ratelimit } from "@/lib/upstash";
-import { getQRCodeQuerySchema } from "@/lib/zod/schemas";
+import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
 import { getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";

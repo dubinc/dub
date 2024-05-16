@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics";
+import { getClicks } from "@/lib/analytics/clicks";
 import { getDomainOrLink } from "@/lib/planetscale";
 import {
   GOOGLE_FAVICON_URL,
