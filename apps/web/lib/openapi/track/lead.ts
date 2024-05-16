@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { trackLeadRequestSchema } from "@/lib/zod/schemas";
+import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const trackLead: ZodOpenApiOperationObject = {

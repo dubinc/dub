@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
-import { clickEventSchemaTB } from "@/lib/zod/schemas";
+import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
 import type Stripe from "stripe";
 
