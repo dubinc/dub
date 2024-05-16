@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { SendIcon, LinkIcon } from "../../public";
+import { LinkIcon, SendIcon } from "../../public";
 import Link from "./link";
 import { LinkProps } from "./types";
-
-
 
 const Shortener: React.FC = () => {
   const [url, setUrl] = useState("");
@@ -76,7 +74,7 @@ const Shortener: React.FC = () => {
           onChange={handleInputChange}
         />
         <button type="submit">
-        <SendIcon />
+          <SendIcon />
         </button>
       </form>
       <Link link={link} />

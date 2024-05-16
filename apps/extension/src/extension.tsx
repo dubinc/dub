@@ -1,18 +1,13 @@
 import { useState } from "react";
+import { CreateIcon, HistoryIcon, SettingIcon, TitleIcon } from "../public";
 import AllLinks from "./components/allLinks";
 import Shortener from "./components/shortener";
-import {
-    HistoryIcon,
-    SettingIcon,
-    CreateIcon,
-    TitleIcon
-  } from "../public";
-  
+
 import { LinkProps } from "./components/types";
 
 interface ExtensionProps {
-    handleClose: () => void;
-  }
+  handleClose: () => void;
+}
 
 const Extension: React.FC<ExtensionProps> = ({ handleClose }) => {
   const [openTab, setOpenTab] = useState<string>("create");
@@ -23,15 +18,19 @@ const Extension: React.FC<ExtensionProps> = ({ handleClose }) => {
     setAllLinks([]);
   };
 
-
   return (
     <div className="w-100 mb-10 mr-10 rounded-lg bg-white  p-6 shadow-lg">
-    <div className="flex flex-row justify-between">
-    <TitleIcon />
-      <p onClick={handleClose} className="text-sm cursor-pointer text-gray-800 hover:text-blue-900">close</p>
-    </div>
+      <div className="flex flex-row justify-between">
+        <TitleIcon />
+        <p
+          onClick={handleClose}
+          className="cursor-pointer text-sm text-gray-800 hover:text-blue-900"
+        >
+          close
+        </p>
+      </div>
 
-      <div className="flex mt-3 gap-4">
+      <div className="mt-3 flex gap-4">
         <button
           className="group rounded-full bg-gray-200 p-3 transition-all duration-75 hover:scale-105 hover:bg-blue-100 focus:outline-none active:scale-95"
           onClick={() => {

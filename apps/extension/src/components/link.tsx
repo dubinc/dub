@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { ShareIcon,QrIcon,ExpireIcon,EditIcon,DotIcon,CopyIcon ,ClickIcon, DeleteIcon  } from "../../public";
+import {
+  ClickIcon,
+  CopyIcon,
+  DeleteIcon,
+  DotIcon,
+  EditIcon,
+  ExpireIcon,
+  QrIcon,
+  ShareIcon,
+} from "../../public";
 import { LinkProps } from "./types";
 
 const Link: React.FC<{ link: LinkProps | null }> = ({ link }) => {
