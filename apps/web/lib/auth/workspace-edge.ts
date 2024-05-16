@@ -63,7 +63,7 @@ export const withWorkspaceEdge = (
 ) => {
   return async (
     req: Request,
-    { params }: { params: Record<string, string> | undefined },
+    { params = {} }: { params: Record<string, string> | undefined },
   ) => {
     const searchParams = getSearchParams(req.url);
 
@@ -335,7 +335,7 @@ export const withWorkspaceEdge = (
 
       return await handler({
         req,
-        params: params || {},
+        params,
         searchParams,
         headers,
         session,

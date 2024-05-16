@@ -1,11 +1,31 @@
-import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics";
+import { formatAnalyticsEndpoint } from "@/lib/analytics";
+import {
+  intervals,
+  VALID_ANALYTICS_ENDPOINTS,
+} from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
-export const getAnalyticsQuerySchema = z.object({
-  domain: z.string().optional().describe("The domain of the short link."),
+export const analyticsEndpointSchema = z.object({
+  endpoint: z
+    .enum(VALID_ANALYTICS_ENDPOINTS, {
+      errorMap: (_issue, _ctx) => {
+        return {
+          message: `Invalid endpoint value. Valid endpoints are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
+        };
+      },
+    })
+    .transform((v) => formatAnalyticsEndpoint(v, "plural"))
+    .optional()
+    .describe(
+      "The field to group the analytics by. If undefined, returns the total click count.",
+    ),
+});
+
+export const clickAnalyticsQuerySchema = z.object({
+  domain: z.string().optional().describe("The domain to filter analytics for."),
   key: z.string().optional().describe("The short link slug."),
   linkId: z
     .string()
@@ -20,8 +40,9 @@ export const getAnalyticsQuerySchema = z.object({
   interval: z
     .enum(intervals)
     .optional()
+    .default("24h")
     .describe(
-      "The interval to retrieve analytics for. Takes precedence over start and end.",
+      "The interval to retrieve analytics for. Takes precedence over start and end. If undefined, defaults to 24h.",
     ),
   start: parseDateSchema
     .refine(
@@ -84,70 +105,80 @@ export const getAnalyticsQuerySchema = z.object({
     ),
 });
 
-export const getAnalyticsEdgeQuerySchema = getAnalyticsQuerySchema.required({
-  domain: true,
-});
-
-export const analyticsEndpointSchema = z.object({
-  endpoint: z.enum(VALID_TINYBIRD_ENDPOINTS, {
-    errorMap: (_issue, _ctx) => {
-      return {
-        message: `Invalid endpoint. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
-      };
-    },
-  }),
-});
+export const getClickAnalytics = clickAnalyticsQuerySchema
+  .omit({
+    groupBy: true,
+    interval: true,
+    externalId: true,
+    key: true,
+    start: true,
+    end: true,
+    root: true,
+    qr: true,
+  })
+  .extend({
+    workspaceId: z
+      .string()
+      .optional()
+      .transform((v) => {
+        if (v && !v.startsWith("ws_")) {
+          return `ws_${v}`;
+        } else {
+          return v;
+        }
+      }),
+    root: z.boolean().optional(),
+    qr: z.boolean().optional(),
+    start: z.string(),
+    end: z.string(),
+    granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
+  });
 
 // Analytics response schemas
-export const analyticsResponseSchema = {
+export const getClickAnalyticsResponse = {
+  count: z.object({
+    clicks: z.number().describe("The total number of clicks"),
+  }),
   timeseries: z.object({
     start: z.string().describe("The starting timestamp of the interval"),
     clicks: z.number().describe("The number of clicks in the interval"),
   }),
-
-  country: z.object({
+  countries: z.object({
     country: z
       .enum(COUNTRY_CODES)
       .describe("The 2-letter country code: https://d.to/geo"),
     clicks: z.number().describe("The number of clicks from this country"),
   }),
-
-  city: z.object({
+  cities: z.object({
     city: z.string().describe("The name of the city"),
     country: z
       .enum(COUNTRY_CODES)
       .describe("The 2-letter country code of the city: https://d.to/geo"),
     clicks: z.number().describe("The number of clicks from this city"),
   }),
-
-  device: z.object({
+  devices: z.object({
     device: z.string().describe("The name of the device"),
     clicks: z.number().describe("The number of clicks from this device"),
   }),
-
-  browser: z.object({
+  browsers: z.object({
     browser: z.string().describe("The name of the browser"),
     clicks: z.number().describe("The number of clicks from this browser"),
   }),
-
   os: z.object({
     os: z.string().describe("The name of the OS"),
     clicks: z.number().describe("The number of clicks from this OS"),
   }),
-
-  referer: z.object({
+  referers: z.object({
     referer: z
       .string()
       .describe("The name of the referer. If unknown, this will be `(direct)`"),
     clicks: z.number().describe("The number of clicks from this referer"),
   }),
-
-  topLinks: z.object({
+  top_links: z.object({
     link: z.string().describe("The unique ID of the short link"),
     clicks: z.number().describe("The number of clicks from this link"),
   }),
-
-  topUrls: z.object({
+  top_urls: z.object({
     url: z.string().describe("The destination URL"),
     clicks: z.number().describe("The number of clicks from this URL"),
   }),

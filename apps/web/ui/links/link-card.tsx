@@ -119,7 +119,7 @@ export default function LinkCard({
     isVisible &&
       workspaceId &&
       !exceededClicks &&
-      `/api/analytics/clicks?workspaceId=${workspaceId}&domain=${domain}&key=${key}`,
+      `/api/analytics/clicks?workspaceId=${workspaceId}&linkId=${id}&interval=all`,
     fetcher,
     {
       fallbackData: props.clicks,

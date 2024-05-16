@@ -71,7 +71,7 @@ export const withWorkspace = (
 ) => {
   return async (
     req: Request,
-    { params }: { params: Record<string, string> | undefined },
+    { params = {} }: { params: Record<string, string> | undefined },
   ) => {
     const searchParams = getSearchParams(req.url);
 
@@ -116,7 +116,7 @@ export const withWorkspace = (
           // @ts-expect-error
           return await handler({
             req,
-            params: params || {},
+            params,
             searchParams,
             headers,
           });
@@ -419,7 +419,7 @@ export const withWorkspace = (
 
       return await handler({
         req,
-        params: params || {},
+        params,
         searchParams,
         headers,
         session,
