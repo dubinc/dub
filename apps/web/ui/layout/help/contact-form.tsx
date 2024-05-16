@@ -2,7 +2,7 @@ import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button, FileUpload, LoadingSpinner, useEnterSubmit } from "@dub/ui";
 import { useCompletion } from "ai/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, Image, Trash2 } from "lucide-react";
+import { ChevronLeft, Paperclip, Trash2 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -197,7 +197,7 @@ export function ContactForm({
                     {upload.uploading ? (
                       <LoadingSpinner className="h-4 w-4" />
                     ) : (
-                      <Image className="h-4 w-4 text-gray-500" />
+                      <Paperclip className="h-4 w-4 text-gray-500" />
                     )}
                     <p className="text-center text-sm text-gray-500">
                       {upload.file.name}
