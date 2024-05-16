@@ -9,7 +9,7 @@ export const intervals = [
   "all",
 ] as const;
 
-export const INTERVALS = [
+export const INTERVAL_DISPLAYS = [
   {
     display: "Last hour",
     value: "1h",
@@ -44,7 +44,7 @@ export const INTERVALS = [
   },
 ];
 
-export const intervalData: Record<
+export const INTERVAL_DATA: Record<
   string,
   {
     startDate: Date;

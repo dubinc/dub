@@ -2,12 +2,13 @@ import { conn } from "@/lib/planetscale";
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
+import { headers } from "next/headers";
 import {
   clickAnalyticsQuerySchema,
   getClickAnalytics,
   getClickAnalyticsResponse,
 } from "../zod/schemas/analytics";
-import { intervalData } from "./constants";
+import { INTERVAL_DATA } from "./constants";
 import { AnalyticsEndpoints } from "./types";
 
 export const getClicks = async (
@@ -22,7 +23,14 @@ export const getClicks = async (
   // 1. linkId is defined
   // 2. endpoint is not defined
   // 3. interval is all time
-  if (linkId && endpoint === "count" && interval === "all") {
+  // 4. call is made from dashboard
+  if (
+    linkId &&
+    endpoint === "count" &&
+    interval === "all" &&
+    headers()?.get("Request-Source") === "app.dub.co"
+  ) {
+    console.log("getting all time clicks count");
     let response = await conn.execute(
       "SELECT clicks FROM Link WHERE `id` = ?",
       [linkId],
@@ -49,9 +57,9 @@ export const getClicks = async (
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
   if (interval) {
-    start = intervalData[interval].startDate;
+    start = INTERVAL_DATA[interval].startDate;
     end = new Date(Date.now());
-    granularity = intervalData[interval].granularity;
+    granularity = INTERVAL_DATA[interval].granularity;
   } else {
     start = new Date(start!);
     end = end ? new Date(end) : new Date(Date.now());
