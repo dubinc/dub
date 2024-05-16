@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
@@ -6,7 +7,6 @@ import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -24,79 +24,69 @@ export const POST = withWorkspaceEdge(
       customerId: externalId,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
-    // if (externalId && !workspace.stripeConnectId) {
-    //   throw new DubApiError({
-    //     code: "bad_request",
-    //     message: `Please connect your Stripe account to track customers.`,
-    //   });
-    // }
+    // Find click event
+    const clickEvent = await getClickEvent({ clickId });
 
-    waitUntil(
-      (async () => {
-        const clickEvent = await getClickEvent({ clickId });
+    if (!clickEvent || clickEvent.data.length === 0) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Click event not found for clickId: ${clickId}`,
+      });
+    }
 
-        if (!clickEvent || clickEvent.data.length === 0) {
-          return;
-        }
+    const clickData = clickEventSchemaTB
+      .omit({ timestamp: true })
+      .parse(clickEvent.data[0]);
 
-        const clickData = clickEventSchemaTB
-          .omit({ timestamp: true })
-          .parse(clickEvent.data[0]);
+    // Find customer or create if not exists
+    let customer: null | Customer = null;
 
-        // TODO
-        // Generate random name if not provided
+    if (externalId && workspace.stripeConnectId) {
+      customer = await prismaEdge.customer.upsert({
+        where: {
+          projectId_externalId: {
+            projectId: workspace.id,
+            externalId,
+          },
+        },
+        create: {
+          id: nanoid(16),
+          name: customerName, // TODO: Generate random name if not provided
+          email: customerEmail,
+          avatar: customerAvatar,
+          externalId,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+        },
+        update: {
+          name: customerName,
+          email: customerEmail,
+          avatar: customerAvatar,
+        },
+      });
+    }
 
-        // Find customer or create if not exists
-        let customer: null | Customer = null;
+    await Promise.all([
+      recordLead({
+        ...clickData,
+        event_id: nanoid(16),
+        event_name: eventName,
+        customer_id: customer?.id,
+        metadata,
+      }),
 
-        if (externalId && workspace.stripeConnectId) {
-          customer = await prismaEdge.customer.upsert({
-            where: {
-              projectId_externalId: {
-                projectId: workspace.id,
-                externalId,
-              },
-            },
-            create: {
-              id: nanoid(16),
+      ...(customer
+        ? [
+            recordCustomer({
+              customer_id: customer?.id,
               name: customerName,
               email: customerEmail,
               avatar: customerAvatar,
-              externalId,
-              projectId: workspace.id,
-              projectConnectId: workspace.stripeConnectId,
-            },
-            update: {
-              name: customerName,
-              email: customerEmail,
-              avatar: customerAvatar,
-            },
-          });
-        }
-
-        await Promise.all([
-          recordLead({
-            ...clickData,
-            event_id: nanoid(16),
-            event_name: eventName,
-            customer_id: customer?.id,
-            metadata,
-          }),
-
-          ...(customer
-            ? [
-                recordCustomer({
-                  customer_id: customer?.id,
-                  name: customerName,
-                  email: customerEmail,
-                  avatar: customerAvatar,
-                  workspace_id: workspace.id,
-                }),
-              ]
-            : []),
-        ]);
-      })(),
-    );
+              workspace_id: workspace.id,
+            }),
+          ]
+        : []),
+    ]);
 
     return NextResponse.json({ success: true });
   },
