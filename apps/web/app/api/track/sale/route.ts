@@ -16,14 +16,9 @@ export const POST = withWorkspaceEdge(
     const {
       customerId: externalId,
       paymentProcessor,
-      productId,
       invoiceId,
       amount,
       currency,
-      recurring,
-      recurringInterval,
-      recurringIntervalCount,
-      refunded,
       metadata,
     } = trackSaleRequestSchema.parse(await parseRequestBody(req));
 
@@ -60,14 +55,9 @@ export const POST = withWorkspaceEdge(
           customer_id: customer.id,
           event_id: nanoid(16),
           payment_processor: paymentProcessor,
-          product_id: productId,
           invoice_id: invoiceId,
           amount,
           currency,
-          recurring: recurring ? 1 : 0,
-          recurring_interval: recurringInterval,
-          recurring_interval_count: recurringIntervalCount,
-          refunded: refunded ? 1 : 0,
           metadata: metadata ? JSON.stringify(metadata) : "",
         });
       })(),
