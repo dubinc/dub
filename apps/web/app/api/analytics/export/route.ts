@@ -1,14 +1,14 @@
+import { getClicks } from "@/lib/analytics/clicks";
 import {
-  AnalyticsEndpoints,
   DEPRECATED_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
-  getClicks,
-} from "@/lib/analytics";
+} from "@/lib/analytics/constants";
+import { AnalyticsEndpoints } from "@/lib/analytics/types";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
-import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas";
+import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
 import JSZip from "jszip";

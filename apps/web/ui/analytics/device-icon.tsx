@@ -1,4 +1,4 @@
-import { DeviceTabs } from "@/lib/analytics";
+import { DeviceTabs } from "@/lib/analytics/types";
 import { Apple, Chrome, Safari } from "@/ui/shared/icons/devices";
 import { BlurImage } from "@dub/ui";
 

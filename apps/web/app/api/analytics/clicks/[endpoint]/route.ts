@@ -1,10 +1,11 @@
-import { getClicks, validDateRangeForPlan } from "@/lib/analytics";
+import { getClicks } from "@/lib/analytics/clicks";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import {
   analyticsEndpointSchema,
   clickAnalyticsQuerySchema,
-} from "@/lib/zod/schemas";
+} from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/clicks/[endpoint] – get click analytics

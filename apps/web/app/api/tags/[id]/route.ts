@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { updateTagBodySchema } from "@/lib/zod/schemas";
+import { updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
 
 // PATCH /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace

@@ -1,8 +1,8 @@
-import { formatAnalyticsEndpoint } from "@/lib/analytics";
 import {
   intervals,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
+import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";

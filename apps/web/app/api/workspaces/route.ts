@@ -7,7 +7,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
-import { WorkspaceSchema, createWorkspaceSchema } from "@/lib/zod/schemas";
+import {
+  WorkspaceSchema,
+  createWorkspaceSchema,
+} from "@/lib/zod/schemas/workspaces";
 import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

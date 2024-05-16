@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
-import { WorkspaceSchema } from "@/lib/zod/schemas";
+import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { DEFAULT_REDIRECTS, trim, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { NextResponse } from "next/server";

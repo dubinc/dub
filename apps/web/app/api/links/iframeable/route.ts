@@ -1,6 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
-import { getDomainQuerySchema, getUrlQuerySchema } from "@/lib/zod/schemas";
+import {
+  getDomainQuerySchema,
+  getUrlQuerySchema,
+} from "@/lib/zod/schemas/links";
 import { isIframeable } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";

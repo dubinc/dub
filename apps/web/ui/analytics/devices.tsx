@@ -1,4 +1,5 @@
-import { DeviceTabs, formatAnalyticsEndpoint } from "@/lib/analytics";
+import { DeviceTabs } from "@/lib/analytics/types";
+import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
