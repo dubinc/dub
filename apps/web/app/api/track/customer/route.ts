@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
@@ -14,30 +15,40 @@ export const runtime = "edge";
 // POST /api/track/customer – Track a customer object
 export const POST = withWorkspaceEdge(
   async ({ req, workspace }) => {
-    const { customerName, customerEmail, customerAvatar, customerId } =
-      trackCustomerRequestSchema.parse(await parseRequestBody(req));
+    const {
+      customerName,
+      customerEmail,
+      customerAvatar,
+      customerId: externalId,
+    } = trackCustomerRequestSchema.parse(await parseRequestBody(req));
 
-    // Create or update customer
-    const customer = await prismaEdge.customer.upsert({
+    // Find customer
+    const existingCustomer = await prismaEdge.customer.findUnique({
       where: {
         projectId_externalId: {
           projectId: workspace.id,
-          externalId: customerId,
+          externalId,
         },
       },
-      create: {
+    });
+
+    if (existingCustomer) {
+      throw new DubApiError({
+        code: "conflict",
+        message: `A customer with customerId: ${externalId} already exists`,
+      });
+    }
+
+    // Create a new customer
+    const customer = await prismaEdge.customer.create({
+      data: {
         id: nanoid(16),
         name: customerName, // TODO: Generate random name if not provided
         email: customerEmail,
         avatar: customerAvatar,
-        externalId: customerId,
+        externalId,
         projectId: workspace.id,
         projectConnectId: "", // TODO: This can be null
-      },
-      update: {
-        name: customerName,
-        email: customerEmail,
-        avatar: customerAvatar,
       },
     });
 
@@ -51,13 +62,13 @@ export const POST = withWorkspaceEdge(
     });
 
     const response = trackCustomerResponsetSchema.parse({
-      customerId,
+      customerId: externalId,
       customerName,
       customerEmail,
       customerAvatar,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { status: 201 });
   },
   { betaFeature: true },
 );

@@ -1,4 +1,4 @@
-import { trackLeadResponseSchema } from "@/lib/zod/schemas/leads";
+import { trackCustomerResponsetSchema } from "@/lib/zod/schemas/customers";
 import { Tag } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
@@ -8,60 +8,45 @@ const customer = {
   customerName: "David",
   customerEmail: "david@example.com",
   customerAvatar: "https://example.com/david.jpeg",
-  metadata: { plan: "enterprise" },
 };
 
-describe.skip("POST /track/lead", async () => {
+describe.skip("POST /track/customer", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
-  const clickId = "uxdcuMfBa5Nqnbwk";
 
   test("with required params", async () => {
     const response = await http.post<Tag>({
-      path: "/track/lead",
+      path: "/track/customer",
       query: { workspaceId },
       body: {
-        clickId,
-        eventName: "Signup",
         customerId: customer.customerId,
       },
     });
 
-    const parsed = trackLeadResponseSchema.safeParse(response.data);
+    const parsed = trackCustomerResponsetSchema.safeParse(response.data);
 
     expect(parsed.success).toBe(true);
-    expect(response.status).toEqual(200);
+    expect(response.status).toEqual(201);
     expect(response.data).toStrictEqual({
-      clickId,
-      eventName: "Signup",
       customerId: customer.customerId,
       customerName: null,
       customerEmail: null,
       customerAvatar: null,
-      metadata: null,
     });
   });
 
   test("with all params", async () => {
     const response = await http.post<Tag>({
-      path: "/track/lead",
+      path: "/track/customer",
       query: { workspaceId },
-      body: {
-        clickId,
-        eventName: "Signup",
-        ...customer,
-      },
+      body: customer,
     });
 
-    const parsed = trackLeadResponseSchema.safeParse(response.data);
+    const parsed = trackCustomerResponsetSchema.safeParse(response.data);
 
     expect(parsed.success).toBe(true);
-    expect(response.status).toEqual(200);
-    expect(response.data).toStrictEqual({
-      clickId,
-      eventName: "Signup",
-      ...customer,
-    });
+    expect(response.status).toEqual(201);
+    expect(response.data).toStrictEqual(customer);
   });
 });
