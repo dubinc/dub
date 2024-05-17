@@ -40,6 +40,10 @@ export const WorkspaceSchema = z
       .describe(
         "The date and time when the billing cycle starts for the workspace.",
       ),
+    stripeConnectId: z
+      .string()
+      .nullable()
+      .describe("[BETA]: The Stripe Connect ID of the workspace."),
     createdAt: z
       .date()
       .describe("The date and time when the workspace was created."),
