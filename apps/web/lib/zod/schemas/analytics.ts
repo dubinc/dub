@@ -73,7 +73,8 @@ export const clickAnalyticsQuerySchema = z.object({
   country: z
     .enum(COUNTRY_CODES)
     .optional()
-    .describe("The country to retrieve analytics for."),
+    .describe("The country to retrieve analytics for.")
+    .openapi({ ref: "countryCode" }),
   city: z.string().optional().describe("The city to retrieve analytics for."),
   device: z
     .string()
@@ -143,19 +144,23 @@ export const getClickAnalyticsResponse = {
     start: z.string().describe("The starting timestamp of the interval"),
     clicks: z.number().describe("The number of clicks in the interval"),
   }),
-  countries: z.object({
-    country: z
-      .enum(COUNTRY_CODES)
-      .describe("The 2-letter country code: https://d.to/geo"),
-    clicks: z.number().describe("The number of clicks from this country"),
-  }),
-  cities: z.object({
-    city: z.string().describe("The name of the city"),
-    country: z
-      .enum(COUNTRY_CODES)
-      .describe("The 2-letter country code of the city: https://d.to/geo"),
-    clicks: z.number().describe("The number of clicks from this city"),
-  }),
+  countries: z
+    .object({
+      country: z
+        .enum(COUNTRY_CODES)
+        .describe("The 2-letter country code: https://d.to/geo"),
+      clicks: z.number().describe("The number of clicks from this country"),
+    })
+    .openapi({ ref: "clicksByCountry" }),
+  cities: z
+    .object({
+      city: z.string().describe("The name of the city"),
+      country: z
+        .enum(COUNTRY_CODES)
+        .describe("The 2-letter country code of the city: https://d.to/geo"),
+      clicks: z.number().describe("The number of clicks from this city"),
+    })
+    .openapi({ ref: "clicksByCities" }),
   devices: z.object({
     device: z.string().describe("The name of the device"),
     clicks: z.number().describe("The number of clicks from this device"),
