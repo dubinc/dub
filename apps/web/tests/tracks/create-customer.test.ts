@@ -1,14 +1,8 @@
 import { trackCustomerResponsetSchema } from "@/lib/zod/schemas/customers";
+import { nanoid } from "@dub/utils";
 import { Tag } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-
-const customer = {
-  customerId: "david",
-  customerName: "David",
-  customerEmail: "david@example.com",
-  customerAvatar: "https://example.com/david.jpeg",
-};
 
 describe.skip("POST /track/customer", async () => {
   const h = new IntegrationHarness();
@@ -16,6 +10,10 @@ describe.skip("POST /track/customer", async () => {
   const { workspaceId } = workspace;
 
   test("with required params", async () => {
+    const customer = {
+      customerId: nanoid(16),
+    };
+
     const response = await http.post<Tag>({
       path: "/track/customer",
       query: { workspaceId },
@@ -37,6 +35,13 @@ describe.skip("POST /track/customer", async () => {
   });
 
   test("with all params", async () => {
+    const customer = {
+      customerId: nanoid(16),
+      customerName: "David",
+      customerEmail: "david@example.com",
+      customerAvatar: "https://example.com/david.jpeg",
+    };
+
     const response = await http.post<Tag>({
       path: "/track/customer",
       query: { workspaceId },
