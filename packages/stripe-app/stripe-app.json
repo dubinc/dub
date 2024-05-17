@@ -1,6 +1,6 @@
 {
   "id": "com.example.dub",
-  "version": "0.0.16",
+  "version": "0.0.20",
   "name": "Dub",
   "icon": "",
   "permissions": [
@@ -9,24 +9,12 @@
       "purpose": "Allows Dub to read customer information."
     },
     {
-      "permission": "customer_write",
-      "purpose": "Add referral data to customer metadata."
-    },
-    {
       "permission": "subscription_read",
       "purpose": "Allows Dub to read subscription information."
     },
     {
-      "permission": "subscription_write",
-      "purpose": "Add referral data to subscription metadata."
-    },
-    {
       "permission": "invoice_read",
       "purpose": "Allows Dub to read invoice information."
-    },
-    {
-      "permission": "invoice_write",
-      "purpose": "Add referral data to invoice metadata."
     },
     {
       "permission": "checkout_session_read",
@@ -57,7 +45,7 @@
     }
   },
   "allowed_redirect_uris": [
-    "https://b0b3-103-70-36-129.ngrok-free.app/api/campaigns/callback/stripe"
+    "https://6dc0-103-70-36-143.ngrok-free.app/api/campaigns/callback/stripe"
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"
