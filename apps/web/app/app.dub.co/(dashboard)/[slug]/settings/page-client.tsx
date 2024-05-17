@@ -5,7 +5,9 @@ import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
+import { Button } from "@dub/ui/src/button";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -13,7 +15,10 @@ export default function WorkspaceSettingsClient() {
   const router = useRouter();
   const { id, name, slug, isOwner } = useWorkspace();
 
+  const [redirecting, setRedirecting] = useState(false);
+
   const redirectToStripe = async () => {
+    setRedirecting(true);
     const response = await fetch(
       `/api/campaigns/connect-stripe?workspaceId=${id}`,
       {
@@ -29,15 +34,22 @@ export default function WorkspaceSettingsClient() {
     window.location.href = url;
   };
 
+  useEffect(() => {
+    // when leave page, reset state
+    return () => {
+      setRedirecting(false);
+    };
+  }, []);
+
   return (
     <>
       {/* TODO: Move the button to proper place */}
-      <button
+      <Button
+        text="Connect to Stripe"
+        loading={redirecting}
         onClick={redirectToStripe}
-        className="group flex h-10 w-44 items-center justify-center space-x-2 rounded-md border border-black bg-black px-4 text-sm text-white"
-      >
-        Connect to Stripe
-      </button>
+        className="max-w-xs"
+      />
       <Form
         title="Workspace Name"
         description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}

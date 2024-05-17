@@ -45,7 +45,8 @@
     }
   },
   "allowed_redirect_uris": [
-    "https://6dc0-103-70-36-143.ngrok-free.app/api/campaigns/callback/stripe"
+    "https://6dc0-103-70-36-143.ngrok-free.app/api/campaigns/callback/stripe",
+    "https://rich-easily-kingfish.ngrok-free.app/api/campaigns/callback/stripe"
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"
