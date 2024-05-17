@@ -156,6 +156,13 @@ export default async function LinkMiddleware(
       DUB_HEADERS,
     );
 
+    // rewrite to mailto page if the link is a mailto link
+  } else if (url.startsWith("mailto:")) {
+    return NextResponse.rewrite(
+      new URL(`/mailto/${encodeURIComponent(url)}`, req.url),
+      DUB_HEADERS,
+    );
+
     // rewrite to target URL if link cloaking is enabled
   } else if (rewrite) {
     if (iframeable) {
