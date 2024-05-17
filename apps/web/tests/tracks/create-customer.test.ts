@@ -1,4 +1,4 @@
-import { trackCustomerResponsetSchema } from "@/lib/zod/schemas/customers";
+import { trackCustomerResponseSchema } from "@/lib/zod/schemas/customers";
 import { nanoid } from "@dub/utils";
 import { Tag } from "@prisma/client";
 import { describe, expect, test } from "vitest";
@@ -22,7 +22,7 @@ describe.skip("POST /track/customer", async () => {
       },
     });
 
-    const parsed = trackCustomerResponsetSchema.safeParse(response.data);
+    const parsed = trackCustomerResponseSchema.safeParse(response.data);
 
     expect(parsed.success).toBe(true);
     expect(response.status).toEqual(201);
@@ -48,7 +48,7 @@ describe.skip("POST /track/customer", async () => {
       body: customer,
     });
 
-    const parsed = trackCustomerResponsetSchema.safeParse(response.data);
+    const parsed = trackCustomerResponseSchema.safeParse(response.data);
 
     expect(parsed.success).toBe(true);
     expect(response.status).toEqual(201);

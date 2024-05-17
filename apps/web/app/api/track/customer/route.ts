@@ -5,7 +5,7 @@ import { prismaEdge } from "@/lib/prisma/edge";
 import { recordCustomer } from "@/lib/tinybird";
 import {
   trackCustomerRequestSchema,
-  trackCustomerResponsetSchema,
+  trackCustomerResponseSchema,
 } from "@/lib/zod/schemas/customers";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -61,7 +61,7 @@ export const POST = withWorkspaceEdge(
       avatar: customerAvatar || "",
     });
 
-    const response = trackCustomerResponsetSchema.parse({
+    const response = trackCustomerResponseSchema.parse({
       customerId: externalId,
       customerName,
       customerEmail,

@@ -7,7 +7,7 @@ export const trackCustomerRequestSchema = z.object({
   customerAvatar: z.string().url().nullish().default(null),
 });
 
-export const trackCustomerResponsetSchema = z.object({
+export const trackCustomerResponseSchema = z.object({
   customerId: z.string(),
   customerName: z.string().nullable(),
   customerEmail: z.string().nullable(),
