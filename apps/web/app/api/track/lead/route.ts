@@ -4,7 +4,10 @@ import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
+import {
+  trackLeadRequestSchema,
+  trackLeadResponseSchema,
+} from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -66,29 +69,42 @@ export const POST = withWorkspaceEdge(
       });
     }
 
+    if (!customer) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Failed to create customer with customerId: ${externalId}`,
+      });
+    }
+
     await Promise.all([
+      recordCustomer({
+        customer_id: customer.id,
+        name: customerName,
+        email: customerEmail,
+        avatar: customerAvatar,
+        workspace_id: workspace.id,
+      }),
+
       recordLead({
         ...clickData,
         event_id: nanoid(16),
         event_name: eventName,
-        customer_id: customer?.id,
+        customer_id: customer.id,
         metadata,
       }),
-
-      ...(customer
-        ? [
-            recordCustomer({
-              customer_id: customer?.id,
-              name: customerName,
-              email: customerEmail,
-              avatar: customerAvatar,
-              workspace_id: workspace.id,
-            }),
-          ]
-        : []),
     ]);
 
-    return NextResponse.json({ success: true });
+    const response = {
+      clickId,
+      eventName,
+      customerName,
+      customerEmail,
+      customerAvatar,
+      customerId: externalId,
+      metadata: metadata ? JSON.parse(metadata) : null,
+    };
+
+    return NextResponse.json(trackLeadResponseSchema.parse(response));
   },
   { betaFeature: true },
 );

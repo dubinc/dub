@@ -7,10 +7,6 @@ export const trackLeadRequestSchema = z.object({
     .string({ required_error: "eventName is required" })
     .min(1)
     .max(50),
-  metadata: z
-    .record(z.unknown())
-    .nullish()
-    .transform((val) => (val ? JSON.stringify(val) : "")),
   customerId: z
     .string()
     .max(100)
@@ -21,6 +17,7 @@ export const trackLeadRequestSchema = z.object({
     .string()
     .max(100)
     .nullish()
+    .default(null)
     .describe(
       "This is the name of the customer in the client's app. This is used to track the customer's journey.",
     ),
@@ -29,6 +26,7 @@ export const trackLeadRequestSchema = z.object({
     .email()
     .max(100)
     .nullish()
+    .default(null)
     .describe(
       "This is the email of the customer in the client's app. This is used to track the customer's journey.",
     ),
@@ -36,9 +34,24 @@ export const trackLeadRequestSchema = z.object({
     .string()
     .max(100)
     .nullish()
+    .default(null)
     .describe(
       "This is the avatar of the customer in the client's app. This is used to track the customer's journey.",
     ),
+  metadata: z
+    .record(z.unknown())
+    .nullish()
+    .transform((val) => (val ? JSON.stringify(val) : "")),
+});
+
+export const trackLeadResponseSchema = z.object({
+  clickId: z.string(),
+  eventName: z.string(),
+  customerId: z.string(),
+  customerName: z.string().nullable(),
+  customerEmail: z.string().nullable(),
+  customerAvatar: z.string().nullable(),
+  metadata: z.record(z.unknown()).nullable(),
 });
 
 export const leadEventSchemaTB = clickEventSchemaTB
