@@ -1,6 +1,8 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
-import { trackCustomerRequestSchema } from "@/lib/zod/schemas/customers";
+import {
+  trackCustomerRequestSchema,
+  trackCustomerResponsetSchema,
+} from "@/lib/zod/schemas/customers";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const trackCustomer: ZodOpenApiOperationObject = {
@@ -20,9 +22,7 @@ export const trackCustomer: ZodOpenApiOperationObject = {
       description: "A customer was tracked.",
       content: {
         "application/json": {
-          schema: z.object({
-            success: z.literal(true),
-          }),
+          schema: trackCustomerResponsetSchema,
         },
       },
     },
