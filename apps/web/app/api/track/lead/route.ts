@@ -78,11 +78,11 @@ export const POST = withWorkspaceEdge(
 
     await Promise.all([
       recordCustomer({
+        workspace_id: workspace.id,
         customer_id: customer.id,
         name: customerName,
         email: customerEmail,
         avatar: customerAvatar,
-        workspace_id: workspace.id,
       }),
 
       recordLead({
@@ -94,7 +94,7 @@ export const POST = withWorkspaceEdge(
       }),
     ]);
 
-    const response = {
+    const response = trackLeadResponseSchema.parse({
       clickId,
       eventName,
       customerName,
@@ -102,9 +102,9 @@ export const POST = withWorkspaceEdge(
       customerAvatar,
       customerId: externalId,
       metadata: metadata ? JSON.parse(metadata) : null,
-    };
+    });
 
-    return NextResponse.json(trackLeadResponseSchema.parse(response));
+    return NextResponse.json(response);
   },
   { betaFeature: true },
 );
