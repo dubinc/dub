@@ -56,9 +56,9 @@ export const POST = withWorkspaceEdge(
     await recordCustomer({
       workspace_id: workspace.id,
       customer_id: customer.id,
-      name: customerName,
-      email: customerEmail,
-      avatar: customerAvatar,
+      name: customerName || "",
+      email: customerEmail || "",
+      avatar: customerAvatar || "",
     });
 
     const response = trackCustomerResponsetSchema.parse({

@@ -17,8 +17,8 @@ export const trackCustomerResponsetSchema = z.object({
 export const customersMetadataSchema = z.object({
   workspace_id: z.string(),
   customer_id: z.string(),
-  name: z.string().nullable().default(""),
-  email: z.string().nullable().default(""),
-  avatar: z.string().nullable().default(""),
+  name: z.string().default(""),
+  email: z.string().default(""),
+  avatar: z.string().default(""),
   deleted: z.number().default(0),
 });

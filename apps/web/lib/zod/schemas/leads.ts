@@ -2,17 +2,26 @@ import z from "@/lib/zod";
 import { clickEventSchemaTB } from "./clicks";
 
 export const trackLeadRequestSchema = z.object({
-  clickId: z.string({ required_error: "clickId is required" }),
+  // Required
+  clickId: z
+    .string({ required_error: "clickId is required" })
+    .trim()
+    .min(1, "clickId is required"),
   eventName: z
     .string({ required_error: "eventName is required" })
-    .min(1)
+    .trim()
+    .min(1, "eventName is required")
     .max(50),
   customerId: z
-    .string()
+    .string({ required_error: "customerId is required" })
+    .trim()
+    .min(1, "customerId is required")
     .max(100)
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
+
+  // Optional
   customerName: z
     .string()
     .max(100)

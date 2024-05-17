@@ -80,9 +80,9 @@ export const POST = withWorkspaceEdge(
       recordCustomer({
         workspace_id: workspace.id,
         customer_id: customer.id,
-        name: customerName,
-        email: customerEmail,
-        avatar: customerAvatar,
+        name: customerName || "",
+        email: customerEmail || "",
+        avatar: customerAvatar || "",
       }),
 
       recordLead({
