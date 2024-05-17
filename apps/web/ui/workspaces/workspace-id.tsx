@@ -31,7 +31,7 @@ export default function WorkspaceId() {
             target="_blank"
             className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
           >
-            Learn more about Workspace ID.
+            Learn more about Workspace ID
           </a>
         </div>
       </div>
