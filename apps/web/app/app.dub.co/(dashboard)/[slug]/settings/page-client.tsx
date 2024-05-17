@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import ConnectStripeButton from "@/ui/workspaces/connect-stripe-button";
+import ConnectStripe from "@/ui/workspaces/connect-stripe";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
@@ -16,8 +16,6 @@ export default function WorkspaceSettingsClient() {
 
   return (
     <>
-      {/* TODO: Move the button to proper place */}
-      {betaTester && <ConnectStripeButton />}
       <Form
         title="Workspace Name"
         description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
@@ -90,6 +88,7 @@ export default function WorkspaceSettingsClient() {
       />
       <WorkspaceId />
       <UploadLogo />
+      {betaTester && <ConnectStripe />}
       <DeleteWorkspace />
     </>
   );
