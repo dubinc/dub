@@ -29,11 +29,7 @@ export default function TagsSection({
 
   const [inputValue, setInputValue] = useState("");
 
-  const {
-    id: workspaceId,
-    exceededAI,
-    mutate: mutateWorkspace,
-  } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const [suggestedTags, setSuggestedTags] = useState<TagProps[]>([]);
   const tagMatch = availableTags
@@ -41,15 +37,12 @@ export default function TagsSection({
     .includes(inputValue.trim());
 
   const { complete } = useCompletion({
-    api: `/api/ai/completion?workspaceId=${workspaceId}`,
-    body: {
-      model: "claude-3-haiku-20240307",
-    },
+    api: `/api/ai/get-relevant-tags?workspaceId=${workspaceId}`,
     onError: (error) => {
       toast.error(error.message);
     },
     onFinish: (_, completion) => {
-      mutateWorkspace();
+      console.log({ completion });
       if (completion) {
         const completionArr = completion.split(", ");
         const suggestedTags = completionArr
@@ -68,22 +61,19 @@ export default function TagsSection({
       url &&
       title &&
       description &&
-      !exceededAI &&
       tags.length === 0 &&
       suggestedTags.length === 0 &&
       availableTags &&
       availableTags.length > 0
     ) {
       complete(
-        `From the list of avaialble tags below, suggest relevant tags for this link: 
+        `From this workspaceId ${workspaceId}, retrieve and suggest relevant tags for this link: 
         
         - URL: ${url}
         - Meta title: ${title}
         - Meta description: ${description}. 
         
-        Only return the tag names in comma-separated format, and nothing else. If there are no relevant tags, return an empty string.
-        
-        Available tags: ${availableTags.map(({ name }) => name).join(", ")}`,
+        Only return the tag names in comma-separated format, and nothing else. If there are no relevant tags, return an empty string.`,
       );
     }
   }, [url, title, description]);
