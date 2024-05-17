@@ -4,7 +4,10 @@ import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
+import {
+  trackSaleRequestSchema,
+  trackSaleResponseSchema,
+} from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -35,7 +38,7 @@ export const POST = withWorkspaceEdge(
     if (!customer) {
       throw new DubApiError({
         code: "not_found",
-        message: `Customer not found for externalId: ${externalId}`,
+        message: `Customer not found for customerId: ${externalId}`,
       });
     }
 
@@ -55,16 +58,25 @@ export const POST = withWorkspaceEdge(
 
     await recordSale({
       ...clickData,
-      customer_id: customer.id,
       event_id: nanoid(16),
+      customer_id: customer.id,
       payment_processor: paymentProcessor,
-      invoice_id: invoiceId,
       amount,
       currency,
+      invoice_id: invoiceId || "",
       metadata: metadata ? JSON.stringify(metadata) : "",
     });
 
-    return NextResponse.json({ success: true });
+    const response = trackSaleResponseSchema.parse({
+      customerId: externalId,
+      paymentProcessor,
+      amount,
+      currency,
+      invoiceId,
+      metadata,
+    });
+
+    return NextResponse.json(response, { status: 201 });
   },
   { betaFeature: true },
 );

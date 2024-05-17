@@ -2,12 +2,27 @@ import z from "@/lib/zod";
 import { clickEventSchemaTB } from "./clicks";
 
 export const trackSaleRequestSchema = z.object({
-  customerId: z.string(),
+  // Required
+  customerId: z
+    .string({ required_error: "customerId is required" })
+    .trim()
+    .min(1, "customerId is required"),
+  amount: z.number({ required_error: "amount is required" }).int().positive(),
   paymentProcessor: z.enum(["stripe", "shopify", "paddle"]),
-  invoiceId: z.string().nullish(),
-  amount: z.number().int().positive().default(0),
+
+  // Optional
+  invoiceId: z.string().nullish().default(null),
   currency: z.string().default("usd"),
-  metadata: z.record(z.unknown()).nullish(),
+  metadata: z.record(z.unknown()).nullish().default(null),
+});
+
+export const trackSaleResponseSchema = z.object({
+  customerId: z.string(),
+  amount: z.number(),
+  paymentProcessor: z.string(),
+  invoiceId: z.string().nullable(),
+  currency: z.string(),
+  metadata: z.record(z.unknown()).nullable(),
 });
 
 export const saleEventSchemaTB = clickEventSchemaTB
@@ -18,9 +33,9 @@ export const saleEventSchemaTB = clickEventSchemaTB
       event_id: z.string(),
       customer_id: z.string(),
       payment_processor: z.string(),
-      invoice_id: z.string().nullable().default(""),
       amount: z.number(),
-      currency: z.string(),
-      metadata: z.string(),
+      invoice_id: z.string().default(""),
+      currency: z.string().default("usd"),
+      metadata: z.string().default(""),
     }),
   );

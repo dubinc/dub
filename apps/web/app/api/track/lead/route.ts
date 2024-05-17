@@ -104,7 +104,7 @@ export const POST = withWorkspaceEdge(
       metadata: metadata ? JSON.parse(metadata) : null,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { status: 201 });
   },
   { betaFeature: true },
 );
