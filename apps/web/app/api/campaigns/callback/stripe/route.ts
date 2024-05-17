@@ -1,7 +1,7 @@
 import { prismaEdge } from "@/lib/prisma/edge";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import { getSearchParams } from "@dub/utils";
+import { APP_DOMAIN, getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
@@ -43,5 +43,5 @@ export const GET = async (req: NextRequest) => {
     },
   });
 
-  redirect(`/${workspace.slug}/settings`);
+  redirect(`${APP_DOMAIN}/${workspace.slug}/settings`);
 };

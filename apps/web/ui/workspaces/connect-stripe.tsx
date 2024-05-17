@@ -50,12 +50,11 @@ export default function ConnectStripe() {
             <CopyButton value={stripeConnectId} className="rounded-md" />
           </div>
         ) : (
-          <Button
-            text="Connect to Stripe"
-            loading={redirecting}
-            onClick={redirectToStripe}
-            className="max-w-xs"
-          />
+          <div className="rounded-lg border border-gray-200 p-8">
+            <p className="text-sm text-gray-500">
+              No Stripe account connected yet.
+            </p>
+          </div>
         )}
       </div>
       <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
@@ -66,6 +65,21 @@ export default function ConnectStripe() {
         >
           Learn more about conversion tracking
         </a>
+        <div>
+          {stripeConnectId ? (
+            <Button
+              text="Disconnect Stripe"
+              loading={redirecting}
+              onClick={redirectToStripe}
+            />
+          ) : (
+            <Button
+              text="Connect to Stripe"
+              loading={redirecting}
+              onClick={redirectToStripe}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
