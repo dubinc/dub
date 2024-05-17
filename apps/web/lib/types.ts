@@ -96,6 +96,7 @@ export interface WorkspaceProps {
     defaultDomains?: string[];
   };
   inviteCode: string;
+  betaTester?: boolean;
 }
 
 export interface UserProps {

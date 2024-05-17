@@ -62,6 +62,12 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The invite code of the workspace."),
+    betaTester: z
+      .boolean()
+      .optional()
+      .describe(
+        "Whether the workspace is enrolled in the beta testing program.",
+      ),
   })
   .openapi({
     title: "Workspace",

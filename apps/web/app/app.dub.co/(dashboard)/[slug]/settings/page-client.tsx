@@ -1,55 +1,23 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import ConnectStripeButton from "@/ui/workspaces/connect-stripe-button";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
-import { Button } from "@dub/ui/src/button";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, isOwner } = useWorkspace();
-
-  const [redirecting, setRedirecting] = useState(false);
-
-  const redirectToStripe = async () => {
-    setRedirecting(true);
-    const response = await fetch(
-      `/api/campaigns/connect-stripe?workspaceId=${id}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    const { url } = await response.json();
-
-    window.location.href = url;
-  };
-
-  useEffect(() => {
-    // when leave page, reset state
-    return () => {
-      setRedirecting(false);
-    };
-  }, []);
+  const { id, name, slug, isOwner, betaTester } = useWorkspace();
 
   return (
     <>
       {/* TODO: Move the button to proper place */}
-      <Button
-        text="Connect to Stripe"
-        loading={redirecting}
-        onClick={redirectToStripe}
-        className="max-w-xs"
-      />
+      {betaTester && <ConnectStripeButton />}
       <Form
         title="Workspace Name"
         description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
