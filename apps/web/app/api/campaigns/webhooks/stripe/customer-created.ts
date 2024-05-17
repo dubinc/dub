@@ -8,8 +8,8 @@ import type Stripe from "stripe";
 export async function customerCreated(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
-  const externalId = stripeCustomer.metadata.dubCustomerId || null;
-  const clickId = stripeCustomer.metadata.dubClickId || null;
+  const externalId = stripeCustomer.metadata?.userId;
+  const clickId = stripeCustomer.metadata?.dubClickId;
 
   // The client app should always send dubClickId via metadata
   if (!clickId) {
