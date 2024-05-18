@@ -33,7 +33,7 @@ export default function SharePopover() {
   });
 
   const handleUpdate = async (checked: boolean) => {
-    const res = await fetch(`${baseApiPath}?${queryString}`, {
+    const res = await fetch(`/api/analytics?${queryString}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
