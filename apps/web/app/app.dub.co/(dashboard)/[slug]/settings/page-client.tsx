@@ -31,7 +31,7 @@ export default function WorkspaceSettingsClient() {
         })}
         handleSubmit={(updateData) =>
           fetch(`/api/workspaces/${id}`, {
-            method: "PUT",
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
@@ -67,7 +67,7 @@ export default function WorkspaceSettingsClient() {
         })}
         handleSubmit={(data) =>
           fetch(`/api/workspaces/${id}`, {
-            method: "PUT",
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
