@@ -56,7 +56,7 @@ export default function SharePopover() {
 
   const [copied, setCopied] = useState(false);
 
-  // if (!data) return null;
+  if (!data) return null;
 
   return (
     <Popover
