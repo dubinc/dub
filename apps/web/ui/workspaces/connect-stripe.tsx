@@ -13,7 +13,7 @@ export default function ConnectStripe() {
   const redirectToStripe = async () => {
     setRedirecting(true);
     const response = await fetch(
-      `/api/campaigns/connect-stripe?workspaceId=${workspaceId}`,
+      `/api/workspaces/${workspaceId}/connect-stripe`,
       {
         method: "POST",
         headers: {
