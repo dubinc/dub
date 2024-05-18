@@ -32,7 +32,7 @@ export const POST = withWorkspace(async ({ workspace }) => {
   url.searchParams.set("client_id", STRIPE_APP_CLIENT_ID);
   url.searchParams.set(
     "redirect_uri",
-    `${APP_DOMAIN_WITH_NGROK}/api/campaigns/callback/stripe`,
+    `${APP_DOMAIN_WITH_NGROK}/api/stripe/connect/callback`,
   );
   url.searchParams.set("state", state);
 
