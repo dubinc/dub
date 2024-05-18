@@ -10,11 +10,13 @@ const REDIRECT_SEGMENTS = [
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: false,
-  serverExternalPackages: [
-    "@react-email/components",
-    "@react-email/render",
-    "@react-email/tailwind",
-  ],
+  experimental: {
+    serverComponentsExternalPackages: [
+      "@react-email/components",
+      "@react-email/render",
+      "@react-email/tailwind",
+    ],
+  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
