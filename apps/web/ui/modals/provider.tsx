@@ -152,7 +152,15 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       session?.user &&
       !session.user["defaultWorkspace"]
     ) {
-      update();
+      fetch("/api/user", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          defaultWorkspace: workspaces[0].slug,
+        }),
+      }).then(() => update());
     }
   }, [session]);
 

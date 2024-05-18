@@ -1,7 +1,7 @@
 "use client";
 
 import DeleteAccountSection from "@/ui/account/delete-account";
-import UpdateDefaultWorkspace from "@/ui/account/update-default-workspace-";
+import UpdateDefaultWorkspace from "@/ui/account/update-default-workspace";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import { Form } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";

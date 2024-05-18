@@ -42,6 +42,7 @@ const updateUserSchema = z.object({
 export const PATCH = withSession(async ({ req, session }) => {
   let { name, email, image, source, defaultWorkspace } =
     await updateUserSchema.parseAsync(await req.json());
+
   try {
     if (image) {
       const { url } = await storage.upload(`avatars/${session.user.id}`, image);
