@@ -434,6 +434,7 @@ function AddEditLinkModal({
                     toast.success("Successfully updated shortlink!");
                   }
                   setShowAddEditLinkModal(false);
+                  router.push(`/${slug}`);
                 } else {
                   const { error } = await res.json();
                   if (error) {
