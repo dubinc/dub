@@ -11,7 +11,5 @@ export default async function CreateLinkMiddleware(req: NextRequest) {
   redirectURL.searchParams.append("link", url);
   redirectURL.searchParams.append("domain", domain);
 
-  console.log("Redirecting to", redirectURL.toString());
-
   return NextResponse.redirect(redirectURL.toString());
 }
