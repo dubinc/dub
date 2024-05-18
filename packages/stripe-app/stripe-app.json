@@ -1,8 +1,8 @@
 {
-  "id": "com.example.dub",
-  "version": "0.0.23",
+  "id": "dub",
+  "version": "0.0.3",
   "name": "Dub",
-  "icon": "",
+  "icon": "./logo.png",
   "permissions": [
     {
       "permission": "customer_read",
@@ -49,5 +49,5 @@
     "https://rich-easily-kingfish.ngrok-free.app/api/stripe/connect/callback"
   ],
   "stripe_api_access_type": "oauth",
-  "distribution_type": "public"
+  "distribution_type": "private"
 }
