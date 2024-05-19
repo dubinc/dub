@@ -1,20 +1,16 @@
 import { parse } from "@/lib/middleware/utils";
-import { getToken } from "next-auth/jwt";
+import { APP_DOMAIN } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { UserProps } from "../types";
+import { getDefaultWorkspace } from "./utils/get-default-workspace";
+import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
-  const session = (await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  })) as {
-    email?: string;
-    user?: UserProps;
-  };
-  // if there's no session and the path isn't /login or /register, redirect to /login
+  const user = await getUserViaToken(req);
+
+  // if there's no user and the path isn't /login or /register, redirect to /login
   if (
-    !session?.email &&
+    !user &&
     path !== "/login" &&
     path !== "/register" &&
     path !== "/auth/saml"
@@ -26,15 +22,32 @@ export default async function AppMiddleware(req: NextRequest) {
       ),
     );
 
-    // if there's a session
-  } else if (session?.email) {
-    // if the user was created in the last 10s
-    // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
-    if (
-      session?.user?.createdAt &&
-      new Date(session?.user?.createdAt).getTime() > Date.now() - 10000 &&
+    // if there's a user
+  } else if (user) {
+    // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
+    if (path === "/new") {
+      const defaultWorkspace = await getDefaultWorkspace(user);
+
+      const searchParams = new URL(fullPath, APP_DOMAIN).searchParams;
+
+      if (defaultWorkspace) {
+        return NextResponse.redirect(
+          new URL(
+            `/${defaultWorkspace}?newLink=${searchParams.get("link") || true}${searchParams.has("domain") ? `&newLinkDomain=${searchParams.get("domain")}` : ""}`,
+            req.url,
+          ),
+        );
+      } else {
+        return NextResponse.redirect(new URL(`/?newWorkspace=true`, req.url));
+      }
+
+      // if the user was created in the last 10s
+      // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
+    } else if (
+      user.createdAt &&
+      new Date(user.createdAt).getTime() > Date.now() - 10000 &&
       // here we include the root page + /new (since they're going through welcome flow already)
-      (path === "/" || path === "/new")
+      path === "/"
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 

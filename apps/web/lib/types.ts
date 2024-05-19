@@ -104,6 +104,7 @@ export interface UserProps {
   createdAt: Date;
   source: string | null;
   migratedWorkspace: string | null;
+  defaultWorkspace?: string;
 }
 
 export interface WorkspaceUserProps extends UserProps {

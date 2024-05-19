@@ -30,7 +30,6 @@ export const getClicks = async (
     interval === "all" &&
     headers()?.get("Request-Source") === "app.dub.co"
   ) {
-    console.log("getting all time clicks count");
     let response = await conn.execute(
       "SELECT clicks FROM Link WHERE `id` = ?",
       [linkId],

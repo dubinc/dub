@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
@@ -11,6 +12,8 @@ import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useCookies } from "@dub/ui";
+import { DEFAULT_LINK_PROPS, getUrlFromString } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -18,6 +21,7 @@ import {
   SetStateAction,
   createContext,
   useEffect,
+  useMemo,
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -47,6 +51,19 @@ export const ModalContext = createContext<{
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
+  const searchParams = useSearchParams();
+  const newLinkValues = useMemo(() => {
+    const newLink = searchParams.get("newLink");
+    if (newLink && getUrlFromString(newLink)) {
+      return {
+        url: getUrlFromString(newLink),
+        domain: searchParams.get("newLinkDomain"),
+      };
+    } else {
+      return null;
+    }
+  }, [searchParams]);
+
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
   const { CompleteSetupModal, setShowCompleteSetupModal } =
@@ -55,7 +72,17 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal();
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
+  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal(
+    newLinkValues?.url
+      ? {
+          duplicateProps: {
+            ...DEFAULT_LINK_PROPS,
+            domain: newLinkValues.domain,
+            url: newLinkValues.url,
+          },
+        }
+      : {},
+  );
   const { setShowAddEditTagModal, AddEditTagModal } = useAddEditTagModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
@@ -104,8 +131,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     }
   }, [error]);
 
-  const searchParams = useSearchParams();
-
   // handle ?newWorkspace and ?newLink query params
   useEffect(() => {
     if (searchParams.has("newWorkspace")) {
@@ -115,6 +140,29 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       setShowAddEditLinkModal(true);
     }
   }, []);
+
+  const { data: session, update } = useSession();
+  const { workspaces } = useWorkspaces();
+
+  // if user has workspaces but no defaultWorkspace, refresh to get defaultWorkspace
+  useEffect(() => {
+    if (
+      workspaces &&
+      workspaces.length > 0 &&
+      session?.user &&
+      !session.user["defaultWorkspace"]
+    ) {
+      fetch("/api/user", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          defaultWorkspace: workspaces[0].slug,
+        }),
+      }).then(() => update());
+    }
+  }, [session]);
 
   return (
     <ModalContext.Provider
