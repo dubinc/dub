@@ -6,9 +6,9 @@ import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useSession } from "next-auth"
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
