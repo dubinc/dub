@@ -1,7 +1,6 @@
 import { parse } from "@/lib/middleware/utils";
-import { APP_DOMAIN } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { getDefaultWorkspace } from "./utils/get-default-workspace";
+import NewLinkMiddleware from "./new-link";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
@@ -26,20 +25,7 @@ export default async function AppMiddleware(req: NextRequest) {
   } else if (user) {
     // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
     if (path === "/new") {
-      const defaultWorkspace = await getDefaultWorkspace(user);
-
-      const searchParams = new URL(fullPath, APP_DOMAIN).searchParams;
-
-      if (defaultWorkspace) {
-        return NextResponse.redirect(
-          new URL(
-            `/${defaultWorkspace}?newLink=${searchParams.get("link") || true}${searchParams.has("domain") ? `&newLinkDomain=${searchParams.get("domain")}` : ""}`,
-            req.url,
-          ),
-        );
-      } else {
-        return NextResponse.redirect(new URL(`/?newWorkspace=true`, req.url));
-      }
+      return NewLinkMiddleware(req, user);
 
       // if the user was created in the last 10s
       // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
