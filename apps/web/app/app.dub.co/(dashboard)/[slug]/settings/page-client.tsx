@@ -8,10 +8,12 @@ import { Form } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useSession } from "next-auth"
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
   const { id, name, slug, isOwner } = useWorkspace();
+  const { update } = useSession()
 
   return (
     <>
@@ -76,7 +78,10 @@ export default function WorkspaceSettingsClient() {
             if (res.status === 200) {
               const { slug: newSlug } = await res.json();
               await mutate("/api/workspaces");
-              router.push(`/${newSlug}/settings`);
+              if (newSlug != slug) {
+                router.push(`/${newSlug}/settings`);
+                update()
+              }
               toast.success("Successfully updated workspace slug!");
             } else {
               const { error } = await res.json();
