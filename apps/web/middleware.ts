@@ -10,7 +10,7 @@ import {
   API_HOSTNAMES,
   APP_HOSTNAMES,
   DEFAULT_REDIRECTS,
-  getUrlFromString,
+  isValidUrl,
 } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import AdminMiddleware from "./lib/middleware/admin";
@@ -64,7 +64,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return RootMiddleware(req, ev);
   }
 
-  if (getUrlFromString(fullKey)) {
+  if (isValidUrl(fullKey)) {
     return CreateLinkMiddleware(req);
   }
 
