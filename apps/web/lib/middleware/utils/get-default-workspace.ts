@@ -9,8 +9,24 @@ export async function getDefaultWorkspace(user: UserProps) {
       where: {
         id: user.id,
       },
+      select: {
+        defaultWorkspace: true,
+        projects: {
+          select: {
+            project: {
+              select: {
+                slug: true,
+              },
+            },
+          },
+          take: 1,
+        },
+      },
     });
-    defaultWorkspace = refereshedUser?.defaultWorkspace || undefined;
+    defaultWorkspace =
+      refereshedUser?.defaultWorkspace ||
+      refereshedUser?.projects[0]?.project?.slug ||
+      undefined;
   }
 
   return defaultWorkspace;
