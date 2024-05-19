@@ -9,10 +9,13 @@ import {
   QrIcon,
   ShareIcon,
 } from "../../public";
+import Modal from "../../ui/components/modal";
+import { QRCodeDownload } from "./Qrcode/QrDownload";
 import { LinkProps } from "./types";
 
 const Link: React.FC<{ link: LinkProps | null }> = ({ link }) => {
   const [expired, setExpired] = useState<number | null>(null);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   useEffect(() => {
     if (link && link.createdAt) {
@@ -45,6 +48,7 @@ const Link: React.FC<{ link: LinkProps | null }> = ({ link }) => {
   };
 
   const handleShowQRCode = () => {
+    setShowQRCode((prevState) => !prevState);
     console.log(`Showing QR code for link: ${link?.qrCode}`);
   };
 
@@ -55,6 +59,13 @@ const Link: React.FC<{ link: LinkProps | null }> = ({ link }) => {
       tabIndex={0}
       style={{ transform: "none", userSelect: "none", touchAction: "pan-y" }}
     >
+      {showQRCode && (
+        <Modal show={showQRCode} onClose={handleShowQRCode}>
+          <QRCodeDownload
+            props={{ url: "https://dub.co/api", key: "ssssssss" }}
+          />
+        </Modal>
+      )}
       <span className=" absolute -right-2 -top-1.5 flex max-w-fit cursor-help items-center space-x-1 whitespace-nowrap rounded-full border border-gray-400 bg-gray-100 px-2 py-px text-xs font-medium capitalize text-gray-800 sm:-right-5">
         <ExpireIcon />
         {expired !== null && expired > 0 ? (
@@ -81,7 +92,7 @@ const Link: React.FC<{ link: LinkProps | null }> = ({ link }) => {
           rel="noreferrer"
           className="line-clamp-2  text-xs text-gray-500 transition-all hover:text-gray-800 "
         >
-          https://www.example.com/{link?.url}
+          https://www.example.com {link?.url}
         </a>
       </div>
       <button

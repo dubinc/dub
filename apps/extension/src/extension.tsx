@@ -2,7 +2,6 @@ import { useState } from "react";
 import { CreateIcon, HistoryIcon, SettingIcon, TitleIcon } from "../public";
 import AllLinks from "./components/allLinks";
 import Shortener from "./components/shortener";
-
 import { LinkProps } from "./components/types";
 
 interface ExtensionProps {
