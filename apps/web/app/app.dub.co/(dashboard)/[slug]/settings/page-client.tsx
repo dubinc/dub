@@ -13,7 +13,7 @@ import { mutate } from "swr";
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
   const { id, name, slug, isOwner } = useWorkspace();
-  const { update } = useSession()
+  const { update } = useSession();
 
   return (
     <>
@@ -80,7 +80,7 @@ export default function WorkspaceSettingsClient() {
               await mutate("/api/workspaces");
               if (newSlug != slug) {
                 router.push(`/${newSlug}/settings`);
-                update()
+                update();
               }
               toast.success("Successfully updated workspace slug!");
             } else {
