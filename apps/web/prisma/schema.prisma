@@ -104,6 +104,9 @@ model Project {
   tagsLimit         Int     @default(5)
   usersLimit        Int     @default(1)
 
+  // Zapier webhook URL
+  zapierWebhookUrl String? @unique
+
   users      ProjectUsers[]
   invites    ProjectInvite[]
   sentEmails SentEmail[]
