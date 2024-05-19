@@ -19,6 +19,7 @@ export const POST = withSession(async ({ session, params }) => {
       project: {
         select: {
           id: true,
+          slug: true,
           plan: true,
           usersLimit: true,
           _count: {
@@ -69,6 +70,15 @@ export const POST = withSession(async ({ session, params }) => {
         },
       },
     }),
+    session.user["defaultWorkspace"] === null &&
+      prisma.user.update({
+        where: {
+          id: session.user.id,
+        },
+        data: {
+          defaultWorkspace: workspace.slug,
+        },
+      }),
   ]);
   return NextResponse.json(response);
 });

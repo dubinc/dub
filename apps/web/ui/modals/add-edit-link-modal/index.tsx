@@ -94,11 +94,7 @@ function AddEditLinkModal({
   const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const {
-    allActiveDomains: domains,
-    primaryDomain,
-    activeDefaultDomains,
-  } = useDomains();
+  const { allActiveDomains: domains, primaryDomain, loading } = useDomains();
 
   const [data, setData] = useState<LinkWithTagsProps>(
     props || duplicateProps || DEFAULT_LINK_PROPS,
@@ -106,13 +102,13 @@ function AddEditLinkModal({
 
   useEffect(() => {
     // for a new link (no props or duplicateProps), set the domain to the primary domain
-    if (primaryDomain && !props && !duplicateProps) {
+    if (!loading && primaryDomain && !props && !duplicateProps) {
       setData((prev) => ({
         ...prev,
         domain: primaryDomain,
       }));
     }
-  }, [primaryDomain, props, duplicateProps]);
+  }, [loading, primaryDomain, props, duplicateProps]);
 
   const { domain, key, url, password, proxy } = data;
 
@@ -270,7 +266,7 @@ function AddEditLinkModal({
         url: `/api/links?workspaceId=${workspaceId}`,
       };
     }
-  }, [props, slug, domain]);
+  }, [props, slug, domain, workspaceId]);
 
   const [atBottom, setAtBottom] = useState(false);
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
@@ -357,7 +353,7 @@ function AddEditLinkModal({
           router.back();
         } else if (searchParams.has("newLink")) {
           queryParams({
-            del: ["newLink"],
+            del: ["newLink", "newLinkDomain"],
           });
         }
       }}
@@ -438,6 +434,7 @@ function AddEditLinkModal({
                     toast.success("Successfully updated shortlink!");
                   }
                   setShowAddEditLinkModal(false);
+                  router.push(`/${slug}`);
                 } else {
                   const { error } = await res.json();
                   if (error) {
@@ -573,24 +570,27 @@ function AddEditLinkModal({
                   )}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <select
-                    disabled={props && lockKey}
-                    value={domain}
-                    onChange={(e) => {
-                      setKeyError(null);
-                      setData({ ...data, domain: e.target.value });
-                    }}
-                    className={cn(
-                      "max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
-                      props && lockKey && "cursor-not-allowed",
-                    )}
-                  >
-                    {domains?.map(({ slug }) => (
-                      <option key={slug} value={slug}>
-                        {punycode(slug)}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <select
+                      disabled={props && lockKey}
+                      value={domain}
+                      onChange={(e) => {
+                        setKeyError(null);
+                        setData({ ...data, domain: e.target.value });
+                      }}
+                      className={cn(
+                        "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                        props && lockKey && "cursor-not-allowed",
+                        loading && "w-[6rem] text-transparent",
+                      )}
+                    >
+                      {domains?.map(({ slug }) => (
+                        <option key={slug} value={slug}>
+                          {punycode(slug)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <input
                     ref={keyRef}
                     type="text"

@@ -149,9 +149,19 @@ export const POST = withSession(async ({ req, session }) => {
     },
   });
 
-  if (domain) {
-    waitUntil(
-      (async () => {
+  waitUntil(
+    (async () => {
+      if (session.user["defaultWorkspace"] === null) {
+        await prisma.user.update({
+          where: {
+            id: session.user.id,
+          },
+          data: {
+            defaultWorkspace: projectResponse.slug,
+          },
+        });
+      }
+      if (domain) {
         const domainRepsonse = await addDomainToVercel(domain);
         if (domainRepsonse.error) {
           await prisma.domain.delete({
@@ -168,9 +178,9 @@ export const POST = withSession(async ({ req, session }) => {
             projectId: projectResponse.id,
           });
         }
-      })(),
-    );
-  }
+      }
+    })(),
+  );
 
   const response = {
     ...projectResponse,

@@ -46,8 +46,8 @@ export const GET = withWorkspace(async ({ workspace, headers }) => {
   );
 });
 
-// PUT /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
-export const PUT = withWorkspace(
+// PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
+export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     try {
       const { name, slug } = await updateWorkspaceSchema.parseAsync(
@@ -63,6 +63,18 @@ export const PUT = withWorkspace(
           ...(slug && { slug }),
         },
       });
+
+      if (slug !== workspace.slug) {
+        await prisma.user.updateMany({
+          where: {
+            defaultWorkspace: workspace.slug,
+          },
+          data: {
+            defaultWorkspace: slug,
+          },
+        });
+      }
+
       return NextResponse.json(response);
     } catch (error) {
       if (error.code === "P2002") {
@@ -79,6 +91,8 @@ export const PUT = withWorkspace(
     requiredRole: ["owner"],
   },
 );
+
+export const PUT = PATCH;
 
 // DELETE /api/workspaces/[idOrSlug] – delete a specific project
 export const DELETE = withWorkspace(

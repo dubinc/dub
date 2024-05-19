@@ -19,16 +19,18 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  accounts   Account[]
-  sessions   Session[]
-  projects   ProjectUsers[]
-  links      Link[]
-  tokens     Token[]
-  createdAt  DateTime       @default(now())
-  subscribed Boolean        @default(true)
-  source     String?
+  accounts         Account[]
+  sessions         Session[]
+  projects         ProjectUsers[]
+  links            Link[]
+  tokens           Token[]
+  createdAt        DateTime       @default(now())
+  subscribed       Boolean        @default(true)
+  source           String?
+  defaultWorkspace String?
 
   @@index(source)
+  @@index(defaultWorkspace)
 }
 
 model Account {
