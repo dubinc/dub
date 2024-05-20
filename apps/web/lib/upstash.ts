@@ -103,7 +103,7 @@ export async function formatRedisLink(
 export async function formatRedisDomain(
   domain: DomainProps,
 ): Promise<RedisDomainProps> {
-  const { id, slug, target: url, type, projectId } = domain;
+  const { id, slug, target: url, type, projectId, noindex } = domain;
 
   return {
     id,
@@ -114,5 +114,6 @@ export async function formatRedisDomain(
         iframeable: await isIframeable({ url, requestDomain: slug }),
       }),
     projectId,
+    ...(noindex && { noindex: true }),
   };
 }

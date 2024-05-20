@@ -32,6 +32,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     type,
     expiredUrl,
     placeholder,
+    noindex,
   } = addDomainBodySchema.parse(body);
 
   if (workspace.domains.length >= workspace.domainsLimit) {
@@ -74,6 +75,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       ...(workspace.plan !== "free" && {
         target,
         expiredUrl,
+        noindex,
       }),
     },
   });
@@ -86,6 +88,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       projectId: workspace.id,
       ...(workspace.plan !== "free" && {
         url: target || undefined,
+        noindex,
       }),
       rewrite: type === "rewrite",
     }),

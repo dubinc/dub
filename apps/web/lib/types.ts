@@ -135,6 +135,7 @@ export interface DomainProps {
   clicks: number;
   projectId: string;
   expiredUrl?: string;
+  noindex?: boolean;
 }
 export interface RedisDomainProps {
   id: string;
@@ -142,6 +143,7 @@ export interface RedisDomainProps {
   rewrite?: boolean;
   iframeable?: boolean;
   projectId: string;
+  noindex?: boolean;
 }
 
 export interface BitlyGroupProps {
