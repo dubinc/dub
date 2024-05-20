@@ -1,6 +1,7 @@
 "use client";
 
 import DeleteAccountSection from "@/ui/account/delete-account";
+import UpdateDefaultWorkspace from "@/ui/account/update-default-workspace";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import { Form } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";
@@ -25,7 +26,7 @@ export default function SettingsPageClient() {
         helpText="Max 32 characters."
         handleSubmit={(data) =>
           fetch("/api/user", {
-            method: "PUT",
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
@@ -54,7 +55,7 @@ export default function SettingsPageClient() {
         // helpText={<UpdateSubscription />} TODO: enable this once we can subscribe folks programmatically
         handleSubmit={(data) =>
           fetch("/api/user", {
-            method: "PUT",
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
@@ -71,6 +72,7 @@ export default function SettingsPageClient() {
         }
       />
       <UploadAvatar />
+      <UpdateDefaultWorkspace />
       <DeleteAccountSection />
     </>
   );

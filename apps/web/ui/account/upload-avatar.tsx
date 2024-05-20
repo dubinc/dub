@@ -27,7 +27,7 @@ export default function UploadAvatar() {
         setUploading(true);
         e.preventDefault();
         fetch("/api/user", {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },

@@ -229,7 +229,8 @@ export const createLinkBodySchema = z.object({
     .nullish()
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
-    ),
+    )
+    .openapi({ ref: "linkGeoTargeting" }),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial().optional();

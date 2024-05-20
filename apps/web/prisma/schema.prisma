@@ -19,16 +19,18 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  accounts   Account[]
-  sessions   Session[]
-  projects   ProjectUsers[]
-  links      Link[]
-  tokens     Token[]
-  createdAt  DateTime       @default(now())
-  subscribed Boolean        @default(true)
-  source     String?
+  accounts         Account[]
+  sessions         Session[]
+  projects         ProjectUsers[]
+  links            Link[]
+  tokens           Token[]
+  createdAt        DateTime       @default(now())
+  subscribed       Boolean        @default(true)
+  source           String?
+  defaultWorkspace String?
 
   @@index(source)
+  @@index(defaultWorkspace)
 }
 
 model Account {
@@ -179,6 +181,7 @@ model Domain {
   primary     Boolean  @default(false)
   archived    Boolean  @default(false)
   expiredUrl  String?  @db.LongText // URL to redirect to for expired links
+  noindex     Boolean  @default(false)
   lastChecked DateTime @default(now())
   links       Link[]
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)

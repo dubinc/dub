@@ -259,6 +259,17 @@ export const POST = async (req: Request) => {
               text: "Hey!\n\nI noticed you recently cancelled your Dub.co subscription – we're sorry to see you go!\n\nI'd love to hear your feedback on your experience with Dub – what could we have done better?\n\nThanks!\n\nSteven Tey\nFounder, Dub.co",
             }),
           ),
+          workspace.domains.forEach((domain) => {
+            prisma.domain.update({
+              where: {
+                id: domain.id,
+              },
+              data: {
+                target: null,
+                noindex: false,
+              },
+            });
+          }),
         ]);
       }
     } catch (error) {
