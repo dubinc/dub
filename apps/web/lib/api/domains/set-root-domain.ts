@@ -9,6 +9,7 @@ export async function setRootDomain({
   projectId,
   url,
   rewrite,
+  noindex,
   newDomain,
 }: {
   id: string;
@@ -17,6 +18,7 @@ export async function setRootDomain({
   projectId: string;
   url?: string;
   rewrite?: boolean;
+  noindex?: boolean;
   newDomain?: string; // if the domain is changed, this will be the new domain
 }) {
   if (newDomain) {
@@ -39,6 +41,9 @@ export async function setRootDomain({
                 : domain.toLowerCase(),
             }),
           }),
+        ...(noindex && {
+          noindex: true,
+        }),
         projectId,
       },
     }),
