@@ -8,7 +8,7 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
-import { subDays } from "date-fns";
+import { endOfDay, min, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
 import useSWR from "swr";
@@ -67,7 +67,12 @@ export default function Analytics({
   const { start, end } = useMemo(() => {
     return {
       start: new Date(searchParams?.get("start") || subDays(new Date(), 30)),
-      end: new Date(searchParams?.get("end") || new Date()),
+
+      // Set to end of day or now if that's in the future
+      end: min([
+        endOfDay(new Date(searchParams?.get("end") || new Date())),
+        new Date(),
+      ]),
     };
   }, [searchParams]);
 

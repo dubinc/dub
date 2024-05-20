@@ -29,7 +29,7 @@ export default function ClicksChart() {
     (date: Date) => {
       const daysDifference = getDaysDifference(start, end);
 
-      if (daysDifference <= 1)
+      if (daysDifference <= 2)
         return date.toLocaleTimeString("en-US", {
           hour: "numeric",
           minute: "numeric",
