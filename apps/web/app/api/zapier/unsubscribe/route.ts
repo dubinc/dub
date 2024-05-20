@@ -4,12 +4,12 @@ import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-const subscribeSchema = z.object({
+const unsubscribeSchema = z.object({
   url: z.string(),
 });
 
 export const POST = withWorkspace(async ({ workspace, req }) => {
-  const { url } = subscribeSchema.parse(await parseRequestBody(req));
+  const { url } = unsubscribeSchema.parse(await parseRequestBody(req));
 
   await prisma.zapierHook.delete({
     where: {
