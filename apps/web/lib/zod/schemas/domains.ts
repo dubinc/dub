@@ -86,11 +86,9 @@ export const addDomainBodySchema = z.object({
   noindex: z
     .boolean()
     .optional()
-    .default(false)
     .describe(
       "Prevent search engines from indexing the domain. Defaults to `false`.",
-    )
-    .openapi({ example: false }),
+    ),
   placeholder: parseUrlSchema
     .nullish()
     .default("https://dub.co/help/article/what-is-dub")

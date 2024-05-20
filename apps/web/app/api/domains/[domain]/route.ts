@@ -93,7 +93,7 @@ export const PATCH = withWorkspace(
         ...(workspace.plan !== "free" && {
           target,
           expiredUrl,
-          noindex,
+          noindex: noindex === undefined ? true : noindex,
         }),
       },
     });
@@ -106,7 +106,7 @@ export const PATCH = withWorkspace(
           domainCreatedAt: response.createdAt,
           ...(workspace.plan !== "free" && {
             url: target || undefined,
-            noindex,
+            noindex: noindex === undefined ? true : noindex,
           }),
           rewrite: type === "rewrite",
           ...(newDomain !== domain && {

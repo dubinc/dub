@@ -75,7 +75,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       ...(workspace.plan !== "free" && {
         target,
         expiredUrl,
-        noindex,
+        noindex: noindex === undefined ? true : noindex,
       }),
     },
   });
@@ -88,7 +88,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       projectId: workspace.id,
       ...(workspace.plan !== "free" && {
         url: target || undefined,
-        noindex,
+        noindex: noindex === undefined ? true : noindex,
       }),
       rewrite: type === "rewrite",
     }),
