@@ -1,9 +1,17 @@
 "use client";
 
 import * as PopoverPrimitive from "@radix-ui/react-popover";
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
+
+export type PopoverProps = PropsWithChildren<{
+  content: ReactNode | string;
+  align?: "center" | "start" | "end";
+  openPopover: boolean;
+  setOpenPopover: (open: boolean) => void;
+  mobileOnly?: boolean;
+}>;
 
 export function Popover({
   children,
@@ -12,14 +20,7 @@ export function Popover({
   openPopover,
   setOpenPopover,
   mobileOnly,
-}: {
-  children: ReactNode;
-  content: ReactNode | string;
-  align?: "center" | "start" | "end";
-  openPopover: boolean;
-  setOpenPopover: Dispatch<SetStateAction<boolean>>;
-  mobileOnly?: boolean;
-}) {
+}: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
   if (mobileOnly || isMobile) {

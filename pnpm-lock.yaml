@@ -166,6 +166,9 @@ importers:
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
+      date-fns:
+        specifier: ^3.6.0
+        version: 3.6.0
       framer-motion:
         specifier: ^10.16.16
         version: 10.18.0(react-dom@18.2.0)(react@18.2.0)

@@ -1,5 +1,5 @@
 import { LoadingSpinner } from "@dub/ui";
-import { fetcher, nFormatter } from "@dub/utils";
+import { fetcher, getDaysDifference, nFormatter } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
@@ -9,7 +9,7 @@ import XAxis from "../charts/x-axis";
 import YAxis from "../charts/y-axis";
 
 export default function ClicksChart() {
-  const { baseApiPath, queryString, interval } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, start, end } = useContext(AnalyticsContext);
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
     `${baseApiPath}/timeseries?${queryString}`,
@@ -27,29 +27,26 @@ export default function ClicksChart() {
 
   const formatDate = useCallback(
     (date: Date) => {
-      switch (interval) {
-        case "1h":
-        case "24h":
-          return date.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-          });
-        case "ytd":
-        case "1y":
-        case "all":
-          return date.toLocaleDateString("en-US", {
-            month: "short",
-            year: "numeric",
-          });
-        default:
-          return date.toLocaleDateString("en-US", {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-          });
-      }
+      const daysDifference = getDaysDifference(start, end);
+
+      if (daysDifference <= 1)
+        return date.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+        });
+      else if (daysDifference > 180)
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        });
+
+      return date.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
     },
-    [interval],
+    [start, end],
   );
 
   return (

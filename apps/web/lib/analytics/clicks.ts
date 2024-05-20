@@ -62,9 +62,10 @@ export const getClicks = async (
   } else {
     start = new Date(start!);
     end = end ? new Date(end) : new Date(Date.now());
-    if (getDaysDifference(start, end) > 180) {
-      granularity = "month";
-    }
+
+    const daysDifference = getDaysDifference(start, end);
+    if (daysDifference <= 1) granularity = "hour";
+    else if (daysDifference > 180) granularity = "month";
 
     // swap start and end if start is greater than end
     if (start > end) {

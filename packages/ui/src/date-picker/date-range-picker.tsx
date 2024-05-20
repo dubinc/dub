@@ -1,6 +1,5 @@
 import { cn } from "@dub/utils";
 import { Time } from "@internationalized/date";
-import * as Popover from "@radix-ui/react-popover";
 import {
   AriaTimeFieldProps,
   TimeValue,
@@ -18,7 +17,6 @@ import { enUS } from "date-fns/locale";
 import { Calendar, ChevronDown, Minus } from "lucide-react";
 import {
   ComponentProps,
-  ElementRef,
   forwardRef,
   useEffect,
   useImperativeHandle,
@@ -28,6 +26,7 @@ import {
 } from "react";
 import { Button } from "../button";
 import { useMediaQuery } from "../hooks";
+import { Popover, PopoverProps } from "../popover";
 import { Calendar as CalendarPrimitive, type Matcher } from "./calendar";
 
 //#region TimeInput
@@ -174,67 +173,33 @@ const Trigger = forwardRef<HTMLButtonElement, TriggerProps>(
     forwardedRef,
   ) => {
     return (
-      <Popover.Trigger asChild>
-        <button
-          ref={forwardedRef}
-          className={cn(triggerStyles({ hasError }), className)}
-          {...props}
-        >
-          <Calendar
-            className={cn(
-              "h-4 w-4 shrink-0 text-gray-400",
-              !!children && "text-gray-900",
-            )}
-          />
-          <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
-            {children ? (
-              children
-            ) : placeholder ? (
-              <span className="text-gray-400">{placeholder}</span>
-            ) : null}
-          </span>
-          <ChevronDown
-            className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
-          />
-        </button>
-      </Popover.Trigger>
+      <button
+        ref={forwardedRef}
+        className={cn(triggerStyles({ hasError }), className)}
+        {...props}
+      >
+        <Calendar
+          className={cn(
+            "h-4 w-4 shrink-0 text-gray-400",
+            !!children && "text-gray-900",
+          )}
+        />
+        <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
+          {children ? (
+            children
+          ) : placeholder ? (
+            <span className="text-gray-400">{placeholder}</span>
+          ) : null}
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+        />
+      </button>
     );
   },
 );
 
 Trigger.displayName = "DatePicker.Trigger";
-
-//#region Popover
-// ============================================================================
-
-const CalendarPopover = forwardRef<
-  ElementRef<typeof Popover.Content>,
-  ComponentProps<typeof Popover.Content>
->(({ align, className, children, ...props }, forwardedRef) => {
-  return (
-    <Popover.Portal>
-      <Popover.Content
-        ref={forwardedRef}
-        sideOffset={10}
-        side="bottom"
-        align={align}
-        avoidCollisions
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        className={cn(
-          "relative z-50 w-fit min-w-[calc(var(--radix-select-trigger-width)-2px)] max-w-[95vw]",
-          "rounded-lg border border-gray-200 bg-white text-sm drop-shadow-lg",
-          "animate-slide-up-fade will-change-[transform,opacity]",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </Popover.Content>
-    </Popover.Portal>
-  );
-});
-
-CalendarPopover.displayName = "DatePicker.CalendarPopover";
 
 //#region Preset
 // ============================================================================
@@ -412,14 +377,6 @@ type CalendarProps = {
   locale?: Locale;
 };
 
-type Translations = {
-  cancel?: string;
-  apply?: string;
-  start?: string;
-  end?: string;
-  range?: string;
-};
-
 interface PickerProps extends CalendarProps {
   className?: string;
   disabled?: boolean;
@@ -431,7 +388,7 @@ interface PickerProps extends CalendarProps {
   disableNavigation?: boolean;
   hasError?: boolean;
   id?: string;
-  align?: "center" | "end" | "start";
+  align?: PopoverProps["align"];
   "aria-invalid"?: boolean;
   "aria-label"?: string;
   "aria-labelledby"?: string;
@@ -583,22 +540,13 @@ const SingleDatePicker = ({
   }, [value, defaultValue]);
 
   return (
-    <Popover.Root open={open} onOpenChange={onOpenChange}>
-      <Trigger
-        placeholder={placeholder}
-        disabled={disabled}
-        className={className}
-        hasError={hasError}
-        aria-required={props.required || props["aria-required"]}
-        aria-invalid={props["aria-invalid"]}
-        aria-label={props["aria-label"]}
-        aria-labelledby={props["aria-labelledby"]}
-      >
-        {formattedDate}
-      </Trigger>
-      <CalendarPopover align={align}>
-        <div className="flex">
-          <div className="flex flex-col sm:flex-row sm:items-start">
+    <Popover
+      align={align}
+      openPopover={open}
+      setOpenPopover={onOpenChange}
+      content={
+        <div className="flex w-full">
+          <div className="flex w-full flex-col sm:flex-row sm:items-start">
             {presets && presets.length > 0 && (
               <div
                 className={cn(
@@ -644,14 +592,14 @@ const SingleDatePicker = ({
               <div className="flex items-center gap-x-2 border-t border-gray-200 p-3">
                 <Button
                   variant="secondary"
-                  className="h-8"
+                  className="sm:h-8"
                   type="button"
                   onClick={onCancel}
                   text="Cancel"
                 />
                 <Button
                   variant="primary"
-                  className="h-8"
+                  className="sm:h-8"
                   type="button"
                   onClick={onApply}
                   text="Apply"
@@ -660,8 +608,21 @@ const SingleDatePicker = ({
             </div>
           </div>
         </div>
-      </CalendarPopover>
-    </Popover.Root>
+      }
+    >
+      <Trigger
+        placeholder={placeholder}
+        disabled={disabled}
+        className={className}
+        hasError={hasError}
+        aria-required={props.required || props["aria-required"]}
+        aria-invalid={props["aria-invalid"]}
+        aria-label={props["aria-label"]}
+        aria-labelledby={props["aria-labelledby"]}
+      >
+        {formattedDate}
+      </Trigger>
+    </Popover>
   );
 };
 
@@ -692,7 +653,7 @@ const RangeDatePicker = ({
   className,
   ...props
 }: RangeProps) => {
-  const { isMobile } = useMediaQuery();
+  const { isDesktop } = useMediaQuery();
 
   const [open, setOpen] = useState(false);
   const [range, setRange] = useState<DateRange | undefined>(
@@ -884,22 +845,13 @@ const RangeDatePicker = ({
   };
 
   return (
-    <Popover.Root open={open} onOpenChange={onOpenChange}>
-      <Trigger
-        placeholder={placeholder}
-        disabled={disabled}
-        className={className}
-        hasError={hasError}
-        aria-required={props.required || props["aria-required"]}
-        aria-invalid={props["aria-invalid"]}
-        aria-label={props["aria-label"]}
-        aria-labelledby={props["aria-labelledby"]}
-      >
-        {displayRange}
-      </Trigger>
-      <CalendarPopover align={align}>
-        <div className="flex">
-          <div className="scrollbar-hide flex flex-col overflow-x-scroll sm:flex-row sm:items-start">
+    <Popover
+      align={align}
+      openPopover={open}
+      setOpenPopover={onOpenChange}
+      content={
+        <div className="flex w-full">
+          <div className="scrollbar-hide flex w-full flex-col overflow-x-scroll sm:flex-row sm:items-start">
             {presets && presets.length > 0 && (
               <div
                 className={cn(
@@ -924,7 +876,7 @@ const RangeDatePicker = ({
                 onSelect={onRangeChange}
                 month={month}
                 onMonthChange={setMonth}
-                numberOfMonths={isMobile ? 1 : 2}
+                numberOfMonths={isDesktop ? 2 : 1}
                 disabled={disabledDays}
                 disableNavigation={disableNavigation}
                 showYearNavigation={showYearNavigation}
@@ -962,26 +914,18 @@ const RangeDatePicker = ({
                   </div>
                 </div>
               )}
-              <div className="border-t border-gray-200 p-3 sm:flex sm:items-center sm:justify-between">
-                <p className="tabular-nums text-gray-900">
-                  {displayRange && (
-                    <>
-                      <span className="text-gray-700">Range:</span>{" "}
-                      <span className="font-medium">{displayRange}</span>
-                    </>
-                  )}
-                </p>
+              <div className="border-t border-gray-200 p-3 sm:flex sm:items-center sm:justify-end">
                 <div className="mt-2 flex items-center gap-x-2 sm:mt-0">
                   <Button
                     variant="secondary"
-                    className="h-8"
+                    className="sm:h-8"
                     type="button"
                     onClick={onCancel}
                     text="Cancel"
                   />
                   <Button
                     variant="primary"
-                    className="h-8"
+                    className="sm:h-8"
                     type="button"
                     onClick={onApply}
                     text="Apply"
@@ -991,8 +935,21 @@ const RangeDatePicker = ({
             </div>
           </div>
         </div>
-      </CalendarPopover>
-    </Popover.Root>
+      }
+    >
+      <Trigger
+        placeholder={placeholder}
+        disabled={disabled}
+        className={className}
+        hasError={hasError}
+        aria-required={props.required || props["aria-required"]}
+        aria-invalid={props["aria-invalid"]}
+        aria-label={props["aria-label"]}
+        aria-labelledby={props["aria-labelledby"]}
+      >
+        {displayRange}
+      </Trigger>
+    </Popover>
   );
 };
 
@@ -1149,9 +1106,7 @@ type SingleDatePickerProps = {
 } & PickerProps;
 
 const DatePicker = ({ presets, ...props }: SingleDatePickerProps) => {
-  if (presets) {
-    validatePresets(presets, props);
-  }
+  if (presets) validatePresets(presets, props);
 
   return <SingleDatePicker presets={presets} {...(props as SingleProps)} />;
 };

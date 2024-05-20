@@ -1,4 +1,10 @@
-import { BlurImage, DateRangePicker, ExpandingArrow, useScroll } from "@dub/ui";
+import {
+  BlurImage,
+  DateRangePicker,
+  ExpandingArrow,
+  useRouterStuff,
+  useScroll,
+} from "@dub/ui";
 import {
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
@@ -9,13 +15,14 @@ import {
 import { setDate, setMonth, subDays, subMonths } from "date-fns";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
-import DateRangePickerOld from "./date-range-picker";
 import ExportButton from "./export-button";
 import FilterBar from "./filter-bar";
 import SharePopover from "./share-popover";
 
 export default function Toggle() {
-  const { basePath, domain, key, url, admin } = useContext(AnalyticsContext);
+  const { basePath, domain, key, url, admin, start, end } =
+    useContext(AnalyticsContext);
+  const { queryParams } = useRouterStuff();
 
   const scrolled = useScroll(80);
 
@@ -88,10 +95,22 @@ export default function Toggle() {
                 "justify-end": key,
               })}
             >
-              <DateRangePickerOld />
               <DateRangePicker
                 align="end"
-                defaultValue={{ from: subDays(new Date(), 30), to: new Date() }}
+                defaultValue={{
+                  from: start ? new Date(start) : subDays(new Date(), 30),
+                  to: end ? new Date(end) : new Date(),
+                }}
+                onChange={(range) => {
+                  if (!range || !range.from || !range.to) return;
+
+                  queryParams({
+                    set: {
+                      start: range.from.toISOString(),
+                      end: range.to.toISOString(),
+                    },
+                  });
+                }}
                 presets={[
                   {
                     label: "Last 24 hours",

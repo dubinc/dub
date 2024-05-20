@@ -8,6 +8,7 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
+import { subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
 import useSWR from "swr";
@@ -25,7 +26,8 @@ export const AnalyticsContext = createContext<{
   key?: string;
   url?: string;
   queryString: string;
-  interval: string;
+  start: Date;
+  end: Date;
   tagId?: string;
   totalClicks?: number;
   admin?: boolean;
@@ -34,7 +36,8 @@ export const AnalyticsContext = createContext<{
   baseApiPath: "",
   domain: "",
   queryString: "",
-  interval: "",
+  start: new Date(),
+  end: new Date(),
   admin: false,
 });
 
@@ -57,9 +60,16 @@ export default function Analytics({
   const domainSlug = searchParams?.get("domain");
   // key can be a path param (public stats pages) or a query param (stats pages in app)
   key = searchParams?.get("key") || key;
-  const interval = searchParams?.get("interval") || "24h";
 
   const tagId = searchParams?.get("tagId") ?? undefined;
+
+  // Default to last 30 days
+  const { start, end } = useMemo(() => {
+    return {
+      start: new Date(searchParams?.get("start") || subDays(new Date(), 30)),
+      end: new Date(searchParams?.get("end") || new Date()),
+    };
+  }, [searchParams]);
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
     // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
@@ -99,11 +109,12 @@ export default function Analytics({
       ...(id && { workspaceId: id }),
       ...(domain && { domain }),
       ...(key && { key }),
-      ...(interval && { interval }),
+      ...(start &&
+        end && { start: start.toISOString(), end: end.toISOString() }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
     }).toString();
-  }, [id, domain, key, searchParams, interval, tagId]);
+  }, [id, domain, key, searchParams, start, end, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/count?${queryString}`,
@@ -121,7 +132,8 @@ export default function Analytics({
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: staticUrl, // url for the link (only for public stats pages)
-        interval, // time interval (e.g. 24h, 7d, 30d, etc.)
+        start, // start of time period
+        end, // end of time period
         tagId, // id of a single tag
         totalClicks, // total clicks for the link
         admin, // whether the user is an admin

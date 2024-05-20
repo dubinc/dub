@@ -92,7 +92,7 @@ function Calendar({
       className={className}
       classNames={{
         months: "flex space-y-0",
-        month: "space-y-4 p-3",
+        month: "space-y-4 p-3 w-full",
         nav: "gap-1 flex items-center rounded-full w-full h-full justify-between p-4",
         table: "w-full border-collapse space-y-1",
         head_cell:
@@ -100,7 +100,7 @@ function Calendar({
         row: "w-full mt-0.5",
         cell: "relative p-0 text-center focus-within:relative text-gray-900",
         day: cn(
-          "w-9 h-9 rounded text-sm text-gray-900",
+          "relative h-10 w-full sm:h-9 sm:w-9 rounded text-sm text-gray-900",
           "hover:bg-gray-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
         ),
         day_today: "font-semibold",
@@ -240,19 +240,10 @@ function Calendar({
             );
           }
 
-          const {
-            children: buttonChildren,
-            className: buttonClassName,
-            ...buttonPropsRest
-          } = buttonProps;
+          const { children: buttonChildren, ...buttonPropsRest } = buttonProps;
 
           return (
-            <button
-              ref={buttonRef}
-              {...buttonPropsRest}
-              type="button"
-              className={cn("relative", buttonClassName)}
-            >
+            <button ref={buttonRef} {...buttonPropsRest} type="button">
               {buttonChildren}
               {today && (
                 <span
