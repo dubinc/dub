@@ -1,4 +1,4 @@
-import { BlurImage, ExpandingArrow, useScroll } from "@dub/ui";
+import { BlurImage, DateRangePicker, ExpandingArrow, useScroll } from "@dub/ui";
 import {
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
@@ -6,9 +6,10 @@ import {
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
+import { setDate, setMonth, subDays, subMonths } from "date-fns";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
-import DateRangePicker from "./date-range-picker";
+import DateRangePickerOld from "./date-range-picker";
 import ExportButton from "./export-button";
 import FilterBar from "./filter-bar";
 import SharePopover from "./share-popover";
@@ -87,7 +88,55 @@ export default function Toggle() {
                 "justify-end": key,
               })}
             >
-              <DateRangePicker />
+              <DateRangePickerOld />
+              <DateRangePicker
+                align="end"
+                defaultValue={{ from: subDays(new Date(), 30), to: new Date() }}
+                presets={[
+                  {
+                    label: "Last 24 hours",
+                    dateRange: {
+                      from: subDays(new Date(), 1),
+                      to: new Date(),
+                    },
+                  },
+                  {
+                    label: "Last 7 days",
+                    dateRange: {
+                      from: subDays(new Date(), 7),
+                      to: new Date(),
+                    },
+                  },
+                  {
+                    label: "Last 30 days",
+                    dateRange: {
+                      from: subDays(new Date(), 30),
+                      to: new Date(),
+                    },
+                  },
+                  {
+                    label: "Last 3 months",
+                    dateRange: {
+                      from: subDays(new Date(), 90),
+                      to: new Date(),
+                    },
+                  },
+                  {
+                    label: "Year to date",
+                    dateRange: {
+                      from: setMonth(setDate(new Date(), 1), 0),
+                      to: new Date(),
+                    },
+                  },
+                  {
+                    label: "Last 12 months",
+                    dateRange: {
+                      from: subMonths(new Date(), 12),
+                      to: new Date(),
+                    },
+                  },
+                ]}
+              />
               {!isPublicStatsPage && <ExportButton />}
             </div>
           </div>

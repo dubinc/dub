@@ -1,6 +1,12 @@
 import { cn } from "@dub/utils";
 import { addYears, format, isSameMonth } from "date-fns";
-import * as React from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import { ElementType, HTMLAttributes, forwardRef, useRef } from "react";
 import {
   DayPicker,
   useDayPicker,
@@ -12,46 +18,32 @@ import {
   type Matcher,
 } from "react-day-picker";
 
-interface NavigationButtonProps
-  extends React.HTMLAttributes<HTMLButtonElement> {
+interface NavigationButtonProps extends HTMLAttributes<HTMLButtonElement> {
   onClick: () => void;
-  icon: React.ElementType;
+  icon: ElementType;
   disabled?: boolean;
 }
 
-const NavigationButton = React.forwardRef<
-  HTMLButtonElement,
-  NavigationButtonProps
->(
+const NavigationButton = forwardRef<HTMLButtonElement, NavigationButtonProps>(
   (
-    { onClick, icon, disabled, ...props }: NavigationButtonProps,
+    { onClick, icon: Icon, disabled, ...props }: NavigationButtonProps,
     forwardedRef,
   ) => {
-    const Icon = icon;
     return (
       <button
         ref={forwardedRef}
         type="button"
         disabled={disabled}
         className={cn(
-          "flex size-8 shrink-0 select-none items-center justify-center rounded border p-1 outline-none transition sm:size-[30px]",
-          // text color
-          "text-gray-600 hover:text-gray-800",
-          "dark:text-gray-400 hover:dark:text-gray-200",
-          // border color
-          "border-gray-300 dark:border-gray-700",
-          // background color
+          "flex h-7 w-7 shrink-0 select-none items-center justify-center rounded border p-1 outline-none transition",
+          "border-gray-300 text-gray-600 hover:text-gray-800",
           "hover:bg-gray-50 active:bg-gray-100",
-          "hover:dark:bg-gray-900 active:dark:bg-gray-800",
-          // disabled
-          "disabled:pointer-events-none",
-          "disabled:border-gray-200 disabled:dark:border-gray-800",
-          "disabled:text-gray-400 disabled:dark:text-gray-600",
+          "disabled:pointer-events-none disabled:border-gray-200 disabled:text-gray-400",
         )}
         onClick={onClick}
         {...props}
       >
-        <Icon className="size-full shrink-0" />
+        <Icon className="h-full w-full shrink-0" />
       </button>
     );
   },
@@ -79,17 +71,17 @@ type CalendarProps =
       mode: "range";
     } & RangeProps);
 
-const Calendar = ({
+function Calendar({
   mode = "single",
   weekStartsOn = 1,
   numberOfMonths = 1,
-  enableYearNavigation = false,
+  showYearNavigation = false,
   disableNavigation,
   locale,
   className,
   classNames,
   ...props
-}: CalendarProps & { enableYearNavigation?: boolean }) => {
+}: CalendarProps & { showYearNavigation?: boolean }) {
   return (
     <DayPicker
       mode={mode}
@@ -97,50 +89,36 @@ const Calendar = ({
       numberOfMonths={numberOfMonths}
       locale={locale}
       showOutsideDays={numberOfMonths === 1 ? true : false}
-      className={cx(className)}
+      className={className}
       classNames={{
         months: "flex space-y-0",
         month: "space-y-4 p-3",
-        nav: "gap-1 flex items-center rounded-full size-full justify-between p-4",
+        nav: "gap-1 flex items-center rounded-full w-full h-full justify-between p-4",
         table: "w-full border-collapse space-y-1",
         head_cell:
-          "w-9 font-medium text-sm sm:text-xs text-center text-gray-400 dark:text-gray-600 pb-2",
+          "w-9 font-medium text-sm sm:text-xs text-center text-gray-400 pb-2",
         row: "w-full mt-0.5",
-        cell: cx(
-          "relative p-0 text-center focus-within:relative",
-          "text-gray-900 dark:text-gray-50",
-        ),
-        day: cx(
-          "size-9 rounded text-sm text-gray-900 dark:text-gray-50",
-          "hover:bg-gray-200 hover:dark:bg-gray-700",
-          focusRing,
+        cell: "relative p-0 text-center focus-within:relative text-gray-900",
+        day: cn(
+          "w-9 h-9 rounded text-sm text-gray-900",
+          "hover:bg-gray-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
         ),
         day_today: "font-semibold",
-        day_selected: cx(
-          "rounded",
-          "aria-selected:bg-gray-900 aria-selected:text-gray-50",
-          "dark:aria-selected:bg-gray-50 dark:aria-selected:text-gray-900",
-        ),
+        day_selected:
+          "rounded aria-selected:bg-gray-900 aria-selected:text-gray-50",
         day_disabled:
-          "!text-gray-300 dark:!text-gray-700 line-through disabled:hover:bg-transparent",
-        day_outside: "text-gray-400 dark:text-gray-600",
-        day_range_middle: cx(
-          "!rounded-none",
-          "aria-selected:!bg-gray-100 aria-selected:!text-gray-900",
-          "dark:aria-selected:!bg-gray-900 dark:aria-selected:!text-gray-50",
-        ),
+          "!text-gray-300 line-through disabled:hover:bg-transparent",
+        day_outside: "text-gray-400",
+        day_range_middle:
+          "!rounded-none aria-selected:!bg-gray-100 aria-selected:!text-gray-900",
         day_range_start: "rounded-r-none !rounded-l",
         day_range_end: "rounded-l-none !rounded-r",
         day_hidden: "invisible",
         ...classNames,
       }}
       components={{
-        IconLeft: () => (
-          <RiArrowLeftSLine aria-hidden="true" className="size-4" />
-        ),
-        IconRight: () => (
-          <RiArrowRightSLine aria-hidden="true" className="size-4" />
-        ),
+        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+        IconRight: () => <ChevronRight className="h-4 w-4" />,
         Caption: ({ ...props }) => {
           const {
             goToMonth,
@@ -183,7 +161,7 @@ const Calendar = ({
           return (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
-                {enableYearNavigation && !hidePreviousButton && (
+                {showYearNavigation && !hidePreviousButton && (
                   <NavigationButton
                     disabled={
                       disableNavigation ||
@@ -194,7 +172,7 @@ const Calendar = ({
                     }
                     aria-label="Go to previous year"
                     onClick={goToPreviousYear}
-                    icon={RiArrowLeftDoubleLine}
+                    icon={ChevronsLeft}
                   />
                 )}
                 {!hidePreviousButton && (
@@ -202,7 +180,7 @@ const Calendar = ({
                     disabled={disableNavigation || !previousMonth}
                     aria-label="Go to previous month"
                     onClick={() => previousMonth && goToMonth(previousMonth)}
-                    icon={RiArrowLeftSLine}
+                    icon={ChevronLeft}
                   />
                 )}
               </div>
@@ -210,7 +188,7 @@ const Calendar = ({
               <div
                 role="presentation"
                 aria-live="polite"
-                className="text-sm font-medium capitalize tabular-nums text-gray-900 dark:text-gray-50"
+                className="text-sm font-medium capitalize tabular-nums text-gray-900"
               >
                 {format(props.displayMonth, "LLLL yyy", { locale })}
               </div>
@@ -221,10 +199,10 @@ const Calendar = ({
                     disabled={disableNavigation || !nextMonth}
                     aria-label="Go to next month"
                     onClick={() => nextMonth && goToMonth(nextMonth)}
-                    icon={RiArrowRightSLine}
+                    icon={ChevronRight}
                   />
                 )}
-                {enableYearNavigation && !hideNextButton && (
+                {showYearNavigation && !hideNextButton && (
                   <NavigationButton
                     disabled={
                       disableNavigation ||
@@ -234,7 +212,7 @@ const Calendar = ({
                     }
                     aria-label="Go to next year"
                     onClick={goToNextYear}
-                    icon={RiArrowRightDoubleLine}
+                    icon={ChevronsRight}
                   />
                 )}
               </div>
@@ -242,21 +220,19 @@ const Calendar = ({
           );
         },
         Day: ({ date, displayMonth }: DayProps) => {
-          const buttonRef = React.useRef<HTMLButtonElement>(null);
+          const buttonRef = useRef<HTMLButtonElement>(null);
           const { activeModifiers, buttonProps, divProps, isButton, isHidden } =
             useDayRender(date, displayMonth, buttonRef);
 
           const { selected, today, disabled, range_middle } = activeModifiers;
 
-          if (isHidden) {
-            return <></>;
-          }
+          if (isHidden) return <></>;
 
           if (!isButton) {
             return (
               <div
                 {...divProps}
-                className={cx(
+                className={cn(
                   "flex items-center justify-center",
                   divProps.className,
                 )}
@@ -275,19 +251,18 @@ const Calendar = ({
               ref={buttonRef}
               {...buttonPropsRest}
               type="button"
-              className={cx("relative", buttonClassName)}
+              className={cn("relative", buttonClassName)}
             >
               {buttonChildren}
               {today && (
                 <span
-                  className={cx(
+                  className={cn(
                     "absolute inset-x-1/2 bottom-1.5 h-0.5 w-4 -translate-x-1/2 rounded-[2px]",
                     {
-                      "bg-blue-500 dark:bg-blue-500": !selected,
-                      "!bg-white dark:!bg-gray-950": selected,
-                      "!bg-gray-400 dark:!bg-gray-600":
-                        selected && range_middle,
-                      "text-gray-400 dark:text-gray-600": disabled,
+                      "bg-blue-500": !selected,
+                      "!bg-white": selected,
+                      "!bg-gray-400": selected && range_middle,
+                      "text-gray-400": disabled,
                     },
                   )}
                 />
@@ -299,8 +274,6 @@ const Calendar = ({
       {...(props as SingleProps & RangeProps)}
     />
   );
-};
-
-Calendar.displayName = "Calendar";
+}
 
 export { Calendar, type Matcher };

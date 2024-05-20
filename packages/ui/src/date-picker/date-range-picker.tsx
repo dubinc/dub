@@ -1,5 +1,6 @@
+import { cn } from "@dub/utils";
 import { Time } from "@internationalized/date";
-import * as PopoverPrimitives from "@radix-ui/react-popover";
+import * as Popover from "@radix-ui/react-popover";
 import {
   AriaTimeFieldProps,
   TimeValue,
@@ -11,12 +12,22 @@ import {
   type DateFieldState,
   type DateSegment,
 } from "@react-stately/datepicker";
+import { VariantProps, cva } from "class-variance-authority";
 import { format, type Locale } from "date-fns";
 import { enUS } from "date-fns/locale";
-import * as React from "react";
-
-import { cn } from "@dub/utils";
-import { Button } from "./button";
+import { Calendar, ChevronDown, Minus } from "lucide-react";
+import {
+  ComponentProps,
+  ElementRef,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Button } from "../button";
+import { useMediaQuery } from "../hooks";
 import { Calendar as CalendarPrimitive, type Matcher } from "./calendar";
 
 //#region TimeInput
@@ -39,7 +50,7 @@ type TimeSegmentProps = {
 };
 
 const TimeSegment = ({ segment, state }: TimeSegmentProps) => {
-  const ref = React.useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   const { segmentProps } = useDateSegment(segment, state, ref);
 
@@ -53,24 +64,14 @@ const TimeSegment = ({ segment, state }: TimeSegmentProps) => {
       {...segmentProps}
       ref={ref}
       className={cn(
-        // base
         "relative block w-full appearance-none rounded-md border px-2.5 py-1.5 text-left uppercase tabular-nums shadow-sm outline-none sm:text-sm",
-        // border color
-        "border-gray-300 dark:border-gray-800",
-        // text color
-        "text-gray-900 dark:text-gray-50",
-        // background color
-        "bg-white dark:bg-gray-950",
-        // focus
-        focusInput,
-        // invalid (optional)
-        "invalid:border-red-500 invalid:ring-2 invalid:ring-red-200 group-aria-[invalid=true]/time-input:border-red-500 group-aria-[invalid=true]/time-input:ring-2 group-aria-[invalid=true]/time-input:ring-red-200 group-aria-[invalid=true]/time-input:dark:ring-red-400/20",
+        "focus:border-blue-500 focus:ring-2 focus:ring-blue-200",
+        //"invalid:border-red-500 invalid:ring-2 invalid:ring-red-200 group-aria-[invalid=true]/time-input:border-red-500 group-aria-[invalid=true]/time-input:ring-2 group-aria-[invalid=true]/time-input:ring-red-200",
         {
           "!w-fit border-none bg-transparent px-0 text-gray-400 shadow-none":
             isDecorator,
           hidden: isSpace,
-          "border-gray-300 bg-gray-100 text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500":
-            state.isDisabled,
+          "border-gray-200 bg-gray-100 text-gray-400": state.isDisabled,
           "!bg-transparent !text-gray-400": !segment.isEditable,
         },
       )}
@@ -97,11 +98,11 @@ type TimeInputProps = Omit<
   "label" | "shouldForceLeadingZeros" | "description" | "errorMessage"
 >;
 
-const TimeInput = React.forwardRef<HTMLDivElement, TimeInputProps>(
+const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
   ({ hourCycle, ...props }: TimeInputProps, ref) => {
-    const innerRef = React.useRef<HTMLDivElement>(null);
+    const innerRef = useRef<HTMLDivElement>(null);
 
-    React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(
+    useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(
       ref,
       () => innerRef?.current,
     );
@@ -144,66 +145,59 @@ TimeInput.displayName = "TimeInput";
 //#region Trigger
 // ============================================================================
 
-const triggerStyles = tv({
-  base: [
-    // base
-    "peer flex w-full cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 py-2 shadow-sm outline-none transition-all sm:text-sm",
-    // background color
-    "bg-white dark:bg-gray-950 ",
-    // border color
-    "border-gray-300 dark:border-gray-800",
-    // text color
-    "text-gray-900 dark:text-gray-50",
-    // placeholder color
-    "placeholder-gray-400 dark:placeholder-gray-500",
-    // hover
-    "hover:bg-gray-50 hover:dark:bg-gray-950/50",
-    // disabled
-    "disabled:pointer-events-none",
-    "disabled:bg-gray-100 disabled:text-gray-400",
-    "disabled:dark:border-gray-800 disabled:dark:bg-gray-800 disabled:dark:text-gray-500",
-    // focus
-    focusInput,
-    // invalid (optional)
-    // "aria-[invalid=true]:dark:ring-red-400/20 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-200 aria-[invalid=true]:border-red-500 invalid:ring-2 invalid:ring-red-200 invalid:border-red-500"
+const triggerStyles = cva(
+  [
+    "group peer flex cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 h-10 outline-none transition-all sm:text-sm",
+    "bg-white border-gray-200 text-gray-900 placeholder-gray-400 transition-all",
+    "disabled:pointer-events-none disabled:bg-gray-100 disabled:text-gray-400",
+    "data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+    //" aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-200 aria-[invalid=true]:border-red-500 invalid:ring-2 invalid:ring-red-200 invalid:border-red-500",
   ],
-  variants: {
-    hasError: {
-      true: hasErrorInput,
+  {
+    variants: {
+      hasError: {
+        true: "ring-2 ring-red-200 border-red-500",
+      },
     },
   },
-});
+);
 
 interface TriggerProps
-  extends React.ComponentProps<"button">,
+  extends ComponentProps<"button">,
     VariantProps<typeof triggerStyles> {
   placeholder?: string;
 }
 
-const Trigger = React.forwardRef<HTMLButtonElement, TriggerProps>(
+const Trigger = forwardRef<HTMLButtonElement, TriggerProps>(
   (
     { className, children, placeholder, hasError, ...props }: TriggerProps,
     forwardedRef,
   ) => {
     return (
-      <PopoverPrimitives.Trigger asChild>
+      <Popover.Trigger asChild>
         <button
           ref={forwardedRef}
           className={cn(triggerStyles({ hasError }), className)}
           {...props}
         >
-          <RiCalendar2Fill className="size-5 shrink-0 text-gray-400 dark:text-gray-600" />
-          <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900 dark:text-gray-50">
+          <Calendar
+            className={cn(
+              "h-4 w-4 shrink-0 text-gray-400",
+              !!children && "text-gray-900",
+            )}
+          />
+          <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
             {children ? (
               children
             ) : placeholder ? (
-              <span className="text-gray-400 dark:text-gray-600">
-                {placeholder}
-              </span>
+              <span className="text-gray-400">{placeholder}</span>
             ) : null}
           </span>
+          <ChevronDown
+            className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+          />
         </button>
-      </PopoverPrimitives.Trigger>
+      </Popover.Trigger>
     );
   },
 );
@@ -213,13 +207,13 @@ Trigger.displayName = "DatePicker.Trigger";
 //#region Popover
 // ============================================================================
 
-const CalendarPopover = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitives.Content>,
-  React.ComponentProps<typeof PopoverPrimitives.Content>
+const CalendarPopover = forwardRef<
+  ElementRef<typeof Popover.Content>,
+  ComponentProps<typeof Popover.Content>
 >(({ align, className, children, ...props }, forwardedRef) => {
   return (
-    <PopoverPrimitives.Portal>
-      <PopoverPrimitives.Content
+    <Popover.Portal>
+      <Popover.Content
         ref={forwardedRef}
         sideOffset={10}
         side="bottom"
@@ -227,25 +221,16 @@ const CalendarPopover = React.forwardRef<
         avoidCollisions
         onOpenAutoFocus={(e) => e.preventDefault()}
         className={cn(
-          // base
-          "relative z-50 w-fit rounded-md border text-sm shadow-xl shadow-black/[2.5%]",
-          // widths
-          "min-w-[calc(var(--radix-select-trigger-width)-2px)] max-w-[95vw]",
-          // border color
-          "border-gray-300 dark:border-gray-800",
-          // background color
-          "bg-white dark:bg-gray-950",
-          // transition
-          "will-change-[transform,opacity]",
-          "data-[state=closed]:animate-hide",
-          "data-[state=open]:data-[side=bottom]:animate-slideDownAndFade data-[state=open]:data-[side=left]:animate-slideLeftAndFade data-[state=open]:data-[side=right]:animate-slideRightAndFade data-[state=open]:data-[side=top]:animate-slideUpAndFade",
+          "relative z-50 w-fit min-w-[calc(var(--radix-select-trigger-width)-2px)] max-w-[95vw]",
+          "rounded-lg border border-gray-200 bg-white text-sm drop-shadow-lg",
+          "animate-slide-up-fade will-change-[transform,opacity]",
           className,
         )}
         {...props}
       >
         {children}
-      </PopoverPrimitives.Content>
-    </PopoverPrimitives.Portal>
+      </Popover.Content>
+    </Popover.Portal>
   );
 });
 
@@ -364,16 +349,16 @@ const PresetContainer = <TPreset extends Preset, TValue>({
                 // base
                 "relative w-full overflow-hidden text-ellipsis whitespace-nowrap rounded border px-2.5 py-1.5 text-left text-base shadow-sm outline-none transition-all sm:border-none sm:py-2 sm:text-sm sm:shadow-none",
                 // text color
-                "text-gray-700 dark:text-gray-300",
+                "text-gray-700",
                 // border color
-                "border-gray-300 dark:border-gray-800",
+                "border-gray-200",
                 // focus
-                focusRing,
+                "outline outline-0 outline-offset-2 outline-blue-500 focus-visible:outline-2",
                 // background color
-                "focus-visible:bg-gray-100 focus-visible:dark:bg-gray-900",
-                "hover:bg-gray-100 hover:dark:bg-gray-900",
+                "focus-visible:bg-gray-100",
+                "hover:bg-gray-100",
                 {
-                  "bg-gray-100 dark:bg-gray-900": matchesCurrent(preset),
+                  "bg-gray-100": matchesCurrent(preset),
                 },
               )}
               onClick={() => handleClick(preset)}
@@ -396,17 +381,20 @@ PresetContainer.displayName = "DatePicker.PresetContainer";
 const formatDate = (
   date: Date,
   locale: Locale,
-  includeTime?: boolean,
+  includeTime = false,
+  includeYear = true,
 ): string => {
   const usesAmPm = !isBrowserLocaleClockType24h();
   let dateString: string;
 
+  const year = includeYear ? ", yyyy" : "";
+
   if (includeTime) {
     dateString = usesAmPm
-      ? format(date, "dd MMM, yyyy h:mm a", { locale })
-      : format(date, "dd MMM, yyyy HH:mm", { locale });
+      ? format(date, `MMM d${year} h:mm a`, { locale })
+      : format(date, `MMM d${year} HH:mm`, { locale });
   } else {
-    dateString = format(date, "dd MMM, yyyy", { locale });
+    dateString = format(date, `MMM d${year}`, { locale });
   }
 
   return dateString;
@@ -439,12 +427,10 @@ interface PickerProps extends CalendarProps {
   required?: boolean;
   showTimePicker?: boolean;
   placeholder?: string;
-  enableYearNavigation?: boolean;
+  showYearNavigation?: boolean;
   disableNavigation?: boolean;
   hasError?: boolean;
   id?: string;
-  // Customize the date picker for different languages.
-  translations?: Translations;
   align?: "center" | "end" | "start";
   "aria-invalid"?: boolean;
   "aria-label"?: string;
@@ -455,12 +441,11 @@ interface PickerProps extends CalendarProps {
 //#region Single Date Picker
 // ============================================================================
 
-interface SingleProps extends Omit<PickerProps, "translations"> {
+interface SingleProps extends PickerProps {
   presets?: DatePreset[];
   defaultValue?: Date;
   value?: Date;
   onChange?: (date: Date | undefined) => void;
-  translations?: Omit<Translations, "range">;
 }
 
 const SingleDatePicker = ({
@@ -475,19 +460,18 @@ const SingleDatePicker = ({
   showTimePicker,
   placeholder = "Select date",
   hasError,
-  translations,
-  enableYearNavigation = false,
+  showYearNavigation = false,
   locale = enUS,
   align = "center",
   ...props
 }: SingleProps) => {
-  const [open, setOpen] = React.useState(false);
-  const [date, setDate] = React.useState<Date | undefined>(
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(
     value ?? defaultValue ?? undefined,
   );
-  const [month, setMonth] = React.useState<Date | undefined>(date);
+  const [month, setMonth] = useState<Date | undefined>(date);
 
-  const [time, setTime] = React.useState<TimeValue>(
+  const [time, setTime] = useState<TimeValue>(
     value
       ? new Time(value.getHours(), value.getMinutes())
       : defaultValue
@@ -495,22 +479,22 @@ const SingleDatePicker = ({
         : new Time(0, 0),
   );
 
-  const initialDate = React.useMemo(() => {
+  const initialDate = useMemo(() => {
     return date;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setDate(value ?? defaultValue ?? undefined);
   }, [value, defaultValue]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (date) {
       setMonth(date);
     }
   }, [date]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
       setMonth(date);
     }
@@ -569,12 +553,17 @@ const SingleDatePicker = ({
     setDate(newDate);
   };
 
-  const formattedDate = React.useMemo(() => {
+  const formattedDate = useMemo(() => {
     if (!date) {
       return null;
     }
 
-    return formatDate(date, locale, showTimePicker);
+    return formatDate(
+      date,
+      locale,
+      showTimePicker,
+      date.getFullYear() !== new Date().getFullYear(),
+    );
   }, [date, locale, showTimePicker]);
 
   const onApply = () => {
@@ -582,7 +571,7 @@ const SingleDatePicker = ({
     onChange?.(date);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     setDate(value ?? defaultValue ?? undefined);
     setTime(
       value
@@ -594,7 +583,7 @@ const SingleDatePicker = ({
   }, [value, defaultValue]);
 
   return (
-    <PopoverPrimitives.Root open={open} onOpenChange={onOpenChange}>
+    <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Trigger
         placeholder={placeholder}
         disabled={disabled}
@@ -614,7 +603,7 @@ const SingleDatePicker = ({
               <div
                 className={cn(
                   "relative flex h-14 w-full items-center sm:h-full sm:w-40",
-                  "border-b border-gray-300 sm:border-b-0 sm:border-r dark:border-gray-800",
+                  "border-b border-gray-200 sm:border-b-0 sm:border-r",
                   "overflow-auto",
                 )}
               >
@@ -636,13 +625,13 @@ const SingleDatePicker = ({
                 onSelect={onDateChange}
                 disabled={disabledDays}
                 locale={locale}
-                enableYearNavigation={enableYearNavigation}
+                showYearNavigation={showYearNavigation}
                 disableNavigation={disableNavigation}
                 initialFocus
                 {...props}
               />
               {showTimePicker && (
-                <div className="border-t border-gray-300 p-3 dark:border-gray-800">
+                <div className="border-t border-gray-200 p-3">
                   <TimeInput
                     aria-label="Time"
                     onChange={onTimeChange}
@@ -652,29 +641,27 @@ const SingleDatePicker = ({
                   />
                 </div>
               )}
-              <div className="flex items-center gap-x-2 border-t border-gray-300 p-3 dark:border-gray-800">
+              <div className="flex items-center gap-x-2 border-t border-gray-200 p-3">
                 <Button
                   variant="secondary"
-                  className="h-8 w-full"
+                  className="h-8"
                   type="button"
                   onClick={onCancel}
-                >
-                  {translations?.cancel ?? "Cancel"}
-                </Button>
+                  text="Cancel"
+                />
                 <Button
                   variant="primary"
-                  className="h-8 w-full"
+                  className="h-8"
                   type="button"
                   onClick={onApply}
-                >
-                  {translations?.apply ?? "Apply"}
-                </Button>
+                  text="Apply"
+                />
               </div>
             </div>
           </div>
         </div>
       </CalendarPopover>
-    </PopoverPrimitives.Root>
+    </Popover.Root>
   );
 };
 
@@ -696,30 +683,31 @@ const RangeDatePicker = ({
   disabled,
   disableNavigation,
   disabledDays,
-  enableYearNavigation = false,
+  showYearNavigation = false,
   locale = enUS,
   showTimePicker,
   placeholder = "Select date range",
   hasError,
-  translations,
   align = "center",
   className,
   ...props
 }: RangeProps) => {
-  const [open, setOpen] = React.useState(false);
-  const [range, setRange] = React.useState<DateRange | undefined>(
+  const { isMobile } = useMediaQuery();
+
+  const [open, setOpen] = useState(false);
+  const [range, setRange] = useState<DateRange | undefined>(
     value ?? defaultValue ?? undefined,
   );
-  const [month, setMonth] = React.useState<Date | undefined>(range?.from);
+  const [month, setMonth] = useState<Date | undefined>(range?.from);
 
-  const [startTime, setStartTime] = React.useState<TimeValue>(
+  const [startTime, setStartTime] = useState<TimeValue>(
     value?.from
       ? new Time(value.from.getHours(), value.from.getMinutes())
       : defaultValue?.from
         ? new Time(defaultValue.from.getHours(), defaultValue.from.getMinutes())
         : new Time(0, 0),
   );
-  const [endTime, setEndTime] = React.useState<TimeValue>(
+  const [endTime, setEndTime] = useState<TimeValue>(
     value?.to
       ? new Time(value.to.getHours(), value.to.getMinutes())
       : defaultValue?.to
@@ -727,22 +715,22 @@ const RangeDatePicker = ({
         : new Time(0, 0),
   );
 
-  const initialRange = React.useMemo(() => {
+  const initialRange = useMemo(() => {
     return range;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setRange(value ?? defaultValue ?? undefined);
   }, [value, defaultValue]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (range) {
       setMonth(range.from);
     }
   }, [range]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
       setMonth(range?.from);
     }
@@ -757,7 +745,7 @@ const RangeDatePicker = ({
       }
 
       if (newRange?.to && !endTime) {
-        setEndTime(new Time(0, 0));
+        setEndTime(new Time(23, 59, 59));
       }
 
       if (newRange?.from && startTime) {
@@ -807,9 +795,7 @@ const RangeDatePicker = ({
         break;
     }
 
-    if (!range) {
-      return;
-    }
+    if (!range) return;
 
     if (pos === "start") {
       if (!range.from) {
@@ -854,7 +840,7 @@ const RangeDatePicker = ({
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     setRange(value ?? defaultValue ?? undefined);
 
     setStartTime(
@@ -876,13 +862,19 @@ const RangeDatePicker = ({
     );
   }, [value, defaultValue]);
 
-  const displayRange = React.useMemo(() => {
+  const displayRange = useMemo(() => {
     if (!range) {
       return null;
     }
 
-    return `${range.from ? formatDate(range.from, locale, showTimePicker) : ""} - ${
-      range.to ? formatDate(range.to, locale, showTimePicker) : ""
+    // Only include the year in the formatted date if `from` or `to` is a different year
+    const currentYear = new Date().getFullYear();
+    const includeYear =
+      (range.from != null && range.from.getFullYear() !== currentYear) ||
+      (range.to != null && range.to.getFullYear() !== currentYear);
+
+    return `${range.from ? formatDate(range.from, locale, showTimePicker, includeYear) : ""} - ${
+      range.to ? formatDate(range.to, locale, showTimePicker, includeYear) : ""
     }`;
   }, [range, locale, showTimePicker]);
 
@@ -892,7 +884,7 @@ const RangeDatePicker = ({
   };
 
   return (
-    <PopoverPrimitives.Root open={open} onOpenChange={onOpenChange}>
+    <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Trigger
         placeholder={placeholder}
         disabled={disabled}
@@ -907,13 +899,13 @@ const RangeDatePicker = ({
       </Trigger>
       <CalendarPopover align={align}>
         <div className="flex">
-          <div className="flex flex-col overflow-x-scroll sm:flex-row sm:items-start">
+          <div className="scrollbar-hide flex flex-col overflow-x-scroll sm:flex-row sm:items-start">
             {presets && presets.length > 0 && (
               <div
                 className={cn(
                   "relative flex h-16 w-full items-center sm:h-full sm:w-40",
-                  "border-b border-gray-300 sm:border-b-0 sm:border-r dark:border-gray-800",
-                  "overflow-auto",
+                  "border-b border-gray-200 sm:border-b-0 sm:border-r",
+                  "scrollbar-hide overflow-auto",
                 )}
               >
                 <div className="absolute px-3 sm:inset-0 sm:left-0 sm:p-2">
@@ -925,32 +917,30 @@ const RangeDatePicker = ({
                 </div>
               </div>
             )}
-            <div className="overflow-x-scroll">
+            <div className="scrollbar-hide overflow-x-scroll">
               <CalendarPrimitive
                 mode="range"
                 selected={range}
                 onSelect={onRangeChange}
                 month={month}
                 onMonthChange={setMonth}
-                numberOfMonths={2}
+                numberOfMonths={isMobile ? 1 : 2}
                 disabled={disabledDays}
                 disableNavigation={disableNavigation}
-                enableYearNavigation={enableYearNavigation}
+                showYearNavigation={showYearNavigation}
                 locale={locale}
                 initialFocus
-                className="overflow-x-scroll"
+                className="scrollbar-hide overflow-x-scroll"
                 classNames={{
                   months:
-                    "flex flex-row divide-x divide-gray-300 dark:divide-gray-800 overflow-x-scroll",
+                    "flex flex-row divide-x divide-gray-300 overflow-x-scroll scrollbar-hide",
                 }}
                 {...props}
               />
               {showTimePicker && (
-                <div className="flex items-center justify-evenly gap-x-3 border-t border-gray-300 p-3 dark:border-gray-800">
+                <div className="flex items-center justify-evenly gap-x-3 border-t border-gray-200 p-3">
                   <div className="flex flex-1 items-center gap-x-2">
-                    <span className="dark:text-gray-30 text-gray-700">
-                      {translations?.start ?? "Start"}:
-                    </span>
+                    <span className="text-gray-700">Start:</span>
                     <TimeInput
                       value={startTime}
                       onChange={(v) => onTimeChange(v, "start")}
@@ -959,11 +949,9 @@ const RangeDatePicker = ({
                       isRequired={props.required}
                     />
                   </div>
-                  <RiSubtractFill className="size-4 shrink-0 text-gray-400" />
+                  <Minus className="h-4 w-4 shrink-0 text-gray-400" />
                   <div className="flex flex-1 items-center gap-x-2">
-                    <span className="dark:text-gray-30 text-gray-700">
-                      {translations?.end ?? "End"}:
-                    </span>
+                    <span className="text-gray-700">End:</span>
                     <TimeInput
                       value={endTime}
                       onChange={(v) => onTimeChange(v, "end")}
@@ -974,37 +962,37 @@ const RangeDatePicker = ({
                   </div>
                 </div>
               )}
-              <div className="border-t border-gray-300 p-3 sm:flex sm:items-center sm:justify-between dark:border-gray-800">
-                <p className="tabular-nums text-gray-900 dark:text-gray-50">
-                  <span className="text-gray-700 dark:text-gray-300">
-                    {translations?.range ?? "Range"}:
-                  </span>{" "}
-                  <span className="font-medium">{displayRange}</span>
+              <div className="border-t border-gray-200 p-3 sm:flex sm:items-center sm:justify-between">
+                <p className="tabular-nums text-gray-900">
+                  {displayRange && (
+                    <>
+                      <span className="text-gray-700">Range:</span>{" "}
+                      <span className="font-medium">{displayRange}</span>
+                    </>
+                  )}
                 </p>
                 <div className="mt-2 flex items-center gap-x-2 sm:mt-0">
                   <Button
                     variant="secondary"
-                    className="h-8 w-full sm:w-fit"
+                    className="h-8"
                     type="button"
                     onClick={onCancel}
-                  >
-                    {translations?.cancel ?? "Cancel"}
-                  </Button>
+                    text="Cancel"
+                  />
                   <Button
                     variant="primary"
-                    className="h-8 w-full sm:w-fit"
+                    className="h-8"
                     type="button"
                     onClick={onApply}
-                  >
-                    {translations?.apply ?? "Apply"}
-                  </Button>
+                    text="Apply"
+                  />
                 </div>
               </div>
             </div>
           </div>
         </div>
       </CalendarPopover>
-    </PopoverPrimitives.Root>
+    </Popover.Root>
   );
 };
 
@@ -1178,9 +1166,7 @@ type RangeDatePickerProps = {
 } & PickerProps;
 
 const DateRangePicker = ({ presets, ...props }: RangeDatePickerProps) => {
-  if (presets) {
-    validatePresets(presets, props);
-  }
+  if (presets) validatePresets(presets, props);
 
   return <RangeDatePicker presets={presets} {...(props as RangeProps)} />;
 };
