@@ -9,20 +9,16 @@ const subscribeSchema = z.object({
 });
 
 export const POST = withWorkspace(async ({ workspace, req }) => {
-  const { url: zapierWebhookUrl } = subscribeSchema.parse(
-    await parseRequestBody(req),
-  );
+  const { url } = subscribeSchema.parse(await parseRequestBody(req));
 
-  await prisma.project.update({
-    where: { id: workspace.id },
-    data: {
-      zapierWebhookUrl,
+  await prisma.zapierHook.delete({
+    where: {
+      projectId: workspace.id,
+      url,
     },
   });
 
-  console.info(
-    `[Zapier] Workspace ${workspace.id} subscribed to ${zapierWebhookUrl}`,
-  );
+  console.info(`[Zapier] Workspace ${workspace.id} unsubscribed from ${url}`);
 
   return NextResponse.json({ status: "OK" });
 });

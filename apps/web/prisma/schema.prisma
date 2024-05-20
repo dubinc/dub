@@ -305,7 +305,7 @@ model LinkTag {
 model ZapierHook {
   id        String   @id @default(cuid())
   projectId String
-  hookUrl   String   @unique
+  url       String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
