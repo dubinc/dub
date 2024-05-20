@@ -196,8 +196,18 @@ function AddEditDomainModal({
 
         <div>
           <label htmlFor="target" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Landing Page</h2>
-            <InfoTooltip content="The page your users will get redirected to when they visit your domain." />
+            <h2 className="text-sm font-medium text-gray-900">
+              Destination URL
+            </h2>
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="The page your users will get redirected to when they visit your domain."
+                  cta="Learn more."
+                  href="https://dub.co/help/article/how-to-redirect-root-domain"
+                />
+              }
+            />
           </label>
           {plan === "free" ? (
             <Tooltip
@@ -362,7 +372,15 @@ function AddEditDomainModal({
                 <h2 className="text-sm font-medium text-gray-900">
                   Disable Search Engine Indexing
                 </h2>
-                <InfoTooltip content="Prevent search engines from indexing your root domain." />
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="Prevent search engines from indexing your root domain."
+                      cta="Learn more."
+                      href="https://dub.co/help/article/how-noindex-works"
+                    />
+                  }
+                />
               </div>
               <Switch
                 checked={data.noindex}
