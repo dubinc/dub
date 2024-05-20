@@ -1,5 +1,7 @@
+import { GalleryVerticalEnd, Link, Settings, X } from "lucide-react";
 import { useState } from "react";
-import { CreateIcon, HistoryIcon, SettingIcon, TitleIcon } from "../public";
+import { TitleIcon } from "../public";
+import IconMenu from "../public/IconMenu";
 import AllLinks from "./components/allLinks";
 import Shortener from "./components/shortener";
 import { LinkProps } from "./components/types";
@@ -23,27 +25,33 @@ const Extension: React.FC<ExtensionProps> = ({ handleClose }) => {
         <TitleIcon />
         <p
           onClick={handleClose}
-          className="cursor-pointer text-sm text-gray-800 hover:text-blue-900"
+          className="cursor-pointer text-sm text-gray-800 transition-all duration-75 hover:scale-110 "
         >
-          close
+          <IconMenu icon={<X />} />
         </p>
       </div>
 
       <div className="mt-3 flex gap-4">
         <button
-          className="group rounded-full bg-gray-200 p-3 transition-all duration-75 hover:scale-105 hover:bg-blue-100 focus:outline-none active:scale-95"
+          className="group rounded-full bg-gray-200 p-3 transition-all duration-75 hover:scale-110 hover:bg-blue-100 focus:outline-none active:scale-95"
           onClick={() => {
             setOpenTab("history");
             handleAllFetchUrl();
           }}
         >
-          <HistoryIcon />
+          <IconMenu
+            icon={
+              <GalleryVerticalEnd className="h-4 w-4 text-gray-500 hover:text-black" />
+            }
+          />
         </button>
         <button
           className="group rounded-full bg-gray-200 p-3 transition-all duration-75 hover:scale-105 hover:bg-blue-100 focus:outline-none active:scale-95"
           onClick={() => setOpenTab("create")}
         >
-          <CreateIcon />
+          <IconMenu
+            icon={<Link className="h-4 w-4 text-gray-500 hover:text-black" />}
+          />
         </button>
       </div>
       {openTab === "create" && <Shortener />}
@@ -57,7 +65,11 @@ const Extension: React.FC<ExtensionProps> = ({ handleClose }) => {
           Login
         </a>
         <button className="group flex justify-center rounded-full bg-gray-100 p-2 transition-all duration-75 hover:scale-105 hover:bg-blue-100 focus:outline-none active:scale-95">
-          <SettingIcon />
+          <IconMenu
+            icon={
+              <Settings className="h-4 w-4 text-gray-500 hover:text-black" />
+            }
+          />
         </button>
       </div>
     </div>

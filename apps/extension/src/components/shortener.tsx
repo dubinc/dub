@@ -1,5 +1,7 @@
+import { Link2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { LinkIcon, SendIcon } from "../../public";
+import { SendIcon } from "../../public";
+import IconMenu from "../../public/IconMenu";
 import Link from "./link";
 import { LinkProps } from "./types";
 
@@ -63,7 +65,11 @@ const Shortener: React.FC = () => {
   return (
     <>
       <form onSubmit={handleSubmit} className="relative mt-3 flex items-center">
-        <LinkIcon />
+        <IconMenu
+          icon={
+            <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 h-5 w-5 text-gray-400" />
+          }
+        />
         <input
           type="text"
           placeholder="Enter URL..."

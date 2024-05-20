@@ -1,15 +1,4 @@
-export { default as ClickIcon } from "./icons/click";
-export { default as CopyIcon } from "./icons/copy";
-export { default as CreateIcon } from "./icons/create";
-export { default as DeleteIcon } from "./icons/delete";
 export { default as DotIcon } from "./icons/dot";
-export { default as EditIcon } from "./icons/edit";
-export { default as ExpireIcon } from "./icons/expire";
-export { default as HistoryIcon } from "./icons/history";
-export { default as LinkIcon } from "./icons/link";
 export { default as LinkTemplateIcon } from "./icons/linkTemplate";
-export { default as QrIcon } from "./icons/qr";
 export { default as SendIcon } from "./icons/send";
-export { default as SettingIcon } from "./icons/setting";
-export { default as ShareIcon } from "./icons/share";
 export { default as TitleIcon } from "./icons/title";

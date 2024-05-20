@@ -5,4 +5,5 @@ export interface LinkProps {
   clicks: number;
   createdAt: Date;
   qrCode: string;
+  image?: string;
 }

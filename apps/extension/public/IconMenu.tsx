@@ -1,15 +1,16 @@
-import React from "react";
+import React, { CSSProperties } from "react";
 
 interface IconMenuProps {
   text?: string;
   icon: JSX.Element;
+  style?: CSSProperties;
 }
 
-const IconMenu: React.FC<IconMenuProps> = ({ text, icon }) => {
+const IconMenu: React.FC<IconMenuProps> = ({ text, icon, style }) => {
   return (
-    <div className="flex items-center gap-1.5">
+    <div className={`flex items-center ${text ? "gap-1.5" : ""}`} style={style}>
       {icon}
-      <span className="text-xs">{text}</span>
+      {text && <span className="text-xs">{text}</span>}
     </div>
   );
 };
