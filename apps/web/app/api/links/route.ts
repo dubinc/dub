@@ -2,13 +2,17 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas/links";
-import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  LOCALHOST_IP,
+  getSearchParamsWithArray,
+} from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
@@ -82,27 +86,16 @@ export const POST = withWorkspace(
     try {
       const response = await createLink(link);
 
-      // TODO: Send this via Redis queue
-      if (workspace) {
-        const hooks = await prisma.zapierHook.findMany({
-          where: {
-            projectId: workspace.id,
+      // TODO:
+      // Send only if Zapier is enabled
+      // How do we optimize this?
+      if (response.projectId) {
+        await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/zapier/send-webhook`,
+          body: {
+            linkId: response.id,
           },
         });
-
-        if (hooks.length) {
-          for (const hook of hooks) {
-            const responseHook = await fetch(hook.url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(response),
-            });
-
-            console.log({ url: hook.url, status: responseHook.status });
-          }
-        }
       }
 
       return NextResponse.json(response, { headers });
