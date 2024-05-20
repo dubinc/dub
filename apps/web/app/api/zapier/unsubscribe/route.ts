@@ -5,20 +5,20 @@ import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
 const unsubscribeSchema = z.object({
-  url: z.string(),
+  id: z.string(),
 });
 
 export const POST = withWorkspace(async ({ workspace, req }) => {
-  const { url } = unsubscribeSchema.parse(await parseRequestBody(req));
+  const { id } = unsubscribeSchema.parse(await parseRequestBody(req));
 
-  await prisma.zapierHook.delete({
+  const hook = await prisma.zapierHook.delete({
     where: {
       projectId: workspace.id,
-      url,
+      id,
     },
   });
 
-  console.info(`[Zapier] Workspace ${workspace.id} unsubscribed from ${url}`);
+  console.info(`[Zapier] Workspace ${workspace.id} unsubscribed from ${hook}`);
 
   return NextResponse.json({ status: "OK" });
 });

@@ -59,6 +59,15 @@ export async function POST(req: Request) {
       `[Zapier] Webhook to ${hook.url} for link ${link.id} responded with ${response.status}`,
       json,
     );
+
+    // Zap has unsubscribed
+    if (response.status === 401) {
+      await prisma.zapierHook.delete({
+        where: {
+          id: hook.id,
+        },
+      });
+    }
   }
 
   return new Response("OK");

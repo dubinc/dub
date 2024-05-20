@@ -11,14 +11,14 @@ const subscribeSchema = z.object({
 export const POST = withWorkspace(async ({ workspace, req }) => {
   const { url } = subscribeSchema.parse(await parseRequestBody(req));
 
-  await prisma.zapierHook.create({
+  const hook = await prisma.zapierHook.create({
     data: {
       projectId: workspace.id,
       url,
     },
   });
 
-  console.info(`[Zapier] Workspace ${workspace.id} subscribed to ${url}`);
+  console.info(`[Zapier] Workspace ${workspace.id} subscribed to ${hook}`);
 
-  return NextResponse.json({ status: "OK" });
+  return NextResponse.json({ id: hook.id }, { status: 201 });
 });
