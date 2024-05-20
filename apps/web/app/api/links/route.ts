@@ -2,6 +2,7 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
@@ -81,14 +82,27 @@ export const POST = withWorkspace(
     try {
       const response = await createLink(link);
 
-      if (workspace.zapierWebhookUrl) {
-        await fetch(workspace.zapierWebhookUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      // TODO: Send this via Redis queue
+      if (workspace) {
+        const hooks = await prisma.zapierHook.findMany({
+          where: {
+            projectId: workspace.id,
           },
-          body: JSON.stringify(response),
         });
+
+        if (hooks.length) {
+          for (const hook of hooks) {
+            const responseHook = await fetch(hook.url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(response),
+            });
+
+            console.log({ url: hook.url, status: responseHook.status });
+          }
+        }
       }
 
       return NextResponse.json(response, { headers });
