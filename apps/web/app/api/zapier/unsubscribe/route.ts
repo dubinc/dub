@@ -18,6 +18,25 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     },
   });
 
+  // Check if there are any hooks left for the workspace
+  const hooks = await prisma.zapierHook.count({
+    where: {
+      projectId: workspace.id,
+    },
+  });
+
+  // Disable the hook on the workspace
+  if (hooks === 0) {
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        zapierHookEnabled: false,
+      },
+    });
+  }
+
   console.info(`[Zapier] Workspace ${workspace.id} unsubscribed from ${hook}`);
 
   return NextResponse.json({ status: "OK" });

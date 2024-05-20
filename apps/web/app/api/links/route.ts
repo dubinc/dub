@@ -86,10 +86,8 @@ export const POST = withWorkspace(
     try {
       const response = await createLink(link);
 
-      // TODO:
-      // Send only if Zapier is enabled
-      // How do we optimize this?
-      if (response.projectId) {
+      // Publish to Zapier if the project has a Zapier hook enabled
+      if (response.projectId && workspace.zapierHookEnabled) {
         await qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/zapier/send-webhook`,
           body: {
