@@ -104,9 +104,6 @@ model Project {
   tagsLimit         Int     @default(5)
   usersLimit        Int     @default(1)
 
-  // Zapier webhook URL
-  zapierWebhookUrl String? @unique
-
   users      ProjectUsers[]
   invites    ProjectInvite[]
   sentEmails SentEmail[]
@@ -119,6 +116,7 @@ model Project {
 
   inviteCode     String?          @unique
   defaultDomains DefaultDomains[]
+  zapierHooks    ZapierHook[]
 }
 
 model ProjectInvite {
@@ -301,6 +299,19 @@ model LinkTag {
   @@unique([linkId, tagId])
   @@index(linkId)
   @@index(tagId)
+}
+
+// Zapier hooks for a project
+model ZapierHook {
+  id        String   @id @default(cuid())
+  projectId String
+  hookUrl   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index(projectId)
 }
 
 model jackson_index {

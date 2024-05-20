@@ -81,15 +81,15 @@ export const POST = withWorkspace(
     try {
       const response = await createLink(link);
 
-      // if (workspace.zapierWebhookUrl) {
-      //   await fetch(workspace.zapierWebhookUrl, {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     body: JSON.stringify(response),
-      //   });
-      // }
+      if (workspace.zapierWebhookUrl) {
+        await fetch(workspace.zapierWebhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(response),
+        });
+      }
 
       return NextResponse.json(response, { headers });
     } catch (error) {
