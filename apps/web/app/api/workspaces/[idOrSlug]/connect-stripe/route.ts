@@ -14,7 +14,7 @@ const envSchema = z.object({
 export const POST = withWorkspace(async ({ workspace }) => {
   const state = nanoid(16);
   await redis.set(`stripe:install:state:${state}`, workspace.id, {
-    ex: 5 * 60,
+    ex: 30 * 60,
   });
 
   const env = envSchema.safeParse(process.env);

@@ -9,7 +9,9 @@ export const runtime = "edge";
 
 const schema = z.object({
   state: z.string(),
-  stripe_user_id: z.string(),
+  stripe_user_id: z.string().optional(),
+  error: z.string().optional(),
+  error_description: z.string().optional(),
 });
 
 export const GET = async (req: NextRequest) => {
@@ -20,28 +22,45 @@ export const GET = async (req: NextRequest) => {
     return new Response("Invalid request", { status: 400 });
   }
 
-  const { state, stripe_user_id: stripeAccountId } = parsed.data;
+  const {
+    state,
+    stripe_user_id: stripeAccountId,
+    error,
+    error_description,
+  } = parsed.data;
 
   // Find workspace that initiated the Stripe app install
-  const workspaceId = await redis.get(`stripe:install:state:${state}`);
+  const workspaceId = await redis.get<string>(`stripe:install:state:${state}`);
 
   if (!workspaceId) {
-    console.error("[Stripe OAuth callback] Invalid state", state);
-    return new Response("Invalid request", { status: 400 });
+    redirect(APP_DOMAIN);
   }
 
   // Delete the state key from Redis
   await redis.del(`stripe:install:state:${state}`);
 
-  // Update the workspace with the Stripe Connect ID
-  const workspace = await prismaEdge.project.update({
-    where: {
-      id: workspaceId as string,
-    },
-    data: {
-      stripeConnectId: stripeAccountId,
-    },
-  });
-
-  redirect(`${APP_DOMAIN}/${workspace.slug}/settings`);
+  if (error) {
+    const workspace = await prismaEdge.project.findUnique({
+      where: {
+        id: workspaceId,
+      },
+    });
+    if (!workspace) {
+      redirect(APP_DOMAIN);
+    }
+    redirect(
+      `${APP_DOMAIN}/${workspace.slug}/settings?stripeConnectError=${error_description}`,
+    );
+  } else if (stripeAccountId) {
+    // Update the workspace with the Stripe Connect ID
+    const workspace = await prismaEdge.project.update({
+      where: {
+        id: workspaceId,
+      },
+      data: {
+        stripeConnectId: stripeAccountId,
+      },
+    });
+    redirect(`${APP_DOMAIN}/${workspace.slug}/settings`);
+  }
 };

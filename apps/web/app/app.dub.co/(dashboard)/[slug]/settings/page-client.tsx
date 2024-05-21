@@ -8,6 +8,7 @@ import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -93,7 +94,11 @@ export default function WorkspaceSettingsClient() {
       />
       <WorkspaceId />
       <UploadLogo />
-      {betaTester && <ConnectStripe />}
+      {betaTester && (
+        <Suspense>
+          <ConnectStripe />
+        </Suspense>
+      )}
       <DeleteWorkspace />
     </>
   );
