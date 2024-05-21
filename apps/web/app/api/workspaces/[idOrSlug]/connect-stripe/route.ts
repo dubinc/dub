@@ -36,7 +36,5 @@ export const POST = withWorkspace(async ({ workspace }) => {
   );
   url.searchParams.set("state", state);
 
-  console.log("Redirecting to", url.toString());
-
   return NextResponse.json({ url: url.toString() });
 });
