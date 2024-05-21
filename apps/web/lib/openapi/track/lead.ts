@@ -8,7 +8,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const trackLead: ZodOpenApiOperationObject = {
   operationId: "trackLead",
   "x-speakeasy-name-override": "lead",
-  summary: "Track a lead.",
+  summary: "Track a lead",
   description: "Track a lead for a short link.",
   requestBody: {
     content: {
