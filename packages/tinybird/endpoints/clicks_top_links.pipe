@@ -2,6 +2,8 @@ DESCRIPTION >
 	Top links by clicks
 
 
+TOKEN "clicks_top_links_endpoint_read_7786" READ
+
 NODE endpoint
 DESCRIPTION >
     undefined

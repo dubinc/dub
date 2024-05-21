@@ -1,6 +1,8 @@
 DESCRIPTION >
-	Top devices by clicks
+	Top countries by clicks
 
+
+TOKEN "clicks_country_endpoint_read_9383" READ
 
 NODE endpoint
 DESCRIPTION >
@@ -9,7 +11,7 @@ DESCRIPTION >
 SQL >
 
     %
-    SELECT device, COUNT(device) as clicks
+    SELECT country, COUNT(country) as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}
@@ -47,7 +49,7 @@ SQL >
             }}
         {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr)}} {% end %}
-        AND device != 'Unknown'
+        AND country != 'Unknown'
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
@@ -57,7 +59,7 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
-    GROUP BY device
+    GROUP BY country
     ORDER BY clicks DESC
 
 

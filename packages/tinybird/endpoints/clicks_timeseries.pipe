@@ -2,7 +2,7 @@ DESCRIPTION >
 	Timeseries clicks data
 
 
-TOKEN "timeseries_new_endpoint_read_7358" READ
+TOKEN "clicks_timeseries_endpoint_read_5748" READ
 
 NODE day_intervals
 SQL >

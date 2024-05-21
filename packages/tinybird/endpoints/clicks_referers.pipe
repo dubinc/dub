@@ -1,8 +1,8 @@
 DESCRIPTION >
-	Top countries by clicks
+	Top referers by clicks
 
 
-TOKEN "country_new_endpoint_read_5779" READ
+TOKEN "clicks_referer_endpoint_read_1527" READ
 
 NODE endpoint
 DESCRIPTION >
@@ -11,7 +11,7 @@ DESCRIPTION >
 SQL >
 
     %
-    SELECT country, COUNT(country) as clicks
+    SELECT referer, COUNT(referer) as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}
@@ -49,9 +49,10 @@ SQL >
             }}
         {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr)}} {% end %}
-        AND country != 'Unknown'
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(alias) %} AND alias = {{ alias }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
@@ -59,7 +60,7 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
-    GROUP BY country
+    GROUP BY referer
     ORDER BY clicks DESC
 
 

@@ -2,6 +2,8 @@ DESCRIPTION >
 	Top cities by clicks
 
 
+TOKEN "clicks_city_endpoint_read_1382" READ
+
 NODE endpoint
 DESCRIPTION >
     undefined
