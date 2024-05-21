@@ -2,7 +2,7 @@ DESCRIPTION >
 	Top URLs for a given link
 
 
-TOKEN "top_urls_new_endpoint_read_6878" READ
+TOKEN "clicks_top_urls_endpoint_read_0911" READ
 
 NODE endpoint
 SQL >

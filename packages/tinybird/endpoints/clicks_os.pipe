@@ -1,6 +1,8 @@
 DESCRIPTION >
-	Total clicks for a given project or link
+	Top OS by clicks
 
+
+TOKEN "clicks_os_endpoint_read_2188" READ
 
 NODE endpoint
 DESCRIPTION >
@@ -9,7 +11,7 @@ DESCRIPTION >
 SQL >
 
     %
-    SELECT COUNT(*)
+    SELECT os, COUNT(os) as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}
@@ -47,6 +49,7 @@ SQL >
             }}
         {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr)}} {% end %}
+        AND os != 'Unknown'
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
@@ -56,5 +59,7 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY os
+    ORDER BY clicks DESC
 
 
