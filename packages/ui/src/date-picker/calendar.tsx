@@ -105,7 +105,7 @@ function Calendar({
         ),
         day_today: "font-semibold",
         day_selected:
-          "rounded aria-selected:bg-blue-600 aria-selected:text-white",
+          "rounded aria-selected:bg-blue-500 aria-selected:text-white",
         day_disabled:
           "!text-gray-300 line-through disabled:hover:bg-transparent",
         day_outside: "text-gray-400",

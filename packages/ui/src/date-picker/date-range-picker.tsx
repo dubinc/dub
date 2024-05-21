@@ -305,7 +305,7 @@ const DateRangePickerInner = ({
                       text="Cancel"
                     />
                     <Button
-                      variant="primary"
+                      variant="success"
                       className="sm:h-8"
                       type="button"
                       onClick={onApply}
