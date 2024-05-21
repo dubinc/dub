@@ -22,6 +22,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -59,6 +60,14 @@ function AddEditDomainModal({
   );
 
   const { slug: domain, target, type, placeholder, expiredUrl } = data;
+
+  // set noindex to true if target is set
+  useEffect(() => {
+    setData((prev) => ({
+      ...prev,
+      noindex: target ? true : false,
+    }));
+  }, [target]);
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
