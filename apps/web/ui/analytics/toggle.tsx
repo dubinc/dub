@@ -120,7 +120,9 @@ export default function Toggle() {
                     },
                   });
                 }}
-                presets={INTERVAL_DISPLAYS.map(({ display, value }) => {
+                presets={INTERVAL_DISPLAYS.filter(
+                  ({ value }) => value !== "1h",
+                ).map(({ display, value }) => {
                   const start = INTERVAL_DATA[value].startDate;
                   const end = new Date();
 
