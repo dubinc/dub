@@ -1,0 +1,27 @@
+
+SCHEMA >
+    `bot` UInt8 `json:$.bot`,
+    `browser` String `json:$.browser`,
+    `browser_version` String `json:$.browser_version`,
+    `city` String `json:$.city`,
+    `country` String `json:$.country`,
+    `cpu_architecture` String `json:$.cpu_architecture`,
+    `device` String `json:$.device`,
+    `device_model` String `json:$.device_model`,
+    `device_vendor` String `json:$.device_vendor`,
+    `domain` String `json:$.domain`,
+    `engine` String `json:$.engine`,
+    `engine_version` String `json:$.engine_version`,
+    `key` String `json:$.key`,
+    `latitude` String `json:$.latitude`,
+    `longitude` String `json:$.longitude`,
+    `os` String `json:$.os`,
+    `os_version` String `json:$.os_version`,
+    `referer` String `json:$.referer`,
+    `referer_url` String `json:$.referer_url`,
+    `region` String `json:$.region`,
+    `timestamp` String `json:$.timestamp`,
+    `ua` String `json:$.ua`
+
+ENGINE "MergeTree"
+ENGINE_SORTING_KEY "region, timestamp, ua"

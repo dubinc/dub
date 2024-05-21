@@ -1,0 +1,36 @@
+# Data Source created from Pipe 'dub_click_events_id_pipe'
+
+SCHEMA >
+    `timestamp` DateTime64(3),
+    `click_id` String,
+    `link_id` String,
+    `alias_link_id` String,
+    `url` String,
+    `country` LowCardinality(String),
+    `city` String,
+    `region` String,
+    `latitude` String,
+    `longitude` String,
+    `device` LowCardinality(String),
+    `device_model` LowCardinality(String),
+    `device_vendor` LowCardinality(String),
+    `browser` LowCardinality(String),
+    `browser_version` String,
+    `os` LowCardinality(String),
+    `os_version` String,
+    `engine` LowCardinality(String),
+    `engine_version` String,
+    `cpu_architecture` LowCardinality(String),
+    `ua` String,
+    `bot` UInt8,
+    `referer` String,
+    `referer_url` String,
+    `user_id` Nullable(Int64),
+    `identity_hash` Nullable(String),
+    `ip` String,
+    `qr` UInt8
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "click_id"
+ENGINE_TTL "toDateTime(timestamp) + toIntervalDay(180)"

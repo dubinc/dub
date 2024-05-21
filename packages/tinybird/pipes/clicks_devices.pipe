@@ -1,8 +1,8 @@
 DESCRIPTION >
-	Top browsers by clicks
+	Top devices by clicks
 
 
-TOKEN "browser_new_endpoint_read_0773" READ
+TOKEN "clicks_device_endpoint_read_2991" READ
 
 NODE endpoint
 DESCRIPTION >
@@ -11,7 +11,7 @@ DESCRIPTION >
 SQL >
 
     %
-    SELECT browser, COUNT(browser) as clicks
+    SELECT device, COUNT(device) as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}
@@ -49,7 +49,7 @@ SQL >
             }}
         {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr)}} {% end %}
-        AND browser != 'Unknown'
+        AND device != 'Unknown'
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
@@ -59,7 +59,7 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
-    GROUP BY browser
+    GROUP BY device
     ORDER BY clicks DESC
 
 

@@ -1,0 +1,18 @@
+DESCRIPTION >
+	Special MV just for coordinates endpoint
+
+
+NODE mv
+SQL >
+
+    SELECT
+      link_id,
+      latitude,
+      longitude,
+      timestamp
+    FROM dub_click_events
+
+TYPE materialized
+DATASOURCE dub_click_events_coordinates
+
+

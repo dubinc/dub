@@ -1,0 +1,17 @@
+NODE get_latest_link_0
+SQL >
+
+    %
+    SELECT *
+    FROM dub_links_metadata
+    WHERE
+        link_id
+        = {{
+            String(
+                linkId,
+                'clw0ozd4h0005ki880lxpbeye',
+                description="The ID of the link",
+            )
+        }}
+
+

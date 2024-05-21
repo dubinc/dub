@@ -1,0 +1,12 @@
+TOKEN "domain_events datasource" READ
+
+TOKEN "generated_domains_count_endpoint_read_7733" READ
+
+TOKEN "owd" READ
+
+NODE generated_domains_count_pipe
+SQL >
+
+    SELECT count(*) FROM owd_domain_events 
+
+

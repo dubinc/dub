@@ -1,0 +1,14 @@
+
+SCHEMA >
+    `timestamp` DateTime `json:$.timestamp`,
+    `link_id` String `json:$.link_id`,
+    `domain` String `json:$.domain`,
+    `key` String `json:$.key`,
+    `url` String `json:$.url`,
+    `project_id` String `json:$.project_id`,
+    `deleted` UInt8 `json:$.deleted`,
+    `tag_ids` Array(String) `json:$.tagIds[:]`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(timestamp)"
+ENGINE_SORTING_KEY "timestamp, link_id, project_id, deleted"

@@ -1,8 +1,8 @@
 DESCRIPTION >
-	Top referers by clicks
+	Top browsers by clicks
 
 
-TOKEN "referer_new_endpoint_read_0448" READ
+TOKEN "clicks_browser_endpoint_read_1974" READ
 
 NODE endpoint
 DESCRIPTION >
@@ -11,7 +11,7 @@ DESCRIPTION >
 SQL >
 
     %
-    SELECT referer, COUNT(referer) as clicks
+    SELECT browser, COUNT(browser) as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}
@@ -49,10 +49,9 @@ SQL >
             }}
         {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr)}} {% end %}
+        AND browser != 'Unknown'
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
-        {% if defined(url) %} AND url = {{ url }} {% end %}
-        {% if defined(alias) %} AND alias = {{ alias }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
@@ -60,7 +59,7 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
-    GROUP BY referer
+    GROUP BY browser
     ORDER BY clicks DESC
 
 

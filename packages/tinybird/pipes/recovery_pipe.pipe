@@ -1,0 +1,53 @@
+TOKEN "recovery_pipe_endpoint_read_8441" READ
+
+NODE pipe
+SQL >
+
+    SELECT
+        coalesce(
+            parseDateTime64BestEffortOrNull(
+                substring(timestamp, 2, length(timestamp) - 2)
+            ),
+            toDateTime64('1970-01-01 00:00:00', 3)
+        ) as timestamp,
+        coalesce(substring(click_id, 2, length(click_id) - 2), '') as click_id,
+        coalesce(substring(link_id, 2, length(link_id) - 2), '') as link_id,
+        coalesce(substring(alias_link_id, 2, length(alias_link_id) - 2), '') as alias_link_id,
+        coalesce(substring(url, 2, length(url) - 2), '') as url,
+        toLowCardinality(coalesce(substring(country, 2, length(country) - 2), '')) as country,
+        coalesce(substring(city, 2, length(city) - 2), '') as city,
+        coalesce(substring(region, 2, length(region) - 2), '') as region,
+        coalesce(substring(latitude, 2, length(latitude) - 2), '') as latitude,
+        coalesce(substring(longitude, 2, length(longitude) - 2), '') as longitude,
+        toLowCardinality(coalesce(substring(device, 2, length(device) - 2), '')) as device,
+        toLowCardinality(coalesce(substring(device_model, 2, length(device_model) - 2), '')) as device_model,
+        toLowCardinality(coalesce(substring(device_vendor, 2, length(device_vendor) - 2), '')) as device_vendor,
+        toLowCardinality(coalesce(substring(browser, 2, length(browser) - 2), '')) as browser,
+        coalesce(substring(browser_version, 2, length(browser_version) - 2), '') as browser_version,
+        toLowCardinality(coalesce(substring(os, 2, length(os) - 2), '')) as os,
+        coalesce(substring(os_version, 2, length(os_version) - 2), '') as os_version,
+        toLowCardinality(coalesce(substring(engine, 2, length(engine) - 2), '')) as engine,
+        coalesce(substring(engine_version, 2, length(engine_version) - 2), '') as engine_version,
+        toLowCardinality(coalesce(substring(cpu_architecture, 2, length(cpu_architecture) - 2), '')) as cpu_architecture,
+        coalesce(substring(ua, 2, length(ua) - 2), '') as ua,
+        coalesce(toUInt8(bot), 0) as bot,
+        coalesce(substring(referer, 2, length(referer) - 2), '') as referer,
+        coalesce(substring(referer_url, 2, length(referer_url) - 2), '') as referer_url,
+        coalesce(
+            toNullable(toInt64(user_id)),
+            toNullable(toInt64(substring(user_id, 2, length(user_id) - 2))),
+            NULL
+        ) as user_id,
+        coalesce(
+            toNullable(substring(identity_hash, 2, length(identity_hash) - 2)),
+            NULL
+        ) as identity_hash,
+        coalesce(substring(ip, 2, length(ip) - 2), '') as ip,
+        coalesce(toUInt8(qr), 0) as qr
+    FROM dub_click_events_quarantine
+
+TYPE copy
+TARGET_DATASOURCE dub_click_events
+COPY_SCHEDULE @on-demand
+
+

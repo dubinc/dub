@@ -1,0 +1,20 @@
+TOKEN "get_lead_event_endpoint_read_1965" READ
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT *
+    FROM dub_lead_events
+    WHERE
+        customer_id
+        = {{
+            String(
+                customerId,
+                "Otgts60IekQ17PMZ",
+                description="The unique ID for a given customer.",
+                required=True,
+            )
+        }}
+
+

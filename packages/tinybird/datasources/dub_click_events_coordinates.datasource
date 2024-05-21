@@ -1,0 +1,11 @@
+# Data Source created from Pipe 'dub_click_events_coordinates_pipe'
+
+SCHEMA >
+    `link_id` String,
+    `latitude` String,
+    `longitude` String,
+    `timestamp` DateTime64(3)
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "link_id, timestamp"

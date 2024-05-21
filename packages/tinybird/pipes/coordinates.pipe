@@ -1,0 +1,13 @@
+TOKEN "coordinates_endpoint_read_1564" READ
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT longitude, latitude
+    FROM dub_click_events_coordinates
+    WHERE link_id = 'clqo10sum0006js08vutzfxt3'
+    ORDER BY timestamp DESC
+    LIMIT 50
+
+
