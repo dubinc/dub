@@ -7,6 +7,7 @@ import {
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
   isDubDomain,
+  nanoid,
   punyEncode,
 } from "@dub/utils";
 import {
@@ -80,9 +81,10 @@ export default async function LinkMiddleware(
   }
 
   const {
-    id,
+    id: linkId,
     url,
     password,
+    trackConversion,
     proxy,
     rewrite,
     iframeable,
@@ -160,6 +162,7 @@ export default async function LinkMiddleware(
       });
     }
   }
+  const clickId = nanoid(16);
 
   const searchParams = req.nextUrl.searchParams;
   // only track the click when there is no `dub-no-track` header or query param
@@ -169,7 +172,9 @@ export default async function LinkMiddleware(
       searchParams.get("dub-no-track") === "1"
     )
   ) {
-    ev.waitUntil(recordClick({ req, id, url: getFinalUrl(url, { req }) }));
+    ev.waitUntil(
+      recordClick({ req, linkId, clickId, url: getFinalUrl(url, { req }) }),
+    );
   }
 
   const isBot = detectBot(req);
@@ -227,42 +232,66 @@ export default async function LinkMiddleware(
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
-    return NextResponse.redirect(getFinalUrl(ios, { req }), {
-      headers: {
-        ...DUB_HEADERS,
-        ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+    return NextResponse.redirect(
+      getFinalUrl(ios, {
+        req,
+        clickId: trackConversion ? clickId : undefined,
+      }),
+      {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+        },
+        status: 302,
       },
-      status: 302,
-    });
+    );
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
-    return NextResponse.redirect(getFinalUrl(android, { req }), {
-      headers: {
-        ...DUB_HEADERS,
-        ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+    return NextResponse.redirect(
+      getFinalUrl(android, {
+        req,
+        clickId: trackConversion ? clickId : undefined,
+      }),
+      {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+        },
+        status: 302,
       },
-      status: 302,
-    });
+    );
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
-    return NextResponse.redirect(getFinalUrl(geo[country], { req }), {
-      headers: {
-        ...DUB_HEADERS,
-        ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+    return NextResponse.redirect(
+      getFinalUrl(geo[country], {
+        req,
+        clickId: trackConversion ? clickId : undefined,
+      }),
+      {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+        },
+        status: 302,
       },
-      status: 302,
-    });
+    );
 
     // regular redirect
   } else {
-    return NextResponse.redirect(getFinalUrl(url, { req }), {
-      headers: {
-        ...DUB_HEADERS,
-        ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+    return NextResponse.redirect(
+      getFinalUrl(url, {
+        req,
+        clickId: trackConversion ? clickId : undefined,
+      }),
+      {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+        },
+        status: 302,
       },
-      status: 302,
-    });
+    );
   }
 }
