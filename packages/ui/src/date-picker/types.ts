@@ -1,4 +1,5 @@
 import { Locale } from "date-fns";
+import { ReactNode } from "react";
 import { Matcher } from "react-day-picker";
 import { PopoverProps } from "../popover";
 
@@ -39,6 +40,8 @@ export type DateRange = {
 
 export interface Preset {
   label: string;
+  requiresUpgrade?: boolean;
+  tooltipContent?: ReactNode;
 }
 
 export interface DatePreset extends Preset {

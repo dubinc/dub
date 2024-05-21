@@ -1,18 +1,25 @@
+import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BlurImage,
+  DatePickerContext,
   DateRangePicker,
   ExpandingArrow,
+  TooltipContent,
   useRouterStuff,
   useScroll,
 } from "@dub/ui";
 import {
+  APP_DOMAIN,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
   cn,
   getApexDomain,
+  getNextPlan,
   linkConstructor,
 } from "@dub/utils";
-import { setDate, setMonth, subDays, subMonths } from "date-fns";
+import { subDays } from "date-fns";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
 import ExportButton from "./export-button";
@@ -20,6 +27,7 @@ import FilterBar from "./filter-bar";
 import SharePopover from "./share-popover";
 
 export default function Toggle() {
+  const { plan } = useWorkspace();
   const { basePath, domain, key, url, admin, start, end } =
     useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
@@ -96,6 +104,7 @@ export default function Toggle() {
               })}
             >
               <DateRangePicker
+                className="sm:min-w-[200px]"
                 align="end"
                 defaultValue={{
                   from: start ? new Date(start) : subDays(new Date(), 30),
@@ -111,50 +120,32 @@ export default function Toggle() {
                     },
                   });
                 }}
-                presets={[
-                  {
-                    label: "Last 24 hours",
+                presets={INTERVAL_DISPLAYS.map(({ display, value }) => {
+                  const start = INTERVAL_DATA[value].startDate;
+                  const end = new Date();
+
+                  const requiresUpgrade = !validDateRangeForPlan({
+                    plan,
+                    start,
+                    end,
+                  });
+
+                  return {
+                    label: display,
                     dateRange: {
-                      from: subDays(new Date(), 1),
-                      to: new Date(),
+                      from: start,
+                      to: end,
                     },
-                  },
-                  {
-                    label: "Last 7 days",
-                    dateRange: {
-                      from: subDays(new Date(), 7),
-                      to: new Date(),
-                    },
-                  },
-                  {
-                    label: "Last 30 days",
-                    dateRange: {
-                      from: subDays(new Date(), 30),
-                      to: new Date(),
-                    },
-                  },
-                  {
-                    label: "Last 3 months",
-                    dateRange: {
-                      from: subDays(new Date(), 90),
-                      to: new Date(),
-                    },
-                  },
-                  {
-                    label: "Year to date",
-                    dateRange: {
-                      from: setMonth(setDate(new Date(), 1), 0),
-                      to: new Date(),
-                    },
-                  },
-                  {
-                    label: "Last 12 months",
-                    dateRange: {
-                      from: subMonths(new Date(), 12),
-                      to: new Date(),
-                    },
-                  },
-                ]}
+                    requiresUpgrade,
+                    tooltipContent: requiresUpgrade ? (
+                      <UpgradeTooltip
+                        rangeLabel={display}
+                        plan={plan}
+                        isPublicStatsPage={isPublicStatsPage}
+                      />
+                    ) : undefined,
+                  };
+                })}
               />
               {!isPublicStatsPage && <ExportButton />}
             </div>
@@ -162,5 +153,44 @@ export default function Toggle() {
         </div>
       </div>
     </div>
+  );
+}
+
+function UpgradeTooltip({
+  rangeLabel,
+  plan,
+  isPublicStatsPage,
+}: {
+  rangeLabel: string;
+  plan?: string;
+  isPublicStatsPage: boolean;
+}) {
+  const { queryParams } = useRouterStuff();
+
+  const { setIsOpen } = useContext(DatePickerContext);
+
+  const isAllTime = rangeLabel === "All Time";
+
+  return (
+    <TooltipContent
+      title={`${rangeLabel} can only be viewed on a ${isAllTime ? "Business" : getNextPlan(plan).name} plan or higher. Upgrade now to view all-time stats.`}
+      cta={`Upgrade to ${isAllTime ? "Business" : getNextPlan(plan).name}`}
+      {...(isPublicStatsPage
+        ? {
+            href: APP_DOMAIN,
+          }
+        : {
+            onClick: () => {
+              setIsOpen(false);
+              queryParams({
+                set: {
+                  upgrade: isAllTime
+                    ? "business"
+                    : getNextPlan(plan).name.toLowerCase(),
+                },
+              });
+            },
+          })}
+    />
   );
 }

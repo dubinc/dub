@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@dub/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { PropsWithChildren, ReactNode } from "react";
 import { Drawer } from "vaul";
@@ -11,6 +12,7 @@ export type PopoverProps = PropsWithChildren<{
   openPopover: boolean;
   setOpenPopover: (open: boolean) => void;
   mobileOnly?: boolean;
+  popoverContentClassName?: string;
 }>;
 
 export function Popover({
@@ -20,6 +22,7 @@ export function Popover({
   openPopover,
   setOpenPopover,
   mobileOnly,
+  popoverContentClassName,
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
@@ -54,7 +57,10 @@ export function Popover({
         <PopoverPrimitive.Content
           sideOffset={8}
           align={align}
-          className="animate-slide-up-fade z-50 items-center rounded-lg border border-gray-200 bg-white drop-shadow-lg sm:block"
+          className={cn(
+            "animate-slide-up-fade z-50 items-center rounded-lg border border-gray-200 bg-white drop-shadow-lg sm:block",
+            popoverContentClassName,
+          )}
         >
           {content}
         </PopoverPrimitive.Content>

@@ -9,10 +9,10 @@ import { useMediaQuery } from "../hooks";
 import { Popover } from "../popover";
 import { Calendar as CalendarPrimitive } from "./calendar";
 import { Presets } from "./presets";
+import { DatePickerContext, formatDate, validatePresets } from "./shared";
 import { TimeInput } from "./time-input";
 import { Trigger } from "./trigger";
 import { DateRange, DateRangePreset, PickerProps } from "./types";
-import { formatDate, validatePresets } from "./utils";
 
 type RangeDatePickerProps = {
   presets?: DateRangePreset[];
@@ -205,9 +205,7 @@ const DateRangePickerInner = ({
   }, [value, defaultValue]);
 
   const displayRange = useMemo(() => {
-    if (!range) {
-      return null;
-    }
+    if (!range) return null;
 
     // Only include the year in the formatted date if `from` or `to` is a different year
     const currentYear = new Date().getFullYear();
@@ -226,111 +224,114 @@ const DateRangePickerInner = ({
   };
 
   return (
-    <Popover
-      align={align}
-      openPopover={open}
-      setOpenPopover={onOpenChange}
-      content={
-        <div className="flex w-full">
-          <div className="scrollbar-hide flex w-full flex-col overflow-x-scroll sm:flex-row sm:items-start">
-            {presets && presets.length > 0 && (
-              <div
-                className={cn(
-                  "relative flex h-16 w-full items-center sm:h-full sm:w-40",
-                  "border-b border-gray-200 sm:border-b-0 sm:border-r",
-                  "scrollbar-hide overflow-auto",
-                )}
-              >
-                <div className="absolute px-3 sm:inset-0 sm:left-0 sm:p-2">
-                  <Presets
-                    currentValue={range}
-                    presets={presets}
-                    onSelect={onRangeChange}
-                  />
-                </div>
-              </div>
-            )}
-            <div className="scrollbar-hide overflow-x-scroll">
-              <CalendarPrimitive
-                mode="range"
-                selected={range}
-                onSelect={onRangeChange}
-                month={month}
-                onMonthChange={setMonth}
-                numberOfMonths={isDesktop ? 2 : 1}
-                disabled={disabledDays}
-                disableNavigation={disableNavigation}
-                showYearNavigation={showYearNavigation}
-                locale={locale}
-                initialFocus
-                className="scrollbar-hide overflow-x-scroll"
-                classNames={{
-                  months:
-                    "flex flex-row divide-x divide-gray-300 overflow-x-scroll scrollbar-hide",
-                }}
-                {...props}
-              />
-              {showTimePicker && (
-                <div className="flex items-center justify-evenly gap-x-3 border-t border-gray-200 p-3">
-                  <div className="flex flex-1 items-center gap-x-2">
-                    <span className="text-gray-700">Start:</span>
-                    <TimeInput
-                      value={startTime}
-                      onChange={(v) => onTimeChange(v, "start")}
-                      aria-label="Start date time"
-                      isDisabled={!range?.from}
-                      isRequired={props.required}
-                    />
-                  </div>
-                  <Minus className="h-4 w-4 shrink-0 text-gray-400" />
-                  <div className="flex flex-1 items-center gap-x-2">
-                    <span className="text-gray-700">End:</span>
-                    <TimeInput
-                      value={endTime}
-                      onChange={(v) => onTimeChange(v, "end")}
-                      aria-label="End date time"
-                      isDisabled={!range?.to}
-                      isRequired={props.required}
+    <DatePickerContext.Provider value={{ isOpen: open, setIsOpen: setOpen }}>
+      <Popover
+        align={align}
+        openPopover={open}
+        setOpenPopover={onOpenChange}
+        popoverContentClassName="rounded-xl"
+        content={
+          <div className="flex w-full">
+            <div className="scrollbar-hide flex w-full flex-col overflow-x-scroll sm:flex-row sm:items-start">
+              {presets && presets.length > 0 && (
+                <div
+                  className={cn(
+                    "relative flex h-16 w-full items-center sm:h-full sm:w-40",
+                    "border-b border-gray-200 sm:border-b-0 sm:border-r",
+                    "scrollbar-hide overflow-auto",
+                  )}
+                >
+                  <div className="absolute px-3 sm:inset-0 sm:left-0 sm:p-2">
+                    <Presets
+                      currentValue={range}
+                      presets={presets}
+                      onSelect={onRangeChange}
                     />
                   </div>
                 </div>
               )}
-              <div className="border-t border-gray-200 p-3 sm:flex sm:items-center sm:justify-end">
-                <div className="mt-2 flex items-center gap-x-2 sm:mt-0">
-                  <Button
-                    variant="secondary"
-                    className="sm:h-8"
-                    type="button"
-                    onClick={onCancel}
-                    text="Cancel"
-                  />
-                  <Button
-                    variant="primary"
-                    className="sm:h-8"
-                    type="button"
-                    onClick={onApply}
-                    text="Apply"
-                  />
+              <div className="scrollbar-hide overflow-x-scroll">
+                <CalendarPrimitive
+                  mode="range"
+                  selected={range}
+                  onSelect={onRangeChange}
+                  month={month}
+                  onMonthChange={setMonth}
+                  numberOfMonths={isDesktop ? 2 : 1}
+                  disabled={disabledDays}
+                  disableNavigation={disableNavigation}
+                  showYearNavigation={showYearNavigation}
+                  locale={locale}
+                  initialFocus
+                  className="scrollbar-hide overflow-x-scroll"
+                  classNames={{
+                    months:
+                      "flex flex-row divide-x divide-gray-300 overflow-x-scroll scrollbar-hide",
+                  }}
+                  {...props}
+                />
+                {showTimePicker && (
+                  <div className="flex items-center justify-evenly gap-x-3 border-t border-gray-200 p-3">
+                    <div className="flex flex-1 items-center gap-x-2">
+                      <span className="text-gray-700">Start:</span>
+                      <TimeInput
+                        value={startTime}
+                        onChange={(v) => onTimeChange(v, "start")}
+                        aria-label="Start date time"
+                        isDisabled={!range?.from}
+                        isRequired={props.required}
+                      />
+                    </div>
+                    <Minus className="h-4 w-4 shrink-0 text-gray-400" />
+                    <div className="flex flex-1 items-center gap-x-2">
+                      <span className="text-gray-700">End:</span>
+                      <TimeInput
+                        value={endTime}
+                        onChange={(v) => onTimeChange(v, "end")}
+                        aria-label="End date time"
+                        isDisabled={!range?.to}
+                        isRequired={props.required}
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="border-t border-gray-200 p-3 sm:flex sm:items-center sm:justify-end">
+                  <div className="mt-2 flex items-center gap-x-2 sm:mt-0">
+                    <Button
+                      variant="secondary"
+                      className="sm:h-8"
+                      type="button"
+                      onClick={onCancel}
+                      text="Cancel"
+                    />
+                    <Button
+                      variant="primary"
+                      className="sm:h-8"
+                      type="button"
+                      onClick={onApply}
+                      text="Apply"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      }
-    >
-      <Trigger
-        placeholder={placeholder}
-        disabled={disabled}
-        className={className}
-        hasError={hasError}
-        aria-required={props.required || props["aria-required"]}
-        aria-invalid={props["aria-invalid"]}
-        aria-label={props["aria-label"]}
-        aria-labelledby={props["aria-labelledby"]}
+        }
       >
-        {displayRange}
-      </Trigger>
-    </Popover>
+        <Trigger
+          placeholder={placeholder}
+          disabled={disabled}
+          className={className}
+          hasError={hasError}
+          aria-required={props.required || props["aria-required"]}
+          aria-invalid={props["aria-invalid"]}
+          aria-label={props["aria-label"]}
+          aria-labelledby={props["aria-labelledby"]}
+        >
+          {displayRange}
+        </Trigger>
+      </Popover>
+    </DatePickerContext.Provider>
   );
 };
 

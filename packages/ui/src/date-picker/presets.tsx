@@ -1,4 +1,7 @@
 import { cn } from "@dub/utils";
+import { Lock } from "lucide-react";
+import { PropsWithChildren } from "react";
+import { Tooltip } from "../tooltip";
 import { DatePreset, DateRange, DateRangePreset, Preset } from "./types";
 
 type PresetsProps<TPreset extends Preset, TValue> = {
@@ -86,31 +89,38 @@ const Presets = <TPreset extends Preset, TValue>({
   return (
     <ul role="list" className="flex items-start gap-x-2 sm:flex-col">
       {presets.map((preset, index) => {
+        const Wrapper = ({ children }: PropsWithChildren) =>
+          preset.tooltipContent ? (
+            <Tooltip side="bottom" content={preset.tooltipContent}>
+              <div className="cursor-not-allowed">{children}</div>
+            </Tooltip>
+          ) : (
+            children
+          );
         return (
           <li key={index} className="sm:w-full sm:py-px">
-            <button
-              title={preset.label}
-              className={cn(
-                // base
-                "relative w-full overflow-hidden text-ellipsis whitespace-nowrap rounded border px-2.5 py-1.5 text-left text-base shadow-sm outline-none transition-all sm:border-none sm:py-2 sm:text-sm sm:shadow-none",
-                // text color
-                "text-gray-700",
-                // border color
-                "border-gray-200",
-                // focus
-                "outline outline-0 outline-offset-2 outline-blue-500 focus-visible:outline-2",
-                // background color
-                "focus-visible:bg-gray-100",
-                "hover:bg-gray-100",
-                {
-                  "bg-gray-100": matchesCurrent(preset),
-                },
-              )}
-              onClick={() => handleClick(preset)}
-              aria-label={`Select ${preset.label}`}
-            >
-              <span>{preset.label}</span>
-            </button>
+            <Wrapper>
+              <button
+                title={preset.label}
+                className={cn(
+                  "relative flex w-full items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border px-2.5 py-1.5 text-left text-base shadow-sm outline-none transition-all sm:border-none sm:py-2 sm:text-sm sm:shadow-none",
+                  "border-gray-200 text-gray-700",
+                  "outline outline-0 outline-offset-2 outline-blue-500 focus-visible:bg-gray-100 focus-visible:outline-2",
+                  "disabled:pointer-events-none disabled:opacity-50",
+                  matchesCurrent(preset)
+                    ? "bg-blue-100 hover:bg-blue-200"
+                    : "hover:bg-gray-100 active:bg-gray-200",
+                )}
+                onClick={() => handleClick(preset)}
+                aria-label={`Select ${preset.label}`}
+                disabled={preset.requiresUpgrade}
+              >
+                <span>{preset.label}</span>
+                {preset.requiresUpgrade && (
+                  <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+              </button>
+            </Wrapper>
           </li>
         );
       })}

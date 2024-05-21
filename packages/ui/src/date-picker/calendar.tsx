@@ -94,23 +94,23 @@ function Calendar({
         months: "flex space-y-0",
         month: "space-y-4 p-3 w-full",
         nav: "gap-1 flex items-center rounded-full w-full h-full justify-between p-4",
-        table: "w-full border-collapse space-y-1",
+        table: "w-full border-separate border-spacing-y-1",
         head_cell:
           "w-9 font-medium text-sm sm:text-xs text-center text-gray-400 pb-2",
-        row: "w-full mt-0.5",
+        row: "w-full",
         cell: "relative p-0 text-center focus-within:relative text-gray-900",
         day: cn(
-          "relative h-10 w-full sm:h-9 sm:w-9 rounded text-sm text-gray-900",
+          "relative h-10 w-full sm:h-9 sm:w-9 rounded-md text-sm text-gray-900",
           "hover:bg-gray-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
         ),
         day_today: "font-semibold",
         day_selected:
-          "rounded aria-selected:bg-gray-900 aria-selected:text-gray-50",
+          "rounded aria-selected:bg-blue-600 aria-selected:text-white",
         day_disabled:
           "!text-gray-300 line-through disabled:hover:bg-transparent",
         day_outside: "text-gray-400",
         day_range_middle:
-          "!rounded-none aria-selected:!bg-gray-100 aria-selected:!text-gray-900",
+          "!rounded-none aria-selected:!bg-blue-100 aria-selected:!text-blue-900",
         day_range_start: "rounded-r-none !rounded-l",
         day_range_end: "rounded-l-none !rounded-r",
         day_hidden: "invisible",

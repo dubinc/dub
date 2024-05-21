@@ -1,5 +1,14 @@
 import { Locale, format } from "date-fns";
+import { Dispatch, SetStateAction, createContext } from "react";
 import { DatePreset, DateRangePreset, PickerProps } from "./types";
+
+export const DatePickerContext = createContext<{
+  isOpen: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+}>({
+  isOpen: false,
+  setIsOpen: () => {},
+});
 
 const isBrowserLocaleClockType24h = () => {
   const language =
@@ -25,10 +34,10 @@ export const formatDate = (
 
   if (includeTime) {
     dateString = usesAmPm
-      ? format(date, `MMM d${year} h:mm a`, { locale })
-      : format(date, `MMM d${year} HH:mm`, { locale });
+      ? format(date, `d MMM${year} h:mm a`, { locale })
+      : format(date, `d MMM${year} HH:mm`, { locale });
   } else {
-    dateString = format(date, `MMM d${year}`, { locale });
+    dateString = format(date, `d MMM${year}`, { locale });
   }
 
   return dateString;

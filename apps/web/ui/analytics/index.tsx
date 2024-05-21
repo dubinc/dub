@@ -11,7 +11,9 @@ import { fetcher } from "@dub/utils";
 import { endOfDay, min, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
+import { UpgradeToProToast } from "../shared/upgrade-to-pro-toast";
 import Clicks from "./clicks";
 import Devices from "./devices";
 import Locations from "./locations";
@@ -124,6 +126,20 @@ export default function Analytics({
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/count?${queryString}`,
     fetcher,
+    {
+      onError: (error) => {
+        if (error.message.includes("Upgrade to Pro")) {
+          toast.custom(() => (
+            <UpgradeToProToast
+              title="Upgrade for more analytics"
+              message={JSON.parse(error.message)?.error.message}
+            />
+          ));
+        } else {
+          toast.error(error.message);
+        }
+      },
+    },
   );
 
   const isPublicStatsPage = basePath.startsWith("/stats");
