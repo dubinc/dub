@@ -25,6 +25,9 @@ dist/
 # vercel
 .vercel
 
+# Sentry Config File
+.sentryclirc
+
 # tinybird
 .venv
 .tinyb

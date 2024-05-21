@@ -1,3 +1,5 @@
+const { withSentryConfig } = require("@sentry/nextjs");
+
 const REDIRECT_SEGMENTS = [
   "pricing",
   "blog",
@@ -207,3 +209,18 @@ module.exports = {
     ];
   },
 };
+
+module.exports = withSentryConfig(
+  module.exports,
+  {
+    // Suppresses source map uploading logs during build
+    silent: true,
+  },
+  {
+    // Hides source maps from generated client bundles
+    hideSourceMaps: true,
+
+    // Automatically tree-shake Sentry logger statements to reduce bundle size
+    disableLogger: true,
+  },
+);
