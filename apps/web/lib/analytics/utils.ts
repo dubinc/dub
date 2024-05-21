@@ -49,8 +49,8 @@ export const validDateRangeForPlan = ({
       interval === "1y" ||
       interval === "ytd" ||
       (start &&
-        (getDaysDifference(start, new Date(Date.now())) > 30 ||
-          getDaysDifference(start, end || new Date(Date.now())) > 30)))
+        (getDaysDifference(start, new Date(Date.now())) > 31 ||
+          getDaysDifference(start, end || new Date(Date.now())) > 31)))
   ) {
     if (throwError) {
       throw new DubApiError({
