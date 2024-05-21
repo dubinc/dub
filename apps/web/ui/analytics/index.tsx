@@ -11,9 +11,9 @@ import { fetcher } from "@dub/utils";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
 import useSWR from "swr";
-import Clicks from "./clicks";
 import Devices from "./devices";
 import Locations from "./locations";
+import Main from "./main";
 import Referer from "./referer";
 import Toggle from "./toggle";
 import TopLinks from "./top-links";
@@ -66,20 +66,20 @@ export default function Analytics({
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/analytics/admin/clicks`,
+        baseApiPath: `/api/analytics/admin`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics/clicks`,
+        baseApiPath: `/api/analytics`,
         domain: domainSlug,
       };
     } else {
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: "/api/analytics/edge/clicks",
+        baseApiPath: "/api/analytics/edge",
         domain: staticDomain,
       };
     }
@@ -106,7 +106,7 @@ export default function Analytics({
   }, [id, domain, key, searchParams, interval, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/count?${queryString}`,
+    `${baseApiPath}/clicks/count?${queryString}`,
     fetcher,
   );
 
@@ -130,7 +130,7 @@ export default function Analytics({
       <div className="bg-gray-50 py-10">
         <Toggle />
         <div className="mx-auto grid max-w-4xl gap-5">
-          <Clicks />
+          <Main />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
             {!isPublicStatsPage && <TopLinks />}

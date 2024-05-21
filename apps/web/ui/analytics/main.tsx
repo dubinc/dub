@@ -1,16 +1,36 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useTags from "@/lib/swr/use-tags";
-import { Chart } from "@/ui/shared/icons";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, capitalize, linkConstructor, truncate } from "@dub/utils";
-import { X } from "lucide-react";
+import {
+  COUNTRIES,
+  capitalize,
+  cn,
+  linkConstructor,
+  truncate,
+} from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Crosshair,
+  LucideIcon,
+  MousePointerClick,
+  Receipt,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { AnalyticsContext } from ".";
-import ClicksChart from "./clicks-chart";
+import AnalyticsAreaChart from "./analytics-area-chart";
 
-export default function Clicks() {
+type Tab = {
+  id: string;
+  icon: LucideIcon;
+  label: string;
+  resource: "clicks" | "leads" | "sales";
+};
+
+export default function Main() {
+  const { betaTester } = { betaTester: true }; //useWorkspace();
   const { totalClicks } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams.get("domain");
@@ -24,30 +44,75 @@ export default function Clicks() {
   // Root domain related
   const root = searchParams.get("root");
 
+  const tabs = useMemo(
+    () =>
+      [
+        {
+          id: "clicks",
+          icon: MousePointerClick,
+          label: "Clicks",
+          resource: "clicks",
+        },
+        ...(betaTester
+          ? [
+              {
+                id: "leads",
+                icon: Crosshair,
+                label: "Leads",
+                resource: "leads",
+              },
+              { id: "sales", icon: Receipt, label: "Sales", resource: "sales" },
+            ]
+          : []),
+      ] as Tab[],
+    [betaTester],
+  );
+
+  const tab =
+    tabs.find(({ id }) => id === (searchParams.get("tab") || "clicks")) ||
+    tabs[0];
+
   return (
-    <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white p-5 sm:rounded-xl sm:p-10">
-      <div className="mb-5 flex items-start justify-between space-x-4">
-        <div className="flex-none">
-          <div className="flex items-end space-x-1">
-            {totalClicks || totalClicks === 0 ? (
-              <NumberTooltip value={totalClicks}>
-                <CountingNumbers
-                  as="h1"
-                  className="text-3xl font-bold sm:text-4xl"
-                >
-                  {totalClicks}
-                </CountingNumbers>
-              </NumberTooltip>
-            ) : (
-              <div className="h-10 w-12 animate-pulse rounded-md bg-gray-200" />
-            )}
-            <Chart className="mb-1 h-6 w-6 text-gray-600" />
+    <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
+      <div className="scrollbar-hide mb-5 flex w-full divide-x overflow-x-scroll border-b border-gray-200">
+        {tabs.map(({ id, icon: Icon, label }) => (
+          <div>
+            <Link
+              key={id}
+              className={cn(
+                "block h-full min-w-[120px] flex-none border-black px-4 py-3 sm:min-w-[180px] sm:px-8 sm:py-6",
+                "transition-all duration-100 hover:bg-gray-50 active:bg-gray-100",
+                tab.id === id ? "border-b-2" : "border-b-none",
+              )}
+              href={
+                queryParams({
+                  set: {
+                    tab: id,
+                  },
+                  getNewPath: true,
+                }) as string
+              }
+            >
+              <div className="flex items-end gap-3">
+                {totalClicks || totalClicks === 0 ? (
+                  <NumberTooltip value={totalClicks}>
+                    <CountingNumbers
+                      as="h1"
+                      className="text-3xl font-bold sm:text-4xl"
+                    >
+                      {totalClicks}
+                    </CountingNumbers>
+                  </NumberTooltip>
+                ) : (
+                  <div className="h-10 w-12 animate-pulse rounded-md bg-gray-200" />
+                )}
+                <Icon className="mb-2 h-4 w-4 text-gray-600" />
+              </div>
+              <p className="mt-1 text-sm uppercase text-gray-600">{label}</p>
+            </Link>
           </div>
-          <p className="text-sm font-medium uppercase text-gray-600">
-            Total Clicks
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        ))}
+        <div className="flex flex-wrap items-center justify-end gap-2 p-5 sm:p-10">
           {domain &&
             (key ? (
               <Link
@@ -142,7 +207,17 @@ export default function Clicks() {
           })}
         </div>
       </div>
-      <ClicksChart />
+      <div className="p-5 sm:p-10">
+        <AnimatePresence>
+          <motion.div
+            key={tab.id}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <AnalyticsAreaChart show={[tab.resource]} />
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -22,7 +22,7 @@ export default function Devices() {
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/${tab}?${queryString}`, fetcher);
+  >(`${baseApiPath}/clicks/${tab}?${queryString}`, fetcher);
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
