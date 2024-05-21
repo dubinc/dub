@@ -52,7 +52,6 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { useConvertLinkModal } from "../modals/convert-link-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import LinkLogo from "./link-logo";
 
@@ -165,9 +164,6 @@ export default function LinkCard({
 
   const expired = expiresAt && new Date(expiresAt) < new Date();
 
-  const { setShowConvertLinkModal, ConvertLinkModal } = useConvertLinkModal({
-    props,
-  });
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
   });
@@ -246,9 +242,6 @@ export default function LinkCard({
         case "q":
           setShowLinkQRModal(true);
           break;
-        case "c":
-          setShowConvertLinkModal(true);
-          break;
         case "a":
           setShowArchiveLinkModal(true);
           break;
@@ -286,7 +279,6 @@ export default function LinkCard({
           <LinkQRModal />
           <AddEditLinkModal />
           <DuplicateLinkModal />
-          <ConvertLinkModal />
           <ArchiveLinkModal />
           <TransferLinkModal />
           <DeleteLinkModal />
@@ -566,19 +558,7 @@ export default function LinkCard({
                     className="h-9 px-2 font-medium"
                   />
                 </div>
-                <div className="grid border-y border-gray-200 p-2">
-                  <Button
-                    text="Conversions"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowConvertLinkModal(true);
-                    }}
-                    icon={<Magic className="h-4 w-4" />}
-                    shortcut="C"
-                    className="h-9 px-2 font-medium"
-                  />
-                </div>
+                <div className="border-t border-gray-200" />
                 <div className="grid gap-px p-2">
                   <Button
                     text={archived ? "Unarchive" : "Archive"}

@@ -9,6 +9,7 @@ export const DEFAULT_LINK_PROPS: any = {
   title: null,
   description: null,
   image: null,
+  trackConversion: false,
   rewrite: false,
   ios: null,
   android: null,

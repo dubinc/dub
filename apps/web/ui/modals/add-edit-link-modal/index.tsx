@@ -56,6 +56,7 @@ import { useDebounce, useDebouncedCallback } from "use-debounce";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
+import ConversionSection from "./conversion-section";
 import ExpirationSection from "./expiration-section";
 import GeoSection from "./geo-section";
 import IOSSection from "./ios-section";
@@ -87,6 +88,7 @@ function AddEditLinkModal({
     aiUsage,
     aiLimit,
     mutate: mutateWorkspace,
+    betaTester,
   } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -716,18 +718,19 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 md:px-16">
               <TagsSection {...{ props, data, setData }} />
-              <CommentsSection {...{ props, data, setData }} />
-              <UTMSection {...{ props, data, setData }} />
+              {betaTester && <ConversionSection {...{ data, setData }} />}
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
               />
+              <UTMSection {...{ props, data, setData }} />
               <CloakingSection {...{ data, setData }} />
               <PasswordSection {...{ props, data, setData }} />
               <ExpirationSection {...{ props, data, setData }} />
               <IOSSection {...{ props, data, setData }} />
               <AndroidSection {...{ props, data, setData }} />
               <GeoSection {...{ props, data, setData }} />
+              <CommentsSection {...{ props, data, setData }} />
             </div>
 
             <div
