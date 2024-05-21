@@ -2,12 +2,7 @@ import { LinkProps } from "@/lib/types";
 import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
 import { LoadingSpinner, SimpleTooltipContent, Switch } from "@dub/ui";
 import { BadgeTooltip } from "@dub/ui/src/tooltip";
-import {
-  FADE_IN_ANIMATION_SETTINGS,
-  fetcher,
-  getUrlFromString,
-} from "@dub/utils";
-import { motion } from "framer-motion";
+import { fetcher } from "@dub/utils";
 import { FlaskConical } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useSWR from "swr";
@@ -59,11 +54,11 @@ export default function ConversionSection({
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
 
-      {enabled && (
+      {/* {enabled && (
         <motion.div className="mt-3" {...FADE_IN_ANIMATION_SETTINGS}>
           <CheckConversionScript url={getUrlFromString(data.url)} />
         </motion.div>
-      )}
+      )} */}
     </div>
   );
 }
