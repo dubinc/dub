@@ -207,14 +207,8 @@ const DateRangePickerInner = ({
   const displayRange = useMemo(() => {
     if (!range) return null;
 
-    // Only include the year in the formatted date if `from` or `to` is a different year
-    const currentYear = new Date().getFullYear();
-    const includeYear =
-      (range.from != null && range.from.getFullYear() !== currentYear) ||
-      (range.to != null && range.to.getFullYear() !== currentYear);
-
-    return `${range.from ? formatDate(range.from, locale, showTimePicker, includeYear) : ""} - ${
-      range.to ? formatDate(range.to, locale, showTimePicker, includeYear) : ""
+    return `${range.from ? formatDate(range.from, locale, showTimePicker) : ""} - ${
+      range.to ? formatDate(range.to, locale, showTimePicker) : ""
     }`;
   }, [range, locale, showTimePicker]);
 

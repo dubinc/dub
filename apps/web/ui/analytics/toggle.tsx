@@ -104,7 +104,7 @@ export default function Toggle() {
               })}
             >
               <DateRangePicker
-                className="sm:min-w-[200px]"
+                className="sm:min-w-[275px]"
                 align="end"
                 defaultValue={{
                   from: start ? new Date(start) : subDays(new Date(), 30),

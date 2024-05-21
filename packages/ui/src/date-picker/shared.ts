@@ -25,19 +25,16 @@ export const formatDate = (
   date: Date,
   locale: Locale,
   includeTime = false,
-  includeYear = true,
 ): string => {
   const usesAmPm = !isBrowserLocaleClockType24h();
   let dateString: string;
 
-  const year = includeYear ? ", yyyy" : "";
-
   if (includeTime) {
     dateString = usesAmPm
-      ? format(date, `d MMM${year} h:mm a`, { locale })
-      : format(date, `d MMM${year} HH:mm`, { locale });
+      ? format(date, `d MMM, yyyy h:mm a`, { locale })
+      : format(date, `d MMM, yyyy HH:mm`, { locale });
   } else {
-    dateString = format(date, `d MMM${year}`, { locale });
+    dateString = format(date, `d MMM, yyyy`, { locale });
   }
 
   return dateString;
