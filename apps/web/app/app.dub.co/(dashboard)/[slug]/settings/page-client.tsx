@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import ConnectStripe from "@/ui/workspaces/connect-stripe";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
@@ -12,7 +13,7 @@ import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, isOwner } = useWorkspace();
+  const { id, name, slug, isOwner, betaTester } = useWorkspace();
   const { update } = useSession();
 
   return (
@@ -92,6 +93,7 @@ export default function WorkspaceSettingsClient() {
       />
       <WorkspaceId />
       <UploadLogo />
+      {betaTester && <ConnectStripe />}
       <DeleteWorkspace />
     </>
   );

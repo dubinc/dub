@@ -48,6 +48,7 @@ export async function processLink<T extends Record<string, any>>({
     url,
     image,
     proxy,
+    trackConversion,
     password,
     rewrite,
     expiredUrl,
@@ -183,6 +184,14 @@ export async function processLink<T extends Record<string, any>>({
         ...response,
       };
     }
+  }
+
+  if (trackConversion && !workspace?.betaTester) {
+    return {
+      link: payload,
+      error: "Conversion tracking is only available for beta testers.",
+      code: "forbidden",
+    };
   }
 
   if (bulk) {

@@ -25,6 +25,7 @@ export interface QRLinkProps {
 export interface RedisLinkProps {
   id: string;
   url: string;
+  trackConversion?: boolean;
   password?: boolean;
   proxy?: boolean;
   rewrite?: boolean;
@@ -82,6 +83,7 @@ export interface WorkspaceProps {
   plan: PlanProps;
   stripeId: string | null;
   billingCycleStart: number;
+  stripeConnectId: string | null;
   createdAt: Date;
   domains: {
     slug: string;
@@ -94,6 +96,7 @@ export interface WorkspaceProps {
     defaultDomains?: string[];
   };
   inviteCode: string;
+  betaTester?: boolean;
 }
 
 export interface UserProps {

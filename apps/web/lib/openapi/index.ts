@@ -11,6 +11,7 @@ import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
+import { trackPaths } from "./track";
 import { workspacesPaths } from "./workspaces";
 
 export const document = createDocument({
@@ -43,6 +44,7 @@ export const document = createDocument({
     ...workspacesPaths,
     ...tagsPaths,
     ...domainsPaths,
+    ...trackPaths,
     ...metatagsPath,
   },
   components: {
