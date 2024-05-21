@@ -1,10 +1,36 @@
 import z from "@/lib/zod";
 
 export const trackCustomerRequestSchema = z.object({
-  customerId: z.string({ required_error: "customerId is required" }),
-  customerName: z.string().nullish().default(null),
-  customerEmail: z.string().email().nullish().default(null),
-  customerAvatar: z.string().url().nullish().default(null),
+  // Required
+  customerId: z
+    .string({ required_error: "customerId is required" })
+    .trim()
+    .min(1, "customerId is required")
+    .max(100)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    ),
+
+  // Optional
+  customerName: z
+    .string()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe("Name of the customer in the client's app."),
+  customerEmail: z
+    .string()
+    .email()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe("Email of the customer in the client's app."),
+  customerAvatar: z
+    .string()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe("Avatar of the customer in the client's app."),
 });
 
 export const trackCustomerResponseSchema = z.object({

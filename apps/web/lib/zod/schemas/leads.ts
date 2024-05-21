@@ -27,30 +27,25 @@ export const trackLeadRequestSchema = z.object({
     .max(100)
     .nullish()
     .default(null)
-    .describe(
-      "This is the name of the customer in the client's app. This is used to track the customer's journey.",
-    ),
+    .describe("Name of the customer in the client's app."),
   customerEmail: z
     .string()
     .email()
     .max(100)
     .nullish()
     .default(null)
-    .describe(
-      "This is the email of the customer in the client's app. This is used to track the customer's journey.",
-    ),
+    .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
     .max(100)
     .nullish()
     .default(null)
-    .describe(
-      "This is the avatar of the customer in the client's app. This is used to track the customer's journey.",
-    ),
+    .describe("Avatar of the customer in the client's app."),
   metadata: z
     .record(z.unknown())
     .nullish()
-    .transform((val) => (val ? JSON.stringify(val) : "")),
+    .default(null)
+    .describe("Additional metadata to be stored with the lead event"),
 });
 
 export const trackLeadResponseSchema = z.object({

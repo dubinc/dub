@@ -6,14 +6,35 @@ export const trackSaleRequestSchema = z.object({
   customerId: z
     .string({ required_error: "customerId is required" })
     .trim()
-    .min(1, "customerId is required"),
-  amount: z.number({ required_error: "amount is required" }).int().positive(),
-  paymentProcessor: z.enum(["stripe", "shopify", "paddle"]),
+    .min(1, "customerId is required")
+    .max(100)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    ),
+  amount: z
+    .number({ required_error: "amount is required" })
+    .int()
+    .positive()
+    .describe("The amount of the sale. Should be passed in cents."),
+  paymentProcessor: z
+    .enum(["stripe", "shopify", "paddle"])
+    .describe("The payment processor via which the sale was made."),
 
   // Optional
-  invoiceId: z.string().nullish().default(null),
-  currency: z.string().default("usd"),
-  metadata: z.record(z.unknown()).nullish().default(null),
+  invoiceId: z
+    .string()
+    .nullish()
+    .default(null)
+    .describe("The invoice ID of the sale."),
+  currency: z
+    .string()
+    .default("usd")
+    .describe("The currency of the sale. Accepts ISO 4217 currency codes."),
+  metadata: z
+    .record(z.unknown())
+    .nullish()
+    .default(null)
+    .describe("Additional metadata to be stored with the sale event."),
 });
 
 export const trackSaleResponseSchema = z.object({

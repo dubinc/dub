@@ -9,7 +9,6 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
-import { Customer } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -42,32 +41,28 @@ export const POST = withWorkspaceEdge(
       .parse(clickEvent.data[0]);
 
     // Find customer or create if not exists
-    let customer: null | Customer = null;
-
-    if (externalId && workspace.stripeConnectId) {
-      customer = await prismaEdge.customer.upsert({
-        where: {
-          projectId_externalId: {
-            projectId: workspace.id,
-            externalId,
-          },
-        },
-        create: {
-          id: nanoid(16),
-          name: customerName, // TODO: Generate random name if not provided
-          email: customerEmail,
-          avatar: customerAvatar,
-          externalId,
+    const customer = await prismaEdge.customer.upsert({
+      where: {
+        projectId_externalId: {
           projectId: workspace.id,
-          projectConnectId: workspace.stripeConnectId,
+          externalId,
         },
-        update: {
-          name: customerName,
-          email: customerEmail,
-          avatar: customerAvatar,
-        },
-      });
-    }
+      },
+      create: {
+        id: nanoid(16),
+        name: customerName, // TODO: Generate random name if not provided
+        email: customerEmail,
+        avatar: customerAvatar,
+        externalId,
+        projectId: workspace.id,
+        projectConnectId: workspace.stripeConnectId,
+      },
+      update: {
+        name: customerName,
+        email: customerEmail,
+        avatar: customerAvatar,
+      },
+    });
 
     if (!customer) {
       throw new DubApiError({
@@ -90,7 +85,7 @@ export const POST = withWorkspaceEdge(
         event_id: nanoid(16),
         event_name: eventName,
         customer_id: customer.id,
-        metadata,
+        metadata: metadata ? JSON.stringify(metadata) : "",
       }),
     ]);
 
@@ -101,7 +96,7 @@ export const POST = withWorkspaceEdge(
       customerEmail,
       customerAvatar,
       customerId: externalId,
-      metadata: metadata ? JSON.parse(metadata) : null,
+      metadata,
     });
 
     return NextResponse.json(response, { status: 201 });
