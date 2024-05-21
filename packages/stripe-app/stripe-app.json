@@ -1,6 +1,6 @@
 {
-  "id": "dub",
-  "version": "0.0.5",
+  "id": "dub.co",
+  "version": "0.0.1",
   "name": "Dub",
   "icon": "./logo.png",
   "permissions": [
