@@ -252,7 +252,7 @@ function Calendar({
                     {
                       "bg-blue-500": !selected,
                       "!bg-white": selected,
-                      "!bg-gray-400": selected && range_middle,
+                      "!bg-blue-400": selected && range_middle,
                       "text-gray-400": disabled,
                     },
                   )}
