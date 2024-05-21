@@ -6,12 +6,17 @@ export const trackLeadRequestSchema = z.object({
   clickId: z
     .string({ required_error: "clickId is required" })
     .trim()
-    .min(1, "clickId is required"),
+    .min(1, "clickId is required")
+    .describe(
+      "The ID of the click in th Dub. You can read this value from `dclid` cookie.",
+    ),
   eventName: z
     .string({ required_error: "eventName is required" })
     .trim()
     .min(1, "eventName is required")
-    .max(50),
+    .max(50)
+    .describe("The name of the event to track.")
+    .openapi({ example: "Signup" }),
   customerId: z
     .string({ required_error: "customerId is required" })
     .trim()
