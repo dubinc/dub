@@ -1,13 +1,14 @@
 import { LinkProps } from "@/lib/types";
 import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
-import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { LoadingSpinner, SimpleTooltipContent, Switch } from "@dub/ui";
+import { BadgeTooltip } from "@dub/ui/src/tooltip";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   fetcher,
   getUrlFromString,
 } from "@dub/utils";
 import { motion } from "framer-motion";
+import { FlaskConical } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useSWR from "swr";
 
@@ -40,7 +41,7 @@ export default function ConversionSection({
           <h2 className="text-sm font-medium text-gray-900">
             Conversion Tracking
           </h2>
-          <ProBadgeTooltip
+          <BadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Track conversions on your short link to measure the effectiveness of your marketing campaigns."
@@ -48,7 +49,12 @@ export default function ConversionSection({
                 href="https://dub.co/help/article/conversion-tracking"
               />
             }
-          />
+          >
+            <div className="flex items-center space-x-1">
+              <FlaskConical size={12} />
+              <p className="uppercase">Beta</p>
+            </div>
+          </BadgeTooltip>
         </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
@@ -64,22 +70,22 @@ export default function ConversionSection({
 
 function CheckConversionScript({ url }: { url: string }) {
   const { data, isLoading } = useSWR<{ installed: boolean }>(
-    `/api/links/check-conversion-script?url=${url}`,
+    url && `/api/links/check-conversion-script?url=${url}`,
     fetcher,
   );
 
   return (
     <div className="flex items-start space-x-2 rounded-md border border-gray-300 bg-white p-3">
       <div className="flex-none">
-        {isLoading ? (
+        {!data || isLoading ? (
           <LoadingSpinner className="h-5 w-5" />
-        ) : data?.installed ? (
+        ) : data.installed ? (
           <CheckCircleFill className="h-5 w-5 text-green-500" />
         ) : (
           <AlertCircleFill className="h-5 w-5 text-yellow-500" />
         )}
       </div>
-      <div className="flex flex-col space-y-0.5">
+      <div className="flex flex-col space-y-1">
         <p className="text-sm font-medium text-gray-700">
           {!data || isLoading
             ? "Checking if conversion script is installed..."
@@ -89,7 +95,7 @@ function CheckConversionScript({ url }: { url: string }) {
         </p>
         {data &&
           (data.installed ? (
-            <p className="text-sm text-gray-600">
+            <p className="text-xs text-gray-600">
               We will track conversions on this link.{" "}
               <a
                 href="https://dub.co/help/article/conversion-tracking"
