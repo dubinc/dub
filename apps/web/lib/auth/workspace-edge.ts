@@ -83,14 +83,6 @@ export const withWorkspaceEdge = (
         apiKey = authorizationHeader.replace("Bearer ", "");
       }
 
-      const domain = params?.domain || searchParams.domain;
-      const key = searchParams.key;
-      const linkId =
-        params?.linkId ||
-        searchParams.linkId ||
-        searchParams.externalId ||
-        undefined;
-
       let session: Session | undefined;
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;

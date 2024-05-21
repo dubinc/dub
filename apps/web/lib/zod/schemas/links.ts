@@ -142,6 +142,11 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
     ),
+  trackConversion: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Whether to track conversions for the short link."),
   archived: z
     .boolean()
     .optional()

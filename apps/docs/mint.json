@@ -137,6 +137,14 @@
       "pages": ["api-reference/endpoint/retrieve-metatags"]
     },
     {
+      "group": "Conversions [BETA]",
+      "pages": [
+        "api-reference/endpoint/track-lead",
+        "api-reference/endpoint/track-sale",
+        "api-reference/endpoint/track-customer"
+      ]
+    },
+    {
       "group": "SDKs",
       "pages": ["sdks/overview"]
     },

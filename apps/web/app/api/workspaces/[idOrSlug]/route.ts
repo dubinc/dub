@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
-import { isReservedKey } from "@/lib/edge-config";
+import { isBetaTester, isReservedKey } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
@@ -34,10 +34,13 @@ const updateWorkspaceSchema = z.object({
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(async ({ workspace, headers }) => {
+  const betaTester = await isBetaTester(workspace.id);
+
   return NextResponse.json(
     WorkspaceSchema.parse({
       ...workspace,
       id: `ws_${workspace.id}`,
+      betaTester,
     }),
     { headers },
   );
