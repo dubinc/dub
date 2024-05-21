@@ -73,7 +73,7 @@ export default function Main() {
     tabs[0];
 
   return (
-    <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
+    <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
       <div className="scrollbar-hide mb-5 flex w-full divide-x overflow-x-scroll border-b border-gray-200">
         {tabs.map(({ id, icon: Icon, label }) => (
           <div>

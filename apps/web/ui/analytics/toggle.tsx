@@ -30,7 +30,7 @@ export default function Toggle() {
     >
       <div
         className={cn(
-          "mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:space-y-0 lg:px-0",
+          "mx-auto flex w-full max-w-screen-xl flex-col gap-2 space-y-3 px-2.5 px-2.5 md:space-y-0 lg:px-20",
           {
             "md:h-10": key,
           },

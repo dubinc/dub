@@ -129,7 +129,7 @@ export default function Analytics({
     >
       <div className="bg-gray-50 py-10">
         <Toggle />
-        <div className="mx-auto grid max-w-4xl gap-5">
+        <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
           <Main />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
