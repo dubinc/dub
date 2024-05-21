@@ -3,9 +3,13 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CopyButton } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function ConnectStripe() {
+  const searchParams = useSearchParams();
+
   const { id: workspaceId, stripeConnectId } = useWorkspace();
 
   const [redirecting, setRedirecting] = useState(false);
@@ -33,6 +37,14 @@ export default function ConnectStripe() {
       setRedirecting(false);
     };
   }, []);
+
+  useEffect(() => {
+    if (searchParams.has("stripeConnectError")) {
+      toast.error(
+        `Error connecting to Stripe: ${searchParams.get("stripeConnectError")}`,
+      );
+    }
+  }, [searchParams]);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
