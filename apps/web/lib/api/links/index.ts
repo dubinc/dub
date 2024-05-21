@@ -5,6 +5,5 @@ export * from "./delete-link";
 export * from "./get-links-count";
 export * from "./get-links-for-workspace";
 export * from "./process-link";
-export * from "./transfer-link";
 export * from "./update-link";
 export * from "./utils";

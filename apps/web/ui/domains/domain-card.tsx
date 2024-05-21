@@ -45,7 +45,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
   const { slug: domain, primary, target, type, archived } = props || {};
 
-  const { showLinkQRModal, setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
+  const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props: {
       domain,
       url: target,
@@ -68,8 +68,13 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
   const { data: clicks } = useSWR<number>(
     workspaceId &&
-      `/api/analytics/clicks?workspaceId=${workspaceId}&domain=${domain}&key=_root`,
-    fetcher,
+      `/api/analytics/clicks?workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all`,
+    (url) =>
+      fetcher(url, {
+        headers: {
+          "Request-Source": "app.dub.co",
+        },
+      }),
     {
       fallbackData: props.clicks,
       dedupingInterval: 15000,

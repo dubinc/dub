@@ -7,6 +7,7 @@ export * from "./avatar";
 export * from "./badge";
 export * from "./button";
 export * from "./checkbox";
+export * from "./file-upload";
 export * from "./form";
 export * from "./input-select";
 export * from "./label";

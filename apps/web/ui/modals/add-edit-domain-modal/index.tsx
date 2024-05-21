@@ -9,6 +9,7 @@ import {
   Logo,
   Modal,
   SimpleTooltipContent,
+  Switch,
   Tooltip,
   TooltipContent,
   useRouterStuff,
@@ -169,7 +170,7 @@ function AddEditDomainModal({
                 type="button"
                 onClick={() => {
                   window.confirm(
-                    "Warning: Changing your workspace's domain will break all existing short links and reset their analytics. Are you sure you want to continue?",
+                    "Warning: Changing your workspace's domain will break all existing short links. Are you sure you want to continue?",
                   ) && setLockDomain(false);
                 }}
               >
@@ -195,8 +196,18 @@ function AddEditDomainModal({
 
         <div>
           <label htmlFor="target" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Landing Page</h2>
-            <InfoTooltip content="The page your users will get redirected to when they visit your domain." />
+            <h2 className="text-sm font-medium text-gray-900">
+              Destination URL
+            </h2>
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="The page your users will get redirected to when they visit your domain."
+                  cta="Learn more."
+                  href="https://dub.co/help/article/how-to-redirect-root-domain"
+                />
+              }
+            />
           </label>
           {plan === "free" ? (
             <Tooltip
@@ -222,7 +233,6 @@ function AddEditDomainModal({
           ) : (
             <div className="relative mt-2 rounded-md shadow-sm">
               <input
-                type="url"
                 name="target"
                 id="target"
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
@@ -355,6 +365,43 @@ function AddEditDomainModal({
                   }
                 />
               </div>
+            </div>
+
+            <div className="flex w-full items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Disable Search Engine Indexing
+                </h2>
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="Prevent search engines from indexing your root domain."
+                      cta="Learn more."
+                      href="https://dub.co/help/article/how-noindex-works"
+                    />
+                  }
+                />
+              </div>
+              <Switch
+                checked={data.noindex}
+                fn={(checked) => setData({ ...data, noindex: checked })}
+                {...(plan === "free" && {
+                  disabledTooltip: (
+                    <TooltipContent
+                      title="You can only disable search engine indexing on a Pro plan and above. Upgrade to proceed."
+                      cta="Upgrade to Pro"
+                      onClick={() => {
+                        setShowAddEditDomainModal(false);
+                        queryParams({
+                          set: {
+                            upgrade: "pro",
+                          },
+                        });
+                      }}
+                    />
+                  ),
+                })}
+              />
             </div>
           </motion.div>
         )}

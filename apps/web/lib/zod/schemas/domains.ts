@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { parseUrlSchema } from "./links";
+import { parseUrlSchema } from "./utils";
 
 export const DomainSchema = z.object({
   id: z.string().describe("The unique identifier of the domain."),
@@ -18,6 +18,10 @@ export const DomainSchema = z.object({
   archived: z
     .boolean()
     .describe("Whether the domain is archived.")
+    .default(false),
+  noindex: z
+    .boolean()
+    .describe("Prevent search engines from indexing the domain.")
     .default(false),
   placeholder: z
     .string()
@@ -79,6 +83,12 @@ export const addDomainBodySchema = z.object({
       "Whether to archive this domain. `false` will unarchive a previously archived domain.",
     )
     .openapi({ example: false }),
+  noindex: z
+    .boolean()
+    .optional()
+    .describe(
+      "Prevent search engines from indexing the domain. Defaults to `false`.",
+    ),
   placeholder: parseUrlSchema
     .nullish()
     .default("https://dub.co/help/article/what-is-dub")

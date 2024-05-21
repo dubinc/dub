@@ -8,8 +8,12 @@ import {
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
+import { prisma } from "@/lib/prisma";
+import {
+  DomainSchema,
+  updateDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
@@ -57,6 +61,7 @@ export const PATCH = withWorkspace(
       placeholder,
       expiredUrl,
       archived,
+      noindex,
     } = updateDomainBodySchema.parse(body);
 
     if (newDomain && newDomain !== domain) {
@@ -76,40 +81,45 @@ export const PATCH = withWorkspace(
       }
     }
 
-    const response = await Promise.all([
-      prisma.domain.update({
-        where: {
-          slug: domain,
-        },
-        data: {
-          slug: newDomain,
-          type,
-          archived,
-          ...(placeholder && { placeholder }),
-          ...(workspace.plan !== "free" && {
-            target,
-            expiredUrl,
-          }),
-        },
-      }),
-      // remove old domain from Vercel
-      newDomain !== domain && removeDomainFromVercel(domain),
-    ]);
-
-    await setRootDomain({
-      id: response[0].id,
-      domain,
-      ...(workspace.plan !== "free" && {
-        url: target || undefined,
-      }),
-      rewrite: type === "rewrite",
-      ...(newDomain !== domain && {
-        newDomain,
-      }),
-      projectId: workspace.id,
+    const response = await prisma.domain.update({
+      where: {
+        slug: domain,
+      },
+      data: {
+        slug: newDomain,
+        type,
+        archived,
+        ...(placeholder && { placeholder }),
+        ...(workspace.plan !== "free" && {
+          target,
+          expiredUrl,
+          noindex: noindex === undefined ? true : noindex,
+        }),
+      },
     });
 
-    return NextResponse.json(DomainSchema.parse(response[0]));
+    waitUntil(
+      Promise.all([
+        setRootDomain({
+          id: response.id,
+          domain,
+          domainCreatedAt: response.createdAt,
+          ...(workspace.plan !== "free" && {
+            url: target || undefined,
+            noindex: noindex === undefined ? true : noindex,
+          }),
+          rewrite: type === "rewrite",
+          ...(newDomain !== domain && {
+            newDomain,
+          }),
+          projectId: workspace.id,
+        }),
+        // remove old domain from Vercel
+        newDomain !== domain && removeDomainFromVercel(domain),
+      ]),
+    );
+
+    return NextResponse.json(DomainSchema.parse(response));
   },
   {
     domainChecks: true,

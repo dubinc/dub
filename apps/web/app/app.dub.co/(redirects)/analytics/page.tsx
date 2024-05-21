@@ -1,4 +1,4 @@
-import { getWorkspaces } from "@/lib/fetchers";
+import { getDefaultWorkspace } from "@/lib/fetchers";
 import { redirect } from "next/navigation";
 
 export default async function OldLinksAnalytics({
@@ -6,8 +6,8 @@ export default async function OldLinksAnalytics({
 }: {
   searchParams: { [key: string]: string };
 }) {
-  const workspaces = await getWorkspaces();
-  if (!workspaces || workspaces.length === 0) {
+  const defaultWorkspace = await getDefaultWorkspace();
+  if (!defaultWorkspace) {
     redirect("/");
   }
 
@@ -21,6 +21,6 @@ export default async function OldLinksAnalytics({
   const queryString = newParams.toString();
 
   redirect(
-    `/${workspaces[0].slug}/analytics${queryString ? `?${queryString}` : ""}`,
+    `/${defaultWorkspace.slug}/analytics${queryString ? `?${queryString}` : ""}`,
   );
 }

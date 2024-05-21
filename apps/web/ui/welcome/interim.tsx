@@ -73,7 +73,7 @@ export default function Interim() {
           className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
         >
           <img
-            src="/_static/illustrations/call-waiting.svg"
+            src="/_static/illustrations/podcast.svg"
             alt="No links yet"
             width={250}
             height={250}

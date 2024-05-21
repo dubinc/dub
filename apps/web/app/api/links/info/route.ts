@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { transformLink } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { getLinkInfoQuerySchema } from "@/lib/zod/schemas";
+import { prisma } from "@/lib/prisma";
+import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link

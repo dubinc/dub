@@ -5,6 +5,7 @@ import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -12,6 +13,7 @@ import { mutate } from "swr";
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
   const { id, name, slug, isOwner } = useWorkspace();
+  const { update } = useSession();
 
   return (
     <>
@@ -31,7 +33,7 @@ export default function WorkspaceSettingsClient() {
         })}
         handleSubmit={(updateData) =>
           fetch(`/api/workspaces/${id}`, {
-            method: "PUT",
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
@@ -67,7 +69,7 @@ export default function WorkspaceSettingsClient() {
         })}
         handleSubmit={(data) =>
           fetch(`/api/workspaces/${id}`, {
-            method: "PUT",
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
@@ -76,7 +78,10 @@ export default function WorkspaceSettingsClient() {
             if (res.status === 200) {
               const { slug: newSlug } = await res.json();
               await mutate("/api/workspaces");
-              router.push(`/${newSlug}/settings`);
+              if (newSlug != slug) {
+                router.push(`/${newSlug}/settings`);
+                update();
+              }
               toast.success("Successfully updated workspace slug!");
             } else {
               const { error } = await res.json();

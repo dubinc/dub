@@ -1,4 +1,3 @@
-import { LinkProps } from "@/lib/types";
 import { LoadingSpinner, useMediaQuery } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -8,10 +7,10 @@ import { Basic } from "unsplash-js/dist/methods/photos/types";
 import { useDebounce } from "use-debounce";
 
 export default function UnsplashSearch({
-  setData,
+  onImageSelected,
   setOpenPopover,
 }: {
-  setData: Dispatch<SetStateAction<LinkProps>>;
+  onImageSelected: (image: string) => void;
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
 }) {
   const [search, setSearch] = useState("");
@@ -30,7 +29,11 @@ export default function UnsplashSearch({
   const { isMobile } = useMediaQuery();
 
   return (
-    <div className="h-[24rem] w-full overflow-auto p-3 md:w-[24rem]">
+    <div
+      className="h-[24rem] w-full overflow-auto p-3 md:w-[24rem]"
+      // Fixes a Webkit issue where elements outside of the visible area are still interactable
+      style={{ WebkitClipPath: "inset(0 0 0 0)" }}
+    >
       <div className="relative mt-1 rounded-md shadow-sm">
         <input
           type="text"
@@ -52,10 +55,7 @@ export default function UnsplashSearch({
                 key={photo.id}
                 type="button"
                 onClick={() => {
-                  setData((prev) => ({
-                    ...prev,
-                    image: photo.urls.regular,
-                  }));
+                  onImageSelected(photo.urls.regular);
                   setOpenPopover(false);
                   fetch("/api/unsplash/download", {
                     method: "POST",
