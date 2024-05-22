@@ -1,11 +1,12 @@
 import { DeviceTabs } from "@/lib/analytics/types";
 import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
-import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
+import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 import DeviceIcon from "./device-icon";
 
@@ -16,13 +17,16 @@ export default function Devices() {
     [tab],
   );
 
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/${tab}?${queryString}`, fetcher);
+  >(`${baseApiPath}/${tab}?${queryString}`, fetcher, {
+    shouldRetryOnError: !requiresUpgrade,
+  });
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
@@ -88,7 +92,7 @@ export default function Devices() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingSpinner />
+            <AnalyticsLoadingSpinner />
           </div>
         )}
         {data && data.length > 9 && (

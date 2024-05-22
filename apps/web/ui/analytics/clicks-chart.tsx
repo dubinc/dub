@@ -1,4 +1,3 @@
-import { LoadingSpinner } from "@dub/ui";
 import { fetcher, getDaysDifference, nFormatter } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
@@ -7,13 +6,18 @@ import Areas from "../charts/areas";
 import TimeSeriesChart from "../charts/time-series-chart";
 import XAxis from "../charts/x-axis";
 import YAxis from "../charts/y-axis";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 
 export default function ClicksChart() {
-  const { baseApiPath, queryString, start, end } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, start, end, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
     `${baseApiPath}/timeseries?${queryString}`,
     fetcher,
+    {
+      shouldRetryOnError: !requiresUpgrade,
+    },
   );
 
   const chartData = useMemo(
@@ -73,7 +77,7 @@ export default function ClicksChart() {
           <YAxis showGridLines tickFormat={nFormatter} />
         </TimeSeriesChart>
       ) : (
-        <LoadingSpinner />
+        <AnalyticsLoadingSpinner />
       )}
     </div>
   );

@@ -10,9 +10,10 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
 import { endOfDay, min, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
-import { createContext, useMemo } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { defaultConfig } from "swr/_internal";
 import { UpgradeToProToast } from "../shared/upgrade-to-pro-toast";
 import Clicks from "./clicks";
 import Devices from "./devices";
@@ -33,6 +34,7 @@ export const AnalyticsContext = createContext<{
   tagId?: string;
   totalClicks?: number;
   admin?: boolean;
+  requiresUpgrade?: boolean;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -41,6 +43,7 @@ export const AnalyticsContext = createContext<{
   start: new Date(),
   end: new Date(),
   admin: false,
+  requiresUpgrade: false,
 });
 
 export default function Analytics({
@@ -55,6 +58,7 @@ export default function Analytics({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { id, slug } = useWorkspace();
+  const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
     key?: string;
@@ -123,10 +127,14 @@ export default function Analytics({
     }).toString();
   }, [id, domain, key, searchParams, start, end, tagId]);
 
+  // Reset requiresUpgrade when query changes
+  useEffect(() => setRequiresUpgrade(false), [queryString]);
+
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/count?${queryString}`,
     fetcher,
     {
+      onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
         if (error.message.includes("Upgrade to Pro")) {
           toast.custom(() => (
@@ -135,9 +143,14 @@ export default function Analytics({
               message={JSON.parse(error.message)?.error.message}
             />
           ));
+          setRequiresUpgrade(true);
         } else {
           toast.error(error.message);
         }
+      },
+      onErrorRetry: (error, ...args) => {
+        if (error.message.includes("Upgrade to Pro")) return;
+        defaultConfig.onErrorRetry(error, ...args);
       },
     },
   );
@@ -158,6 +171,7 @@ export default function Analytics({
         tagId, // id of a single tag
         totalClicks, // total clicks for the link
         admin, // whether the user is an admin
+        requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >
       <div className="bg-gray-50 py-10">

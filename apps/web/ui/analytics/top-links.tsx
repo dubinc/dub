@@ -1,5 +1,5 @@
 import { TopLinksTabs } from "@/lib/analytics/types";
-import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
+import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
 import Link from "next/link";
@@ -7,12 +7,13 @@ import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
 
-  const { basePath, baseApiPath, queryString, domain, key } =
+  const { basePath, baseApiPath, queryString, domain, key, requiresUpgrade } =
     useContext(AnalyticsContext);
 
   useEffect(() => {
@@ -27,7 +28,9 @@ export default function TopLinks() {
     ({ domain: string; key: string } & {
       [key in TopLinksTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher);
+  >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher, {
+    shouldRetryOnError: !requiresUpgrade,
+  });
 
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
@@ -125,7 +128,7 @@ export default function TopLinks() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingSpinner />
+            <AnalyticsLoadingSpinner />
           </div>
         )}
         {data && data.length > 9 && (

@@ -1,11 +1,12 @@
 import { LocationTabs } from "@/lib/analytics/types";
 import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
-import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
+import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 
 export default function Locations() {
@@ -15,11 +16,13 @@ export default function Locations() {
     [tab],
   );
 
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
     `${baseApiPath}/${tab}?${queryString}`,
     fetcher,
+    { shouldRetryOnError: !requiresUpgrade },
   );
 
   const { queryParams } = useRouterStuff();
@@ -86,7 +89,7 @@ export default function Locations() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingSpinner />
+            <AnalyticsLoadingSpinner />
           </div>
         )}
         {data && data.length > 9 && (
