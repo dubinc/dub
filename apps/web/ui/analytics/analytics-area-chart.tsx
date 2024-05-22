@@ -8,7 +8,7 @@ import XAxis from "../charts/x-axis";
 import YAxis from "../charts/y-axis";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 
-export default function ClicksChart({
+export default function AnalyticsAreaChart({
   show,
 }: {
   show: ("clicks" | "leads" | "sales")[];
