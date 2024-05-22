@@ -20,7 +20,7 @@ export default function Locations() {
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
-    `${baseApiPath}/clicks/${tab}?${queryString}`,
+    `${baseApiPath}/${tab}?${queryString}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );

@@ -83,6 +83,8 @@ export default function Analytics({
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
+    const tab = searchParams.get("tab");
+
     // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
     if (admin) {
       return {
@@ -93,7 +95,7 @@ export default function Analytics({
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics`,
+        baseApiPath: `/api/analytics/${tab || "clicks"}`,
         domain: domainSlug,
       };
     } else {
@@ -104,7 +106,15 @@ export default function Analytics({
         domain: staticDomain,
       };
     }
-  }, [admin, slug, pathname, staticDomain, domainSlug, key]);
+  }, [
+    admin,
+    slug,
+    pathname,
+    staticDomain,
+    domainSlug,
+    key,
+    searchParams.get("tab"),
+  ]);
 
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
@@ -131,7 +141,7 @@ export default function Analytics({
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/clicks/count?${queryString}`,
+    `${baseApiPath}/count?${queryString}`,
     fetcher,
     {
       onSuccess: () => setRequiresUpgrade(false),

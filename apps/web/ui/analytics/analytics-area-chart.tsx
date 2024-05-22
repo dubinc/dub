@@ -16,22 +16,20 @@ export default function ClicksChart({
   const { baseApiPath, queryString, start, end, requiresUpgrade } =
     useContext(AnalyticsContext);
 
-  const { data } = useSWR<{ start: Date; clicks: number }[]>(
-    `${baseApiPath}/clicks/timeseries?${queryString}`,
-    fetcher,
-    {
-      shouldRetryOnError: !requiresUpgrade,
-    },
-  );
+  const { data } = useSWR<
+    { start: Date; clicks: number; leads: number; sales: number }[]
+  >(`${baseApiPath}/timeseries?${queryString}`, fetcher, {
+    shouldRetryOnError: !requiresUpgrade,
+  });
 
   const chartData = useMemo(
     () =>
-      data?.map(({ start, clicks }) => ({
+      data?.map(({ start, clicks, leads, sales }) => ({
         date: new Date(start),
         values: {
           clicks,
-          leads: Math.ceil(clicks / 2),
-          sales: Math.floor(clicks / 2),
+          leads,
+          sales,
         }, // TODO: Update these accessors once we have leads and sales data
       })) ?? null,
     [data],
