@@ -27,7 +27,7 @@ export const GET = async (
     const searchParams = getSearchParams(req.url);
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
 
-    const { domain, key, interval } = parsedParams;
+    const { domain, key, interval, start, end } = parsedParams;
 
     if (!domain || !key) {
       throw new DubApiError({
@@ -76,8 +76,10 @@ export const GET = async (
         link?.projectId && (await getWorkspaceViaEdge(link.projectId));
 
       validDateRangeForPlan({
-        plan: workspace.plan,
+        plan: workspace?.plan || "free",
         interval,
+        start,
+        end,
         throwError: true,
       });
 

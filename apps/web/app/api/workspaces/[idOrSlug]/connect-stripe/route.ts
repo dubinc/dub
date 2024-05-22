@@ -7,8 +7,6 @@ import { NextResponse } from "next/server";
 
 const envSchema = z.object({
   STRIPE_APP_INSTALL_URL: z.string(),
-  STRIPE_APP_CLIENT_ID: z.string(),
-  STRIPE_APP_WEBHOOK_SECRET: z.string(),
 });
 
 export const POST = withWorkspace(async ({ workspace }) => {
@@ -22,14 +20,13 @@ export const POST = withWorkspace(async ({ workspace }) => {
   if (!env.success) {
     throw new DubApiError({
       code: "bad_request",
-      message: "Stripe environment variables are not configured properly.",
+      message: "Stripe App environment variables are not configured properly.",
     });
   }
 
-  const { STRIPE_APP_INSTALL_URL, STRIPE_APP_CLIENT_ID } = env.data;
+  const { STRIPE_APP_INSTALL_URL } = env.data;
 
   const url = new URL(STRIPE_APP_INSTALL_URL);
-  url.searchParams.set("client_id", STRIPE_APP_CLIENT_ID);
   url.searchParams.set(
     "redirect_uri",
     `${APP_DOMAIN_WITH_NGROK}/api/stripe/connect/callback`,

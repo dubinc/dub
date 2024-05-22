@@ -14,7 +14,7 @@ import { createContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { defaultConfig } from "swr/_internal";
-import { UpgradeToProToast } from "../shared/upgrade-to-pro-toast";
+import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import Devices from "./devices";
 import Locations from "./locations";
 import Main from "./main";
@@ -69,10 +69,10 @@ export default function Analytics({
 
   const tagId = searchParams?.get("tagId") ?? undefined;
 
-  // Default to last 30 days
+  // Default to last 24 hours
   const { start, end } = useMemo(() => {
     return {
-      start: new Date(searchParams?.get("start") || subDays(new Date(), 30)),
+      start: new Date(searchParams?.get("start") || subDays(new Date(), 1)),
 
       // Set to end of day or now if that's in the future
       end: min([
@@ -138,7 +138,7 @@ export default function Analytics({
       onError: (error) => {
         if (error.status === 403) {
           toast.custom(() => (
-            <UpgradeToProToast
+            <UpgradeRequiredToast
               title="Upgrade for more analytics"
               message={JSON.parse(error.message)?.error.message}
             />

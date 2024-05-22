@@ -101,7 +101,7 @@ function Calendar({
         cell: "relative p-0 text-center focus-within:relative text-gray-900",
         day: cn(
           "relative h-10 w-full sm:h-9 sm:w-9 rounded-md text-sm text-gray-900",
-          "hover:bg-gray-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
+          "hover:bg-gray-100 active:bg-gray-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
         ),
         day_today: "font-semibold",
         day_selected:

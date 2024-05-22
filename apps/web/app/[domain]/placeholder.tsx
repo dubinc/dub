@@ -34,7 +34,7 @@ export default function PlaceholderContent() {
         <Spline
           onLoad={onLoad}
           style={{ opacity: opacity }}
-          scene="https://prod.spline.design/cJkq6hsiUPNRHeMf/scene.splinecode"
+          scene="https://assets.dub.co/misc/scene.splinecode"
         />
       </div>
       <motion.div
