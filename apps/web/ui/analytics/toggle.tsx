@@ -87,7 +87,9 @@ export default function Toggle() {
               <ExpandingArrow className="h-5 w-5" />
             </a>
           ) : (
-            <h2 className="truncate text-2xl text-gray-600">Analytics</h2>
+            <h2 className="truncate text-2xl font-medium text-black">
+              Analytics
+            </h2>
           )}
           <div
             className={cn("flex items-center gap-2", {
