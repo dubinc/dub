@@ -110,7 +110,7 @@ export default function Main() {
               <div
                 className={cn(
                   "absolute bottom-0 left-0 h-0.5 w-full bg-black transition-transform duration-100",
-                  tab.id !== id && "translate-y-full",
+                  tab.id !== id && "translate-y-[3px]", // Translate an extra pixel to avoid sub-pixel issues
                 )}
               />
 
