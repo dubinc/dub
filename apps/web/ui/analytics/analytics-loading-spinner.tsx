@@ -6,7 +6,7 @@ import { useContext } from "react";
 import { AnalyticsContext } from ".";
 
 export function AnalyticsLoadingSpinner() {
-  const { nextPlan } = useWorkspace();
+  const { slug, nextPlan } = useWorkspace();
   const { requiresUpgrade } = useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
 
@@ -20,13 +20,16 @@ export function AnalyticsLoadingSpinner() {
       </p>
       <Link
         href={
-          queryParams({
-            set: {
-              upgrade: nextPlan.name.toLowerCase(),
-            },
-            getNewPath: true,
-          }) as string
+          slug
+            ? (queryParams({
+                set: {
+                  upgrade: nextPlan.name.toLowerCase(),
+                },
+                getNewPath: true,
+              }) as string)
+            : "https://dub.co/pricing"
         }
+        {...(slug ? {} : { target: "_blank" })}
         className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-gray-800 hover:ring-4 hover:ring-gray-200"
       >
         Upgrade to {nextPlan.name}

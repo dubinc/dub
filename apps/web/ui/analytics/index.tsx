@@ -14,7 +14,7 @@ import { createContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { defaultConfig } from "swr/_internal";
-import { UpgradeToProToast } from "../shared/upgrade-to-pro-toast";
+import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import Clicks from "./clicks";
 import Devices from "./devices";
 import Locations from "./locations";
@@ -138,7 +138,7 @@ export default function Analytics({
       onError: (error) => {
         if (error.status === 403) {
           toast.custom(() => (
-            <UpgradeToProToast
+            <UpgradeRequiredToast
               title="Upgrade for more analytics"
               message={JSON.parse(error.message)?.error.message}
             />
