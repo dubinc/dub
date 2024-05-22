@@ -126,7 +126,7 @@ export default function Main() {
               </div>
               <div className="mt-1">
                 {totalClicks || totalClicks === 0 ? (
-                  <NumberTooltip value={totalClicks}>
+                  <NumberTooltip value={totalClicks} unit={label.toLowerCase()}>
                     <CountingNumbers as="h1" className="text-3xl font-medium">
                       {totalClicks}
                     </CountingNumbers>
