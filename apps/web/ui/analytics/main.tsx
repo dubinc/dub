@@ -136,7 +136,7 @@ export default function Main() {
                     <Lock className="h-4 w-4 text-gray-500" />
                   </div>
                 ) : (
-                  <div className="h-10 w-12 animate-pulse rounded-md bg-gray-200" />
+                  <div className="h-9 w-12 animate-pulse rounded-md bg-gray-200" />
                 )}
               </div>
             </Link>
