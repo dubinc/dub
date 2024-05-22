@@ -26,6 +26,7 @@ export const AnalyticsContext = createContext<{
   basePath: string;
   baseApiPath: string;
   baseApiPathGeneric: string;
+  selectedTab: string;
   domain?: string;
   key?: string;
   url?: string;
@@ -41,6 +42,7 @@ export const AnalyticsContext = createContext<{
   basePath: "",
   baseApiPath: "",
   baseApiPathGeneric: "",
+  selectedTab: "clicks",
   domain: "",
   queryString: "",
   start: new Date(),
@@ -189,6 +191,7 @@ export default function Analytics({
         basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
         baseApiPath, // baseApiPath for the API with the selected resource (e.g. /api/analytics/clicks)
         baseApiPathGeneric, // baseApiPathGeneric for the API without the selected resource (e.g. /api/analytics)
+        selectedTab: searchParams.get("tab") || "clicks", // selected tab (clicks, leads, sales)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)

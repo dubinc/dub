@@ -16,7 +16,7 @@ export default function Locations() {
     [tab],
   );
 
-  const { baseApiPath, queryString, requiresUpgrade } =
+  const { selectedTab, baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
@@ -47,10 +47,10 @@ export default function Locations() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d.clicks,
+          clicks: d[selectedTab],
         })) || []
       }
-      maxClicks={data?.[0]?.clicks || 0}
+      maxClicks={data?.[0]?.[selectedTab] || 0}
       barBackground="bg-orange-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

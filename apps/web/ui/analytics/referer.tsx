@@ -8,7 +8,7 @@ import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 
 export default function Referer() {
-  const { baseApiPath, queryString, requiresUpgrade } =
+  const { selectedTab, baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
@@ -44,10 +44,10 @@ export default function Referer() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d.clicks,
+          clicks: d[selectedTab],
         })) || []
       }
-      maxClicks={data?.[0]?.clicks || 0}
+      maxClicks={data?.[0]?.[selectedTab] || 0}
       barBackground="bg-red-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

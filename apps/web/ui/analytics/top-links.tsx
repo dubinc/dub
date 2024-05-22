@@ -13,8 +13,15 @@ import BarList from "./bar-list";
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
 
-  const { basePath, baseApiPath, queryString, domain, key, requiresUpgrade } =
-    useContext(AnalyticsContext);
+  const {
+    selectedTab,
+    basePath,
+    baseApiPath,
+    queryString,
+    domain,
+    key,
+    requiresUpgrade,
+  } = useContext(AnalyticsContext);
 
   useEffect(() => {
     if (domain && key) {
@@ -50,10 +57,10 @@ export default function TopLinks() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d.clicks,
+          clicks: d[selectedTab],
         })) || []
       }
-      maxClicks={data?.[0]?.clicks || 0}
+      maxClicks={data?.[0]?.[selectedTab] || 0}
       barBackground="bg-blue-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
