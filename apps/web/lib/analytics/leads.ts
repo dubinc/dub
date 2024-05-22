@@ -70,19 +70,13 @@ export const getLeads = async (
     }
   }
 
-  console.log("props", { ...props, start, end, workspaceId, granularity });
-
-  const response = await pipe(
-    getClickAnalytics.parse({
-      ...props,
-      workspaceId,
-      // start: start.toISOString().replace("T", " ").replace("Z", ""),
-      // end: end.toISOString().replace("T", " ").replace("Z", ""),
-      start: start.toISOString(),
-      end: end.toISOString(),
-      granularity,
-    }),
-  );
+  const response = await pipe({
+    ...props,
+    workspaceId,
+    start: start.toISOString().replace("T", " ").replace("Z", ""),
+    end: end.toISOString().replace("T", " ").replace("Z", ""),
+    granularity,
+  });
 
   // for total leads, we return just the value;
   // everything else we return an array of values
