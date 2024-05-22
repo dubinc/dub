@@ -55,21 +55,23 @@ export const getClicks = async (
 
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
-  if (interval) {
-    start = INTERVAL_DATA[interval].startDate;
-    end = new Date(Date.now());
-    granularity = INTERVAL_DATA[interval].granularity;
-  } else {
+  if (start) {
     start = new Date(start!);
     end = end ? new Date(end) : new Date(Date.now());
-    if (getDaysDifference(start, end) > 180) {
-      granularity = "month";
-    }
+
+    const daysDifference = getDaysDifference(start, end);
+    if (daysDifference <= 2) granularity = "hour";
+    else if (daysDifference > 180) granularity = "month";
 
     // swap start and end if start is greater than end
     if (start > end) {
       [start, end] = [end, start];
     }
+  } else {
+    interval = interval ?? "24h";
+    start = INTERVAL_DATA[interval].startDate;
+    end = new Date(Date.now());
+    granularity = INTERVAL_DATA[interval].granularity;
   }
 
   const res = await pipe(
