@@ -110,9 +110,7 @@ export default function ClicksChart({
                             )}
                           />
                         )}
-                        <p className="capitalize text-gray-600">
-                          {value === 1 ? resource.slice(0, -1) : resource}
-                        </p>
+                        <p className="capitalize text-gray-600">{resource}</p>
                       </div>
                       <p className="text-right font-medium text-gray-900">
                         {nFormatter(value, { full: true })}
