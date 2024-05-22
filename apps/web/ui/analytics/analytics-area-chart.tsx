@@ -66,7 +66,7 @@ export default function ClicksChart({
       id: "clicks",
       valueAccessor: (d) => d.values.clicks,
       isActive: show.includes("clicks"),
-      colorClassName: "text-sky-400",
+      colorClassName: "text-blue-500",
     },
     {
       id: "leads",

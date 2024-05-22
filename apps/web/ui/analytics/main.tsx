@@ -1,6 +1,5 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useTags from "@/lib/swr/use-tags";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
 import {
   COUNTRIES,
@@ -24,7 +23,7 @@ type Tab = {
 };
 
 export default function Main() {
-  const { betaTester } = useWorkspace();
+  const { betaTester } = { betaTester: true }; //useWorkspace();
   const { totalClicks, requiresUpgrade } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams.get("domain");
@@ -44,7 +43,7 @@ export default function Main() {
         {
           id: "clicks",
           label: "Clicks",
-          colorClassName: "text-sky-400/50",
+          colorClassName: "text-blue-500/50",
           show: ["clicks"],
         },
         ...(betaTester
@@ -78,9 +77,9 @@ export default function Main() {
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
       <div className="scrollbar-hide mb-5 flex w-full divide-x overflow-x-scroll border-b border-gray-200">
         {tabs.map(({ id, label, colorClassName }, idx) => (
-          <div className="relative">
+          <div key={id} className="relative z-0">
             {idx > 0 && (
-              <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 bg-white p-1.5">
+              <div className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 bg-white p-1.5">
                 <ChevronRight
                   className="h-3 w-3 text-gray-400"
                   strokeWidth={2.5}
@@ -88,11 +87,9 @@ export default function Main() {
               </div>
             )}
             <Link
-              key={id}
               className={cn(
-                "block h-full min-w-[140px] flex-none border-black px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
-                "transition-all duration-100 hover:bg-gray-50 active:bg-gray-100",
-                tab.id === id ? "border-b-2" : "border-b-none",
+                "border-box relative block h-full min-w-[140px] flex-none px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
+                "transition-colors hover:bg-gray-50 active:bg-gray-100",
               )}
               href={
                 (tab.id === id
@@ -107,7 +104,16 @@ export default function Main() {
                       getNewPath: true,
                     })) as string
               }
+              aria-current
             >
+              {/* Active tab indicator */}
+              <div
+                className={cn(
+                  "absolute bottom-0 left-0 h-0.5 w-full bg-black transition-transform duration-100",
+                  tab.id !== id && "translate-y-full",
+                )}
+              />
+
               <div className="flex items-center gap-2.5 text-sm text-gray-600">
                 <div
                   className={cn(
