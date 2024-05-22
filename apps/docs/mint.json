@@ -301,8 +301,40 @@
       "destination": "/sdks/typescript/analytics/clicks/count"
     },
     {
-      "source": "/sdks/typescript/analytics/:path*",
-      "destination": "/sdks/typescript/analytics/clicks/:path*"
+      "source": "/sdks/typescript/analytics/timeseries",
+      "destination": "/sdks/typescript/analytics/clicks/timeseries"
+    },
+    {
+      "source": "/sdks/typescript/analytics/browsers",
+      "destination": "/sdks/typescript/analytics/clicks/browsers"
+    },
+    {
+      "source": "/sdks/typescript/analytics/cities",
+      "destination": "/sdks/typescript/analytics/clicks/cities"
+    },
+    {
+      "source": "/sdks/typescript/analytics/countries",
+      "destination": "/sdks/typescript/analytics/clicks/countries"
+    },
+    {
+      "source": "/sdks/typescript/analytics/devices",
+      "destination": "/sdks/typescript/analytics/clicks/devices"
+    },
+    {
+      "source": "/sdks/typescript/analytics/os",
+      "destination": "/sdks/typescript/analytics/clicks/os"
+    },
+    {
+      "source": "/sdks/typescript/analytics/referers",
+      "destination": "/sdks/typescript/analytics/clicks/referers"
+    },
+    {
+      "source": "/sdks/typescript/analytics/top-links",
+      "destination": "/sdks/typescript/analytics/clicks/top-links"
+    },
+    {
+      "source": "/sdks/typescript/analytics/top-urls",
+      "destination": "/sdks/typescript/analytics/clicks/top-urls"
     }
   ]
 }
