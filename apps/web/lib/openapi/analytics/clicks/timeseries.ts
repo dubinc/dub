@@ -3,7 +3,7 @@ import z from "@/lib/zod";
 import {
   clickAnalyticsQuerySchema,
   getClickAnalyticsResponse,
-} from "@/lib/zod/schemas/analytics";
+} from "@/lib/zod/schemas/click-analytics";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../../request";
 

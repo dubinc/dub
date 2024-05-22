@@ -1,6 +1,7 @@
 import { get } from "@vercel/edge-config";
 
 export const isBetaTester = async (workspaceId: string) => {
+  return true;
   workspaceId = workspaceId.startsWith("ws_")
     ? workspaceId
     : `ws_${workspaceId}`;

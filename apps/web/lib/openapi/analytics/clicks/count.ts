@@ -1,5 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas/click-analytics";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../../request";
 
