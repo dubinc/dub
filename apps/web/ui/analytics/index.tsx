@@ -69,10 +69,10 @@ export default function Analytics({
 
   const tagId = searchParams?.get("tagId") ?? undefined;
 
-  // Default to last 30 days
+  // Default to last 24 hours
   const { start, end } = useMemo(() => {
     return {
-      start: new Date(searchParams?.get("start") || subDays(new Date(), 30)),
+      start: new Date(searchParams?.get("start") || subDays(new Date(), 1)),
 
       // Set to end of day or now if that's in the future
       end: min([
