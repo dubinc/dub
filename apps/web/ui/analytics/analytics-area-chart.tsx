@@ -1,4 +1,4 @@
-import { fetcher, getDaysDifference, nFormatter } from "@dub/utils";
+import { cn, fetcher, getDaysDifference, nFormatter } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
@@ -28,7 +28,11 @@ export default function ClicksChart({
     () =>
       data?.map(({ start, clicks }) => ({
         date: new Date(start),
-        values: { clicks, leads: clicks, sales: clicks }, // TODO: Update these accessors once we have leads and sales data
+        values: {
+          clicks,
+          leads: Math.ceil(clicks / 2),
+          sales: Math.floor(clicks / 2),
+        }, // TODO: Update these accessors once we have leads and sales data
       })) ?? null,
     [data],
   );
@@ -62,16 +66,19 @@ export default function ClicksChart({
       id: "clicks",
       valueAccessor: (d) => d.values.clicks,
       isActive: show.includes("clicks"),
+      colorClassName: "text-sky-400",
     },
     {
       id: "leads",
       valueAccessor: (d) => d.values.leads,
       isActive: show.includes("leads"),
+      colorClassName: "text-violet-600",
     },
     {
       id: "sales",
       valueAccessor: (d) => d.values.sales,
       isActive: show.includes("sales"),
+      colorClassName: "text-teal-400",
     },
   ];
 
@@ -85,17 +92,30 @@ export default function ClicksChart({
           tooltipContent={(d) => (
             <>
               {show.map((resource) => {
+                const s = series.find(({ id }) => id === resource);
                 const value = d.values[resource];
                 return (
-                  <p className="text-gray-700">
-                    <strong className="text-gray-800">
-                      {nFormatter(value, { full: true })}
-                    </strong>{" "}
-                    {value === 1 ? resource.slice(0, -1) : resource}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    {s && (
+                      <div
+                        className={cn(
+                          s.colorClassName,
+                          "h-2 w-2 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                        )}
+                      />
+                    )}
+                    <p className="text-gray-600">
+                      <strong className="font-medium text-gray-800">
+                        {nFormatter(value, { full: true })}
+                      </strong>{" "}
+                      {value === 1 ? resource.slice(0, -1) : resource}
+                    </p>
+                  </div>
                 );
               })}
-              <p className="text-sm text-gray-500">{formatDate(d.date)}</p>
+              <p className="mt-0.5 text-sm text-gray-500">
+                {formatDate(d.date)}
+              </p>
             </>
           )}
         >

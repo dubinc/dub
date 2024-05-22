@@ -154,16 +154,18 @@ function TimeSeriesChartInner<T extends Datum>({
                   strokeWidth={1.5}
                 />
 
-                {series.map((s) => (
-                  <Circle
-                    key={s.id}
-                    cx={xScale(tooltipData.date)}
-                    cy={yScale(s.valueAccessor(tooltipData))}
-                    r={4}
-                    className="text-blue-800"
-                    fill="currentColor"
-                  />
-                ))}
+                {series
+                  .filter(({ isActive }) => isActive)
+                  .map((s) => (
+                    <Circle
+                      key={s.id}
+                      cx={xScale(tooltipData.date)}
+                      cy={yScale(s.valueAccessor(tooltipData))}
+                      r={4}
+                      className={s.colorClassName ?? "text-blue-800"}
+                      fill="currentColor"
+                    />
+                  ))}
               </>
             )}
 

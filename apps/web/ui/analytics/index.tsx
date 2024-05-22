@@ -80,7 +80,7 @@ export default function Analytics({
         new Date(),
       ]),
     };
-  }, [searchParams]);
+  }, [searchParams?.get("start"), searchParams?.get("end")]);
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
     // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github

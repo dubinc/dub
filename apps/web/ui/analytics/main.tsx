@@ -8,15 +8,7 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  Crosshair,
-  Lock,
-  LucideIcon,
-  MousePointerClick,
-  Receipt,
-  X,
-} from "lucide-react";
+import { ChevronRight, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
@@ -25,9 +17,9 @@ import AnalyticsAreaChart from "./analytics-area-chart";
 
 type Tab = {
   id: string;
-  icon: LucideIcon;
   label: string;
-  resource: "clicks" | "leads" | "sales";
+  colorClassName: string;
+  show: ("clicks" | "leads" | "sales")[];
 };
 
 export default function Main() {
@@ -50,57 +42,82 @@ export default function Main() {
       [
         {
           id: "clicks",
-          icon: MousePointerClick,
           label: "Clicks",
-          resource: "clicks",
+          colorClassName: "text-sky-400/50",
+          show: ["clicks"],
         },
         ...(betaTester
           ? [
               {
                 id: "leads",
-                icon: Crosshair,
                 label: "Leads",
-                resource: "leads",
+                colorClassName: "text-violet-600/50",
+                show: ["leads"],
               },
-              { id: "sales", icon: Receipt, label: "Sales", resource: "sales" },
+              {
+                id: "sales",
+                label: "Sales",
+                colorClassName: "text-teal-400/50",
+                show: ["sales"],
+              },
             ]
           : []),
       ] as Tab[],
     [betaTester],
   );
 
-  const tab =
-    tabs.find(({ id }) => id === (searchParams.get("tab") || "clicks")) ||
-    tabs[0];
+  const tab = tabs.find(({ id }) => id === searchParams.get("tab")) || {
+    id: "composite",
+    show: ["clicks", "leads", "sales"],
+  };
 
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
       <div className="scrollbar-hide mb-5 flex w-full divide-x overflow-x-scroll border-b border-gray-200">
-        {tabs.map(({ id, icon: Icon, label }) => (
-          <div>
+        {tabs.map(({ id, label, colorClassName }, idx) => (
+          <div className="relative">
+            {idx > 0 && (
+              <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 bg-white p-1.5">
+                <ChevronRight
+                  className="h-3 w-3 text-gray-400"
+                  strokeWidth={2.5}
+                />
+              </div>
+            )}
             <Link
               key={id}
               className={cn(
-                "block h-full min-w-[120px] flex-none border-black px-4 py-3 sm:min-w-[180px] sm:px-8 sm:py-6",
+                "block h-full min-w-[140px] flex-none border-black px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
                 "transition-all duration-100 hover:bg-gray-50 active:bg-gray-100",
                 tab.id === id ? "border-b-2" : "border-b-none",
               )}
               href={
-                queryParams({
-                  set: {
-                    tab: id,
-                  },
-                  getNewPath: true,
-                }) as string
+                (tab.id === id
+                  ? queryParams({
+                      del: "tab",
+                      getNewPath: true,
+                    })
+                  : queryParams({
+                      set: {
+                        tab: id,
+                      },
+                      getNewPath: true,
+                    })) as string
               }
             >
-              <div className="flex items-end gap-3">
+              <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                <div
+                  className={cn(
+                    "h-2 w-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#00000019]",
+                    colorClassName,
+                  )}
+                />
+                <span>{label}</span>
+              </div>
+              <div className="mt-1">
                 {totalClicks || totalClicks === 0 ? (
                   <NumberTooltip value={totalClicks}>
-                    <CountingNumbers
-                      as="h1"
-                      className="text-3xl font-bold sm:text-4xl"
-                    >
+                    <CountingNumbers as="h1" className="text-3xl font-medium">
                       {totalClicks}
                     </CountingNumbers>
                   </NumberTooltip>
@@ -111,9 +128,7 @@ export default function Main() {
                 ) : (
                   <div className="h-10 w-12 animate-pulse rounded-md bg-gray-200" />
                 )}
-                <Icon className="mb-2 h-4 w-4 text-gray-600" />
               </div>
-              <p className="mt-1 text-sm uppercase text-gray-600">{label}</p>
             </Link>
           </div>
         ))}
@@ -213,15 +228,7 @@ export default function Main() {
         </div>
       </div>
       <div className="p-5 sm:p-10">
-        <AnimatePresence>
-          <motion.div
-            key={tab.id}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <AnalyticsAreaChart show={[tab.resource]} />
-          </motion.div>
-        </AnimatePresence>
+        <AnalyticsAreaChart show={tab.show} />
       </div>
     </div>
   );

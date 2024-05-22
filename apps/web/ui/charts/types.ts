@@ -19,7 +19,7 @@ export type Series<T extends Datum = any, TValue = number> = {
   id: string;
   isActive?: boolean;
   valueAccessor: AccessorFn<T, TValue>;
-  color?: string | AccessorFn<T, string>;
+  colorClassName?: string;
 };
 
 export type Data<T extends Datum> = TimeSeriesDatum<T>[];
