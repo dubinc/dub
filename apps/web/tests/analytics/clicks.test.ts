@@ -4,7 +4,7 @@ import {
 } from "@/lib/analytics/constants";
 import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import z from "@/lib/zod";
-import { getClickAnalyticsResponse } from "@/lib/zod/schemas/click-analytics";
+import { getClickAnalyticsResponse } from "@/lib/zod/schemas/clicks-analytics";
 import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";

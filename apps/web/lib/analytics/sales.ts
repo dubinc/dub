@@ -73,8 +73,8 @@ export const getSales = async (
   const response = await pipe({
     ...props,
     workspaceId,
-    start: start.toISOString().split(".")[0],
-    end: end.toISOString().split(".")[0],
+    start: start.toISOString().replace("T", " ").replace("Z", ""),
+    end: end.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
   });
 

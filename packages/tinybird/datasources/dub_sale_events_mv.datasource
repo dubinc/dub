@@ -1,5 +1,5 @@
 SCHEMA >
-    `timestamp` DateTime,
+    `timestamp` DateTime64(3),
     `event_id` String,
     `click_id` String,
     `link_id` String,

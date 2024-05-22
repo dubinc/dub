@@ -1,5 +1,5 @@
 SCHEMA >
-  `timestamp` DateTime `json:$.timestamp` DEFAULT now(),
+  `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
   `event_id` String `json:$.event_id`,
   `customer_id` String `json:$.customer_id`,
   `payment_processor` LowCardinality(String) `json:$.payment_processor`,

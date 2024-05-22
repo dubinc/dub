@@ -9,6 +9,7 @@ export const saleAnalyticsResponse = {
   timeseries: z.object({
     start: z.string().describe("The starting timestamp of the interval"),
     sales: z.number().describe("The number of sales in the interval"),
+    amount: z.number().describe("The total amount of sales in the interval"),
   }),
 
   countries: z

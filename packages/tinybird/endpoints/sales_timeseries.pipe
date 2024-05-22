@@ -108,8 +108,8 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
-        AND timestamp >= {{ DateTime(start, '2023-06-25 00:00:00') }}
-        AND timestamp < {{ DateTime(end, '2023-10-20 00:00:00') }}
+        AND timestamp >= {{ DateTime64(start, '2023-06-25 00:00:00.000') }}
+        AND timestamp < {{ DateTime64(end, '2023-10-20 00:00:00.000') }}
     GROUP BY interval
     ORDER BY interval
 
