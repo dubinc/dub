@@ -1,4 +1,4 @@
-import { getSales } from "@/lib/analytics/sales";
+import { getSales } from "@/lib/analytics/get-sales";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";

@@ -25,7 +25,7 @@ type Tab = {
 
 export default function Main() {
   const { betaTester } = useWorkspace();
-  const { totalClicks, requiresUpgrade } = useContext(AnalyticsContext);
+  const { totalClicks, requiresUpgrade, demo } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams.get("domain");
   const key = searchParams.get("key");
@@ -47,7 +47,7 @@ export default function Main() {
           colorClassName: "text-blue-500/50",
           show: ["clicks"],
         },
-        ...(betaTester
+        ...(betaTester || demo
           ? [
               {
                 id: "leads",

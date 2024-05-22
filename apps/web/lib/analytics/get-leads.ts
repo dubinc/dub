@@ -1,6 +1,7 @@
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
+import { tbDemo } from "../tinybird/demo-client";
 import {
   clickAnalyticsQuerySchema,
   getClickAnalytics,
@@ -13,6 +14,7 @@ export const getLeads = async (
   props: z.infer<typeof clickAnalyticsQuerySchema> & {
     workspaceId?: string;
     endpoint: AnalyticsEndpoints;
+    isDemo?: boolean;
   },
 ) => {
   let { workspaceId, endpoint, interval, start, end } = props;
@@ -45,7 +47,7 @@ export const getLeads = async (
   //   return response.rows[0]["clicks"];
   // }
 
-  const pipe = tb.buildPipe({
+  const pipe = (props.isDemo ? tbDemo : tb).buildPipe({
     pipe: `leads_${endpoint}`,
     parameters: getClickAnalytics,
     data: leadAnalyticsResponse[endpoint],

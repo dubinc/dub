@@ -1,4 +1,4 @@
-import { getLeads } from "@/lib/analytics/leads";
+import { getLeads } from "@/lib/analytics/get-leads";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";

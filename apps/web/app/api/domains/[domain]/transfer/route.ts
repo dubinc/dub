@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/clicks";
+import { getClicks } from "@/lib/analytics/get-clicks";
 import { setRootDomain } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";

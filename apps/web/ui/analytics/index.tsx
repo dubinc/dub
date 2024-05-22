@@ -34,6 +34,7 @@ export const AnalyticsContext = createContext<{
   tagId?: string;
   totalClicks?: number;
   admin?: boolean;
+  demo?: boolean;
   requiresUpgrade?: boolean;
 }>({
   basePath: "",
@@ -43,6 +44,7 @@ export const AnalyticsContext = createContext<{
   start: new Date(),
   end: new Date(),
   admin: false,
+  demo: false,
   requiresUpgrade: false,
 });
 
@@ -50,10 +52,12 @@ export default function Analytics({
   staticDomain,
   staticUrl,
   admin,
+  demo,
 }: {
   staticDomain?: string;
   staticUrl?: string;
   admin?: boolean;
+  demo?: boolean;
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -85,11 +89,16 @@ export default function Analytics({
   const { basePath, domain, baseApiPath } = useMemo(() => {
     const tab = searchParams.get("tab");
 
-    // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
     if (admin) {
       return {
         basePath: `/analytics`,
         baseApiPath: `/api/analytics/admin`,
+        domain: domainSlug,
+      };
+    } else if (demo) {
+      return {
+        basePath: `/analytics/demo`,
+        baseApiPath: `/api/analytics/demo/${tab || "clicks"}`,
         domain: domainSlug,
       };
     } else if (slug) {
@@ -108,6 +117,7 @@ export default function Analytics({
     }
   }, [
     admin,
+    demo,
     slug,
     pathname,
     staticDomain,
@@ -181,6 +191,7 @@ export default function Analytics({
         tagId, // id of a single tag
         totalClicks, // total clicks for the link
         admin, // whether the user is an admin
+        demo, // whether the user is viewing demo analytics
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >

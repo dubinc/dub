@@ -1,8 +1,8 @@
-import { getClicks } from "@/lib/analytics/clicks";
 import {
   DEPRECATED_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
+import { getClicks } from "@/lib/analytics/get-clicks";
 import { AnalyticsEndpoints } from "@/lib/analytics/types";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";

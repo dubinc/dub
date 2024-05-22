@@ -28,7 +28,7 @@ import SharePopover from "./share-popover";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
-  const { basePath, domain, key, url, admin, start, end } =
+  const { basePath, domain, key, url, admin, demo, start, end } =
     useContext(AnalyticsContext);
   const { queryParams } = useRouterStuff();
 
@@ -40,7 +40,7 @@ export default function Toggle() {
     <div
       className={cn("sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-3", {
         "top-14": isPublicStatsPage,
-        "top-0": admin,
+        "top-0": admin || demo,
         "shadow-md": scrolled,
       })}
     >

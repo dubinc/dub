@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/clicks";
+import { getClicks } from "@/lib/analytics/get-clicks";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";

@@ -146,7 +146,7 @@ export function LineItem({
 
   const { id } = useWorkspace();
 
-  const { admin } = useContext(AnalyticsContext);
+  const { admin, demo } = useContext(AnalyticsContext);
 
   const { data } = useSWR<
     LinkProps & {
@@ -155,7 +155,7 @@ export function LineItem({
   >(
     tab === "link" &&
       isVisible &&
-      (admin
+      (admin || demo
         ? `/api/admin/links/${title}`
         : `/api/links/${title}?workspaceId=${id}&checkDomain=true`),
     fetcher,
