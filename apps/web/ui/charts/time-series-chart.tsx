@@ -1,3 +1,4 @@
+import { cn } from "@dub/utils";
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleUtc } from "@visx/scale";
@@ -37,6 +38,7 @@ function TimeSeriesChartInner<T extends Datum>({
   data,
   series,
   tooltipContent = (d) => series[0].valueAccessor(d).toString(),
+  tooltipClassName = "",
   margin: marginProp = {
     top: 12,
     right: 4,
@@ -117,6 +119,7 @@ function TimeSeriesChartInner<T extends Datum>({
     margin,
     padding,
     tooltipContent,
+    tooltipClassName,
     leftAxisMargin,
     setLeftAxisMargin,
   };
@@ -196,7 +199,12 @@ function TimeSeriesChartInner<T extends Datum>({
               className="absolute"
               unstyled={true}
             >
-              <div className="pointer-events-none rounded-md border border-gray-200 bg-white px-4 py-2 text-base shadow-md">
+              <div
+                className={cn(
+                  "pointer-events-none rounded-lg border border-gray-200 bg-white px-4 py-2 text-base shadow-sm",
+                  tooltipClassName,
+                )}
+              >
                 {tooltipContent?.(tooltipData) ??
                   series[0].valueAccessor(tooltipData)}
               </div>

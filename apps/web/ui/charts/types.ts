@@ -31,6 +31,7 @@ type ChartRequiredProps<T extends Datum = any> = {
 
 type ChartOptionalProps<T extends Datum = any> = {
   tooltipContent?: (datum: TimeSeriesDatum<T>) => ReactElement | string;
+  tooltipClassName?: string;
 
   /**
    * Absolute pixel values for margins around the chart area.

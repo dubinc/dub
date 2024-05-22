@@ -89,33 +89,38 @@ export default function ClicksChart({
           key={queryString}
           data={chartData}
           series={series}
+          tooltipClassName="p-0"
           tooltipContent={(d) => (
             <>
-              {show.map((resource) => {
-                const s = series.find(({ id }) => id === resource);
-                const value = d.values[resource];
-                return (
-                  <div className="flex items-center gap-2">
-                    {s && (
-                      <div
-                        className={cn(
-                          s.colorClassName,
-                          "h-2 w-2 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
-                        )}
-                      />
-                    )}
-                    <p className="text-gray-600">
-                      <strong className="font-medium text-gray-800">
-                        {nFormatter(value, { full: true })}
-                      </strong>{" "}
-                      {value === 1 ? resource.slice(0, -1) : resource}
-                    </p>
-                  </div>
-                );
-              })}
-              <p className="mt-0.5 text-sm text-gray-500">
+              <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
                 {formatDate(d.date)}
               </p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
+                {show.map((resource) => {
+                  const s = series.find(({ id }) => id === resource);
+                  const value = d.values[resource];
+                  return (
+                    <>
+                      <div className="flex items-center gap-2">
+                        {s && (
+                          <div
+                            className={cn(
+                              s.colorClassName,
+                              "h-2 w-2 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                            )}
+                          />
+                        )}
+                        <p className="capitalize text-gray-600">
+                          {value === 1 ? resource.slice(0, -1) : resource}
+                        </p>
+                      </div>
+                      <p className="text-right font-medium text-gray-900">
+                        {nFormatter(value, { full: true })}
+                      </p>
+                    </>
+                  );
+                })}
+              </div>
             </>
           )}
         >
