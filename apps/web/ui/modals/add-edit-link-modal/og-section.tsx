@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
-import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
+import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   ButtonTooltip,
   FileUpload,
@@ -61,7 +61,7 @@ export default function OGSection({
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
-          <UpgradeToProToast
+          <UpgradeRequiredToast
             title="You've exceeded your AI usage limit"
             message={error.message}
           />
@@ -107,7 +107,7 @@ export default function OGSection({
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
-          <UpgradeToProToast
+          <UpgradeRequiredToast
             title="You've exceeded your AI usage limit"
             message={error.message}
           />

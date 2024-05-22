@@ -5,7 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
-import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
+import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
   ButtonTooltip,
@@ -161,7 +161,7 @@ function AddEditLinkModal({
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
-          <UpgradeToProToast
+          <UpgradeRequiredToast
             title="You've exceeded your AI usage limit"
             message={error.message}
           />
@@ -442,7 +442,7 @@ function AddEditLinkModal({
                   if (error) {
                     if (error.message.includes("Upgrade to Pro")) {
                       toast.custom(() => (
-                        <UpgradeToProToast
+                        <UpgradeRequiredToast
                           title="You've discovered a Pro feature!"
                           message={error.message}
                         />
