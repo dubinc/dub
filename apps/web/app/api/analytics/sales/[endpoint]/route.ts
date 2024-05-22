@@ -1,4 +1,4 @@
-import { getLeads } from "@/lib/analytics/leads";
+import { getSales } from "@/lib/analytics/sales";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
@@ -30,7 +30,7 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
-    const response = await getLeads({
+    const response = await getSales({
       ...parsedParams,
       endpoint,
       ...(linkId && { linkId }),
