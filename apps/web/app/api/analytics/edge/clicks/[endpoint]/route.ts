@@ -10,7 +10,7 @@ import { ratelimit } from "@/lib/upstash";
 import {
   analyticsEndpointSchema,
   clickAnalyticsQuerySchema,
-} from "@/lib/zod/schemas/analytics";
+} from "@/lib/zod/schemas/clicks-analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";

@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/clicks";
+import { getSales } from "@/lib/analytics/sales";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
@@ -8,12 +8,12 @@ import {
 } from "@/lib/zod/schemas/clicks-analytics";
 import { NextResponse } from "next/server";
 
-// GET /api/analytics/clicks/[endpoint] – get click analytics
+// GET /api/analytics/sales/[endpoint] – get sales analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
-    const { endpoint = "count" } = analyticsEndpointSchema.parse(params);
-
+    const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
+
     const { domain, key, interval, start, end } = parsedParams;
 
     validDateRangeForPlan({
@@ -30,7 +30,7 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
-    const response = await getClicks({
+    const response = await getSales({
       ...parsedParams,
       endpoint,
       ...(linkId && { linkId }),
