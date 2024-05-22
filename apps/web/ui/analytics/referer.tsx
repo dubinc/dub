@@ -1,17 +1,20 @@
-import { BlurImage, LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
+import { BlurImage, Modal, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
 import { useContext, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 
 export default function Referer() {
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
     `${baseApiPath}/referers?${queryString}`,
     fetcher,
+    { shouldRetryOnError: !requiresUpgrade },
   );
 
   const { queryParams } = useRouterStuff();
@@ -77,7 +80,7 @@ export default function Referer() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingSpinner />
+            <AnalyticsLoadingSpinner />
           </div>
         )}
         {data && data.length > 9 && (
