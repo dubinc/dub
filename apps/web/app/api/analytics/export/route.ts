@@ -8,7 +8,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
-import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas/click-analytics";
+import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas/clicks-analytics";
 import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
 import JSZip from "jszip";

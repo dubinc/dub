@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/clicks-analytics";
 import { NextResponse } from "next/server";
 
-// GET /api/analytics/leads/[endpoint] – get leads analytics
+// GET /api/analytics/sales/[endpoint] – get sales analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
     const { endpoint } = analyticsEndpointSchema.parse(params);

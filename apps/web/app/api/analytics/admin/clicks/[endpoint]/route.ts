@@ -3,7 +3,7 @@ import { withAdmin } from "@/lib/auth";
 import {
   analyticsEndpointSchema,
   clickAnalyticsQuerySchema,
-} from "@/lib/zod/schemas/click-analytics";
+} from "@/lib/zod/schemas/clicks-analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/analytics/clicks – get click analytics for admin

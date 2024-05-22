@@ -5,11 +5,11 @@ import {
   clickAnalyticsQuerySchema,
   getClickAnalytics,
 } from "../zod/schemas/clicks-analytics";
-import { leadAnalyticsResponse } from "../zod/schemas/leads-analytics";
+import { saleAnalyticsResponse } from "../zod/schemas/sales-analytics";
 import { INTERVAL_DATA } from "./constants";
 import { AnalyticsEndpoints } from "./types";
 
-export const getLeads = async (
+export const getSales = async (
   props: z.infer<typeof clickAnalyticsQuerySchema> & {
     workspaceId?: string;
     endpoint: AnalyticsEndpoints;
@@ -46,9 +46,9 @@ export const getLeads = async (
   // }
 
   const pipe = tb.buildPipe({
-    pipe: `leads_${endpoint}`,
+    pipe: `sales_${endpoint}`,
     parameters: getClickAnalytics,
-    data: leadAnalyticsResponse[endpoint],
+    data: saleAnalyticsResponse[endpoint],
   });
 
   let granularity: "minute" | "hour" | "day" | "month" = "day";
@@ -78,7 +78,7 @@ export const getLeads = async (
     granularity,
   });
 
-  // for total leads, we return just the value;
+  // for total sales, we return just the value;
   // everything else we return an array of values
-  return endpoint === "count" ? response.data[0].leads : response.data;
+  return endpoint === "count" ? response.data[0].sales : response.data;
 };

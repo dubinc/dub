@@ -7,7 +7,7 @@ import {
   clickAnalyticsQuerySchema,
   getClickAnalytics,
   getClickAnalyticsResponse,
-} from "../zod/schemas/click-analytics";
+} from "../zod/schemas/clicks-analytics";
 import { INTERVAL_DATA } from "./constants";
 import { AnalyticsEndpoints } from "./types";
 
