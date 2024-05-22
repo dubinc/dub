@@ -11,10 +11,6 @@ export const intervals = [
 
 export const INTERVAL_DISPLAYS = [
   {
-    display: "Last hour",
-    value: "1h",
-  },
-  {
     display: "Last 24 hours",
     value: "24h",
   },

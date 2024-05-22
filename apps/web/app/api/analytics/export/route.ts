@@ -4,7 +4,7 @@ import {
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
 import { AnalyticsEndpoints } from "@/lib/analytics/types";
-import { DubApiError } from "@/lib/api/errors";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -29,18 +29,15 @@ const convertToCSV = (data: object[]) => {
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
-    const { domain, key, interval } = parsedParams;
+    const { domain, key, interval, start, end } = parsedParams;
 
-    // return 403 if project is on the free plan and interval is 90d or all
-    if (
-      workspace?.plan === "free" &&
-      (interval === "all" || interval === "90d")
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Require higher plan",
-      });
-    }
+    validDateRangeForPlan({
+      plan: workspace.plan,
+      interval,
+      start,
+      end,
+      throwError: true,
+    });
 
     const linkId = link
       ? link.id
