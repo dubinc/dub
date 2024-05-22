@@ -1,5 +1,3 @@
-# Data Source created from Pipe 'dub_sale_events_pipe'
-
 SCHEMA >
     `timestamp` DateTime,
     `event_id` String,

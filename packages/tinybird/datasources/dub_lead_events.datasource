@@ -1,4 +1,3 @@
-
 SCHEMA >
   `timestamp` DateTime `json:$.timestamp` DEFAULT now(),
   `event_id` String `json:$.event_id`,
