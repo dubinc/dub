@@ -25,6 +25,7 @@ import TopLinks from "./top-links";
 export const AnalyticsContext = createContext<{
   basePath: string;
   baseApiPath: string;
+  baseApiPathGeneric: string;
   domain?: string;
   key?: string;
   url?: string;
@@ -39,6 +40,7 @@ export const AnalyticsContext = createContext<{
 }>({
   basePath: "",
   baseApiPath: "",
+  baseApiPathGeneric: "",
   domain: "",
   queryString: "",
   start: new Date(),
@@ -86,32 +88,36 @@ export default function Analytics({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const { basePath, domain, baseApiPath } = useMemo(() => {
+  const { basePath, domain, baseApiPath, baseApiPathGeneric } = useMemo(() => {
     const tab = searchParams.get("tab");
 
     if (admin) {
       return {
         basePath: `/analytics`,
         baseApiPath: `/api/analytics/admin`,
+        baseApiPathGeneric: `/api/analytics/admin`,
         domain: domainSlug,
       };
     } else if (demo) {
       return {
         basePath: `/analytics/demo`,
         baseApiPath: `/api/analytics/demo/${tab || "clicks"}`,
+        baseApiPathGeneric: `/api/analytics/demo`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
         baseApiPath: `/api/analytics/${tab || "clicks"}`,
+        baseApiPathGeneric: `/api/analytics`,
         domain: domainSlug,
       };
     } else {
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: "/api/analytics/edge",
+        baseApiPath: `/api/analytics/edge/${tab || "clicks"}`,
+        baseApiPathGeneric: `/api/analytics/edge`,
         domain: staticDomain,
       };
     }
@@ -181,7 +187,8 @@ export default function Analytics({
     <AnalyticsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
-        baseApiPath, // baseApiPath for the API (e.g. /api/analytics)
+        baseApiPath, // baseApiPath for the API with the selected resource (e.g. /api/analytics/clicks)
+        baseApiPathGeneric, // baseApiPathGeneric for the API without the selected resource (e.g. /api/analytics)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)

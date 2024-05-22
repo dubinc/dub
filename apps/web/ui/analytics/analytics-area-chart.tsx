@@ -30,7 +30,7 @@ export default function ClicksChart({
           clicks,
           leads,
           sales,
-        }, // TODO: Update these accessors once we have leads and sales data
+        },
       })) ?? null,
     [data],
   );
