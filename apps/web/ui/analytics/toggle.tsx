@@ -46,7 +46,7 @@ export default function Toggle() {
     >
       <div
         className={cn(
-          "mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:space-y-0 lg:px-0",
+          "mx-auto flex w-full max-w-screen-xl flex-col gap-2 space-y-3 px-2.5 px-2.5 md:space-y-0 lg:px-20",
           {
             "md:h-10": key,
           },
@@ -87,7 +87,9 @@ export default function Toggle() {
               <ExpandingArrow className="h-5 w-5" />
             </a>
           ) : (
-            <h2 className="truncate text-2xl text-gray-600">Analytics</h2>
+            <h2 className="truncate text-2xl font-medium text-black">
+              Analytics
+            </h2>
           )}
           <div
             className={cn("flex items-center gap-2", {

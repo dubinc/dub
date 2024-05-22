@@ -12,7 +12,7 @@ export default function Referer() {
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${baseApiPath}/referers?${queryString}`,
+    `${baseApiPath}/clicks/referers?${queryString}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );
@@ -66,7 +66,7 @@ export default function Referer() {
         </div>
         {barList()}
       </Modal>
-      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-xl">
         <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold">Referers</h1>
         </div>

@@ -15,9 +15,9 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
-import Clicks from "./clicks";
 import Devices from "./devices";
 import Locations from "./locations";
+import Main from "./main";
 import Referer from "./referer";
 import Toggle from "./toggle";
 import TopLinks from "./top-links";
@@ -80,27 +80,27 @@ export default function Analytics({
         new Date(),
       ]),
     };
-  }, [searchParams]);
+  }, [searchParams?.get("start"), searchParams?.get("end")]);
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
     // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/analytics/admin/clicks`,
+        baseApiPath: `/api/analytics/admin`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics/clicks`,
+        baseApiPath: `/api/analytics`,
         domain: domainSlug,
       };
     } else {
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: "/api/analytics/edge/clicks",
+        baseApiPath: "/api/analytics/edge",
         domain: staticDomain,
       };
     }
@@ -131,7 +131,7 @@ export default function Analytics({
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/count?${queryString}`,
+    `${baseApiPath}/clicks/count?${queryString}`,
     fetcher,
     {
       onSuccess: () => setRequiresUpgrade(false),
@@ -176,8 +176,8 @@ export default function Analytics({
     >
       <div className="bg-gray-50 py-10">
         <Toggle />
-        <div className="mx-auto grid max-w-4xl gap-5">
-          <Clicks />
+        <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
+          <Main />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
             {!isPublicStatsPage && <TopLinks />}
