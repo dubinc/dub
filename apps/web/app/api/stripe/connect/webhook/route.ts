@@ -1,9 +1,8 @@
 import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerCreated } from "./customer-created";
 import { invoicePaid } from "./invoice-paid";
-
-const webhookSecret = process.env.STRIPE_APP_WEBHOOK_SECRET;
 
 const relevantEvents = new Set([
   "customer.created",
@@ -14,6 +13,7 @@ const relevantEvents = new Set([
 export const POST = async (req: Request) => {
   const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature");
+  const webhookSecret = process.env.STRIPE_APP_WEBHOOK_SECRET;
 
   if (!sig || !webhookSecret) {
     return new Response("Invalid request", {
@@ -21,7 +21,16 @@ export const POST = async (req: Request) => {
     });
   }
 
-  const event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+  let event: Stripe.Event;
+  try {
+    if (!sig || !webhookSecret) return;
+    event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+  } catch (err: any) {
+    console.log(`❌ Error message: ${err.message}`);
+    return new Response(`Webhook Error: ${err.message}`, {
+      status: 400,
+    });
+  }
 
   // Ignore unsupported events
   if (!relevantEvents.has(event.type)) {
