@@ -76,7 +76,7 @@ export default function Main() {
 
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
-      <div className="scrollbar-hide mb-5 flex w-full divide-x overflow-x-scroll border-b border-gray-200">
+      <div className="scrollbar-hide mb-5 flex w-full divide-x overflow-y-hidden overflow-x-scroll border-b border-gray-200">
         {tabs.map(({ id, label, colorClassName }, idx) => (
           <div key={id} className="relative z-0">
             {idx > 0 && (
