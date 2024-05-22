@@ -11,6 +11,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Crosshair,
+  Lock,
   LucideIcon,
   MousePointerClick,
   Receipt,
@@ -31,7 +32,7 @@ type Tab = {
 
 export default function Main() {
   const { betaTester } = { betaTester: true }; //useWorkspace();
-  const { totalClicks } = useContext(AnalyticsContext);
+  const { totalClicks, requiresUpgrade } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams.get("domain");
   const key = searchParams.get("key");
@@ -103,6 +104,10 @@ export default function Main() {
                       {totalClicks}
                     </CountingNumbers>
                   </NumberTooltip>
+                ) : requiresUpgrade ? (
+                  <div className="rounded-full bg-gray-100 p-3">
+                    <Lock className="h-4 w-4 text-gray-500" />
+                  </div>
                 ) : (
                   <div className="h-10 w-12 animate-pulse rounded-md bg-gray-200" />
                 )}
