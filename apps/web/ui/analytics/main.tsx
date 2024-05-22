@@ -1,5 +1,6 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useTags from "@/lib/swr/use-tags";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
 import {
   COUNTRIES,
@@ -25,7 +26,7 @@ type Tab = {
 };
 
 export default function Main() {
-  const { betaTester } = { betaTester: true }; // useWorkspace();
+  const { betaTester } = useWorkspace();
   const { baseApiPathGeneric, queryString, requiresUpgrade, demo } =
     useContext(AnalyticsContext);
   const searchParams = useSearchParams();
