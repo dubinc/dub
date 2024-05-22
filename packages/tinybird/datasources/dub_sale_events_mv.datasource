@@ -1,11 +1,13 @@
+# Data Source created from Pipe 'dub_sale_events_pipe'
+
 SCHEMA >
     `timestamp` DateTime,
     `event_id` String,
     `click_id` String,
     `link_id` String,
     `customer_id` String,
-    `event_name` LowCardinality(String),
-    `metadata` String,
+    `payment_processor` LowCardinality(String),
+    `amount` UInt32,
     `url` String,
     `country` LowCardinality(String),
     `city` String,
