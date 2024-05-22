@@ -136,7 +136,7 @@ export default function Analytics({
     {
       onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
-        if (error.message.includes("Upgrade to Pro")) {
+        if (error.status === 403) {
           toast.custom(() => (
             <UpgradeToProToast
               title="Upgrade for more analytics"

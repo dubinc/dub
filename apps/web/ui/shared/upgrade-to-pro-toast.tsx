@@ -1,5 +1,6 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import { Crown } from "lucide-react";
 import Link from "next/link";
@@ -12,6 +13,7 @@ export const UpgradeToProToast = ({
   message: string;
 }) => {
   const { queryParams } = useRouterStuff();
+  const { nextPlan } = useWorkspace();
 
   return (
     <div className="flex flex-col space-y-3 rounded-lg bg-white p-6 shadow-lg">
@@ -24,14 +26,14 @@ export const UpgradeToProToast = ({
         href={
           queryParams({
             set: {
-              upgrade: "pro",
+              upgrade: nextPlan.name.toLowerCase(),
             },
             getNewPath: true,
           }) as string
         }
-        className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+        className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-gray-800 hover:ring-4 hover:ring-gray-200"
       >
-        Upgrade to Pro
+        Upgrade to {nextPlan.name}
       </Link>
     </div>
   );

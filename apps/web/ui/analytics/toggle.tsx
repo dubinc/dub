@@ -175,7 +175,7 @@ function UpgradeTooltip({
 
   return (
     <TooltipContent
-      title={`${rangeLabel} can only be viewed on a ${isAllTime ? "Business" : getNextPlan(plan).name} plan or higher. Upgrade now to view all-time stats.`}
+      title={`${rangeLabel} can only be viewed on a ${isAllTime ? "Business" : getNextPlan(plan).name} plan or higher. Upgrade now to view more stats.`}
       cta={`Upgrade to ${isAllTime ? "Business" : getNextPlan(plan).name}`}
       {...(isPublicStatsPage
         ? {
