@@ -1,4 +1,8 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import {
+  isBetaTester,
+  isBlacklistedDomain,
+  updateConfig,
+} from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -186,12 +190,14 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (trackConversion && !workspace?.betaTester) {
-    return {
-      link: payload,
-      error: "Conversion tracking is only available for beta testers.",
-      code: "forbidden",
-    };
+  if (trackConversion) {
+    if (!workspace || !(await isBetaTester(workspace.id))) {
+      return {
+        link: payload,
+        error: "Conversion tracking is only available for beta testers.",
+        code: "forbidden",
+      };
+    }
   }
 
   if (bulk) {
