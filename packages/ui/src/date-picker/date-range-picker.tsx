@@ -190,9 +190,9 @@ const DateRangePickerInner = ({
         ? new Time(value.from.getHours(), value.from.getMinutes())
         : defaultValue?.from
           ? new Time(
-              defaultValue.from.getHours(),
-              defaultValue.from.getMinutes(),
-            )
+            defaultValue.from.getHours(),
+            defaultValue.from.getMinutes(),
+          )
           : new Time(0, 0),
     );
     setEndTime(
@@ -207,9 +207,8 @@ const DateRangePickerInner = ({
   const displayRange = useMemo(() => {
     if (!range) return null;
 
-    return `${range.from ? formatDate(range.from, locale, showTimePicker) : ""} - ${
-      range.to ? formatDate(range.to, locale, showTimePicker) : ""
-    }`;
+    return `${range.from ? formatDate(range.from, locale, showTimePicker) : ""} - ${range.to ? formatDate(range.to, locale, showTimePicker) : ""
+      }`;
   }, [range, locale, showTimePicker]);
 
   const onApply = () => {
@@ -260,7 +259,7 @@ const DateRangePickerInner = ({
                   className="scrollbar-hide overflow-x-scroll"
                   classNames={{
                     months:
-                      "flex flex-row divide-x divide-gray-300 overflow-x-scroll scrollbar-hide",
+                      "flex flex-row divide-x divide-gray-200 overflow-x-scroll scrollbar-hide",
                   }}
                   {...props}
                 />
