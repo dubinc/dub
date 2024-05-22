@@ -26,13 +26,8 @@ type Tab = {
 
 export default function Main() {
   const { betaTester } = { betaTester: true }; // useWorkspace();
-  const {
-    baseApiPathGeneric,
-    queryString,
-    totalClicks,
-    requiresUpgrade,
-    demo,
-  } = useContext(AnalyticsContext);
+  const { baseApiPathGeneric, queryString, requiresUpgrade, demo } =
+    useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams.get("domain");
   const key = searchParams.get("key");
@@ -80,6 +75,14 @@ export default function Main() {
         show: ["clicks", "leads", "sales"],
       }
     : tabs[0];
+
+  const { data: totalClicks } = useSWR<number>(
+    `${baseApiPathGeneric}/clicks/count?${queryString}`,
+    fetcher,
+    {
+      shouldRetryOnError: !requiresUpgrade,
+    },
+  );
 
   const { data: totalLeads } = useSWR<number>(
     `${baseApiPathGeneric}/leads/count?${queryString}`,
