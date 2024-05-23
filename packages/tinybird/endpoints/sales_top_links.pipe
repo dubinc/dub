@@ -6,7 +6,7 @@ NODE endpoint
 SQL >
 
     %
-    SELECT link_id as link, COUNT(*) AS sales
+    SELECT link_id as link, COUNT(*) AS sales, sum(amount) as amount
     FROM
         dub_sale_events_mv
         {% if defined(workspaceId) %}

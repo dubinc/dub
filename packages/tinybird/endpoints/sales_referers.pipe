@@ -6,7 +6,7 @@ NODE endpoint
 SQL >
 
     %
-    SELECT referer, COUNT(referer) as sales
+    SELECT referer, COUNT(referer) as sales, sum(amount) as amount
     FROM
         dub_sale_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}

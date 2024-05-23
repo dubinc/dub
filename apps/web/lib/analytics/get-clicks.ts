@@ -1,25 +1,9 @@
 import { conn } from "@/lib/planetscale";
-import { tb } from "@/lib/tinybird";
-import z from "@/lib/zod";
-import { getDaysDifference } from "@dub/utils";
 import { headers } from "next/headers";
-import { tbDemo } from "../tinybird/demo-client";
-import {
-  clickAnalyticsQuerySchema,
-  getClickAnalytics,
-  getClickAnalyticsResponse,
-} from "../zod/schemas/clicks-analytics";
-import { INTERVAL_DATA } from "./constants";
-import { AnalyticsEndpoints } from "./types";
+import { AnalyticsFilters, getAnalytics } from "./get-analytics";
 
-export const getClicks = async (
-  props: z.infer<typeof clickAnalyticsQuerySchema> & {
-    workspaceId?: string;
-    endpoint?: AnalyticsEndpoints;
-    isDemo?: boolean;
-  },
-) => {
-  let { workspaceId, endpoint, linkId, interval, start, end } = props;
+export const getClicks = async (filters: AnalyticsFilters) => {
+  let { endpoint, linkId, interval } = filters;
 
   // get all-time clicks count if:
   // 1. linkId is defined
@@ -49,44 +33,5 @@ export const getClicks = async (
     return response.rows[0]["clicks"];
   }
 
-  const pipe = (props.isDemo ? tbDemo : tb).buildPipe({
-    pipe: `clicks_${endpoint || "count"}`,
-    parameters: getClickAnalytics,
-    data: getClickAnalyticsResponse[endpoint || "count"],
-  });
-
-  let granularity: "minute" | "hour" | "day" | "month" = "day";
-
-  if (start) {
-    start = new Date(start!);
-    end = end ? new Date(end) : new Date(Date.now());
-
-    const daysDifference = getDaysDifference(start, end);
-    if (daysDifference <= 2) granularity = "hour";
-    else if (daysDifference > 180) granularity = "month";
-
-    // swap start and end if start is greater than end
-    if (start > end) {
-      [start, end] = [end, start];
-    }
-  } else {
-    interval = interval ?? "24h";
-    start = INTERVAL_DATA[interval].startDate;
-    end = new Date(Date.now());
-    granularity = INTERVAL_DATA[interval].granularity;
-  }
-
-  const res = await pipe(
-    getClickAnalytics.parse({
-      ...props,
-      workspaceId,
-      start: start.toISOString().replace("T", " ").replace("Z", ""),
-      end: end.toISOString().replace("T", " ").replace("Z", ""),
-      granularity,
-    }),
-  );
-
-  // for total clicks, we return just the value;
-  // everything else we return an array of values
-  return endpoint === "count" ? res.data[0].clicks : res.data;
+  return getAnalytics("clicks", filters);
 };
