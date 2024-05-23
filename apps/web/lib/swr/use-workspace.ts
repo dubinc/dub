@@ -30,6 +30,5 @@ export default function useWorkspace() {
     error,
     mutate,
     loading: slug && !workspace && !error ? true : false,
-    betaTester: true,
   };
 }
