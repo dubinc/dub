@@ -40,7 +40,8 @@ export default function Toggle() {
     <div
       className={cn("sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-3", {
         "top-14": isPublicStatsPage,
-        "top-0": admin || demo,
+        "top-0": admin,
+        "top-16": demo,
         "shadow-md": scrolled,
       })}
     >

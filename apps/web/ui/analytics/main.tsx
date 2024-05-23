@@ -78,7 +78,7 @@ export default function Main() {
   const tab =
     betaTester || demo
       ? tabs.find(({ id }) => id === selectedTab) || {
-          id: "composite",
+          id: "clicks",
           show: ["clicks", "leads", "sales"],
         }
       : tabs[0];
@@ -99,13 +99,13 @@ export default function Main() {
     },
   );
 
-  const { data: totalSales } = useSWR<number>(
-    `${baseApiPathGeneric}/sales/count?${queryString}`,
-    fetcher,
-    {
-      shouldRetryOnError: !requiresUpgrade,
-    },
-  );
+  const { data: { amount: totalSales } = {} } = useSWR<{
+    amount: number;
+  }>(`${baseApiPathGeneric}/sales/count?${queryString}`, fetcher, {
+    shouldRetryOnError: !requiresUpgrade,
+  });
+
+  console.log({ totalClicks, totalLeads, totalSales });
 
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
@@ -114,7 +114,7 @@ export default function Main() {
           const total = {
             clicks: totalClicks,
             leads: totalLeads,
-            sales: totalSales,
+            sales: totalSales ? totalSales / 100 : undefined,
           }[id];
 
           return (
@@ -167,7 +167,11 @@ export default function Main() {
                 <div className="mt-1 flex">
                   {total || total === 0 ? (
                     <NumberTooltip value={total} unit={label.toLowerCase()}>
-                      <CountingNumbers as="h1" className="text-3xl font-medium">
+                      <CountingNumbers
+                        as="h1"
+                        className="text-3xl font-medium"
+                        {...(id === "sales" && { fullNumber: true })}
+                      >
                         {total}
                       </CountingNumbers>
                     </NumberTooltip>

@@ -41,8 +41,8 @@ const devices = ["Desktop", "Mobile", "Tablet"];
 async function main() {
   // await seedLinkMetadata();
   // await seedClicks();
-  // await seedLeads();
-  // await seedSales();
+  // await seedLeads(3269);
+  await seedSales(50);
 }
 
 // Seed link metadata
@@ -55,7 +55,7 @@ async function seedLinkMetadata() {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+          Authorization: `Bearer ${process.env.TINYBIRD_DEMO_API_KEY}`,
         },
         body: JSON.stringify({
           timestamp: Date.now(),
@@ -74,9 +74,7 @@ async function seedLinkMetadata() {
 }
 
 // Seed click events
-async function seedClicks() {
-  const count = 10000;
-
+async function seedClicks(count = 10000) {
   const data = Array.from({ length: count }).map(() => {
     const link = links[Math.floor(Math.random() * links.length)];
 
@@ -119,7 +117,7 @@ async function seedClicks() {
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+        Authorization: `Bearer ${process.env.TINYBIRD_DEMO_API_KEY}`,
       },
       body: ndjson,
     },
@@ -131,15 +129,14 @@ async function seedClicks() {
 }
 
 // Seed lead events
-async function seedLeads() {
-  const count = 10;
-
+async function seedLeads(count = 10) {
   const data = Array.from({ length: count }).map(() => {
     const link = links[Math.floor(Math.random() * links.length)];
 
     return {
+      // random date in the last 30 days
       timestamp: new Date(
-        Date.now() - Math.floor(Math.random() * 5 * 24 * 60 * 60 * 1000),
+        Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000),
       ).toISOString(),
       event_id: nanoid(16),
       event_name: "Signup",
@@ -177,7 +174,7 @@ async function seedLeads() {
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+        Authorization: `Bearer ${process.env.TINYBIRD_DEMO_API_KEY}`,
       },
       body: ndjson,
     },
@@ -189,13 +186,12 @@ async function seedLeads() {
 }
 
 // Seed sales events
-async function seedSales() {
-  const count = 5;
-
+async function seedSales(count = 5) {
   const data = Array.from({ length: count }).map(() => {
     const link = links[Math.floor(Math.random() * links.length)];
 
     return {
+      // random date in the last 30 days
       timestamp: new Date(
         Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000),
       ).toISOString(),
@@ -207,6 +203,7 @@ async function seedSales() {
       country: countries[Math.floor(Math.random() * countries.length)],
       device: devices[Math.floor(Math.random() * devices.length)],
       invoice_id: nanoid(16),
+      // random amount between $24 and $99
       amount: Math.floor(Math.random() * 75 + 24) * 100,
       currency: "USD",
       payment_processor: "stripe",
@@ -238,7 +235,7 @@ async function seedSales() {
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+        Authorization: `Bearer ${process.env.TINYBIRD_DEMO_API_KEY}`,
       },
       body: ndjson,
     },

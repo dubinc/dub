@@ -14,6 +14,7 @@ interface CountingNumbersProps {
   children: ReactNode;
   duration?: number;
   as?: ElementType; // Allows defining the component as 'h1', 'h2', 'p', etc.
+  fullNumber?: boolean; // If true, will not abbreviate the number
 }
 
 const CountingNumbers = React.forwardRef<HTMLSpanElement, CountingNumbersProps>(
@@ -58,7 +59,10 @@ const CountingNumbers = React.forwardRef<HTMLSpanElement, CountingNumbersProps>(
 
     return (
       <Comp ref={ref} className={className} {...props}>
-        {nFormatter(displayValue)}
+        {nFormatter(
+          displayValue,
+          props.fullNumber ? { full: true } : undefined,
+        )}
       </Comp>
     );
   },
