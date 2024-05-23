@@ -6,7 +6,7 @@ NODE endpoint
 SQL >
 
     %
-    SELECT device, COUNT(device) as sales
+    SELECT device, COUNT(device) as sales, sum(amount) as amount
     FROM
         dub_sale_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}

@@ -6,7 +6,7 @@ NODE endpoint
 SQL >
 
     %
-    SELECT browser, COUNT(browser) as sales
+    SELECT browser, COUNT(browser) as sales, sum(amount) as amount
     FROM
         dub_sale_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}

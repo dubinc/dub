@@ -121,7 +121,7 @@ NODE endpoint
 SQL >
 
     %
-        SELECT formatDateTime(interval, '%FT%T.000Z') as start, sales, timeseries_data.amount
+        SELECT formatDateTime(interval, '%FT%T.000Z') as start, sales, amount
         FROM 
             {% if granularity == "minute" %} minute_intervals
             {% elif granularity == "hour" %} hour_intervals
