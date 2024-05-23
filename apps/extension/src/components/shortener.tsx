@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { SendIcon } from "../../public";
 import IconMenu from "../../public/IconMenu";
 import Link from "./link";
-import { LinkProps } from "./types";
+import { LinkProps } from "../types";
 
 const Shortener: React.FC = () => {
   const [url, setUrl] = useState("");

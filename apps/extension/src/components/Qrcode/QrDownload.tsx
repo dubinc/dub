@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "../../../lib/qr";
 import IconMenu from "../../../public/IconMenu";
-import Switch from "../../../ui/components/switch";
+import Switch from "../../../ui/src/switch";
+import { Popover } from "../../../ui";
 
 interface QRLinkProps {
   url: string;
@@ -325,22 +326,18 @@ function QrDropdown({ button, children }: QrDropdownProps) {
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
-    <div
-      className="relative flex w-full justify-center"
-      onMouseEnter={() => setOpenPopover(true)}
-      onMouseLeave={() => setOpenPopover(false)}
+    <Popover
+      content={<div className="grid w-full gap-1 py-1">{children}</div>}
+      align="center"
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
     >
       <button
-        type="button"
-        className="inline-flex w-full items-center justify-center rounded-md border-2 border-black bg-black py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+        onClick={() => setOpenPopover(!openPopover)}
+        className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
       >
         {button}
       </button>
-      {openPopover && (
-        <div className="absolute z-10 mt-9 w-full rounded-md bg-white shadow-lg">
-          <div className="grid gap-1 p-2">{children}</div>
-        </div>
-      )}
-    </div>
+    </Popover>
   );
 }

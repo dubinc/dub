@@ -11,10 +11,10 @@ import {
 import React, { useEffect, useState } from "react";
 import { DotIcon } from "../../public";
 import IconMenu from "../../public/IconMenu";
-import Modal from "../../ui/components/modal";
+import Modal from "../../ui/src/modal";
 import { QRCodeDownload } from "./Qrcode/QrDownload";
 import ShareModal from "./Share/ShareModal";
-import { LinkProps } from "./types";
+import { LinkProps } from "../types";
 
 const Link: React.FC<{ link: LinkProps | null }> = ({ link }) => {
   const [expired, setExpired] = useState<number | null>(null);

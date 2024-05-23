@@ -1,10 +1,11 @@
-import { GalleryVerticalEnd, Link, Settings, X } from "lucide-react";
+import { GalleryVerticalEnd, Link, Settings,X } from "lucide-react";
 import { useState } from "react";
 import { TitleIcon } from "../public";
 import IconMenu from "../public/IconMenu";
 import AllLinks from "./components/allLinks";
 import Shortener from "./components/shortener";
-import { LinkProps } from "./components/types";
+import { LinkProps } from "./types";
+import UserSpace from "./workspace/workspace";
 
 interface ExtensionProps {
   handleClose: () => void;
@@ -20,7 +21,7 @@ const Extension: React.FC<ExtensionProps> = ({ handleClose }) => {
   };
 
   return (
-    <div className="w-100 mb-10 mr-10 rounded-lg bg-white  p-6 shadow-lg">
+    <div className="w-100 mb-44 mr-10 rounded-lg bg-white  p-6 shadow-lg">
       <div className="flex flex-row justify-between">
         <TitleIcon />
         <p
@@ -57,13 +58,8 @@ const Extension: React.FC<ExtensionProps> = ({ handleClose }) => {
       {openTab === "create" && <Shortener />}
       {openTab === "history" && <AllLinks links={allLinks} />}
 
-      <div className="flex justify-between">
-        <a
-          href="https://app.dub.co/"
-          className="block px-1 py-1 font-bold text-black"
-        >
-          Login
-        </a>
+      <div className="flex justify-between items-center">
+         <UserSpace/>
         <button className="group flex justify-center rounded-full bg-gray-100 p-2 transition-all duration-75 hover:scale-105 hover:bg-blue-100 focus:outline-none active:scale-95">
           <IconMenu
             icon={
