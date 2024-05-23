@@ -11,7 +11,7 @@ export const GET = withAdmin(async ({ params, searchParams }) => {
   const { endpoint } = analyticsEndpointSchema.parse(params);
   const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-  const response = getSales({
+  const response = await getSales({
     ...parsedParams,
     endpoint,
     isDemo: true,

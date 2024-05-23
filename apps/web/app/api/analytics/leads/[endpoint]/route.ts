@@ -30,7 +30,7 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
-    const response = getLeads({
+    const response = await getLeads({
       ...parsedParams,
       endpoint,
       ...(linkId && { linkId }),
