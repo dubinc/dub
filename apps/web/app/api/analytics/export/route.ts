@@ -1,9 +1,14 @@
-import { VALID_TINYBIRD_ENDPOINTS, getAnalytics } from "@/lib/analytics";
-import { DubApiError } from "@/lib/api/errors";
+import { getClicks } from "@/lib/analytics/clicks";
+import {
+  DEPRECATED_ANALYTICS_ENDPOINTS,
+  VALID_ANALYTICS_ENDPOINTS,
+} from "@/lib/analytics/constants";
+import { AnalyticsEndpoints } from "@/lib/analytics/types";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
-import prisma from "@/lib/prisma";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas";
+import { prisma } from "@/lib/prisma";
+import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
 import JSZip from "jszip";
@@ -23,19 +28,16 @@ const convertToCSV = (data: object[]) => {
 // GET /api/analytics/[endpoint]/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
-    const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
-    const { domain, key, interval } = parsedParams;
+    const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
+    const { domain, key, interval, start, end } = parsedParams;
 
-    // return 403 if project is on the free plan and interval is 90d or all
-    if (
-      workspace?.plan === "free" &&
-      (interval === "all" || interval === "90d")
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Require higher plan",
-      });
-    }
+    validDateRangeForPlan({
+      plan: workspace.plan,
+      interval,
+      start,
+      end,
+      throwError: true,
+    });
 
     const linkId = link
       ? link.id
@@ -46,13 +48,13 @@ export const GET = withWorkspace(
     const zip = new JSZip();
 
     await Promise.all(
-      VALID_TINYBIRD_ENDPOINTS.map(async (endpoint) => {
+      VALID_ANALYTICS_ENDPOINTS.map(async (endpoint) => {
         if (endpoint === "top_links") {
           // no need to fetch top links data if linkId is defined
           // since this is just a single link
           if (linkId) return;
 
-          const data = await getAnalytics({
+          const data = await getClicks({
             workspaceId: workspace.id,
             endpoint: "top_links",
             ...parsedParams,
@@ -119,15 +121,17 @@ export const GET = withWorkspace(
 
           zip.file(`${endpoint}.csv`, csvData);
         } else {
-          // skip clicks endpoint
-          if (endpoint === "clicks") return;
           // we're not fetching top URLs data if linkId is not defined
           if (endpoint === "top_urls" && !linkId) return;
+          // skip clicks count
+          if (endpoint === "count") return;
+          // skip deprecated endpoints
+          if (DEPRECATED_ANALYTICS_ENDPOINTS.includes(endpoint)) return;
 
-          const response = await getAnalytics({
+          const response = await getClicks({
             workspaceId: workspace.id,
             ...(linkId && { linkId }),
-            endpoint,
+            endpoint: endpoint as AnalyticsEndpoints,
             ...parsedParams,
           });
           if (!response || response.length === 0) return;

@@ -1,5 +1,5 @@
 import { receiver } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromCSV } from "./utils";

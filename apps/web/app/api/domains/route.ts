@@ -6,9 +6,9 @@ import {
 import { exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
-import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas";
+import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -32,6 +32,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     type,
     expiredUrl,
     placeholder,
+    noindex,
   } = addDomainBodySchema.parse(body);
 
   if (workspace.domains.length >= workspace.domainsLimit) {
@@ -74,6 +75,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       ...(workspace.plan !== "free" && {
         target,
         expiredUrl,
+        noindex: noindex === undefined ? true : noindex,
       }),
     },
   });
@@ -82,9 +84,11 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     setRootDomain({
       id: response.id,
       domain,
+      domainCreatedAt: response.createdAt,
       projectId: workspace.id,
       ...(workspace.plan !== "free" && {
         url: target || undefined,
+        noindex: noindex === undefined ? true : noindex,
       }),
       rewrite: type === "rewrite",
     }),

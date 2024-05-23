@@ -68,6 +68,7 @@ export async function formatRedisLink(
     id,
     domain,
     url,
+    trackConversion,
     password,
     proxy,
     rewrite,
@@ -83,6 +84,7 @@ export async function formatRedisLink(
   return {
     id,
     url,
+    ...(trackConversion && { trackConversion: true }),
     ...(hasPassword && { password: true }),
     ...(proxy && { proxy: true }),
     ...(rewrite && {
@@ -101,7 +103,7 @@ export async function formatRedisLink(
 export async function formatRedisDomain(
   domain: DomainProps,
 ): Promise<RedisDomainProps> {
-  const { id, slug, target: url, type, projectId } = domain;
+  const { id, slug, target: url, type, projectId, noindex } = domain;
 
   return {
     id,
@@ -112,5 +114,6 @@ export async function formatRedisDomain(
         iframeable: await isIframeable({ url, requestDomain: slug }),
       }),
     projectId,
+    ...(noindex && { noindex: true }),
   };
 }

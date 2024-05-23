@@ -1,5 +1,8 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { WorkspaceSchema, createWorkspaceSchema } from "@/lib/zod/schemas";
+import {
+  WorkspaceSchema,
+  createWorkspaceSchema,
+} from "@/lib/zod/schemas/workspaces";
 
 export const createWorkspace = {
   operationId: "createWorkspace",

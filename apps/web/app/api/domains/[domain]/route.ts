@@ -8,8 +8,11 @@ import {
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { DomainSchema, updateDomainBodySchema } from "@/lib/zod/schemas";
+import { prisma } from "@/lib/prisma";
+import {
+  DomainSchema,
+  updateDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -58,6 +61,7 @@ export const PATCH = withWorkspace(
       placeholder,
       expiredUrl,
       archived,
+      noindex,
     } = updateDomainBodySchema.parse(body);
 
     if (newDomain && newDomain !== domain) {
@@ -89,6 +93,7 @@ export const PATCH = withWorkspace(
         ...(workspace.plan !== "free" && {
           target,
           expiredUrl,
+          noindex: noindex === undefined ? true : noindex,
         }),
       },
     });
@@ -98,8 +103,10 @@ export const PATCH = withWorkspace(
         setRootDomain({
           id: response.id,
           domain,
+          domainCreatedAt: response.createdAt,
           ...(workspace.plan !== "free" && {
             url: target || undefined,
+            noindex: noindex === undefined ? true : noindex,
           }),
           rewrite: type === "rewrite",
           ...(newDomain !== domain && {

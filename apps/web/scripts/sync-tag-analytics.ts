@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import "dotenv-flow/config";
 
@@ -19,7 +19,17 @@ async function main() {
     take: 1000,
   });
 
-  const res = await Promise.all(links.map((link) => recordLink({ link })));
+  const res = await recordLink(
+    links.map((link) => ({
+      link_id: link.id,
+      domain: link.domain,
+      key: link.key,
+      url: link.url,
+      tag_ids: link.tags.map((tag) => tag.tagId),
+      workspace_id: link.projectId,
+      created_at: link.createdAt,
+    })),
+  );
 
   console.log(res);
 }

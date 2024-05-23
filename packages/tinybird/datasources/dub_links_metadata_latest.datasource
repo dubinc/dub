@@ -6,9 +6,12 @@ SCHEMA >
     `domain` String,
     `key` String,
     `url` String,
-    `project_id` String,
+    `tag_ids` Array(String),
+    `workspace_id` String,
+    `created_at` DateTime64(3),
     `deleted` UInt8
 
 ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
 ENGINE_SORTING_KEY "link_id"
 ENGINE_VER "timestamp"

@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
@@ -87,12 +87,13 @@ export async function createLink(link: ProcessedLinkProps) {
       }),
       // record link in Tinybird
       recordLink({
-        link: {
-          ...response,
-          tags: response.tags.map(({ tag }) => ({
-            tagId: tag.id,
-          })),
-        },
+        link_id: response.id,
+        domain: response.domain,
+        key: response.key,
+        url: response.url,
+        tag_ids: response.tags.map(({ tag }) => tag.id),
+        workspace_id: response.projectId,
+        created_at: response.createdAt,
       }),
       // if proxy image is set, upload image to R2 and update the link with the uploaded image URL
       ...(proxy && image && !isStored(image)

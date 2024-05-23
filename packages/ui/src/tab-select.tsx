@@ -23,7 +23,9 @@ export function TabSelect({
           )}
           onClick={() => selectAction(option)}
         >
-          <p>{option}</p>
+          <p>
+            {option === "devices" ? "Type" : option === "os" ? "OS" : option}
+          </p>
           {option === selected && (
             <motion.div
               layoutId={options.join("-")}

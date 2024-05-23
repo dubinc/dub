@@ -32,7 +32,7 @@ function TransferLinkModal({
   const { id } = useWorkspace();
   const { workspaces } = useWorkspaces();
   const [transferring, setTransferring] = useState(false);
-  const [selectedWorkspace, setselectedWorkspace] =
+  const [selectedWorkspace, setSelectedWorkspace] =
     useState<InputSelectItemProps | null>(null);
 
   const apexDomain = getApexDomain(props.url);
@@ -117,7 +117,7 @@ function TransferLinkModal({
                 : []
             }
             selectedItem={selectedWorkspace}
-            setSelectedItem={setselectedWorkspace}
+            setSelectedItem={setSelectedWorkspace}
             inputAttrs={{
               placeholder: "Select a workspace",
             }}

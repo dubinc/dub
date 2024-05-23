@@ -1,17 +1,20 @@
-import { BlurImage, LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
+import { BlurImage, Modal, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
 import { useContext, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 
 export default function Referer() {
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${baseApiPath}/referer?${queryString}`,
+    `${baseApiPath}/referers?${queryString}`,
     fetcher,
+    { shouldRetryOnError: !requiresUpgrade },
   );
 
   const { queryParams } = useRouterStuff();
@@ -59,13 +62,13 @@ export default function Referer() {
         className="max-w-lg"
       >
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-lg font-semibold">Referrers</h1>
+          <h1 className="text-lg font-semibold">Referers</h1>
         </div>
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-3 flex justify-between">
-          <h1 className="text-lg font-semibold">Referrers</h1>
+          <h1 className="text-lg font-semibold">Referers</h1>
         </div>
         {data ? (
           data.length > 0 ? (
@@ -77,7 +80,7 @@ export default function Referer() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingSpinner />
+            <AnalyticsLoadingSpinner />
           </div>
         )}
         {data && data.length > 9 && (

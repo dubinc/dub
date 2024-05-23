@@ -5,12 +5,16 @@
   2. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
 */
 
-import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
+import { endOfDay, min, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
-import { createContext, useMemo } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
+import { defaultConfig } from "swr/_internal";
+import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import Clicks from "./clicks";
 import Devices from "./devices";
 import Locations from "./locations";
@@ -25,17 +29,21 @@ export const AnalyticsContext = createContext<{
   key?: string;
   url?: string;
   queryString: string;
-  interval: string;
+  start: Date;
+  end: Date;
   tagId?: string;
   totalClicks?: number;
   admin?: boolean;
+  requiresUpgrade?: boolean;
 }>({
   basePath: "",
   baseApiPath: "",
   domain: "",
   queryString: "",
-  interval: "",
+  start: new Date(),
+  end: new Date(),
   admin: false,
+  requiresUpgrade: false,
 });
 
 export default function Analytics({
@@ -50,6 +58,7 @@ export default function Analytics({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { id, slug } = useWorkspace();
+  const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
     key?: string;
@@ -57,29 +66,41 @@ export default function Analytics({
   const domainSlug = searchParams?.get("domain");
   // key can be a path param (public stats pages) or a query param (stats pages in app)
   key = searchParams?.get("key") || key;
-  const interval = searchParams?.get("interval") || "24h";
 
   const tagId = searchParams?.get("tagId") ?? undefined;
+
+  // Default to last 24 hours
+  const { start, end } = useMemo(() => {
+    return {
+      start: new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+
+      // Set to end of day or now if that's in the future
+      end: min([
+        endOfDay(new Date(searchParams?.get("end") || new Date())),
+        new Date(),
+      ]),
+    };
+  }, [searchParams]);
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
     // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/admin/analytics`,
+        baseApiPath: `/api/analytics/admin/clicks`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics`,
+        baseApiPath: `/api/analytics/clicks`,
         domain: domainSlug,
       };
     } else {
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: "/api/analytics/edge",
+        baseApiPath: "/api/analytics/edge/clicks",
         domain: staticDomain,
       };
     }
@@ -99,15 +120,39 @@ export default function Analytics({
       ...(id && { workspaceId: id }),
       ...(domain && { domain }),
       ...(key && { key }),
-      ...(interval && { interval }),
+      ...(start &&
+        end && { start: start.toISOString(), end: end.toISOString() }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
     }).toString();
-  }, [id, domain, key, searchParams, interval, tagId]);
+  }, [id, domain, key, searchParams, start, end, tagId]);
+
+  // Reset requiresUpgrade when query changes
+  useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/clicks?${queryString}`,
+    `${baseApiPath}/count?${queryString}`,
     fetcher,
+    {
+      onSuccess: () => setRequiresUpgrade(false),
+      onError: (error) => {
+        if (error.status === 403) {
+          toast.custom(() => (
+            <UpgradeRequiredToast
+              title="Upgrade for more analytics"
+              message={JSON.parse(error.message)?.error.message}
+            />
+          ));
+          setRequiresUpgrade(true);
+        } else {
+          toast.error(error.message);
+        }
+      },
+      onErrorRetry: (error, ...args) => {
+        if (error.message.includes("Upgrade to Pro")) return;
+        defaultConfig.onErrorRetry(error, ...args);
+      },
+    },
   );
 
   const isPublicStatsPage = basePath.startsWith("/stats");
@@ -121,10 +166,12 @@ export default function Analytics({
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: staticUrl, // url for the link (only for public stats pages)
-        interval, // time interval (e.g. 24h, 7d, 30d, etc.)
+        start, // start of time period
+        end, // end of time period
         tagId, // id of a single tag
         totalClicks, // total clicks for the link
         admin, // whether the user is an admin
+        requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >
       <div className="bg-gray-50 py-10">

@@ -1,0 +1,29 @@
+{
+  "name": "com.example.dub",
+  "version": "0.0.1",
+  "description": "Test",
+  "private": true,
+  "license": "~~proprietary~~",
+  "dependencies": {
+    "@stripe/ui-extension-sdk": "^8.8.1",
+    "stripe": "^13.11.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "eslintConfig": {
+    "extends": [
+      "./node_modules/@stripe/ui-extension-tools/eslintrc.ui-extension.js"
+    ]
+  },
+  "scripts": {
+    "lint": "eslint --ext ts,tsx src",
+    "test": "jest"
+  },
+  "resolutions": {
+    "@types/react": "^17.0.2"
+  },
+  "devDependencies": {
+    "@stripe/ui-extension-tools": "^0.0.1"
+  }
+}

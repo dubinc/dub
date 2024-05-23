@@ -1,18 +1,17 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import {
-  DomainSchema,
-  LinkSchema,
-  TagSchema,
-  WorkspaceSchema,
-} from "@/lib/zod/schemas";
+import { DomainSchema } from "@/lib/zod/schemas/domains";
+import { LinkSchema } from "@/lib/zod/schemas/links";
+import { TagSchema } from "@/lib/zod/schemas/tags";
+import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { API_DOMAIN } from "@dub/utils";
 import { createDocument } from "zod-openapi";
-import { analyticsPaths } from "./analytics";
+import { clickAnalyticsPaths } from "./analytics/clicks";
 import { domainsPaths } from "./domains";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
+import { trackPaths } from "./track";
 import { workspacesPaths } from "./workspaces";
 
 export const document = createDocument({
@@ -41,10 +40,11 @@ export const document = createDocument({
   paths: {
     ...linksPaths,
     ...qrCodePaths,
-    ...analyticsPaths,
+    ...clickAnalyticsPaths,
     ...workspacesPaths,
     ...tagsPaths,
     ...domainsPaths,
+    ...trackPaths,
     ...metatagsPath,
   },
   components: {

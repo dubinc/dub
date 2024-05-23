@@ -1,11 +1,15 @@
+
 SCHEMA >
-    `timestamp` DateTime `json:$.timestamp`,
+    `timestamp` DateTime `json:$.timestamp` DEFAULT now(),
     `link_id` String `json:$.link_id`,
     `domain` String `json:$.domain`,
     `key` String `json:$.key`,
     `url` String `json:$.url`,
-    `project_id` String `json:$.project_id`,
+    `tag_ids` Array(String) `json:$.tag_ids[:]`,
+    `workspace_id` String `json:$.workspace_id`,
+    `created_at` DateTime64(3) `json:$.created_at`,
     `deleted` UInt8 `json:$.deleted`
 
 ENGINE "MergeTree"
-ENGINE_SORTING_KEY "timestamp, link_id, project_id, deleted"
+ENGINE_PARTITION_KEY "toYear(timestamp)"
+ENGINE_SORTING_KEY "timestamp, link_id, workspace_id"

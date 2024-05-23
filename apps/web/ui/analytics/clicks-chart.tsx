@@ -1,5 +1,4 @@
-import { LoadingSpinner } from "@dub/ui";
-import { fetcher, nFormatter } from "@dub/utils";
+import { fetcher, getDaysDifference, nFormatter } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
@@ -7,13 +6,18 @@ import Areas from "../charts/areas";
 import TimeSeriesChart from "../charts/time-series-chart";
 import XAxis from "../charts/x-axis";
 import YAxis from "../charts/y-axis";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 
 export default function ClicksChart() {
-  const { baseApiPath, queryString, interval } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, start, end, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
     `${baseApiPath}/timeseries?${queryString}`,
     fetcher,
+    {
+      shouldRetryOnError: !requiresUpgrade,
+    },
   );
 
   const chartData = useMemo(
@@ -27,27 +31,26 @@ export default function ClicksChart() {
 
   const formatDate = useCallback(
     (date: Date) => {
-      switch (interval) {
-        case "1h":
-        case "24h":
-          return date.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-          });
-        case "all":
-          return date.toLocaleDateString("en-US", {
-            month: "short",
-            year: "numeric",
-          });
-        default:
-          return date.toLocaleDateString("en-US", {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-          });
-      }
+      const daysDifference = getDaysDifference(start, end);
+
+      if (daysDifference <= 2)
+        return date.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+        });
+      else if (daysDifference > 180)
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        });
+
+      return date.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
     },
-    [interval],
+    [start, end],
   );
 
   return (
@@ -74,7 +77,7 @@ export default function ClicksChart() {
           <YAxis showGridLines tickFormat={nFormatter} />
         </TimeSeriesChart>
       ) : (
-        <LoadingSpinner />
+        <AnalyticsLoadingSpinner />
       )}
     </div>
   );
