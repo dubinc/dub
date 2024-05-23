@@ -79,7 +79,15 @@ export const getAnalytics = async (
     granularity,
   });
 
-  // for total clicks|leads|sales, we return just the value;
+  // for total clicks|leads, we return just the value;
   // everything else we return an array of values
-  return endpoint === "count" ? response.data[0][analyticsType] : response.data;
+  if (endpoint === "count") {
+    if (["clicks", "leads"].includes(analyticsType)) {
+      return response.data[0][analyticsType];
+    } else {
+      return response.data[0];
+    }
+  }
+
+  return response.data;
 };
