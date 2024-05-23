@@ -8,7 +8,7 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
-import { endOfDay, min, subDays } from "date-fns";
+import { endOfDay, min, startOfDay, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -80,7 +80,10 @@ export default function Analytics({
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
     return {
-      start: new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+      // Set to start of day
+      start: startOfDay(
+        new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+      ),
 
       // Set to end of day or now if that's in the future
       end: min([
