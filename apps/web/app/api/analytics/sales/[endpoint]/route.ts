@@ -2,17 +2,15 @@ import { getSales } from "@/lib/analytics/get-sales";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
-import {
-  analyticsEndpointSchema,
-  clickAnalyticsQuerySchema,
-} from "@/lib/zod/schemas/clicks-analytics";
+import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { analyticsEndpointSchema } from "@/lib/zod/schemas/clicks-analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/sales/[endpoint] – get sales analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
     const { endpoint } = analyticsEndpointSchema.parse(params);
-    const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
+    const parsedParams = analyticsQuerySchema.parse(searchParams);
 
     const { domain, key, interval, start, end } = parsedParams;
 

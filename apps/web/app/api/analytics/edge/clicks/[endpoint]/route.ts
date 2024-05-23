@@ -7,10 +7,8 @@ import {
 } from "@/lib/api/errors";
 import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import {
-  analyticsEndpointSchema,
-  clickAnalyticsQuerySchema,
-} from "@/lib/zod/schemas/clicks-analytics";
+import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { analyticsEndpointSchema } from "@/lib/zod/schemas/clicks-analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
@@ -25,7 +23,7 @@ export const GET = async (
     const { endpoint } = analyticsEndpointSchema.parse(params);
 
     const searchParams = getSearchParams(req.url);
-    const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
+    const parsedParams = analyticsQuerySchema.parse(searchParams);
 
     const { domain, key, interval, start, end } = parsedParams;
 

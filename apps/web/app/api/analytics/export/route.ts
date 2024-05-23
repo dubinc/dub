@@ -8,7 +8,7 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
-import { clickAnalyticsQuerySchema } from "@/lib/zod/schemas/clicks-analytics";
+import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
 import JSZip from "jszip";
@@ -28,7 +28,7 @@ const convertToCSV = (data: object[]) => {
 // GET /api/analytics/[endpoint]/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
-    const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
+    const parsedParams = analyticsQuerySchema.parse(searchParams);
     const { domain, key, interval, start, end } = parsedParams;
 
     validDateRangeForPlan({

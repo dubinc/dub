@@ -2,16 +2,14 @@ import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
 import { tbDemo } from "../tinybird/demo-client";
-import {
-  clickAnalyticsQuerySchema,
-  getClickAnalytics,
-} from "../zod/schemas/clicks-analytics";
+import { analyticsQuerySchema } from "../zod/schemas/analytics";
+import { getClickAnalytics } from "../zod/schemas/clicks-analytics";
 import { leadAnalyticsResponse } from "../zod/schemas/leads-analytics";
 import { INTERVAL_DATA } from "./constants";
 import { AnalyticsEndpoints } from "./types";
 
 export const getLeads = async (
-  props: z.infer<typeof clickAnalyticsQuerySchema> & {
+  props: z.infer<typeof analyticsQuerySchema> & {
     workspaceId?: string;
     endpoint: AnalyticsEndpoints;
     isDemo?: boolean;
