@@ -117,8 +117,6 @@ export default function Main() {
             sales: totalSales,
           }[id];
 
-          console.log({ tabId: tab.id, id });
-
           return (
             <div key={id} className="relative z-0">
               {idx > 0 && (
