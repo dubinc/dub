@@ -83,38 +83,23 @@ export default function Main() {
         }
       : tabs[0];
 
-  const { data: totalClicks } = useSWR<number>(
-    `${baseApiPathGeneric}/clicks/count?${queryString}`,
-    fetcher,
-    {
-      shouldRetryOnError: !requiresUpgrade,
-    },
-  );
-
-  const { data: totalLeads } = useSWR<number>(
-    `${baseApiPathGeneric}/leads/count?${queryString}`,
-    fetcher,
-    {
-      shouldRetryOnError: !requiresUpgrade,
-    },
-  );
-
-  const { data: { amount: totalSales } = {} } = useSWR<{
+  const { data } = useSWR<{
+    clicks: number;
+    leads: number;
+    sale: number;
     amount: number;
-  }>(`${baseApiPathGeneric}/sales/count?${queryString}`, fetcher, {
+  }>(`${baseApiPathGeneric}/composite/count?${queryString}`, fetcher, {
     shouldRetryOnError: !requiresUpgrade,
   });
-
-  console.log({ totalClicks, totalLeads, totalSales });
 
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
       <div className="scrollbar-hide mb-5 flex w-full divide-x overflow-y-hidden overflow-x-scroll border-b border-gray-200">
         {tabs.map(({ id, label, colorClassName }, idx) => {
           const total = {
-            clicks: totalClicks,
-            leads: totalLeads,
-            sales: totalSales ? totalSales / 100 : undefined,
+            clicks: data?.clicks,
+            leads: data?.leads,
+            sales: data ? data.amount / 100 : undefined,
           }[id];
 
           return (

@@ -109,6 +109,19 @@ export const analyticsQuerySchema = z.object({
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z
   .object({
+    eventType: z
+      .enum(["clicks", "leads", "sales", "composite"], {
+        errorMap: (_issue, _ctx) => {
+          return {
+            message:
+              "Invalid event type. Valid event types are: clicks, leads, sales",
+          };
+        },
+      })
+      .optional()
+      .describe(
+        "The type of event to retrieve analytics for. Defaults to composite.",
+      ),
     workspaceId: z
       .string()
       .optional()

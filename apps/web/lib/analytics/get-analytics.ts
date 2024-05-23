@@ -7,12 +7,13 @@ import {
   analyticsQuerySchema,
 } from "../zod/schemas/analytics";
 import { clickAnalyticsResponse } from "../zod/schemas/clicks-analytics";
+import { compositeAnalyticsResponse } from "../zod/schemas/composite-analytics";
 import { leadAnalyticsResponse } from "../zod/schemas/leads-analytics";
 import { saleAnalyticsResponse } from "../zod/schemas/sales-analytics";
 import { INTERVAL_DATA } from "./constants";
 import { AnalyticsEndpoints } from "./types";
 
-type AnalyticsEventType = "clicks" | "leads" | "sales";
+type AnalyticsEventType = "clicks" | "leads" | "sales" | "composite";
 
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   endpoint?: AnalyticsEndpoints;
@@ -24,6 +25,7 @@ const responseSchema = {
   clicks: clickAnalyticsResponse,
   leads: leadAnalyticsResponse,
   sales: saleAnalyticsResponse,
+  composite: compositeAnalyticsResponse,
 };
 
 // Fetch data for `/api/analytics/(clicks|leads|sales)/[endpoint]`
@@ -66,13 +68,14 @@ export const getAnalytics = async (
 
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: `${analyticsType}_${endpoint}`,
+    pipe: endpoint,
     parameters: analyticsFilterTB,
     data: responseSchema[analyticsType][endpoint],
   });
 
   const response = await pipe({
     ...params,
+    eventType: analyticsType,
     workspaceId,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
@@ -80,7 +83,7 @@ export const getAnalytics = async (
   });
 
   // for total clicks|leads, we return just the value;
-  // everything else we return an array of values
+  // everything else we return the full response
   if (endpoint === "count") {
     if (["clicks", "leads"].includes(analyticsType)) {
       return response.data[0][analyticsType];
