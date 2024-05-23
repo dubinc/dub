@@ -9,6 +9,14 @@ import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
 export const analyticsEndpointSchema = z.object({
+  eventType: z.enum(["clicks", "leads", "sales", "composite"], {
+    errorMap: (_issue, _ctx) => {
+      return {
+        message:
+          "Invalid event type. Valid event types are: clicks, leads, sales",
+      };
+    },
+  }),
   endpoint: z
     .enum(VALID_ANALYTICS_ENDPOINTS, {
       errorMap: (_issue, _ctx) => {

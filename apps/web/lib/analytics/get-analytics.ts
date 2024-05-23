@@ -1,6 +1,8 @@
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
+import { headers } from "next/headers";
+import { conn } from "../planetscale";
 import { tbDemo } from "../tinybird/demo-client";
 import {
   analyticsFilterTB,
@@ -16,7 +18,7 @@ import { AnalyticsEndpoints } from "./types";
 type AnalyticsEventType = "clicks" | "leads" | "sales" | "composite";
 
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
-  endpoint?: AnalyticsEndpoints;
+  endpoint: AnalyticsEndpoints;
   workspaceId?: string;
   isDemo?: boolean;
 };
@@ -30,17 +32,39 @@ const responseSchema = {
 
 // Fetch data for `/api/analytics/(clicks|leads|sales)/[endpoint]`
 export const getAnalytics = async (
-  analyticsType: AnalyticsEventType,
+  eventType: AnalyticsEventType,
   params: AnalyticsFilters,
 ) => {
-  let {
-    workspaceId,
-    interval,
-    start,
-    end,
-    isDemo,
-    endpoint = "count",
-  } = params;
+  let { workspaceId, linkId, interval, start, end, isDemo, endpoint } = params;
+
+  // get all-time clicks count if:
+  // 1. linkId is defined
+  // 2. endpoint is not defined
+  // 3. interval is all time
+  // 4. call is made from dashboard
+  if (
+    endpoint === "count" &&
+    linkId &&
+    interval === "all" &&
+    headers()?.get("Request-Source") === "app.dub.co"
+  ) {
+    let response = await conn.execute(
+      "SELECT clicks FROM Link WHERE `id` = ?",
+      [linkId],
+    );
+
+    if (response.rows.length === 0) {
+      response = await conn.execute(
+        "SELECT clicks FROM Domain WHERE `id` = ?",
+        [linkId],
+      );
+      if (response.rows.length === 0) {
+        return 0;
+      }
+    }
+    return response.rows[0]["clicks"];
+  }
+
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
   if (start) {
@@ -70,12 +94,12 @@ export const getAnalytics = async (
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: endpoint,
     parameters: analyticsFilterTB,
-    data: responseSchema[analyticsType][endpoint],
+    data: responseSchema[eventType][endpoint],
   });
 
   const response = await pipe({
     ...params,
-    eventType: analyticsType,
+    eventType: eventType,
     workspaceId,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
@@ -85,8 +109,8 @@ export const getAnalytics = async (
   // for total clicks|leads, we return just the value;
   // everything else we return the full response
   if (endpoint === "count") {
-    if (["clicks", "leads"].includes(analyticsType)) {
-      return response.data[0][analyticsType];
+    if (["clicks", "leads"].includes(eventType)) {
+      return response.data[0][eventType];
     } else {
       return response.data[0];
     }

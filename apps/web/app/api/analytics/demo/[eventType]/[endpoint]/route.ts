@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/get-clicks";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { withSession } from "@/lib/auth";
 import {
   analyticsEndpointSchema,
@@ -6,12 +6,12 @@ import {
 } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
-// GET /api/analytics/demo/clicks/[endpoint] – get click analytics for admin
+// GET /api/analytics/demo/[eventType]/[endpoint]
 export const GET = withSession(async ({ params, searchParams }) => {
-  const { endpoint } = analyticsEndpointSchema.parse(params);
+  const { eventType, endpoint } = analyticsEndpointSchema.parse(params);
   const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-  const response = await getClicks({
+  const response = await getAnalytics(eventType, {
     ...parsedParams,
     endpoint,
     isDemo: true,
