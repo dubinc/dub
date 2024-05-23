@@ -98,7 +98,7 @@ export default function Toggle() {
               "w-full md:w-auto": key,
             })}
           >
-            {!isPublicStatsPage && !key && !admin && <FilterBar />}
+            {!isPublicStatsPage && !key && !admin && !demo && <FilterBar />}
             {!isPublicStatsPage && key && <SharePopover />}
             <div
               className={cn("flex w-full items-center gap-2", {
