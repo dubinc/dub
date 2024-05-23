@@ -1,7 +1,6 @@
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
-import { DubApiError } from "../api/errors";
 import { tbDemo } from "../tinybird/demo-client";
 import {
   analyticsFilterTB,
@@ -30,9 +29,16 @@ const responseSchema = {
 // Fetch data for `/api/analytics/(clicks|leads|sales)/[endpoint]`
 export const getAnalytics = async (
   analyticsType: AnalyticsEventType,
-  filters: AnalyticsFilters,
+  params: AnalyticsFilters,
 ) => {
-  let { workspaceId, endpoint, interval, start, end, isDemo } = filters;
+  let {
+    workspaceId,
+    interval,
+    start,
+    end,
+    isDemo,
+    endpoint = "count",
+  } = params;
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
   if (start) {
@@ -58,13 +64,6 @@ export const getAnalytics = async (
     granularity = INTERVAL_DATA[interval].granularity;
   }
 
-  if (!endpoint) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "An endpoint is required",
-    });
-  }
-
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `${analyticsType}_${endpoint}`,
@@ -73,7 +72,7 @@ export const getAnalytics = async (
   });
 
   const response = await pipe({
-    ...filters,
+    ...params,
     workspaceId,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
