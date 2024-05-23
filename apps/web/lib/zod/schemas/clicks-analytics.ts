@@ -1,8 +1,8 @@
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 
-// Analytics response schemas
-export const getClickAnalyticsResponse = {
+// Click analytics response schemas
+export const clickAnalyticsResponse = {
   count: z.object({
     clicks: z.number().describe("The total number of clicks"),
   }),

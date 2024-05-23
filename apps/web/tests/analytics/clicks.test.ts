@@ -4,7 +4,7 @@ import {
 } from "@/lib/analytics/constants";
 import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import z from "@/lib/zod";
-import { getClickAnalyticsResponse } from "@/lib/zod/schemas/clicks-analytics";
+import { clickAnalyticsResponse } from "@/lib/zod/schemas/clicks-analytics";
 import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
@@ -31,7 +31,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
       } else {
         const parsed = z
           .array(
-            getClickAnalyticsResponse[
+            clickAnalyticsResponse[
               formatAnalyticsEndpoint(endpoint, "plural")
             ].strict(),
           )
@@ -66,7 +66,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
 
       const parsed = z
         .array(
-          getClickAnalyticsResponse[
+          clickAnalyticsResponse[
             formatAnalyticsEndpoint(endpoint, "plural")
           ].strict(),
         )

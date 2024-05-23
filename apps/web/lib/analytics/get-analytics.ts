@@ -6,7 +6,7 @@ import {
   analyticsFilterTB,
   analyticsQuerySchema,
 } from "../zod/schemas/analytics";
-import { getClickAnalyticsResponse } from "../zod/schemas/clicks-analytics";
+import { clickAnalyticsResponse } from "../zod/schemas/clicks-analytics";
 import { leadAnalyticsResponse } from "../zod/schemas/leads-analytics";
 import { saleAnalyticsResponse } from "../zod/schemas/sales-analytics";
 import { INTERVAL_DATA } from "./constants";
@@ -21,7 +21,7 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
 };
 
 const responseSchema = {
-  clicks: getClickAnalyticsResponse,
+  clicks: clickAnalyticsResponse,
   leads: leadAnalyticsResponse,
   sales: saleAnalyticsResponse,
 };
