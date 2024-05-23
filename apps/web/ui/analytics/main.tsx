@@ -27,8 +27,13 @@ type Tab = {
 
 export default function Main() {
   const { betaTester } = useWorkspace();
-  const { baseApiPathGeneric, queryString, requiresUpgrade, demo } =
-    useContext(AnalyticsContext);
+  const {
+    baseApiPathGeneric,
+    queryString,
+    requiresUpgrade,
+    demo,
+    selectedTab,
+  } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams.get("domain");
   const key = searchParams.get("key");
@@ -70,12 +75,13 @@ export default function Main() {
     [betaTester],
   );
 
-  const tab = betaTester
-    ? tabs.find(({ id }) => id === searchParams.get("tab")) || {
-        id: "composite",
-        show: ["clicks", "leads", "sales"],
-      }
-    : tabs[0];
+  const tab =
+    betaTester || demo
+      ? tabs.find(({ id }) => id === selectedTab) || {
+          id: "composite",
+          show: ["clicks", "leads", "sales"],
+        }
+      : tabs[0];
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPathGeneric}/clicks/count?${queryString}`,
@@ -110,6 +116,8 @@ export default function Main() {
             leads: totalLeads,
             sales: totalSales,
           }[id];
+
+          console.log({ tabId: tab.id, id });
 
           return (
             <div key={id} className="relative z-0">

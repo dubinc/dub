@@ -90,9 +90,9 @@ export default function Analytics({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const { basePath, domain, baseApiPath, baseApiPathGeneric } = useMemo(() => {
-    const tab = searchParams.get("tab");
+  const selectedTab = searchParams.get("tab") || "clicks";
 
+  const { basePath, domain, baseApiPath, baseApiPathGeneric } = useMemo(() => {
     if (admin) {
       return {
         basePath: `/analytics`,
@@ -103,14 +103,14 @@ export default function Analytics({
     } else if (demo) {
       return {
         basePath: `/analytics/demo`,
-        baseApiPath: `/api/analytics/demo/${tab || "clicks"}`,
+        baseApiPath: `/api/analytics/demo/${selectedTab || "clicks"}`,
         baseApiPathGeneric: `/api/analytics/demo`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics/${tab || "clicks"}`,
+        baseApiPath: `/api/analytics/${selectedTab || "clicks"}`,
         baseApiPathGeneric: `/api/analytics`,
         domain: domainSlug,
       };
@@ -118,21 +118,12 @@ export default function Analytics({
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: `/api/analytics/edge/${tab || "clicks"}`,
+        baseApiPath: `/api/analytics/edge/${selectedTab || "clicks"}`,
         baseApiPathGeneric: `/api/analytics/edge`,
         domain: staticDomain,
       };
     }
-  }, [
-    admin,
-    demo,
-    slug,
-    pathname,
-    staticDomain,
-    domainSlug,
-    key,
-    searchParams.get("tab"),
-  ]);
+  }, [admin, demo, slug, pathname, staticDomain, domainSlug, key, selectedTab]);
 
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
@@ -191,7 +182,7 @@ export default function Analytics({
         basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
         baseApiPath, // baseApiPath for the API with the selected resource (e.g. /api/analytics/clicks)
         baseApiPathGeneric, // baseApiPathGeneric for the API without the selected resource (e.g. /api/analytics)
-        selectedTab: searchParams.get("tab") || "clicks", // selected tab (clicks, leads, sales)
+        selectedTab, // selected tab (clicks, leads, sales)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
