@@ -86,7 +86,7 @@ export default function Main() {
   const { data } = useSWR<{
     clicks: number;
     leads: number;
-    sale: number;
+    sales: number;
     amount: number;
   }>(`${baseApiPathGeneric}/composite/count?${queryString}`, fetcher, {
     shouldRetryOnError: !requiresUpgrade,
@@ -99,7 +99,7 @@ export default function Main() {
           const total = {
             clicks: data?.clicks,
             leads: data?.leads,
-            sales: data ? data.amount / 100 : undefined,
+            sales: data?.sales,
           }[id];
 
           return (

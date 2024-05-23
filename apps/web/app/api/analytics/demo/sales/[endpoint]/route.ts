@@ -1,4 +1,4 @@
-import { getSales } from "@/lib/analytics/get-sales";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { withSession } from "@/lib/auth";
 import {
   analyticsEndpointSchema,
@@ -11,7 +11,7 @@ export const GET = withSession(async ({ params, searchParams }) => {
   const { endpoint } = analyticsEndpointSchema.parse(params);
   const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-  const response = await getSales({
+  const response = await getAnalytics("sales", {
     ...parsedParams,
     endpoint,
     isDemo: true,
