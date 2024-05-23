@@ -2,8 +2,10 @@ import { getLeads } from "@/lib/analytics/get-leads";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { analyticsEndpointSchema } from "@/lib/zod/schemas/clicks-analytics";
+import {
+  analyticsEndpointSchema,
+  analyticsQuerySchema,
+} from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/leads/[endpoint] – get leads analytics
@@ -28,7 +30,7 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
-    const response = await getLeads({
+    const response = getLeads({
       ...parsedParams,
       endpoint,
       ...(linkId && { linkId }),

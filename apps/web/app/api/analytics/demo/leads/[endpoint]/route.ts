@@ -1,7 +1,9 @@
 import { getLeads } from "@/lib/analytics/get-leads";
 import { withAdmin } from "@/lib/auth";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { analyticsEndpointSchema } from "@/lib/zod/schemas/clicks-analytics";
+import {
+  analyticsEndpointSchema,
+  analyticsQuerySchema,
+} from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/demo/leads/[endpoint] – get click analytics for admin

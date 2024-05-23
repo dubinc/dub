@@ -45,6 +45,7 @@ export default function Main() {
 
   // Root domain related
   const root = searchParams.get("root");
+  console.log({ betaTester });
 
   const tabs = useMemo(
     () =>

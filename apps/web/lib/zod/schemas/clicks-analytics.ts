@@ -1,53 +1,5 @@
-import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
-import { analyticsQuerySchema } from "./analytics";
-
-export const analyticsEndpointSchema = z.object({
-  endpoint: z
-    .enum(VALID_ANALYTICS_ENDPOINTS, {
-      errorMap: (_issue, _ctx) => {
-        return {
-          message: `Invalid endpoint value. Valid endpoints are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
-        };
-      },
-    })
-    .transform((v) => formatAnalyticsEndpoint(v, "plural"))
-    .optional()
-    .describe(
-      "The field to group the analytics by. If undefined, returns the total click count.",
-    ),
-});
-
-export const getClickAnalytics = analyticsQuerySchema
-  .omit({
-    groupBy: true,
-    interval: true,
-    externalId: true,
-    key: true,
-    start: true,
-    end: true,
-    root: true,
-    qr: true,
-  })
-  .extend({
-    workspaceId: z
-      .string()
-      .optional()
-      .transform((v) => {
-        if (v && !v.startsWith("ws_")) {
-          return `ws_${v}`;
-        } else {
-          return v;
-        }
-      }),
-    root: z.boolean().optional(),
-    qr: z.boolean().optional(),
-    start: z.string(),
-    end: z.string(),
-    granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
-  });
 
 // Analytics response schemas
 export const getClickAnalyticsResponse = {

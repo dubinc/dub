@@ -7,8 +7,10 @@ import {
 } from "@/lib/api/errors";
 import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { analyticsEndpointSchema } from "@/lib/zod/schemas/clicks-analytics";
+import {
+  analyticsEndpointSchema,
+  analyticsQuerySchema,
+} from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";

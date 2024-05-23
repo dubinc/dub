@@ -1,8 +1,28 @@
-import { intervals } from "@/lib/analytics/constants";
+import {
+  VALID_ANALYTICS_ENDPOINTS,
+  intervals,
+} from "@/lib/analytics/constants";
+import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
+
+export const analyticsEndpointSchema = z.object({
+  endpoint: z
+    .enum(VALID_ANALYTICS_ENDPOINTS, {
+      errorMap: (_issue, _ctx) => {
+        return {
+          message: `Invalid endpoint value. Valid endpoints are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
+        };
+      },
+    })
+    .transform((v) => formatAnalyticsEndpoint(v, "plural"))
+    .optional()
+    .describe(
+      "The field to group the analytics by. If undefined, returns the total click count.",
+    ),
+});
 
 // Query schema for `/api/analytics/(clicks|leads|sales)/[endpoint]`
 export const analyticsQuerySchema = z.object({
@@ -85,3 +105,37 @@ export const analyticsQuerySchema = z.object({
       "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
     ),
 });
+
+// Analytics filter params for Tinybird endpoints
+export const analyticsFilterTB = z
+  .object({
+    workspaceId: z
+      .string()
+      .optional()
+      .transform((v) => {
+        if (v && !v.startsWith("ws_")) {
+          return `ws_${v}`;
+        } else {
+          return v;
+        }
+      }),
+    root: z.boolean().optional(),
+    qr: z.boolean().optional(),
+    start: z.string(),
+    end: z.string(),
+    granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
+  })
+  .merge(
+    analyticsQuerySchema.pick({
+      browser: true,
+      city: true,
+      country: true,
+      device: true,
+      domain: true,
+      linkId: true,
+      os: true,
+      referer: true,
+      tagId: true,
+      url: true,
+    }),
+  );
