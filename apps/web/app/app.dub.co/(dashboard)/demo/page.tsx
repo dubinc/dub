@@ -5,9 +5,7 @@ import { Suspense } from "react";
 export default function DemoAnalytics() {
   return (
     <Suspense fallback={<LayoutLoader />}>
-      <div className="w-full">
-        <Analytics demo />
-      </div>
+      <Analytics demo />
     </Suspense>
   );
 }

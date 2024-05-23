@@ -99,7 +99,7 @@ export default function Analytics({
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/analytics/admin`,
+        baseApiPath: `/api/analytics/admin/${selectedTab || "clicks"}`,
         baseApiPathGeneric: `/api/analytics/admin`,
         domain: domainSlug,
       };
