@@ -15,10 +15,7 @@ import { AnalyticsContext } from ".";
 export default function SharePopover() {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { baseApiPath, queryString, domain, key } = useContext(
-    AnalyticsContext,
-  ) as {
-    baseApiPath: string;
+  const { queryString, domain, key } = useContext(AnalyticsContext) as {
     queryString: string;
     domain: string;
     key: string; // coerce to string since <SharePopover is not shown if key is undefined)

@@ -27,13 +27,8 @@ type Tab = {
 
 export default function Main() {
   const { betaTester } = useWorkspace();
-  const {
-    baseApiPathGeneric,
-    queryString,
-    requiresUpgrade,
-    demo,
-    selectedTab,
-  } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, requiresUpgrade, demo, selectedTab } =
+    useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams.get("domain");
   const key = searchParams.get("key");
@@ -75,20 +70,17 @@ export default function Main() {
     [betaTester],
   );
 
-  const tab =
-    betaTester || demo
-      ? tabs.find(({ id }) => id === selectedTab) || {
-          id: "clicks",
-          show: ["clicks", "leads", "sales"],
-        }
-      : tabs[0];
+  const tab = tabs.find(({ id }) => id === selectedTab) || {
+    id: "composite",
+    show: ["clicks", "leads", "sales"],
+  };
 
   const { data } = useSWR<{
     clicks: number;
     leads: number;
     sales: number;
     amount: number;
-  }>(`${baseApiPathGeneric}/composite/count?${queryString}`, fetcher, {
+  }>(`${baseApiPath}/composite/count?${queryString}`, fetcher, {
     shouldRetryOnError: !requiresUpgrade,
   });
 
@@ -99,7 +91,7 @@ export default function Main() {
           const total = {
             clicks: data?.clicks,
             leads: data?.leads,
-            sales: data?.sales,
+            sales: data?.amount,
           }[id];
 
           return (
@@ -151,10 +143,14 @@ export default function Main() {
                 </div>
                 <div className="mt-1 flex">
                   {total || total === 0 ? (
-                    <NumberTooltip value={total} unit={label.toLowerCase()}>
+                    <NumberTooltip
+                      value={id === "sales" ? data?.sales : total}
+                      unit={label.toLowerCase()}
+                    >
                       <CountingNumbers
                         as="h1"
                         className="text-3xl font-medium"
+                        prefix={id === "sales" && "$"}
                         {...(id === "sales" && { fullNumber: true })}
                       >
                         {total}

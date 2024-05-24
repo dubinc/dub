@@ -35,7 +35,7 @@ export default function TopLinks() {
     ({ domain: string; key: string } & {
       [key in TopLinksTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher, {
+  >(`${baseApiPath}/${selectedTab}/top_${tab}s?${queryString}`, fetcher, {
     shouldRetryOnError: !requiresUpgrade,
   });
 

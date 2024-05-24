@@ -12,6 +12,7 @@ interface CountingNumbersProps {
   asChild?: boolean;
   className?: string;
   children: ReactNode;
+  prefix?: ReactNode;
   duration?: number;
   as?: ElementType; // Allows defining the component as 'h1', 'h2', 'p', etc.
   fullNumber?: boolean; // If true, will not abbreviate the number
@@ -23,6 +24,7 @@ const CountingNumbers = React.forwardRef<HTMLSpanElement, CountingNumbersProps>(
       asChild,
       className,
       children,
+      prefix,
       duration = 250,
       as: Component = "span",
       ...props
@@ -59,6 +61,7 @@ const CountingNumbers = React.forwardRef<HTMLSpanElement, CountingNumbersProps>(
 
     return (
       <Comp ref={ref} className={className} {...props}>
+        {prefix}
         {nFormatter(
           displayValue,
           props.fullNumber ? { full: true } : undefined,

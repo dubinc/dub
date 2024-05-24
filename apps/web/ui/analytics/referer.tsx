@@ -12,7 +12,7 @@ export default function Referer() {
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${baseApiPath}/referers?${queryString}`,
+    `${baseApiPath}/${selectedTab}/referers?${queryString}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );

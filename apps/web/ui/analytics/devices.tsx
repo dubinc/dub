@@ -24,7 +24,7 @@ export default function Devices() {
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/${tab}?${queryString}`, fetcher, {
+  >(`${baseApiPath}/${selectedTab}/${tab}?${queryString}`, fetcher, {
     shouldRetryOnError: !requiresUpgrade,
   });
 
