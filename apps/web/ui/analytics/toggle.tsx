@@ -127,11 +127,14 @@ export default function Toggle() {
                   const start = INTERVAL_DATA[value].startDate;
                   const end = new Date();
 
-                  const requiresUpgrade = !validDateRangeForPlan({
-                    plan,
-                    start,
-                    end,
-                  });
+                  const requiresUpgrade =
+                    admin || demo
+                      ? false
+                      : !validDateRangeForPlan({
+                          plan,
+                          start,
+                          end,
+                        });
 
                   return {
                     label: display,

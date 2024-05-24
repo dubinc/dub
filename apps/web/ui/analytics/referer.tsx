@@ -12,7 +12,7 @@ export default function Referer() {
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${baseApiPath}/referers?${queryString}`,
+    `${baseApiPath}/${selectedTab}/referers?${queryString}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );
@@ -44,10 +44,10 @@ export default function Referer() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d[selectedTab],
+          clicks: d[selectedTab] ?? d["clicks"],
         })) || []
       }
-      maxClicks={data?.[0]?.[selectedTab] || 0}
+      maxClicks={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
       barBackground="bg-red-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

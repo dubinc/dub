@@ -18,7 +18,7 @@ export default function AnalyticsAreaChart({
 
   const { data } = useSWR<
     { start: Date; clicks: number; leads: number; sales: number }[]
-  >(`${baseApiPath}/timeseries?${queryString}`, fetcher, {
+  >(`${baseApiPath}/composite/timeseries?${queryString}`, fetcher, {
     shouldRetryOnError: !requiresUpgrade,
   });
 

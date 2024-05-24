@@ -20,7 +20,7 @@ export default function Locations() {
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
-    `${baseApiPath}/${tab}?${queryString}`,
+    `${baseApiPath}/${selectedTab}/${tab}?${queryString}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );
@@ -47,10 +47,10 @@ export default function Locations() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d[selectedTab],
+          clicks: d[selectedTab] ?? d["clicks"],
         })) || []
       }
-      maxClicks={data?.[0]?.[selectedTab] || 0}
+      maxClicks={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
       barBackground="bg-orange-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

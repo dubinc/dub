@@ -25,7 +25,6 @@ import TopLinks from "./top-links";
 export const AnalyticsContext = createContext<{
   basePath: string;
   baseApiPath: string;
-  baseApiPathGeneric: string;
   selectedTab: string;
   domain?: string;
   key?: string;
@@ -41,7 +40,6 @@ export const AnalyticsContext = createContext<{
 }>({
   basePath: "",
   baseApiPath: "",
-  baseApiPathGeneric: "",
   selectedTab: "clicks",
   domain: "",
   queryString: "",
@@ -65,7 +63,7 @@ export default function Analytics({
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id, slug } = useWorkspace();
+  const { id, slug, betaTester } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
@@ -93,36 +91,33 @@ export default function Analytics({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const selectedTab = searchParams.get("tab") || "clicks";
+  const selectedTab =
+    demo || betaTester ? searchParams.get("tab") || "composite" : "clicks";
 
-  const { basePath, domain, baseApiPath, baseApiPathGeneric } = useMemo(() => {
+  const { basePath, domain, baseApiPath } = useMemo(() => {
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/analytics/admin/${selectedTab || "clicks"}`,
-        baseApiPathGeneric: `/api/analytics/admin`,
+        baseApiPath: `/api/analytics/admin`,
         domain: domainSlug,
       };
     } else if (demo) {
       return {
         basePath: `/analytics/demo`,
-        baseApiPath: `/api/analytics/demo/${selectedTab || "clicks"}`,
-        baseApiPathGeneric: `/api/analytics/demo`,
+        baseApiPath: `/api/analytics/demo`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics/${selectedTab || "clicks"}`,
-        baseApiPathGeneric: `/api/analytics`,
+        baseApiPath: `/api/analytics`,
         domain: domainSlug,
       };
     } else {
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: `/api/analytics/edge/${selectedTab || "clicks"}`,
-        baseApiPathGeneric: `/api/analytics/edge`,
+        baseApiPath: `/api/analytics/edge`,
         domain: staticDomain,
       };
     }
@@ -154,7 +149,7 @@ export default function Analytics({
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/count?${queryString}`,
+    `${baseApiPath}/${selectedTab}/count?${queryString}`,
     fetcher,
     {
       onSuccess: () => setRequiresUpgrade(false),
@@ -184,8 +179,7 @@ export default function Analytics({
     <AnalyticsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
-        baseApiPath, // baseApiPath for the API with the selected resource (e.g. /api/analytics/clicks)
-        baseApiPathGeneric, // baseApiPathGeneric for the API without the selected resource (e.g. /api/analytics)
+        baseApiPath, // baseApiPath for analytics API endpoints (e.g. /api/analytics)
         selectedTab, // selected tab (clicks, leads, sales)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)

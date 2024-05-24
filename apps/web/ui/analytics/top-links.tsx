@@ -35,7 +35,7 @@ export default function TopLinks() {
     ({ domain: string; key: string } & {
       [key in TopLinksTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher, {
+  >(`${baseApiPath}/${selectedTab}/top_${tab}s?${queryString}`, fetcher, {
     shouldRetryOnError: !requiresUpgrade,
   });
 
@@ -57,10 +57,10 @@ export default function TopLinks() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d[selectedTab],
+          clicks: d[selectedTab] ?? d["clicks"],
         })) || []
       }
-      maxClicks={data?.[0]?.[selectedTab] || 0}
+      maxClicks={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
       barBackground="bg-blue-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
