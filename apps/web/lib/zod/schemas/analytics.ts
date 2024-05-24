@@ -35,8 +35,8 @@ const analyticsTypeParam = z
   );
 
 export const analyticsPathParamsSchema = z.object({
-  eventType: analyticsEventParam,
-  endpoint: analyticsTypeParam,
+  eventType: analyticsEventParam.removeDefault().optional(),
+  endpoint: analyticsTypeParam.removeDefault().optional(),
 });
 
 // Query schema for /api/analytics endpoint

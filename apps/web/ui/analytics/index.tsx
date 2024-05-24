@@ -63,7 +63,7 @@ export default function Analytics({
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id, slug, betaTester } = useWorkspace();
+  const { id: workspaceId, slug, betaTester } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
@@ -134,7 +134,7 @@ export default function Analytics({
       {},
     );
     return new URLSearchParams({
-      ...(id && { workspaceId: id }),
+      ...(workspaceId && { workspaceId }),
       ...(domain && { domain }),
       ...(key && { key }),
       ...(start &&
@@ -144,7 +144,7 @@ export default function Analytics({
       event: selectedTab,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
-  }, [id, domain, key, searchParams, start, end, tagId, selectedTab]);
+  }, [workspaceId, domain, key, searchParams, start, end, tagId, selectedTab]);
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
