@@ -146,6 +146,7 @@ export default function Analytics({
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
   }, [id, domain, key, searchParams, start, end, tagId]);
 

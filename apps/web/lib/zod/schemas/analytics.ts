@@ -78,6 +78,13 @@ export const analyticsQuerySchema = z.object({
     .describe(
       "The end date and time when to retrieve analytics from. If not provided, defaults to the current date.",
     ),
+  timezone: z
+    .string()
+    .optional()
+    .default("UTC")
+    .describe(
+      "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
+    ),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
@@ -145,6 +152,7 @@ export const analyticsFilterTB = z
     start: z.string(),
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
+    timezone: z.string().optional(),
   })
   .merge(
     analyticsQuerySchema.pick({

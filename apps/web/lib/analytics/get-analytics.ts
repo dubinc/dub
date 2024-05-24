@@ -35,7 +35,16 @@ export const getAnalytics = async (
   eventType: AnalyticsEventType,
   params: AnalyticsFilters,
 ) => {
-  let { workspaceId, linkId, interval, start, end, isDemo, endpoint } = params;
+  let {
+    workspaceId,
+    linkId,
+    interval,
+    start,
+    end,
+    timezone,
+    isDemo,
+    endpoint,
+  } = params;
 
   // get all-time clicks count if:
   // 1. linkId is defined
@@ -104,6 +113,7 @@ export const getAnalytics = async (
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
+    timezone,
   });
 
   // for total clicks|leads, we return just the value;
