@@ -1,4 +1,5 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
+import { editQueryString } from "@/lib/analytics/utils";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
@@ -80,9 +81,16 @@ export default function Main() {
     leads: number;
     sales: number;
     amount: number;
-  }>(`${baseApiPath}/composite/count?${queryString}`, fetcher, {
-    shouldRetryOnError: !requiresUpgrade,
-  });
+  }>(
+    `${baseApiPath}?${editQueryString(queryString, {
+      event: "composite",
+      type: "count",
+    })}`,
+    fetcher,
+    {
+      shouldRetryOnError: !requiresUpgrade,
+    },
+  );
 
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">

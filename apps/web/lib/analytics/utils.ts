@@ -1,6 +1,19 @@
 import { getDaysDifference } from "@dub/utils";
 import { DubApiError } from "../api/errors";
 
+export const editQueryString = (
+  queryString: string,
+  data: Record<string, string>,
+) => {
+  const searchParams = new URLSearchParams(queryString);
+
+  for (const key in data) {
+    searchParams.set(key, data[key]);
+  }
+
+  return searchParams.toString();
+};
+
 export const formatAnalyticsEndpoint = (
   endpoint: string,
   type: "plural" | "singular",

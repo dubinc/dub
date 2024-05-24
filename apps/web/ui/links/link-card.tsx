@@ -122,7 +122,7 @@ export default function LinkCard({
     isVisible &&
       workspaceId &&
       !exceededClicks &&
-      `/api/analytics/clicks?workspaceId=${workspaceId}&linkId=${id}&interval=all&`,
+      `/api/analytics?event=clicks&type=count&workspaceId=${workspaceId}&linkId=${id}&interval=all&`,
     (url) =>
       fetcher(url, {
         headers: {

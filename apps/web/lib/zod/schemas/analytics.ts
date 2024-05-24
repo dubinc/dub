@@ -2,38 +2,46 @@ import {
   VALID_ANALYTICS_ENDPOINTS,
   intervals,
 } from "@/lib/analytics/constants";
-import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
-export const analyticsEndpointSchema = z.object({
-  eventType: z.enum(["clicks", "leads", "sales", "composite"], {
+const analyticsEventParam = z
+  .enum(["clicks", "leads", "sales", "composite"], {
     errorMap: (_issue, _ctx) => {
       return {
         message:
           "Invalid event type. Valid event types are: clicks, leads, sales",
       };
     },
-  }),
-  endpoint: z
-    .enum(VALID_ANALYTICS_ENDPOINTS, {
-      errorMap: (_issue, _ctx) => {
-        return {
-          message: `Invalid endpoint value. Valid endpoints are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
-        };
-      },
-    })
-    .transform((v) => formatAnalyticsEndpoint(v, "plural"))
-    .optional()
-    .describe(
-      "The field to group the analytics by. If undefined, returns the total click count.",
-    ),
+  })
+  .default("clicks")
+  .describe(
+    "The type of event to retrieve analytics for. Defaults to 'clicks'.",
+  );
+
+const analyticsTypeParam = z
+  .enum(VALID_ANALYTICS_ENDPOINTS, {
+    errorMap: (_issue, _ctx) => {
+      return {
+        message: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
+      };
+    },
+  })
+  .describe(
+    "The type of analytics to retrieve. Valid values include: count, timeseries, top_links, etc.",
+  );
+
+export const analyticsPathParamsSchema = z.object({
+  eventType: analyticsEventParam,
+  endpoint: analyticsTypeParam,
 });
 
-// Query schema for `/api/analytics/(clicks|leads|sales)/[endpoint]`
+// Query schema for /api/analytics endpoint
 export const analyticsQuerySchema = z.object({
+  event: analyticsEventParam,
+  type: analyticsTypeParam,
   domain: z.string().optional().describe("The domain to filter analytics for."),
   key: z.string().optional().describe("The short link slug."),
   linkId: z
@@ -124,19 +132,7 @@ export const analyticsQuerySchema = z.object({
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z
   .object({
-    eventType: z
-      .enum(["clicks", "leads", "sales", "composite"], {
-        errorMap: (_issue, _ctx) => {
-          return {
-            message:
-              "Invalid event type. Valid event types are: clicks, leads, sales",
-          };
-        },
-      })
-      .optional()
-      .describe(
-        "The type of event to retrieve analytics for. Defaults to composite.",
-      ),
+    eventType: analyticsEventParam,
     workspaceId: z
       .string()
       .optional()

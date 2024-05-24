@@ -1,19 +1,14 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { withSession } from "@/lib/auth";
-import {
-  analyticsEndpointSchema,
-  analyticsQuerySchema,
-} from "@/lib/zod/schemas/analytics";
+import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/demo/[eventType]/[endpoint]
 export const GET = withSession(async ({ params, searchParams }) => {
-  const { eventType, endpoint } = analyticsEndpointSchema.parse(params);
   const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-  const response = await getAnalytics(eventType, {
+  const response = await getAnalytics({
     ...parsedParams,
-    endpoint,
     isDemo: true,
   });
 

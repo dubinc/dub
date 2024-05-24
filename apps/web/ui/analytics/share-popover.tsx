@@ -23,14 +23,14 @@ export default function SharePopover() {
 
   const { data, isLoading, update } = useOptimisticUpdate<{
     publicStats: boolean;
-  }>(`/api/analytics?${queryString}`, {
+  }>(`/api/analytics/public-stats?${queryString}`, {
     loading: "Updating...",
     success: "Successfully updated stats page visibility!",
     error: "Something went wrong",
   });
 
   const handleUpdate = async (checked: boolean) => {
-    const res = await fetch(`/api/analytics?${queryString}`, {
+    const res = await fetch(`/api/analytics/public-stats?${queryString}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

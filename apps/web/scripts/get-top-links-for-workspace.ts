@@ -34,9 +34,10 @@ async function main() {
     console.log("No workspace found");
     return;
   }
-  const topLinks = await getAnalytics("clicks", {
+  const topLinks = await getAnalytics({
+    event: "clicks",
+    type: "top_links",
     workspaceId: workspace.id,
-    endpoint: "top_links",
     interval: "30d",
     root: false,
   }).then(async (data) => {

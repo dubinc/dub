@@ -141,15 +141,16 @@ export default function Analytics({
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
+      event: selectedTab,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
-  }, [id, domain, key, searchParams, start, end, tagId]);
+  }, [id, domain, key, searchParams, start, end, tagId, selectedTab]);
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/${selectedTab}/count?${queryString}`,
+    `${baseApiPath}?${queryString}&type=count`,
     fetcher,
     {
       onSuccess: () => setRequiresUpgrade(false),

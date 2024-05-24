@@ -1,3 +1,4 @@
+import { editQueryString } from "@/lib/analytics/utils";
 import { BlurImage, Modal, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
@@ -12,7 +13,9 @@ export default function Referer() {
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${baseApiPath}/${selectedTab}/referers?${queryString}`,
+    `${baseApiPath}?${editQueryString(queryString, {
+      type: "referers",
+    })}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );

@@ -1,3 +1,4 @@
+import { editQueryString } from "@/lib/analytics/utils";
 import { cn, fetcher, getDaysDifference, nFormatter } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
@@ -18,9 +19,16 @@ export default function AnalyticsAreaChart({
 
   const { data } = useSWR<
     { start: Date; clicks: number; leads: number; sales: number }[]
-  >(`${baseApiPath}/composite/timeseries?${queryString}`, fetcher, {
-    shouldRetryOnError: !requiresUpgrade,
-  });
+  >(
+    `${baseApiPath}?${editQueryString(queryString, {
+      event: "composite",
+      type: "timeseries",
+    })}`,
+    fetcher,
+    {
+      shouldRetryOnError: !requiresUpgrade,
+    },
+  );
 
   const chartData = useMemo(
     () =>

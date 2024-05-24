@@ -1,5 +1,8 @@
 import { LocationTabs } from "@/lib/analytics/types";
-import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
+import {
+  editQueryString,
+  formatAnalyticsEndpoint,
+} from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
@@ -20,7 +23,9 @@ export default function Locations() {
     useContext(AnalyticsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
-    `${baseApiPath}/${selectedTab}/${tab}?${queryString}`,
+    `${baseApiPath}?${editQueryString(queryString, {
+      type: tab,
+    })}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );

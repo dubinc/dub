@@ -1,5 +1,8 @@
 import { DeviceTabs } from "@/lib/analytics/types";
-import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
+import {
+  editQueryString,
+  formatAnalyticsEndpoint,
+} from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
@@ -24,9 +27,15 @@ export default function Devices() {
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/${selectedTab}/${tab}?${queryString}`, fetcher, {
-    shouldRetryOnError: !requiresUpgrade,
-  });
+  >(
+    `${baseApiPath}?${editQueryString(queryString, {
+      type: tab,
+    })}`,
+    fetcher,
+    {
+      shouldRetryOnError: !requiresUpgrade,
+    },
+  );
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);

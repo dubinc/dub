@@ -91,9 +91,10 @@ export const POST = withWorkspace(
       });
     }
 
-    const totalLinkClicks = await getAnalytics("clicks", {
+    const totalLinkClicks = await getAnalytics({
       domain,
-      endpoint: "count",
+      event: "clicks",
+      type: "count",
       workspaceId: workspace.id,
       interval: "30d",
       root: false,

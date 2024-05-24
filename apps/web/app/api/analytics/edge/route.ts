@@ -7,27 +7,19 @@ import {
 } from "@/lib/api/errors";
 import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import {
-  analyticsEndpointSchema,
-  analyticsQuerySchema,
-} from "@/lib/zod/schemas/analytics";
+import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-export const GET = async (
-  req: NextRequest,
-  { params }: { params: Record<string, string> },
-) => {
+export const GET = async (req: NextRequest) => {
   try {
-    const { endpoint } = analyticsEndpointSchema.parse(params);
-
     const searchParams = getSearchParams(req.url);
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    const { domain, key, interval, start, end } = parsedParams;
+    const { type, domain, key, interval, start, end } = parsedParams;
 
     if (!domain || !key) {
       throw new DubApiError({
@@ -49,8 +41,8 @@ export const GET = async (
         const ip = ipAddress(req);
         const { success } = await ratelimit(
           15,
-          endpoint ? "1 m" : "10 s",
-        ).limit(`demo-analytics:${demoLink.id}:${ip}:${endpoint || "clicks"}`);
+          type === "count" ? "10 s" : "1 m",
+        ).limit(`demo-analytics:${demoLink.id}:${ip}:${type}`);
 
         if (!success) {
           throw new DubApiError({
@@ -95,11 +87,10 @@ export const GET = async (
       }
     }
 
-    const response = await getAnalytics("clicks", {
+    const response = await getAnalytics({
       ...parsedParams,
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
       ...(link.projectId && { workspaceId: link.projectId }),
-      endpoint,
       linkId: link.id,
     });
 

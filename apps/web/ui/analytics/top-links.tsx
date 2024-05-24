@@ -1,4 +1,5 @@
 import { TopLinksTabs } from "@/lib/analytics/types";
+import { editQueryString } from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
@@ -35,9 +36,15 @@ export default function TopLinks() {
     ({ domain: string; key: string } & {
       [key in TopLinksTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/${selectedTab}/top_${tab}s?${queryString}`, fetcher, {
-    shouldRetryOnError: !requiresUpgrade,
-  });
+  >(
+    `${baseApiPath}?${editQueryString(queryString, {
+      type: `top_${tab}s`,
+    })}`,
+    fetcher,
+    {
+      shouldRetryOnError: !requiresUpgrade,
+    },
+  );
 
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();

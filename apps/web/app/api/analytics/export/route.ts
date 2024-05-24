@@ -3,7 +3,6 @@ import {
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { AnalyticsEndpoints } from "@/lib/analytics/types";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
@@ -54,10 +53,11 @@ export const GET = withWorkspace(
           // since this is just a single link
           if (linkId) return;
 
-          const data = await getAnalytics("clicks", {
-            workspaceId: workspace.id,
-            endpoint: "top_links",
+          const data = await getAnalytics({
             ...parsedParams,
+            event: "clicks",
+            type: "top_links",
+            workspaceId: workspace.id,
           });
 
           const [links, domains] = await Promise.all([
@@ -128,11 +128,12 @@ export const GET = withWorkspace(
           // skip deprecated endpoints
           if (DEPRECATED_ANALYTICS_ENDPOINTS.includes(endpoint)) return;
 
-          const response = await getAnalytics("clicks", {
+          const response = await getAnalytics({
+            ...parsedParams,
             workspaceId: workspace.id,
             ...(linkId && { linkId }),
-            endpoint: endpoint as AnalyticsEndpoints,
-            ...parsedParams,
+            event: "clicks",
+            type: endpoint,
           });
           if (!response || response.length === 0) return;
 

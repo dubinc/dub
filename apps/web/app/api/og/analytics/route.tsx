@@ -26,11 +26,12 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const data = await getAnalytics("clicks", {
+  const data = await getAnalytics({
+    event: "clicks",
+    type: "timeseries",
     // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
     ...(link.projectId && { workspaceId: link.projectId }),
     linkId: link.id,
-    endpoint: "timeseries",
     interval: "24h",
   });
 

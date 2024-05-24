@@ -6,9 +6,10 @@ import * as fs from "fs";
 import * as Papa from "papaparse";
 
 async function main() {
-  const topLinks = await getAnalytics("clicks", {
+  const topLinks = await getAnalytics({
+    event: "clicks",
+    type: "top_links",
     workspaceId: "xxx",
-    endpoint: "top_links",
     interval: "30d",
     root: false,
   }).then(async (data) => {
