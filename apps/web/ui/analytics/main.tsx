@@ -99,7 +99,7 @@ export default function Main() {
           const total = {
             clicks: data?.clicks,
             leads: data?.leads,
-            sales: data?.amount ? data.amount / 100 : undefined,
+            sales: data ? data.amount / 100 : undefined,
           }[id];
 
           return (
