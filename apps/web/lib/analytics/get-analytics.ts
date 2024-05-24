@@ -26,7 +26,7 @@ const responseSchema = {
   composite: compositeAnalyticsResponse,
 };
 
-// Fetch data for `/api/analytics/(clicks|leads|sales)/[endpoint]`
+// Fetch data for /api/analytics
 export const getAnalytics = async (params: AnalyticsFilters) => {
   let {
     event,
@@ -95,7 +95,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: type,
+    pipe: `v1_${type}`,
     parameters: analyticsFilterTB,
     data: responseSchema[event][type],
   });
