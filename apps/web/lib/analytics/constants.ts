@@ -95,6 +95,14 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "top_urls",
 ] as const;
 
+export const SINGULAR_ANALYTICS_ENDPOINTS = {
+  countries: "country",
+  cities: "city",
+  devices: "device",
+  browsers: "browser",
+  referers: "referer",
+};
+
 export const VALID_ANALYTICS_FILTERS = [
   "country",
   "city",

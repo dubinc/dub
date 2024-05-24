@@ -1,8 +1,6 @@
+import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { LocationTabs } from "@/lib/analytics/types";
-import {
-  editQueryString,
-  formatAnalyticsEndpoint,
-} from "@/lib/analytics/utils";
+import { editQueryString } from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
@@ -15,7 +13,7 @@ import BarList from "./bar-list";
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("countries");
   const singularTabName = useMemo(
-    () => formatAnalyticsEndpoint(tab, "singular"),
+    () => SINGULAR_ANALYTICS_ENDPOINTS[tab],
     [tab],
   );
 
