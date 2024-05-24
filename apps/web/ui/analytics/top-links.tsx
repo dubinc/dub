@@ -1,4 +1,4 @@
-import { TopLinksTabs } from "@/lib/analytics/types";
+import { AnalyticsEvents, TopLinksTabs } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor, truncate } from "@dub/utils";
@@ -35,7 +35,7 @@ export default function TopLinks() {
   const { data } = useSWR<
     ({ domain: string; key: string } & {
       [key in TopLinksTabs]: string;
-    } & { clicks: number })[]
+    } & { [key in AnalyticsEvents]: number })[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
       type: `top_${tab}s`,
@@ -64,10 +64,10 @@ export default function TopLinks() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d[selectedTab] ?? d["clicks"],
+          value: d[selectedTab] ?? d["clicks"],
         })) || []
       }
-      maxClicks={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
+      maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
       barBackground="bg-blue-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

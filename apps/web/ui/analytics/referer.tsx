@@ -1,3 +1,4 @@
+import { AnalyticsEvents } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { BlurImage, Modal, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
@@ -12,7 +13,11 @@ export default function Referer() {
   const { selectedTab, baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
-  const { data } = useSWR<{ referer: string; clicks: number }[]>(
+  const { data } = useSWR<
+    ({ referer: string } & {
+      [key in AnalyticsEvents]: number;
+    })[]
+  >(
     `${baseApiPath}?${editQueryString(queryString, {
       type: "referers",
     })}`,
@@ -47,10 +52,10 @@ export default function Referer() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d[selectedTab] ?? d["clicks"],
+          value: d[selectedTab] ?? d["clicks"],
         })) || []
       }
-      maxClicks={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
+      maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
       barBackground="bg-red-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

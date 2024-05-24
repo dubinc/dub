@@ -11,6 +11,7 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
+  capitalize,
   cn,
   fetcher,
   getApexDomain,
@@ -39,7 +40,7 @@ export default function BarList({
   tab,
   data,
   barBackground,
-  maxClicks,
+  maxValue,
   setShowModal,
   limit,
 }: {
@@ -48,14 +49,16 @@ export default function BarList({
     icon: ReactNode;
     title: string;
     href: string;
-    clicks: number;
+    value: number;
   }[];
-  maxClicks: number;
+  maxValue: number;
   barBackground: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   limit?: number;
 }) {
   const [search, setSearch] = useState("");
+
+  const { selectedTab } = useContext(AnalyticsContext);
 
   // TODO: mock pagination for better perf in React
   // TODO: fix for top links since it's technically link IDs
@@ -79,7 +82,7 @@ export default function BarList({
         <LineItem
           key={idx}
           {...data}
-          maxClicks={maxClicks}
+          maxValue={maxValue}
           tab={tab}
           setShowModal={setShowModal}
           barBackground={barBackground}
@@ -111,7 +114,7 @@ export default function BarList({
               {tab}
             </p>
             <p className="text-xs font-semibold uppercase text-gray-600">
-              Clicks
+              {capitalize(selectedTab)}
             </p>
           </div>
           <div className="h-[50vh] overflow-auto p-4 md:h-[40vh]">{bars}</div>
@@ -125,8 +128,8 @@ export function LineItem({
   icon,
   title,
   href,
-  clicks,
-  maxClicks,
+  value,
+  maxValue,
   tab,
   setShowModal,
   barBackground,
@@ -134,8 +137,8 @@ export function LineItem({
   icon?: ReactNode;
   title: string;
   href: string;
-  clicks: number;
-  maxClicks: number;
+  value: number;
+  maxValue: number;
   tab: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
@@ -250,7 +253,7 @@ export function LineItem({
           )}
           <motion.div
             style={{
-              width: `${(clicks / (maxClicks || 0)) * 100}%`,
+              width: `${(value / (maxValue || 0)) * 100}%`,
             }}
             className={cn(
               "absolute h-full origin-left rounded-sm",
@@ -261,10 +264,8 @@ export function LineItem({
             animate={{ transform: "scaleX(1)" }}
           />
         </div>
-        <NumberTooltip value={clicks}>
-          <p className="z-10 px-2 text-sm text-gray-600">
-            {nFormatter(clicks)}
-          </p>
+        <NumberTooltip value={value}>
+          <p className="z-10 px-2 text-sm text-gray-600">{nFormatter(value)}</p>
         </NumberTooltip>
       </div>
     </Link>

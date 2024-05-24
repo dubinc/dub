@@ -1,5 +1,9 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import { LocationTabs } from "@/lib/analytics/types";
+import {
+  AnalyticsEvents,
+  LocationTabs,
+  LocationTabsSingular,
+} from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
@@ -20,13 +24,18 @@ export default function Locations() {
   const { selectedTab, baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
-  const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
+  const { data } = useSWR<
+    ({
+      [key in LocationTabsSingular]: string;
+    } & { [key in AnalyticsEvents]: number })[]
+  >(
     `${baseApiPath}?${editQueryString(queryString, {
       type: tab,
     })}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );
+  console.log({ data });
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
@@ -50,10 +59,10 @@ export default function Locations() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d[selectedTab] ?? d["clicks"],
+          value: d[selectedTab] ?? d["clicks"],
         })) || []
       }
-      maxClicks={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
+      maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
       barBackground="bg-orange-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

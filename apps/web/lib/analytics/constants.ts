@@ -101,6 +101,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   devices: "device",
   browsers: "browser",
   referers: "referer",
+  os: "os",
 };
 
 export const VALID_ANALYTICS_FILTERS = [

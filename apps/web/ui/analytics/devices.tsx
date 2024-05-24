@@ -1,5 +1,5 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import { DeviceTabs } from "@/lib/analytics/types";
+import { AnalyticsEvents, DeviceTabs } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
@@ -24,7 +24,7 @@ export default function Devices() {
   const { data } = useSWR<
     ({
       [key in DeviceTabs]: string;
-    } & { clicks: number })[]
+    } & { [key in AnalyticsEvents]: number })[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
       type: tab,
@@ -57,10 +57,10 @@ export default function Devices() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d[selectedTab] ?? d["clicks"],
+          value: d[selectedTab] ?? d["clicks"],
         })) || []
       }
-      maxClicks={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
+      maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
       barBackground="bg-green-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
