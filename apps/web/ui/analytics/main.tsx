@@ -91,7 +91,7 @@ export default function Main() {
           const total = {
             clicks: data?.clicks,
             leads: data?.leads,
-            sales: (data?.amount ?? 0) / 100,
+            sales: data?.amount ? data.amount / 100 : undefined,
           }[id];
 
           return (
