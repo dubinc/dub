@@ -11,9 +11,12 @@ import { NextResponse } from "next/server";
 // GET /api/analytics/leads/[endpoint] – get leads analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
-    const { endpoint } = analyticsEndpointSchema.parse(params);
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+    const { endpoint } = analyticsEndpointSchema.parse({
+      ...params,
+      eventType: "leads",
+    });
 
+    const parsedParams = analyticsQuerySchema.parse(searchParams);
     const { domain, key, interval, start, end } = parsedParams;
 
     validDateRangeForPlan({

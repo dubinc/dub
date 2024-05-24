@@ -11,7 +11,10 @@ import { NextResponse } from "next/server";
 // GET /api/analytics/clicks/[endpoint] – get click analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
-    const { endpoint = "count" } = analyticsEndpointSchema.parse(params);
+    const { endpoint = "count" } = analyticsEndpointSchema.parse({
+      ...params,
+      eventType: "clicks",
+    });
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
     const { domain, key, interval, start, end } = parsedParams;

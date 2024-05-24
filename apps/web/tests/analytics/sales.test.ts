@@ -23,19 +23,20 @@ describe.skip.sequential("GET /analytics/sales", async () => {
         query: { workspaceId, ...filter },
       });
 
+      const schema = formatAnalyticsEndpoint(endpoint, "plural");
+
+      expect(status).toEqual(200);
+
       if (endpoint === "count") {
-        expect(status).toEqual(200);
-        expect(data).toEqual(expect.any(Number));
-        expect(data).toBeGreaterThanOrEqual(0);
+        const parsed = saleAnalyticsResponse[schema].strict().safeParse(data);
+        expect(parsed.success).toBeTruthy();
         return;
       }
 
-      const schema = formatAnalyticsEndpoint(endpoint, "plural");
       const parsed = z
         .array(saleAnalyticsResponse[schema].strict())
         .safeParse(data);
 
-      expect(status).toEqual(200);
       expect(data.length).toBeGreaterThanOrEqual(0);
       expect(parsed.success).toBeTruthy();
     });
