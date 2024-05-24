@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/get-clicks";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import {
   DubApiError,
@@ -95,7 +95,7 @@ export const GET = async (
       }
     }
 
-    const response = await getClicks({
+    const response = await getAnalytics("clicks", {
       ...parsedParams,
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
       ...(link.projectId && { workspaceId: link.projectId }),

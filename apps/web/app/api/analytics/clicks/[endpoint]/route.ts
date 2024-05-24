@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/get-clicks";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
@@ -30,7 +30,7 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
-    const response = await getClicks({
+    const response = await getAnalytics("clicks", {
       ...parsedParams,
       endpoint,
       ...(linkId && { linkId }),

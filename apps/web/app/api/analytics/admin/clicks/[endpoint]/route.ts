@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/get-clicks";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { withAdmin } from "@/lib/auth";
 import {
   analyticsEndpointSchema,
@@ -11,7 +11,7 @@ export const GET = withAdmin(async ({ params, searchParams }) => {
   const { endpoint } = analyticsEndpointSchema.parse(params);
   const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-  const response = await getClicks({
+  const response = await getAnalytics("clicks", {
     ...parsedParams,
     endpoint,
   });

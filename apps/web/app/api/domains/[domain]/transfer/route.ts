@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/get-clicks";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { setRootDomain } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
@@ -91,8 +91,9 @@ export const POST = withWorkspace(
       });
     }
 
-    const totalLinkClicks = await getClicks({
+    const totalLinkClicks = await getAnalytics("clicks", {
       domain,
+      endpoint: "count",
       workspaceId: workspace.id,
       interval: "30d",
       root: false,

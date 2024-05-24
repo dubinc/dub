@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/get-clicks";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { prisma } from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
@@ -34,7 +34,7 @@ async function main() {
     console.log("No workspace found");
     return;
   }
-  const topLinks = await getClicks({
+  const topLinks = await getAnalytics("clicks", {
     workspaceId: workspace.id,
     endpoint: "top_links",
     interval: "30d",

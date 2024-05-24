@@ -1,4 +1,4 @@
-import { getClicks } from "@/lib/analytics/get-clicks";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -67,7 +67,8 @@ export const POST = withWorkspace(
       });
     }
 
-    const linkClicks = await getClicks({
+    const linkClicks = await getAnalytics("clicks", {
+      endpoint: "count",
       linkId: link.id,
       interval: "30d",
     });
