@@ -1,11 +1,14 @@
 import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import useDomains from "@/lib/swr/use-domains";
+import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BlurImage,
   DatePickerContext,
   DateRangePicker,
   ExpandingArrow,
+  Filter,
   TooltipContent,
   useRouterStuff,
   useScroll,
@@ -20,21 +23,94 @@ import {
   linkConstructor,
 } from "@dub/utils";
 import { subDays } from "date-fns";
-import { useContext } from "react";
+import { Globe, MousePointerClick, QrCode, Tag } from "lucide-react";
+import { useContext, useMemo } from "react";
 import { AnalyticsContext } from ".";
+import { COLORS_LIST } from "../links/tag-badge";
 import ExportButton from "./export-button";
-import FilterBar from "./filter-bar";
 import SharePopover from "./share-popover";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
   const { basePath, domain, key, url, admin, demo, start, end } =
     useContext(AnalyticsContext);
-  const { queryParams } = useRouterStuff();
+  const { tags } = useTags();
+  const { allWorkspaceDomains: domains } = useDomains();
+  const { queryParams, searchParamsObj } = useRouterStuff();
 
   const scrolled = useScroll(80);
 
   const isPublicStatsPage = basePath.startsWith("/stats");
+
+  const filters = useMemo(
+    () => [
+      {
+        key: "domain",
+        icon: Globe,
+        label: "Domain",
+        options: domains.map((domain) => ({
+          value: domain.slug,
+          label: domain.slug,
+          icon: (
+            <BlurImage
+              src={`${GOOGLE_FAVICON_URL}${domain.slug}`}
+              alt={domain.slug}
+              className="h-4 w-4 rounded-full"
+              width={16}
+              height={16}
+            />
+          ),
+        })),
+      },
+      {
+        key: "tagId",
+        icon: Tag,
+        label: "Tag",
+        options:
+          tags?.map((tag) => ({
+            value: tag.id,
+            icon: (
+              <div
+                className={cn(
+                  "h-5 w-5 rounded-full p-1",
+                  COLORS_LIST.find(({ color }) => color === tag.color)?.css,
+                )}
+              >
+                <Tag className="h-3 w-3" />
+              </div>
+            ),
+            label: tag.name,
+          })) ?? null,
+      },
+      {
+        key: "qr",
+        icon: MousePointerClick,
+        label: "Trigger",
+        options: [
+          {
+            value: false,
+            label: "Link click",
+            icon: MousePointerClick,
+          },
+          {
+            value: true,
+            label: "QR Scan",
+            icon: QrCode,
+          },
+        ],
+      },
+    ],
+    [domains, tags],
+  );
+
+  const activeFilters = useMemo(() => {
+    const { domain, tagId, qr } = searchParamsObj;
+    return [
+      ...(domain ? [{ key: "domain", value: domain }] : []),
+      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
+      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
+    ];
+  }, [searchParamsObj]);
 
   return (
     <div
@@ -98,7 +174,24 @@ export default function Toggle() {
               "w-full md:w-auto": key,
             })}
           >
-            {!isPublicStatsPage && !key && !admin && !demo && <FilterBar />}
+            {!isPublicStatsPage && !key && !admin && !demo && (
+              <Filter.Select
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={(key, value) =>
+                  queryParams({
+                    set: {
+                      [key]: value,
+                    },
+                  })
+                }
+                onRemove={(key) =>
+                  queryParams({
+                    del: key,
+                  })
+                }
+              />
+            )}
             {!isPublicStatsPage && key && <SharePopover />}
             <div
               className={cn("flex w-full items-center gap-2", {
