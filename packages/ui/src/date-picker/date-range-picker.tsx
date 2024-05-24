@@ -227,23 +227,6 @@ const DateRangePickerInner = ({
         content={
           <div className="flex w-full">
             <div className="scrollbar-hide flex w-full flex-col overflow-x-scroll sm:flex-row sm:items-start">
-              {presets && presets.length > 0 && (
-                <div
-                  className={cn(
-                    "relative flex h-16 w-full items-center sm:h-full sm:w-40",
-                    "border-b border-gray-200 sm:border-b-0 sm:border-r",
-                    "scrollbar-hide overflow-auto",
-                  )}
-                >
-                  <div className="absolute px-3 sm:inset-0 sm:left-0 sm:p-2">
-                    <Presets
-                      currentValue={range}
-                      presets={presets}
-                      onSelect={onRangeChange}
-                    />
-                  </div>
-                </div>
-              )}
               <div className="scrollbar-hide overflow-x-scroll">
                 <CalendarPrimitive
                   mode="range"
@@ -308,6 +291,23 @@ const DateRangePickerInner = ({
                   </div>
                 </div>
               </div>
+              {presets && presets.length > 0 && (
+                <div
+                  className={cn(
+                    "relative flex h-16 w-full items-center sm:h-full sm:w-44",
+                    "border-b border-gray-200 sm:border-b-0 sm:border-l",
+                    "scrollbar-hide overflow-auto",
+                  )}
+                >
+                  <div className="absolute px-3 sm:inset-0 sm:left-0 sm:p-3">
+                    <Presets
+                      currentValue={range}
+                      presets={presets}
+                      onSelect={onRangeChange}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         }
