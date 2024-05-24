@@ -16,6 +16,8 @@ SQL >
         browser,
         os,
         referer,
+        qr,
+        ip
     FROM dub_lead_events
 
 TYPE materialized
