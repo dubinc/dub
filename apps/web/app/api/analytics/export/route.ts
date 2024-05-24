@@ -1,7 +1,4 @@
-import {
-  DEPRECATED_ANALYTICS_ENDPOINTS,
-  VALID_ANALYTICS_ENDPOINTS,
-} from "@/lib/analytics/constants";
+import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -125,8 +122,6 @@ export const GET = withWorkspace(
           if (endpoint === "top_urls" && !linkId) return;
           // skip clicks count
           if (endpoint === "count") return;
-          // skip deprecated endpoints
-          if (DEPRECATED_ANALYTICS_ENDPOINTS.includes(endpoint)) return;
 
           const response = await getAnalytics({
             ...parsedParams,

@@ -1,8 +1,4 @@
-import {
-  DEPRECATED_ANALYTICS_ENDPOINTS,
-  VALID_ANALYTICS_ENDPOINTS,
-} from "@/lib/analytics/constants";
-import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
+import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { leadAnalyticsResponse } from "@/lib/zod/schemas/leads-analytics";
 import { describe, expect, test } from "vitest";
@@ -14,9 +10,7 @@ describe.skip.sequential("GET /analytics/leads", async () => {
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.filter(
-    (endpoint) => !DEPRECATED_ANALYTICS_ENDPOINTS.includes(endpoint),
-  ).map((endpoint) => {
+  VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
     test(`by ${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/leads/${endpoint}`,
@@ -30,9 +24,8 @@ describe.skip.sequential("GET /analytics/leads", async () => {
         return;
       }
 
-      const schema = formatAnalyticsEndpoint(endpoint, "plural");
       const parsed = z
-        .array(leadAnalyticsResponse[schema].strict())
+        .array(leadAnalyticsResponse[endpoint].strict())
         .safeParse(data);
 
       expect(status).toEqual(200);

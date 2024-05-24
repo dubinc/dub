@@ -85,28 +85,15 @@ export const INTERVAL_DATA: Record<
 export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
   "timeseries",
-  "country", // backwards compatibility
   "countries",
-  "city", // backwards compatibility
   "cities",
-  "device", // backwards compatibility
   "devices",
-  "browser", // backwards compatibility
   "browsers",
   "os",
-  "referer", // backwards compatibility
   "referers",
   "top_links",
   "top_urls",
 ] as const;
-
-export const DEPRECATED_ANALYTICS_ENDPOINTS = [
-  "country",
-  "city",
-  "device",
-  "browser",
-  "referer",
-];
 
 export const VALID_ANALYTICS_FILTERS = [
   "country",

@@ -1,8 +1,4 @@
-import {
-  DEPRECATED_ANALYTICS_ENDPOINTS,
-  VALID_ANALYTICS_ENDPOINTS,
-} from "@/lib/analytics/constants";
-import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
+import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { clickAnalyticsResponse } from "@/lib/zod/schemas/clicks-analytics";
 import { describe, expect, test } from "vitest";
@@ -15,9 +11,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.filter(
-    (endpoint) => !DEPRECATED_ANALYTICS_ENDPOINTS.includes(endpoint),
-  ).map((endpoint) => {
+  VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
     test(`by ${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/clicks/${endpoint}`,
@@ -30,11 +24,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
         expect(data).toBeGreaterThanOrEqual(0);
       } else {
         const parsed = z
-          .array(
-            clickAnalyticsResponse[
-              formatAnalyticsEndpoint(endpoint, "plural")
-            ].strict(),
-          )
+          .array(clickAnalyticsResponse[endpoint].strict())
           .safeParse(data);
 
         expect(status).toEqual(200);
@@ -54,27 +44,5 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
     expect(status).toEqual(200);
     expect(clicks).toEqual(expect.any(Number));
     expect(clicks).toBeGreaterThanOrEqual(0);
-  });
-
-  // deprecated, backwards compatiblity
-  DEPRECATED_ANALYTICS_ENDPOINTS.map((endpoint) => {
-    test(`deprecated: by ${endpoint}`, async () => {
-      const { status, data } = await http.get<any[]>({
-        path: `/analytics/${endpoint}`,
-        query: { workspaceId, ...filter },
-      });
-
-      const parsed = z
-        .array(
-          clickAnalyticsResponse[
-            formatAnalyticsEndpoint(endpoint, "plural")
-          ].strict(),
-        )
-        .safeParse(data);
-
-      expect(status).toEqual(200);
-      expect(data.length).toBeGreaterThanOrEqual(0);
-      expect(parsed.success).toBeTruthy();
-    });
   });
 });
