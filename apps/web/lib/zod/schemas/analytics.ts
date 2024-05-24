@@ -29,6 +29,7 @@ const analyticsTypeParam = z
       };
     },
   })
+  .default("count")
   .describe(
     "The type of analytics to retrieve. Valid values include: count, timeseries, top_links, etc.",
   );
