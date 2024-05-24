@@ -81,10 +81,10 @@ export const analyticsQuerySchema = z.object({
   timezone: z
     .string()
     .optional()
-    .default("UTC")
     .describe(
       "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
-    ),
+    )
+    .openapi({ example: "America/New_York", default: "UTC" }),
   country: z
     .enum(COUNTRY_CODES)
     .optional()

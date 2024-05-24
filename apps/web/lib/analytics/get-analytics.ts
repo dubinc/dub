@@ -41,7 +41,7 @@ export const getAnalytics = async (
     interval,
     start,
     end,
-    timezone,
+    timezone = "UTC",
     isDemo,
     endpoint,
   } = params;
@@ -108,7 +108,7 @@ export const getAnalytics = async (
 
   const response = await pipe({
     ...params,
-    eventType: eventType,
+    eventType,
     workspaceId,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
