@@ -1,5 +1,5 @@
 import { receiver } from "@/lib/cron";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";

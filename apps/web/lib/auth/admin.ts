@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { getSession } from "./utils";
 
@@ -17,7 +17,10 @@ interface WithAdminHandler {
 
 export const withAdmin =
   (handler: WithAdminHandler) =>
-  async (req: Request, { params }: { params: Record<string, string> }) => {
+  async (
+    req: Request,
+    { params = {} }: { params: Record<string, string> | undefined },
+  ) => {
     const session = await getSession();
     if (!session?.user) {
       return new Response("Unauthorized: Login required.", { status: 401 });

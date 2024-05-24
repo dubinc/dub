@@ -334,14 +334,11 @@ const DomainPopover = ({
 
   const archiveDomain = (archive: boolean) => {
     return fetch(`/api/domains/${domain.slug}?workspaceId=${id}`, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        ...domain,
-        archived: archive,
-      }),
+      body: JSON.stringify({ archived: archive }),
     });
   };
 
@@ -368,17 +365,16 @@ const DomainPopover = ({
         await mutateDefaultDomains();
         toastWithUndo({
           id: "domain-archive-undo-toast",
-          message: `Successfully archived domain!`,
-          undo: async () => {
+          message: "Successfully archived domain!",
+          undo: () =>
             toast.promise(archiveDefaultDomain(false), {
               loading: "Undo in progress...",
-              error: "Failed to roll back changes. An error occurred.",
-              success: async () => {
-                await mutateDefaultDomains();
+              success: () => {
+                mutateDefaultDomains();
                 return "Undo successful! Changes reverted.";
               },
-            });
-          },
+              error: "Failed to roll back changes. An error occurred.",
+            }),
           duration: 5000,
         });
       } else {
@@ -393,16 +389,15 @@ const DomainPopover = ({
         toastWithUndo({
           id: "domain-archive-undo-toast",
           message: `Successfully archived domain!`,
-          undo: async () => {
+          undo: () =>
             toast.promise(archiveDomain(false), {
               loading: "Undo in progress...",
-              error: "Failed to roll back changes. An error occurred.",
-              success: async () => {
-                await mutateDomains();
+              success: () => {
+                mutateDomains();
                 return "Undo successful! Changes reverted.";
               },
-            });
-          },
+              error: "Failed to roll back changes. An error occurred.",
+            }),
           duration: 5000,
         });
       } else {

@@ -1,4 +1,4 @@
-import { LinkSchema } from "@/lib/zod/schemas";
+import { LinkSchema } from "@/lib/zod/schemas/links";
 import { Link, Tag } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";

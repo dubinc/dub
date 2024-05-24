@@ -1,13 +1,13 @@
+import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 import { getSession } from "./auth";
-import prisma from "./prisma";
 
-export const getWorkspaces = cache(async () => {
+export const getDefaultWorkspace = cache(async () => {
   const session = await getSession();
   if (!session) {
     return null;
   }
-  const workspaces = await prisma.project.findMany({
+  return await prisma.project.findFirst({
     where: {
       users: {
         some: {
@@ -15,13 +15,10 @@ export const getWorkspaces = cache(async () => {
         },
       },
     },
-    include: {
-      domains: true,
-      users: true,
+    select: {
+      slug: true,
     },
   });
-
-  return workspaces;
 });
 
 export const getWorkspace = cache(async ({ slug }: { slug: string }) => {

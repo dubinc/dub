@@ -1,20 +1,36 @@
-import { BlurImage, ExpandingArrow, useScroll } from "@dub/ui";
+import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  BlurImage,
+  DatePickerContext,
+  DateRangePicker,
+  ExpandingArrow,
+  TooltipContent,
+  useRouterStuff,
+  useScroll,
+} from "@dub/ui";
+import {
+  APP_DOMAIN,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
   cn,
   getApexDomain,
+  getNextPlan,
   linkConstructor,
 } from "@dub/utils";
+import { subDays } from "date-fns";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
-import DateRangePicker from "./date-range-picker";
 import ExportButton from "./export-button";
 import FilterBar from "./filter-bar";
 import SharePopover from "./share-popover";
 
 export default function Toggle() {
-  const { basePath, domain, key, url, admin } = useContext(AnalyticsContext);
+  const { plan } = useWorkspace();
+  const { basePath, domain, key, url, admin, start, end } =
+    useContext(AnalyticsContext);
+  const { queryParams } = useRouterStuff();
 
   const scrolled = useScroll(80);
 
@@ -87,12 +103,94 @@ export default function Toggle() {
                 "justify-end": key,
               })}
             >
-              <DateRangePicker />
+              <DateRangePicker
+                className="w-full sm:min-w-[275px]"
+                align="end"
+                defaultValue={{
+                  from: start ? new Date(start) : subDays(new Date(), 30),
+                  to: end ? new Date(end) : new Date(),
+                }}
+                onChange={(range) => {
+                  if (!range || !range.from || !range.to) return;
+
+                  queryParams({
+                    set: {
+                      start: range.from.toISOString(),
+                      end: range.to.toISOString(),
+                    },
+                  });
+                }}
+                presets={INTERVAL_DISPLAYS.map(({ display, value }) => {
+                  const start = INTERVAL_DATA[value].startDate;
+                  const end = new Date();
+
+                  const requiresUpgrade = !validDateRangeForPlan({
+                    plan,
+                    start,
+                    end,
+                  });
+
+                  return {
+                    label: display,
+                    dateRange: {
+                      from: start,
+                      to: end,
+                    },
+                    requiresUpgrade,
+                    tooltipContent: requiresUpgrade ? (
+                      <UpgradeTooltip
+                        rangeLabel={display}
+                        plan={plan}
+                        isPublicStatsPage={isPublicStatsPage}
+                      />
+                    ) : undefined,
+                  };
+                })}
+              />
               {!isPublicStatsPage && <ExportButton />}
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function UpgradeTooltip({
+  rangeLabel,
+  plan,
+  isPublicStatsPage,
+}: {
+  rangeLabel: string;
+  plan?: string;
+  isPublicStatsPage: boolean;
+}) {
+  const { queryParams } = useRouterStuff();
+
+  const { setIsOpen } = useContext(DatePickerContext);
+
+  const isAllTime = rangeLabel === "All Time";
+
+  return (
+    <TooltipContent
+      title={`${rangeLabel} can only be viewed on a ${isAllTime ? "Business" : getNextPlan(plan).name} plan or higher. Upgrade now to view more stats.`}
+      cta={`Upgrade to ${isAllTime ? "Business" : getNextPlan(plan).name}`}
+      {...(isPublicStatsPage
+        ? {
+            href: APP_DOMAIN,
+          }
+        : {
+            onClick: () => {
+              setIsOpen(false);
+              queryParams({
+                set: {
+                  upgrade: isAllTime
+                    ? "business"
+                    : getNextPlan(plan).name.toLowerCase(),
+                },
+              });
+            },
+          })}
+    />
   );
 }

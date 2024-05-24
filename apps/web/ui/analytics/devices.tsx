@@ -1,37 +1,52 @@
-import { DeviceTabs } from "@/lib/analytics";
-import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
+import { DeviceTabs } from "@/lib/analytics/types";
+import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
+import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 import DeviceIcon from "./device-icon";
 
 export default function Devices() {
-  const [tab, setTab] = useState<DeviceTabs>("device");
+  const [tab, setTab] = useState<DeviceTabs>("devices");
+  const singularTabName = useMemo(
+    () => formatAnalyticsEndpoint(tab, "singular"),
+    [tab],
+  );
 
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(`${baseApiPath}/${tab}?${queryString}`, fetcher);
+  >(`${baseApiPath}/${tab}?${queryString}`, fetcher, {
+    shouldRetryOnError: !requiresUpgrade,
+  });
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
     <BarList
-      tab={tab}
+      tab={singularTabName}
       data={
         data?.map((d) => ({
-          icon: <DeviceIcon display={d[tab]} tab={tab} className="h-4 w-4" />,
-          title: d[tab],
+          icon: (
+            <DeviceIcon
+              display={d[singularTabName]}
+              tab={tab}
+              className="h-4 w-4"
+            />
+          ),
+          title: d[singularTabName],
           href: queryParams({
             set: {
-              [tab]: d[tab],
+              [singularTabName]: d[singularTabName],
             },
             getNewPath: true,
           }) as string,
@@ -61,7 +76,7 @@ export default function Devices() {
         <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold">Devices</h1>
           <TabSelect
-            options={["device", "browser", "os"]}
+            options={["devices", "browsers", "os"]}
             selected={tab}
             // @ts-ignore
             selectAction={setTab}
@@ -77,7 +92,7 @@ export default function Devices() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingSpinner />
+            <AnalyticsLoadingSpinner />
           </div>
         )}
         {data && data.length > 9 && (

@@ -12,7 +12,7 @@ export default function WorkspaceAuth({ children }: { children: ReactNode }) {
     return <LayoutLoader />;
   }
 
-  if (error) {
+  if (error && error.status === 404) {
     return <WorkspaceNotFound />;
   }
 

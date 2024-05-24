@@ -48,7 +48,13 @@ export function InputSelect({
 }) {
   const commandRef = useRef<HTMLDivElement | null>(null);
   const [openCommandList, setOpenCommandList] = useState(false);
-  const [inputValue, setInputValue] = useState(selectedItem?.value || "");
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    if (selectedItem) {
+      setInputValue(selectedItem.value);
+    }
+  }, [selectedItem]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

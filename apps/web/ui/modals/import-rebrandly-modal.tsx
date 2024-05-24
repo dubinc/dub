@@ -23,7 +23,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import useSWRImmutable from "swr/immutable";
 
 function ImportRebrandlyModal({
   showImportRebrandlyModal,
@@ -33,7 +33,7 @@ function ImportRebrandlyModal({
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { id, slug } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
   const {
@@ -42,19 +42,16 @@ function ImportRebrandlyModal({
       tagsCount: null,
     },
     isLoading,
-  } = useSWR<{
+    mutate,
+  } = useSWRImmutable<{
     domains: ImportedDomainCountProps[] | null;
     tagsCount: number | null;
   }>(
-    id && showImportRebrandlyModal && `/api/workspaces/${id}/import/rebrandly`,
+    workspaceId &&
+      showImportRebrandlyModal &&
+      `/api/workspaces/${workspaceId}/import/rebrandly`,
     fetcher,
     {
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-      revalidateOnReconnect: false,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
       onError: (err) => {
         if (err.message !== "No Rebrandly access token found") {
           toast.error(err.message);
@@ -74,7 +71,7 @@ function ImportRebrandlyModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "rebrandly") {
-      mutate(`/api/workspaces/${id}/import/rebrandly`);
+      mutate();
       setShowImportRebrandlyModal(true);
     } else {
       setShowImportRebrandlyModal(false);
@@ -117,18 +114,18 @@ function ImportRebrandlyModal({
       </div>
 
       <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        {isLoading ? (
-          <button className="flex flex-col items-center justify-center space-y-4 bg-none">
+        {isLoading || !workspaceId ? (
+          <div className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
             <p className="text-sm text-gray-500">Connecting to Rebrandly</p>
-          </button>
+          </div>
         ) : domains ? (
           <form
             onSubmit={async (e) => {
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/workspaces/${id}/import/rebrandly`, {
+                fetch(`/api/workspaces/${workspaceId}/import/rebrandly`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -139,7 +136,7 @@ function ImportRebrandlyModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?workspaceId=${id}`);
+                    await mutate();
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
@@ -214,7 +211,7 @@ function ImportRebrandlyModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSubmitting(true);
-              fetch(`/api/workspaces/${id}/import/rebrandly`, {
+              fetch(`/api/workspaces/${workspaceId}/import/rebrandly`, {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
@@ -224,7 +221,7 @@ function ImportRebrandlyModal({
                 }),
               }).then(async (res) => {
                 if (res.ok) {
-                  await mutate(`/api/workspaces/${id}/import/rebrandly`);
+                  await mutate();
                   toast.success("Successfully added API key");
                 } else {
                   toast.error("Error adding API key");

@@ -1,5 +1,5 @@
 import { addDomainToVercel, setRootDomain } from "@/lib/api/domains";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
@@ -52,6 +52,7 @@ async function main() {
         const effects = await setRootDomain({
           id: response.id,
           domain,
+          domainCreatedAt: response.createdAt,
           projectId,
           url: target,
           rewrite: false,

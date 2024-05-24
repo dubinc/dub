@@ -1,17 +1,20 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import { type NextAuthOptions } from "next-auth";
+import { User, type NextAuthOptions } from "next-auth";
+import { AdapterUser } from "next-auth/adapters";
+import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { subscribe } from "../flodesk";
 import { isStored, storage } from "../storage";
+import { UserProps } from "../types";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -275,7 +278,15 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    jwt: async ({ token, user, trigger }) => {
+    jwt: async ({
+      token,
+      user,
+      trigger,
+    }: {
+      token: JWT;
+      user: User | AdapterUser | UserProps;
+      trigger?: "signIn" | "update" | "signUp";
+    }) => {
       if (user) {
         token.user = user;
       }

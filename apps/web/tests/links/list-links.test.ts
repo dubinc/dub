@@ -22,8 +22,6 @@ test("GET /links", async (ctx) => {
     query: { workspaceId },
   });
 
-  console.log(links);
-
   const linkFound = links.find((l) => l.id === firstLink.id);
 
   expect(status).toEqual(200);

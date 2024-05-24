@@ -4,10 +4,9 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import {
-  LinkSchemaExtended,
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
-} from "@/lib/zod/schemas";
+} from "@/lib/zod/schemas/links";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -42,11 +41,7 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     includeUser,
   });
 
-  const links = includeUser
-    ? response
-    : LinkSchemaExtended.array().parse(response);
-
-  return NextResponse.json(links, {
+  return NextResponse.json(response, {
     headers,
   });
 });
@@ -83,9 +78,22 @@ export const POST = withWorkspace(
       });
     }
 
-    const response = await createLink(link);
+    try {
+      const response = await createLink(link);
+      return NextResponse.json(response, { headers });
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "A link with this externalId already exists.",
+        });
+      }
 
-    return NextResponse.json(LinkSchemaExtended.parse(response), { headers });
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: error.message,
+      });
+    }
   },
   {
     needNotExceededLinks: true,

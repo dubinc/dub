@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { DomainSchema } from "@/lib/zod/schemas";
+import { prisma } from "@/lib/prisma";
+import { DomainSchema } from "@/lib/zod/schemas/domains";
 import { NextResponse } from "next/server";
 
 // POST /api/domains/[domain]/primary – set a domain as primary

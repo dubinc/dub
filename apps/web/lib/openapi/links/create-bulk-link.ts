@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas";
+import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
