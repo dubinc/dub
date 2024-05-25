@@ -59,7 +59,7 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["analytics"],
+  tags: ["Analytics"],
   security: [{ token: [] }],
 };
 
