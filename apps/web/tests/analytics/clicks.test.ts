@@ -6,6 +6,32 @@ import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 import { filter } from "./utils";
 
+describe.runIf(env.CI).sequential("GET /analytics?event=clicks", async () => {
+  const h = new IntegrationHarness();
+  const { workspace, http } = await h.init();
+  const { workspaceId } = workspace;
+
+  VALID_ANALYTICS_ENDPOINTS.map((type) => {
+    test(`by ${type}`, async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/analytics`,
+        query: { event: "clicks", type, workspaceId, ...filter },
+      });
+
+      const responseSchema =
+        type === "count"
+          ? z.number()
+          : z.array(clickAnalyticsResponse[type].strict());
+
+      const parsed = responseSchema.safeParse(data);
+
+      expect(status).toEqual(200);
+      expect(parsed.success).toBeTruthy();
+    });
+  });
+});
+
+// deprecated, backwards compatiblity
 describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
@@ -34,7 +60,6 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
     });
   });
 
-  // deprecated, backwards compatiblity
   test("deprecated: by count", async () => {
     const { status, data: clicks } = await http.get<number>({
       path: "/analytics/clicks",
