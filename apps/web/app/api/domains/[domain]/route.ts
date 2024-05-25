@@ -5,6 +5,7 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
+import { getDomain } from "@/lib/api/domains/get-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -17,42 +18,26 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
-export const GET = withWorkspace(
-  async ({ domain }) => {
-    const data = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-      },
-      select: {
-        slug: true,
-        verified: true,
-        primary: true,
-        target: true,
-        type: true,
-        placeholder: true,
-        clicks: true,
-        expiredUrl: true,
-      },
-    });
-    if (!data) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Domain not found",
-      });
-    }
-    return NextResponse.json({
-      ...data,
-      url: data.target,
-    });
-  },
-  {
-    domainChecks: true,
-  },
-);
+export const GET = withWorkspace(async ({ workspace, params }) => {
+  const data = await getDomain({
+    workspaceId: workspace.id,
+    slug: params.domain,
+  });
+
+  return NextResponse.json({
+    ...data,
+    url: data.target,
+  });
+});
 
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
-  async ({ req, workspace, domain }) => {
+  async ({ req, workspace, params }) => {
+    const { slug: domain } = await getDomain({
+      workspaceId: workspace.id,
+      slug: params.domain,
+    });
+
     const body = await parseRequestBody(req);
     const {
       slug: newDomain,
@@ -122,19 +107,22 @@ export const PATCH = withWorkspace(
     return NextResponse.json(DomainSchema.parse(response));
   },
   {
-    domainChecks: true,
     requiredRole: ["owner"],
   },
 );
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
-  async ({ domain }) => {
+  async ({ params, workspace }) => {
+    const { slug: domain } = await getDomain({
+      workspaceId: workspace.id,
+      slug: params.domain,
+    });
+
     await deleteDomainAndLinks(domain);
     return NextResponse.json({ slug: domain });
   },
   {
-    domainChecks: true,
     requiredRole: ["owner"],
   },
 );

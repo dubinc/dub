@@ -5,6 +5,7 @@ import {
 } from "@/lib/analytics/constants";
 import { AnalyticsEndpoints } from "@/lib/analytics/types";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getLink } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -27,9 +28,15 @@ const convertToCSV = (data: object[]) => {
 
 // GET /api/analytics/[endpoint]/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace, link }) => {
+  async ({ searchParams, workspace }) => {
     const parsedParams = clickAnalyticsQuerySchema.parse(searchParams);
     const { domain, key, interval, start, end } = parsedParams;
+
+    const link = await getLink({
+      workspaceId: workspace.id,
+      domain,
+      key,
+    });
 
     validDateRangeForPlan({
       plan: workspace.plan,
