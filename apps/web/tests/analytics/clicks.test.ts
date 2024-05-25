@@ -38,7 +38,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   const { workspaceId } = workspace;
 
   VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
-    test(`by ${endpoint}`, async () => {
+    test(`deprecated: by ${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/clicks/${endpoint}`,
         query: { workspaceId, ...filter },
