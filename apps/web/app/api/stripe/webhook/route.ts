@@ -105,6 +105,7 @@ export const POST = async (req: Request) => {
             limiter.schedule(() =>
               sendEmail({
                 email: user.email as string,
+                bcc: process.env.TRUSTPILOT_BCC_EMAIL,
                 subject: `Thank you for upgrading to Dub.co ${plan.name}!`,
                 react: UpgradeEmail({
                   name: user.name,
