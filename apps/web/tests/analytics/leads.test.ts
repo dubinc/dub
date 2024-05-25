@@ -5,9 +5,7 @@ import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { filter } from "./utils";
 
-const event = "leads";
-
-describe.sequential("GET /analytics/leads", async () => {
+describe.sequential("GET /analytics?event=leads", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
@@ -16,7 +14,7 @@ describe.sequential("GET /analytics/leads", async () => {
     test(`by ${type}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics`,
-        query: { event, type, workspaceId, ...filter },
+        query: { event: "leads", type, workspaceId, ...filter },
       });
 
       const responseSchema =
