@@ -3,8 +3,8 @@ import { withSession } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
-// GET /api/analytics/demo/[eventType]/[endpoint]
-export const GET = withSession(async ({ params, searchParams }) => {
+// GET /api/analytics/demo
+export const GET = withSession(async ({ searchParams }) => {
   const parsedParams = analyticsQuerySchema.parse(searchParams);
 
   const response = await getAnalytics({
