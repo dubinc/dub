@@ -12,7 +12,8 @@ export type AnalyticsEndpoints =
   | "os"
   | "referers"
   | "top_links"
-  | "top_urls";
+  | "top_urls"
+  | "trigger";
 export type LocationTabs = "countries" | "cities";
 export type LocationTabsSingular = "country" | "city";
 export type TopLinksTabs = "link" | "url";

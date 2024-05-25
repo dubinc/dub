@@ -93,6 +93,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "referers",
   "top_links",
   "top_urls",
+  "trigger",
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
