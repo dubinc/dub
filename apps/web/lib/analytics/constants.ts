@@ -117,3 +117,5 @@ export const VALID_ANALYTICS_FILTERS = [
   "qr",
   "root",
 ];
+
+export const EVENT_TYPES = ["clicks", "leads", "sales", "composite"] as const;

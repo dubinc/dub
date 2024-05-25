@@ -5,31 +5,28 @@ import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { filter } from "./utils";
 
-describe.skip.sequential("GET /analytics/leads", async () => {
+const event = "leads";
+
+describe.sequential("GET /analytics/leads", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
-    test(`by ${endpoint}`, async () => {
+  VALID_ANALYTICS_ENDPOINTS.map((type) => {
+    test(`by ${type}`, async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/analytics/leads/${endpoint}`,
-        query: { workspaceId, ...filter },
+        path: `/analytics`,
+        query: { event, type, workspaceId, ...filter },
       });
 
-      if (endpoint === "count") {
-        expect(status).toEqual(200);
-        expect(data).toEqual(expect.any(Number));
-        expect(data).toBeGreaterThanOrEqual(0);
-        return;
-      }
+      const responseSchema =
+        type === "count"
+          ? z.number()
+          : z.array(leadAnalyticsResponse[type].strict());
 
-      const parsed = z
-        .array(leadAnalyticsResponse[endpoint].strict())
-        .safeParse(data);
+      const parsed = responseSchema.safeParse(data);
 
       expect(status).toEqual(200);
-      expect(data.length).toBeGreaterThanOrEqual(0);
       expect(parsed.success).toBeTruthy();
     });
   });

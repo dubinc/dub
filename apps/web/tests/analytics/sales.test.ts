@@ -5,31 +5,28 @@ import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { filter } from "./utils";
 
-describe.skip.sequential("GET /analytics/sales", async () => {
+const event = "sales";
+
+describe.sequential("GET /analytics/sales", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
-    test(`by ${endpoint}`, async () => {
+  VALID_ANALYTICS_ENDPOINTS.map((type) => {
+    test(`by ${type}`, async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/analytics/sales/${endpoint}`,
-        query: { workspaceId, ...filter },
+        path: `/analytics`,
+        query: { event, type, workspaceId, ...filter },
       });
 
+      const responseSchema =
+        type === "count"
+          ? saleAnalyticsResponse[type].strict()
+          : z.array(saleAnalyticsResponse[type].strict());
+
+      const parsed = responseSchema.safeParse(data);
+
       expect(status).toEqual(200);
-
-      if (endpoint === "count") {
-        const parsed = saleAnalyticsResponse[endpoint].strict().safeParse(data);
-        expect(parsed.success).toBeTruthy();
-        return;
-      }
-
-      const parsed = z
-        .array(saleAnalyticsResponse[endpoint].strict())
-        .safeParse(data);
-
-      expect(data.length).toBeGreaterThanOrEqual(0);
       expect(parsed.success).toBeTruthy();
     });
   });

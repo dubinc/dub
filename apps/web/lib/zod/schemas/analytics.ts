@@ -1,4 +1,5 @@
 import {
+  EVENT_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
   intervals,
 } from "@/lib/analytics/constants";
@@ -8,7 +9,7 @@ import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
 const analyticsEventParam = z
-  .enum(["clicks", "leads", "sales", "composite"], {
+  .enum(EVENT_TYPES, {
     errorMap: (_issue, _ctx) => {
       return {
         message:
