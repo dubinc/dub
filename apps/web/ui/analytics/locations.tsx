@@ -35,7 +35,6 @@ export default function Locations() {
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },
   );
-  console.log({ data });
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);

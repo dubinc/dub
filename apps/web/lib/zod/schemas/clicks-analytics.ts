@@ -53,4 +53,12 @@ export const clickAnalyticsResponse = {
     url: z.string().describe("The destination URL"),
     clicks: z.number().describe("The number of clicks from this URL"),
   }),
+  trigger: z.object({
+    trigger: z
+      .enum(["link", "qr"])
+      .describe("The type of trigger method: link click or QR scan"),
+    clicks: z
+      .number()
+      .describe("The number of clicks from this trigger method."),
+  }),
 } as const;
