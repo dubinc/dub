@@ -87,6 +87,18 @@ export const POST = withWorkspaceEdge(
         customer_id: customer.id,
         metadata: metadata ? JSON.stringify(metadata) : "",
       }),
+
+      // update link leads count
+      prismaEdge.link.update({
+        where: {
+          id: clickData.link_id,
+        },
+        data: {
+          leads: {
+            increment: 1,
+          },
+        },
+      }),
     ]);
 
     const response = trackLeadResponseSchema.parse({
