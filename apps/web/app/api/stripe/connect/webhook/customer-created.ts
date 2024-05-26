@@ -78,5 +78,17 @@ export async function customerCreated(event: Stripe.Event) {
       event_name: "Customer created",
       customer_id: customer.id,
     }),
+
+    // update link leads count
+    prisma.link.update({
+      where: {
+        id: clickData.link_id,
+      },
+      data: {
+        leads: {
+          increment: 1,
+        },
+      },
+    }),
   ]);
 }
