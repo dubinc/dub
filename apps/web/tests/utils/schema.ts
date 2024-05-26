@@ -25,6 +25,8 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   publicStats: false,
   clicks: 0,
   lastClicked: null,
+  leads: 0,
+  sales: 0,
   tagId: null, // backwards compatibility
   comments: null,
   createdAt: expect.any(String),
