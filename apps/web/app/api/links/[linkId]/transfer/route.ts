@@ -69,7 +69,7 @@ export const POST = withWorkspace(
 
     const linkClicks = await getAnalytics({
       event: "clicks",
-      type: "count",
+      groupBy: "count",
       linkId: link.id,
       interval: "30d",
     });

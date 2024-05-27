@@ -8,7 +8,7 @@ import * as Papa from "papaparse";
 async function main() {
   const topLinks = await getAnalytics({
     event: "clicks",
-    type: "top_links",
+    groupBy: "top_links",
     workspaceId: "xxx",
     interval: "30d",
     root: false,

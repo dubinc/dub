@@ -150,7 +150,7 @@ export default function Analytics({
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}?${queryString}&type=count`,
+    `${baseApiPath}?${queryString}&groupBy=count`,
     fetcher,
     {
       onSuccess: () => setRequiresUpgrade(false),

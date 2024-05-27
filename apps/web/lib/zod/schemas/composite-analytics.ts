@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
+import { eventTrigger } from "./analytics";
 
 export const compositeAnalyticsResponse = {
   count: z.object({
@@ -92,5 +93,17 @@ export const compositeAnalyticsResponse = {
     leads: z.number().describe("The number of leads from this URL"),
     sales: z.number().describe("The number of sales from this URL"),
     amount: z.number().describe("The total amount of sales from this URL"),
+  }),
+
+  trigger: z.object({
+    trigger: eventTrigger,
+    clicks: z
+      .number()
+      .describe("The number of clicks from this trigger method."),
+    leads: z.number().describe("The number of leads from this trigger method."),
+    sales: z.number().describe("The number of sales from this trigger method."),
+    amount: z
+      .number()
+      .describe("The total amount of sales from this trigger method."),
   }),
 } as const;

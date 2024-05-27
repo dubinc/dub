@@ -8,7 +8,7 @@ import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
-const analyticsEventParam = z
+const analyticsEvents = z
   .enum(EVENT_TYPES, {
     errorMap: (_issue, _ctx) => {
       return {
@@ -22,7 +22,17 @@ const analyticsEventParam = z
     "The type of event to retrieve analytics for. Defaults to 'clicks'.",
   );
 
-const analyticsTypeParam = z
+export const eventTrigger = z
+  .enum(["link", "qr"], {
+    errorMap: (_issue, _ctx) => {
+      return {
+        message: "Invalid trigger. Valid triggers are 'link' and 'qr'.",
+      };
+    },
+  })
+  .describe("The type of trigger method: link click or QR scan");
+
+const analyticsTypes = z
   .enum(VALID_ANALYTICS_ENDPOINTS, {
     errorMap: (_issue, _ctx) => {
       return {
@@ -35,15 +45,16 @@ const analyticsTypeParam = z
     "The type of analytics to retrieve. Valid values include: count, timeseries, top_links, etc.",
   );
 
+// For backwards compatibility
 export const analyticsPathParamsSchema = z.object({
-  eventType: analyticsEventParam.removeDefault().optional(),
-  endpoint: analyticsTypeParam.removeDefault().optional(),
+  eventType: analyticsEvents.removeDefault().optional(),
+  endpoint: analyticsTypes.removeDefault().optional(),
 });
 
 // Query schema for /api/analytics endpoint
 export const analyticsQuerySchema = z.object({
-  event: analyticsEventParam,
-  type: analyticsTypeParam,
+  event: analyticsEvents,
+  groupBy: analyticsTypes,
   domain: z.string().optional().describe("The domain to filter analytics for."),
   key: z.string().optional().describe("The short link slug."),
   linkId: z
@@ -134,7 +145,7 @@ export const analyticsQuerySchema = z.object({
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z
   .object({
-    eventType: analyticsEventParam,
+    eventType: analyticsEvents,
     workspaceId: z
       .string()
       .optional()

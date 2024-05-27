@@ -30,7 +30,7 @@ const responseSchema = {
 export const getAnalytics = async (params: AnalyticsFilters) => {
   let {
     event,
-    type,
+    groupBy,
     workspaceId,
     linkId,
     interval,
@@ -46,7 +46,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 3. interval is all time
   // 4. call is made from dashboard
   if (
-    type === "count" &&
+    groupBy === "count" &&
     linkId &&
     interval === "all" &&
     headers()?.get("Request-Source") === "app.dub.co"
@@ -95,10 +95,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: `v1_${type}`,
+    pipe: `v1_${groupBy}`,
     parameters: analyticsFilterTB,
-    data: responseSchema[event][type],
+    data: responseSchema[event][groupBy],
   });
+
+  console.log({groupBy, event})
 
   const response = await pipe({
     ...params,
@@ -112,7 +114,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // for total clicks|leads, we return just the value;
   // everything else we return the full response
-  if (type === "count") {
+  if (groupBy === "count") {
     if (event === "clicks" || event === "leads") {
       return response.data[0][event];
     } else {

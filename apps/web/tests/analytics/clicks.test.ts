@@ -11,17 +11,17 @@ describe.runIf(env.CI).sequential("GET /analytics?event=clicks", async () => {
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.map((type) => {
-    test(`by ${type}`, async () => {
+  VALID_ANALYTICS_ENDPOINTS.map((groupBy) => {
+    test(`by ${groupBy}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics`,
-        query: { event: "clicks", type, workspaceId, ...filter },
+        query: { event: "clicks", groupBy, workspaceId, ...filter },
       });
 
       const responseSchema =
-        type === "count"
+        groupBy === "count"
           ? z.number()
-          : z.array(clickAnalyticsResponse[type].strict());
+          : z.array(clickAnalyticsResponse[groupBy].strict());
 
       const parsed = responseSchema.safeParse(data);
 

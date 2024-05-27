@@ -27,7 +27,7 @@ export default function Devices() {
     } & { [key in AnalyticsEvents]: number })[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
-      type: tab,
+      groupBy: tab,
     })}`,
     fetcher,
     {

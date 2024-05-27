@@ -38,7 +38,7 @@ export default function TopLinks() {
     } & { [key in AnalyticsEvents]: number })[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
-      type: `top_${tab}s`,
+      groupBy: `top_${tab}s`,
     })}`,
     fetcher,
     {

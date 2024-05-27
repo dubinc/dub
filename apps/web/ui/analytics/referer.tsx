@@ -19,7 +19,7 @@ export default function Referer() {
     })[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
-      type: "referers",
+      groupBy: "referers",
     })}`,
     fetcher,
     { shouldRetryOnError: !requiresUpgrade },

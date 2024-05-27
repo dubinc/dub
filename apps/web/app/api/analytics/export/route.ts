@@ -53,7 +53,7 @@ export const GET = withWorkspace(
           const data = await getAnalytics({
             ...parsedParams,
             event: "clicks",
-            type: "top_links",
+            groupBy: "top_links",
             workspaceId: workspace.id,
           });
 
@@ -128,7 +128,7 @@ export const GET = withWorkspace(
             workspaceId: workspace.id,
             ...(linkId && { linkId }),
             event: "clicks",
-            type: endpoint,
+            groupBy: endpoint,
           });
           if (!response || response.length === 0) return;
 

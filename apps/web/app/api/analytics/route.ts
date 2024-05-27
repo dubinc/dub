@@ -15,10 +15,10 @@ export const GET = withWorkspace(
       analyticsPathParamsSchema.parse(params);
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
-    let { event, type, domain, key, interval, start, end } = parsedParams;
+    let { event, groupBy, domain, key, interval, start, end } = parsedParams;
 
     event = oldEvent || event;
-    type = oldType || type;
+    groupBy = oldType || groupBy;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -37,7 +37,7 @@ export const GET = withWorkspace(
     const response = await getAnalytics({
       ...parsedParams,
       event,
-      type,
+      groupBy,
       ...(linkId && { linkId }),
       workspaceId: workspace.id,
     });

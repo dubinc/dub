@@ -36,7 +36,7 @@ async function main() {
   }
   const topLinks = await getAnalytics({
     event: "clicks",
-    type: "top_links",
+    groupBy: "top_links",
     workspaceId: workspace.id,
     interval: "30d",
     root: false,

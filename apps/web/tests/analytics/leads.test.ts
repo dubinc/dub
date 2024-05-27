@@ -2,26 +2,26 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { leadAnalyticsResponse } from "@/lib/zod/schemas/leads-analytics";
 import { describe, expect, test } from "vitest";
-import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 import { filter } from "./utils";
+import { env } from "../utils/env";
 
 describe.runIf(env.CI).sequential("GET /analytics?event=leads", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.map((type) => {
-    test(`by ${type}`, async () => {
+  VALID_ANALYTICS_ENDPOINTS.map((groupBy) => {
+    test(`by ${groupBy}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics`,
-        query: { event: "leads", type, workspaceId, ...filter },
+        query: { event: "leads", groupBy, workspaceId, ...filter },
       });
 
       const responseSchema =
-        type === "count"
+        groupBy === "count"
           ? z.number()
-          : z.array(leadAnalyticsResponse[type].strict());
+          : z.array(leadAnalyticsResponse[groupBy].strict());
 
       const parsed = responseSchema.safeParse(data);
 

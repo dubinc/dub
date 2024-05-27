@@ -118,7 +118,7 @@ export const updateUsage = async (skip?: number) => {
             ? await getAnalytics({
                 workspaceId: workspace.id,
                 event: "clicks",
-                type: "top_links",
+                groupBy: "top_links",
                 interval: "30d",
                 root: false,
               }).then(async (data) => {

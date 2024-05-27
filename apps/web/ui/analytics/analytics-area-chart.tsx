@@ -22,7 +22,7 @@ export default function AnalyticsAreaChart({
   >(
     `${baseApiPath}?${editQueryString(queryString, {
       event: "composite",
-      type: "timeseries",
+      groupBy: "timeseries",
     })}`,
     fetcher,
     {

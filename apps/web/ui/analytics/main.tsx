@@ -84,7 +84,7 @@ export default function Main() {
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
       event: "composite",
-      type: "count",
+      groupBy: "count",
     })}`,
     fetcher,
     {

@@ -19,7 +19,7 @@ export const GET = async (req: NextRequest) => {
     const searchParams = getSearchParams(req.url);
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    const { type, domain, key, interval, start, end } = parsedParams;
+    const { groupBy, domain, key, interval, start, end } = parsedParams;
 
     if (!domain || !key) {
       throw new DubApiError({
@@ -41,8 +41,8 @@ export const GET = async (req: NextRequest) => {
         const ip = ipAddress(req);
         const { success } = await ratelimit(
           15,
-          type === "count" ? "10 s" : "1 m",
-        ).limit(`demo-analytics:${demoLink.id}:${ip}:${type}`);
+          groupBy === "count" ? "10 s" : "1 m",
+        ).limit(`demo-analytics:${demoLink.id}:${ip}:${groupBy}`);
 
         if (!success) {
           throw new DubApiError({

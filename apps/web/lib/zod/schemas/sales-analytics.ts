@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
+import { eventTrigger } from "./analytics";
 
 export const saleAnalyticsResponse = {
   count: z.object({
@@ -72,5 +73,13 @@ export const saleAnalyticsResponse = {
     url: z.string().describe("The destination URL"),
     sales: z.number().describe("The number of sales from this URL"),
     amount: z.number().describe("The total amount of sales from this URL"),
+  }),
+
+  trigger: z.object({
+    trigger: eventTrigger,
+    sales: z.number().describe("The number of sales from this trigger method."),
+    amount: z
+      .number()
+      .describe("The total amount of sales from this trigger method."),
   }),
 } as const;
