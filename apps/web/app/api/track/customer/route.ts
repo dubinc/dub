@@ -4,7 +4,10 @@ import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { recordCustomer } from "@/lib/tinybird";
-import { trackCustomerRequestSchema } from "@/lib/zod/schemas/customers";
+import {
+  trackCustomerRequestSchema,
+  trackCustomerResponseSchema,
+} from "@/lib/zod/schemas/customers";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -58,7 +61,14 @@ export const POST = withWorkspaceEdge(
         }),
       );
 
-      return NextResponse.json(customer, { status: 201 });
+      const response = trackCustomerResponseSchema.parse({
+        customerId: externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      });
+
+      return NextResponse.json(response, { status: 201 });
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -66,6 +76,7 @@ export const POST = withWorkspaceEdge(
           message: `A customer with customerId: ${externalId} already exists`,
         });
       }
+
       throw new DubApiError({
         code: "internal_server_error",
         message: "Failed to create customer",
