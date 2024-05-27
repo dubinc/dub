@@ -51,16 +51,28 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }
   }
 
-  // Record sale
-  await recordSale({
-    ...leadEvent.data[0],
-    event_id: nanoid(16),
-    payment_processor: "stripe",
-    amount: charge.amount_total!,
-    currency: charge.currency!,
-    invoice_id: invoiceId || "",
-    metadata: JSON.stringify({
-      charge,
+  await Promise.all([
+    recordSale({
+      ...leadEvent.data[0],
+      event_id: nanoid(16),
+      payment_processor: "stripe",
+      amount: charge.amount_total!,
+      currency: charge.currency!,
+      invoice_id: invoiceId || "",
+      metadata: JSON.stringify({
+        charge,
+      }),
     }),
-  });
+    // update link sales count
+    prisma.link.update({
+      where: {
+        id: leadEvent.data[0].link_id,
+      },
+      data: {
+        sales: {
+          increment: 1,
+        },
+      },
+    }),
+  ]);
 }

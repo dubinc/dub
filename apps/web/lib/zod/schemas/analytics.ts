@@ -86,15 +86,6 @@ export const analyticsQuerySchema = z.object({
     .optional()
     .describe("The start date and time when to retrieve analytics from."),
   end: parseDateSchema
-    .refine(
-      (value: Date) => {
-        const todaysDate = new Date();
-        return value <= todaysDate;
-      },
-      {
-        message: "The end date cannot be in future.",
-      },
-    )
     .optional()
     .describe(
       "The end date and time when to retrieve analytics from. If not provided, defaults to the current date.",

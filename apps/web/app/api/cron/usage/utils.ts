@@ -12,7 +12,7 @@ import {
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";
 
-const limit = 250;
+const limit = 100;
 
 export const updateUsage = async (skip?: number) => {
   const workspaces = await prisma.project.findMany({
@@ -185,13 +185,13 @@ export const updateUsage = async (skip?: number) => {
       const { plan, usage, usageLimit } = workspace;
 
       // only reset clicks usage if it's not over usageLimit by:
-      // 2x for free plan (2K clicks)
+      // 3x for free plan (3K clicks)
       // 1.5x for pro plan (75K clicks)
       // 1.2x for business plan (300K clicks)
 
       const resetUsage =
         plan === "free"
-          ? usage < usageLimit * 2
+          ? usage < usageLimit * 3
           : plan === "pro"
             ? usage < usageLimit * 1.5
             : plan.startsWith("business")

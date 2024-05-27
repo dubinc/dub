@@ -56,16 +56,29 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    await recordSale({
-      ...clickData,
-      event_id: nanoid(16),
-      customer_id: customer.id,
-      payment_processor: paymentProcessor,
-      amount,
-      currency,
-      invoice_id: invoiceId || "",
-      metadata: metadata ? JSON.stringify(metadata) : "",
-    });
+    await Promise.all([
+      recordSale({
+        ...clickData,
+        event_id: nanoid(16),
+        customer_id: customer.id,
+        payment_processor: paymentProcessor,
+        amount,
+        currency,
+        invoice_id: invoiceId || "",
+        metadata: metadata ? JSON.stringify(metadata) : "",
+      }),
+      // update link sales count
+      prismaEdge.link.update({
+        where: {
+          id: leadEvent.data[0].link_id,
+        },
+        data: {
+          sales: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
 
     const response = trackSaleResponseSchema.parse({
       customerId: externalId,

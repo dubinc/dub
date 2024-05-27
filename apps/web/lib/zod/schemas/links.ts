@@ -395,6 +395,14 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The date and time when the short link was last clicked."),
+    leads: z
+      .number()
+      .default(0)
+      .describe("[BETA]: The number of leads the short links has generated."),
+    sales: z
+      .number()
+      .default(0)
+      .describe("[BETA]: The number of sales the short links has generated."),
     createdAt: z
       .string()
       .describe("The date and time when the short link was created."),
