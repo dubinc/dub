@@ -15,21 +15,18 @@ export const trackCustomerRequestSchema = z.object({
   customerName: z
     .string()
     .max(100)
-    .nullish()
-    .default(null)
+    .optional()
     .describe("Name of the customer in the client's app."),
   customerEmail: z
     .string()
     .email()
     .max(100)
-    .nullish()
-    .default(null)
+    .optional()
     .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
     .max(100)
-    .nullish()
-    .default(null)
+    .optional()
     .describe("Avatar of the customer in the client's app."),
 });
 
@@ -41,7 +38,13 @@ export const trackCustomerResponseSchema = z.object({
 });
 
 export const customersMetadataSchema = z.object({
-  workspace_id: z.string(),
+  workspace_id: z.string().transform((v) => {
+    if (!v.startsWith("ws_")) {
+      return `ws_${v}`;
+    } else {
+      return v;
+    }
+  }),
   customer_id: z.string(),
   name: z.string().default(""),
   email: z.string().default(""),

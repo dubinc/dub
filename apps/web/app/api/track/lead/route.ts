@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
@@ -19,11 +20,11 @@ export const POST = withWorkspaceEdge(
     const {
       clickId,
       eventName,
-      metadata,
+      customerId: externalId,
       customerName,
       customerEmail,
       customerAvatar,
-      customerId: externalId,
+      metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
     // Find click event
@@ -40,6 +41,9 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(clickEvent.data[0]);
 
+    const randomId = `cus_${nanoid(16)}`;
+    const randomName = generateRandomName();
+
     // Find customer or create if not exists
     const customer = await prismaEdge.customer.upsert({
       where: {
@@ -49,8 +53,8 @@ export const POST = withWorkspaceEdge(
         },
       },
       create: {
-        id: nanoid(16),
-        name: customerName, // TODO: Generate random name if not provided
+        id: randomId,
+        name: customerName || randomName,
         email: customerEmail,
         avatar: customerAvatar,
         externalId,
@@ -72,20 +76,20 @@ export const POST = withWorkspaceEdge(
     }
 
     await Promise.all([
-      recordCustomer({
-        workspace_id: workspace.id,
-        customer_id: customer.id,
-        name: customerName || "",
-        email: customerEmail || "",
-        avatar: customerAvatar || "",
-      }),
-
       recordLead({
         ...clickData,
         event_id: nanoid(16),
         event_name: eventName,
         customer_id: customer.id,
         metadata: metadata ? JSON.stringify(metadata) : "",
+      }),
+
+      recordCustomer({
+        workspace_id: workspace.id,
+        customer_id: customer.id,
+        name: customer.name || "",
+        email: customer.email || "",
+        avatar: customer.avatar || "",
       }),
 
       // update link leads count
@@ -104,10 +108,11 @@ export const POST = withWorkspaceEdge(
     const response = trackLeadResponseSchema.parse({
       clickId,
       eventName,
-      customerName,
-      customerEmail,
-      customerAvatar,
-      customerId: externalId,
+      customerId: customer.id,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
+      externalId: customer.externalId,
       metadata,
     });
 
