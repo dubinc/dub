@@ -100,8 +100,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     data: responseSchema[event][groupBy],
   });
 
-  console.log({groupBy, event})
-
   const response = await pipe({
     ...params,
     eventType: event,

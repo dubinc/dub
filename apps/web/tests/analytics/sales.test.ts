@@ -2,9 +2,9 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { saleAnalyticsResponse } from "@/lib/zod/schemas/sales-analytics";
 import { describe, expect, test } from "vitest";
+import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 import { filter } from "./utils";
-import { env } from "../utils/env";
 
 describe.runIf(env.CI).sequential("GET /analytics?event=sales", async () => {
   const h = new IntegrationHarness();
