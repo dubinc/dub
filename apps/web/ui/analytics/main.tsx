@@ -1,16 +1,8 @@
-import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import { editQueryString } from "@/lib/analytics/utils";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
-import {
-  COUNTRIES,
-  capitalize,
-  cn,
-  fetcher,
-  linkConstructor,
-  truncate,
-} from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { ChevronRight, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -178,55 +170,6 @@ export default function Main() {
           );
         })}
         <div className="flex flex-wrap items-center justify-end gap-2 p-5 sm:p-10">
-          {domain &&
-            (key ? (
-              <Link
-                href={
-                  queryParams({
-                    del: ["domain", "key"],
-                    getNewPath: true,
-                  }) as string
-                }
-                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
-              >
-                <p>Link</p>
-                <strong className="text-gray-800">
-                  {truncate(linkConstructor({ domain, key, pretty: true }), 24)}
-                </strong>
-                <X className="h-4 w-4" />
-              </Link>
-            ) : (
-              <Link
-                href={
-                  queryParams({
-                    del: "domain",
-                    getNewPath: true,
-                  }) as string
-                }
-                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
-              >
-                <p>Domain</p>
-                <strong className="text-gray-800">{domain}</strong>
-                <X className="h-4 w-4" />
-              </Link>
-            ))}
-          {tags && tagId && (
-            <Link
-              href={
-                queryParams({
-                  del: "tagId",
-                  getNewPath: true,
-                }) as string
-              }
-              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
-            >
-              <p>Tag</p>
-              <strong className="text-gray-800">
-                {tags.find((tag) => tag.id === tagId)?.name || tagId}
-              </strong>
-              <X className="h-4 w-4" />
-            </Link>
-          )}
           {root && (
             <Link
               href={
@@ -244,32 +187,6 @@ export default function Main() {
               <X className="h-4 w-4" />
             </Link>
           )}
-          {VALID_ANALYTICS_FILTERS.map((filter) => {
-            if (filter === "tagId" || filter === "qr" || filter === "root")
-              return null;
-            const value = searchParams?.get(filter);
-            if (!value) return null;
-            return (
-              <Link
-                key={filter}
-                href={
-                  queryParams({
-                    del: filter,
-                    getNewPath: true,
-                  }) as string
-                }
-                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
-              >
-                <p>{capitalize(filter)}</p>
-                <strong className="text-gray-800">
-                  {filter === "country"
-                    ? COUNTRIES[value]
-                    : truncate(value, 24)}
-                </strong>
-                <X className="h-4 w-4" />
-              </Link>
-            );
-          })}
         </div>
       </div>
       <div className="p-5 sm:p-10">
