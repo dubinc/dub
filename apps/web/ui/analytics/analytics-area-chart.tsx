@@ -23,6 +23,7 @@ export default function AnalyticsAreaChart({
     `${baseApiPath}?${editQueryString(queryString, {
       event: "composite",
       groupBy: "timeseries",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })}`,
     fetcher,
     {
@@ -60,7 +61,6 @@ export default function AnalyticsAreaChart({
           });
       } else if (interval) {
         switch (interval) {
-          case "1h":
           case "24h":
             return date.toLocaleTimeString("en-US", {
               hour: "numeric",
@@ -73,6 +73,8 @@ export default function AnalyticsAreaChart({
               month: "short",
               year: "numeric",
             });
+          default:
+            break;
         }
       }
 
@@ -82,7 +84,7 @@ export default function AnalyticsAreaChart({
         day: "numeric",
       });
     },
-    [start, end],
+    [start, end, interval],
   );
 
   const series = [

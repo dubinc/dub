@@ -1,18 +1,12 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import {
-  AnalyticsEvents,
-  LocationTabs,
-  LocationTabsSingular,
-} from "@/lib/analytics/types";
-import { editQueryString } from "@/lib/analytics/utils";
+import { LocationTabs } from "@/lib/analytics/types";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, fetcher } from "@dub/utils";
+import { COUNTRIES } from "@dub/utils";
 import { Maximize } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
-import useSWR from "swr";
-import { AnalyticsContext } from ".";
+import { useMemo, useState } from "react";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("countries");
@@ -21,21 +15,7 @@ export default function Locations() {
     [tab],
   );
 
-  const { selectedTab, baseApiPath, queryString, requiresUpgrade } =
-    useContext(AnalyticsContext);
-
-  const { data } = useSWR<
-    ({
-      [key in LocationTabsSingular]: string;
-    } & { [key in AnalyticsEvents]: number })[]
-  >(
-    `${baseApiPath}?${editQueryString(queryString, {
-      groupBy: tab,
-    })}`,
-    fetcher,
-    { shouldRetryOnError: !requiresUpgrade },
-  );
-
+  const data = useAnalyticsFilterOption(tab);
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
@@ -58,10 +38,10 @@ export default function Locations() {
             },
             getNewPath: true,
           }) as string,
-          value: d[selectedTab] ?? d["clicks"],
+          value: d.count,
         })) || []
       }
-      maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
+      maxValue={(data && data[0]?.count) || 0}
       barBackground="bg-orange-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

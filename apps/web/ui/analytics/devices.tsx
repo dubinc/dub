@@ -1,15 +1,12 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import { AnalyticsEvents, DeviceTabs } from "@/lib/analytics/types";
-import { editQueryString } from "@/lib/analytics/utils";
+import { DeviceTabs } from "@/lib/analytics/types";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
-import useSWR from "swr";
-import { AnalyticsContext } from ".";
+import { useMemo, useState } from "react";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 import DeviceIcon from "./device-icon";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("devices");
@@ -18,22 +15,7 @@ export default function Devices() {
     [tab],
   );
 
-  const { selectedTab, baseApiPath, queryString, requiresUpgrade } =
-    useContext(AnalyticsContext);
-
-  const { data } = useSWR<
-    ({
-      [key in DeviceTabs]: string;
-    } & { [key in AnalyticsEvents]: number })[]
-  >(
-    `${baseApiPath}?${editQueryString(queryString, {
-      groupBy: tab,
-    })}`,
-    fetcher,
-    {
-      shouldRetryOnError: !requiresUpgrade,
-    },
-  );
+  const data = useAnalyticsFilterOption(tab);
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
@@ -57,10 +39,10 @@ export default function Devices() {
             },
             getNewPath: true,
           }) as string,
-          value: d[selectedTab] ?? d["clicks"],
+          value: d.count,
         })) || []
       }
-      maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
+      maxValue={(data && data[0]?.count) || 0}
       barBackground="bg-green-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

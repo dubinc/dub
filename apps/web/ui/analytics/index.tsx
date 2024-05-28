@@ -150,7 +150,6 @@ export default function Analytics({
       ...(tagId && { tagId }),
       ...availableFilterParams,
       event: selectedTab,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
   }, [workspaceId, domain, key, searchParams, start, end, tagId, selectedTab]);
 

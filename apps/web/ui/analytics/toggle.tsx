@@ -1,5 +1,5 @@
 import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
-import { editQueryString, validDateRangeForPlan } from "@/lib/analytics/utils";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -19,7 +19,6 @@ import {
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
   cn,
-  fetcher,
   getApexDomain,
   getNextPlan,
   linkConstructor,
@@ -36,12 +35,12 @@ import {
   Tag,
 } from "lucide-react";
 import { useContext, useMemo } from "react";
-import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import { COLORS_LIST } from "../links/tag-badge";
 import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
 import SharePopover from "./share-popover";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
@@ -51,11 +50,11 @@ export default function Toggle() {
   const { tags } = useTags();
   const { allDomains: domains } = useDomains();
 
-  const countries = useAnalyticsFilterOption("countries", "country");
-  const cities = useAnalyticsFilterOption("cities", ["country", "city"]);
-  const devices = useAnalyticsFilterOption("devices", "device");
-  const browsers = useAnalyticsFilterOption("browsers", "browser");
-  const os = useAnalyticsFilterOption("os", "os");
+  const countries = useAnalyticsFilterOption("countries");
+  const cities = useAnalyticsFilterOption("cities");
+  const devices = useAnalyticsFilterOption("devices");
+  const browsers = useAnalyticsFilterOption("browsers");
+  const os = useAnalyticsFilterOption("os");
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
@@ -436,33 +435,5 @@ function UpgradeTooltip({
             },
           })}
     />
-  );
-}
-
-function useAnalyticsFilterOption(
-  groupBy: string,
-  keys: string | string[],
-): ({ count?: number } & Record<string, any>) | null {
-  const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
-    useContext(AnalyticsContext);
-
-  const { data } = useSWR<Record<string, any>[]>(
-    `${baseApiPath}?${editQueryString(queryString, {
-      groupBy,
-    })}`,
-    fetcher,
-    {
-      shouldRetryOnError: !requiresUpgrade,
-    },
-  );
-
-  return (
-    data?.map((d) => ({
-      ...Object.fromEntries(
-        (Array.isArray(keys) ? keys : [keys]).map((key) => [key, d[key]]),
-      ),
-      count:
-        ((d[selectedTab] ?? d["clicks"]) as number | undefined) ?? undefined,
-    })) ?? null
   );
 }
