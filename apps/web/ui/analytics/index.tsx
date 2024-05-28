@@ -6,7 +6,7 @@
 */
 
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
-import { AnalyticsEvents } from "@/lib/analytics/types";
+import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
 import { endOfDay, startOfDay, subDays } from "date-fns";
@@ -35,7 +35,7 @@ export const AnalyticsContext = createContext<{
   end?: Date;
   interval?: string;
   tagId?: string;
-  totalEvents?: { [key in AnalyticsEvents]: number };
+  totalEvents?: { [key in CompositeAnalyticsResponseOptions]: number };
   admin?: boolean;
   demo?: boolean;
   requiresUpgrade?: boolean;
@@ -156,30 +156,28 @@ export default function Analytics({
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
-  const { data: totalEvents } = useSWR<{ [key in AnalyticsEvents]: number }>(
-    `${baseApiPath}?${queryString}`,
-    fetcher,
-    {
-      onSuccess: () => setRequiresUpgrade(false),
-      onError: (error) => {
-        if (error.status === 403) {
-          toast.custom(() => (
-            <UpgradeRequiredToast
-              title="Upgrade for more analytics"
-              message={JSON.parse(error.message)?.error.message}
-            />
-          ));
-          setRequiresUpgrade(true);
-        } else {
-          toast.error(error.message);
-        }
-      },
-      onErrorRetry: (error, ...args) => {
-        if (error.message.includes("Upgrade to Pro")) return;
-        defaultConfig.onErrorRetry(error, ...args);
-      },
+  const { data: totalEvents } = useSWR<{
+    [key in CompositeAnalyticsResponseOptions]: number;
+  }>(`${baseApiPath}?${queryString}`, fetcher, {
+    onSuccess: () => setRequiresUpgrade(false),
+    onError: (error) => {
+      if (error.status === 403) {
+        toast.custom(() => (
+          <UpgradeRequiredToast
+            title="Upgrade for more analytics"
+            message={JSON.parse(error.message)?.error.message}
+          />
+        ));
+        setRequiresUpgrade(true);
+      } else {
+        toast.error(error.message);
+      }
     },
-  );
+    onErrorRetry: (error, ...args) => {
+      if (error.message.includes("Upgrade to Pro")) return;
+      defaultConfig.onErrorRetry(error, ...args);
+    },
+  });
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 

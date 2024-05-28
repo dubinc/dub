@@ -1,4 +1,4 @@
-import { AnalyticsEvents } from "@/lib/analytics/types";
+import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
@@ -118,7 +118,9 @@ export default function LinkCard({
   const entry = useIntersectionObserver(linkRef, {});
   const isVisible = !!entry?.isIntersecting;
 
-  const { data: totalEvents } = useSWR<{ [key in AnalyticsEvents]?: number }>(
+  const { data: totalEvents } = useSWR<{
+    [key in CompositeAnalyticsResponseOptions]?: number;
+  }>(
     // only fetch data if the link is visible and there's a slug and the usage is not exceeded
     isVisible &&
       workspaceId &&

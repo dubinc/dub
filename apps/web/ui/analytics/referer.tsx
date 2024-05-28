@@ -1,4 +1,4 @@
-import { AnalyticsEvents } from "@/lib/analytics/types";
+import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { BlurImage, Modal, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
@@ -15,7 +15,7 @@ export default function Referer() {
 
   const { data } = useSWR<
     ({ referer: string } & {
-      [key in AnalyticsEvents]: number;
+      [key in CompositeAnalyticsResponseOptions]: number;
     })[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {

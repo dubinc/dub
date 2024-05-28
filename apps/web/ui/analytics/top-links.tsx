@@ -1,4 +1,7 @@
-import { AnalyticsEvents, TopLinksTabs } from "@/lib/analytics/types";
+import {
+  CompositeAnalyticsResponseOptions,
+  TopLinksTabs,
+} from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher, getApexDomain, linkConstructor, truncate } from "@dub/utils";
@@ -36,7 +39,7 @@ export default function TopLinks() {
   const { data } = useSWR<
     ({ domain: string; key: string } & {
       [key in TopLinksTabs]: string;
-    } & { [key in AnalyticsEvents]: number })[]
+    } & { [key in CompositeAnalyticsResponseOptions]: number })[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
       groupBy: `top_${tab}s`,

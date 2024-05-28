@@ -1,13 +1,10 @@
-import { editQueryString } from "@/lib/analytics/utils";
-import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { ChevronRight, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
-import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import AnalyticsAreaChart from "./analytics-area-chart";
 
@@ -20,16 +17,10 @@ type Tab = {
 
 export default function Main() {
   const { betaTester } = useWorkspace();
-  const { baseApiPath, queryString, requiresUpgrade, demo, selectedTab } =
+  const { totalEvents, requiresUpgrade, demo, selectedTab } =
     useContext(AnalyticsContext);
   const searchParams = useSearchParams();
-  const domain = searchParams.get("domain");
-  const key = searchParams.get("key");
   const { queryParams } = useRouterStuff();
-
-  // Tag related
-  const tagId = searchParams.get("tagId");
-  const { tags } = useTags();
 
   // Root domain related
   const root = searchParams.get("root");
@@ -68,30 +59,14 @@ export default function Main() {
     show: ["clicks", "leads", "sales"],
   };
 
-  const { data } = useSWR<{
-    clicks: number;
-    leads: number;
-    sales: number;
-    amount: number;
-  }>(
-    `${baseApiPath}?${editQueryString(queryString, {
-      event: "composite",
-      groupBy: "count",
-    })}`,
-    fetcher,
-    {
-      shouldRetryOnError: !requiresUpgrade,
-    },
-  );
-
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
       <div className="scrollbar-hide mb-5 flex w-full divide-x overflow-y-hidden overflow-x-scroll border-b border-gray-200">
         {tabs.map(({ id, label, colorClassName }, idx) => {
           const total = {
-            clicks: data?.clicks,
-            leads: data?.leads,
-            sales: data ? data.amount / 100 : undefined,
+            clicks: totalEvents?.clicks,
+            leads: totalEvents?.leads,
+            sales: totalEvents ? totalEvents.amount / 100 : undefined,
           }[id];
 
           return (
@@ -145,7 +120,7 @@ export default function Main() {
                 <div className="mt-1 flex">
                   {total || total === 0 ? (
                     <NumberTooltip
-                      value={id === "sales" ? data?.sales : total}
+                      value={id === "sales" ? totalEvents?.sales : total}
                       unit={label.toLowerCase()}
                     >
                       <CountingNumbers
