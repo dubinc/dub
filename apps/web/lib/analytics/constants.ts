@@ -7,6 +7,7 @@ export const intervals = [
   "ytd",
   "1y",
   "all",
+  "all_unfiltered",
 ] as const;
 
 export const INTERVAL_DISPLAYS = [

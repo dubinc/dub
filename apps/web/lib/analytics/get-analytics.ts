@@ -1,7 +1,6 @@
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
-import { headers } from "next/headers";
 import { conn } from "../planetscale";
 import { tbDemo } from "../tinybird/demo-client";
 import {
@@ -47,27 +46,21 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 2. linkId is defined
   // 3. interval is all time
   // 4. call is made from dashboard
-  if (
-    groupBy === "count" &&
-    linkId &&
-    interval === "all" &&
-    headers()?.get("Request-Source") === "app.dub.co"
-  ) {
+  if (linkId && groupBy === "count" && interval === "all_unfiltered") {
+    const columns = event === "composite" ? `clicks, leads, sales` : `${event}`;
+
     let response = await conn.execute(
-      "SELECT clicks FROM Link WHERE `id` = ?",
+      `SELECT ${columns} FROM Link WHERE id = ?`,
       [linkId],
     );
 
-    if (response.rows.length === 0) {
-      response = await conn.execute(
-        "SELECT clicks FROM Domain WHERE `id` = ?",
-        [linkId],
-      );
-      if (response.rows.length === 0) {
-        return 0;
-      }
+    if (response.rows.length === 0 && event === "clicks") {
+      response = await conn.execute(`SELECT clicks FROM Domain WHERE id = ?`, [
+        linkId,
+      ]);
     }
-    return response.rows[0]["clicks"];
+
+    return response.rows[0];
   }
 
   let granularity: "minute" | "hour" | "day" | "month" = "day";
