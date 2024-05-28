@@ -33,6 +33,7 @@ export const POST = withWorkspaceEdge(
       const { success } = await ratelimit(2, "1 h").limit(
         `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
       );
+
       if (!success) {
         throw new DubApiError({
           code: "rate_limit_exceeded",
@@ -55,9 +56,6 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(clickEvent.data[0]);
 
-    const randomId = `cus_${nanoid(16)}`;
-    const randomName = generateRandomName();
-
     // Find customer or create if not exists
     const customer = await prismaEdge.customer.upsert({
       where: {
@@ -67,8 +65,7 @@ export const POST = withWorkspaceEdge(
         },
       },
       create: {
-        id: randomId,
-        name: customerName || randomName,
+        name: customerName || generateRandomName(),
         email: customerEmail,
         avatar: customerAvatar,
         externalId,
@@ -122,11 +119,10 @@ export const POST = withWorkspaceEdge(
     const response = trackLeadResponseSchema.parse({
       clickId,
       eventName,
-      customerId: customer.id,
+      customerId: externalId,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,
-      externalId: customer.externalId,
       metadata,
     });
 

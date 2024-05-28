@@ -8,7 +8,6 @@ import {
   trackCustomerRequestSchema,
   trackCustomerResponseSchema,
 } from "@/lib/zod/schemas/customers";
-import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -24,9 +23,6 @@ export const POST = withWorkspaceEdge(
       customerAvatar,
     } = trackCustomerRequestSchema.parse(await parseRequestBody(req));
 
-    const randomId = `cus_${nanoid(16)}`;
-    const randomName = generateRandomName();
-
     try {
       const customer = await prismaEdge.customer.upsert({
         where: {
@@ -36,8 +32,7 @@ export const POST = withWorkspaceEdge(
           },
         },
         create: {
-          id: randomId,
-          name: customerName || randomName,
+          name: customerName || generateRandomName(),
           email: customerEmail,
           avatar: customerAvatar,
           externalId,
