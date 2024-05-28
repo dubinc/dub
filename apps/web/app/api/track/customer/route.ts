@@ -1,4 +1,3 @@
-import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
@@ -23,60 +22,46 @@ export const POST = withWorkspaceEdge(
       customerAvatar,
     } = trackCustomerRequestSchema.parse(await parseRequestBody(req));
 
-    try {
-      const customer = await prismaEdge.customer.upsert({
-        where: {
-          projectId_externalId: {
-            projectId: workspace.id,
-            externalId,
-          },
-        },
-        create: {
-          name: customerName || generateRandomName(),
-          email: customerEmail,
-          avatar: customerAvatar,
-          externalId,
+    const customer = await prismaEdge.customer.upsert({
+      where: {
+        projectId_externalId: {
           projectId: workspace.id,
-          projectConnectId: workspace.stripeConnectId,
+          externalId,
         },
-        update: {
-          name: customerName,
-          email: customerEmail,
-          avatar: customerAvatar,
-        },
-      });
+      },
+      create: {
+        name: customerName || generateRandomName(),
+        email: customerEmail,
+        avatar: customerAvatar,
+        externalId,
+        projectId: workspace.id,
+        projectConnectId: workspace.stripeConnectId,
+      },
+      update: {
+        name: customerName,
+        email: customerEmail,
+        avatar: customerAvatar,
+      },
+    });
 
-      waitUntil(
-        recordCustomer({
-          workspace_id: workspace.id,
-          customer_id: customer.id,
-          name: customer.name || "",
-          email: customer.email || "",
-          avatar: customer.avatar || "",
-        }),
-      );
+    waitUntil(
+      recordCustomer({
+        workspace_id: workspace.id,
+        customer_id: customer.id,
+        name: customer.name || "",
+        email: customer.email || "",
+        avatar: customer.avatar || "",
+      }),
+    );
 
-      const response = trackCustomerResponseSchema.parse({
-        customerId: externalId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
-      });
+    const response = trackCustomerResponseSchema.parse({
+      customerId: externalId,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
+    });
 
-      return NextResponse.json(response, { status: 201 });
-    } catch (error) {
-      if (error.code === "P2002") {
-        throw new DubApiError({
-          code: "conflict",
-          message: `A customer with customerId: ${externalId} already exists`,
-        });
-      }
-
-      throw new DubApiError({
-        code: "internal_server_error",
-        message: "Failed to create customer",
-      });
-    }
+    return NextResponse.json(response);
   },
   { betaFeature: true },
 );
