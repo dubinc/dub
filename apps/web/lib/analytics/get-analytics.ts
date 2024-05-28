@@ -1,23 +1,14 @@
 import { tb } from "@/lib/tinybird";
-import z from "@/lib/zod";
 import { getDaysDifference } from "@dub/utils";
 import { conn } from "../planetscale";
 import { tbDemo } from "../tinybird/demo-client";
-import {
-  analyticsFilterTB,
-  analyticsQuerySchema,
-} from "../zod/schemas/analytics";
+import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { clickAnalyticsResponse } from "../zod/schemas/clicks-analytics";
 import { compositeAnalyticsResponse } from "../zod/schemas/composite-analytics";
 import { leadAnalyticsResponse } from "../zod/schemas/leads-analytics";
 import { saleAnalyticsResponse } from "../zod/schemas/sales-analytics";
 import { INTERVAL_DATA } from "./constants";
-
-export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
-  workspaceId?: string;
-  isDemo?: boolean;
-  isDeprecatedEndpoint?: boolean;
-};
+import { AnalyticsFilters } from "./types";
 
 const responseSchema = {
   clicks: clickAnalyticsResponse,
