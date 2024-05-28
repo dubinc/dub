@@ -1,11 +1,12 @@
 import { cn } from "@dub/utils";
+import { Command } from "cmdk";
 import { Check, ChevronDown, ListFilter, LucideIcon } from "lucide-react";
 import {
+  CSSProperties,
   ReactNode,
   isValidElement,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -101,103 +102,50 @@ function Select({
     [activeFilters, selectedFilter],
   );
 
-  // Filters with options that match the search
-  const filteredFilters = useMemo(
-    () =>
-      filters.filter(
-        ({ label, options }) =>
-          (!search || label.toLowerCase().includes(search.toLowerCase())) &&
-          options?.length !== 0,
-      ),
-    [filters, search],
-  );
-
-  // The currently highlighted filter that will be selected on enter press
-  const highlightedFilterKey = useMemo(
-    () =>
-      !selectedFilterKey && search.length > 0 && filteredFilters.length
-        ? filteredFilters[0].key
-        : null,
-    [search, filteredFilters],
-  );
-
-  // Options that match the search
-  const filteredOptions = useMemo(
-    () =>
-      selectedFilter
-        ? search
-          ? selectedFilter.options?.filter(({ label }) =>
-              label.toLowerCase().includes(search.toLowerCase()),
-            )
-          : selectedFilter.options
-        : null,
-    [selectedFilter, search],
-  );
-
-  // The currently highlighted option that will be selected on enter press
-  const highlightedOptionValue = useMemo(
-    () =>
-      selectedFilter && search && filteredOptions?.length
-        ? filteredOptions[0].value
-        : null,
-    [filteredOptions, search],
-  );
-
   return (
     <Popover
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       onEscapeKeyDown={(e) => {
-        selectedFilterKey ? reset() : setIsOpen(false);
-        e.preventDefault();
+        if (selectedFilterKey) e.preventDefault();
       }}
       content={
         <AnimatedSizeContainer width height>
-          <div>
-            <input
-              type="text"
+          <Command>
+            <Command.Input
               size={1}
               className="w-full rounded-t-lg border-0 border-b border-gray-200 px-4 py-3 text-sm ring-0 placeholder:text-gray-400 focus:border-gray-200 focus:ring-0"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
               placeholder={`${selectedFilter?.label || "Filter"}...`}
+              value={search}
+              onValueChange={setSearch}
               onKeyDown={(e) => {
-                switch (e.key) {
-                  case "Enter":
-                    if (highlightedFilterKey) openFilter(highlightedFilterKey);
-                    else if (highlightedOptionValue)
-                      selectOption(highlightedOptionValue);
-                    break;
-                  case "Backspace":
-                    if (search.length === 0) reset();
-                    break;
+                if (e.key === "Escape" || (e.key === "Backspace" && !search)) {
+                  e.preventDefault();
+                  selectedFilterKey ? reset() : setIsOpen(false);
                 }
               }}
             />
-            <div className="scrollbar-hide max-h-[50vh] overflow-y-scroll p-2">
+            <div
+              className="scrollbar-hide max-h-[50vh] overflow-y-scroll p-2"
+              ref={mainListContainer}
+            >
               {!selectedFilter ? (
-                <div
-                  className="flex min-w-[150px] flex-col gap-1"
-                  ref={mainListContainer}
-                >
-                  {filteredFilters.length ? (
-                    filteredFilters.map((filter) => (
-                      <FilterButton
-                        {...filter}
-                        key={filter.key}
-                        highlighted={filter.key === highlightedFilterKey}
-                        onClick={() => openFilter(filter.key)}
-                      />
-                    ))
-                  ) : (
-                    <NoMatches />
-                  )}
-                </div>
+                <Command.List className="flex min-w-[150px] flex-col gap-1">
+                  {filters.map((filter) => (
+                    <FilterButton
+                      {...filter}
+                      key={filter.key}
+                      // highlighted={filter.key === highlightedFilterKey}
+                      onSelect={() => openFilter(filter.key)}
+                    />
+                  ))}
+                  <NoMatches />
+                </Command.List>
               ) : (
-                <div className="flex flex-col gap-1">
+                <Command.List className="flex min-w-[100px] flex-col gap-1">
                   {selectedFilter.options ? (
-                    filteredOptions?.length ? (
-                      filteredOptions?.map((option) => {
+                    <>
+                      {selectedFilter.options?.map((option) => {
                         const isSelected =
                           activeFilters?.find(
                             ({ key }) => key === selectedFilterKey,
@@ -214,28 +162,26 @@ function Select({
                                 option.right
                               )
                             }
-                            highlighted={
-                              option.value === highlightedOptionValue
-                            }
-                            onClick={() => selectOption(option.value)}
+                            onSelect={() => selectOption(option.value)}
                           />
                         );
-                      })
-                    ) : (
+                      })}
                       <NoMatches />
-                    )
+                    </>
                   ) : (
-                    <div
-                      className="flex items-center justify-center px-2 py-4"
-                      style={mainListDimensions.current}
-                    >
-                      <LoadingSpinner />
-                    </div>
+                    <Command.Loading>
+                      <div
+                        className="flex items-center justify-center px-2 py-4"
+                        style={mainListDimensions.current}
+                      >
+                        <LoadingSpinner />
+                      </div>
+                    </Command.Loading>
                   )}
-                </div>
+                </Command.List>
               )}
             </div>
-          </div>
+          </Command>
         </AnimatedSizeContainer>
       }
     >
@@ -273,22 +219,19 @@ function FilterButton({
   icon: Icon,
   label,
   right,
-  highlighted,
-  onClick,
-  ...rest
+  onSelect,
 }: (Filter | FilterOption) & {
   right?: ReactNode;
-  highlighted?: boolean;
-  onClick: () => void;
+  onSelect: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <Command.Item
       className={cn(
-        "flex items-center gap-4 whitespace-nowrap rounded-md px-3 py-2.5 text-left text-sm hover:bg-gray-100 active:bg-gray-200",
-        highlighted && "bg-gray-100",
+        "flex cursor-pointer items-center gap-4 whitespace-nowrap rounded-md px-3 py-2.5 text-left text-sm",
+        "data-[selected=true]:bg-gray-100",
       )}
-      onClick={onClick}
+      onSelect={onSelect}
+      value={label}
     >
       <span className="shrink-0 text-gray-600">
         {isReactNode(Icon) ? Icon : <Icon className="h-4 w-4" />}
@@ -297,12 +240,17 @@ function FilterButton({
       <div className="ml-1 flex shrink-0 grow justify-end text-gray-500">
         {right}
       </div>
-    </button>
+    </Command.Item>
   );
 }
 
-const NoMatches = () => (
-  <p className="my-1 text-center text-sm text-gray-400">No matches</p>
+const NoMatches = ({ style }: { style?: CSSProperties }) => (
+  <Command.Empty
+    className="my-1 text-center text-sm text-gray-400"
+    style={style}
+  >
+    No matches
+  </Command.Empty>
 );
 
 const isReactNode = (element: any): element is ReactNode =>
