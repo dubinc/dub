@@ -52,7 +52,7 @@ export default function Toggle() {
   const { allDomains: domains } = useDomains();
 
   const countries = useAnalyticsFilterOption("countries", "country");
-  const cities = useAnalyticsFilterOption("cities", "city");
+  const cities = useAnalyticsFilterOption("cities", ["country", "city"]);
   const devices = useAnalyticsFilterOption("devices", "device");
   const browsers = useAnalyticsFilterOption("browsers", "browser");
   const os = useAnalyticsFilterOption("os", "os");
@@ -441,7 +441,7 @@ function UpgradeTooltip({
 
 function useAnalyticsFilterOption(
   groupBy: string,
-  key: string,
+  keys: string | string[],
 ): ({ count?: number } & Record<string, any>) | null {
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     useContext(AnalyticsContext);
@@ -458,7 +458,9 @@ function useAnalyticsFilterOption(
 
   return (
     data?.map((d) => ({
-      [key]: d[key],
+      ...Object.fromEntries(
+        (Array.isArray(keys) ? keys : [keys]).map((key) => [key, d[key]]),
+      ),
       count:
         ((d[selectedTab] ?? d["clicks"]) as number | undefined) ?? undefined,
     })) ?? null
