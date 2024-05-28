@@ -28,18 +28,16 @@ export const POST = withWorkspaceEdge(
       metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
-    // if in production / preview env, deduplicate lead events – only record 1 event per hour
-    if (process.env.VERCEL === "1") {
-      const { success } = await ratelimit(2, "1 h").limit(
-        `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
-      );
+    // deduplicate lead events – only record 1 event per hour
+    const { success } = await ratelimit(1, "1 h").limit(
+      `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+    );
 
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
-        });
-      }
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
+      });
     }
 
     // Find click event
