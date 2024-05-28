@@ -8,7 +8,7 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
-import { endOfDay, min, startOfDay, subDays } from "date-fns";
+import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -30,8 +30,9 @@ export const AnalyticsContext = createContext<{
   key?: string;
   url?: string;
   queryString: string;
-  start: Date;
-  end: Date;
+  start?: Date;
+  end?: Date;
+  interval?: string;
   tagId?: string;
   totalClicks?: number;
   admin?: boolean;
@@ -77,19 +78,24 @@ export default function Analytics({
 
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
-    return {
-      // Set to start of day
-      start: startOfDay(
-        new Date(searchParams?.get("start") || subDays(new Date(), 1)),
-      ),
+    const hasRange = searchParams?.has("start") && searchParams?.has("end");
 
-      // Set to end of day or now if that's in the future
-      end: min([
-        endOfDay(new Date(searchParams?.get("end") || new Date())),
-        new Date(),
-      ]),
+    return {
+      start: hasRange
+        ? startOfDay(
+            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+          )
+        : undefined,
+
+      end: hasRange
+        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
+        : undefined,
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
+
+  // Only set interval if start and end are not provided
+  const interval =
+    start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const selectedTab =
     demo || betaTester ? searchParams.get("tab") || "composite" : "clicks";
@@ -139,6 +145,7 @@ export default function Analytics({
       ...(key && { key }),
       ...(start &&
         end && { start: start.toISOString(), end: end.toISOString() }),
+      ...(interval && { interval }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
       event: selectedTab,
@@ -188,6 +195,7 @@ export default function Analytics({
         url: staticUrl, // url for the link (only for public stats pages)
         start, // start of time period
         end, // end of time period
+        interval, /// time period interval
         tagId, // id of a single tag
         totalClicks, // total clicks for the link
         admin, // whether the user is an admin

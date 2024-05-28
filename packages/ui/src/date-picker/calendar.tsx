@@ -36,9 +36,9 @@ const NavigationButton = forwardRef<HTMLButtonElement, NavigationButtonProps>(
         disabled={disabled}
         className={cn(
           "flex h-7 w-7 shrink-0 select-none items-center justify-center rounded border p-1 outline-none transition",
-          "border-gray-300 text-gray-600 hover:text-gray-800",
+          "border-gray-200 text-gray-600 hover:text-gray-800",
           "hover:bg-gray-50 active:bg-gray-100",
-          "disabled:pointer-events-none disabled:border-gray-200 disabled:text-gray-400",
+          "disabled:pointer-events-none disabled:text-gray-400",
         )}
         onClick={onClick}
         {...props}

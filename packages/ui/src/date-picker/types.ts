@@ -39,6 +39,7 @@ export type DateRange = {
 };
 
 export interface Preset {
+  id: string;
   label: string;
   requiresUpgrade?: boolean;
   tooltipContent?: ReactNode;

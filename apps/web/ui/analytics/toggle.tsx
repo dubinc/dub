@@ -22,7 +22,6 @@ import {
   getNextPlan,
   linkConstructor,
 } from "@dub/utils";
-import { subDays } from "date-fns";
 import { Globe, MousePointerClick, QrCode, Tag } from "lucide-react";
 import { useContext, useMemo } from "react";
 import { AnalyticsContext } from ".";
@@ -32,7 +31,7 @@ import SharePopover from "./share-popover";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
-  const { basePath, domain, key, url, admin, demo, start, end } =
+  const { basePath, domain, key, url, admin, demo, start, end, interval } =
     useContext(AnalyticsContext);
   const { tags } = useTags();
   const { allWorkspaceDomains: domains } = useDomains();
@@ -202,14 +201,32 @@ export default function Toggle() {
               <DateRangePicker
                 className="w-full sm:min-w-[275px]"
                 align="end"
-                defaultValue={{
-                  from: start ? new Date(start) : subDays(new Date(), 30),
-                  to: end ? new Date(end) : new Date(),
-                }}
-                onChange={(range) => {
+                defaultValue={
+                  start && end
+                    ? {
+                        from: start,
+                        to: end,
+                      }
+                    : undefined
+                }
+                defaultPresetId={!start || !end ? interval ?? "24h" : undefined}
+                onChange={(range, preset) => {
+                  if (preset) {
+                    queryParams({
+                      del: ["start", "end"],
+                      set: {
+                        interval: preset.id,
+                      },
+                    });
+
+                    return;
+                  }
+
+                  // Regular range
                   if (!range || !range.from || !range.to) return;
 
                   queryParams({
+                    del: "preset",
                     set: {
                       start: range.from.toISOString(),
                       end: range.to.toISOString(),
@@ -230,6 +247,7 @@ export default function Toggle() {
                         });
 
                   return {
+                    id: value,
                     label: display,
                     dateRange: {
                       from: start,
