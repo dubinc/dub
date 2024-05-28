@@ -1,6 +1,5 @@
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
-import { eventTrigger } from "./analytics";
 
 export const saleAnalyticsResponse = {
   count: z
@@ -99,7 +98,9 @@ export const saleAnalyticsResponse = {
 
   trigger: z
     .object({
-      trigger: eventTrigger,
+      trigger: z
+        .enum(["link", "qr"])
+        .describe("The type of trigger method: link click or QR scan"),
       sales: z
         .number()
         .describe("The number of sales from this trigger method."),

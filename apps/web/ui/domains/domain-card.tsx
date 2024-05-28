@@ -68,7 +68,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
   const { data: clicks } = useSWR<number>(
     workspaceId &&
-      `/api/analytics?event=clicks&type=count&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all`,
+      `/api/analytics?event=clicks&type=count&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
     (url) =>
       fetcher(url, {
         headers: {

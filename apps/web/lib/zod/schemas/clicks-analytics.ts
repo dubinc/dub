@@ -1,6 +1,5 @@
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
-import { eventTrigger } from "./analytics";
 
 // Click analytics response schemas
 export const clickAnalyticsResponse = {
@@ -84,7 +83,9 @@ export const clickAnalyticsResponse = {
 
   trigger: z
     .object({
-      trigger: eventTrigger,
+      trigger: z
+        .enum(["link", "qr"])
+        .describe("The type of trigger method: link click or QR scan"),
       clicks: z
         .number()
         .describe("The number of clicks from this trigger method."),

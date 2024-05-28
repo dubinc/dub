@@ -6,6 +6,7 @@
 */
 
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
+import { AnalyticsEvents } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
 import { endOfDay, startOfDay, subDays } from "date-fns";
@@ -34,7 +35,7 @@ export const AnalyticsContext = createContext<{
   end?: Date;
   interval?: string;
   tagId?: string;
-  totalClicks?: number;
+  totalEvents?: { [key in AnalyticsEvents]: number };
   admin?: boolean;
   demo?: boolean;
   requiresUpgrade?: boolean;
@@ -156,8 +157,8 @@ export default function Analytics({
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
-  const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}?${queryString}&groupBy=count`,
+  const { data: totalEvents } = useSWR<{ [key in AnalyticsEvents]: number }>(
+    `${baseApiPath}?${queryString}`,
     fetcher,
     {
       onSuccess: () => setRequiresUpgrade(false),
@@ -197,7 +198,7 @@ export default function Analytics({
         end, // end of time period
         interval, /// time period interval
         tagId, // id of a single tag
-        totalClicks, // total clicks for the link
+        totalEvents, // totalEvents (clicks, leads, sales)
         admin, // whether the user is an admin
         demo, // whether the user is viewing demo analytics
         requiresUpgrade, // whether an upgrade is required to perform the query

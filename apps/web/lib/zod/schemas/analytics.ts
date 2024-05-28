@@ -22,17 +22,7 @@ const analyticsEvents = z
     "The type of event to retrieve analytics for. Defaults to 'clicks'.",
   );
 
-export const eventTrigger = z
-  .enum(["link", "qr"], {
-    errorMap: (_issue, _ctx) => {
-      return {
-        message: "Invalid trigger. Valid triggers are 'link' and 'qr'.",
-      };
-    },
-  })
-  .describe("The type of trigger method: link click or QR scan");
-
-const analyticsTypes = z
+const analyticsGroupBy = z
   .enum(VALID_ANALYTICS_ENDPOINTS, {
     errorMap: (_issue, _ctx) => {
       return {
@@ -42,19 +32,19 @@ const analyticsTypes = z
   })
   .default("count")
   .describe(
-    "The type of analytics to retrieve. Valid values include: count, timeseries, top_links, etc.",
+    "The type of analytics to retrieve. Defaults to 'count' if undefined.",
   );
 
 // For backwards compatibility
 export const analyticsPathParamsSchema = z.object({
   eventType: analyticsEvents.removeDefault().optional(),
-  endpoint: analyticsTypes.removeDefault().optional(),
+  endpoint: analyticsGroupBy.removeDefault().optional(),
 });
 
 // Query schema for /api/analytics endpoint
 export const analyticsQuerySchema = z.object({
   event: analyticsEvents,
-  groupBy: analyticsTypes,
+  groupBy: analyticsGroupBy,
   domain: z.string().optional().describe("The domain to filter analytics for."),
   key: z.string().optional().describe("The short link slug."),
   linkId: z

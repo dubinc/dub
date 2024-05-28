@@ -6,7 +6,7 @@ import { AnalyticsContext } from ".";
 
 export default function ExportButton() {
   const [loading, setLoading] = useState(false);
-  const { totalClicks } = useContext(AnalyticsContext);
+  const { totalEvents } = useContext(AnalyticsContext);
   const { queryString } = useContext(AnalyticsContext);
 
   async function exportData() {
@@ -37,7 +37,7 @@ export default function ExportButton() {
   }
 
   // show a tooltip to make the user aware that there is no data to export if there is no data
-  return totalClicks === 0 || !totalClicks ? (
+  return totalEvents ? (
     <Tooltip
       content={
         <TooltipContent

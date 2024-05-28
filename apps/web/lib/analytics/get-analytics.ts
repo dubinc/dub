@@ -96,14 +96,14 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
   });
 
-  // Return the count value for deprecated endpoints
-  if (isDeprecatedEndpoint && groupBy === "count") {
-    return response.data[0][event];
-  }
-
-  // Return the object for count endpoints
   if (groupBy === "count") {
-    return response.data[0];
+    // Return the count value for deprecated endpoints
+    if (isDeprecatedEndpoint) {
+      return response.data[0][event];
+      // Return the object for count endpoints
+    } else {
+      return response.data[0];
+    }
   }
 
   // Return array for other endpoints

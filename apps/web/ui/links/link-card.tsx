@@ -1,3 +1,4 @@
+import { AnalyticsEvents } from "@/lib/analytics/types";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
@@ -117,20 +118,19 @@ export default function LinkCard({
   const entry = useIntersectionObserver(linkRef, {});
   const isVisible = !!entry?.isIntersecting;
 
-  const { data: clicks } = useSWR<number>(
-    // only fetch clicks if the link is visible and there's a slug and the usage is not exceeded
+  const { data: totalEvents } = useSWR<{ [key in AnalyticsEvents]?: number }>(
+    // only fetch data if the link is visible and there's a slug and the usage is not exceeded
     isVisible &&
       workspaceId &&
       !exceededClicks &&
-      `/api/analytics?event=clicks&type=count&workspaceId=${workspaceId}&linkId=${id}&interval=all&`,
-    (url) =>
-      fetcher(url, {
-        headers: {
-          "Request-Source": "app.dub.co",
-        },
-      }),
+      `/api/analytics?event=composite&type=count&workspaceId=${workspaceId}&linkId=${id}&interval=all_unfiltered`,
+    fetcher,
     {
-      fallbackData: props.clicks,
+      fallbackData: {
+        clicks: props.clicks,
+        leads: props.leads,
+        sales: props.sales,
+      },
       dedupingInterval: 60000,
     },
   );
@@ -480,27 +480,34 @@ export default function LinkCard({
               <div className="flex items-center space-x-1 p-0.5">
                 <Chart className="h-4 w-4 text-gray-700" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
-                  {nFormatter(clicks)}
+                  {nFormatter(totalEvents?.clicks)}
                 </p>
               </div>
               <div className="flex items-center space-x-1 p-0.5">
                 <Magic className="h-4 w-4 text-gray-700" />
-                <p className="whitespace-nowrap text-sm text-gray-500">0</p>
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {nFormatter(totalEvents?.leads)}
+                </p>
               </div>
               <div className="flex items-center space-x-1 p-0.5">
                 <CreditCard className="h-4 w-4 text-gray-700" />
-                <p className="whitespace-nowrap text-sm text-gray-500">0</p>
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {nFormatter(totalEvents?.sales)}
+                </p>
               </div>
             </Link>
           ) : (
-            <NumberTooltip value={clicks} lastClicked={lastClicked}>
+            <NumberTooltip
+              value={totalEvents?.clicks}
+              lastClicked={lastClicked}
+            >
               <Link
                 href={`/${slug}/analytics?domain=${domain}&key=${key}`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:bg-gray-200/75"
               >
                 <Chart className="h-4 w-4 text-gray-700" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
-                  {nFormatter(clicks)}
+                  {nFormatter(totalEvents?.clicks)}
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
               </Link>
