@@ -13,8 +13,8 @@ export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
     const { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
-
     const parsedParams = analyticsQuerySchema.parse(searchParams);
+
     let { event, groupBy, domain, key, interval, start, end } = parsedParams;
 
     event = oldEvent || event;
@@ -34,12 +34,19 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
+    // Identify the request is from deprecated endpoint
+    // (/api/analytics/clicks)
+    // (/api/analytics/clicks/count)
+    const isDeprecatedEndpoint =
+      oldEvent && oldEvent === "clicks" && (!oldType || oldType === "count");
+
     const response = await getAnalytics({
       ...parsedParams,
       event,
       groupBy,
       ...(linkId && { linkId }),
       workspaceId: workspace.id,
+      isDeprecatedEndpoint,
     });
 
     return NextResponse.json(response);

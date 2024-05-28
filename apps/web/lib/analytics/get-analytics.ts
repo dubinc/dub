@@ -17,6 +17,7 @@ import { INTERVAL_DATA } from "./constants";
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
+  isDeprecatedEndpoint?: boolean;
 };
 
 const responseSchema = {
@@ -38,6 +39,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end,
     timezone = "UTC",
     isDemo,
+    isDeprecatedEndpoint = false,
   } = params;
 
   // get all-time clicks count if:
@@ -110,15 +112,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
   });
 
-  // for total clicks|leads, we return just the value;
-  // everything else we return the full response
-  if (groupBy === "count") {
-    if (event === "clicks" || event === "leads") {
-      return response.data[0][event];
-    } else {
-      return response.data[0];
-    }
+  // Return the count value for deprecated endpoints
+  if (isDeprecatedEndpoint && groupBy === "count") {
+    return response.data[0][event];
   }
 
+  // Return the object for count endpoints
+  if (groupBy === "count") {
+    return response.data[0];
+  }
+
+  // Return array for other endpoints
   return response.data;
 };

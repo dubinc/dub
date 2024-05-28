@@ -20,7 +20,7 @@ describe.runIf(env.CI).sequential("GET /analytics?event=clicks", async () => {
 
       const responseSchema =
         groupBy === "count"
-          ? z.number()
+          ? clickAnalyticsResponse[groupBy].strict()
           : z.array(clickAnalyticsResponse[groupBy].strict());
 
       const parsed = responseSchema.safeParse(data);
