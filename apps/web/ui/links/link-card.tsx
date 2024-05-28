@@ -123,7 +123,7 @@ export default function LinkCard({
     isVisible &&
       workspaceId &&
       !exceededClicks &&
-      `/api/analytics?event=composite&type=count&workspaceId=${workspaceId}&linkId=${id}&interval=all_unfiltered`,
+      `/api/analytics?event=composite&workspaceId=${workspaceId}&linkId=${id}&interval=all_unfiltered`,
     fetcher,
     {
       fallbackData: {

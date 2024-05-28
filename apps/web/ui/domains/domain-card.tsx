@@ -66,17 +66,14 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     fetcher,
   );
 
-  const { data: clicks } = useSWR<number>(
+  const { data: totalEvents } = useSWR<{ clicks: number }>(
     workspaceId &&
-      `/api/analytics?event=clicks&type=count&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
-    (url) =>
-      fetcher(url, {
-        headers: {
-          "Request-Source": "app.dub.co",
-        },
-      }),
+      `/api/analytics?event=clicks&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
+    fetcher,
     {
-      fallbackData: props.clicks,
+      fallbackData: {
+        clicks: props.clicks,
+      },
       dedupingInterval: 15000,
     },
   );
@@ -134,17 +131,17 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </p>
               <ExternalLink className="h-5 w-5" />
             </a>
-            <NumberTooltip value={clicks}>
+            <NumberTooltip value={totalEvents?.clicks}>
               <Link
                 href={`/${slug}/analytics?domain=${domain}&key=_root`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
               >
                 <Chart className="h-4 w-4" />
                 <p className="text-sm">
-                  {!clicks && clicks !== 0 ? (
+                  {!totalEvents ? (
                     <LoadingDots />
                   ) : (
-                    nFormatter(clicks)
+                    nFormatter(totalEvents?.clicks)
                   )}
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
