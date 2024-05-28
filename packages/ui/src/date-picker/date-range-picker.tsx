@@ -115,7 +115,7 @@ const DateRangePickerInner = ({
         popoverContentClassName="rounded-xl"
         content={
           <div className="flex w-full">
-            <div className="scrollbar-hide flex w-full flex-col overflow-x-scroll sm:flex-row sm:items-start">
+            <div className="scrollbar-hide flex w-full flex-col-reverse overflow-x-scroll sm:flex-row sm:items-start">
               <div className="scrollbar-hide overflow-x-scroll">
                 <CalendarPrimitive
                   mode="range"
