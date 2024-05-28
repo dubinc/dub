@@ -68,7 +68,18 @@ export const leadAnalyticsResponse = {
 
   top_links: z
     .object({
-      link: z.string().describe("The unique ID of the short link"),
+      link: z
+        .string()
+        .describe("The unique ID of the short link")
+        .openapi({ deprecated: true }),
+      id: z.string().describe("The unique ID of the short link"),
+      domain: z.string().describe("The domain of the short link"),
+      key: z.string().describe("The key of the short link"),
+      shortLink: z.string().describe("The short link URL"),
+      url: z.string().describe("The destination URL of the short link"),
+      createdAt: z
+        .string()
+        .describe("The creation timestamp of the short link"),
       leads: z.number().describe("The number of leads from this link"),
     })
     .openapi({ ref: "LeadsTopLinks" }),

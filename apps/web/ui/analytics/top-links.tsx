@@ -1,13 +1,14 @@
 import { AnalyticsEvents, TopLinksTabs } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { fetcher, linkConstructor, truncate } from "@dub/utils";
+import { fetcher, getApexDomain, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
+import LinkLogo from "../links/link-logo";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 
@@ -56,15 +57,25 @@ export default function TopLinks() {
       tab={tab}
       data={
         data?.map((d) => ({
-          icon: null,
-          title: d[tab],
+          icon: (
+            <LinkLogo
+              apexDomain={getApexDomain(d.url)}
+              className="h-5 w-5 sm:h-5 sm:w-5"
+            />
+          ),
+          title: tab === "link" ? d["shortLink"] : d.url,
           href: queryParams({
             set: {
-              [tab]: d[tab],
+              ...(tab === "link"
+                ? { domain: d.domain, key: d.key || "_root" }
+                : {
+                    url: d.url,
+                  }),
             },
             getNewPath: true,
           }) as string,
           value: d[selectedTab] ?? d["clicks"],
+          ...(tab === "link" && { linkData: d }),
         })) || []
       }
       maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}

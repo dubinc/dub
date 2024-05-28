@@ -1,7 +1,9 @@
 import { tb } from "@/lib/tinybird";
-import { getDaysDifference } from "@dub/utils";
+import { getDaysDifference, linkConstructor } from "@dub/utils";
 import { conn } from "../planetscale";
+import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
+import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { clickAnalyticsResponse } from "../zod/schemas/clicks-analytics";
 import { compositeAnalyticsResponse } from "../zod/schemas/composite-analytics";
@@ -83,7 +85,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `v1_${groupBy}`,
     parameters: analyticsFilterTB,
-    data: responseSchema[event][groupBy],
+    data: groupBy === "top_links" ? z.any() : responseSchema[event][groupBy],
   });
 
   const response = await pipe({
@@ -104,6 +106,74 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     } else {
       return response.data[0];
     }
+  } else if (groupBy === "top_links") {
+    const topLinksData = response.data as {
+      link: string;
+    }[];
+    const linkIds = topLinksData.map((item) => item.link);
+
+    const [links, domains] = await Promise.all([
+      prismaEdge.link.findMany({
+        where: {
+          projectId: workspaceId,
+          id: {
+            in: linkIds,
+          },
+        },
+        select: {
+          id: true,
+          domain: true,
+          key: true,
+          url: true,
+          createdAt: true,
+        },
+      }),
+      prismaEdge.domain.findMany({
+        where: {
+          projectId: workspaceId,
+          id: {
+            in: linkIds,
+          },
+        },
+        select: {
+          id: true,
+          slug: true,
+          target: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    const allLinks = [
+      ...links.map((link) => ({
+        id: link.id,
+        domain: link.domain,
+        key: link.key,
+        shortLink: linkConstructor({
+          domain: link.domain,
+          key: link.key,
+          pretty: true,
+        }),
+        url: link.url,
+        createdAt: link.createdAt,
+      })),
+      ...domains.map((domain) => ({
+        id: domain.id,
+        domain: domain.slug,
+        key: "",
+        shortLink: linkConstructor({
+          domain: domain.slug,
+          pretty: true,
+        }),
+        url: domain.target || "",
+        createdAt: domain.createdAt,
+      })),
+    ];
+
+    return topLinksData.map((d) => ({
+      ...allLinks.find((l) => l.id === d.link),
+      ...d,
+    }));
   }
 
   // Return array for other endpoints
