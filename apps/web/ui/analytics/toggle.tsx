@@ -439,7 +439,10 @@ function UpgradeTooltip({
   );
 }
 
-function useAnalyticsFilterOption(groupBy: string, key: string) {
+function useAnalyticsFilterOption(
+  groupBy: string,
+  key: string,
+): ({ count?: number } & Record<string, any>) | null {
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     useContext(AnalyticsContext);
 
@@ -456,7 +459,8 @@ function useAnalyticsFilterOption(groupBy: string, key: string) {
   return (
     data?.map((d) => ({
       [key]: d[key],
-      count: d[selectedTab] ?? d["clicks"] ?? undefined,
+      count:
+        ((d[selectedTab] ?? d["clicks"]) as number | undefined) ?? undefined,
     })) ?? null
   );
 }
