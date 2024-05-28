@@ -1,5 +1,5 @@
 import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
-import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { editQueryString, validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -15,36 +15,48 @@ import {
 } from "@dub/ui";
 import {
   APP_DOMAIN,
+  COUNTRIES,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
   cn,
+  fetcher,
   getApexDomain,
   getNextPlan,
   linkConstructor,
 } from "@dub/utils";
-import { Globe, MousePointerClick, QrCode, Tag } from "lucide-react";
+import {
+  AppWindow,
+  Box,
+  Building2,
+  Flag,
+  Globe,
+  MousePointerClick,
+  QrCode,
+  Smartphone,
+  Tag,
+} from "lucide-react";
 import { useContext, useMemo } from "react";
+import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import { COLORS_LIST } from "../links/tag-badge";
+import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
 import SharePopover from "./share-popover";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
-  const {
-    basePath,
-    domain,
-    key,
-    url,
-    admin,
-    demo,
-    start,
-    end,
-    interval,
-    selectedTab,
-  } = useContext(AnalyticsContext);
+  const { basePath, domain, key, url, admin, demo, start, end, interval } =
+    useContext(AnalyticsContext);
+
   const { tags } = useTags();
-  const { allWorkspaceDomains: domains } = useDomains();
+  const { allDomains: domains } = useDomains();
+
+  const countries = useAnalyticsFilterOption("countries", "country");
+  const cities = useAnalyticsFilterOption("cities", "city");
+  const devices = useAnalyticsFilterOption("devices", "device");
+  const browsers = useAnalyticsFilterOption("browsers", "browser");
+  const os = useAnalyticsFilterOption("os", "os");
+
   const { queryParams, searchParamsObj } = useRouterStuff();
 
   const scrolled = useScroll(80);
@@ -108,16 +120,93 @@ export default function Toggle() {
           },
         ],
       },
+      {
+        key: "country",
+        icon: Flag,
+        label: "Country",
+        options: countries?.map(({ country, count }) => ({
+          value: country,
+          label: COUNTRIES[country],
+          icon: (
+            <img
+              alt={country}
+              src={`https://flag.vercel.app/m/${country}.svg`}
+              className="h-2.5 w-4"
+            />
+          ),
+          right: count,
+        })),
+      },
+      {
+        key: "city",
+        icon: Building2,
+        label: "City",
+        options: cities?.map(({ city, country, count }) => ({
+          value: city,
+          label: city,
+          icon: (
+            <img
+              alt={country}
+              src={`https://flag.vercel.app/m/${country}.svg`}
+              className="h-2.5 w-4"
+            />
+          ),
+          right: count,
+        })),
+      },
+      {
+        key: "device",
+        icon: Smartphone,
+        label: "Device",
+        options: devices?.map(({ device, count }) => ({
+          value: device,
+          label: device,
+          icon: (
+            <DeviceIcon display={device} tab="devices" className="h-4 w-4" />
+          ),
+          right: count,
+        })),
+      },
+      {
+        key: "browser",
+        icon: AppWindow,
+        label: "Browser",
+        options: browsers?.map(({ browser, count }) => ({
+          value: browser,
+          label: browser,
+          icon: (
+            <DeviceIcon display={browser} tab="browsers" className="h-4 w-4" />
+          ),
+          right: count,
+        })),
+      },
+      {
+        key: "os",
+        icon: Box,
+        label: "OS",
+        options: os?.map(({ os, count }) => ({
+          value: os,
+          label: os,
+          icon: <DeviceIcon display={os} tab="os" className="h-4 w-4" />,
+          right: count,
+        })),
+      },
     ],
     [domains, tags],
   );
 
   const activeFilters = useMemo(() => {
-    const { domain, tagId, qr } = searchParamsObj;
+    const { domain, tagId, qr, country, city, device, browser, os } =
+      searchParamsObj;
     return [
       ...(domain ? [{ key: "domain", value: domain }] : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
       ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
+      ...(country ? [{ key: "country", value: country }] : []),
+      ...(city ? [{ key: "city", value: city }] : []),
+      ...(device ? [{ key: "device", value: device }] : []),
+      ...(browser ? [{ key: "browser", value: browser }] : []),
+      ...(os ? [{ key: "os", value: os }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -189,7 +278,7 @@ export default function Toggle() {
                 "w-full md:w-auto": key,
               })}
             >
-              {!isPublicStatsPage && !key && !admin && !demo && (
+              {!isPublicStatsPage && !admin && !demo && (
                 <Filter.Select
                   className="w-full"
                   filters={filters}
@@ -347,5 +436,27 @@ function UpgradeTooltip({
             },
           })}
     />
+  );
+}
+
+function useAnalyticsFilterOption(groupBy: string, key: string) {
+  const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
+    useContext(AnalyticsContext);
+
+  const { data } = useSWR<Record<string, any>[]>(
+    `${baseApiPath}?${editQueryString(queryString, {
+      groupBy,
+    })}`,
+    fetcher,
+    {
+      shouldRetryOnError: !requiresUpgrade,
+    },
+  );
+
+  return (
+    data?.map((d) => ({
+      [key]: d[key],
+      count: d[selectedTab] ?? d["clicks"] ?? undefined,
+    })) ?? null
   );
 }
