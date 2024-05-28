@@ -14,7 +14,7 @@ export default function AnalyticsAreaChart({
 }: {
   show: ("clicks" | "leads" | "sales")[];
 }) {
-  const { baseApiPath, queryString, start, end, requiresUpgrade } =
+  const { baseApiPath, queryString, start, end, interval, requiresUpgrade } =
     useContext(AnalyticsContext);
 
   const { data } = useSWR<
@@ -45,18 +45,36 @@ export default function AnalyticsAreaChart({
 
   const formatDate = useCallback(
     (date: Date) => {
-      const daysDifference = getDaysDifference(start, end);
+      if (start && end) {
+        const daysDifference = getDaysDifference(start, end);
 
-      if (daysDifference <= 2)
-        return date.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "numeric",
-        });
-      else if (daysDifference > 180)
-        return date.toLocaleDateString("en-US", {
-          month: "short",
-          year: "numeric",
-        });
+        if (daysDifference <= 2)
+          return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+          });
+        else if (daysDifference > 180)
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+      } else if (interval) {
+        switch (interval) {
+          case "1h":
+          case "24h":
+            return date.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+            });
+          case "ytd":
+          case "1y":
+          case "all":
+            return date.toLocaleDateString("en-US", {
+              month: "short",
+              year: "numeric",
+            });
+        }
+      }
 
       return date.toLocaleDateString("en-US", {
         weekday: "short",
