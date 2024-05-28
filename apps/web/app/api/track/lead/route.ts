@@ -4,6 +4,7 @@ import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
+import { ratelimit } from "@/lib/upstash";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
@@ -26,6 +27,19 @@ export const POST = withWorkspaceEdge(
       customerAvatar,
       metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
+
+    // if in production / preview env, deduplicate lead events – only record 1 event per hour
+    if (process.env.VERCEL === "1") {
+      const { success } = await ratelimit(2, "1 h").limit(
+        `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+      );
+      if (!success) {
+        throw new DubApiError({
+          code: "rate_limit_exceeded",
+          message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
+        });
+      }
+    }
 
     // Find click event
     const clickEvent = await getClickEvent({ clickId });
