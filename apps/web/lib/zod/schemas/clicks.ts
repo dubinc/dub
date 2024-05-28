@@ -24,4 +24,6 @@ export const clickEventSchemaTB = z.object({
   bot: z.number().nullable(),
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
+  ip: z.string().nullable(),
+  qr: z.number().nullable(),
 });
