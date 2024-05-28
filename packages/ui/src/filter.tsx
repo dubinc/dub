@@ -111,7 +111,7 @@ function Select({
       }}
       content={
         <AnimatedSizeContainer width height>
-          <Command>
+          <Command loop>
             <Command.Input
               size={1}
               className="w-full rounded-t-lg border-0 border-b border-gray-200 px-4 py-3 text-sm ring-0 placeholder:text-gray-400 focus:border-gray-200 focus:ring-0"
