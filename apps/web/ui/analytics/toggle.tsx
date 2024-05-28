@@ -304,7 +304,7 @@ export default function Toggle() {
                 })}
               >
                 <DateRangePicker
-                  className="w-full sm:min-w-[275px]"
+                  className="w-full sm:min-w-[200px]"
                   align="end"
                   defaultValue={
                     start && end

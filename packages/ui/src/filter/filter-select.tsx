@@ -120,7 +120,7 @@ export function FilterSelect({
               ref={mainListContainer}
             >
               {!selectedFilter ? (
-                <Command.List className="flex w-screen min-w-[150px] flex-col gap-1 sm:w-auto">
+                <Command.List className="flex w-screen min-w-[160px] flex-col gap-1 sm:w-auto">
                   {filters.map((filter) => (
                     <FilterButton
                       {...filter}
@@ -216,7 +216,7 @@ function FilterButton({
   return (
     <Command.Item
       className={cn(
-        "flex cursor-pointer items-center gap-4 whitespace-nowrap rounded-md px-3 py-2.5 text-left text-sm",
+        "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
         "data-[selected=true]:bg-gray-100",
       )}
       onSelect={onSelect}
