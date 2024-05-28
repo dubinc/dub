@@ -286,6 +286,9 @@ importers:
       topojson-client:
         specifier: ^3.1.0
         version: 3.1.0
+      unique-names-generator:
+        specifier: ^4.7.1
+        version: 4.7.1
       unsplash-js:
         specifier: ^7.0.18
         version: 7.0.18
@@ -18982,6 +18985,11 @@ packages:
       is-plain-obj: 4.1.0
       trough: 2.1.0
       vfile: 5.3.7
+    dev: false
+
+  /unique-names-generator@4.7.1:
+    resolution: {integrity: sha512-lMx9dX+KRmG8sq6gulYYpKWZc9RlGsgBR6aoO8Qsm3qvkSJ+3rAymr+TnV8EDMrIrwuFJ4kruzMWM/OpYzPoow==}
+    engines: {node: '>=8'}
     dev: false
 
   /unist-util-is@5.2.1:

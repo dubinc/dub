@@ -30,26 +30,22 @@ export const trackLeadRequestSchema = z.object({
   customerName: z
     .string()
     .max(100)
-    .nullish()
-    .default(null)
+    .optional()
     .describe("Name of the customer in the client's app."),
   customerEmail: z
     .string()
     .email()
     .max(100)
-    .nullish()
-    .default(null)
+    .optional()
     .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
     .max(100)
-    .nullish()
-    .default(null)
+    .optional()
     .describe("Avatar of the customer in the client's app."),
   metadata: z
     .record(z.unknown())
-    .nullish()
-    .default(null)
+    .optional()
     .describe("Additional metadata to be stored with the lead event"),
 });
 
@@ -60,7 +56,7 @@ export const trackLeadResponseSchema = z.object({
   customerName: z.string().nullable(),
   customerEmail: z.string().nullable(),
   customerAvatar: z.string().nullable(),
-  metadata: z.record(z.unknown()).nullable(),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 export const leadEventSchemaTB = clickEventSchemaTB

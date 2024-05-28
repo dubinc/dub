@@ -1,8 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
+import { ratelimit } from "@/lib/upstash";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
@@ -19,12 +21,24 @@ export const POST = withWorkspaceEdge(
     const {
       clickId,
       eventName,
-      metadata,
+      customerId: externalId,
       customerName,
       customerEmail,
       customerAvatar,
-      customerId: externalId,
+      metadata,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
+
+    // deduplicate lead events – only record 1 event per hour
+    const { success } = await ratelimit(1, "1 h").limit(
+      `recordLead:${externalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: `Rate limit exceeded for customer ${externalId}: ${eventName}`,
+      });
+    }
 
     // Find click event
     const clickEvent = await getClickEvent({ clickId });
@@ -49,8 +63,7 @@ export const POST = withWorkspaceEdge(
         },
       },
       create: {
-        id: nanoid(16),
-        name: customerName, // TODO: Generate random name if not provided
+        name: customerName || generateRandomName(),
         email: customerEmail,
         avatar: customerAvatar,
         externalId,
@@ -72,20 +85,20 @@ export const POST = withWorkspaceEdge(
     }
 
     await Promise.all([
-      recordCustomer({
-        workspace_id: workspace.id,
-        customer_id: customer.id,
-        name: customerName || "",
-        email: customerEmail || "",
-        avatar: customerAvatar || "",
-      }),
-
       recordLead({
         ...clickData,
         event_id: nanoid(16),
         event_name: eventName,
         customer_id: customer.id,
         metadata: metadata ? JSON.stringify(metadata) : "",
+      }),
+
+      recordCustomer({
+        workspace_id: workspace.id,
+        customer_id: customer.id,
+        name: customer.name || "",
+        email: customer.email || "",
+        avatar: customer.avatar || "",
       }),
 
       // update link leads count
@@ -104,10 +117,10 @@ export const POST = withWorkspaceEdge(
     const response = trackLeadResponseSchema.parse({
       clickId,
       eventName,
-      customerName,
-      customerEmail,
-      customerAvatar,
       customerId: externalId,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
       metadata,
     });
 
