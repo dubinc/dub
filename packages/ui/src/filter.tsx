@@ -156,21 +156,30 @@ function Select({
           <div>
             <input
               type="text"
-              className="rounded-t-lg border-0 border-b border-gray-200 px-4 py-3 text-sm ring-0 placeholder:text-gray-400 focus:border-gray-200 focus:ring-0"
+              size={1}
+              className="w-full rounded-t-lg border-0 border-b border-gray-200 px-4 py-3 text-sm ring-0 placeholder:text-gray-400 focus:border-gray-200 focus:ring-0"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={`${selectedFilter?.label || "Filter"}...`}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  if (highlightedFilterKey) openFilter(highlightedFilterKey);
-                  else if (highlightedOptionValue)
-                    selectOption(highlightedOptionValue);
+                switch (e.key) {
+                  case "Enter":
+                    if (highlightedFilterKey) openFilter(highlightedFilterKey);
+                    else if (highlightedOptionValue)
+                      selectOption(highlightedOptionValue);
+                    break;
+                  case "Backspace":
+                    if (search.length === 0) reset();
+                    break;
                 }
               }}
             />
             <div className="scrollbar-hide max-h-[50vh] overflow-y-scroll p-2">
               {!selectedFilter ? (
-                <div className="flex flex-col gap-1" ref={mainListContainer}>
+                <div
+                  className="flex min-w-[150px] flex-col gap-1"
+                  ref={mainListContainer}
+                >
                   {filteredFilters.length ? (
                     filteredFilters.map((filter) => (
                       <FilterButton
