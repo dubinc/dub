@@ -3,31 +3,77 @@ import React, { useEffect, useState } from "react";
 import { SendIcon } from "../../public";
 import IconMenu from "../../public/IconMenu";
 import Link from "./link";
-import { LinkProps } from "../types";
+import { LinkProp, LinkProps, ShortLinkProps, UserProps } from "../types";
+
+const dummyData: ShortLinkProps & { user: UserProps } = {
+  id: "123456",
+  key: "abcdef",
+  domain: "example.com",
+  url: "https://example.com",
+  rewrite: true,
+  password: "password123",
+  expiresAt: new Date("2025-12-31"),
+  createdAt: new Date(),
+  lastClicked: new Date(),
+  archived: false,
+  tags: [
+    { id: "tag1", name: "marketing", color: "red" },
+    { id: "tag2", name: "social", color: "blue" },
+  ],
+  comments: "This is a sample comment.",
+  user: {
+    id: "user123",
+    name: "John Doe",
+    email: "john.doe@example.com",
+    image: "https://example.com/johndoe.jpg",
+    createdAt: new Date("2023-01-01"),
+    source: "google",
+    migratedWorkspace: "workspace123",
+  },
+  expiredUrl: null,
+  externalId: null,
+  proxy: false,
+  title: "Sample Title",
+  description: "Sample Description",
+  image: "https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://dub.co&size=64",
+  utm_source: null,
+  utm_medium: null,
+  utm_campaign: null,
+  utm_term: null,
+  utm_content: null,
+  ios: null,
+  android: null,
+  geo: null,
+  userId: "user123",
+  projectId: "project123",
+  publicStats: true,
+  clicks: 24,
+  updatedAt: new Date(),
+  shortLink: "https://dub.sh/hstEJj7",
+  tagId: null,
+  qrCode: "https://api.dub.co/qr?url=https://dub.sh/hstEJj7?qr=1",
+  workspaceId: "ws_null"
+};
 
 const Shortener: React.FC = () => {
   const [url, setUrl] = useState("");
-  const [link, setLink] = useState<LinkProps | null>(null);
-
-  useEffect(() => {}, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUrl(e.target.value);
-  };
+  const [link, setLink] = useState<ShortLinkProps>(dummyData);
 
   const fetchCurrentTabUrl = async () => {
     try {
-      const tabs = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-      const currentTabUrl = tabs[0]?.url;
-      if (currentTabUrl) {
-        setUrl(currentTabUrl);
-      }
+      const currentURL = window.location.href;
+      setUrl(currentURL);     
     } catch (error) {
       console.error("Error fetching current tab URL:", error);
     }
+  };
+
+  useEffect(() => {
+    fetchCurrentTabUrl();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -46,15 +92,8 @@ const Shortener: React.FC = () => {
       });
 
       if (response.ok) {
-        const newLink = await response.json();
-        setLink({
-          key: newLink.key,
-          url: newLink.url,
-          shortLink: newLink.shortLink,
-          createdAt: newLink.createdAt,
-          clicks: newLink.clicks,
-          qrCode: newLink.qrCode,
-        });
+        const newLink: ShortLinkProps = await response.json();
+        setLink(newLink);
         setUrl("");
       }
     } catch (error) {

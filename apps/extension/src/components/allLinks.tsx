@@ -1,9 +1,9 @@
 import React from "react";
 import LinkTemplate from "../../public/icons/linkTemplate";
 import LinkItem from "./link";
-import { LinkProps } from "../types";
+import { LinkProp, LinkProps, ShortLinkProps } from "../types";
 
-const AllLinks: React.FC<{ links: LinkProps[] }> = ({ links }) => {
+const AllLinks: React.FC<{ links: ShortLinkProps[] }> = ({ links }) => {
   return (
     <>
       {links?.length ? (

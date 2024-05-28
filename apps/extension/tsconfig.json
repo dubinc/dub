@@ -13,6 +13,7 @@
     "strict": true,
     "target": "esnext",
     "outDir": "./dist",
+    "baseUrl": ".",
   },
   "include": ["./"],
   "exclude": ["node_modules", "dist"]

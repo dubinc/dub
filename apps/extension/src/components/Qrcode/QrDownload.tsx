@@ -6,7 +6,7 @@ import {
   Image,
   Link2,
 } from "lucide-react";
-import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useMemo, useRef, useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -14,18 +14,20 @@ import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "../../../lib/qr";
 import IconMenu from "../../../public/IconMenu";
 import Switch from "../../../ui/src/switch";
 import { Popover } from "../../../ui";
+import { QRLinkProps } from "src/types";
+import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 
-interface QRLinkProps {
-  url: string;
-  key: string;
-}
+
 
 interface QRCodeDownloadProps {
   props: QRLinkProps;
+ setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 }
 
 export function QRCodeDownload({ props }: QRCodeDownloadProps) {
   const anchorRef = useRef<HTMLAnchorElement>(null);
+
+  const apexDomain = props.url ? getApexDomain(props.url) : null;
 
   function download(url: string, extension: string) {
     if (!anchorRef.current) return;
@@ -46,7 +48,7 @@ export function QRCodeDownload({ props }: QRCodeDownloadProps) {
       level: "Q",
       ...(showLogo && {
         imageSettings: {
-          src: "https://dub.co/_static/logo.svg",
+          src: apexDomain ? `${GOOGLE_FAVICON_URL}${apexDomain}` : "https://dub.co/_static/logo.svg",
           height: 256,
           width: 256,
           excavate: true,
@@ -341,3 +343,37 @@ function QrDropdown({ button, children }: QrDropdownProps) {
     </Popover>
   );
 }
+
+function LinkQRModalHelper({
+  showLinkQRModal,
+  setShowLinkQRModal,
+  props,
+}: {
+  showLinkQRModal: boolean;
+  setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
+  props: QRLinkProps;
+}) {
+  return (
+      <QRCodeDownload props={props} setShowLinkQRModal={setShowLinkQRModal} />
+  );
+}
+
+export function useLinkQRModal({ props }: { props: QRLinkProps }) {
+  const [showLinkQRModal, setShowLinkQRModal] = useState(false);
+
+  const LinkQRModal = useCallback(() => {
+    return (
+      <LinkQRModalHelper
+        showLinkQRModal={showLinkQRModal}
+        setShowLinkQRModal={setShowLinkQRModal}
+        props={props}
+      />
+    );
+  }, [showLinkQRModal, setShowLinkQRModal, props]);
+
+  return useMemo(
+    () => ({ showLinkQRModal, setShowLinkQRModal, LinkQRModal }),
+    [showLinkQRModal, setShowLinkQRModal, LinkQRModal],
+  );
+}
+

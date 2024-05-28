@@ -5,7 +5,7 @@ import { BlurImage, Popover } from "../../ui";
 import IconMenu from "../../public/IconMenu";
 import SlashIcon from "../../public/icons/slash";
 import { useAuth } from "../auth/useAuth";
-import useWorkspaces from "../../hooks/useWorkspaces";
+import useWorkspaces from "../../hooks/use-Workspaces";
 import PlanBadge from "../../ui/src/plan-badge";
 const DICEBEAR_AVATAR_URL = "https://api.dicebear.com/7.x/initials/svg?backgroundType=gradientLinear&fontFamily=Helvetica&fontSize=40&seed=";
 
@@ -107,7 +107,7 @@ function WorkspaceList({
   setOpenPopover,
 }: {
   selected: showWorkspaceProps;
-  workspaces: WorkspaceProps[] | null;
+  workspaces: WorkspaceProps[] | undefined | null;
   setSelectedWorkspace: (name: string) => void;
   setOpenPopover: (open: boolean) => void;
 }) {

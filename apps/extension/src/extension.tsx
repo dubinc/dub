@@ -4,7 +4,7 @@ import { TitleIcon } from "../public";
 import IconMenu from "../public/IconMenu";
 import AllLinks from "./components/allLinks";
 import Shortener from "./components/shortener";
-import { LinkProps } from "./types";
+import { ShortLinkProps } from "./types";
 import UserSpace from "./workspace/workspace";
 
 interface ExtensionProps {
@@ -13,7 +13,7 @@ interface ExtensionProps {
 
 const Extension: React.FC<ExtensionProps> = ({ handleClose }) => {
   const [openTab, setOpenTab] = useState<string>("create");
-  const [allLinks, setAllLinks] = useState<LinkProps[]>([]);
+  const [allLinks, setAllLinks] = useState<ShortLinkProps[]>([]);
 
   const handleAllFetchUrl = () => {
     console.log("get");
@@ -28,7 +28,7 @@ const Extension: React.FC<ExtensionProps> = ({ handleClose }) => {
           onClick={handleClose}
           className="cursor-pointer text-sm text-gray-800 transition-all duration-75 hover:scale-110 "
         >
-          <IconMenu icon={<X />} />
+          <IconMenu icon={<X/>} />
         </p>
       </div>
 
