@@ -132,7 +132,7 @@ const DateRangePickerInner = ({
                   className="scrollbar-hide overflow-x-scroll"
                   classNames={{
                     months:
-                      "flex flex-row divide-x divide-gray-300 overflow-x-scroll scrollbar-hide",
+                      "flex flex-row divide-x divide-gray-200 overflow-x-scroll scrollbar-hide",
                   }}
                   {...props}
                 />
