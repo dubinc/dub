@@ -48,7 +48,10 @@ const AnimatedSizeContainer = forwardRef<
         }}
         transition={transition ?? { type: "spring", duration: 0.3 }}
       >
-        <div ref={containerRef} className="h-max w-max">
+        <div
+          ref={containerRef}
+          className={cn(height && "h-max", width && "w-max")}
+        >
           {children}
         </div>
       </motion.div>

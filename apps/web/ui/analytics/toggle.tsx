@@ -123,7 +123,7 @@ export default function Toggle() {
     >
       <div
         className={cn(
-          "mx-auto flex w-full max-w-screen-xl flex-col gap-2 space-y-3 px-2.5 px-2.5 md:space-y-0 lg:px-20",
+          "mx-auto flex w-full max-w-screen-xl flex-col gap-2 px-2.5 px-2.5 lg:px-20",
           {
             "md:h-10": key,
           },
@@ -250,6 +250,21 @@ export default function Toggle() {
             </div>
           </div>
         </div>
+        <div
+          className={cn(
+            "transition-[height] duration-[300ms]",
+            activeFilters.length ? "h-6" : "h-0",
+          )}
+        />
+        <Filter.List
+          filters={filters}
+          activeFilters={activeFilters}
+          onRemove={(key) =>
+            queryParams({
+              del: key,
+            })
+          }
+        />
       </div>
     </div>
   );
