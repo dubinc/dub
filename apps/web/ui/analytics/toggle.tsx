@@ -175,6 +175,7 @@ export default function Toggle() {
           >
             {!isPublicStatsPage && !key && !admin && !demo && (
               <Filter.Select
+                className="w-full"
                 filters={filters}
                 activeFilters={activeFilters}
                 onSelect={(key, value) =>

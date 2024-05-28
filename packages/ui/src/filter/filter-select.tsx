@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
+import { useMediaQuery } from "../hooks";
 import { LoadingSpinner } from "../icons";
 import { Popover } from "../popover";
 import { Filter, FilterOption } from "./types";
@@ -35,6 +36,8 @@ export function FilterSelect({
   children,
   className,
 }: FilterSelectProps) {
+  const { isMobile } = useMediaQuery();
+
   // Track main list container/dimensions to maintain size for loading spinner
   const mainListContainer = useRef<HTMLDivElement>(null);
   const mainListDimensions = useRef<{
@@ -97,7 +100,7 @@ export function FilterSelect({
         if (selectedFilterKey) e.preventDefault();
       }}
       content={
-        <AnimatedSizeContainer width height>
+        <AnimatedSizeContainer width={!isMobile} height>
           <Command>
             <Command.Input
               size={1}
@@ -117,7 +120,7 @@ export function FilterSelect({
               ref={mainListContainer}
             >
               {!selectedFilter ? (
-                <Command.List className="flex min-w-[150px] flex-col gap-1">
+                <Command.List className="flex w-screen min-w-[150px] flex-col gap-1 sm:w-auto">
                   {filters.map((filter) => (
                     <FilterButton
                       {...filter}
@@ -129,7 +132,7 @@ export function FilterSelect({
                   <NoMatches />
                 </Command.List>
               ) : (
-                <Command.List className="flex min-w-[100px] flex-col gap-1">
+                <Command.List className="flex w-screen min-w-[100px] flex-col gap-1 sm:w-auto">
                   {selectedFilter.options ? (
                     <>
                       {selectedFilter.options?.map((option) => {
