@@ -190,8 +190,7 @@ function Select({
         className={cn(
           "group flex h-10 cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 outline-none transition-all sm:text-sm",
           "border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all",
-          "disabled:pointer-events-none disabled:bg-gray-100 disabled:text-gray-400",
-          "data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+          "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
           className,
         )}
       >

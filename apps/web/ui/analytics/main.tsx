@@ -115,7 +115,8 @@ export default function Main() {
               <Link
                 className={cn(
                   "border-box relative block h-full min-w-[140px] flex-none px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
-                  "transition-colors hover:bg-gray-50 active:bg-gray-100",
+                  "transition-colors hover:bg-gray-50 focus:outline-none active:bg-gray-100",
+                  "ring-inset ring-gray-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
                 )}
                 href={
                   (tab.id === id
