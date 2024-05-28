@@ -63,7 +63,8 @@ export default function TopLinks() {
               className="h-5 w-5 sm:h-5 sm:w-5"
             />
           ),
-          title: tab === "link" ? d["shortLink"] : d.url,
+          title:
+            tab === "link" ? d["shortLink"].replace(/^https?:\/\//, "") : d.url,
           href: queryParams({
             set: {
               ...(tab === "link"

@@ -152,7 +152,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         shortLink: linkConstructor({
           domain: link.domain,
           key: link.key,
-          pretty: true,
         }),
         url: link.url,
         createdAt: link.createdAt,
@@ -163,7 +162,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         key: "",
         shortLink: linkConstructor({
           domain: domain.slug,
-          pretty: true,
         }),
         url: domain.target || "",
         createdAt: domain.createdAt,
