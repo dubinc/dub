@@ -45,6 +45,8 @@ export function FilterSelect({
     height: number;
   }>();
 
+  const [scrollProgress, setScrollProgress] = useState(1);
+
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedFilterKey, setSelectedFilterKey] = useState<
@@ -92,6 +94,21 @@ export function FilterSelect({
     [activeFilters, selectedFilter],
   );
 
+  const updateScrollProgress = useCallback(() => {
+    if (!mainListContainer.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = mainListContainer.current;
+
+    setScrollProgress(
+      scrollHeight === clientHeight
+        ? 1
+        : scrollTop / (scrollHeight - clientHeight),
+    );
+  }, []);
+
+  useEffect(() => {
+    updateScrollProgress();
+  }, [selectedFilterKey, updateScrollProgress]);
+
   return (
     <Popover
       openPopover={isOpen}
@@ -100,7 +117,12 @@ export function FilterSelect({
         if (selectedFilterKey) e.preventDefault();
       }}
       content={
-        <AnimatedSizeContainer width={!isMobile} height>
+        <AnimatedSizeContainer
+          width={!isMobile}
+          height
+          className="rounded-[inherit]"
+          style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
+        >
           <Command loop>
             <Command.Input
               size={1}
@@ -118,6 +140,7 @@ export function FilterSelect({
             <div
               className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll p-2 sm:w-auto"
               ref={mainListContainer}
+              onScroll={updateScrollProgress}
             >
               {!selectedFilter ? (
                 <Command.List className="flex w-full min-w-[160px] flex-col gap-1">
@@ -171,6 +194,11 @@ export function FilterSelect({
               )}
             </div>
           </Command>
+          {/* Bottom scroll fade */}
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-white"
+            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+          ></div>
         </AnimatedSizeContainer>
       }
     >
