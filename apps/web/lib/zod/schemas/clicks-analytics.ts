@@ -7,14 +7,14 @@ export const clickAnalyticsResponse = {
     .object({
       clicks: z.number().describe("The total number of clicks"),
     })
-    .openapi({ ref: "ClicksCount" }),
+    .openapi({ ref: "ClicksCount", title: "ClicksCount" }),
 
   timeseries: z
     .object({
       start: z.string().describe("The starting timestamp of the interval"),
       clicks: z.number().describe("The number of clicks in the interval"),
     })
-    .openapi({ ref: "ClicksTimeseries" }),
+    .openapi({ ref: "ClicksTimeseries", title: "ClicksTimeseries" }),
 
   countries: z
     .object({
@@ -23,7 +23,7 @@ export const clickAnalyticsResponse = {
         .describe("The 2-letter country code: https://d.to/geo"),
       clicks: z.number().describe("The number of clicks from this country"),
     })
-    .openapi({ ref: "ClicksCountries" }),
+    .openapi({ ref: "ClicksCountries", title: "ClicksCountries" }),
 
   cities: z
     .object({
@@ -33,28 +33,28 @@ export const clickAnalyticsResponse = {
         .describe("The 2-letter country code of the city: https://d.to/geo"),
       clicks: z.number().describe("The number of clicks from this city"),
     })
-    .openapi({ ref: "ClicksCities" }),
+    .openapi({ ref: "ClicksCities", title: "ClicksCities" }),
 
   devices: z
     .object({
       device: z.string().describe("The name of the device"),
       clicks: z.number().describe("The number of clicks from this device"),
     })
-    .openapi({ ref: "ClicksDevices" }),
+    .openapi({ ref: "ClicksDevices", title: "ClicksDevices" }),
 
   browsers: z
     .object({
       browser: z.string().describe("The name of the browser"),
       clicks: z.number().describe("The number of clicks from this browser"),
     })
-    .openapi({ ref: "ClicksBrowsers" }),
+    .openapi({ ref: "ClicksBrowsers", title: "ClicksBrowsers" }),
 
   os: z
     .object({
       os: z.string().describe("The name of the OS"),
       clicks: z.number().describe("The number of clicks from this OS"),
     })
-    .openapi({ ref: "ClicksOS" }),
+    .openapi({ ref: "ClicksOS", title: "ClicksOS" }),
 
   referers: z
     .object({
