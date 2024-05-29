@@ -328,7 +328,7 @@ export default function Toggle() {
                         key === "link"
                           ? {
                               domain: new URL(value).hostname,
-                              key: value.split("/").at(-1) ?? "",
+                              key: new URL(value).pathname.slice(1) || "_root",
                             }
                           : {
                               [key]: value,
