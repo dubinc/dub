@@ -114,7 +114,25 @@ Available options are `AF`, `AL`, `DZ`,
 
 ## Response
 
-The response object of `dub.analytics.retrieve` depends on the `event` and `groupBy` parameters.
+The response object depends on the parameters of `event` and `groupBy`. 
+
+Other than `count`, all other `groupBy` options return an array of objects.
+
+Here is a quick example of how you would retrieve analytics:
+
+```typescript
+import { Dub } from "dub";
+import { ClicksTimeseries } from "dub/models/components";
+
+const response = await dub.analytics.retrieve({
+  interval: "30d",
+  groupBy: "timeseries",
+});
+
+const timeseries = response as ClicksTimeseries[];
+```
+
+
 
 <RequestExample>
 
