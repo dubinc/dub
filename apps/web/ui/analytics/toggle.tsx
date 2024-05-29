@@ -328,7 +328,7 @@ export default function Toggle() {
                         key === "link"
                           ? {
                               domain: new URL(value).hostname,
-                              key: value.split("/").at(-1) ?? "",
+                              key: new URL(value).pathname.slice(1) || "_root",
                             }
                           : {
                               [key]: value,
@@ -338,11 +338,6 @@ export default function Toggle() {
                   onRemove={(key) =>
                     queryParams({
                       del: key === "link" ? ["domain", "key"] : key,
-                    })
-                  }
-                  onRemoveAll={() =>
-                    queryParams({
-                      del: ["domain", "key", ...VALID_ANALYTICS_FILTERS],
                     })
                   }
                 />
@@ -435,6 +430,11 @@ export default function Toggle() {
           onRemove={(key) =>
             queryParams({
               del: key === "link" ? ["domain", "key"] : key,
+            })
+          }
+          onRemoveAll={() =>
+            queryParams({
+              del: ["domain", "key", ...VALID_ANALYTICS_FILTERS],
             })
           }
         />
