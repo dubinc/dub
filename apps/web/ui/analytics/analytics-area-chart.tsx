@@ -1,6 +1,6 @@
 import { editQueryString } from "@/lib/analytics/utils";
 import { cn, fetcher, getDaysDifference, nFormatter } from "@dub/utils";
-import { useCallback, useContext, useMemo } from "react";
+import { Fragment, useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import Areas from "../charts/areas";
@@ -133,7 +133,7 @@ export default function AnalyticsAreaChart({
                   const s = series.find(({ id }) => id === resource);
                   const value = d.values[resource];
                   return (
-                    <>
+                    <Fragment key={resource}>
                       <div className="flex items-center gap-2">
                         {s && (
                           <div
@@ -148,7 +148,7 @@ export default function AnalyticsAreaChart({
                       <p className="text-right font-medium text-gray-900">
                         {nFormatter(value, { full: true })}
                       </p>
-                    </>
+                    </Fragment>
                   );
                 })}
               </div>
