@@ -160,41 +160,42 @@ NODE timeseries_leads_data
 SQL >
 
     %
-            SELECT
-                {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
-                {% elif granularity == "month" %} toDateTime(toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}))
-                {% else %} toDateTime(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}))
-                {% end %} AS interval,
-                uniq(*) as leads
-            FROM
-                dub_lead_events_mv
-                {% if not defined(linkId) and defined(workspaceId) %}
-                    PREWHERE link_id in (SELECT link_id from workspace_links)
-                {% end %}
-            WHERE
-                true
-                {% if defined(linkId) %}
-                    AND link_id
-                    = {{
-                        String(
-                            linkId,
-                            'clsdzhhlq0003vskwcaz6nm39',
-                            description="The ID of the link",
-                        )
-                    }}
-                {% end %}
-                {% if defined(qr) %} AND qr = {{ Boolean(qr)}} {% end %}
-                {% if defined(country) %} AND country = {{ country }} {% end %}
-                {% if defined(city) %} AND city = {{ city }} {% end %}
-                {% if defined(device) %} AND device = {{ device }} {% end %}
-                {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-                {% if defined(os) %} AND os = {{ os }} {% end %}
-                {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-                {% if defined(url) %} AND url = {{ url }} {% end %}
-                AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
-                AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
-            GROUP BY interval
-            ORDER BY interval
+    SELECT
+        {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
+        {% elif granularity == "month" %}
+            toDateTime64(toStartOfMonth(timestamp), 3, {{ String(timezone, 'UTC') }})
+        {% else %} toDateTime64(toStartOfDay(timestamp), 3, {{ String(timezone, 'UTC') }})
+        {% end %} AS interval,
+        uniq(*) as leads
+    FROM
+        dub_lead_events_mv
+        {% if not defined(linkId) and defined(workspaceId) %}
+            PREWHERE link_id in (SELECT link_id from workspace_links)
+        {% end %}
+    WHERE
+        true
+        {% if defined(linkId) %}
+            AND link_id
+            = {{
+                String(
+                    linkId,
+                    'clsdzhhlq0003vskwcaz6nm39',
+                    description="The ID of the link",
+                )
+            }}
+        {% end %}
+        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
+    GROUP BY interval
+    ORDER BY interval
 
 
 
@@ -220,42 +221,43 @@ DESCRIPTION >
 SQL >
 
     %
-            SELECT
-                {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
-                {% elif granularity == "month" %} toDateTime(toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}))
-                {% else %} toDateTime(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}))
-                {% end %} AS interval,
-                uniq(*) as sales,
-                sum(amount) as amount
-            FROM
-                dub_sale_events_mv
-                {% if not defined(linkId) and defined(workspaceId) %}
-                    PREWHERE link_id in (SELECT link_id from workspace_links)
-                {% end %}
-            WHERE
-                true
-                {% if defined(linkId) %}
-                    AND link_id
-                    = {{
-                        String(
-                            linkId,
-                            'clsdzhhlq0003vskwcaz6nm39',
-                            description="The ID of the link",
-                        )
-                    }}
-                {% end %}
-                {% if defined(qr) %} AND qr = {{ Boolean(qr)}} {% end %}
-                {% if defined(country) %} AND country = {{ country }} {% end %}
-                {% if defined(city) %} AND city = {{ city }} {% end %}
-                {% if defined(device) %} AND device = {{ device }} {% end %}
-                {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-                {% if defined(os) %} AND os = {{ os }} {% end %}
-                {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-                {% if defined(url) %} AND url = {{ url }} {% end %}
-                AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
-                AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
-            GROUP BY interval
-            ORDER BY interval
+    SELECT
+        {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
+        {% elif granularity == "month" %}
+            toDateTime64(toStartOfMonth(timestamp), 3, {{ String(timezone, 'UTC') }})
+        {% else %} toDateTime64(toStartOfDay(timestamp), 3, {{ String(timezone, 'UTC') }})
+        {% end %} AS interval,
+        uniq(*) as sales,
+        sum(amount) as amount
+    FROM
+        dub_sale_events_mv
+        {% if not defined(linkId) and defined(workspaceId) %}
+            PREWHERE link_id in (SELECT link_id from workspace_links)
+        {% end %}
+    WHERE
+        true
+        {% if defined(linkId) %}
+            AND link_id
+            = {{
+                String(
+                    linkId,
+                    'clsdzhhlq0003vskwcaz6nm39',
+                    description="The ID of the link",
+                )
+            }}
+        {% end %}
+        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
+    GROUP BY interval
+    ORDER BY interval
 
 
 
