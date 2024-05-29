@@ -14,15 +14,7 @@ import { useAnalyticsFilterOption } from "./utils";
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
 
-  const {
-    selectedTab,
-    basePath,
-    baseApiPath,
-    queryString,
-    domain,
-    key,
-    requiresUpgrade,
-  } = useContext(AnalyticsContext);
+  const { basePath, domain, key } = useContext(AnalyticsContext);
 
   useEffect(() => {
     if (domain && key) {

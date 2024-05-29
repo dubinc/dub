@@ -327,7 +327,7 @@ export default function Toggle() {
                       set:
                         key === "link"
                           ? {
-                              domain: getApexDomain(value),
+                              domain: new URL(value).hostname,
                               key: value.split("/").at(-1) ?? "",
                             }
                           : {
