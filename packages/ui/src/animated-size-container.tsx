@@ -28,6 +28,7 @@ const AnimatedSizeContainer = forwardRef<
       className,
       transition,
       children,
+      ...rest
     }: AnimatedSizeContainerProps,
     forwardedRef,
   ) => {
@@ -47,6 +48,7 @@ const AnimatedSizeContainer = forwardRef<
             : "auto",
         }}
         transition={transition ?? { type: "spring", duration: 0.3 }}
+        {...rest}
       >
         <div
           ref={containerRef}
