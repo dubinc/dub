@@ -1,6 +1,7 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import NewLinkMiddleware from "./new-link";
+import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
@@ -37,9 +38,11 @@ export default async function AppMiddleware(req: NextRequest) {
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 
-      // if the path is /login or /register, redirect to "/"
-    } else if (path === "/login" || path === "/register") {
-      return NextResponse.redirect(new URL("/", req.url));
+      // if the path is / or /login or /register, redirect to the default workspace
+    } else if (path === "/" || path === "/login" || path === "/register") {
+      const defaultWorkspace = await getDefaultWorkspace(user);
+
+      return NextResponse.redirect(new URL(`/${defaultWorkspace}`, req.url));
     }
   }
 
