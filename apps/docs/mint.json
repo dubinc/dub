@@ -156,23 +156,7 @@
         },
         {
           "group": "Analytics",
-          "pages": [
-            {
-              "group": "Clicks",
-              "pages": [
-                "sdks/typescript/analytics/clicks/count",
-                "sdks/typescript/analytics/clicks/timeseries",
-                "sdks/typescript/analytics/clicks/browsers",
-                "sdks/typescript/analytics/clicks/cities",
-                "sdks/typescript/analytics/clicks/countries",
-                "sdks/typescript/analytics/clicks/devices",
-                "sdks/typescript/analytics/clicks/os",
-                "sdks/typescript/analytics/clicks/referers",
-                "sdks/typescript/analytics/clicks/top-links",
-                "sdks/typescript/analytics/clicks/top-urls"
-              ]
-            }
-          ]
+          "pages": ["sdks/typescript/analytics/retrieve"]
         },
         {
           "group": "Workspaces",
