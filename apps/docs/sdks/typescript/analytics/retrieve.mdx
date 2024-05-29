@@ -1,4 +1,26 @@
+---
+title: dub.analytics.retrieve
+sidebarTitle: Retrieve
+description: Retrieve analytics for a link, a domain, or the authenticated workspace. The response type depends on the `event` and `type` query parameters.
+---
+
+<Note>
+  Analytics endpoints require a [Pro plan](https://d.to/pro) subscription or
+  higher.
+</Note>
+
 ## Arguments
+
+<ParamField body="event" type="enum" default="clicks">
+  The type of event to retrieve analytics for. Available options: `clicks`,
+  `leads`, and `sales`.
+</ParamField>
+
+<ParamField body="groupBy" type="enum">
+  The type of analytics to retrieve. Defaults to 'count' if undefined. Available
+  options: `count`, `timeseries`, `countries`, `cities`, `devices`, `browsers`,
+  `os`, `referers`, `top_links`, `top_urls`, and `trigger`.
+</ParamField>
 
 <ParamField body="domain" type="string">
   The domain of the short link.
@@ -88,3 +110,43 @@ Available options are `AF`, `AL`, `DZ`,
 <ParamField body="tagId" type="string">
   The tag ID to retrieve analytics for.
 </ParamField>
+
+## Response
+
+<ResponseField name="browser" type="string" required>
+  The name of the browser
+</ResponseField>
+
+<ResponseField name="clicks" type="number" required>
+  The number of clicks from this browser
+</ResponseField>
+
+<RequestExample>
+
+```typescript
+// Retrieve total clicks for a link
+await dub.analytics.retrieve({
+  key: "dummy",
+  domain: "dub.sh",
+  event: "clicks",
+});
+
+// Retrieve timeseries analytics for a link
+await dub.analytics.retrieve({
+  key: "dummy",
+  domain: "dub.sh",
+  interval: "30d",
+  event: "clicks",
+  groupBy: "timeseries",
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```typescript
+// The response type depends on the `event` and `type` query parameters.
+```
+
+</ResponseExample>
