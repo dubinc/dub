@@ -318,6 +318,7 @@ export default function Toggle() {
                 "w-full md:w-auto": key,
               })}
             >
+              {!isPublicStatsPage && key && <SharePopover />}
               {!isPublicStatsPage && !admin && !demo && (
                 <Filter.Select
                   className="w-full"
@@ -348,7 +349,6 @@ export default function Toggle() {
                   }
                 />
               )}
-              {!isPublicStatsPage && key && <SharePopover />}
               <div
                 className={cn("flex w-full items-center gap-2", {
                   "min-[550px]:w-auto": !key,
