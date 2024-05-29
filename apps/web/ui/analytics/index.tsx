@@ -161,7 +161,7 @@ export default function Analytics({
     [key in CompositeAnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: "composite",
+      event: demo || betaTester ? "composite" : "clicks",
     })}`,
     fetcher,
     {
