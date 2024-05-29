@@ -1,23 +1,9 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps, UserProps } from "@/lib/types";
-import {
-  NumberTooltip,
-  Tooltip,
-  useIntersectionObserver,
-  useMediaQuery,
-  useRouterStuff,
-} from "@dub/ui";
+import { LinkProps } from "@/lib/types";
+import { NumberTooltip, Tooltip, useMediaQuery } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
-import {
-  cn,
-  fetcher,
-  getApexDomain,
-  linkConstructor,
-  nFormatter,
-  truncate,
-} from "@dub/utils";
+import { capitalize, cn, nFormatter, truncate } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -27,19 +13,16 @@ import {
   SetStateAction,
   useContext,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import useSWR from "swr";
 import { AnalyticsContext } from ".";
-import LinkLogo from "../links/link-logo";
 import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
   tab,
   data,
   barBackground,
-  maxClicks,
+  maxValue,
   setShowModal,
   limit,
 }: {
@@ -48,14 +31,17 @@ export default function BarList({
     icon: ReactNode;
     title: string;
     href: string;
-    clicks: number;
+    value: number;
+    linkId?: string;
   }[];
-  maxClicks: number;
+  maxValue: number;
   barBackground: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   limit?: number;
 }) {
   const [search, setSearch] = useState("");
+
+  const { selectedTab } = useContext(AnalyticsContext);
 
   // TODO: mock pagination for better perf in React
   // TODO: fix for top links since it's technically link IDs
@@ -79,7 +65,7 @@ export default function BarList({
         <LineItem
           key={idx}
           {...data}
-          maxClicks={maxClicks}
+          maxValue={maxValue}
           tab={tab}
           setShowModal={setShowModal}
           barBackground={barBackground}
@@ -111,7 +97,7 @@ export default function BarList({
               {tab}
             </p>
             <p className="text-xs font-semibold uppercase text-gray-600">
-              Clicks
+              {capitalize(selectedTab)}
             </p>
           </div>
           <div className="h-[50vh] overflow-auto p-4 md:h-[40vh]">{bars}</div>
@@ -125,118 +111,45 @@ export function LineItem({
   icon,
   title,
   href,
-  clicks,
-  maxClicks,
+  value,
+  maxValue,
   tab,
   setShowModal,
   barBackground,
+  linkData,
 }: {
-  icon?: ReactNode;
+  icon: ReactNode;
   title: string;
   href: string;
-  clicks: number;
-  maxClicks: number;
+  value: number;
+  maxValue: number;
   tab: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
+  linkData?: LinkProps;
 }) {
-  const itemRef = useRef<HTMLAnchorElement>(null);
-  const entry = useIntersectionObserver(itemRef, {});
-  const isVisible = !!entry?.isIntersecting;
-
-  const { id } = useWorkspace();
-
-  const { admin } = useContext(AnalyticsContext);
-
-  const { data } = useSWR<
-    LinkProps & {
-      user: UserProps;
-    }
-  >(
-    tab === "link" &&
-      isVisible &&
-      (admin
-        ? `/api/admin/links/${title}`
-        : `/api/links/${title}?workspaceId=${id}&checkDomain=true`),
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
-
-  const { queryParams } = useRouterStuff();
-
   const lineItem = useMemo(() => {
-    const apexDomain =
-      tab === "link"
-        ? data
-          ? getApexDomain(data.url)
-          : null
-        : getApexDomain(title);
     return (
       <div className="z-10 flex items-center space-x-2 px-2">
-        {tab === "link" ? (
-          data ? (
-            <LinkLogo
-              apexDomain={apexDomain}
-              className="h-5 w-5 sm:h-5 sm:w-5"
-            />
-          ) : (
-            <div className="h-5 w-5 animate-pulse rounded-full bg-gray-100" />
-          )
-        ) : tab === "url" ? (
-          <LinkLogo apexDomain={apexDomain} className="h-5 w-5 sm:h-5 sm:w-5" />
-        ) : (
-          icon
-        )}
+        {icon}
         <div
           className={cn(
             "truncate text-sm text-gray-800",
             href && "underline-offset-4 group-hover:underline",
           )}
         >
-          {tab === "link" ? (
-            data ? (
-              truncate(
-                linkConstructor({
-                  domain: data.domain,
-                  key: data.key,
-                  pretty: true,
-                }),
-                36,
-              )
-            ) : (
-              <div className="h-4 w-20 animate-pulse rounded bg-gray-100" />
-            )
-          ) : (
-            truncate(title, 36)
-          )}
+          {truncate(title, 36)}
         </div>
       </div>
     );
-  }, [data, icon, tab, title]);
+  }, [icon, tab, title]);
 
   return (
-    <Link
-      ref={itemRef}
-      href={
-        tab === "link" && data
-          ? (queryParams({
-              set: {
-                domain: data.domain,
-                key: data.key,
-              },
-              getNewPath: true,
-            }) as string)
-          : href
-      }
-      scroll={false}
-      onClick={() => setShowModal(false)}
-    >
+    <Link href={href} scroll={false} onClick={() => setShowModal(false)}>
       <div className="group flex items-center justify-between hover:bg-gray-50">
         <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
-          {tab === "link" && data ? (
-            <Tooltip content={<LinkPreviewTooltip data={data} />}>
+          {tab === "link" && linkData ? (
+            <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
               {lineItem}
             </Tooltip>
           ) : tab === "url" ? (
@@ -250,7 +163,7 @@ export function LineItem({
           )}
           <motion.div
             style={{
-              width: `${(clicks / (maxClicks || 0)) * 100}%`,
+              width: `${(value / (maxValue || 0)) * 100}%`,
             }}
             className={cn(
               "absolute h-full origin-left rounded-sm",
@@ -261,10 +174,8 @@ export function LineItem({
             animate={{ transform: "scaleX(1)" }}
           />
         </div>
-        <NumberTooltip value={clicks}>
-          <p className="z-10 px-2 text-sm text-gray-600">
-            {nFormatter(clicks)}
-          </p>
+        <NumberTooltip value={value}>
+          <p className="z-10 px-2 text-sm text-gray-600">{nFormatter(value)}</p>
         </NumberTooltip>
       </div>
     </Link>

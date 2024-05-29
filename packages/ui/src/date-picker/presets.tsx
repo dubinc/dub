@@ -6,7 +6,7 @@ import { DatePreset, DateRange, DateRangePreset, Preset } from "./types";
 
 type PresetsProps<TPreset extends Preset, TValue> = {
   presets: TPreset[];
-  onSelect: (value: TValue) => void;
+  onSelect: (preset: TPreset) => void;
   currentValue?: TValue;
 };
 
@@ -18,29 +18,15 @@ const Presets = <TPreset extends Preset, TValue>({
   // Currently selected preset
   currentValue,
 }: PresetsProps<TPreset, TValue>) => {
-  const isDateRangePresets = (preset: any): preset is DateRangePreset => {
-    return "dateRange" in preset;
-  };
+  const isDateRangePresets = (preset: any): preset is DateRangePreset =>
+    "dateRange" in preset;
 
-  const isDatePresets = (preset: any): preset is DatePreset => {
-    return "date" in preset;
-  };
+  const isDatePresets = (preset: any): preset is DatePreset => "date" in preset;
 
-  const handleClick = (preset: TPreset) => {
-    if (isDateRangePresets(preset)) {
-      onSelect(preset.dateRange as TValue);
-    } else if (isDatePresets(preset)) {
-      onSelect(preset.date as TValue);
-    }
-  };
-
-  const compareDates = (date1: Date, date2: Date) => {
-    return (
-      date1.getDate() === date2.getDate() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getFullYear() === date2.getFullYear()
-    );
-  };
+  const compareDates = (date1: Date, date2: Date) =>
+    date1.getDate() === date2.getDate() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getFullYear() === date2.getFullYear();
 
   const compareRanges = (range1: DateRange, range2: DateRange) => {
     const from1 = range1.from;
@@ -51,9 +37,7 @@ const Presets = <TPreset extends Preset, TValue>({
     if (from1 && from2) {
       const sameFrom = compareDates(from1, from2);
 
-      if (sameFrom) {
-        equalFrom = true;
-      }
+      if (sameFrom) equalFrom = true;
     }
 
     const to1 = range1.to;
@@ -64,9 +48,7 @@ const Presets = <TPreset extends Preset, TValue>({
     if (to1 && to2) {
       const sameTo = compareDates(to1, to2);
 
-      if (sameTo) {
-        equalTo = true;
-      }
+      if (sameTo) equalTo = true;
     }
 
     return equalFrom && equalTo;
@@ -111,7 +93,7 @@ const Presets = <TPreset extends Preset, TValue>({
                     ? "bg-blue-100 hover:bg-blue-200"
                     : "hover:bg-gray-100 active:bg-gray-200",
                 )}
-                onClick={() => handleClick(preset)}
+                onClick={() => onSelect(preset)}
                 aria-label={`Select ${preset.label}`}
                 disabled={preset.requiresUpgrade}
               >

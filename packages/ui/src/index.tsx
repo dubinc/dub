@@ -9,6 +9,7 @@ export * from "./button";
 export * from "./checkbox";
 export * from "./date-picker";
 export * from "./file-upload";
+export * from "./filter";
 export * from "./form";
 export * from "./input-select";
 export * from "./label";

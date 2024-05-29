@@ -1,30 +1,21 @@
+import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { LocationTabs } from "@/lib/analytics/types";
-import { formatAnalyticsEndpoint } from "@/lib/analytics/utils";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, fetcher } from "@dub/utils";
+import { COUNTRIES } from "@dub/utils";
 import { Maximize } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
-import useSWR from "swr";
-import { AnalyticsContext } from ".";
+import { useMemo, useState } from "react";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("countries");
   const singularTabName = useMemo(
-    () => formatAnalyticsEndpoint(tab, "singular"),
+    () => SINGULAR_ANALYTICS_ENDPOINTS[tab],
     [tab],
   );
 
-  const { baseApiPath, queryString, requiresUpgrade } =
-    useContext(AnalyticsContext);
-
-  const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
-    `${baseApiPath}/${tab}?${queryString}`,
-    fetcher,
-    { shouldRetryOnError: !requiresUpgrade },
-  );
-
+  const data = useAnalyticsFilterOption(tab);
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
@@ -47,10 +38,10 @@ export default function Locations() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d.clicks,
+          value: d.count || 0,
         })) || []
       }
-      maxClicks={data?.[0]?.clicks || 0}
+      maxValue={(data && data[0]?.count) || 0}
       barBackground="bg-orange-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
@@ -69,7 +60,7 @@ export default function Locations() {
         </div>
         {barList()}
       </Modal>
-      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-xl">
         <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold">Locations</h1>
           <TabSelect

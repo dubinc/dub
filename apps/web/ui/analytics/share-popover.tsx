@@ -15,10 +15,7 @@ import { AnalyticsContext } from ".";
 export default function SharePopover() {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { baseApiPath, queryString, domain, key } = useContext(
-    AnalyticsContext,
-  ) as {
-    baseApiPath: string;
+  const { queryString, domain, key } = useContext(AnalyticsContext) as {
     queryString: string;
     domain: string;
     key: string; // coerce to string since <SharePopover is not shown if key is undefined)
@@ -26,14 +23,14 @@ export default function SharePopover() {
 
   const { data, isLoading, update } = useOptimisticUpdate<{
     publicStats: boolean;
-  }>(`/api/analytics?${queryString}`, {
+  }>(`/api/analytics/public-stats?${queryString}`, {
     loading: "Updating...",
     success: "Successfully updated stats page visibility!",
     error: "Something went wrong",
   });
 
   const handleUpdate = async (checked: boolean) => {
-    const res = await fetch(`/api/analytics?${queryString}`, {
+    const res = await fetch(`/api/analytics/public-stats?${queryString}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

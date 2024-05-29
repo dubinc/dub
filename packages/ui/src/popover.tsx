@@ -13,6 +13,7 @@ export type PopoverProps = PropsWithChildren<{
   setOpenPopover: (open: boolean) => void;
   mobileOnly?: boolean;
   popoverContentClassName?: string;
+  onEscapeKeyDown?: (event: KeyboardEvent) => void;
 }>;
 
 export function Popover({
@@ -23,6 +24,7 @@ export function Popover({
   setOpenPopover,
   mobileOnly,
   popoverContentClassName,
+  onEscapeKeyDown,
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
@@ -34,7 +36,10 @@ export function Popover({
         </Drawer.Trigger>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
+          <Drawer.Content
+            className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white"
+            onEscapeKeyDown={onEscapeKeyDown}
+          >
             <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
               <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
             </div>
@@ -61,6 +66,7 @@ export function Popover({
             "animate-slide-up-fade z-50 items-center rounded-lg border border-gray-200 bg-white drop-shadow-lg sm:block",
             popoverContentClassName,
           )}
+          onEscapeKeyDown={onEscapeKeyDown}
         >
           {content}
         </PopoverPrimitive.Content>

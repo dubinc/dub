@@ -6,18 +6,20 @@
 */
 
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
+import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
+import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
-import { endOfDay, min, subDays } from "date-fns";
+import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
-import Clicks from "./clicks";
 import Devices from "./devices";
 import Locations from "./locations";
+import Main from "./main";
 import Referer from "./referer";
 import Toggle from "./toggle";
 import TopLinks from "./top-links";
@@ -25,24 +27,29 @@ import TopLinks from "./top-links";
 export const AnalyticsContext = createContext<{
   basePath: string;
   baseApiPath: string;
+  selectedTab: string;
   domain?: string;
   key?: string;
   url?: string;
   queryString: string;
-  start: Date;
-  end: Date;
+  start?: Date;
+  end?: Date;
+  interval?: string;
   tagId?: string;
-  totalClicks?: number;
+  totalEvents?: { [key in CompositeAnalyticsResponseOptions]: number };
   admin?: boolean;
+  demo?: boolean;
   requiresUpgrade?: boolean;
 }>({
   basePath: "",
   baseApiPath: "",
+  selectedTab: "clicks",
   domain: "",
   queryString: "",
   start: new Date(),
   end: new Date(),
   admin: false,
+  demo: false,
   requiresUpgrade: false,
 });
 
@@ -50,14 +57,16 @@ export default function Analytics({
   staticDomain,
   staticUrl,
   admin,
+  demo,
 }: {
   staticDomain?: string;
   staticUrl?: string;
   admin?: boolean;
+  demo?: boolean;
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id, slug } = useWorkspace();
+  const { id: workspaceId, slug, betaTester } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
@@ -71,40 +80,56 @@ export default function Analytics({
 
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
-    return {
-      start: new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+    const hasRange = searchParams?.has("start") && searchParams?.has("end");
 
-      // Set to end of day or now if that's in the future
-      end: min([
-        endOfDay(new Date(searchParams?.get("end") || new Date())),
-        new Date(),
-      ]),
+    return {
+      start: hasRange
+        ? startOfDay(
+            new Date(searchParams?.get("start") || subDays(new Date(), 1)),
+          )
+        : undefined,
+
+      end: hasRange
+        ? endOfDay(new Date(searchParams?.get("end") || new Date()))
+        : undefined,
     };
-  }, [searchParams]);
+  }, [searchParams?.get("start"), searchParams?.get("end")]);
+
+  // Only set interval if start and end are not provided
+  const interval =
+    start || end ? undefined : searchParams?.get("interval") ?? "24h";
+
+  const selectedTab =
+    demo || betaTester ? searchParams.get("tab") || "composite" : "clicks";
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
-    // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
     if (admin) {
       return {
         basePath: `/analytics`,
-        baseApiPath: `/api/analytics/admin/clicks`,
+        baseApiPath: `/api/analytics/admin`,
+        domain: domainSlug,
+      };
+    } else if (demo) {
+      return {
+        basePath: `/analytics/demo`,
+        baseApiPath: `/api/analytics/demo`,
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics/clicks`,
+        baseApiPath: `/api/analytics`,
         domain: domainSlug,
       };
     } else {
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: "/api/analytics/edge/clicks",
+        baseApiPath: `/api/analytics/edge`,
         domain: staticDomain,
       };
     }
-  }, [admin, slug, pathname, staticDomain, domainSlug, key]);
+  }, [admin, demo, slug, pathname, staticDomain, domainSlug, key, selectedTab]);
 
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
@@ -117,21 +142,27 @@ export default function Analytics({
       {},
     );
     return new URLSearchParams({
-      ...(id && { workspaceId: id }),
+      ...(workspaceId && { workspaceId }),
       ...(domain && { domain }),
       ...(key && { key }),
       ...(start &&
         end && { start: start.toISOString(), end: end.toISOString() }),
+      ...(interval && { interval }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
+      event: selectedTab,
     }).toString();
-  }, [id, domain, key, searchParams, start, end, tagId]);
+  }, [workspaceId, domain, key, searchParams, start, end, tagId, selectedTab]);
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
-  const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}/count?${queryString}`,
+  const { data: totalEvents } = useSWR<{
+    [key in CompositeAnalyticsResponseOptions]: number;
+  }>(
+    `${baseApiPath}?${editQueryString(queryString, {
+      event: demo || betaTester ? "composite" : "clicks",
+    })}`,
     fetcher,
     {
       onSuccess: () => setRequiresUpgrade(false),
@@ -161,23 +192,26 @@ export default function Analytics({
     <AnalyticsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
-        baseApiPath, // baseApiPath for the API (e.g. /api/analytics)
+        baseApiPath, // baseApiPath for analytics API endpoints (e.g. /api/analytics)
+        selectedTab, // selected tab (clicks, leads, sales)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: staticUrl, // url for the link (only for public stats pages)
         start, // start of time period
         end, // end of time period
+        interval, /// time period interval
         tagId, // id of a single tag
-        totalClicks, // total clicks for the link
+        totalEvents, // totalEvents (clicks, leads, sales)
         admin, // whether the user is an admin
+        demo, // whether the user is viewing demo analytics
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >
       <div className="bg-gray-50 py-10">
         <Toggle />
-        <div className="mx-auto grid max-w-4xl gap-5">
-          <Clicks />
+        <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
+          <Main />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
             {!isPublicStatsPage && <TopLinks />}

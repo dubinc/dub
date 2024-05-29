@@ -30,7 +30,7 @@
     "name": "Dashboard",
     "url": "https://app.dub.co"
   },
-  "openapi": "https://api.dub.co",
+  "openapi": "http://api.dub.co",
   "tabs": [
     {
       "name": "API Reference",
@@ -88,19 +88,8 @@
       ]
     },
     {
-      "group": "Click Analytics",
-      "pages": [
-        "api-reference/endpoint/retrieve-clicks-count",
-        "api-reference/endpoint/retrieve-timeseries-clicks",
-        "api-reference/endpoint/retrieve-browsers-by-clicks",
-        "api-reference/endpoint/retrieve-cities-by-clicks",
-        "api-reference/endpoint/retrieve-countries-by-clicks",
-        "api-reference/endpoint/retrieve-devices-by-clicks",
-        "api-reference/endpoint/retrieve-os-by-clicks",
-        "api-reference/endpoint/retrieve-referers-by-clicks",
-        "api-reference/endpoint/retrieve-top-links-by-clicks",
-        "api-reference/endpoint/retrieve-top-urls-by-clicks"
-      ]
+      "group": "Analytics",
+      "pages": ["api-reference/endpoint/retrieve-analytics"]
     },
     {
       "group": "QR Codes",
@@ -167,23 +156,7 @@
         },
         {
           "group": "Analytics",
-          "pages": [
-            {
-              "group": "Clicks",
-              "pages": [
-                "sdks/typescript/analytics/clicks/count",
-                "sdks/typescript/analytics/clicks/timeseries",
-                "sdks/typescript/analytics/clicks/browsers",
-                "sdks/typescript/analytics/clicks/cities",
-                "sdks/typescript/analytics/clicks/countries",
-                "sdks/typescript/analytics/clicks/devices",
-                "sdks/typescript/analytics/clicks/os",
-                "sdks/typescript/analytics/clicks/referers",
-                "sdks/typescript/analytics/clicks/top-links",
-                "sdks/typescript/analytics/clicks/top-urls"
-              ]
-            }
-          ]
+          "pages": ["sdks/typescript/analytics/retrieve"]
         },
         {
           "group": "Workspaces",
