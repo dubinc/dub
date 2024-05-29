@@ -1,4 +1,8 @@
-import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import {
+  INTERVAL_DATA,
+  INTERVAL_DISPLAYS,
+  VALID_ANALYTICS_FILTERS,
+} from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
 import useTags from "@/lib/swr/use-tags";
@@ -292,6 +296,11 @@ export default function Toggle() {
                   onRemove={(key) =>
                     queryParams({
                       del: key,
+                    })
+                  }
+                  onRemoveAll={() =>
+                    queryParams({
+                      del: ["domain", "linkId", ...VALID_ANALYTICS_FILTERS],
                     })
                   }
                 />
