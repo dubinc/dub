@@ -128,72 +128,81 @@ export default function Toggle() {
         key: "country",
         icon: Flag,
         label: "Country",
-        options: countries?.map(({ country, count }) => ({
-          value: country,
-          label: COUNTRIES[country],
-          icon: (
-            <img
-              alt={country}
-              src={`https://flag.vercel.app/m/${country}.svg`}
-              className="h-2.5 w-4"
-            />
-          ),
-          right: count,
-        })),
+        options:
+          countries?.map(({ country, count }) => ({
+            value: country,
+            label: COUNTRIES[country],
+            icon: (
+              <img
+                alt={country}
+                src={`https://flag.vercel.app/m/${country}.svg`}
+                className="h-2.5 w-4"
+              />
+            ),
+            right: count,
+          })) ?? null,
       },
       {
         key: "city",
         icon: Building2,
         label: "City",
-        options: cities?.map(({ city, country, count }) => ({
-          value: city,
-          label: city,
-          icon: (
-            <img
-              alt={country}
-              src={`https://flag.vercel.app/m/${country}.svg`}
-              className="h-2.5 w-4"
-            />
-          ),
-          right: count,
-        })),
+        options:
+          cities?.map(({ city, country, count }) => ({
+            value: city,
+            label: city,
+            icon: (
+              <img
+                alt={country}
+                src={`https://flag.vercel.app/m/${country}.svg`}
+                className="h-2.5 w-4"
+              />
+            ),
+            right: count,
+          })) ?? null,
       },
       {
         key: "device",
         icon: Smartphone,
         label: "Device",
-        options: devices?.map(({ device, count }) => ({
-          value: device,
-          label: device,
-          icon: (
-            <DeviceIcon display={device} tab="devices" className="h-4 w-4" />
-          ),
-          right: count,
-        })),
+        options:
+          devices?.map(({ device, count }) => ({
+            value: device,
+            label: device,
+            icon: (
+              <DeviceIcon display={device} tab="devices" className="h-4 w-4" />
+            ),
+            right: count,
+          })) ?? null,
       },
       {
         key: "browser",
         icon: AppWindow,
         label: "Browser",
-        options: browsers?.map(({ browser, count }) => ({
-          value: browser,
-          label: browser,
-          icon: (
-            <DeviceIcon display={browser} tab="browsers" className="h-4 w-4" />
-          ),
-          right: count,
-        })),
+        options:
+          browsers?.map(({ browser, count }) => ({
+            value: browser,
+            label: browser,
+            icon: (
+              <DeviceIcon
+                display={browser}
+                tab="browsers"
+                className="h-4 w-4"
+              />
+            ),
+            right: count,
+          })) ?? null,
       },
       {
         key: "os",
         icon: Box,
         label: "OS",
-        options: os?.map(({ os, count }) => ({
-          value: os,
-          label: os,
-          icon: <DeviceIcon display={os} tab="os" className="h-4 w-4" />,
-          right: count,
-        })),
+        options:
+          os?.map(({ os, count }) => ({
+            value: os,
+            label: os,
+            icon: <DeviceIcon display={os} tab="os" className="h-4 w-4" />,
+            right: count,
+          })) ?? null,
       },
     ],
     [domains, tags],
