@@ -1,4 +1,4 @@
-import { cn } from "@dub/utils";
+import { cn, truncate } from "@dub/utils";
 import { Command } from "cmdk";
 import { Check, ChevronDown, FilterX, ListFilter } from "lucide-react";
 import {
@@ -239,7 +239,7 @@ function FilterButton({
       <span className="shrink-0 text-gray-600">
         {isReactNode(Icon) ? Icon : <Icon className="h-4 w-4" />}
       </span>
-      {label}
+      {truncate(label, 30)}
       <div className="ml-1 flex shrink-0 grow justify-end text-gray-500">
         {right}
       </div>
