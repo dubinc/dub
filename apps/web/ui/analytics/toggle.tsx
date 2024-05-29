@@ -97,11 +97,11 @@ export default function Toggle() {
             icon: (
               <div
                 className={cn(
-                  "h-5 w-5 rounded-full p-1",
+                  "rounded-md p-1.5",
                   COLORS_LIST.find(({ color }) => color === tag.color)?.css,
                 )}
               >
-                <Tag className="h-3 w-3" />
+                <Tag className="h-2.5 w-2.5" />
               </div>
             ),
             label: tag.name,

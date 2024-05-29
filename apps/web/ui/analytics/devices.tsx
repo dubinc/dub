@@ -39,7 +39,7 @@ export default function Devices() {
             },
             getNewPath: true,
           }) as string,
-          value: d.count,
+          value: d.count || 0,
         })) || []
       }
       maxValue={(data && data[0]?.count) || 0}

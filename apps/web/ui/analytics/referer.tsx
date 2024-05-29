@@ -1,29 +1,13 @@
-import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
-import { editQueryString } from "@/lib/analytics/utils";
 import { BlurImage, Modal, useRouterStuff } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
+import { GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
-import { useContext, useState } from "react";
-import useSWR from "swr";
-import { AnalyticsContext } from ".";
+import { useState } from "react";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function Referer() {
-  const { selectedTab, baseApiPath, queryString, requiresUpgrade } =
-    useContext(AnalyticsContext);
-
-  const { data } = useSWR<
-    ({ referer: string } & {
-      [key in CompositeAnalyticsResponseOptions]: number;
-    })[]
-  >(
-    `${baseApiPath}?${editQueryString(queryString, {
-      groupBy: "referers",
-    })}`,
-    fetcher,
-    { shouldRetryOnError: !requiresUpgrade },
-  );
+  const data = useAnalyticsFilterOption("referers");
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
@@ -52,10 +36,10 @@ export default function Referer() {
             },
             getNewPath: true,
           }) as string,
-          value: d[selectedTab] ?? d["clicks"],
+          value: d.count || 0,
         })) || []
       }
-      maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
+      maxValue={(data && data[0]?.count) || 0}
       barBackground="bg-red-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}

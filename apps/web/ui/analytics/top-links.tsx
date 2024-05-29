@@ -1,19 +1,15 @@
-import {
-  CompositeAnalyticsResponseOptions,
-  TopLinksTabs,
-} from "@/lib/analytics/types";
-import { editQueryString } from "@/lib/analytics/utils";
+import { TopLinksTabs } from "@/lib/analytics/types";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { fetcher, getApexDomain, linkConstructor, truncate } from "@dub/utils";
+import { getApexDomain, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
-import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
@@ -36,19 +32,7 @@ export default function TopLinks() {
     }
   }, [domain, key]);
 
-  const { data } = useSWR<
-    ({ domain: string; key: string } & {
-      [key in TopLinksTabs]: string;
-    } & { [key in CompositeAnalyticsResponseOptions]: number })[]
-  >(
-    `${baseApiPath}?${editQueryString(queryString, {
-      groupBy: `top_${tab}s`,
-    })}`,
-    fetcher,
-    {
-      shouldRetryOnError: !requiresUpgrade,
-    },
-  );
+  const data = useAnalyticsFilterOption(`top_${tab}s`);
 
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
@@ -78,11 +62,11 @@ export default function TopLinks() {
             },
             getNewPath: true,
           }) as string,
-          value: d[selectedTab] ?? d["clicks"],
+          value: d.count || 0,
           ...(tab === "link" && { linkData: d }),
         })) || []
       }
-      maxValue={(data?.[0]?.[selectedTab] ?? data?.[0]?.["clicks"]) || 0}
+      maxValue={(data && data[0]?.count) || 0}
       barBackground="bg-blue-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
