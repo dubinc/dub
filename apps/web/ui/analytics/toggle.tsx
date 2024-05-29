@@ -227,7 +227,7 @@ export default function Toggle() {
           })) ?? null,
       },
     ],
-    [domains, tags],
+    [domains, links, tags, countries, cities, devices, browsers, os],
   );
 
   const activeFilters = useMemo(() => {
