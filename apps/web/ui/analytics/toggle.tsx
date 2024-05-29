@@ -7,6 +7,7 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { LinkProps } from "@/lib/types";
 import {
   BlurImage,
   DatePickerContext,
@@ -60,6 +61,7 @@ export default function Toggle() {
   const devices = useAnalyticsFilterOption("devices");
   const browsers = useAnalyticsFilterOption("browsers");
   const os = useAnalyticsFilterOption("os");
+  const links = useAnalyticsFilterOption("top_links");
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
@@ -204,12 +206,32 @@ export default function Toggle() {
             right: count,
           })) ?? null,
       },
+      {
+        key: "key",
+        icon: Link,
+        label: "Link",
+        options:
+          links?.map(({ key, url, count }: LinkProps & { count?: number }) => ({
+            value: key,
+            label: "/" + key,
+            icon: (
+              <BlurImage
+                src={`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`}
+                alt={getApexDomain(url)}
+                className="rounded-full"
+                width={16}
+                height={16}
+              />
+            ),
+            right: count,
+          })) ?? null,
+      },
     ],
     [domains, tags],
   );
 
   const activeFilters = useMemo(() => {
-    const { domain, tagId, qr, country, city, device, browser, os } =
+    const { domain, tagId, qr, country, city, device, browser, os, key } =
       searchParamsObj;
     return [
       ...(domain ? [{ key: "domain", value: domain }] : []),
@@ -220,6 +242,7 @@ export default function Toggle() {
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
+      ...(key ? [{ key: "key", value: key }] : []),
     ];
   }, [searchParamsObj]);
 
