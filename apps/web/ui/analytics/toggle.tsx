@@ -207,24 +207,26 @@ export default function Toggle() {
           })) ?? null,
       },
       {
-        key: "key",
+        key: "link",
         icon: Link,
         label: "Link",
         options:
-          links?.map(({ key, url, count }: LinkProps & { count?: number }) => ({
-            value: key,
-            label: "/" + key,
-            icon: (
-              <BlurImage
-                src={`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`}
-                alt={getApexDomain(url)}
-                className="rounded-full"
-                width={16}
-                height={16}
-              />
-            ),
-            right: count,
-          })) ?? null,
+          links?.map(
+            ({ domain, key, url, count }: LinkProps & { count?: number }) => ({
+              value: linkConstructor({ domain, key }),
+              label: linkConstructor({ domain, key, pretty: true }),
+              icon: (
+                <BlurImage
+                  src={`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`}
+                  alt={getApexDomain(url)}
+                  className="rounded-full"
+                  width={16}
+                  height={16}
+                />
+              ),
+              right: count,
+            }),
+          ) ?? null,
       },
     ],
     [domains, tags],
@@ -234,7 +236,10 @@ export default function Toggle() {
     const { domain, tagId, qr, country, city, device, browser, os, key } =
       searchParamsObj;
     return [
-      ...(domain ? [{ key: "domain", value: domain }] : []),
+      ...(domain && !key ? [{ key: "domain", value: domain }] : []),
+      ...(domain && key
+        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
+        : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
       ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
@@ -242,7 +247,6 @@ export default function Toggle() {
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
-      ...(key ? [{ key: "key", value: key }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -321,19 +325,25 @@ export default function Toggle() {
                   activeFilters={activeFilters}
                   onSelect={(key, value) =>
                     queryParams({
-                      set: {
-                        [key]: value,
-                      },
+                      set:
+                        key === "link"
+                          ? {
+                              domain: getApexDomain(value),
+                              key: value.split("/").at(-1) ?? "",
+                            }
+                          : {
+                              [key]: value,
+                            },
                     })
                   }
                   onRemove={(key) =>
                     queryParams({
-                      del: key,
+                      del: key === "link" ? ["domain", "key"] : key,
                     })
                   }
                   onRemoveAll={() =>
                     queryParams({
-                      del: ["domain", "linkId", ...VALID_ANALYTICS_FILTERS],
+                      del: ["domain", "key", ...VALID_ANALYTICS_FILTERS],
                     })
                   }
                 />
@@ -426,7 +436,7 @@ export default function Toggle() {
           activeFilters={activeFilters}
           onRemove={(key) =>
             queryParams({
-              del: key,
+              del: key === "link" ? ["domain", "key"] : key,
             })
           }
         />
