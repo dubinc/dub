@@ -28,7 +28,6 @@ export default function AnalyticsAreaChart({
     { start: Date; clicks: number; leads: number; sales: number }[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: selectedTab,
       groupBy: "timeseries",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })}`,

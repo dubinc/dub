@@ -7,6 +7,7 @@
 
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
+import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
 import { endOfDay, startOfDay, subDays } from "date-fns";
@@ -158,26 +159,32 @@ export default function Analytics({
 
   const { data: totalEvents } = useSWR<{
     [key in CompositeAnalyticsResponseOptions]: number;
-  }>(`${baseApiPath}?${queryString}`, fetcher, {
-    onSuccess: () => setRequiresUpgrade(false),
-    onError: (error) => {
-      if (error.status === 403) {
-        toast.custom(() => (
-          <UpgradeRequiredToast
-            title="Upgrade for more analytics"
-            message={JSON.parse(error.message)?.error.message}
-          />
-        ));
-        setRequiresUpgrade(true);
-      } else {
-        toast.error(error.message);
-      }
+  }>(
+    `${baseApiPath}?${editQueryString(queryString, {
+      event: "composite",
+    })}`,
+    fetcher,
+    {
+      onSuccess: () => setRequiresUpgrade(false),
+      onError: (error) => {
+        if (error.status === 403) {
+          toast.custom(() => (
+            <UpgradeRequiredToast
+              title="Upgrade for more analytics"
+              message={JSON.parse(error.message)?.error.message}
+            />
+          ));
+          setRequiresUpgrade(true);
+        } else {
+          toast.error(error.message);
+        }
+      },
+      onErrorRetry: (error, ...args) => {
+        if (error.message.includes("Upgrade to Pro")) return;
+        defaultConfig.onErrorRetry(error, ...args);
+      },
     },
-    onErrorRetry: (error, ...args) => {
-      if (error.message.includes("Upgrade to Pro")) return;
-      defaultConfig.onErrorRetry(error, ...args);
-    },
-  });
+  );
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
