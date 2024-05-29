@@ -51,7 +51,9 @@ export default function TopLinks() {
             />
           ),
           title:
-            tab === "link" ? d["shortLink"].replace(/^https?:\/\//, "") : d.url,
+            tab === "link" && d["shortLink"]
+              ? d["shortLink"].replace(/^https?:\/\//, "")
+              : d.url,
           href: queryParams({
             set: {
               ...(tab === "link"
