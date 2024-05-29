@@ -1,5 +1,4 @@
 export const intervals = [
-  "1h",
   "24h",
   "7d",
   "30d",
@@ -48,10 +47,6 @@ export const INTERVAL_DATA: Record<
     granularity: "minute" | "hour" | "day" | "month";
   }
 > = {
-  "1h": {
-    startDate: new Date(Date.now() - 3600000),
-    granularity: "minute",
-  },
   "24h": {
     startDate: new Date(Date.now() - 86400000),
     granularity: "hour",
