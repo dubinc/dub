@@ -7,7 +7,7 @@ export const clickAnalyticsResponse = {
     .object({
       clicks: z.number().describe("The total number of clicks"),
     })
-    .openapi({ ref: "ClicksCount" }),
+    .openapi({ ref: "ClicksCount", title: "ClicksCount" }),
 
   timeseries: z
     .object({
