@@ -317,7 +317,7 @@ export default function Toggle() {
               })}
             >
               {!isPublicStatsPage && key && <SharePopover />}
-              {!isPublicStatsPage && !admin && !demo && (
+              {!isPublicStatsPage && (
                 <Filter.Select
                   className="w-full"
                   filters={filters}
