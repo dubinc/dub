@@ -340,11 +340,6 @@ export default function Toggle() {
                       del: key === "link" ? ["domain", "key"] : key,
                     })
                   }
-                  onRemoveAll={() =>
-                    queryParams({
-                      del: ["domain", "key", ...VALID_ANALYTICS_FILTERS],
-                    })
-                  }
                 />
               )}
               <div
@@ -435,6 +430,11 @@ export default function Toggle() {
           onRemove={(key) =>
             queryParams({
               del: key === "link" ? ["domain", "key"] : key,
+            })
+          }
+          onRemoveAll={() =>
+            queryParams({
+              del: ["domain", "key", ...VALID_ANALYTICS_FILTERS],
             })
           }
         />
