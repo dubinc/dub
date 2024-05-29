@@ -1,31 +1,22 @@
-import { LinkProps, UserProps } from "@/lib/types";
-import { Avatar, BlurImage, CopyButton } from "@dub/ui";
+import { LinkProps } from "@/lib/types";
+import { BlurImage, CopyButton } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
-  cn,
   getApexDomain,
   linkConstructor,
   timeAgo,
   truncate,
 } from "@dub/utils";
-import { Archive, EyeOff, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 
-export default function LinkPreviewTooltip({
-  data,
-}: {
-  data: LinkProps & { user?: UserProps };
-}) {
-  const { url, rewrite, createdAt, archived, user } = data;
+export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {
+  const { domain, key, url, createdAt } = data;
   const apexDomain = getApexDomain(url);
 
   return (
     <div className="relative flex w-[28rem] items-center justify-between px-4 py-2">
       <div className="relative flex shrink items-center">
-        {archived ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 px-0 sm:h-10 sm:w-10">
-            <Archive className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
-          </div>
-        ) : url ? (
+        {url ? (
           <BlurImage
             src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
             alt={apexDomain}
@@ -45,37 +36,24 @@ export default function LinkPreviewTooltip({
         <div className="ml-2 sm:ml-4">
           <div className="flex max-w-fit items-center space-x-2">
             <a
-              className={cn(
-                "w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
-                {
-                  "text-gray-500": archived,
-                },
-              )}
-              href={linkConstructor({ domain: data.domain, key: data.key })}
+              className="w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]"
+              href={linkConstructor({ domain, key })}
               target="_blank"
               rel="noreferrer"
               onClick={(e) => e.stopPropagation()}
             >
               {truncate(
                 linkConstructor({
-                  domain: data.domain,
-                  key: data.key,
+                  domain,
+                  key,
                   pretty: true,
                 }),
                 32,
               )}
             </a>
-            <CopyButton
-              value={linkConstructor({ domain: data.domain, key: data.key })}
-            />
+            <CopyButton value={linkConstructor({ domain, key })} />
           </div>
           <div className="flex max-w-fit items-center space-x-1">
-            {user && (
-              <>
-                <Avatar user={user} className="h-4 w-4" />
-                <p>•</p>
-              </>
-            )}
             {createdAt && (
               <>
                 <p
@@ -86,9 +64,6 @@ export default function LinkPreviewTooltip({
                 </p>
                 <p>•</p>
               </>
-            )}
-            {rewrite && (
-              <EyeOff className="xs:block hidden h-4 w-4 text-gray-500" />
             )}
             {url ? (
               <a

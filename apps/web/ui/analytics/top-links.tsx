@@ -1,20 +1,20 @@
 import { TopLinksTabs } from "@/lib/analytics/types";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { fetcher, linkConstructor, truncate } from "@dub/utils";
+import { getApexDomain, linkConstructor, truncate } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
-import useSWR from "swr";
 import { AnalyticsContext } from ".";
+import LinkLogo from "../links/link-logo";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
 
-  const { basePath, baseApiPath, queryString, domain, key, requiresUpgrade } =
-    useContext(AnalyticsContext);
+  const { basePath, domain, key } = useContext(AnalyticsContext);
 
   useEffect(() => {
     if (domain && key) {
@@ -24,13 +24,7 @@ export default function TopLinks() {
     }
   }, [domain, key]);
 
-  const { data } = useSWR<
-    ({ domain: string; key: string } & {
-      [key in TopLinksTabs]: string;
-    } & { clicks: number })[]
-  >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher, {
-    shouldRetryOnError: !requiresUpgrade,
-  });
+  const data = useAnalyticsFilterOption(`top_${tab}s`);
 
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
@@ -42,18 +36,31 @@ export default function TopLinks() {
       tab={tab}
       data={
         data?.map((d) => ({
-          icon: null,
-          title: d[tab],
+          icon: (
+            <LinkLogo
+              apexDomain={getApexDomain(d.url)}
+              className="h-5 w-5 sm:h-5 sm:w-5"
+            />
+          ),
+          title:
+            tab === "link" && d["shortLink"]
+              ? d["shortLink"].replace(/^https?:\/\//, "")
+              : d.url,
           href: queryParams({
             set: {
-              [tab]: d[tab],
+              ...(tab === "link"
+                ? { domain: d.domain, key: d.key || "_root" }
+                : {
+                    url: d.url,
+                  }),
             },
             getNewPath: true,
           }) as string,
-          clicks: d.clicks,
+          value: d.count || 0,
+          ...(tab === "link" && { linkData: d }),
         })) || []
       }
-      maxClicks={data?.[0]?.clicks || 0}
+      maxValue={(data && data[0]?.count) || 0}
       barBackground="bg-blue-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
@@ -74,7 +81,7 @@ export default function TopLinks() {
         </div>
         {barList()}
       </Modal>
-      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-xl">
         <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold capitalize">
             {tab === "link" ? "Links" : "URLs"}

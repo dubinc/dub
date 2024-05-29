@@ -1,21 +1,13 @@
 import { BlurImage, Modal, useRouterStuff } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
+import { GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
-import { useContext, useState } from "react";
-import useSWR from "swr";
-import { AnalyticsContext } from ".";
+import { useState } from "react";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function Referer() {
-  const { baseApiPath, queryString, requiresUpgrade } =
-    useContext(AnalyticsContext);
-
-  const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${baseApiPath}/referers?${queryString}`,
-    fetcher,
-    { shouldRetryOnError: !requiresUpgrade },
-  );
+  const data = useAnalyticsFilterOption("referers");
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
@@ -44,10 +36,10 @@ export default function Referer() {
             },
             getNewPath: true,
           }) as string,
-          clicks: d.clicks,
+          value: d.count || 0,
         })) || []
       }
-      maxClicks={data?.[0]?.clicks || 0}
+      maxValue={(data && data[0]?.count) || 0}
       barBackground="bg-red-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
@@ -66,7 +58,7 @@ export default function Referer() {
         </div>
         {barList()}
       </Modal>
-      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-xl">
         <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold">Referers</h1>
         </div>

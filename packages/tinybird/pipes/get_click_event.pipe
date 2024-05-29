@@ -1,0 +1,15 @@
+DESCRIPTION >
+	Get click event by id
+
+
+TOKEN "browser_endpoint_read_5885" READ
+
+NODE endpoint
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    % SELECT * FROM dub_click_events WHERE click_id = {{ clickId }} LIMIT 1
+
+

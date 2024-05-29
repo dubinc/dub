@@ -1,17 +1,21 @@
-import { intervals } from "./constants";
+import z from "../zod";
+import { analyticsQuerySchema } from "../zod/schemas/analytics";
+import { VALID_ANALYTICS_ENDPOINTS, intervals } from "./constants";
 
-export type IntervalProps = (typeof intervals)[number];
-export type AnalyticsEndpoints =
-  | "count"
-  | "timeseries"
-  | "countries"
-  | "cities"
-  | "devices"
-  | "browsers"
-  | "os"
-  | "referers"
-  | "top_links"
-  | "top_urls";
+export type IntervalOptions = (typeof intervals)[number];
+export type AnalyticsGroupByOptions =
+  (typeof VALID_ANALYTICS_ENDPOINTS)[number];
+export type CompositeAnalyticsResponseOptions =
+  | "clicks"
+  | "leads"
+  | "sales"
+  | "amount";
 export type LocationTabs = "countries" | "cities";
 export type TopLinksTabs = "link" | "url";
 export type DeviceTabs = "devices" | "browsers" | "os";
+
+export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
+  workspaceId?: string;
+  isDemo?: boolean;
+  isDeprecatedEndpoint?: boolean;
+};
