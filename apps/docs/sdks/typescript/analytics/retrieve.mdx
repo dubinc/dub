@@ -114,13 +114,7 @@ Available options are `AF`, `AL`, `DZ`,
 
 ## Response
 
-<ResponseField name="browser" type="string" required>
-  The name of the browser
-</ResponseField>
-
-<ResponseField name="clicks" type="number" required>
-  The number of clicks from this browser
-</ResponseField>
+The response object of `dub.analytics.retrieve` depends on the `event` and `groupBy` parameters.
 
 <RequestExample>
 
@@ -143,11 +137,3 @@ await dub.analytics.retrieve({
 ```
 
 </RequestExample>
-
-<ResponseExample>
-
-```typescript
-// The response type depends on the `event` and `type` query parameters.
-```
-
-</ResponseExample>
