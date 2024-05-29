@@ -102,7 +102,7 @@ export function FilterList({
         {activeFilters?.length !== 0 && (
           <button
             type="button"
-            className="whitespace-nowrap rounded-md px-3 py-2.5 text-sm text-gray-500 ring-inset ring-gray-500 transition-colors hover:text-gray-700 focus:outline-none focus-visible:ring-1"
+            className="whitespace-nowrap rounded-md border border-transparent px-3 py-2.5 text-sm text-gray-500 ring-inset ring-gray-500 transition-colors hover:border-gray-200 hover:bg-white hover:text-gray-700 focus:outline-none focus-visible:ring-1"
             onClick={onRemoveAll}
           >
             Clear Filters
