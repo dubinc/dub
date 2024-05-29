@@ -90,6 +90,28 @@ export default function Toggle() {
         })),
       },
       {
+        key: "link",
+        icon: Link,
+        label: "Link",
+        options:
+          links?.map(
+            ({ domain, key, url, count }: LinkProps & { count?: number }) => ({
+              value: linkConstructor({ domain, key }),
+              label: linkConstructor({ domain, key, pretty: true }),
+              icon: (
+                <BlurImage
+                  src={`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`}
+                  alt={getApexDomain(url)}
+                  className="rounded-full"
+                  width={16}
+                  height={16}
+                />
+              ),
+              right: count,
+            }),
+          ) ?? null,
+      },
+      {
         key: "tagId",
         icon: Tag,
         label: "Tag",
@@ -205,28 +227,6 @@ export default function Toggle() {
             icon: <DeviceIcon display={os} tab="os" className="h-4 w-4" />,
             right: count,
           })) ?? null,
-      },
-      {
-        key: "link",
-        icon: Link,
-        label: "Link",
-        options:
-          links?.map(
-            ({ domain, key, url, count }: LinkProps & { count?: number }) => ({
-              value: linkConstructor({ domain, key }),
-              label: linkConstructor({ domain, key, pretty: true }),
-              icon: (
-                <BlurImage
-                  src={`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`}
-                  alt={getApexDomain(url)}
-                  className="rounded-full"
-                  width={16}
-                  height={16}
-                />
-              ),
-              right: count,
-            }),
-          ) ?? null,
       },
     ],
     [domains, tags],
