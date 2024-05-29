@@ -34,7 +34,7 @@ export default async function AppMiddleware(req: NextRequest) {
       user.createdAt &&
       new Date(user.createdAt).getTime() > Date.now() - 10000 &&
       // here we include the root page + /new (since they're going through welcome flow already)
-      path === "/"
+      path !== "/welcome"
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 
@@ -42,12 +42,14 @@ export default async function AppMiddleware(req: NextRequest) {
     } else if (path === "/" || path === "/login" || path === "/register") {
       const defaultWorkspace = await getDefaultWorkspace(user);
 
-      return NextResponse.redirect(new URL(`/${defaultWorkspace}`, req.url));
+      if (defaultWorkspace) {
+        return NextResponse.redirect(new URL(`/${defaultWorkspace}`, req.url));
+      } else {
+        return NextResponse.redirect(new URL("/workspaces", req.url));
+      }
     }
   }
 
   // otherwise, rewrite the path to /app
-  return NextResponse.rewrite(
-    new URL(`/app.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),
-  );
+  return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
 }

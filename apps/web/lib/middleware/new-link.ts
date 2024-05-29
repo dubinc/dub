@@ -22,6 +22,8 @@ export default async function NewLinkMiddleware(
       ),
     );
   } else {
-    return NextResponse.redirect(new URL(`/?newWorkspace=true`, req.url));
+    return NextResponse.redirect(
+      new URL(`/workspaces?newWorkspace=true`, req.url),
+    );
   }
 }
