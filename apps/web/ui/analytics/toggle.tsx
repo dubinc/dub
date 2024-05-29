@@ -33,6 +33,7 @@ import {
   Building2,
   Flag,
   Globe,
+  Link,
   MousePointerClick,
   QrCode,
   Smartphone,
@@ -114,7 +115,7 @@ export default function Toggle() {
           {
             value: false,
             label: "Link click",
-            icon: MousePointerClick,
+            icon: Link,
           },
           {
             value: true,
