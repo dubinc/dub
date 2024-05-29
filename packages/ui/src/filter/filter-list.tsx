@@ -1,4 +1,4 @@
-import { cn } from "@dub/utils";
+import { cn, truncate } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ReactNode, isValidElement } from "react";
@@ -73,7 +73,7 @@ export function FilterList({
                             <option.icon className="h-4 w-4" />
                           )}
                         </span>
-                        {option.label}
+                        {truncate(option.label, 30)}
                       </>
                     ) : (
                       value
