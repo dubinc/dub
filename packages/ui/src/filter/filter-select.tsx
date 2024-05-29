@@ -1,6 +1,6 @@
 import { cn, truncate } from "@dub/utils";
 import { Command } from "cmdk";
-import { Check, ChevronDown, FilterX, ListFilter } from "lucide-react";
+import { Check, ChevronDown, ListFilter } from "lucide-react";
 import {
   CSSProperties,
   ReactNode,
@@ -20,7 +20,6 @@ type FilterSelectProps = {
   filters: Filter[];
   onSelect: (key: string, value: string) => void;
   onRemove: (key: string) => void;
-  onRemoveAll?: () => void;
   activeFilters?: {
     key: Filter["key"];
     value: FilterOption["value"];
@@ -33,7 +32,6 @@ export function FilterSelect({
   filters,
   onSelect,
   onRemove,
-  onRemoveAll,
   activeFilters,
   children,
   className,
@@ -130,19 +128,6 @@ export function FilterSelect({
                       onSelect={() => openFilter(filter.key)}
                     />
                   ))}
-                  {onRemoveAll && activeFilters?.length !== 0 && (
-                    <>
-                      <Command.Separator className="my-2 border-b border-gray-100" />
-                      <FilterButton
-                        icon={FilterX}
-                        label="Clear filters"
-                        onSelect={() => {
-                          onRemoveAll();
-                          setIsOpen(false);
-                        }}
-                      />
-                    </>
-                  )}
                   <NoMatches />
                 </Command.List>
               ) : (
