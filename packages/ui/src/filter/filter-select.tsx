@@ -116,23 +116,22 @@ export function FilterSelect({
               }}
             />
             <div
-              className="scrollbar-hide max-h-[50vh] overflow-y-scroll p-2"
+              className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll p-2 sm:w-auto"
               ref={mainListContainer}
             >
               {!selectedFilter ? (
-                <Command.List className="flex w-screen min-w-[160px] flex-col gap-1 sm:w-auto">
+                <Command.List className="flex w-full min-w-[160px] flex-col gap-1">
                   {filters.map((filter) => (
                     <FilterButton
                       {...filter}
                       key={filter.key}
-                      // highlighted={filter.key === highlightedFilterKey}
                       onSelect={() => openFilter(filter.key)}
                     />
                   ))}
                   <NoMatches />
                 </Command.List>
               ) : (
-                <Command.List className="flex w-screen min-w-[100px] flex-col gap-1 sm:w-auto">
+                <Command.List className="flex w-full min-w-[100px] flex-col gap-1">
                   {selectedFilter.options ? (
                     <>
                       {selectedFilter.options?.map((option) => {
