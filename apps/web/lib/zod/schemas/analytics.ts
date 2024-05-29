@@ -32,7 +32,7 @@ const analyticsGroupBy = z
   })
   .default("count")
   .describe(
-    "The type of analytics to retrieve. Defaults to 'count' if undefined.",
+    "The parameter to group the analytics data points by. Defaults to 'count' if undefined.",
   );
 
 // For backwards compatibility

@@ -30,7 +30,7 @@
     "name": "Dashboard",
     "url": "https://app.dub.co"
   },
-  "openapi": "http://api.localhost:8888",
+  "openapi": "http://api.dub.co",
   "tabs": [
     {
       "name": "API Reference",
