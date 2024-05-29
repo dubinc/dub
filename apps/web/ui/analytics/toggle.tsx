@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { useContext, useMemo } from "react";
 import { AnalyticsContext } from ".";
+import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
 import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
@@ -99,12 +100,9 @@ export default function Toggle() {
               value: linkConstructor({ domain, key }),
               label: linkConstructor({ domain, key, pretty: true }),
               icon: (
-                <BlurImage
-                  src={`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`}
-                  alt={getApexDomain(url)}
-                  className="rounded-full"
-                  width={16}
-                  height={16}
+                <LinkLogo
+                  apexDomain={getApexDomain(url)}
+                  className="h-4 w-4 sm:h-4 sm:w-4"
                 />
               ),
               right: count,
