@@ -53,7 +53,7 @@ export function AnalyticsCard<T extends string>({
     label: string;
   }[] = useMemo(
     () =>
-      (demo && betaTester) || true
+      demo || betaTester
         ? [
             { id: "clicks", icon: CursorRays, label: "Clicks" },
             { id: "leads", icon: Crosshairs, label: "Leads" },
