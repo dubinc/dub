@@ -27,6 +27,7 @@ import {
   getApexDomain,
   getNextPlan,
   linkConstructor,
+  nFormatter,
 } from "@dub/utils";
 import {
   AppWindow,
@@ -105,7 +106,7 @@ export default function Toggle() {
                   className="h-4 w-4 sm:h-4 sm:w-4"
                 />
               ),
-              right: count,
+              right: nFormatter(count, { full: true }),
             }),
           ) ?? null,
       },
@@ -161,7 +162,7 @@ export default function Toggle() {
                 className="h-2.5 w-4"
               />
             ),
-            right: count,
+            right: nFormatter(count, { full: true }),
           })) ?? null,
       },
       {
@@ -179,7 +180,7 @@ export default function Toggle() {
                 className="h-2.5 w-4"
               />
             ),
-            right: count,
+            right: nFormatter(count, { full: true }),
           })) ?? null,
       },
       {
@@ -193,7 +194,7 @@ export default function Toggle() {
             icon: (
               <DeviceIcon display={device} tab="devices" className="h-4 w-4" />
             ),
-            right: count,
+            right: nFormatter(count, { full: true }),
           })) ?? null,
       },
       {
@@ -211,7 +212,7 @@ export default function Toggle() {
                 className="h-4 w-4"
               />
             ),
-            right: count,
+            right: nFormatter(count, { full: true }),
           })) ?? null,
       },
       {
@@ -223,7 +224,7 @@ export default function Toggle() {
             value: os,
             label: os,
             icon: <DeviceIcon display={os} tab="os" className="h-4 w-4" />,
-            right: count,
+            right: nFormatter(count, { full: true }),
           })) ?? null,
       },
     ],
@@ -317,7 +318,7 @@ export default function Toggle() {
               })}
             >
               {!isPublicStatsPage && key && <SharePopover />}
-              {!isPublicStatsPage && !admin && !demo && (
+              {!isPublicStatsPage && (
                 <Filter.Select
                   className="w-full"
                   filters={filters}
