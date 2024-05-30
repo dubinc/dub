@@ -7,7 +7,7 @@ export const saleAnalyticsResponse = {
       sales: z.number().describe("The total number of sales"),
       amount: z.number().describe("The total amount of sales"),
     })
-    .openapi({ ref: "SalesCount" }),
+    .openapi({ ref: "SalesCount", title: "SalesCount" }),
 
   timeseries: z
     .object({
