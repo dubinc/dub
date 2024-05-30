@@ -6,7 +6,7 @@ export const leadAnalyticsResponse = {
     .object({
       leads: z.number().describe("The total number of leads"),
     })
-    .openapi({ ref: "LeadsCount" }),
+    .openapi({ ref: "LeadsCount", title: "LeadsCount" }),
 
   timeseries: z
     .object({
