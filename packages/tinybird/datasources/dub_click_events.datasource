@@ -23,7 +23,11 @@ SCHEMA >
     `ua` String `json:$.ua`,
     `bot` UInt8 `json:$.bot`,
     `referer` String `json:$.referer`,
-    `referer_url` String `json:$.referer_url`
+    `referer_url` String `json:$.referer_url`,
+    `user_id` Nullable(Int64) `json:$.user_id`,
+    `identity_hash` Nullable(String) `json:$.identity_hash`,
+    `ip` String `json:$.ip`,
+    `qr` UInt8 `json:$.qr`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

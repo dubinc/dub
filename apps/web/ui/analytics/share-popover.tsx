@@ -6,7 +6,7 @@ import {
   Tick,
   useOptimisticUpdate,
 } from "@dub/ui";
-import { linkConstructor } from "@dub/utils";
+import { cn, linkConstructor } from "@dub/utils";
 import { Share2 } from "lucide-react";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
@@ -15,10 +15,7 @@ import { AnalyticsContext } from ".";
 export default function SharePopover() {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { baseApiPath, queryString, domain, key } = useContext(
-    AnalyticsContext,
-  ) as {
-    baseApiPath: string;
+  const { queryString, domain, key } = useContext(AnalyticsContext) as {
     queryString: string;
     domain: string;
     key: string; // coerce to string since <SharePopover is not shown if key is undefined)
@@ -26,14 +23,14 @@ export default function SharePopover() {
 
   const { data, isLoading, update } = useOptimisticUpdate<{
     publicStats: boolean;
-  }>(`/api/analytics?${queryString}`, {
+  }>(`/api/analytics/public-stats?${queryString}`, {
     loading: "Updating...",
     success: "Successfully updated stats page visibility!",
     error: "Something went wrong",
   });
 
   const handleUpdate = async (checked: boolean) => {
-    const res = await fetch(`/api/analytics?${queryString}`, {
+    const res = await fetch(`/api/analytics/public-stats?${queryString}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -119,7 +116,11 @@ export default function SharePopover() {
     >
       <button
         onClick={() => setopenSharePopoverPopover(!openSharePopover)}
-        className="flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md"
+        className={cn(
+          "flex w-24 items-center justify-center space-x-2 rounded-md border bg-white px-3 py-2.5 outline-none transition-all sm:text-sm",
+          "border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all",
+          "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+        )}
       >
         <IconMenu text="Share" icon={<Share2 className="h-4 w-4" />} />
       </button>

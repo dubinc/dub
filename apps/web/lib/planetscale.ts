@@ -11,17 +11,26 @@ export const pscale_config = {
 
 export const conn = connect(pscale_config);
 
+type GetCustomerParams =
+  | {
+      externalId: string;
+      workspaceId: string;
+    }
+  | {
+      externalId: string;
+      projectConnectId: string;
+    };
+
 export const getWorkspaceViaEdge = async (workspaceId: string) => {
   if (!DATABASE_URL) return null;
 
   const { rows } =
-    (await conn.execute("SELECT * FROM Project WHERE id = ?", [
-      workspaceId.replace("ws_", ""),
-    ])) || {};
+    (await conn.execute<WorkspaceProps>(
+      "SELECT * FROM Project WHERE id = ? LIMIT 1",
+      [workspaceId.replace("ws_", "")],
+    )) || {};
 
-  return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as WorkspaceProps)
-    : null;
+  return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 };
 
 export const getDomainViaEdge = async (domain: string) => {

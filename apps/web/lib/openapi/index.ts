@@ -5,12 +5,13 @@ import { TagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { API_DOMAIN } from "@dub/utils";
 import { createDocument } from "zod-openapi";
-import { clickAnalyticsPaths } from "./analytics/clicks";
+import { analyticsPath } from "./analytics";
 import { domainsPaths } from "./domains";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
+import { trackPaths } from "./track";
 import { workspacesPaths } from "./workspaces";
 
 export const document = createDocument({
@@ -39,10 +40,11 @@ export const document = createDocument({
   paths: {
     ...linksPaths,
     ...qrCodePaths,
-    ...clickAnalyticsPaths,
+    ...analyticsPath,
     ...workspacesPaths,
     ...tagsPaths,
     ...domainsPaths,
+    ...trackPaths,
     ...metatagsPath,
   },
   components: {

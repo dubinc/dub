@@ -1,4 +1,4 @@
-# Data Source created from Pipe 'dub_links_metadata_pipe_new'
+# Data Source created from Pipe 'dub_links_metadata_pipe'
 
 SCHEMA >
     `timestamp` DateTime,

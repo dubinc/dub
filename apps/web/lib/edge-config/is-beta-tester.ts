@@ -11,7 +11,7 @@ export const isBetaTester = async (workspaceId: string) => {
 
   let betaTesters;
   try {
-    betaTesters = await get("betaFeatures");
+    betaTesters = await get("betaTesters");
   } catch (e) {
     betaTesters = [];
   }

@@ -25,6 +25,7 @@ export interface QRLinkProps {
 export interface RedisLinkProps {
   id: string;
   url: string;
+  trackConversion?: boolean;
   password?: boolean;
   proxy?: boolean;
   rewrite?: boolean;
@@ -67,6 +68,10 @@ export type RoleProps = (typeof roles)[number];
 
 export interface WorkspaceProps extends Project {
   plan: PlanProps;
+  stripeId: string | null;
+  billingCycleStart: number;
+  stripeConnectId: string | null;
+  createdAt: Date;
   domains: {
     slug: string;
     primary: boolean;
@@ -77,6 +82,8 @@ export interface WorkspaceProps extends Project {
   metadata?: {
     defaultDomains?: string[];
   };
+  inviteCode: string;
+  betaTester?: boolean;
 }
 
 export interface UserProps {
@@ -87,6 +94,7 @@ export interface UserProps {
   createdAt: Date;
   source: string | null;
   migratedWorkspace: string | null;
+  defaultWorkspace?: string;
 }
 
 export interface WorkspaceUserProps extends UserProps {
@@ -114,6 +122,7 @@ export interface DomainProps {
   clicks: number;
   projectId: string;
   expiredUrl?: string;
+  noindex?: boolean;
 }
 export interface RedisDomainProps {
   id: string;
@@ -121,6 +130,7 @@ export interface RedisDomainProps {
   rewrite?: boolean;
   iframeable?: boolean;
   projectId: string;
+  noindex?: boolean;
 }
 
 export interface BitlyGroupProps {
