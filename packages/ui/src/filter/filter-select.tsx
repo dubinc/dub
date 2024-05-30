@@ -220,7 +220,6 @@ const FilterScroll = forwardRef(
     const [scrollProgress, setScrollProgress] = useState(1);
 
     const updateScrollProgress = useCallback(() => {
-      console.log("updating?", ref.current);
       if (!ref.current) return;
       const { scrollTop, scrollHeight, clientHeight } = ref.current;
 
