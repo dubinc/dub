@@ -3,15 +3,18 @@ import { Command } from "cmdk";
 import { Check, ChevronDown, ListFilter } from "lucide-react";
 import {
   CSSProperties,
+  PropsWithChildren,
   ReactNode,
+  forwardRef,
   isValidElement,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
-import { useMediaQuery } from "../hooks";
+import { useMediaQuery, useResizeObserver } from "../hooks";
 import { LoadingSpinner } from "../icons";
 import { Popover } from "../popover";
 import { Filter, FilterOption } from "./types";
@@ -44,8 +47,6 @@ export function FilterSelect({
     width: number;
     height: number;
   }>();
-
-  const [scrollProgress, setScrollProgress] = useState(1);
 
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -94,27 +95,15 @@ export function FilterSelect({
     [activeFilters, selectedFilter],
   );
 
-  const updateScrollProgress = useCallback(() => {
-    if (!mainListContainer.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = mainListContainer.current;
-
-    setScrollProgress(
-      scrollHeight === clientHeight
-        ? 1
-        : scrollTop / (scrollHeight - clientHeight),
-    );
-  }, []);
-
-  useEffect(() => {
-    updateScrollProgress();
-  }, [selectedFilterKey, updateScrollProgress]);
-
   return (
     <Popover
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       onEscapeKeyDown={(e) => {
-        if (selectedFilterKey) e.preventDefault();
+        if (selectedFilterKey) {
+          e.preventDefault();
+          reset();
+        }
       }}
       content={
         <AnimatedSizeContainer
@@ -133,15 +122,12 @@ export function FilterSelect({
               onKeyDown={(e) => {
                 if (e.key === "Escape" || (e.key === "Backspace" && !search)) {
                   e.preventDefault();
+                  e.stopPropagation();
                   selectedFilterKey ? reset() : setIsOpen(false);
                 }
               }}
             />
-            <div
-              className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll p-2 sm:w-auto"
-              ref={mainListContainer}
-              onScroll={updateScrollProgress}
-            >
+            <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
               {!selectedFilter ? (
                 <Command.List className="flex w-full min-w-[160px] flex-col gap-1">
                   {filters.map((filter) => (
@@ -192,13 +178,8 @@ export function FilterSelect({
                   )}
                 </Command.List>
               )}
-            </div>
+            </FilterScroll>
           </Command>
-          {/* Bottom scroll fade */}
-          <div
-            className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-white"
-            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-          ></div>
         </AnimatedSizeContainer>
       }
     >
@@ -230,6 +211,47 @@ export function FilterSelect({
     </Popover>
   );
 }
+
+const FilterScroll = forwardRef(
+  ({ children }: PropsWithChildren, forwardedRef) => {
+    const ref = useRef<HTMLDivElement>(null);
+    useImperativeHandle(forwardedRef, () => ref.current);
+
+    const [scrollProgress, setScrollProgress] = useState(1);
+
+    const updateScrollProgress = useCallback(() => {
+      if (!ref.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = ref.current;
+
+      setScrollProgress(
+        scrollHeight === clientHeight
+          ? 1
+          : scrollTop / (scrollHeight - clientHeight),
+      );
+    }, []);
+
+    const resizeObserverEntry = useResizeObserver(ref);
+
+    useEffect(updateScrollProgress, [resizeObserverEntry]);
+
+    return (
+      <>
+        <div
+          className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll p-2 sm:w-auto"
+          ref={ref}
+          onScroll={updateScrollProgress}
+        >
+          {children}
+        </div>
+        {/* Bottom scroll fade */}
+        <div
+          className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+          style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+        ></div>
+      </>
+    );
+  },
+);
 
 function FilterButton({
   icon: Icon,
