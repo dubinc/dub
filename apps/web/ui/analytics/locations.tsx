@@ -51,6 +51,7 @@ export default function Locations() {
               }
               maxValue={(data && data[0]?.[event]) || 0}
               barBackground="bg-blue-100"
+              hoverBackground="hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent hover:border-blue-500"
               setShowModal={setShowModal}
               {...(limit && { limit })}
             />

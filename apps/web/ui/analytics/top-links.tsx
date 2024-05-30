@@ -87,6 +87,7 @@ export default function TopLinks() {
               }
               maxValue={(data && data[0]?.[event]) || 0}
               barBackground="bg-orange-100"
+              hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
               setShowModal={setShowModal}
               {...(limit && { limit })}
             />

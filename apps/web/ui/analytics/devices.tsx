@@ -53,6 +53,7 @@ export default function Devices() {
               }
               maxValue={(data && data[0]?.[event]) || 0}
               barBackground="bg-green-100"
+              hoverBackground="hover:bg-gradient-to-r hover:from-green-50 hover:to-transparent hover:border-green-500"
               setShowModal={setShowModal}
               {...(limit && { limit })}
             />

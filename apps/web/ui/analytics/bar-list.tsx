@@ -22,6 +22,7 @@ export default function BarList({
   tab,
   data,
   barBackground,
+  hoverBackground,
   maxValue,
   setShowModal,
   limit,
@@ -36,6 +37,7 @@ export default function BarList({
   }[];
   maxValue: number;
   barBackground: string;
+  hoverBackground: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   limit?: number;
 }) {
@@ -60,7 +62,7 @@ export default function BarList({
   const { isMobile } = useMediaQuery();
 
   const bars = (
-    <div className="grid gap-1.5">
+    <div className="grid">
       {filteredData.map((data, idx) => (
         <LineItem
           key={idx}
@@ -69,6 +71,7 @@ export default function BarList({
           tab={tab}
           setShowModal={setShowModal}
           barBackground={barBackground}
+          hoverBackground={hoverBackground}
         />
       ))}
     </div>
@@ -116,6 +119,7 @@ export function LineItem({
   tab,
   setShowModal,
   barBackground,
+  hoverBackground,
   linkData,
 }: {
   icon: ReactNode;
@@ -126,18 +130,14 @@ export function LineItem({
   tab: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
+  hoverBackground: string;
   linkData?: LinkProps;
 }) {
   const lineItem = useMemo(() => {
     return (
       <div className="z-10 flex items-center space-x-4 px-3">
         {icon}
-        <div
-          className={cn(
-            "truncate text-sm text-gray-800",
-            href && "underline-offset-4 group-hover:underline",
-          )}
-        >
+        <div className="truncate text-sm text-gray-800">
           {truncate(title, 36)}
         </div>
       </div>
@@ -145,7 +145,12 @@ export function LineItem({
   }, [icon, tab, title]);
 
   return (
-    <Link href={href} scroll={false} onClick={() => setShowModal(false)}>
+    <Link
+      href={href}
+      scroll={false}
+      onClick={() => setShowModal(false)}
+      className={`border-l-2 border-transparent px-4 py-1 ${hoverBackground} transition-all`}
+    >
       <div className="group flex items-center justify-between">
         <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
           {tab === "link" && linkData ? (
@@ -166,7 +171,7 @@ export function LineItem({
               width: `${(value / (maxValue || 0)) * 100}%`,
             }}
             className={cn(
-              "absolute h-full origin-left rounded-md group-hover:brightness-[97%] group-hover:saturate-150",
+              "absolute h-full origin-left rounded-md",
               barBackground,
             )}
             transition={{ ease: "easeOut", duration: 0.3 }}

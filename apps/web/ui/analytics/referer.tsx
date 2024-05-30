@@ -42,6 +42,7 @@ function RefererOld() {
       }
       maxValue={(data && data[0]?.count) || 0}
       barBackground="bg-red-100"
+      hoverBackground="bg-red-100/50"
       setShowModal={setShowModal}
       {...(limit && { limit })}
     />
@@ -133,6 +134,7 @@ export default function Referer() {
               }
               maxValue={(data && data[0]?.[event]) || 0}
               barBackground="bg-red-100"
+              hoverBackground="hover:bg-gradient-to-r hover:from-red-50 hover:to-transparent hover:border-red-500"
               setShowModal={setShowModal}
               {...(limit && { limit })}
             />

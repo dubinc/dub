@@ -111,7 +111,7 @@ export function AnalyticsCard<T extends string>({
             ))}
           </div>
         </div>
-        <div className="p-4">
+        <div className="py-4">
           {children({ limit: expandLimit, event: eventTab, setShowModal })}
         </div>
         {hasMore && (
