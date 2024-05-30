@@ -1,4 +1,3 @@
-import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { fetcher } from "@dub/utils";
@@ -12,16 +11,10 @@ export function useAnalyticsFilterOption(
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     useContext(AnalyticsContext);
 
-  const singular = SINGULAR_ANALYTICS_ENDPOINTS[groupBy];
-
   const { data } = useSWR<Record<string, any>[]>(
-    `${baseApiPath}?${editQueryString(
-      queryString,
-      {
-        groupBy,
-      },
-      singular ?? undefined,
-    )}`,
+    `${baseApiPath}?${editQueryString(queryString, {
+      groupBy,
+    })}`,
     fetcher,
     {
       shouldRetryOnError: !requiresUpgrade,
