@@ -3,7 +3,7 @@
 import { LinkProps } from "@/lib/types";
 import { NumberTooltip, Tooltip, useMediaQuery } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
-import { capitalize, cn, nFormatter, truncate } from "@dub/utils";
+import { cn, nFormatter, truncate } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -82,7 +82,7 @@ export default function BarList({
   } else {
     return (
       <>
-        <div className="relative p-4">
+        <div className="relative px-4 py-3">
           <div className="pointer-events-none absolute inset-y-0 left-7 flex items-center">
             <Search className="h-4 w-4 text-gray-400" />
           </div>
@@ -94,17 +94,7 @@ export default function BarList({
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div>
-          <div className="flex justify-between px-4 pb-1 pt-0">
-            <p className="text-xs font-semibold uppercase text-gray-600">
-              {tab}
-            </p>
-            <p className="text-xs font-semibold uppercase text-gray-600">
-              {capitalize(selectedTab)}
-            </p>
-          </div>
-          <div className="h-[50vh] overflow-auto p-4 md:h-[40vh]">{bars}</div>
-        </div>
+        <div className="h-[50vh] overflow-auto pb-4 md:h-[40vh]">{bars}</div>
       </>
     );
   }

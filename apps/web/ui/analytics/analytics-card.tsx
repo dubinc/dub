@@ -72,7 +72,7 @@ export function AnalyticsCard<T extends string>({
       <Modal
         showModal={showModal}
         setShowModal={setShowModal}
-        className="max-w-lg"
+        className="max-w-lg px-0"
       >
         <div className="border-b border-gray-200 px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
