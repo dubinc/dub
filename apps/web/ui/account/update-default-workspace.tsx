@@ -89,9 +89,13 @@ export default function UpdateDefaultWorkspace() {
       </div>
 
       <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
-        <p className="text-sm text-gray-500">
-          Learn more about how default workspaces work.
-        </p>
+        <a
+          href="https://dub.co/help/article/how-to-change-default-workspace"
+          target="_blank"
+          className="nderline-offset-4 text-sm text-gray-500 underline hover:text-gray-700"
+        >
+          Learn more about how default workspaces work
+        </a>
         <div>
           <Button
             text="Save changes"
