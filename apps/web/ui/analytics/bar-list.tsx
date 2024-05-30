@@ -60,7 +60,7 @@ export default function BarList({
   const { isMobile } = useMediaQuery();
 
   const bars = (
-    <div className="grid gap-2">
+    <div className="grid gap-1.5">
       {filteredData.map((data, idx) => (
         <LineItem
           key={idx}
@@ -147,7 +147,7 @@ export function LineItem({
   return (
     <Link href={href} scroll={false} onClick={() => setShowModal(false)}>
       <div className="group flex items-center justify-between">
-        <div className="relative z-10 flex h-10 w-full max-w-[calc(100%-2rem)] items-center">
+        <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
           {tab === "link" && linkData ? (
             <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
               {lineItem}
