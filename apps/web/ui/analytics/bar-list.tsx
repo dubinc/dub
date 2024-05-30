@@ -60,7 +60,7 @@ export default function BarList({
   const { isMobile } = useMediaQuery();
 
   const bars = (
-    <div className="grid gap-1">
+    <div className="grid gap-2">
       {filteredData.map((data, idx) => (
         <LineItem
           key={idx}
@@ -130,7 +130,7 @@ export function LineItem({
 }) {
   const lineItem = useMemo(() => {
     return (
-      <div className="z-10 flex items-center space-x-2 px-2">
+      <div className="z-10 flex items-center space-x-4 px-3">
         {icon}
         <div
           className={cn(
@@ -146,8 +146,8 @@ export function LineItem({
 
   return (
     <Link href={href} scroll={false} onClick={() => setShowModal(false)}>
-      <div className="group flex items-center justify-between hover:bg-gray-50">
-        <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
+      <div className="group flex items-center justify-between">
+        <div className="relative z-10 flex h-10 w-full max-w-[calc(100%-2rem)] items-center">
           {tab === "link" && linkData ? (
             <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
               {lineItem}
@@ -166,7 +166,7 @@ export function LineItem({
               width: `${(value / (maxValue || 0)) * 100}%`,
             }}
             className={cn(
-              "absolute h-full origin-left rounded-sm",
+              "absolute h-full origin-left rounded-md group-hover:brightness-[97%] group-hover:saturate-150",
               barBackground,
             )}
             transition={{ ease: "easeOut", duration: 0.3 }}

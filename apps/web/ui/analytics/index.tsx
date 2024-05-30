@@ -213,8 +213,8 @@ export default function Analytics({
         <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
           <Main />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <Locations />
             {!isPublicStatsPage && <TopLinks />}
+            <Locations />
             <Devices />
             <Referer />
             {isPublicStatsPage && <TopLinks />}
