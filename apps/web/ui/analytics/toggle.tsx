@@ -41,7 +41,7 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
-import { useContext, useMemo } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
@@ -52,24 +52,62 @@ import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
+  const { queryParams, searchParamsObj } = useRouterStuff();
   const { basePath, domain, key, url, admin, demo, start, end, interval } =
     useContext(AnalyticsContext);
+
+  const isPublicStatsPage = basePath.startsWith("/stats");
+
+  const scrolled = useScroll(80);
 
   const { tags } = useTags();
   const { allDomains: domains } = useDomains();
 
-  const countries = useAnalyticsFilterOption("countries");
-  const cities = useAnalyticsFilterOption("cities");
-  const devices = useAnalyticsFilterOption("devices");
-  const browsers = useAnalyticsFilterOption("browsers");
-  const os = useAnalyticsFilterOption("os");
-  const links = useAnalyticsFilterOption("top_links");
+  const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
-  const { queryParams, searchParamsObj } = useRouterStuff();
+  const activeFilters = useMemo(() => {
+    const { domain, tagId, qr, country, city, device, browser, os, key } =
+      searchParamsObj;
+    return [
+      ...(domain && !key ? [{ key: "domain", value: domain }] : []),
+      ...(domain && key
+        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
+        : []),
+      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
+      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
+      ...(country ? [{ key: "country", value: country }] : []),
+      ...(city ? [{ key: "city", value: city }] : []),
+      ...(device ? [{ key: "device", value: device }] : []),
+      ...(browser ? [{ key: "browser", value: browser }] : []),
+      ...(os ? [{ key: "os", value: os }] : []),
+    ];
+  }, [searchParamsObj]);
 
-  const scrolled = useScroll(80);
+  const isEnabled = useCallback(
+    (key: string) =>
+      requestedFilters.includes(key) ||
+      activeFilters.some((af) => af.key === key),
+    [requestedFilters, activeFilters],
+  );
 
-  const isPublicStatsPage = basePath.startsWith("/stats");
+  const links = useAnalyticsFilterOption("top_links", {
+    enabled: isEnabled("link"),
+  });
+  const countries = useAnalyticsFilterOption("countries", {
+    enabled: isEnabled("country"),
+  });
+  const cities = useAnalyticsFilterOption("cities", {
+    enabled: isEnabled("city"),
+  });
+  const devices = useAnalyticsFilterOption("devices", {
+    enabled: isEnabled("device"),
+  });
+  const browsers = useAnalyticsFilterOption("browsers", {
+    enabled: isEnabled("browser"),
+  });
+  const os = useAnalyticsFilterOption("os", {
+    enabled: isEnabled("os"),
+  });
 
   const filters = useMemo(
     () => [
@@ -231,24 +269,6 @@ export default function Toggle() {
     [domains, links, tags, countries, cities, devices, browsers, os],
   );
 
-  const activeFilters = useMemo(() => {
-    const { domain, tagId, qr, country, city, device, browser, os, key } =
-      searchParamsObj;
-    return [
-      ...(domain && !key ? [{ key: "domain", value: domain }] : []),
-      ...(domain && key
-        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
-        : []),
-      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
-      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
-      ...(country ? [{ key: "country", value: country }] : []),
-      ...(city ? [{ key: "city", value: city }] : []),
-      ...(device ? [{ key: "device", value: device }] : []),
-      ...(browser ? [{ key: "browser", value: browser }] : []),
-      ...(os ? [{ key: "os", value: os }] : []),
-    ];
-  }, [searchParamsObj]);
-
   return (
     <>
       <div
@@ -340,6 +360,11 @@ export default function Toggle() {
                     queryParams({
                       del: key === "link" ? ["domain", "key"] : key,
                     })
+                  }
+                  onOpenFilter={(key) =>
+                    setRequestedFilters((rf) =>
+                      rf.includes(key) ? rf : [...rf, key],
+                    )
                   }
                 />
               )}
