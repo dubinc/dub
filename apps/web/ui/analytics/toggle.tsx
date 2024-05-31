@@ -276,7 +276,17 @@ export default function Toggle() {
           })) ?? null,
       },
     ],
-    [domains, links, tags, countries, cities, devices, browsers, os],
+    [
+      isPublicStatsPage,
+      domains,
+      links,
+      tags,
+      countries,
+      cities,
+      devices,
+      browsers,
+      os,
+    ],
   );
 
   return (
