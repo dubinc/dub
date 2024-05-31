@@ -123,8 +123,8 @@ model Project {
   defaultDomains DefaultDomains[]
 
   // for Zapier integration
-  zapierHookEnabled Boolean @default(false)
-  zapierHooks    ZapierHook[]
+  zapierHookEnabled Boolean      @default(false)
+  zapierHooks       ZapierHook[]
 }
 
 model ProjectInvite {
