@@ -19,6 +19,18 @@ import {
   useScroll,
 } from "@dub/ui";
 import {
+  Cube,
+  CursorRays,
+  FlagWavy,
+  Globe,
+  Hyperlink,
+  MobilePhone,
+  OfficeBuilding,
+  QRCode,
+  Tag,
+  Window,
+} from "@dub/ui/src/icons";
+import {
   APP_DOMAIN,
   COUNTRIES,
   DUB_LOGO,
@@ -29,18 +41,6 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
-import {
-  AppWindow,
-  Box,
-  Building2,
-  Flag,
-  Globe,
-  Link,
-  MousePointerClick,
-  QrCode,
-  Smartphone,
-  Tag,
-} from "lucide-react";
 import { useContext, useMemo } from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
@@ -93,7 +93,7 @@ export default function Toggle() {
       },
       {
         key: "link",
-        icon: Link,
+        icon: Hyperlink,
         label: "Link",
         options:
           links?.map(
@@ -132,24 +132,24 @@ export default function Toggle() {
       },
       {
         key: "qr",
-        icon: MousePointerClick,
+        icon: CursorRays,
         label: "Trigger",
         options: [
           {
             value: false,
             label: "Link click",
-            icon: Link,
+            icon: CursorRays,
           },
           {
             value: true,
             label: "QR Scan",
-            icon: QrCode,
+            icon: QRCode,
           },
         ],
       },
       {
         key: "country",
-        icon: Flag,
+        icon: FlagWavy,
         label: "Country",
         options:
           countries?.map(({ country, count }) => ({
@@ -167,7 +167,7 @@ export default function Toggle() {
       },
       {
         key: "city",
-        icon: Building2,
+        icon: OfficeBuilding,
         label: "City",
         options:
           cities?.map(({ city, country, count }) => ({
@@ -185,7 +185,7 @@ export default function Toggle() {
       },
       {
         key: "device",
-        icon: Smartphone,
+        icon: MobilePhone,
         label: "Device",
         options:
           devices?.map(({ device, count }) => ({
@@ -199,7 +199,7 @@ export default function Toggle() {
       },
       {
         key: "browser",
-        icon: AppWindow,
+        icon: Window,
         label: "Browser",
         options:
           browsers?.map(({ browser, count }) => ({
@@ -217,7 +217,7 @@ export default function Toggle() {
       },
       {
         key: "os",
-        icon: Box,
+        icon: Cube,
         label: "OS",
         options:
           os?.map(({ os, count }) => ({
@@ -307,9 +307,9 @@ export default function Toggle() {
                 <ExpandingArrow className="h-5 w-5" />
               </a>
             ) : (
-              <h2 className="truncate text-2xl font-medium text-black">
+              <h1 className="text-2xl font-semibold tracking-tight text-black">
                 Analytics
-              </h2>
+              </h1>
             )}
             <div
               className={cn("flex items-center gap-2", {
