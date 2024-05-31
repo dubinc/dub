@@ -132,7 +132,7 @@ export function FilterSelect({
             />
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
               {!selectedFilter ? (
-                <Command.List className="flex w-full min-w-[160px] flex-col gap-1 p-2">
+                <Command.List className="flex w-full min-w-[180px] flex-col gap-1 p-2">
                   {filters.map((filter) => (
                     <FilterButton
                       {...filter}
