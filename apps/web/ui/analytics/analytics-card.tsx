@@ -92,6 +92,7 @@ export function AnalyticsCard<T extends string>({
           <div className="flex gap-2">
             {eventTabs.map(({ id, icon: Icon, label }) => (
               <button
+                key={id}
                 onClick={() => setEventTab(id)}
                 title={label}
                 className={cn(
