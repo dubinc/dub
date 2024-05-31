@@ -111,6 +111,14 @@ export async function deleteWorkspace(
             slug: workspace.slug,
           },
         }),
+        prisma.user.updateMany({
+          where: {
+            defaultWorkspace: workspace.slug,
+          },
+          data: {
+            defaultWorkspace: null,
+          },
+        }),
       ]);
     })(),
   );

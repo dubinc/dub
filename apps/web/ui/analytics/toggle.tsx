@@ -19,6 +19,18 @@ import {
   useScroll,
 } from "@dub/ui";
 import {
+  Cube,
+  CursorRays,
+  FlagWavy,
+  Globe,
+  Hyperlink,
+  MobilePhone,
+  OfficeBuilding,
+  QRCode,
+  Tag,
+  Window,
+} from "@dub/ui/src/icons";
+import {
   APP_DOMAIN,
   COUNTRIES,
   DUB_LOGO,
@@ -29,19 +41,7 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
-import {
-  AppWindow,
-  Box,
-  Building2,
-  Flag,
-  Globe,
-  Link,
-  MousePointerClick,
-  QrCode,
-  Smartphone,
-  Tag,
-} from "lucide-react";
-import { useContext, useMemo } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
@@ -52,24 +52,62 @@ import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
+  const { queryParams, searchParamsObj } = useRouterStuff();
   const { basePath, domain, key, url, admin, demo, start, end, interval } =
     useContext(AnalyticsContext);
+
+  const isPublicStatsPage = basePath.startsWith("/stats");
+
+  const scrolled = useScroll(80);
 
   const { tags } = useTags();
   const { allDomains: domains } = useDomains();
 
-  const countries = useAnalyticsFilterOption("countries");
-  const cities = useAnalyticsFilterOption("cities");
-  const devices = useAnalyticsFilterOption("devices");
-  const browsers = useAnalyticsFilterOption("browsers");
-  const os = useAnalyticsFilterOption("os");
-  const links = useAnalyticsFilterOption("top_links");
+  const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
-  const { queryParams, searchParamsObj } = useRouterStuff();
+  const activeFilters = useMemo(() => {
+    const { domain, tagId, qr, country, city, device, browser, os, key } =
+      searchParamsObj;
+    return [
+      ...(domain && !key ? [{ key: "domain", value: domain }] : []),
+      ...(domain && key
+        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
+        : []),
+      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
+      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
+      ...(country ? [{ key: "country", value: country }] : []),
+      ...(city ? [{ key: "city", value: city }] : []),
+      ...(device ? [{ key: "device", value: device }] : []),
+      ...(browser ? [{ key: "browser", value: browser }] : []),
+      ...(os ? [{ key: "os", value: os }] : []),
+    ];
+  }, [searchParamsObj]);
 
-  const scrolled = useScroll(80);
+  const isEnabled = useCallback(
+    (key: string) =>
+      requestedFilters.includes(key) ||
+      activeFilters.some((af) => af.key === key),
+    [requestedFilters, activeFilters],
+  );
 
-  const isPublicStatsPage = basePath.startsWith("/stats");
+  const links = useAnalyticsFilterOption("top_links", {
+    enabled: isEnabled("link"),
+  });
+  const countries = useAnalyticsFilterOption("countries", {
+    enabled: isEnabled("country"),
+  });
+  const cities = useAnalyticsFilterOption("cities", {
+    enabled: isEnabled("city"),
+  });
+  const devices = useAnalyticsFilterOption("devices", {
+    enabled: isEnabled("device"),
+  });
+  const browsers = useAnalyticsFilterOption("browsers", {
+    enabled: isEnabled("browser"),
+  });
+  const os = useAnalyticsFilterOption("os", {
+    enabled: isEnabled("os"),
+  });
 
   const filters = useMemo(
     () => [
@@ -93,7 +131,7 @@ export default function Toggle() {
       },
       {
         key: "link",
-        icon: Link,
+        icon: Hyperlink,
         label: "Link",
         options:
           links?.map(
@@ -132,24 +170,24 @@ export default function Toggle() {
       },
       {
         key: "qr",
-        icon: MousePointerClick,
+        icon: CursorRays,
         label: "Trigger",
         options: [
           {
             value: false,
             label: "Link click",
-            icon: Link,
+            icon: CursorRays,
           },
           {
             value: true,
             label: "QR Scan",
-            icon: QrCode,
+            icon: QRCode,
           },
         ],
       },
       {
         key: "country",
-        icon: Flag,
+        icon: FlagWavy,
         label: "Country",
         options:
           countries?.map(({ country, count }) => ({
@@ -167,7 +205,7 @@ export default function Toggle() {
       },
       {
         key: "city",
-        icon: Building2,
+        icon: OfficeBuilding,
         label: "City",
         options:
           cities?.map(({ city, country, count }) => ({
@@ -185,7 +223,7 @@ export default function Toggle() {
       },
       {
         key: "device",
-        icon: Smartphone,
+        icon: MobilePhone,
         label: "Device",
         options:
           devices?.map(({ device, count }) => ({
@@ -199,7 +237,7 @@ export default function Toggle() {
       },
       {
         key: "browser",
-        icon: AppWindow,
+        icon: Window,
         label: "Browser",
         options:
           browsers?.map(({ browser, count }) => ({
@@ -217,7 +255,7 @@ export default function Toggle() {
       },
       {
         key: "os",
-        icon: Box,
+        icon: Cube,
         label: "OS",
         options:
           os?.map(({ os, count }) => ({
@@ -230,24 +268,6 @@ export default function Toggle() {
     ],
     [domains, links, tags, countries, cities, devices, browsers, os],
   );
-
-  const activeFilters = useMemo(() => {
-    const { domain, tagId, qr, country, city, device, browser, os, key } =
-      searchParamsObj;
-    return [
-      ...(domain && !key ? [{ key: "domain", value: domain }] : []),
-      ...(domain && key
-        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
-        : []),
-      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
-      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
-      ...(country ? [{ key: "country", value: country }] : []),
-      ...(city ? [{ key: "city", value: city }] : []),
-      ...(device ? [{ key: "device", value: device }] : []),
-      ...(browser ? [{ key: "browser", value: browser }] : []),
-      ...(os ? [{ key: "os", value: os }] : []),
-    ];
-  }, [searchParamsObj]);
 
   return (
     <>
@@ -307,9 +327,9 @@ export default function Toggle() {
                 <ExpandingArrow className="h-5 w-5" />
               </a>
             ) : (
-              <h2 className="truncate text-2xl font-medium text-black">
+              <h1 className="text-2xl font-semibold tracking-tight text-black">
                 Analytics
-              </h2>
+              </h1>
             )}
             <div
               className={cn("flex items-center gap-2", {
@@ -340,6 +360,11 @@ export default function Toggle() {
                     queryParams({
                       del: key === "link" ? ["domain", "key"] : key,
                     })
+                  }
+                  onOpenFilter={(key) =>
+                    setRequestedFilters((rf) =>
+                      rf.includes(key) ? rf : [...rf, key],
+                    )
                   }
                 />
               )}

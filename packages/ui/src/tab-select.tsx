@@ -1,41 +1,50 @@
 import { cn } from "@dub/utils";
-import { motion } from "framer-motion";
+import { LayoutGroup, motion } from "framer-motion";
+import { Dispatch, SetStateAction, useId } from "react";
 
-export function TabSelect({
+export function TabSelect<T extends string>({
   options,
   selected,
-  selectAction,
+  onSelect,
 }: {
-  options: string[];
+  options: { id: T; label: string }[];
   selected: string | null;
-  selectAction: (option: string) => void;
+  onSelect?: Dispatch<SetStateAction<T>> | ((id: T) => void);
 }) {
+  const layoutGroupId = useId();
+
   return (
-    <div className="relative inline-flex items-center space-x-1">
-      {options.map((option) => (
-        <button
-          key={option}
-          className={cn(
-            "relative z-10 px-3 py-1 text-sm font-medium capitalize",
-            {
-              "transition-all hover:text-gray-500": option !== selected,
-            },
-          )}
-          onClick={() => selectAction(option)}
-        >
-          <p>
-            {option === "devices" ? "Type" : option === "os" ? "OS" : option}
-          </p>
-          {option === selected && (
-            <motion.div
-              layoutId={options.join("-")}
-              className="absolute left-0 top-0 h-full w-full rounded-lg border border-gray-200 bg-gray-50"
-              style={{ zIndex: -1 }}
-              transition={{ duration: 0.25 }}
-            />
-          )}
-        </button>
-      ))}
+    <div className="flex text-sm">
+      <LayoutGroup id={layoutGroupId}>
+        {options.map(({ id, label }) => (
+          <div key={id} className="relative">
+            <button
+              type="button"
+              onClick={() => onSelect?.(id)}
+              className={cn(
+                "px-3 py-4 transition-colors duration-75",
+                id === selected
+                  ? "text-black"
+                  : "text-gray-400 hover:text-gray-500",
+              )}
+              aria-selected={id === selected}
+            >
+              {label}
+            </button>
+            {id === selected && (
+              <motion.div
+                layoutId="indicator"
+                transition={{
+                  duration: 0.1,
+                }}
+                className="absolute bottom-0 w-full px-1.5"
+              >
+                <div className="h-0.5 bg-black" />
+              </motion.div>
+            )}
+          </div>
+        ))}
+      </LayoutGroup>
     </div>
   );
 }

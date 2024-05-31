@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChevronRight, Lock, X } from "lucide-react";
+import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
@@ -144,25 +144,6 @@ export default function Main() {
             </div>
           );
         })}
-        <div className="flex flex-wrap items-center justify-end gap-2 p-5 sm:p-10">
-          {root && (
-            <Link
-              href={
-                queryParams({
-                  del: "root",
-                  getNewPath: true,
-                }) as string
-              }
-              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
-            >
-              <strong className="text-gray-800">
-                {root === "true" ? "Domains" : "Links"}
-              </strong>
-              <p>Only</p>
-              <X className="h-4 w-4" />
-            </Link>
-          )}
-        </div>
       </div>
       <div className="p-5 sm:p-10">
         <AnalyticsAreaChart show={tab.show} />

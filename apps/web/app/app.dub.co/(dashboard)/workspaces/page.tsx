@@ -2,7 +2,7 @@ import CreateWorkspaceButton from "@/ui/workspaces/create-workspace-button";
 import WorkspaceList from "@/ui/workspaces/workspace-list";
 import { MaxWidthWrapper } from "@dub/ui";
 
-export default function App() {
+export default function Workspaces() {
   return (
     <>
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
