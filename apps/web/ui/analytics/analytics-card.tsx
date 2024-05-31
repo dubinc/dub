@@ -1,11 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  Crosshairs,
-  CursorRays,
-  InvoiceDollar,
-  Modal,
-  TabSelect,
-} from "@dub/ui";
+import { Modal, TabSelect } from "@dub/ui";
+import { Crosshairs, CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import {
   ComponentType,
