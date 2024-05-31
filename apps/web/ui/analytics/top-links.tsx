@@ -1,7 +1,6 @@
 import { useRouterStuff } from "@dub/ui";
 import { getApexDomain } from "@dub/utils";
-import { useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { AnalyticsCard } from "./analytics-card";
@@ -11,13 +10,16 @@ import { useAnalyticsFilterOption } from "./utils";
 
 export default function TopLinks() {
   const { queryParams } = useRouterStuff();
-  const searchParams = useSearchParams();
-  const root = searchParams.get("root");
 
+  const [selectedTabId, setSelectedTabId] = useState<"links" | "domains">(
+    "links",
+  );
   const { domain, key } = useContext(AnalyticsContext);
   const showUrls = domain && key;
 
-  const data = useAnalyticsFilterOption(`top_${showUrls ? "urls" : "links"}`);
+  const data = useAnalyticsFilterOption(`top_${showUrls ? "urls" : "links"}`, {
+    root: selectedTabId === "domains" ? "true" : "false",
+  });
 
   return (
     <AnalyticsCard
@@ -31,27 +33,9 @@ export default function TopLinks() {
       }
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 8}
-      selectedTabId={
-        showUrls
-          ? "urls"
-          : root === "false"
-            ? "links"
-            : root === "true"
-              ? "domains"
-              : "links"
-      }
-      onSelectTab={(tabId) =>
-        queryParams({
-          ...((root === "false" && tabId === "links") ||
-          (root === "true" && tabId === "domains")
-            ? { del: ["root"] }
-            : {
-                set: {
-                  root: tabId === "links" ? "false" : "true",
-                },
-              }),
-          replace: true,
-        })
+      selectedTabId={showUrls ? "urls" : selectedTabId}
+      onSelectTab={(tabId: "links" | "domains") =>
+        showUrls ? null : setSelectedTabId(tabId)
       }
     >
       {({ limit, event, setShowModal }) =>

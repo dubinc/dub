@@ -7,6 +7,7 @@ import { AnalyticsContext } from ".";
 
 export function useAnalyticsFilterOption(
   groupBy: AnalyticsGroupByOptions,
+  additionalParams?: Record<string, any>,
 ): ({ count?: number } & Record<string, any>)[] | null {
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     useContext(AnalyticsContext);
@@ -14,6 +15,7 @@ export function useAnalyticsFilterOption(
   const { data } = useSWR<Record<string, any>[]>(
     `${baseApiPath}?${editQueryString(queryString, {
       groupBy,
+      ...additionalParams,
     })}`,
     fetcher,
     {
