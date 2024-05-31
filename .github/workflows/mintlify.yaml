@@ -4,7 +4,7 @@ on:
   deployment_status:
 
 jobs:
-  api-tests:
+  mintlify-deployment:
     timeout-minutes: 30
     if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'Production'
     runs-on: ubuntu-latest
