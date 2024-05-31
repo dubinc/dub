@@ -2,3 +2,60 @@
 title: "Remix"
 description: "Learn how to create a short link using the Remix and Dub Node.js SDK."
 ---
+
+import Prerequisites from "/snippets/sdk-prerequisites.mdx";
+import Install from "/snippets/sdk-install-nodejs.mdx";
+
+## 1. Prerequisites
+
+<Prerequisites />
+
+## 2. Install
+
+<Install />
+
+## 3. Create link
+
+Let's create a short link using the Dub Node.js SDK.
+
+```typescript create-link.ts
+
+```
+
+## 4. Upsert link
+
+Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
+
+```typescript upsert-link.ts
+
+```
+
+## 5. Update link
+
+Let's update an existing link using the Dub Node.js SDK.
+
+```typescript update-link.ts
+
+```
+
+Both `upsert` and `update` methods accept the same parameters.
+
+## 6. Retrieve analytics for link
+
+Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
+
+```typescript get-analytics.ts
+
+```
+
+## 7. Examples
+
+<CardGroup cols={2}>
+  <Card
+    title="Node.js Example"
+    icon="arrow-up-right-from-square"
+    href="https://github.com/dubinc/examples"
+  >
+    See the full example on GitHub.
+  </Card>
+</CardGroup>
