@@ -5,18 +5,29 @@ import { useContext } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
 
+/**
+ * Fetches event counts grouped by the specified filter
+ *
+ * @param groupByOrParams Either a groupBy option or a query parameter object including groupBy
+ * @param options Additional options
+ */
 export function useAnalyticsFilterOption(
-  groupBy: AnalyticsGroupByOptions,
-  additionalParams?: Record<string, any>,
+  groupByOrParams:
+    | AnalyticsGroupByOptions
+    | ({ groupBy: AnalyticsGroupByOptions } & Record<string, any>),
+  options?: { enabled?: boolean },
 ): ({ count?: number } & Record<string, any>)[] | null {
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     useContext(AnalyticsContext);
 
   const { data } = useSWR<Record<string, any>[]>(
-    `${baseApiPath}?${editQueryString(queryString, {
-      groupBy,
-      ...additionalParams,
-    })}`,
+    options?.enabled !== false
+      ? `${baseApiPath}?${editQueryString(queryString, {
+          ...(typeof groupByOrParams === "string"
+            ? { groupBy: groupByOrParams }
+            : groupByOrParams),
+        })}`
+      : null,
     fetcher,
     {
       shouldRetryOnError: !requiresUpgrade,

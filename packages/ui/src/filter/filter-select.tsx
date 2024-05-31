@@ -23,6 +23,7 @@ type FilterSelectProps = {
   filters: Filter[];
   onSelect: (key: string, value: string) => void;
   onRemove: (key: string) => void;
+  onOpenFilter?: (key: string) => void;
   activeFilters?: {
     key: Filter["key"];
     value: FilterOption["value"];
@@ -35,6 +36,7 @@ export function FilterSelect({
   filters,
   onSelect,
   onRemove,
+  onOpenFilter,
   activeFilters,
   children,
   className,
@@ -79,6 +81,7 @@ export function FilterSelect({
 
     setSearch("");
     setSelectedFilterKey(key);
+    onOpenFilter?.(key);
   }, []);
 
   const selectOption = useCallback(
@@ -129,7 +132,7 @@ export function FilterSelect({
             />
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
               {!selectedFilter ? (
-                <Command.List className="flex w-full min-w-[160px] flex-col gap-1">
+                <Command.List className="flex w-full min-w-[180px] flex-col gap-1 p-2">
                   {filters.map((filter) => (
                     <FilterButton
                       {...filter}
@@ -142,7 +145,7 @@ export function FilterSelect({
               ) : (
                 <Command.List className="flex w-full min-w-[100px] flex-col gap-1">
                   {selectedFilter.options ? (
-                    <>
+                    <div className="p-2">
                       {selectedFilter.options?.map((option) => {
                         const isSelected =
                           activeFilters?.find(
@@ -165,7 +168,7 @@ export function FilterSelect({
                         );
                       })}
                       <NoMatches />
-                    </>
+                    </div>
                   ) : (
                     <Command.Loading>
                       <div
@@ -237,7 +240,7 @@ const FilterScroll = forwardRef(
     return (
       <>
         <div
-          className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll p-2 sm:w-auto"
+          className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll sm:w-auto"
           ref={ref}
           onScroll={updateScrollProgress}
         >

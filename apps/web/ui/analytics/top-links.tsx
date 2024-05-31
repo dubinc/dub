@@ -17,7 +17,8 @@ export default function TopLinks() {
   const { domain, key } = useContext(AnalyticsContext);
   const showUrls = domain && key;
 
-  const data = useAnalyticsFilterOption(`top_${showUrls ? "urls" : "links"}`, {
+  const data = useAnalyticsFilterOption({
+    groupBy: `top_${showUrls ? "urls" : "links"}`,
     root: selectedTabId === "domains" ? "true" : "false",
   });
 

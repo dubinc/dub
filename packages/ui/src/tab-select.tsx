@@ -17,7 +17,7 @@ export function TabSelect<T extends string>({
     <div className="flex text-sm">
       <LayoutGroup id={layoutGroupId}>
         {options.map(({ id, label }) => (
-          <div className="relative">
+          <div key={id} className="relative">
             <button
               type="button"
               onClick={() => onSelect?.(id)}
