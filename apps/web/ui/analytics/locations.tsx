@@ -1,4 +1,5 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { LocationTabs } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
 import { useState } from "react";
@@ -10,7 +11,7 @@ import { useAnalyticsFilterOption } from "./utils";
 export default function Locations() {
   const { queryParams } = useRouterStuff();
 
-  const [tab, setTab] = useState<"countries" | "cities">("countries");
+  const [tab, setTab] = useState<LocationTabs>("countries");
   const data = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
