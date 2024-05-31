@@ -199,6 +199,22 @@
             "sdks/nuxt",
             "sdks/express"
           ]
+        },
+        {
+          "group": "Go",
+          "pages": ["sdks/go"]
+        },
+        {
+          "group": "Python",
+          "pages": ["sdks/python", "sdks/flask", "sdks/django"]
+        },
+        {
+          "group": "Ruby",
+          "pages": ["sdks/ruby", "sdks/rails", "sdks/sinatra"]
+        },
+        {
+          "group": "PHP",
+          "pages": ["sdks/php", "sdks/laravel"]
         }
       ]
     }
