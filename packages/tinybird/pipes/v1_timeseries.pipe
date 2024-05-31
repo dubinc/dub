@@ -8,24 +8,19 @@ NODE month_intervals
 SQL >
 
     %
+    WITH
+        toStartOfMonth(toDateTime64({{ DateTime64(start, '2024-04-24 00:00:00.000') }}, 3)) AS start,
+        toStartOfMonth(toDateTime64({{ DateTime64(end, '2024-05-23 00:00:00.000') }}, 3)) AS
+    end,
+    dateDiff('month', start, end
+    ) + 1 AS months_diff
     SELECT
-        toStartOfMonth(
-            toDateTime64({{ DateTime64(start, '2023-05-23 20:45:02.959') }}, 3),
-            {{ String(timezone, 'UTC') }}
+        arrayJoin(
+            arrayMap(
+                x -> toDateTime64(start + toIntervalMonth(x), 3, {{ String(timezone, 'UTC') }}),
+                range(0, months_diff)
+            )
         ) as interval
-    ORDER BY interval ASC
-    WITH FILL
-    FROM
-        toStartOfMonth(
-            toDateTime64({{ DateTime64(start, '2023-05-23 20:45:02.959') }}, 3),
-            {{ String(timezone, 'UTC') }}
-        )
-        TO
-        toStartOfMonth(
-            addMonths(toDateTime64({{ DateTime64(end, '2024-05-23 20:45:02.959') }}, 3), 1),
-            {{ String(timezone, 'UTC') }}
-        )
-        STEP interval 1 month
 
 
 
@@ -41,7 +36,8 @@ SQL >
         toStartOfDay(
             toDateTime64({{ DateTime64(end, '2024-05-23 00:00:00.000') }}, 3),
             {{ String(timezone, 'UTC') }}
-        ) AS end
+        ) AS
+    end
     SELECT
         arrayJoin(
             arrayMap(
@@ -108,7 +104,7 @@ SQL >
     SELECT
         {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
         {% elif granularity == "month" %}
-            toDateTime64(toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}), 3)
+            toDateTime64(toStartOfMonth(timestamp), 3, {{ String(timezone, 'UTC') }})
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
         uniq(*) as clicks
@@ -166,7 +162,7 @@ SQL >
     SELECT
         {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
         {% elif granularity == "month" %}
-            toDateTime64(toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}), 3)
+            toDateTime64(toStartOfMonth(timestamp), 3, {{ String(timezone, 'UTC') }})
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
         uniq(*) as leads
@@ -227,7 +223,7 @@ SQL >
     SELECT
         {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
         {% elif granularity == "month" %}
-            toDateTime64(toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}), 3)
+            toDateTime64(toStartOfMonth(timestamp), 3, {{ String(timezone, 'UTC') }})
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
         uniq(*) as sales,
@@ -310,13 +306,13 @@ NODE endpoint
 SQL >
 
     %
-    SELECT *
-    FROM
-        {% if eventType == 'clicks' %} timeseries_clicks
-        {% elif eventType == 'leads' %} timeseries_leads
-        {% elif eventType == 'sales' %} timeseries_sales
-        {% elif eventType == 'billing' %} timeseries_billing
-        {% else %} timeseries_composite
-        {% end %}
+        SELECT *
+        FROM
+            {% if eventType == 'clicks' %} timeseries_clicks
+            {% elif eventType == 'leads' %} timeseries_leads
+            {% elif eventType == 'sales' %} timeseries_sales
+            {% elif eventType == 'billing' %} timeseries_billing
+            {% else %} timeseries_composite
+            {% end %}
 
 
