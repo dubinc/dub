@@ -1,79 +1,62 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { DeviceTabs } from "@/lib/analytics/types";
-import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { Maximize } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useRouterStuff } from "@dub/ui";
+import { useState } from "react";
+import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
 import DeviceIcon from "./device-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Devices() {
-  const [tab, setTab] = useState<DeviceTabs>("devices");
-  const singularTabName = useMemo(
-    () => SINGULAR_ANALYTICS_ENDPOINTS[tab],
-    [tab],
-  );
-
-  const data = useAnalyticsFilterOption(tab);
-
   const { queryParams } = useRouterStuff();
-  const [showModal, setShowModal] = useState(false);
 
-  const barList = (limit?: number) => (
-    <BarList
-      tab={singularTabName}
-      data={
-        data?.map((d) => ({
-          icon: (
-            <DeviceIcon
-              display={d[singularTabName]}
-              tab={tab}
-              className="h-4 w-4"
-            />
-          ),
-          title: d[singularTabName],
-          href: queryParams({
-            set: {
-              [singularTabName]: d[singularTabName],
-            },
-            getNewPath: true,
-          }) as string,
-          value: d.count || 0,
-        })) || []
-      }
-      maxValue={(data && data[0]?.count) || 0}
-      barBackground="bg-green-100"
-      setShowModal={setShowModal}
-      {...(limit && { limit })}
-    />
-  );
+  const [tab, setTab] = useState<DeviceTabs>("devices");
+  const data = useAnalyticsFilterOption(tab);
+  const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
-    <>
-      <Modal
-        showModal={showModal}
-        setShowModal={setShowModal}
-        className="max-w-lg"
-      >
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-lg font-semibold">Devices</h1>
-        </div>
-        {barList()}
-      </Modal>
-      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-xl">
-        <div className="mb-3 flex justify-between">
-          <h1 className="text-lg font-semibold">Devices</h1>
-          <TabSelect
-            options={["devices", "browsers", "os"]}
-            selected={tab}
-            // @ts-ignore
-            selectAction={setTab}
-          />
-        </div>
-        {data ? (
+    <AnalyticsCard
+      tabs={[
+        { id: "devices", label: "Devices" },
+        { id: "browsers", label: "Browsers" },
+        { id: "os", label: "OS" },
+      ]}
+      selectedTabId={tab}
+      onSelectTab={setTab}
+      expandLimit={8}
+      hasMore={(data?.length ?? 0) > 8}
+    >
+      {({ limit, event, setShowModal }) =>
+        data ? (
           data.length > 0 ? (
-            barList(9)
+            <BarList
+              tab={singularTabName}
+              data={
+                data?.map((d) => ({
+                  icon: (
+                    <DeviceIcon
+                      display={d[singularTabName]}
+                      tab={tab}
+                      className="h-4 w-4"
+                    />
+                  ),
+                  title: d[singularTabName],
+                  href: queryParams({
+                    set: {
+                      [singularTabName]: d[singularTabName],
+                    },
+                    getNewPath: true,
+                  }) as string,
+                  value: d[event] || 0,
+                })) || []
+              }
+              maxValue={(data && data[0]?.[event]) || 0}
+              barBackground="bg-green-100"
+              hoverBackground="hover:bg-gradient-to-r hover:from-green-50 hover:to-transparent hover:border-green-500"
+              setShowModal={setShowModal}
+              {...(limit && { limit })}
+            />
           ) : (
             <div className="flex h-[300px] items-center justify-center">
               <p className="text-sm text-gray-600">No data available</p>
@@ -83,17 +66,8 @@ export default function Devices() {
           <div className="flex h-[300px] items-center justify-center">
             <AnalyticsLoadingSpinner />
           </div>
-        )}
-        {data && data.length > 9 && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center space-x-2 rounded-md bg-gradient-to-b from-transparent to-white py-2 text-gray-500 transition-all hover:text-gray-800 active:scale-95"
-          >
-            <Maximize className="h-4 w-4" />
-            <p className="text-xs font-semibold uppercase">View all</p>
-          </button>
-        )}
-      </div>
-    </>
+        )
+      }
+    </AnalyticsCard>
   );
 }

@@ -20,3 +20,6 @@ export { default as ProductHunt } from "./product-hunt";
 export { default as Twitter } from "./twitter";
 export { default as Unsplash } from "./unsplash";
 export { default as YouTube } from "./youtube";
+
+// Nucleo icons
+export * from "./nucleo";
