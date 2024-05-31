@@ -1,0 +1,127 @@
+---
+title: "Introduction"
+description: "Learn how to create a short link using the Dub Node.js SDK."
+---
+
+## 1. Prerequisites
+
+To follow this guide, you will need to:
+
+- [Create a Dub account](https://app.dub.co/login)
+- [Create an API key](https://app.dub.co/settings/tokens)
+
+## 2. Install
+
+Install the Dub Node.js SDK using your preferred package manager:
+
+<Tabs>
+  <Tab title="npm">
+
+    ```bash
+    npm install dub
+    ```
+
+  </Tab>
+  
+  <Tab title="pnpm">
+  
+  ```bash 
+  pnpm add dub 
+  ```
+  
+  </Tab>
+  
+  <Tab title="yarn">
+  
+  ```bash
+  yarn add dub 
+  ```
+  
+  </Tab>
+</Tabs>
+
+## 3. Create link
+
+Let's create a short link using the Dub Node.js SDK.
+
+```typescript create-link.ts
+import { Dub } from "dub";
+
+const dub = new Dub({
+  token: process.env.DUB_API_KEY,
+  workspaceId: "ws_clugls3...",
+});
+
+await dub.links.create({
+  url: "https://google.com",
+});
+```
+
+## 4. Upsert link
+
+Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
+
+```typescript upsert-link.ts
+const { shortLink } = await dub.links.upsert({
+  url: "https://www.google.com",
+});
+
+console.log(shortLink); // will always be the same short link
+```
+
+## 5. Update link
+
+Let's update an existing link using the Dub Node.js SDK.
+
+```typescript update-link.ts
+// Update a link by its linkId
+await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
+  url: "https://www.google.uk",
+  archived: true,
+});
+
+// Update a link by its externalId
+await dub.links.update("ext_123", {
+  url: "https://www.google.uk",
+  archived: true,
+});
+```
+
+Both `upsert` and `update` methods accept the same parameters.
+
+## 6. Retrieve analytics for link
+
+Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
+
+```typescript get-analytics.ts
+import { ClicksCount, ClicksTimeseries } from "dub/models/components";
+
+// Retrieve total clicks for a link
+const response = await dub.analytics.retrieve({
+  key: "dummy",
+  domain: "dub.sh",
+  interval: "30d",
+  event: "clicks",
+});
+
+const clicks = response as ClicksCount;
+
+// Retrieve timeseries analytics for a link
+const response = await dub.analytics.retrieve({
+  key: "dummy",
+  domain: "dub.sh",
+  interval: "30d",
+  event: "clicks",
+  groupBy: "timeseries",
+});
+
+const timeseries = response as ClicksTimeseries[];
+```
+
+## 7. Examples
+
+<CardGroup cols={2}>
+  <Card title="Node.js Example" icon="arrow-up-right-from-square" href="https://github.com/dubinc/examples">
+    See the full example on GitHub.
+  </Card>
+</CardGroup>

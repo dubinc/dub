@@ -186,6 +186,21 @@
           "pages": ["sdks/typescript/metatags/get"]
         }
       ]
+    },
+    {
+      "group": "Quickstart",
+      "pages": [
+        {
+          "group": "Node.js",
+          "pages": [
+            "sdks/nodejs",
+            "sdks/nextjs",
+            "sdks/remix",
+            "sdks/nuxt",
+            "sdks/express"
+          ]
+        }
+      ]
     }
   ],
   "api": {
