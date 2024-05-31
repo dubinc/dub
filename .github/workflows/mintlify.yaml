@@ -9,10 +9,7 @@ jobs:
     if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'Production'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Redeploy
+      - name: Redeploy Mintlify
         run: |
           curl --request POST \
           --url https://api.mintlify.com/v1/project/update/650fb8a002108e0f4f80a0b9 \
