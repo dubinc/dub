@@ -1,6 +1,7 @@
 import { EventType } from "@/lib/analytics/types";
 import { Modal, TabSelect } from "@dub/ui";
-import { capitalize, cn } from "@dub/utils";
+import { Crosshairs, CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
+import { cn } from "@dub/utils";
 import {
   Dispatch,
   ReactNode,
@@ -63,8 +64,17 @@ export function AnalyticsCard<T extends string>({
             onSelect={onSelectTab}
           />
 
-          <div className="flex items-center gap-2 pr-2 text-xs uppercase text-gray-500">
-            {capitalize(event === "composite" ? "clicks" : event)}
+          <div className="flex items-center gap-1 pr-2 text-gray-500">
+            {event === "sales" ? (
+              <InvoiceDollar className="h-4 w-4" />
+            ) : event === "leads" ? (
+              <Crosshairs className="h-4 w-4" />
+            ) : (
+              <CursorRays className="h-4 w-4" />
+            )}
+            <p className="text-xs uppercase">
+              {event === "composite" ? "clicks" : event}
+            </p>
           </div>
         </div>
         <div className="py-4">
