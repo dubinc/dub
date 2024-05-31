@@ -43,7 +43,9 @@ export default async function AppMiddleware(req: NextRequest) {
       const defaultWorkspace = await getDefaultWorkspace(user);
 
       if (defaultWorkspace) {
-        return NextResponse.redirect(new URL(`/${defaultWorkspace}`, req.url));
+        return NextResponse.redirect(
+          new URL(`/${defaultWorkspace}${fullPath}`, req.url),
+        );
       } else {
         return NextResponse.redirect(new URL("/workspaces", req.url));
       }
