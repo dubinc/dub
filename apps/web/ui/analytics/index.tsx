@@ -5,8 +5,14 @@
   2. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
 */
 
-import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
-import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
+import {
+  EVENT_TYPES,
+  VALID_ANALYTICS_FILTERS,
+} from "@/lib/analytics/constants";
+import {
+  CompositeAnalyticsResponseOptions,
+  EventType,
+} from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
@@ -27,7 +33,7 @@ import TopLinks from "./top-links";
 export const AnalyticsContext = createContext<{
   basePath: string;
   baseApiPath: string;
-  selectedTab: string;
+  selectedTab: EventType;
   domain?: string;
   key?: string;
   url?: string;
@@ -99,8 +105,15 @@ export default function Analytics({
   const interval =
     start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
-  const selectedTab =
-    demo || betaTester ? searchParams.get("tab") || "composite" : "clicks";
+  const selectedTab: EventType = useMemo(() => {
+    if (!demo && !betaTester) return "clicks";
+
+    const tab = searchParams.get("tab");
+
+    return tab && (EVENT_TYPES as ReadonlyArray<string>).includes(tab)
+      ? (tab as EventType)
+      : "composite";
+  }, [searchParams.get("tab")]);
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
     if (admin) {
