@@ -50,8 +50,6 @@ export default function AnalyticsAreaChart({
     [data],
   );
 
-  console.log({ data, chartData });
-
   const formatDate = useCallback(
     (date: Date) => {
       if (start && end) {
