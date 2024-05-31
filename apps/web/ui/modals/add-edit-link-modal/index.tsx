@@ -730,7 +730,7 @@ function AddEditLinkModal({
             <div
               className={`${
                 atBottom ? "" : "md:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky  md:bottom-0 md:px-16`}
+              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky md:bottom-0 md:px-16`}
             >
               {homepageDemo ? (
                 <Button
