@@ -18,24 +18,62 @@ import Install from "/snippets/sdk-install-nodejs.mdx";
 
 Let's create a short link using the Dub Node.js SDK.
 
-```typescript create-link.ts
+```typescript app/api/links/route.ts
+import { Dub } from "dub";
 
+const dub = new Dub({
+  token: process.env.DUB_API_KEY,
+  workspaceId: "ws_clugls3...",
+});
+
+export async function POST() {
+  try {
+    const link = await dub.links.create({
+      url: "https://google.com",
+    });
+
+    return Response.json(link);
+  } catch (error) {
+    return Response.json({ error }, { status: 500 });
+  }
+}
 ```
 
 ## 4. Upsert link
 
 Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
-```typescript upsert-link.ts
+```typescript app/api/links/route.ts
+export async function PATCH() {
+  try {
+    const link = await dub.links.upsert({
+      url: "https://google.com",
+    });
 
+    return Response.json(link);
+  } catch (error) {
+    return Response.json({ error }, { status: 500 });
+  }
+}
 ```
 
 ## 5. Update link
 
 Let's update an existing link using the Dub Node.js SDK.
 
-```typescript update-link.ts
+```typescript app/api/links/route.ts
+export async function PATCH() {
+  try {
+    const link = await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
+      url: "https://www.google.uk",
+      archived: true,
+    });
 
+    return Response.json(link);
+  } catch (error) {
+    return Response.json({ error }, { status: 500 });
+  }
+}
 ```
 
 Both `upsert` and `update` methods accept the same parameters.
@@ -44,8 +82,37 @@ Both `upsert` and `update` methods accept the same parameters.
 
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
-```typescript get-analytics.ts
+```typescript app/api/analytics/route.ts
+import { ClicksCount, ClicksTimeseries } from "dub/models/components";
 
+export async function GET() {
+  try {
+    // Retrieve total clicks for a link
+    let response = await dub.analytics.retrieve({
+      key: "dummy",
+      domain: "dub.sh",
+      interval: "30d",
+      event: "clicks",
+    });
+
+    const clicks = response as ClicksCount;
+
+    // Retrieve timeseries analytics for a link
+    response = await dub.analytics.retrieve({
+      key: "dummy",
+      domain: "dub.sh",
+      interval: "30d",
+      event: "clicks",
+      groupBy: "timeseries",
+    });
+
+    const timeseries = response as ClicksTimeseries[];
+
+    return Response.json({ clicks, timeseries });
+  } catch (error) {
+    return Response.json({ error }, { status: 500 });
+  }
+}
 ```
 
 ## 7. Examples
