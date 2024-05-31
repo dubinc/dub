@@ -106,7 +106,6 @@ model Project {
   domainsLimit      Int     @default(3)
   tagsLimit         Int     @default(5)
   usersLimit        Int     @default(1)
-  zapierHookEnabled Boolean @default(false)
 
   users      ProjectUsers[]
   invites    ProjectInvite[]
@@ -122,6 +121,9 @@ model Project {
   inviteCode String? @unique
 
   defaultDomains DefaultDomains[]
+
+  // for Zapier integration
+  zapierHookEnabled Boolean @default(false)
   zapierHooks    ZapierHook[]
 }
 
