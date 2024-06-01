@@ -1,7 +1,6 @@
-import React from "react";
-import { useRouterStuff } from "../hooks";
 import { Crown } from "lucide-react";
 import Link from "next/link";
+import { useRouterStuff } from "../hooks";
 
 export const UpgradeToProToast = ({
   title,

@@ -1,12 +1,12 @@
-import { DomainProps } from "../src/types";
 import {
-    DUB_DOMAINS,
-    DUB_WORKSPACE_ID,
-    SHORT_DOMAIN,
-    fetcher,
+  DUB_DOMAINS,
+  DUB_WORKSPACE_ID,
+  SHORT_DOMAIN,
+  fetcher,
 } from "@dub/utils";
 import useSWR from "swr";
-import useDefaultDomains from "../src/domains/use-default-domains";
+import useDefaultDomains from "./use-default-domains";
+import { DomainProps } from "../../src/types";
 import useWorkspace from "./use-workspace";
 
 export default function useDomains({

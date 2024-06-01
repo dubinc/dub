@@ -58,7 +58,7 @@ class StorageClient {
       if (error instanceof Error) {
         throw new Error(`Failed to upload file: ${error.message}`);
       } else {
-        throw new Error('Failed to upload file: An unknown error occurred');
+        throw new Error("Failed to upload file: An unknown error occurred");
       }
     }
   }

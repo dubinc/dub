@@ -1,9 +1,9 @@
-import { Link2 } from "lucide-react";
+import { CornerDownLeftIcon, Link2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { SendIcon } from "../../public";
 import IconMenu from "../../public/IconMenu";
+import { ShortLinkProps, UserProps } from "../types";
 import Link from "./link";
-import { LinkProp, LinkProps, ShortLinkProps, UserProps } from "../types";
+import { cn } from "@dub/utils";
 
 const dummyData: ShortLinkProps & { user: UserProps } = {
   id: "123456",
@@ -26,7 +26,7 @@ const dummyData: ShortLinkProps & { user: UserProps } = {
     name: "John Doe",
     email: "john.doe@example.com",
     image: "https://example.com/johndoe.jpg",
-    createdAt: new Date("2023-01-01"),
+    createdAt: new Date("2020-01-01"),
     source: "google",
     migratedWorkspace: "workspace123",
   },
@@ -35,7 +35,8 @@ const dummyData: ShortLinkProps & { user: UserProps } = {
   proxy: false,
   title: "Sample Title",
   description: "Sample Description",
-  image: "https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://dub.co&size=64",
+  image:
+    "https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://dub.co&size=64",
   utm_source: null,
   utm_medium: null,
   utm_campaign: null,
@@ -52,7 +53,7 @@ const dummyData: ShortLinkProps & { user: UserProps } = {
   shortLink: "https://dub.sh/hstEJj7",
   tagId: null,
   qrCode: "https://api.dub.co/qr?url=https://dub.sh/hstEJj7?qr=1",
-  workspaceId: "ws_null"
+  workspaceId: "ws_null",
 };
 
 const Shortener: React.FC = () => {
@@ -62,7 +63,7 @@ const Shortener: React.FC = () => {
   const fetchCurrentTabUrl = async () => {
     try {
       const currentURL = window.location.href;
-      setUrl(currentURL);     
+      setUrl(currentURL);
     } catch (error) {
       console.error("Error fetching current tab URL:", error);
     }
@@ -103,7 +104,7 @@ const Shortener: React.FC = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="relative mt-3 flex items-center">
+      <form onSubmit={handleSubmit} className="relative mt-3 flex items-center justify-center">
         <IconMenu
           icon={
             <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 h-5 w-5 text-gray-400" />
@@ -114,12 +115,12 @@ const Shortener: React.FC = () => {
           placeholder="Enter URL..."
           autoComplete="off"
           required
-          className="peer block w-full rounded-md border border-gray-200 bg-white p-2 pl-10 pr-12 shadow-lg focus:border-black focus:outline-none focus:ring-0 sm:text-sm"
+          className={cn("peer block w-full rounded-md border border-gray-200 overflow-hidden bg-white p-2 pl-10 pr-12 shadow-lg focus:border-black focus:outline-nonefocus:border-black focus:outline-none focus:ring-0 sm:text-sm")}
           value={url}
           onChange={handleInputChange}
         />
-        <button type="submit">
-          <SendIcon />
+        <button className={cn("lucide lucide-corner-down-left absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-12 items-center justify-center rounded border border-gray-200 p-0.5 font-sans text-sm font-medium text-gray-400 hover:border-gray-700 hover:text-gray-700 focus:border-black focus:outline-none" )} type="submit">
+          <CornerDownLeftIcon className="h-5 w-5" />
         </button>
       </form>
       <Link link={link} />

@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import useWorkspace from "../../hooks/use-workspace";
+import useWorkspace from "./use-workspace";
 
 export default function useDefaultDomains() {
   const { id } = useWorkspace();

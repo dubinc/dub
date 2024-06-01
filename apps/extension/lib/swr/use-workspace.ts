@@ -1,20 +1,15 @@
-import { WorkspaceProps } from "../src/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
-import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
+import { WorkspaceProps } from "../../src/types";
+import { useSelectedWorkspace } from "../../src/workspace/workspace-now";
 
 export default function useWorkspace() {
-  let { slug } = useParams() as { slug: string | null };
-  const searchParams = useSearchParams();
-  if (!slug) {
-    slug = searchParams.get("slug");
-  }
-
+  const { selectedWorkspace } = useSelectedWorkspace();
   const {
     data: workspace,
     error,
     mutate,
-  } = useSWR<WorkspaceProps>(slug && `/api/workspaces/${slug}`, fetcher, {
+  } = useSWR<WorkspaceProps>(selectedWorkspace && `/api/workspaces/${selectedWorkspace}`, fetcher, {
     dedupingInterval: 30000,
   });
 
@@ -29,6 +24,6 @@ export default function useWorkspace() {
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,
     error,
     mutate,
-    loading: slug && !workspace && !error ? true : false,
+    loading: selectedWorkspace && !workspace && !error ? true : false,
   };
 }

@@ -1,10 +1,3 @@
-import { LinkProps } from "src/types";
-import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
-import {
-  InfoTooltip,
-  SimpleTooltipContent,
-  Switch,
-} from "../../";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   formatDateTime,
@@ -12,8 +5,11 @@ import {
   parseDateTime,
 } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Expand } from "lucide-react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { LinkProps } from "src/types";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "../../";
+import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function ExpirationSection({
   props,
@@ -124,17 +120,17 @@ export default function ExpirationSection({
                 onChange={(e) => {
                   setData({ ...data, expiredUrl: e.target.value });
                 }}
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm px-5 py-2"
                 aria-invalid="true"
               />
             </div>
             <a
               href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
               target="_blank"
-              className="group mt-3 flex items-center text-sm text-gray-500 hover:text-gray-700"
+              className="group mt-3 flex gap-1 items-center text-sm text-gray-500 hover:text-gray-700"
             >
               <p>Or set a default expiration URL for your domain</p>
-              <Expand />
+              <Expand className="w-4 h-4"/>
             </a>
           </div>
         </motion.div>

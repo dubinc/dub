@@ -1,6 +1,6 @@
-import useSWR from "swr";
 import { fetcher } from "@dub/utils";
-import { WorkspaceProps } from "../src/types";
+import useSWR from "swr";
+import { WorkspaceProps } from "../../src/types";
 
 export default function useWorkspaces() {
   const { data: workspaces, error } = useSWR<WorkspaceProps[]>(

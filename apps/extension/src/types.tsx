@@ -39,58 +39,61 @@ export interface TagProps {
 }
 
 export interface JsonArray extends Array<JsonValue> {}
-export type JsonValue = string | number | boolean | JsonObject | JsonArray | null
-export type JsonObject = {[Key in string]?: JsonValue}
-
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | JsonObject
+  | JsonArray
+  | null;
+export type JsonObject = { [Key in string]?: JsonValue };
 
 interface Link {
-      id: string
-      domain: string
-      key: string
-      url: string
-      archived: boolean
-      expiresAt: Date | null
-      expiredUrl: string | null
-      password: string | null
-      externalId: string | null
-      proxy: boolean
-      title: string | null
-      description: string | null
-      image: string | null
-      utm_source: string | null
-      utm_medium: string | null
-      utm_campaign: string | null
-      utm_term: string | null
-      utm_content: string | null
-      rewrite: boolean
-      ios: string | null
-      android: string | null
-      geo: string | number | boolean | JsonObject | JsonArray | null
-      userId: string | null
-      projectId: string | null
-      publicStats: boolean
-      clicks: number
-      lastClicked: Date | null
-      createdAt: Date
-      updatedAt: Date
-      comments: string | null
-} 
+  id: string;
+  domain: string;
+  key: string;
+  url: string;
+  archived: boolean;
+  expiresAt: Date | null;
+  expiredUrl: string | null;
+  password: string | null;
+  externalId: string | null;
+  proxy: boolean;
+  title: string | null;
+  description: string | null;
+  image: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  rewrite: boolean;
+  ios: string | null;
+  android: string | null;
+  geo: string | number | boolean | JsonObject | JsonArray | null;
+  userId: string | null;
+  projectId: string | null;
+  publicStats: boolean;
+  clicks: number;
+  lastClicked: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  comments: string | null;
+}
 
 export type LinkProps = Link;
 
 export interface ShortLinkProps extends LinkProps {
   tags: TagProps[];
-  shortLink: string,
-  tagId: null,
-  qrCode: string,
-  workspaceId: string
+  shortLink: string;
+  tagId: null;
+  qrCode: string;
+  workspaceId: string;
 }
 
 export interface LinkWithTagsProps extends LinkProps {
   tags: TagProps[];
 }
-
-
 
 export interface SectionProps {
   props?: LinkWithTagsProps;

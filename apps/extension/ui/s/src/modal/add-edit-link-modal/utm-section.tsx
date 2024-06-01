@@ -1,5 +1,3 @@
-import { LinkProps } from "src/types";
-import { InfoTooltip, SimpleTooltipContent, Switch } from "../../";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   constructURLFromUTMParams,
@@ -9,6 +7,8 @@ import {
 } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { LinkProps } from "src/types";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "../../";
 
 export default function UTMSection({
   props,
@@ -85,7 +85,7 @@ export default function UTMSection({
                 disabled={!isValidUrl}
                 className={`${
                   isValidUrl ? "" : "cursor-not-allowed bg-gray-100"
-                } block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm`}
+                } block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm px-5 py-2`}
                 placeholder={examples}
                 value={params[key] || ""}
                 onChange={(e) => {

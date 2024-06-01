@@ -1,21 +1,19 @@
-import { resizeImage } from '../../../../../lib/images'
-import useWorkspace from '../../../../../hooks/use-workspace';
-import { LinkProps } from 'src/types';
-import { CircleSlash2, Loader, Sparkles, UploadCloud } from 'lucide-react';
-import { ProBadgeTooltip } from '../../shared/pro-badge-tooltip';
-import { UpgradeToProToast } from '../../shared/upgrade-to-pro-toast';
-import {
-  ButtonTooltip,
-  Popover,
-  SimpleTooltipContent,
-  Switch,
-} from "../../";
-import { FADE_IN_ANIMATION_SETTINGS, truncate } from "@dub/utils";
+import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Link2 } from "lucide-react";
+import {
+  CircleSlash2,
+  Link2,
+  Loader,
+  Sparkles,
+  UploadCloud,
+} from "lucide-react";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import { toast } from "sonner";
+import { LinkProps } from "src/types";
+import { ButtonTooltip, Popover, SimpleTooltipContent, Switch } from "../../";
+import useWorkspace from "../../../../../lib/swr/use-workspace";
+import { resizeImage } from "../../../../../lib/images";
+import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({
@@ -32,8 +30,6 @@ export default function OGSection({
   const { id: workspaceId, exceededAI, mutate } = useWorkspace();
 
   const { title, description, image, proxy } = data;
-
-
 
   const [resizing, setResizing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -246,15 +242,11 @@ export default function OGSection({
                 </p>
                 <ButtonTooltip
                   tooltipContent="Generate an optimized title using AI."
-                  onClick={()=>console.log('test')}
-                  disabled={ !title || exceededAI}
+                  onClick={() => console.log("test")}
+                  disabled={!title || exceededAI}
                   className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                 >
-                  {true? (
-                    <Loader />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
+                  {true ? <Loader /> : <Sparkles className="h-4 w-4" />}
                 </ButtonTooltip>
               </div>
             </div>
@@ -291,15 +283,11 @@ export default function OGSection({
                 </p>
                 <ButtonTooltip
                   tooltipContent="Generate an optimized description using AI."
-                  onClick={()=>console.log("dhh")}
+                  onClick={() => console.log("dhh")}
                   disabled={!description}
                   className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                 >
-                  {true ? (
-                    <Loader />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
+                  {true ? <Loader /> : <Sparkles className="h-4 w-4" />}
                 </ButtonTooltip>
               </div>
             </div>

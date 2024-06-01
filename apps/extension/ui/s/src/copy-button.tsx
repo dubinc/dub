@@ -1,8 +1,7 @@
 import { cn } from "@dub/utils";
-import { LucideIcon } from "lucide-react";
+import { Check, Copy, LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, Check } from "lucide-react";
 
 export function CopyButton({
   value,

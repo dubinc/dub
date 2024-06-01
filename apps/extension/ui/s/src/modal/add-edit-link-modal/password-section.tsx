@@ -1,10 +1,10 @@
-import { LinkProps } from "src/types";
-import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
-import { SimpleTooltipContent, Switch } from "../../";
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { LinkProps } from "src/types";
+import { SimpleTooltipContent, Switch } from "../../";
+import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function PasswordSection({
   props,
@@ -76,7 +76,10 @@ export default function PasswordSection({
             {showPassword ? (
               <EyeIcon className="h-4 w-4 text-gray-400" aria-hidden="true" />
             ) : (
-              <EyeOffIcon className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              <EyeOffIcon
+                className="h-4 w-4 text-gray-400"
+                aria-hidden="true"
+              />
             )}
           </button>
         </motion.div>

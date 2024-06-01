@@ -1,16 +1,15 @@
-import { LinkProps } from "src/types";
-import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
-import {  SimpleTooltipContent, Switch } from "../../";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   fetcher,
   getUrlFromString,
 } from "@dub/utils";
 import { motion } from "framer-motion";
+import { AlertCircle, CheckCircle, Loader } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { LinkProps } from "src/types";
 import useSWR from "swr";
-import { Loader } from "lucide-react";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { SimpleTooltipContent, Switch } from "../../";
+import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function CloakingSection({
   data,
@@ -59,7 +58,7 @@ export default function CloakingSection({
               src={getUrlFromString(data.url)}
               className="absolute z-10 h-full w-full"
             />
-            <Loader/>
+            <Loader />
           </div>
           <IframeIndicator
             url={getUrlFromString(data.url)}

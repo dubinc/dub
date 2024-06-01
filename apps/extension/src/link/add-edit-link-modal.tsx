@@ -1,18 +1,3 @@
-import React from "react"; 
-import useDomains from "../../hooks/use-domain";
-import useWorkspace from "../../hooks/use-workspace";
-import { LinkProps, LinkWithTagsProps } from "../types";
-import LinkLogo from "./link-logo";
-import { UpgradeToProToast } from "../../ui/s/src/shared/upgrade-to-pro-toast";
-import {
-  Button,
-  ButtonTooltip,
-  Modalui,
-  Tooltip,
-  TooltipContent,
-  useMediaQuery,
-  useRouterStuff,
-} from "../../ui/s/src";
 import {
   DEFAULT_LINK_PROPS,
   cn,
@@ -25,15 +10,17 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
-import { TriangleAlert, CircleAlert, Lock, Shuffle, X,  Twitter, LinkedinIcon,
-  Loader,
-  Sparkles,} from "lucide-react";
 import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+  CircleAlert,
+  LinkedinIcon,
+  Loader,
+  Lock,
+  Shuffle,
+  Sparkles,
+  TriangleAlert,
+  Twitter,
+  X,
+} from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -47,6 +34,16 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce, useDebouncedCallback } from "use-debounce";
+import useDomains from "../../lib/swr/use-domain";
+import useWorkspace from "../../lib/swr/use-workspace";
+import {
+  Button,
+  ButtonTooltip,
+  Modal,
+  Tooltip,
+  TooltipContent,
+  useMediaQuery,
+} from "../../ui/s/src";
 import AndroidSection from "../../ui/s/src/modal/add-edit-link-modal/android-section";
 import CloakingSection from "../../ui/s/src/modal/add-edit-link-modal/cloaking-section";
 import CommentsSection from "../../ui/s/src/modal/add-edit-link-modal/comments-section";
@@ -56,8 +53,11 @@ import IOSSection from "../../ui/s/src/modal/add-edit-link-modal/ios-section";
 import OGSection from "../../ui/s/src/modal/add-edit-link-modal/og-section";
 import PasswordSection from "../../ui/s/src/modal/add-edit-link-modal/password-section";
 import Preview from "../../ui/s/src/modal/add-edit-link-modal/preview";
-import TagsSection from "../../ui/s/src/modal/add-edit-link-modal/tags-section";
 import UTMSection from "../../ui/s/src/modal/add-edit-link-modal/utm-section";
+import { UpgradeToProToast } from "../../ui/s/src/shared/upgrade-to-pro-toast";
+import { LinkProps, LinkWithTagsProps } from "../types";
+import LinkLogo from "./link-logo";
+import { useSelectedWorkspace } from "../../src/workspace/workspace-now";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -69,13 +69,10 @@ function AddEditLinkModal({
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkWithTagsProps;
-  duplicateProps?: LinkWithTagsProps ;
+  duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 }) {
-  const params = useParams() as { slug?: string };
-  const { slug } = params;
-  const router = useRouter();
-  const pathname = usePathname();
+  const { selectedWorkspace } = useSelectedWorkspace();
   const {
     id: workspaceId,
     aiUsage,
@@ -148,13 +145,9 @@ function AddEditLinkModal({
     props ? [props.key] : [],
   );
 
-
-
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
   }, [data.url, data.title, data.description, generatedKeys]);
-
-
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -223,7 +216,7 @@ function AddEditLinkModal({
         url: `/api/links?workspaceId=${workspaceId}`,
       };
     }
-  }, [props, slug, domain]);
+  }, [props, selectedWorkspace, domain]);
 
   const [atBottom, setAtBottom] = useState(false);
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
@@ -263,7 +256,7 @@ function AddEditLinkModal({
             return equalGeo;
           }
           // Otherwise, check for discrepancy in the current key-value pair
-          return ;
+          return;
         }))
     ) {
       return true;
@@ -276,7 +269,6 @@ function AddEditLinkModal({
 
   const [lockKey, setLockKey] = useState(true);
 
-  const welcomeFlow = pathname === "/welcome";
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (key?.endsWith("-copy")) {
@@ -285,9 +277,6 @@ function AddEditLinkModal({
   }, []);
 
   const { isMobile } = useMediaQuery();
-
-  const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
 
   const shortLink = useMemo(() => {
     return linkConstructor({
@@ -300,31 +289,18 @@ function AddEditLinkModal({
   const randomLinkedInNonce = useMemo(() => nanoid(8), []);
 
   return (
-    <Modalui
+    <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
       preventDefaultClose={homepageDemo ? false : true}
-      onClose={() => {
-        if (welcomeFlow) {
-          router.back();
-        } else if (searchParams.has("newLink")) {
-          queryParams({
-            del: ["newLink"],
-          });
-        }
-      }}
+      onClose={() => {}}
     >
       <div className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
-        {!welcomeFlow && !homepageDemo && (
+        {!homepageDemo && (
           <button
             onClick={() => {
               setShowAddEditLinkModal(false);
-              if (searchParams.has("newLink")) {
-                queryParams({
-                  del: ["newLink"],
-                });
-              }
             }}
             className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
           >
@@ -369,10 +345,8 @@ function AddEditLinkModal({
                     { revalidate: true },
                   );
                   // for welcome page, redirect to links page after adding a link
-                  if (pathname === "/welcome") {
-                    router.push("/links");
-                    setShowAddEditLinkModal(false);
-                  }
+
+                  setShowAddEditLinkModal(false);
                   const data = await res.json();
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
@@ -457,7 +431,7 @@ function AddEditLinkModal({
                       urlError
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                    } block w-full rounded-md focus:outline-none sm:text-sm`}
+                    } block w-full rounded-md focus:outline-none sm:text-sm px-5 py-2`}
                     aria-invalid="true"
                   />
                   {urlError && (
@@ -499,7 +473,7 @@ function AddEditLinkModal({
                         className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                       >
                         {generatingRandomKey ? (
-                          <Loader/>
+                          <Loader />
                         ) : (
                           <Shuffle className="h-3 w-3" />
                         )}
@@ -514,8 +488,7 @@ function AddEditLinkModal({
                         }
                         className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                       >
-
-                          <Sparkles className="h-4 w-4" />
+                        <Sparkles className="h-4 w-4" />
                       </ButtonTooltip>
                     </div>
                   )}
@@ -557,7 +530,7 @@ function AddEditLinkModal({
                     disabled={props && lockKey}
                     autoComplete="off"
                     className={cn(
-                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm px-5 py-2",
                       {
                         "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                           keyError,
@@ -633,7 +606,6 @@ function AddEditLinkModal({
                       {keyError.split("Upgrade to Pro")[0]}
                       <span
                         className="cursor-pointer underline"
-                        onClick={() => queryParams({ set: { upgrade: "pro" } })}
                       >
                         Upgrade to Pro
                       </span>
@@ -701,7 +673,7 @@ function AddEditLinkModal({
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
-    </Modalui>
+    </Modal>
   );
 }
 
@@ -711,7 +683,6 @@ function AddEditLinkButton({
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { nextPlan, exceededLinks } = useWorkspace();
-  const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
@@ -778,11 +749,6 @@ function AddEditLinkButton({
             title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
             cta={`Upgrade to ${nextPlan.name}`}
             onClick={() => {
-              queryParams({
-                set: {
-                  upgrade: nextPlan.name.toLowerCase(),
-                },
-              });
             }}
           />
         ) : undefined

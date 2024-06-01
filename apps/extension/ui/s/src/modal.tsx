@@ -1,11 +1,10 @@
 import { cn } from "@dub/utils";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
-export function Modalui({
+export function Modal({
   children,
   className,
   showModal,
@@ -22,7 +21,6 @@ export function Modalui({
   desktopOnly?: boolean;
   preventDefaultClose?: boolean;
 }) {
-  const router = useRouter();
 
   const closeModal = ({ dragged }: { dragged?: boolean } = {}) => {
     if (preventDefaultClose && !dragged) {
@@ -35,8 +33,6 @@ export function Modalui({
     if (setShowModal) {
       setShowModal(false);
       // else, this is intercepting route @modal
-    } else {
-      router.back();
     }
   };
   const { isMobile } = useMediaQuery();

@@ -1,6 +1,4 @@
-import React from "react";
-
-const DotIcon: React.FC = () => {
+const DotIcon = () => {
   return (
     <span className="inline-flex">
       <svg height="14" width="30" className="loader ">

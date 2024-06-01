@@ -1,6 +1,6 @@
-import useWorkspace from "../../../../hooks/use-workspace";
-import { BadgeTooltip, InfoTooltip, type TooltipProps } from "../";
 import { Crown } from "lucide-react";
+import { BadgeTooltip, InfoTooltip, type TooltipProps } from "../";
+import useWorkspace from "../../../../lib/swr/use-workspace";
 
 /**
  * A dynamic badge/icon w/ tooltip based on the workspace plan:

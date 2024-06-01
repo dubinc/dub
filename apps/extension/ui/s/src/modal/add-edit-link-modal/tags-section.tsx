@@ -1,17 +1,13 @@
-import useTags from "hooks/use-tags";
-import useWorkspace from "hooks/use-workspace";
-import TagBadge from "ui/src/tag-badge";
-import {
-  Badge,
-  SimpleTooltipContent,
-  Tooltip,
-} from "../../";
 import { Command, useCommandState } from "cmdk";
+import useTags from "../../../../../lib/swr/use-tags";
+import useWorkspace from "../../../../../lib/swr/use-workspace";
 import { Check, ChevronDown, Loader, Sparkle, Tag, X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { LinkWithTagsProps, TagProps } from "src/types";
+import { mutate } from "swr";
+import TagBadge from "ui/src/tag-badge";
+import { Badge, SimpleTooltipContent, Tooltip } from "../../";
 
 export default function TagsSection({
   data,
@@ -35,9 +31,6 @@ export default function TagsSection({
   const tagMatch = availableTags
     ?.map(({ name }) => name)
     .includes(inputValue.trim());
-
-
-
 
   const [creatingTag, setCreatingTag] = useState(false);
 
@@ -68,7 +61,7 @@ export default function TagsSection({
   const [openCommandList, setOpenCommandList] = useState(false);
 
   useEffect(() => {
-    const handleClickOutside = (e:any) => {
+    const handleClickOutside = (e: any) => {
       if (commandRef.current && !commandRef.current.contains(e.target)) {
         setOpenCommandList(false);
       }
@@ -131,7 +124,7 @@ export default function TagsSection({
         <div className="group rounded-md border border-gray-300 bg-white p-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
           <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
             {creatingTag ? (
-              <Loader/>
+              <Loader />
             ) : (
               <Tooltip
                 content={

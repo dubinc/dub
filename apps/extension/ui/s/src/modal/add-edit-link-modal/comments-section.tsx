@@ -1,9 +1,9 @@
-import { LinkProps } from "src/types";
-import { InfoTooltip, SimpleTooltipContent, Switch } from "../../";
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
+import { LinkProps } from "src/types";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "../../";
 
 export default function CommentsSection({
   props,
@@ -51,7 +51,7 @@ export default function CommentsSection({
           <TextareaAutosize
             name="comments"
             minRows={3}
-            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm px-5 py-2"
             placeholder="Add comments"
             value={comments || ""}
             onChange={(e) => {

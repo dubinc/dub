@@ -1,7 +1,7 @@
-import { BlurImage } from "../../ui/s/src/blur-image";
 import { GOOGLE_FAVICON_URL, cn } from "@dub/utils";
 import { Globe } from "lucide-react";
-import { CSSProperties, HtmlHTMLAttributes } from "react";
+import { CSSProperties } from "react";
+import { BlurImage } from "../../ui/s/src/blur-image";
 
 export default function LinkLogo({
   apexDomain,
@@ -10,7 +10,7 @@ export default function LinkLogo({
 }: {
   apexDomain?: string | null;
   className?: string;
-  style?:CSSProperties
+  style?: CSSProperties;
 }) {
   return apexDomain ? (
     <BlurImage

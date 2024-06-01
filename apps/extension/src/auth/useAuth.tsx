@@ -1,8 +1,14 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface User {
   name: string;
-  email:string;
+  email: string;
   image: string;
 }
 
@@ -38,34 +44,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const getCookie = (name: string): Promise<string | null> => {
     return new Promise((resolve, reject) => {
-      chrome.cookies.get({ url: 'https://app.dub.co', name: name }, (cookie) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(cookie ? cookie.value : null);
-        }
-      });
+      chrome.cookies.get(
+        { url: "https://app.dub.co", name: name },
+        (cookie) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(cookie ? cookie.value : null);
+          }
+        },
+      );
     });
   };
 
   const fetchProfileInfo = async (token: string) => {
     try {
-      const response = await fetch('https://app.dub.co/api/user/profile', {
-        method: 'GET',
+      const response = await fetch("https://app.dub.co/api/user/profile", {
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch profile information');
+        throw new Error("Failed to fetch profile information");
       }
       const data = await response.json();
       setAuthState({
         user: {
           name: data.name,
           image: data.image,
-          email: data.email
+          email: data.email,
         },
         loading: false,
         error: null,
@@ -75,16 +84,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-
   useEffect(() => {
     const checkLoginStatus = async () => {
-
       try {
-        const sessionToken = await getCookie('__Secure-next-auth.session-token');
+        const sessionToken = await getCookie(
+          "__Secure-next-auth.session-token",
+        );
         if (sessionToken) {
           await fetchProfileInfo(sessionToken);
         } else {
-          setAuthState({ user: null, loading: false, error: 'Not logged in' });
+          setAuthState({ user: null, loading: false, error: "Not logged in" });
         }
       } catch (error) {
         setAuthState({ user: null, loading: false, error: "" });

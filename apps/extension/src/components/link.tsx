@@ -1,4 +1,14 @@
 import {
+  GOOGLE_FAVICON_URL,
+  cn,
+  fetcher,
+  getApexDomain,
+  isDubDomain,
+  nFormatter,
+  punycode,
+  timeAgo,
+} from "@dub/utils";
+import {
   Archive,
   Check,
   CheckCircle,
@@ -7,37 +17,31 @@ import {
   Delete,
   Edit3,
   EllipsisVertical,
+  Eye,
   FolderInput,
   QrCode,
   Share2,
   SignalHigh,
+  Timer,
   TimerOff,
   Trash2,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
 import { DotIcon } from "../../public";
 import IconMenu from "../../public/IconMenu";
-import Modal from "../../ui/src/modal";
-import { QRCodeDownload, useLinkQRModal } from "./Qrcode/QrDownload";
-import ShareModal from "./Share/ShareModal";
-import { LinkProp, LinkProps, LinkWithTagsProps, ShortLinkProps, UserProps } from "../types";
-import { cn, fetcher, getApexDomain, GOOGLE_FAVICON_URL, isDubDomain } from "@dub/utils";
-import useWorkspace from "../../hooks/use-workspace";
-import useDomains from "../../hooks/use-domain";
-import { Button, Popover, SimpleTooltipContent, Tooltip, useIntersectionObserver } from "../../ui/s/src";
-import useSWR, { mutate } from "swr";
-import { useAddEditLinkModal } from "../link/add-edit-link-modal";
+import { Button, Popover, TooltipProvider, useIntersectionObserver } from "../../ui/s/src";
 import { useArchiveLinkModal } from "../../ui/s/src/modal/archive-link-modal";
-import { useTransferLinkModal } from "../../ui/s/src/modal/transfer-link-modal";
 import { useDeleteLinkModal } from "../../ui/s/src/modal/delete-link-modal";
-import { toast } from "sonner";
-import LinkLogo from "../../src/link/link-logo";
+import { useTransferLinkModal } from "../../ui/s/src/modal/transfer-link-modal";
+import { useAddEditLinkModal } from "../link/add-edit-link-modal";
+import { ShortLinkProps } from "../types";
+import { useLinkQRModal } from "./Qrcode/link-qr-modal";
+import { useShareLinkModal } from "./Share/share-link-modal";
 
 
 const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
-  const [expired, setExpired] = useState<number | null>(null);
-  const [showQRCode, setShowQRCode] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
   const [copy, setCopy] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -60,10 +64,10 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
   );
 
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
-    props: {domain:link.domain, key:link.key, url:link.url},
+    props: { domain: link.domain, key: link.key, url: link.url },
   });
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
-    props: link
+    props: link,
   });
 
   const {
@@ -73,28 +77,34 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
     userId: ____,
     ...propsToDuplicate
   } = link;
+
   const {
     setShowAddEditLinkModal: setShowDuplicateLinkModal,
     AddEditLinkModal: DuplicateLinkModal,
   } = useAddEditLinkModal({
-    // duplicateProps: {
-    //   ...propsToDuplicate,
-    //   key: `${punycode(key)}-copy`,
-    //   clicks: 0,
-    // },
+    // @ts-expect-error
+    duplicateProps: {
+      ...propsToDuplicate,
+      key: `${punycode(link.key)}-copy`,
+      clicks: 0,
+    },
   });
 
-  const expireds = link.expiresAt && new Date(link.expiresAt) < new Date();
+  const expired = link.expiresAt && new Date(link.expiresAt) < new Date();
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
-    props:link,
+    props: link,
   });
   const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
-    props:link,
+    props: link,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
-    props:link,
+    props: link,
   });
+
+  const {setShowShareLinkModal, ShareLinkModal } = useShareLinkModal({
+    prop:link.shortLink
+  })
 
   const [openPopover, setOpenPopover] = useState(false);
   const [selected, setSelected] = useState(false);
@@ -122,7 +132,7 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
     } else {
       setSelected(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (isVisible) {
@@ -190,18 +200,6 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
     };
   }, [onKeyDown]);
 
-  useEffect(() => {
-    if (link && link.createdAt) {
-      const expirationTime =
-        new Date(link.createdAt).getTime() + 30 * 60 * 1000;
-      const intervalId = setInterval(() => {
-        const remaining = Math.ceil((expirationTime - Date.now()) / 1000);
-        setExpired(remaining > 0 ? Math.floor(remaining / 60) : 0);
-      }, 60000);
-
-      return () => clearInterval(intervalId);
-    }
-  }, [link?.createdAt]);
 
   const handleCopy = () => {
     if (link?.shortLink) {
@@ -219,80 +217,83 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
     }
   };
 
-  const handleShare = () => {
-    setShowShareModal(true);
-  };
-
-  const handleShowQRCode = () => {
-    setShowQRCode((prevState) => !prevState);
-    console.log(`Showing QR code for link: ${link?.qrCode}`);
-  };
-
-  const handleDelete = () => {
-    console.log("delete");
-  };
-
   return (
     <div
-    ref={linkRef}
+      ref={linkRef}
       className="relative z-0 mb-4 mt-4 flex cursor-grab items-center justify-between gap-2 rounded-md border border-gray-200 bg-white p-3 text-gray-500 shadow-lg transition-[border-color] hover:border-black active:cursor-grabbing"
       draggable={false}
       tabIndex={0}
       style={{ transform: "none", userSelect: "none", touchAction: "pan-y" }}
     >
+      <TooltipProvider >
+      {isVisible && (
+        <>
+          <LinkQRModal />
+          <ShareLinkModal />
+          <AddEditLinkModal />
+          <DuplicateLinkModal />
+          <ArchiveLinkModal />
+          <TransferLinkModal />
+          <DeleteLinkModal />
+        </>
+      )}
 
-      <span className=" absolute -right-2 -top-1.5 flex max-w-fit cursor-help items-center space-x-1 whitespace-nowrap rounded-full border border-gray-400 bg-gray-100 px-2 py-px text-xs font-medium capitalize text-gray-800 sm:-right-5">
-        <IconMenu icon={<TimerOff className="h-3 w-3" />} />
-        {expired !== null && expired > 0 ? (
-          <p>Expire In {expired} Min</p>
+      <span className={`
+       ${expired ? "text-red-800" : "text-gray-800"}
+      absolute right-1 -top-1.5 flex max-w-fit cursor-help items-center space-x-1 whitespace-nowrap rounded-full border border-gray-400 bg-gray-100 px-2 py-px text-xs font-medium capitalize sm:-right-2`}>
+      {expired ? (
+          <TimerOff className="h-3 w-3" />
         ) : (
-          <p>Expired</p>
+          <Timer className="h-3 w-3" />
         )}
+        <p className="gap-5">{timeAgo(link.createdAt)}</p>
       </span>
       <button
         className="group flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 text-white transition-all duration-75 hover:scale-110 hover:bg-red-600 active:scale-95"
-        onClick={handleDelete}
+        onClick={() => {
+          setOpenPopover(false);
+          setShowDeleteLinkModal(true);
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-      {link.archived || expireds ? (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 px-0 sm:h-10 sm:w-10">
-                {link.archived ? (
-                  <Archive className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
-                ) : (
-                  <TimerOff className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
-                )}
-              </div>
-          ) : (
-            <>
-          <img
-          src={link?.image ? link.image : `${GOOGLE_FAVICON_URL}${apexDomain}`}
-          alt="link"
-          className="absolute h-12 w-12 transition-transform duration-300"
-          style={{
-            transform: isHovered ? "rotateY(180deg)" : "rotateY(0deg)",
-            opacity: isHovered ? "0" : "1",
-          }}
-        />
+        {link.archived || expired ? (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 px-0 sm:h-10 sm:w-10">
+            {link.archived ? (
+              <Archive className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+            ) : (
+              <TimerOff className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+            )}
+          </div>
+        ) : (
+          <>
+            <img
+              src={
+                link?.image ? link.image : `${GOOGLE_FAVICON_URL}${apexDomain}`
+              }
+              alt="link"
+              className="absolute h-12 w-12 transition-transform duration-300"
+              style={{
+                transform: isHovered ? "rotateY(180deg)" : "rotateY(0deg)",
+                opacity: isHovered ? "0" : "1",
+              }}
+            />
             <IconMenu
-            icon={<Trash2 className="h-5 w-5" />}
-            style={{
-              transform: isHovered ? "rotateY(180deg)" : "rotateY(0deg)",
-              opacity: isHovered ? "1" : "0",
-            }}
-          />
+              icon={<Trash2 className="h-5 w-5" />}
+              style={{
+                transform: isHovered ? "rotateY(180deg)" : "rotateY(0deg)",
+                opacity: isHovered ? "1" : "0",
+              }}
+            />
           </>
-          )}
-
+        )}
       </button>
 
       <div className="flex w-20 flex-col">
         <a
-          className={cn("line-clamp-2 text-base font-semibold text-blue-700",
-          {
-            "text-gray-500": link.archived || expireds,
-          },
-          )}
+          className={cn("line-clamp-2 text-base font-semibold text-blue-700", {
+            "text-gray-500": link.archived || expired,
+          })}
           href={link.shortLink}
           target={link.shortLink}
           rel="noreferrer"
@@ -305,7 +306,7 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
           rel="noreferrer"
           className="line-clamp-2  text-xs text-gray-500 transition-all hover:text-gray-800 "
         >
-        {link?.url}
+          {link?.url}
         </a>
       </div>
       <button
@@ -315,7 +316,7 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
         <IconMenu
           icon={
             copy ? (
-              <Check className="h-4 w-4" />
+              <Check className="h-3.5 w-3.5" />
             ) : (
               <Copy className="h-3 w-3 text-gray-800 hover:text-black" />
             )
@@ -323,192 +324,168 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
         />
       </button>
       <button
-        className="group rounded-full bg-gray-100 p-3 transition-all duration-75 hover:scale-110 hover:bg-blue-100 focus:outline-none active:scale-95"
-        onClick={handleShowQRCode}
+        className={cn("group rounded-full bg-gray-100 p-3 transition-all duration-75 hover:scale-110 hover:text-gray-800 hover:bg-blue-100 focus:outline-none active:scale-95")}
+        onClick={()=>{setOpenPopover(false);setShowLinkQRModal(true)}}
       >
-        <IconMenu icon={<QrCode className="h-4 w-4  hover:text-black" />} />
+        <IconMenu icon={<QrCode className={"h-4 w-4"} />} />
       </button>
-      {showQRCode && (
-        <Modal show={showQRCode} onClose={handleShowQRCode}>
-          <QRCodeDownload
-            // props={{ url: link?.url, key: link?.key }}
-            props={link} setShowLinkQRModal={setShowLinkQRModal}
-                   />
-        </Modal>
-      )}
       <button
-        className="group rounded-full bg-gray-100 p-3 transition-all duration-75 hover:scale-110 hover:bg-blue-100 focus:outline-none active:scale-95"
-        onClick={handleShare}
+        className={cn("group rounded-full bg-gray-100 p-3 transition-all duration-75 hover:scale-110 hover:text-gray-800 hover:bg-blue-100 focus:outline-none active:scale-95")}
+        onClick={()=> {setOpenPopover(false); setShowShareLinkModal(true);}}
       >
-        <IconMenu icon={<Share2 className="h-4 w-4  hover:text-black" />} />
+        <IconMenu icon={<Share2 className="h-4 w-4 " />} />
       </button>
-      {showShareModal && (
-        <ShareModal
-          show={showShareModal}
-          onClose={() => setShowShareModal(false)}
-          link={link?.shortLink || ""}
-        />
-      )}
       <button
-        onClick={handleShowQRCode}
         className="flex items-center justify-center gap-1 rounded-md bg-gray-100 p-1 text-gray-700 transition-all duration-75 hover:scale-105 active:scale-95"
       >
-        <IconMenu icon={<SignalHigh className="h-4 w-4 hover:text-black" />} />
         {link?.clicks ? (
-          <p className="text-sm">{link?.clicks}</p>
-        ) : (
           <>
-            <DotIcon />
-            <p className="text-sm">
-              <span className="ml-1 hidden sm:inline-block">clicks</span>
-            </p>
+          <IconMenu icon={<Eye className="h-4 w-4 hover:text-black" />} />
+          <p className="text-sm">{nFormatter(clicks)}</p>
           </>
+        ) : (
+            <DotIcon />
         )}
       </button>
       <Popover
-            content={
-              <div className="grid w-full z-10 gap-px p-2 sm:w-48">
-                <Button
-                  text="Edit"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowAddEditLinkModal(true);
-                  }}
-                  icon={<Edit3 className="h-4 w-4" />}
-                  shortcut="E"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="Duplicate"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDuplicateLinkModal(true);
-                  }}
-                  icon={<CopyPlus className="h-4 w-4" />}
-                  shortcut="D"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="QR Code"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowLinkQRModal(true);
-                  }}
-                  icon={<QrCode className="h-4 w-4" />}
-                  shortcut="Q"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text={link.archived ? "Unarchive" : "Archive"}
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowArchiveLinkModal(true);
-                  }}
-                  icon={<Archive className="h-4 w-4" />}
-                  shortcut="A"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="Transfer"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowTransferLinkModal(true);
-                  }}
-                  icon={<FolderInput className="h-4 w-4" />}
-                  shortcut="T"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="Copy Link ID"
-                  variant="outline"
-                  onClick={() => copyLinkId()}
-                  icon={
-                    copiedLinkId ? (
-                      <CheckCircle className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )
-                  }
-                  shortcut="I"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteLinkModal(true);
-                  }}
-                  icon={<Delete className="h-4 w-4" />}
-                  shortcut="X"
-                  className="h-9 px-2 font-medium"
-                />
-                {true 
-                // !slug
-                 && ( // this is only shown in admin mode (where there's no slug)
-                  <button
-                    onClick={() => {
-                      window.confirm(
-                        "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
-                      ) &&
-                        (setOpenPopover(false),
-                        toast.promise(
-                          fetch(`/api/admin/links/${link.id}/ban`, {
-                            method: "DELETE",
-                          }).then(async () => {
-                            await mutate(
-                              (key) =>
-                                typeof key === "string" &&
-                                key.startsWith("/api/admin/links"),
-                              undefined,
-                              { revalidate: true },
-                            );
-                          }),
-                          {
-                            loading: "Banning link...",
-                            success: "Link banned!",
-                            error: "Error banning link.",
-                          },
-                        ));
-                    }}
-                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-                  >
-                    <IconMenu
-                      text="Ban"
-                      icon={<Delete className="h-4 w-4" />}
-                    />
-                    <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
-                      B
-                    </kbd>
-                  </button>
-                )}
-              </div>
-            }
-            align="end"
-            openPopover={openPopover}
-            setOpenPopover={setOpenPopover}
-          >
-            <button
-              type="button"
+        content={
+          <div className="grid w-full gap-px p-2 sm:w-40">
+            <Button
+              text="Edit"
+              variant="outline"
               onClick={() => {
-                setOpenPopover(!openPopover);
+                setOpenPopover(false);
+                setShowAddEditLinkModal(true);
               }}
-              className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
-            >
-              <span className="sr-only">More options</span>
-              <IconMenu
-          icon={<EllipsisVertical className="h-4 w-4 hover:text-black" />}
-        /> 
+              icon={<Edit3 className="h-4 w-4" />}
+              shortcut="E"
+              className="h-9 px-2 font-medium"
+            />
+            <Button
+              text="Duplicate"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                setShowDuplicateLinkModal(true);
+              }}
+              icon={<CopyPlus className="h-4 w-4" />}
+              shortcut="D"
+              className="h-9 px-2 font-medium"
+            />
+            <Button
+              text="QR Code"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                setShowLinkQRModal(true);
+              }}
+              icon={<QrCode className="h-4 w-4" />}
+              shortcut="Q"
+              className="h-9 px-2 font-medium"
+            />
+            <Button
+              text={link.archived ? "Unarchive" : "Archive"}
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                setShowArchiveLinkModal(true);
+              }}
+              icon={<Archive className="h-4 w-4" />}
+              shortcut="A"
+              className="h-9 px-2 font-medium"
+            />
+            <Button
+              text="Transfer"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                setShowTransferLinkModal(true);
+              }}
+              icon={<FolderInput className="h-4 w-4" />}
+              shortcut="T"
+              className="h-9 px-2 font-medium"
+            />
+            <Button
+              text="Copy ID"
+              variant="outline"
+              onClick={() => copyLinkId()}
+              icon={
+                copiedLinkId ? (
+                  <CheckCircle className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )
+              }
+              shortcut="I"
+              className="h-9 px-2 font-medium"
+            />
+            <Button
+              text="Delete"
+              variant="danger-outline"
+              onClick={() => {
+                setOpenPopover(false);
+                setShowDeleteLinkModal(true);
+              }}
+              icon={<Delete className="h-4 w-4" />}
+              shortcut="X"
+              className="h-9 px-2 font-medium"
+            />
+            {true && ( // this is only shown in admin mode (where there's no slug)
+              // !slug
+              <button
+                onClick={() => {
+                  window.confirm(
+                    "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
+                  ) &&
+                    (setOpenPopover(false),
+                    toast.promise(
+                      fetch(`/api/admin/links/${link.id}/ban`, {
+                        method: "DELETE",
+                      }).then(async () => {
+                        await mutate(
+                          (key) =>
+                            typeof key === "string" &&
+                            key.startsWith("/api/admin/links"),
+                          undefined,
+                          { revalidate: true },
+                        );
+                      }),
+                      {
+                        loading: "Banning link...",
+                        success: "Link banned!",
+                        error: "Error banning link.",
+                      },
+                    ));
+                }}
+                className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
+              >
+                <IconMenu text="Ban" icon={<Delete className="h-4 w-4" />} />
+                <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
+                  B
+                </kbd>
+              </button>
+            )}
+          </div>
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setOpenPopover(!openPopover);
+          }}
+          className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+        >
+          <span className="sr-only">More options</span>
+          <IconMenu
+            icon={<EllipsisVertical className="h-4 w-4 hover:text-black" />}
+          />
         </button>
-          </Popover>
-        
-
-  </div>
+      </Popover>
+      </TooltipProvider>
+    </div>
   );
 };
 

@@ -1,9 +1,9 @@
 export default function PlanBadge({ plan }: { plan: string }) {
   let color = "#000";
   if (plan === "enterprise") {
-    color = "#7C3AED"; 
+    color = "#7C3AED";
   } else if (plan.startsWith("business")) {
-    color = "#0694A2"; 
+    color = "#0694A2";
   } else if (plan === "pro") {
     color = "#3182CE";
   }

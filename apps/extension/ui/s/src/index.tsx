@@ -7,7 +7,7 @@ export * from "./checkbox";
 export * from "./form";
 export * from "./input-select";
 export * from "./label";
-export * from "./modalui";
+export * from "./modal";
 export * from "./popover";
 export * from "./radio-group";
 export * from "./switch";
@@ -21,7 +21,6 @@ export * from "./hooks";
 // layout
 export * from "./background";
 export * from "./max-width-wrapper";
-
 
 // content
 export * from "./content";

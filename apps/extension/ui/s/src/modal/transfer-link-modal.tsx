@@ -1,8 +1,3 @@
-import React from 'react';
-import useWorkspace from "../../../../hooks/use-workspace";
-import useWorkspaces from "../../../../hooks/use-Workspaces";
-import { LinkProps } from "../../../../src/types";
-import { Button, InputSelect, InputSelectItemProps, Modalui } from "../../src";
 import {
   APP_NAME,
   DICEBEAR_AVATAR_URL,
@@ -19,7 +14,16 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { LinkLogo } from "../../src";
+import useWorkspaces from "../../../.././lib/swr/use-Workspaces";
+import useWorkspace from "../../../../lib/swr/use-workspace";
+import { LinkProps } from "../../../../src/types";
+import {
+  Button,
+  InputSelect,
+  InputSelectItemProps,
+  LinkLogo,
+  Modal,
+} from "../../src";
 
 function TransferLinkModal({
   showTransferLinkModal,
@@ -71,7 +75,7 @@ function TransferLinkModal({
   };
 
   return (
-    <Modalui
+    <Modal
       showModal={showTransferLinkModal}
       setShowModal={setShowTransferLinkModal}
       className="overflow-visible"
@@ -130,7 +134,7 @@ function TransferLinkModal({
           />
         </div>
       </form>
-    </Modalui>
+    </Modal>
   );
 }
 

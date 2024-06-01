@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useEffect, useState } from "react";
 
 interface ImageProps {
   src: string;
@@ -14,7 +14,9 @@ export default function BlurImage(props: ImageProps): JSX.Element {
     setSrc(props.src);
   }, [props.src]);
 
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>): void => {
+  const handleLoad = (
+    e: React.SyntheticEvent<HTMLImageElement, Event>,
+  ): void => {
     setLoading(false);
     const target = e.target as HTMLImageElement;
     if (target.naturalWidth <= 16 && target.naturalHeight <= 16) {
@@ -26,14 +28,14 @@ export default function BlurImage(props: ImageProps): JSX.Element {
     setSrc(`https://avatar.vercel.sh/${encodeURIComponent(props.alt)}`);
   };
 
-  const className = loading ? 'blur-[2px]' : 'blur-0';
+  const className = loading ? "blur-[2px]" : "blur-0";
 
   return (
     <img
       {...props}
       src={src}
       alt={props.alt}
-      className={`${className} ${props.className || ''}`}
+      className={`${className} ${props.className || ""}`}
       onLoad={handleLoad}
       onError={onError}
     />

@@ -1,6 +1,6 @@
-import { TagColorProps } from "src/types";
 import { cn, truncate } from "@dub/utils";
 import { Tag } from "lucide-react";
+import { TagColorProps } from "src/types";
 
 export default function TagBadge({
   name,

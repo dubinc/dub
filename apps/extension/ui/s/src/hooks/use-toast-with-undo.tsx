@@ -1,6 +1,6 @@
+import { CircleCheckBig } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { CircleCheckBig } from "lucide-react";
 
 function ToastWithUndo({
   id,
@@ -30,7 +30,7 @@ function ToastWithUndo({
   return (
     <div className="flex w-full items-center justify-between">
       <div className="flex items-center space-x-2">
-        <CircleCheckBig  />
+        <CircleCheckBig />
         <p className="font-medium">{message}</p>
       </div>
       <button

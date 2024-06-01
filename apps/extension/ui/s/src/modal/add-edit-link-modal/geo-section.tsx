@@ -1,10 +1,10 @@
-import { LinkProps } from "src/types";
-import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
-import { SimpleTooltipContent, Switch } from "../../";
 import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { LinkProps } from "src/types";
+import { SimpleTooltipContent, Switch } from "../../";
+import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function GeoSection({
   props,
@@ -133,7 +133,7 @@ const GeoSelector = ({
           name="geo-url"
           required
           autoComplete="off"
-          className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+          className="block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm px-5 py-2"
           value={url}
           placeholder="URL"
           onChange={(e) => {

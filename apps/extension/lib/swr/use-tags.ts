@@ -1,5 +1,5 @@
-import { TagProps } from "src/types";
 import { fetcher } from "@dub/utils";
+import { TagProps } from "src/types";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 

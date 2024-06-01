@@ -1,18 +1,3 @@
-import React from "react"; 
-import useDomains from "../../../../../hooks/use-domain";
-import useWorkspace from "../../../../../hooks/use-workspace";
-import { LinkProps, LinkWithTagsProps } from "../../../../../src/types";
-import { LinkLogo } from "../..";
-import { UpgradeToProToast } from "../../shared/upgrade-to-pro-toast";
-import {
-  Button,
-  ButtonTooltip,
-  Modalui,
-  Tooltip,
-  TooltipContent,
-  useMediaQuery,
-  useRouterStuff,
-} from "../..";
 import {
   DEFAULT_LINK_PROPS,
   cn,
@@ -25,9 +10,17 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
-import { TriangleAlert, CircleAlert, Lock, Shuffle, X,  Twitter, LinkedinIcon,
+import {
+  CircleAlert,
+  LinkedinIcon,
   Loader,
-  Sparkles,} from "lucide-react";
+  Lock,
+  Shuffle,
+  Sparkles,
+  TriangleAlert,
+  Twitter,
+  X,
+} from "lucide-react";
 import {
   useParams,
   usePathname,
@@ -47,6 +40,20 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce, useDebouncedCallback } from "use-debounce";
+import {
+  Button,
+  ButtonTooltip,
+  LinkLogo,
+  Modal,
+  Tooltip,
+  TooltipContent,
+  useMediaQuery,
+  useRouterStuff,
+} from "../..";
+import useDomains from "../../../../../lib/swr/use-domain";
+import useWorkspace from "../../../../../lib/swr/use-workspace";
+import { LinkProps, LinkWithTagsProps } from "../../../../../src/types";
+import { UpgradeToProToast } from "../../shared/upgrade-to-pro-toast";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -56,7 +63,6 @@ import IOSSection from "./ios-section";
 import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import Preview from "./preview";
-import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
@@ -69,7 +75,7 @@ function AddEditLinkModal({
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkWithTagsProps;
-  duplicateProps?: LinkWithTagsProps ;
+  duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 }) {
   const params = useParams() as { slug?: string };
@@ -148,13 +154,9 @@ function AddEditLinkModal({
     props ? [props.key] : [],
   );
 
-
-
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
   }, [data.url, data.title, data.description, generatedKeys]);
-
-
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -263,7 +265,7 @@ function AddEditLinkModal({
             return equalGeo;
           }
           // Otherwise, check for discrepancy in the current key-value pair
-          return ;
+          return;
         }))
     ) {
       return true;
@@ -300,7 +302,7 @@ function AddEditLinkModal({
   const randomLinkedInNonce = useMemo(() => nanoid(8), []);
 
   return (
-    <Modalui
+    <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
@@ -499,7 +501,7 @@ function AddEditLinkModal({
                         className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                       >
                         {generatingRandomKey ? (
-                          <Loader/>
+                          <Loader />
                         ) : (
                           <Shuffle className="h-3 w-3" />
                         )}
@@ -514,8 +516,7 @@ function AddEditLinkModal({
                         }
                         className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                       >
-
-                          <Sparkles className="h-4 w-4" />
+                        <Sparkles className="h-4 w-4" />
                       </ButtonTooltip>
                     </div>
                   )}
@@ -701,7 +702,7 @@ function AddEditLinkModal({
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
-    </Modalui>
+    </Modal>
   );
 }
 

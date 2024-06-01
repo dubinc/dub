@@ -1,7 +1,7 @@
 import React from "react";
 import LinkTemplate from "../../public/icons/linkTemplate";
+import { ShortLinkProps } from "../types";
 import LinkItem from "./link";
-import { LinkProp, LinkProps, ShortLinkProps } from "../types";
 
 const AllLinks: React.FC<{ links: ShortLinkProps[] }> = ({ links }) => {
   return (
@@ -11,7 +11,7 @@ const AllLinks: React.FC<{ links: ShortLinkProps[] }> = ({ links }) => {
           <LinkItem link={link} />;
         })
       ) : (
-        <LinkTemplate />
+        <><LinkTemplate /><LinkTemplate /></>
       )}
     </>
   );

@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
+import { Loader } from "lucide-react";
 import { ReactNode } from "react";
 import { Tooltip } from "./tooltip";
-import { Loader } from "lucide-react";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -86,7 +86,7 @@ export function Button({
       disabled={props.disabled || loading}
       {...props}
     >
-      {loading ? <Loader/> : icon ? icon : null}
+      {loading ? <Loader /> : icon ? icon : null}
       {text && <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>}
       {shortcut && (
         <kbd

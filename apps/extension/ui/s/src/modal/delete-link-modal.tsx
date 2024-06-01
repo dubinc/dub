@@ -1,6 +1,3 @@
-import React from "react";
-import useWorkspace from "../../../../hooks/use-workspace";
-import { LinkProps } from "../../../../src/types";
 import { getApexDomain, linkConstructor } from "@dub/utils";
 import {
   Dispatch,
@@ -11,10 +8,13 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { LinkLogo } from "../link-logo";
-import { useMediaQuery } from "../hooks";
-import { Modalui } from "../modalui";
+import useWorkspace from "../../../../lib/swr/use-workspace";
+import { LinkProps } from "../../../../src/types";
 import { Button } from "../button";
+import { useMediaQuery } from "../hooks";
+import { LinkLogo } from "../link-logo";
+import { Modal } from "../modal";
+
 
 function DeleteLinkModal({
   showDeleteLinkModal,
@@ -42,7 +42,7 @@ function DeleteLinkModal({
   const { isMobile } = useMediaQuery();
 
   return (
-    <Modalui
+    <Modal
       showModal={showDeleteLinkModal}
       setShowModal={setShowDeleteLinkModal}
     >
@@ -97,14 +97,14 @@ function DeleteLinkModal({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full h-9 px-4 rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-black focus:outline-none focus:ring-gray-500 sm:text-sm"
             />
           </div>
         </div>
 
         <Button variant="danger" text="Confirm delete" loading={deleting} />
       </form>
-    </Modalui>
+    </Modal>
   );
 }
 

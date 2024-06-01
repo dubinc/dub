@@ -1,7 +1,3 @@
-import React from "react";
-import useWorkspace from "../../../../hooks/use-workspace";
-import { LinkProps } from "../../../../src/types";
-import { Button, Modalui, useToastWithUndo } from "../";
 import { getApexDomain, linkConstructor } from "@dub/utils";
 import {
   Dispatch,
@@ -13,7 +9,9 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { LinkLogo } from "../";
+import { Button, LinkLogo, Modal, useToastWithUndo } from "../";
+import useWorkspace from "../../../../lib/swr/use-workspace";
+import { LinkProps } from "../../../../src/types";
 
 const sendArchiveRequest = ({
   linkId,
@@ -112,7 +110,7 @@ function ArchiveLinkModal({
   };
 
   return (
-    <Modalui
+    <Modal
       showModal={showArchiveLinkModal}
       setShowModal={setShowArchiveLinkModal}
     >
@@ -136,7 +134,7 @@ function ArchiveLinkModal({
           text={`Confirm ${props.archived ? "unarchive" : "archive"}`}
         />
       </div>
-    </Modalui>
+    </Modal>
   );
 }
 
