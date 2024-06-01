@@ -8,6 +8,7 @@ const subscribeSchema = z.object({
   url: z.string(),
 });
 
+// GET /api/zapier/subscribe - Subscribe to a Zapier hook
 export const POST = withWorkspace(async ({ workspace, req }) => {
   const { url } = subscribeSchema.parse(await parseRequestBody(req));
 

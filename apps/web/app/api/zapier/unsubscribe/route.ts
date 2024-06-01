@@ -8,6 +8,7 @@ const unsubscribeSchema = z.object({
   id: z.string(),
 });
 
+// GET /api/zapier/unsubscribe - Unsubscribe from a Zapier hook
 export const POST = withWorkspace(async ({ workspace, req }) => {
   const { id } = unsubscribeSchema.parse(await parseRequestBody(req));
 

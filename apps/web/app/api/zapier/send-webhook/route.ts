@@ -2,6 +2,7 @@ import { transformLink } from "@/lib/api/links";
 import { receiver } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 
+// POST /api/zapier/send-webhook - Send payload to Zapier hooks
 export async function POST(req: Request) {
   const body = await req.json();
 
