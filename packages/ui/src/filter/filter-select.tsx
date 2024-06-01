@@ -172,7 +172,7 @@ export function FilterSelect({
                   ) : (
                     <Command.Loading>
                       <div
-                        className="flex items-center justify-center px-2 py-4"
+                        className="-m-2 flex items-center justify-center"
                         style={mainListDimensions.current}
                       >
                         <LoadingSpinner />
