@@ -89,7 +89,6 @@ export const POST = withWorkspace(
 
       waitUntil(
         (async () => {
-          console.log("Publishing to Zapier");
           // Publish to Zapier if the project has a Zapier hook enabled
           if (response.projectId && workspace.zapierHookEnabled) {
             await qstash.publishJSON({
