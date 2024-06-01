@@ -1,0 +1,27 @@
+DESCRIPTION >
+	Get lead event
+
+
+TOKEN "browser_endpoint_read_5885" READ
+
+NODE endpoint
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    %
+    SELECT *
+    FROM dub_lead_events
+    WHERE
+        customer_id
+        = {{
+            String(
+                customerId,
+                "Otgts60IekQ17PMZ",
+                description="The unique ID for a given customer.",
+                required=True,
+            )
+        }}
+
+

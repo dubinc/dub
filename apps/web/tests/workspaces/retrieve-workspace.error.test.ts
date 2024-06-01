@@ -2,7 +2,7 @@ import { Project } from "@prisma/client";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-test.skip("retrieve a workspace by invalid slug or id", async (ctx) => {
+test("retrieve a workspace by invalid slug or id", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { http } = await h.init();
 
@@ -15,7 +15,7 @@ test.skip("retrieve a workspace by invalid slug or id", async (ctx) => {
     error: {
       code: "not_found",
       message: "Workspace not found.",
-      doc_url: "https://dub.co/docs/api-reference/errors#not_found",
+      doc_url: "https://dub.co/docs/api-reference/errors#not-found",
     },
   });
 });

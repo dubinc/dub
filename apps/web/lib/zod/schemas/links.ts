@@ -1,17 +1,8 @@
 import z from "@/lib/zod";
-import {
-  COUNTRY_CODES,
-  getUrlFromString,
-  isValidUrl,
-  validDomainRegex,
-} from "@dub/utils";
+import { COUNTRY_CODES, validDomainRegex } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
-
-export const parseUrlSchema = z
-  .string()
-  .transform((v) => getUrlFromString(v))
-  .refine((v) => isValidUrl(v), { message: "Invalid URL" });
+import { parseUrlSchema } from "./utils";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
@@ -138,9 +129,11 @@ export const createLinkBodySchema = z.object({
     .string()
     .min(1)
     .max(255)
+    // remove `ext_` prefix if user passes it
+    .transform((v) => (v?.startsWith("ext_") ? v.slice(4) : v))
     .nullish()
     .describe(
-      "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with 'ext_' when passed as a query parameter.",
+      "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with `ext_` when passed as a query parameter.",
     )
     .openapi({ example: "123456" }),
   prefix: z
@@ -149,6 +142,11 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
     ),
+  trackConversion: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Whether to track conversions for the short link."),
   archived: z
     .boolean()
     .optional()
@@ -236,7 +234,8 @@ export const createLinkBodySchema = z.object({
     .nullish()
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
-    ),
+    )
+    .openapi({ ref: "linkGeoTargeting" }),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
@@ -266,13 +265,16 @@ export const LinkSchema = z
         "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
     url: z.string().url().describe("The destination URL of the short link."),
+    trackConversion: z
+      .boolean()
+      .default(false)
+      .describe("[BETA] Whether to track conversions for the short link."),
     archived: z
       .boolean()
       .default(false)
       .describe("Whether the short link is archived."),
     expiresAt: z
       .string()
-      .datetime()
       .nullable()
       .describe(
         "The date and time when the short link will expire in ISO-8601 format.",
@@ -393,6 +395,14 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The date and time when the short link was last clicked."),
+    leads: z
+      .number()
+      .default(0)
+      .describe("[BETA]: The number of leads the short links has generated."),
+    sales: z
+      .number()
+      .default(0)
+      .describe("[BETA]: The number of sales the short links has generated."),
     createdAt: z
       .string()
       .describe("The date and time when the short link was created."),
@@ -407,3 +417,37 @@ export const LinkSchema = z
       .openapi({ deprecated: true }),
   })
   .openapi({ title: "Link" });
+
+export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
+  z.object({
+    linkId: z
+      .string()
+      .optional()
+      .describe("The unique ID of the short link.")
+      .openapi({ example: "clux0rgak00011..." }),
+    externalId: z
+      .string()
+      .optional()
+      .describe(
+        "This is the ID of the link in the your database. Must be prefixed with `ext_` when passed as a query parameter.",
+      )
+      .openapi({ example: "ext_123456" }),
+  }),
+);
+
+// Used in API routes to parse the response before sending it back to the client
+// This is because Prisma returns a `Date` object
+// TODO: Find a better way to handle this
+export const LinkSchemaExtended = LinkSchema.extend({
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  expiresAt: z.date().nullable(),
+  lastClicked: z.date().nullable(),
+});
+
+export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
+  z.object({
+    // Only Dub UI uses includeUser query parameter
+    includeUser: booleanQuerySchema.default("false"),
+  }),
+);

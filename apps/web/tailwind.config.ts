@@ -18,6 +18,8 @@ const config: Pick<Config, "presets"> = {
             ...sharedConfig?.theme?.extend?.animation,
             // Infinite scroll animation
             "infinite-scroll": "infinite-scroll 22s linear infinite",
+            // Text appear animation
+            "text-appear": "text-appear 0.15s ease",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -25,6 +27,17 @@ const config: Pick<Config, "presets"> = {
             "infinite-scroll": {
               "0%": { transform: "translateX(0)" },
               "100%": { transform: "translateX(-150%)" },
+            },
+            // Text appear animation
+            "text-appear": {
+              "0%": {
+                opacity: "0",
+                transform: "rotateX(45deg) scale(0.95)",
+              },
+              "100%": {
+                opacity: "1",
+                transform: "rotateX(0deg) scale(1)",
+              },
             },
           },
         },

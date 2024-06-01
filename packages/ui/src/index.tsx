@@ -7,6 +7,9 @@ export * from "./avatar";
 export * from "./badge";
 export * from "./button";
 export * from "./checkbox";
+export * from "./date-picker";
+export * from "./file-upload";
+export * from "./filter";
 export * from "./form";
 export * from "./input-select";
 export * from "./label";
@@ -44,3 +47,9 @@ export * from "./link-preview";
 export * from "./popup";
 export * from "./progress-bar";
 export * from "./tab-select";
+
+// logos
+export * from "./composite-logo";
+export * from "./logo";
+export * from "./nav-logo";
+export * from "./wordmark";

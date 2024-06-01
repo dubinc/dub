@@ -2,7 +2,7 @@ import { Project, User } from "@prisma/client";
 import { type TaskContext } from "vitest";
 import { z } from "zod";
 import { HttpClient } from "../utils/http";
-import { integrationTestEnv } from "./env";
+import { env, integrationTestEnv } from "./env";
 
 interface Resources {
   user: Pick<User, "id">;
@@ -18,12 +18,11 @@ export class IntegrationHarness {
   public http: HttpClient;
 
   constructor(ctx?: TaskContext) {
-    this.env = integrationTestEnv.parse(process.env);
-
+    this.env = env;
     this.ctx = ctx;
-    this.baseUrl = this.env.E2E_API_BASE_URL;
+    this.baseUrl = this.env.E2E_BASE_URL;
     this.http = new HttpClient({
-      baseUrl: this.baseUrl,
+      baseUrl: `${this.baseUrl}/api`,
       headers: {
         Authorization: `Bearer ${this.env.E2E_TOKEN}`,
       },

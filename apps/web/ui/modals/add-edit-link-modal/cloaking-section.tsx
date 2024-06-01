@@ -1,18 +1,13 @@
 import { LinkProps } from "@/lib/types";
 import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
-import {
-  BadgeTooltip,
-  LoadingSpinner,
-  SimpleTooltipContent,
-  Switch,
-} from "@dub/ui";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import { LoadingSpinner, SimpleTooltipContent, Switch } from "@dub/ui";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   fetcher,
   getUrlFromString,
 } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Crown } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useSWR from "swr";
 
@@ -43,7 +38,7 @@ export default function CloakingSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">Link Cloaking</h2>
-          <BadgeTooltip
+          <ProBadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Mask your destination URL so your users only see the short link in the browser address bar."
@@ -51,12 +46,7 @@ export default function CloakingSection({
                 href="https://dub.co/help/article/link-cloaking"
               />
             }
-          >
-            <div className="flex items-center space-x-1">
-              <Crown size={12} />
-              <p>PRO</p>
-            </div>
-          </BadgeTooltip>
+          />
         </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>

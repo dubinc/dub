@@ -30,7 +30,7 @@ export default function Intro() {
         <Spline
           onLoad={onLoad}
           style={{ opacity: opacity }}
-          scene="https://prod.spline.design/cJkq6hsiUPNRHeMf/scene.splinecode"
+          scene="https://assets.dub.co/misc/scene.splinecode"
         />
       </div>
       {showText && (

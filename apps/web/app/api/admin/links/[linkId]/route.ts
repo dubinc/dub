@@ -1,5 +1,5 @@
 import { withAdmin } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 

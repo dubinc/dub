@@ -2,7 +2,7 @@ import { Project } from "@prisma/client";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-test.skip("should not create workspace with slug in use", async (ctx) => {
+test("should not create workspace with slug in use", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http } = await h.init();
 

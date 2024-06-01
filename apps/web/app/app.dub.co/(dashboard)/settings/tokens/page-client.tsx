@@ -34,7 +34,7 @@ export default function TokensPageClient() {
           maxLength: 140,
           required: true,
         }}
-        helpText="<a href='https://d.to/api' target='_blank'>Learn more about Dub's API.</a>"
+        helpText="<a href='https://d.to/api' target='_blank'>Learn more about Dub's API</a>"
         buttonText="Submit"
         handleSubmit={(data) =>
           fetch("/api/user/tokens", {

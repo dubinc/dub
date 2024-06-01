@@ -5,7 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
-import { UpgradeToProToast } from "@/ui/shared/upgrade-to-pro-toast";
+import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
   ButtonTooltip,
@@ -24,7 +24,6 @@ import {
   cn,
   deepEqual,
   getApexDomain,
-  getDomainWithoutWWW,
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
@@ -53,10 +52,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
+import { useDebounce, useDebouncedCallback } from "use-debounce";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
+import ConversionSection from "./conversion-section";
 import ExpirationSection from "./expiration-section";
 import GeoSection from "./geo-section";
 import IOSSection from "./ios-section";
@@ -88,6 +88,7 @@ function AddEditLinkModal({
     aiUsage,
     aiLimit,
     mutate: mutateWorkspace,
+    betaTester,
   } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -95,11 +96,7 @@ function AddEditLinkModal({
   const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const {
-    allActiveDomains: domains,
-    primaryDomain,
-    activeDefaultDomains,
-  } = useDomains();
+  const { allActiveDomains: domains, primaryDomain, loading } = useDomains();
 
   const [data, setData] = useState<LinkWithTagsProps>(
     props || duplicateProps || DEFAULT_LINK_PROPS,
@@ -107,18 +104,19 @@ function AddEditLinkModal({
 
   useEffect(() => {
     // for a new link (no props or duplicateProps), set the domain to the primary domain
-    if (primaryDomain && !props && !duplicateProps) {
+    if (!loading && primaryDomain && !props && !duplicateProps) {
       setData((prev) => ({
         ...prev,
         domain: primaryDomain,
       }));
     }
-  }, [primaryDomain, props, duplicateProps]);
+  }, [loading, primaryDomain, props, duplicateProps]);
 
   const { domain, key, url, password, proxy } = data;
 
-  const generateRandomKey = useCallback(async () => {
+  const generateRandomKey = useDebouncedCallback(async () => {
     if (generatingRandomKey) return;
+
     if (domain && workspaceId) {
       setKeyError(null);
       setGeneratingRandomKey(true);
@@ -129,26 +127,12 @@ function AddEditLinkModal({
       setData((prev) => ({ ...prev, key }));
       setGeneratingRandomKey(false);
     }
-  }, [domain, workspaceId]);
+  }, 500);
 
   useEffect(() => {
-    // when someone pastes a URL
-    if (showAddEditLinkModal && url.length > 0) {
-      // if it's a new link and there are matching default domains, set it as the domain
-      if (!props && activeDefaultDomains) {
-        const urlDomain = getDomainWithoutWWW(url) || "";
-        const defaultDomain = activeDefaultDomains.find(
-          ({ allowedHostnames }) => allowedHostnames?.includes(urlDomain),
-        );
-        if (defaultDomain) {
-          setData((prev) => ({ ...prev, domain: defaultDomain.slug }));
-        }
-      }
-
-      // if there's no key, generate a random key
-      if (!key) {
-        generateRandomKey();
-      }
+    // if there's no key, generate a random key
+    if (showAddEditLinkModal && url.length > 0 && !key) {
+      generateRandomKey();
     }
   }, [showAddEditLinkModal, url]);
 
@@ -177,7 +161,7 @@ function AddEditLinkModal({
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
-          <UpgradeToProToast
+          <UpgradeRequiredToast
             title="You've exceeded your AI usage limit"
             message={error.message}
           />
@@ -275,7 +259,7 @@ function AddEditLinkModal({
   const endpoint = useMemo(() => {
     if (props?.key) {
       return {
-        method: "PUT",
+        method: "PATCH",
         url: `/api/links/${props.id}?workspaceId=${workspaceId}`,
       };
     } else {
@@ -284,7 +268,7 @@ function AddEditLinkModal({
         url: `/api/links?workspaceId=${workspaceId}`,
       };
     }
-  }, [props, slug, domain]);
+  }, [props, slug, domain, workspaceId]);
 
   const [atBottom, setAtBottom] = useState(false);
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
@@ -337,7 +321,6 @@ function AddEditLinkModal({
 
   const [lockKey, setLockKey] = useState(true);
 
-  const welcomeFlow = pathname === "/welcome";
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (key?.endsWith("-copy")) {
@@ -367,17 +350,15 @@ function AddEditLinkModal({
       className="max-w-screen-lg"
       preventDefaultClose={homepageDemo ? false : true}
       onClose={() => {
-        if (welcomeFlow) {
-          router.back();
-        } else if (searchParams.has("newLink")) {
+        if (searchParams.has("newLink")) {
           queryParams({
-            del: ["newLink"],
+            del: ["newLink", "newLinkDomain"],
           });
         }
       }}
     >
       <div className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
-        {!welcomeFlow && !homepageDemo && (
+        {!homepageDemo && (
           <button
             onClick={() => {
               setShowAddEditLinkModal(false);
@@ -408,6 +389,7 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
+              generateRandomKey.cancel();
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
               const bodyData = {
@@ -429,11 +411,6 @@ function AddEditLinkModal({
                     undefined,
                     { revalidate: true },
                   );
-                  // for welcome page, redirect to links page after adding a link
-                  if (pathname === "/welcome") {
-                    router.push("/links");
-                    setShowAddEditLinkModal(false);
-                  }
                   const data = await res.json();
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
@@ -451,12 +428,15 @@ function AddEditLinkModal({
                     toast.success("Successfully updated shortlink!");
                   }
                   setShowAddEditLinkModal(false);
+                  if (pathname !== `/${slug}`) {
+                    router.push(`/${slug}`);
+                  }
                 } else {
                   const { error } = await res.json();
                   if (error) {
                     if (error.message.includes("Upgrade to Pro")) {
                       toast.custom(() => (
-                        <UpgradeToProToast
+                        <UpgradeRequiredToast
                           title="You've discovered a Pro feature!"
                           message={error.message}
                         />
@@ -487,11 +467,15 @@ function AddEditLinkModal({
                   >
                     Destination URL
                   </label>
-                  {urlError && (
+                  {urlError ? (
                     <p className="text-sm text-red-600" id="key-error">
                       Invalid URL
                     </p>
-                  )}
+                  ) : url ? (
+                    <div className="animate-text-appear text-xs font-normal text-gray-500">
+                      press <strong>Enter</strong> ↵ to submit
+                    </div>
+                  ) : null}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
                   <input
@@ -582,30 +566,32 @@ function AddEditLinkModal({
                   )}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <select
-                    disabled={props && lockKey}
-                    value={domain}
-                    onChange={(e) => {
-                      setKeyError(null);
-                      setData({ ...data, domain: e.target.value });
-                    }}
-                    className={cn(
-                      "max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
-                      props && lockKey && "cursor-not-allowed",
-                    )}
-                  >
-                    {domains?.map(({ slug }) => (
-                      <option key={slug} value={slug}>
-                        {punycode(slug)}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <select
+                      disabled={props && lockKey}
+                      value={domain}
+                      onChange={(e) => {
+                        setKeyError(null);
+                        setData({ ...data, domain: e.target.value });
+                      }}
+                      className={cn(
+                        "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                        props && lockKey && "cursor-not-allowed",
+                        loading && "w-[6rem] text-transparent",
+                      )}
+                    >
+                      {domains?.map(({ slug }) => (
+                        <option key={slug} value={slug}>
+                          {punycode(slug)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <input
                     ref={keyRef}
                     type="text"
                     name="key"
                     id={`key-${randomIdx}`}
-                    required
                     // allow letters, numbers, '-', '/' and emojis
                     pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
                     onInvalid={(e) => {
@@ -629,7 +615,7 @@ function AddEditLinkModal({
                           props && lockKey,
                       },
                     )}
-                    placeholder="github"
+                    placeholder="(optional)"
                     value={punycode(key)}
                     onChange={(e) => {
                       setKeyError(null);
@@ -726,24 +712,25 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 md:px-16">
               <TagsSection {...{ props, data, setData }} />
-              <CommentsSection {...{ props, data, setData }} />
-              <UTMSection {...{ props, data, setData }} />
+              {betaTester && <ConversionSection {...{ data, setData }} />}
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
               />
+              <UTMSection {...{ props, data, setData }} />
               <CloakingSection {...{ data, setData }} />
               <PasswordSection {...{ props, data, setData }} />
               <ExpirationSection {...{ props, data, setData }} />
               <IOSSection {...{ props, data, setData }} />
               <AndroidSection {...{ props, data, setData }} />
               <GeoSection {...{ props, data, setData }} />
+              <CommentsSection {...{ props, data, setData }} />
             </div>
 
             <div
               className={`${
                 atBottom ? "" : "md:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky  md:bottom-0 md:px-16`}
+              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky md:bottom-0 md:px-16`}
             >
               {homepageDemo ? (
                 <Button
@@ -761,7 +748,11 @@ function AddEditLinkModal({
           </form>
         </div>
         <div className="scrollbar-hide rounded-r-2xl md:max-h-[95vh] md:overflow-auto">
-          <Preview data={data} generatingMetatags={generatingMetatags} />
+          <Preview
+            data={data}
+            setData={setData}
+            generatingMetatags={generatingMetatags}
+          />
         </div>
       </div>
     </Modal>

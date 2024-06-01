@@ -14,7 +14,7 @@ export const deleteLink: ZodOpenApiOperationObject = {
     path: z.object({
       linkId: z.string().openapi({
         description:
-          "The id of the link to delete. You can get this via the `getLinkInfo` endpoint.",
+          "The id of the link to delete. You may use either `linkId` (obtained via `/links/info` endpoint) or `externalId` prefixed with `ext_`.",
       }),
     }),
   },

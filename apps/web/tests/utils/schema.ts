@@ -5,6 +5,7 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   id: expect.any(String),
   key: expect.any(String),
   domain: "dub.sh",
+  trackConversion: false,
   archived: false,
   expiresAt: null,
   password: null,
@@ -24,7 +25,8 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   publicStats: false,
   clicks: 0,
   lastClicked: null,
-  checkDisabled: false,
+  leads: 0,
+  sales: 0,
   tagId: null, // backwards compatibility
   comments: null,
   createdAt: expect.any(String),
@@ -39,12 +41,11 @@ export const expectedTag: Partial<Tag> = {
   updatedAt: expect.any(String),
 };
 
-// TODO:
-// Make it dynamic based on the plan
 export const expectedWorkspace: Partial<Project> = {
-  logo: expect.any(String) || null,
-  plan: expect.any(String),
-  stripeId: expect.any(String),
+  id: expect.any(String),
+  name: expect.any(String),
+  slug: expect.any(String),
+  logo: expect.any(String),
   usage: expect.any(Number),
   usageLimit: expect.any(Number),
   linksUsage: expect.any(Number),
@@ -52,12 +53,9 @@ export const expectedWorkspace: Partial<Project> = {
   domainsLimit: expect.any(Number),
   tagsLimit: expect.any(Number),
   usersLimit: expect.any(Number),
-  aiLimit: expect.any(Number),
-  aiUsage: expect.any(Number),
-  monitoringId: null,
-  id: expect.any(String),
+  plan: expect.any(String),
+  stripeId: expect.any(String),
   billingCycleStart: expect.any(Number),
   inviteCode: expect.any(String),
   createdAt: expect.any(String),
-  updatedAt: expect.any(String),
 };

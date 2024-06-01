@@ -1,4 +1,4 @@
-import { getWorkspaces } from "@/lib/fetchers";
+import { getDefaultWorkspace } from "@/lib/fetchers";
 import { redirect } from "next/navigation";
 
 export default async function OldLinksStatsPage({
@@ -8,9 +8,11 @@ export default async function OldLinksStatsPage({
     key: string;
   };
 }) {
-  const workspaces = await getWorkspaces();
-  if (!workspaces || workspaces.length === 0) {
+  const defaultWorkspace = await getDefaultWorkspace();
+  if (!defaultWorkspace) {
     redirect("/");
   }
-  redirect(`/${workspaces[0].slug}/analytics?domain=dub.sh&key=${params.key}`);
+  redirect(
+    `/${defaultWorkspace.slug}/analytics?domain=dub.sh&key=${params.key}`,
+  );
 }

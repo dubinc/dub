@@ -1,7 +1,11 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import {
+  isBetaTester,
+  isBlacklistedDomain,
+  updateConfig,
+} from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
@@ -48,6 +52,7 @@ export async function processLink<T extends Record<string, any>>({
     url,
     image,
     proxy,
+    trackConversion,
     password,
     rewrite,
     expiredUrl,
@@ -181,6 +186,16 @@ export async function processLink<T extends Record<string, any>>({
       return {
         link: payload,
         ...response,
+      };
+    }
+  }
+
+  if (trackConversion) {
+    if (!workspace || !(await isBetaTester(workspace.id))) {
+      return {
+        link: payload,
+        error: "Conversion tracking is only available for beta testers.",
+        code: "forbidden",
       };
     }
   }
@@ -323,35 +338,38 @@ async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  try {
-    const response = await getPangeaDomainIntel(domain);
+  // Check with Pangea for domain reputation
+  if (process.env.PANGEA_API_KEY) {
+    try {
+      const response = await getPangeaDomainIntel(domain);
 
-    const verdict = response.result.data[apexDomain].verdict;
-    console.log("Pangea verdict for domain", apexDomain, verdict);
+      const verdict = response.result.data[apexDomain].verdict;
+      console.log("Pangea verdict for domain", apexDomain, verdict);
 
-    if (verdict === "benign") {
-      await updateConfig({
-        key: "whitelistedDomains",
-        value: domain,
-      });
-      return false;
-    } else if (verdict === "malicious" || verdict === "suspicious") {
-      await Promise.all([
-        updateConfig({
-          key: "domains",
+      if (verdict === "benign") {
+        await updateConfig({
+          key: "whitelistedDomains",
           value: domain,
-        }),
-        log({
-          message: `Suspicious link detected via Pangea → ${url}`,
-          type: "links",
-          mention: true,
-        }),
-      ]);
+        });
+        return false;
+      } else if (verdict === "malicious" || verdict === "suspicious") {
+        await Promise.all([
+          updateConfig({
+            key: "domains",
+            value: domain,
+          }),
+          log({
+            message: `Suspicious link detected via Pangea → ${url}`,
+            type: "links",
+            mention: true,
+          }),
+        ]);
 
-      return true;
+        return true;
+      }
+    } catch (e) {
+      console.error("Error checking domain with Pangea", e);
     }
-  } catch (e) {
-    console.error("Error checking domain with Pangea", e);
   }
 
   return false;

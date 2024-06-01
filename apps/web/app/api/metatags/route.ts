@@ -1,8 +1,6 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { ratelimit } from "@/lib/upstash";
-import { getUrlQuerySchema } from "@/lib/zod/schemas";
-import { ipAddress } from "@vercel/edge";
-import { getToken } from "next-auth/jwt";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { ratelimitOrThrow } from "@/lib/api/utils";
+import { getUrlQuerySchema } from "@/lib/zod/schemas/links";
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaTags } from "./utils";
 
@@ -14,21 +12,7 @@ export async function GET(req: NextRequest) {
       url: req.nextUrl.searchParams.get("url"),
     });
 
-    // Rate limit if user is not logged in
-    const session = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-    if (!session?.email) {
-      const ip = ipAddress(req);
-      const { success } = await ratelimit().limit(`metatags:${ip}`);
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message: "Don't DDoS me pls 🥺",
-        });
-      }
-    }
+    await ratelimitOrThrow(req, "metatags");
 
     const metatags = await getMetaTags(url);
     return NextResponse.json(metatags, {

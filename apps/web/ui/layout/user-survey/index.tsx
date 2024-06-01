@@ -44,7 +44,7 @@ export function UserSurveyPopupInner() {
         translateY: 0,
       }}
       exit={{ opacity: 0, y: "100%" }}
-      className="fixed bottom-4 z-50 mx-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md sm:left-4 sm:mx-auto sm:max-w-sm"
+      className="fixed bottom-4 z-40 mx-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md sm:left-4 sm:mx-auto sm:max-w-sm"
     >
       <motion.div
         animate={{

@@ -17,7 +17,7 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   );
 }
 
-interface TooltipProps {
+export interface TooltipProps {
   children: ReactNode;
   content: ReactNode | string;
   side?: "top" | "bottom" | "left" | "right";
