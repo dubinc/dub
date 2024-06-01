@@ -107,6 +107,20 @@ export const domainKeySchema = z.object({
     ),
 });
 
+export const domainDestinationUrlSchema = z.object({
+  domain: z
+    .string()
+    .min(1, "Domain is required.")
+    .describe("The domain of the link to perform checks.")
+    .refine((v) => validDomainRegex.test(v), {
+      message: "Invalid domain format",
+    }),
+  url: z
+    .string()
+    .min(1, "Destination URL is required.")
+    .describe("The destination URL of the short link."),
+});
+
 export const createLinkBodySchema = z.object({
   url: parseUrlSchema
     .describe("The destination URL of the short link.")

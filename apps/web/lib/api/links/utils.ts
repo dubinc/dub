@@ -3,7 +3,10 @@ import {
   isReservedKey,
   isReservedUsername,
 } from "@/lib/edge-config";
-import { checkIfKeyExists } from "@/lib/planetscale";
+import {
+  checkIfDestinationUrlExists,
+  checkIfKeyExists,
+} from "@/lib/planetscale";
 import { WorkspaceProps } from "@/lib/types";
 import {
   DEFAULT_REDIRECTS,
@@ -102,6 +105,26 @@ export async function keyChecks({
       };
     }
   }
+  return {
+    error: null,
+  };
+}
+
+export async function destinationUrlChecks({
+  domain,
+  url,
+}: {
+  domain: string;
+  url: string;
+}) {
+  const link = await checkIfDestinationUrlExists(domain, url);
+  if (link) {
+    return {
+      error: "This destination link already exists.",
+      code: "conflict",
+    };
+  }
+
   return {
     error: null,
   };

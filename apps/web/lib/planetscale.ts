@@ -56,6 +56,21 @@ export const checkIfKeyExists = async (domain: string, key: string) => {
   return rows && Array.isArray(rows) && rows.length > 0;
 };
 
+export const checkIfDestinationUrlExists = async (
+  domain: string,
+  url: string,
+) => {
+  if (!DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute(
+      "SELECT 1 FROM Link WHERE domain = ? AND `url` = ? LIMIT 1",
+      [domain, punyEncode(decodeURIComponent(url))], // we need to make sure that the key is always URI-decoded + punycode-encoded (cause that's how we store it in MySQL)
+    )) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0;
+};
+
 export const checkIfUserExists = async (userId: string) => {
   if (!DATABASE_URL) return null;
 
