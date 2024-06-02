@@ -33,6 +33,17 @@ export function FilterList({
         <div className="flex grow flex-wrap gap-x-4 gap-y-2">
           <AnimatePresence>
             {activeFilters?.map(({ key, value }) => {
+              if (key === "loader") {
+                return (
+                  <motion.div
+                    key={`loader-${value}`}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="h-9 w-48 animate-pulse rounded-md border border-gray-200 bg-white"
+                  />
+                );
+              }
+
               const filter = filters.find((f) => f.key === key);
               if (!filter) {
                 throw new Error(
@@ -40,7 +51,9 @@ export function FilterList({
                 );
               }
 
-              const option = filter.options?.find((o) => o.value === value);
+              const option = filter.options?.find(
+                (o) => o.value.toLowerCase() === value.toLowerCase(),
+              );
 
               return (
                 <motion.div

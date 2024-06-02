@@ -1,8 +1,7 @@
 import { cn, truncate } from "@dub/utils";
-import { Command } from "cmdk";
+import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, ListFilter } from "lucide-react";
 import {
-  CSSProperties,
   PropsWithChildren,
   ReactNode,
   forwardRef,
@@ -15,7 +14,7 @@ import {
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useMediaQuery, useResizeObserver } from "../hooks";
-import { LoadingSpinner } from "../icons";
+import { LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
 import { Filter, FilterOption } from "./types";
 
@@ -28,6 +27,7 @@ type FilterSelectProps = {
     key: Filter["key"];
     value: FilterOption["value"];
   }[];
+  askAI?: boolean;
   children?: ReactNode;
   className?: string;
 };
@@ -38,6 +38,7 @@ export function FilterSelect({
   onRemove,
   onOpenFilter,
   activeFilters,
+  askAI,
   children,
   className,
 }: FilterSelectProps) {
@@ -116,9 +117,7 @@ export function FilterSelect({
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
         >
           <Command loop>
-            <Command.Input
-              size={1}
-              className="w-full rounded-t-lg border-0 border-b border-gray-200 px-4 py-3 text-sm ring-0 placeholder:text-gray-400 focus:border-gray-200 focus:ring-0"
+            <CommandInput
               placeholder={`${selectedFilter?.label || "Filter"}...`}
               value={search}
               onValueChange={setSearch}
@@ -128,6 +127,11 @@ export function FilterSelect({
                   e.stopPropagation();
                   selectedFilterKey ? reset() : setIsOpen(false);
                 }
+              }}
+              onEnterKeyDownEmpty={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                selectOption(search);
               }}
             />
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
@@ -140,7 +144,7 @@ export function FilterSelect({
                       onSelect={() => openFilter(filter.key)}
                     />
                   ))}
-                  <NoMatches />
+                  <CommandEmpty search={search} askAI={askAI} />
                 </Command.List>
               ) : (
                 <Command.List className="flex w-full min-w-[100px] flex-col gap-1 p-2">
@@ -167,7 +171,7 @@ export function FilterSelect({
                           />
                         );
                       })}
-                      <NoMatches />
+                      <CommandEmpty search={search} askAI={askAI} />
                     </>
                   ) : (
                     <Command.Loading>
@@ -214,6 +218,28 @@ export function FilterSelect({
     </Popover>
   );
 }
+
+const CommandInput = (
+  props: React.ComponentProps<typeof Command.Input> & {
+    onEnterKeyDownEmpty?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  },
+) => {
+  const isEmpty = useCommandState((state) => state.filtered.count === 0);
+  return (
+    <Command.Input
+      {...props}
+      size={1}
+      className="w-full rounded-t-lg border-0 border-b border-gray-200 px-4 py-3 text-sm ring-0 placeholder:text-gray-400 focus:border-gray-200 focus:ring-0"
+      onKeyDown={(e) => {
+        props.onKeyDown?.(e);
+
+        if (e.key === "Enter" && isEmpty) {
+          props.onEnterKeyDownEmpty?.(e);
+        }
+      }}
+    />
+  );
+};
 
 const FilterScroll = forwardRef(
   ({ children }: PropsWithChildren, forwardedRef) => {
@@ -277,7 +303,7 @@ function FilterButton({
       <span className="shrink-0 text-gray-600">
         {isReactNode(Icon) ? Icon : <Icon className="h-4 w-4" />}
       </span>
-      {truncate(label, 30)}
+      {truncate(label, 48)}
       <div className="ml-1 flex shrink-0 grow justify-end text-gray-500">
         {right}
       </div>
@@ -285,14 +311,30 @@ function FilterButton({
   );
 }
 
-const NoMatches = ({ style }: { style?: CSSProperties }) => (
-  <Command.Empty
-    className="p-2 text-center text-sm text-gray-400"
-    style={style}
-  >
-    No matches
-  </Command.Empty>
-);
+const CommandEmpty = ({
+  search,
+  askAI,
+}: {
+  search: string;
+  askAI?: boolean;
+}) => {
+  if (askAI) {
+    return (
+      <Command.Empty className="flex min-w-[180px] items-center space-x-2 p-2">
+        <Magic className="h-4 w-4" />
+        <p className="text-center text-sm text-gray-600">
+          Ask AI <span className="text-black">"{search}"</span>
+        </p>
+      </Command.Empty>
+    );
+  } else {
+    return (
+      <Command.Empty className="p-2 text-center text-sm text-gray-400">
+        No matches
+      </Command.Empty>
+    );
+  }
+};
 
 const isReactNode = (element: any): element is ReactNode =>
   isValidElement(element);
