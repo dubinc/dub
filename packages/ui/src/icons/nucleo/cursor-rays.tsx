@@ -9,18 +9,18 @@ export function CursorRays(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g fill="#212121">
+      <g fill="currentColor">
         <path
           d="M8.095,7.778l7.314,2.51c.222,.076,.226,.388,.007,.47l-3.279,1.233c-.067,.025-.121,.079-.146,.146l-1.233,3.279c-.083,.219-.394,.215-.47-.007l-2.51-7.314c-.068-.197,.121-.385,.318-.318Z"
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -31,7 +31,7 @@ export function CursorRays(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -42,7 +42,7 @@ export function CursorRays(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -53,7 +53,7 @@ export function CursorRays(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -64,7 +64,7 @@ export function CursorRays(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -75,7 +75,7 @@ export function CursorRays(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
