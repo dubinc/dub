@@ -89,7 +89,7 @@ export const POST = withWorkspaceEdge(
       metadata,
     });
 
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(response);
   },
   { betaFeature: true },
 );

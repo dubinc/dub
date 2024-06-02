@@ -41,7 +41,7 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
-import { useContext, useMemo } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
@@ -52,84 +52,132 @@ import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
+  const { queryParams, searchParamsObj } = useRouterStuff();
   const { basePath, domain, key, url, admin, demo, start, end, interval } =
     useContext(AnalyticsContext);
+
+  const isPublicStatsPage = basePath.startsWith("/stats");
+
+  const scrolled = useScroll(80);
 
   const { tags } = useTags();
   const { allDomains: domains } = useDomains();
 
-  const countries = useAnalyticsFilterOption("countries");
-  const cities = useAnalyticsFilterOption("cities");
-  const devices = useAnalyticsFilterOption("devices");
-  const browsers = useAnalyticsFilterOption("browsers");
-  const os = useAnalyticsFilterOption("os");
-  const links = useAnalyticsFilterOption("top_links");
+  const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
-  const { queryParams, searchParamsObj } = useRouterStuff();
+  const activeFilters = useMemo(() => {
+    const { domain, tagId, qr, country, city, device, browser, os, key } =
+      searchParamsObj;
+    return [
+      ...(domain && !key ? [{ key: "domain", value: domain }] : []),
+      ...(domain && key
+        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
+        : []),
+      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
+      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
+      ...(country ? [{ key: "country", value: country }] : []),
+      ...(city ? [{ key: "city", value: city }] : []),
+      ...(device ? [{ key: "device", value: device }] : []),
+      ...(browser ? [{ key: "browser", value: browser }] : []),
+      ...(os ? [{ key: "os", value: os }] : []),
+    ];
+  }, [searchParamsObj]);
 
-  const scrolled = useScroll(80);
+  const isEnabled = useCallback(
+    (key: string) =>
+      requestedFilters.includes(key) ||
+      activeFilters.some((af) => af.key === key),
+    [requestedFilters, activeFilters],
+  );
 
-  const isPublicStatsPage = basePath.startsWith("/stats");
+  const links = useAnalyticsFilterOption("top_links", {
+    enabled: isEnabled("link"),
+  });
+  const countries = useAnalyticsFilterOption("countries", {
+    enabled: isEnabled("country"),
+  });
+  const cities = useAnalyticsFilterOption("cities", {
+    enabled: isEnabled("city"),
+  });
+  const devices = useAnalyticsFilterOption("devices", {
+    enabled: isEnabled("device"),
+  });
+  const browsers = useAnalyticsFilterOption("browsers", {
+    enabled: isEnabled("browser"),
+  });
+  const os = useAnalyticsFilterOption("os", {
+    enabled: isEnabled("os"),
+  });
 
   const filters = useMemo(
     () => [
-      {
-        key: "domain",
-        icon: Globe,
-        label: "Domain",
-        options: domains.map((domain) => ({
-          value: domain.slug,
-          label: domain.slug,
-          icon: (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${domain.slug}`}
-              alt={domain.slug}
-              className="h-4 w-4 rounded-full"
-              width={16}
-              height={16}
-            />
-          ),
-        })),
-      },
-      {
-        key: "link",
-        icon: Hyperlink,
-        label: "Link",
-        options:
-          links?.map(
-            ({ domain, key, url, count }: LinkProps & { count?: number }) => ({
-              value: linkConstructor({ domain, key }),
-              label: linkConstructor({ domain, key, pretty: true }),
-              icon: (
-                <LinkLogo
-                  apexDomain={getApexDomain(url)}
-                  className="h-4 w-4 sm:h-4 sm:w-4"
-                />
-              ),
-              right: nFormatter(count, { full: true }),
-            }),
-          ) ?? null,
-      },
-      {
-        key: "tagId",
-        icon: Tag,
-        label: "Tag",
-        options:
-          tags?.map((tag) => ({
-            value: tag.id,
-            icon: (
-              <div
-                className={cn(
-                  "rounded-md p-1.5",
-                  COLORS_LIST.find(({ color }) => color === tag.color)?.css,
-                )}
-              >
-                <Tag className="h-2.5 w-2.5" />
-              </div>
-            ),
-            label: tag.name,
-          })) ?? null,
-      },
+      ...(isPublicStatsPage
+        ? []
+        : [
+            {
+              key: "domain",
+              icon: Globe,
+              label: "Domain",
+              options: domains.map((domain) => ({
+                value: domain.slug,
+                label: domain.slug,
+                icon: (
+                  <BlurImage
+                    src={`${GOOGLE_FAVICON_URL}${domain.slug}`}
+                    alt={domain.slug}
+                    className="h-4 w-4 rounded-full"
+                    width={16}
+                    height={16}
+                  />
+                ),
+              })),
+            },
+            {
+              key: "link",
+              icon: Hyperlink,
+              label: "Link",
+              options:
+                links?.map(
+                  ({
+                    domain,
+                    key,
+                    url,
+                    count,
+                  }: LinkProps & { count?: number }) => ({
+                    value: linkConstructor({ domain, key }),
+                    label: linkConstructor({ domain, key, pretty: true }),
+                    icon: (
+                      <LinkLogo
+                        apexDomain={getApexDomain(url)}
+                        className="h-4 w-4 sm:h-4 sm:w-4"
+                      />
+                    ),
+                    right: nFormatter(count, { full: true }),
+                  }),
+                ) ?? null,
+            },
+            {
+              key: "tagId",
+              icon: Tag,
+              label: "Tag",
+              options:
+                tags?.map((tag) => ({
+                  value: tag.id,
+                  icon: (
+                    <div
+                      className={cn(
+                        "rounded-md p-1.5",
+                        COLORS_LIST.find(({ color }) => color === tag.color)
+                          ?.css,
+                      )}
+                    >
+                      <Tag className="h-2.5 w-2.5" />
+                    </div>
+                  ),
+                  label: tag.name,
+                })) ?? null,
+            },
+          ]),
       {
         key: "qr",
         icon: CursorRays,
@@ -228,26 +276,18 @@ export default function Toggle() {
           })) ?? null,
       },
     ],
-    [domains, links, tags, countries, cities, devices, browsers, os],
+    [
+      isPublicStatsPage,
+      domains,
+      links,
+      tags,
+      countries,
+      cities,
+      devices,
+      browsers,
+      os,
+    ],
   );
-
-  const activeFilters = useMemo(() => {
-    const { domain, tagId, qr, country, city, device, browser, os, key } =
-      searchParamsObj;
-    return [
-      ...(domain && !key ? [{ key: "domain", value: domain }] : []),
-      ...(domain && key
-        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
-        : []),
-      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
-      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
-      ...(country ? [{ key: "country", value: country }] : []),
-      ...(city ? [{ key: "city", value: city }] : []),
-      ...(device ? [{ key: "device", value: device }] : []),
-      ...(browser ? [{ key: "browser", value: browser }] : []),
-      ...(os ? [{ key: "os", value: os }] : []),
-    ];
-  }, [searchParamsObj]);
 
   return (
     <>
@@ -318,31 +358,34 @@ export default function Toggle() {
               })}
             >
               {!isPublicStatsPage && key && <SharePopover />}
-              {!isPublicStatsPage && (
-                <Filter.Select
-                  className="w-full"
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={(key, value) =>
-                    queryParams({
-                      set:
-                        key === "link"
-                          ? {
-                              domain: new URL(value).hostname,
-                              key: new URL(value).pathname.slice(1) || "_root",
-                            }
-                          : {
-                              [key]: value,
-                            },
-                    })
-                  }
-                  onRemove={(key) =>
-                    queryParams({
-                      del: key === "link" ? ["domain", "key"] : key,
-                    })
-                  }
-                />
-              )}
+              <Filter.Select
+                className="w-full"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={(key, value) =>
+                  queryParams({
+                    set:
+                      key === "link"
+                        ? {
+                            domain: new URL(value).hostname,
+                            key: new URL(value).pathname.slice(1) || "_root",
+                          }
+                        : {
+                            [key]: value,
+                          },
+                  })
+                }
+                onRemove={(key) =>
+                  queryParams({
+                    del: key === "link" ? ["domain", "key"] : key,
+                  })
+                }
+                onOpenFilter={(key) =>
+                  setRequestedFilters((rf) =>
+                    rf.includes(key) ? rf : [...rf, key],
+                  )
+                }
+              />
               <div
                 className={cn("flex w-full items-center gap-2", {
                   "min-[550px]:w-auto": !key,

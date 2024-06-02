@@ -1,20 +1,15 @@
-import useWorkspace from "@/lib/swr/use-workspace";
+import { EventType } from "@/lib/analytics/types";
 import { Modal, TabSelect } from "@dub/ui";
 import { Crosshairs, CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import {
-  ComponentType,
   Dispatch,
   ReactNode,
-  SVGProps,
   SetStateAction,
   useContext,
-  useMemo,
   useState,
 } from "react";
 import { AnalyticsContext } from ".";
-
-type EventType = "clicks" | "leads" | "sales";
 
 export function AnalyticsCard<T extends string>({
   tabs,
@@ -32,33 +27,14 @@ export function AnalyticsCard<T extends string>({
   hasMore?: boolean;
   children: (props: {
     limit?: number;
-    event: EventType;
+    event?: EventType;
     setShowModal: (show: boolean) => void;
   }) => ReactNode;
   className?: string;
 }) {
-  const { demo } = useContext(AnalyticsContext);
-  const { betaTester } = useWorkspace();
+  const { selectedTab: event } = useContext(AnalyticsContext);
 
   const [showModal, setShowModal] = useState(false);
-
-  const eventTabs: {
-    id: EventType;
-    icon: ComponentType<SVGProps<SVGSVGElement>>;
-    label: string;
-  }[] = useMemo(
-    () =>
-      demo || betaTester
-        ? [
-            { id: "clicks", icon: CursorRays, label: "Clicks" },
-            { id: "leads", icon: Crosshairs, label: "Leads" },
-            { id: "sales", icon: InvoiceDollar, label: "Sales" },
-          ]
-        : [{ id: "clicks", icon: CursorRays, label: "Clicks" }],
-    [demo, betaTester],
-  );
-
-  const [eventTab, setEventTab] = useState<EventType>("clicks");
 
   const selectedTab = tabs.find(({ id }) => id === selectedTabId);
 
@@ -72,7 +48,7 @@ export function AnalyticsCard<T extends string>({
         <div className="border-b border-gray-200 px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
         </div>
-        {children({ event: eventTab, setShowModal })}
+        {children({ setShowModal, event })}
       </Modal>
       <div
         className={cn(
@@ -88,26 +64,21 @@ export function AnalyticsCard<T extends string>({
             onSelect={onSelectTab}
           />
 
-          {/* Event (clicks, leads, sales) tabs */}
-          <div className="flex gap-2">
-            {eventTabs.map(({ id, icon: Icon, label }) => (
-              <button
-                onClick={() => setEventTab(id)}
-                title={label}
-                className={cn(
-                  "rounded-md border border-white p-2",
-                  id === eventTab
-                    ? "border-gray-200 bg-gray-100"
-                    : "hover:bg-gray-100 active:border-gray-100",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-              </button>
-            ))}
+          <div className="flex items-center gap-1 pr-2 text-gray-500">
+            {event === "sales" ? (
+              <InvoiceDollar className="h-4 w-4" />
+            ) : event === "leads" ? (
+              <Crosshairs className="h-4 w-4" />
+            ) : (
+              <CursorRays className="h-4 w-4" />
+            )}
+            <p className="text-xs uppercase">
+              {event === "composite" ? "clicks" : event}
+            </p>
           </div>
         </div>
         <div className="py-4">
-          {children({ limit: expandLimit, event: eventTab, setShowModal })}
+          {children({ limit: expandLimit, event, setShowModal })}
         </div>
         {hasMore && (
           <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">

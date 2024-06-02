@@ -23,6 +23,7 @@ type FilterSelectProps = {
   filters: Filter[];
   onSelect: (key: string, value: string) => void;
   onRemove: (key: string) => void;
+  onOpenFilter?: (key: string) => void;
   activeFilters?: {
     key: Filter["key"];
     value: FilterOption["value"];
@@ -35,6 +36,7 @@ export function FilterSelect({
   filters,
   onSelect,
   onRemove,
+  onOpenFilter,
   activeFilters,
   children,
   className,
@@ -79,6 +81,7 @@ export function FilterSelect({
 
     setSearch("");
     setSelectedFilterKey(key);
+    onOpenFilter?.(key);
   }, []);
 
   const selectOption = useCallback(
@@ -129,7 +132,7 @@ export function FilterSelect({
             />
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
               {!selectedFilter ? (
-                <Command.List className="flex w-full min-w-[160px] flex-col gap-1">
+                <Command.List className="flex w-full min-w-[180px] flex-col gap-1 p-2">
                   {filters.map((filter) => (
                     <FilterButton
                       {...filter}
@@ -140,7 +143,7 @@ export function FilterSelect({
                   <NoMatches />
                 </Command.List>
               ) : (
-                <Command.List className="flex w-full min-w-[100px] flex-col gap-1">
+                <Command.List className="flex w-full min-w-[100px] flex-col gap-1 p-2">
                   {selectedFilter.options ? (
                     <>
                       {selectedFilter.options?.map((option) => {
@@ -169,7 +172,7 @@ export function FilterSelect({
                   ) : (
                     <Command.Loading>
                       <div
-                        className="flex items-center justify-center px-2 py-4"
+                        className="-m-2 flex items-center justify-center"
                         style={mainListDimensions.current}
                       >
                         <LoadingSpinner />
@@ -237,7 +240,7 @@ const FilterScroll = forwardRef(
     return (
       <>
         <div
-          className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll p-2 sm:w-auto"
+          className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll sm:w-auto"
           ref={ref}
           onScroll={updateScrollProgress}
         >
@@ -284,7 +287,7 @@ function FilterButton({
 
 const NoMatches = ({ style }: { style?: CSSProperties }) => (
   <Command.Empty
-    className="my-1 text-center text-sm text-gray-400"
+    className="p-2 text-center text-sm text-gray-400"
     style={style}
   >
     No matches

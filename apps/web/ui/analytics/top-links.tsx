@@ -17,7 +17,8 @@ export default function TopLinks() {
   const { domain, key } = useContext(AnalyticsContext);
   const showUrls = domain && key;
 
-  const data = useAnalyticsFilterOption(`top_${showUrls ? "urls" : "links"}`, {
+  const data = useAnalyticsFilterOption({
+    groupBy: `top_${showUrls ? "urls" : "links"}`,
     root: selectedTabId === "domains" ? "true" : "false",
   });
 
@@ -38,7 +39,7 @@ export default function TopLinks() {
         showUrls ? null : setSelectedTabId(tabId)
       }
     >
-      {({ limit, event, setShowModal }) =>
+      {({ limit, setShowModal }) =>
         data ? (
           data.length > 0 ? (
             <BarList
@@ -65,11 +66,11 @@ export default function TopLinks() {
                     },
                     getNewPath: true,
                   }) as string,
-                  value: d[event] || 0,
+                  value: d.count || 0,
                   ...(!showUrls && { linkData: d }),
                 })) || []
               }
-              maxValue={(data && data[0]?.[event]) || 0}
+              maxValue={(data && data[0]?.count) || 0}
               barBackground="bg-orange-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
               setShowModal={setShowModal}

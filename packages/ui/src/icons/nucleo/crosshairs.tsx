@@ -9,13 +9,13 @@ export function Crosshairs(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g fill="#212121">
+      <g fill="currentColor">
         <circle
           cx="9"
           cy="9"
           fill="none"
           r="6.5"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -25,14 +25,14 @@ export function Crosshairs(props: SVGProps<SVGSVGElement>) {
           cy="9"
           fill="none"
           r="2.25"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -43,7 +43,7 @@ export function Crosshairs(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -54,7 +54,7 @@ export function Crosshairs(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -65,7 +65,7 @@ export function Crosshairs(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"

@@ -9,11 +9,11 @@ export function FlagWavy(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g fill="#212121">
+      <g fill="currentColor">
         <path
           d="M3.75,3.25h7.5c.552,0,1,.448,1,1v5H3.75"
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -21,14 +21,14 @@ export function FlagWavy(props: SVGProps<SVGSVGElement>) {
         <path
           d="M12.25,5.75h2c.552,0,1,.448,1,1v4c0,.552-.448,1-1,1h-3.5c-.552,0-1-.448-1-1v-1.5"
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -39,7 +39,7 @@ export function FlagWavy(props: SVGProps<SVGSVGElement>) {
         />
         <line
           fill="none"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"

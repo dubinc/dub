@@ -9,14 +9,14 @@ export function MobilePhone(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g fill="#212121">
+      <g fill="currentColor">
         <rect
           height="14.5"
           width="10.5"
           fill="none"
           rx="2"
           ry="2"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
@@ -26,12 +26,12 @@ export function MobilePhone(props: SVGProps<SVGSVGElement>) {
         <polyline
           fill="none"
           points="7.75 1.75 7.75 2.75 10.25 2.75 10.25 1.75"
-          stroke="#212121"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
         />
-        <circle cx="9" cy="13" fill="#212121" r="1" stroke="none" />
+        <circle cx="9" cy="13" fill="currentColor" r="1" stroke="none" />
       </g>
     </svg>
   );
