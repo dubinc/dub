@@ -143,9 +143,9 @@ export function FilterSelect({
                   <NoMatches />
                 </Command.List>
               ) : (
-                <Command.List className="flex w-full min-w-[100px] flex-col gap-1">
+                <Command.List className="flex w-full min-w-[100px] flex-col gap-1 p-2">
                   {selectedFilter.options ? (
-                    <div className="p-2">
+                    <>
                       {selectedFilter.options?.map((option) => {
                         const isSelected =
                           activeFilters?.find(
@@ -168,11 +168,11 @@ export function FilterSelect({
                         );
                       })}
                       <NoMatches />
-                    </div>
+                    </>
                   ) : (
                     <Command.Loading>
                       <div
-                        className="flex items-center justify-center px-2 py-4"
+                        className="-m-2 flex items-center justify-center"
                         style={mainListDimensions.current}
                       >
                         <LoadingSpinner />
@@ -287,7 +287,7 @@ function FilterButton({
 
 const NoMatches = ({ style }: { style?: CSSProperties }) => (
   <Command.Empty
-    className="my-1 text-center text-sm text-gray-400"
+    className="p-2 text-center text-sm text-gray-400"
     style={style}
   >
     No matches
