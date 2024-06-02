@@ -59,6 +59,41 @@
       "pages": ["introduction", "data-model"]
     },
     {
+      "group": "Quickstart",
+      "pages": [
+        {
+          "group": "Node.js",
+          "pages": [
+            "quickstart/nodejs",
+            "quickstart/nextjs",
+            "quickstart/remix",
+            "quickstart/nuxt",
+            "quickstart/express"
+          ]
+        },
+        {
+          "group": "Go",
+          "pages": ["quickstart/go"]
+        },
+        {
+          "group": "Python",
+          "pages": [
+            "quickstart/python",
+            "quickstart/flask",
+            "quickstart/django"
+          ]
+        },
+        {
+          "group": "Ruby",
+          "pages": ["quickstart/ruby", "quickstart/rails", "quickstart/sinatra"]
+        },
+        {
+          "group": "PHP",
+          "pages": ["quickstart/php", "quickstart/laravel"]
+        }
+      ]
+    },
+    {
       "group": "Resources",
       "pages": ["integrations", "examples"]
     },
@@ -184,37 +219,6 @@
         {
           "group": "Metatags",
           "pages": ["sdks/typescript/metatags/get"]
-        }
-      ]
-    },
-    {
-      "group": "Quickstart",
-      "pages": [
-        {
-          "group": "Node.js",
-          "pages": [
-            "sdks/nodejs",
-            "sdks/nextjs",
-            "sdks/remix",
-            "sdks/nuxt",
-            "sdks/express"
-          ]
-        },
-        {
-          "group": "Go",
-          "pages": ["sdks/go"]
-        },
-        {
-          "group": "Python",
-          "pages": ["sdks/python", "sdks/flask", "sdks/django"]
-        },
-        {
-          "group": "Ruby",
-          "pages": ["sdks/ruby", "sdks/rails", "sdks/sinatra"]
-        },
-        {
-          "group": "PHP",
-          "pages": ["sdks/php", "sdks/laravel"]
         }
       ]
     }
