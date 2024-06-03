@@ -335,7 +335,7 @@ const CommandEmpty = ({
   search: string;
   askAI?: boolean;
 }) => {
-  if (askAI) {
+  if (askAI && search) {
     return (
       <Command.Empty className="flex min-w-[180px] items-center space-x-2 rounded-md bg-gray-100 px-3 py-2">
         <Magic className="h-4 w-4" />
