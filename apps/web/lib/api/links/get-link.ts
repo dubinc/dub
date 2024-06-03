@@ -46,8 +46,6 @@ export const getLink = async (params: z.infer<typeof getLinkSchema>) => {
     });
   }
 
-  console.log("Link found for deletion", link);
-
   if (!link) {
     if (externalId && !externalId.startsWith("ext_")) {
       throw new DubApiError({
