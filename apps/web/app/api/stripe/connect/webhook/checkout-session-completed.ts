@@ -29,12 +29,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  // Find lead
-  const leadEvent = await getLeadEvent({ customerId: customer.id });
-  if (!leadEvent || leadEvent.data.length === 0) {
-    return;
-  }
-
   if (invoiceId) {
     // Skip if invoice id is already processed
     const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
@@ -49,6 +43,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       );
       return;
     }
+  }
+
+  // Find lead
+  const leadEvent = await getLeadEvent({ customerId: customer.id });
+  if (!leadEvent || leadEvent.data.length === 0) {
+    return;
   }
 
   await Promise.all([
