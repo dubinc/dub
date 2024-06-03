@@ -14,7 +14,7 @@ export const GET = withWorkspace(
   async ({ params, searchParams, workspace }) => {
     const link = await getLink({
       workspaceId: workspace.id,
-      linkId: params.linkId,
+      linkId: searchParams.linkId,
     });
 
     const { eventType: oldEvent, endpoint: oldType } =
