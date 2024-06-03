@@ -8,7 +8,8 @@ import {
   X,
 } from "lucide-react";
 import { PinterestIcon, RedditIcon, WhatsappIcon } from "../../../public";
-import React, { Dispatch, SetStateAction, useCallback, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useMemo, useState } from "react";
+import { Modal } from "../../../ui/s/src";
 
 
 function ShareLinkModal({ showShareLinkModal, setShowShareLinkModal, prop } :{
@@ -58,23 +59,21 @@ function ShareLinkModal({ showShareLinkModal, setShowShareLinkModal, prop } :{
   };
 
   return (
+    <Modal onClose={()=>setShowShareLinkModal(false)}
+    >
     <div
-      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black bg-opacity-50"
+      className="fixed  inset-0 z-50 flex cursor-pointer items-center justify-center"
       onClick={()=>setShowShareLinkModal(false)}
     >
-      <div
-        className="rounded-lg bg-white p-4 shadow-lg"
+      <div className="flex flex-col items-center justify-center border-gray-200 shadow-md bg-white rounded-lg py-20 pt-8 sm:px-16"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-4 flex justify-between text-lg font-bold">
-          Share
-          <button
-            className="cursor-pointer text-sm transition-all duration-75 hover:scale-110"
-            onClick={()=>setShowShareLinkModal(false)}
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </h2>
+        <h3 className="mb-4  text-lg font-medium">
+          Share now
+        </h3>
+        <h5 className="mb-4 text-gray-500 text-sm">
+          Share this link via
+        </h5>
         <div className="grid grid-cols-5 gap-5">
           <button
             className="rounded-full bg-gray-600 p-2 text-white hover:bg-gray-700"
@@ -134,6 +133,7 @@ function ShareLinkModal({ showShareLinkModal, setShowShareLinkModal, prop } :{
         </div>
       </div>
     </div>
+    </Modal>
   );
 };
 

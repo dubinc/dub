@@ -12,6 +12,7 @@ import {
 } from "@dub/utils";
 import {
   CircleAlert,
+  CornerDownLeftIcon,
   LinkedinIcon,
   Loader,
   Lock,
@@ -296,7 +297,9 @@ function AddEditLinkModal({
       preventDefaultClose={homepageDemo ? false : true}
       onClose={() => {}}
     >
-      <div className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
+      <div
+        style={{ scrollbarWidth: 'none'}}
+       className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
         {!homepageDemo && (
           <button
             onClick={() => {
@@ -309,6 +312,7 @@ function AddEditLinkModal({
         )}
 
         <div
+          style={{ scrollbarWidth: 'none'}}
           className="scrollbar-hide rounded-l-2xl md:max-h-[95vh] md:overflow-auto"
           onScroll={handleScroll}
         >
@@ -669,7 +673,9 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="scrollbar-hide rounded-r-2xl md:max-h-[95vh] md:overflow-auto">
+        <div
+          style={{ scrollbarWidth: 'none'}}
+         className="scrollbar-hide rounded-r-2xl md:max-h-[95vh] md:overflow-auto">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
@@ -740,21 +746,7 @@ function AddEditLinkButton({
   }, [onKeyDown]);
 
   return (
-    <Button
-      text="Create link"
-      shortcut="C"
-      disabledTooltip={
-        exceededLinks ? (
-          <TooltipContent
-            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-            cta={`Upgrade to ${nextPlan.name}`}
-            onClick={() => {
-            }}
-          />
-        ) : undefined
-      }
-      onClick={() => setShowAddEditLinkModal(true)}
-    />
+    <CornerDownLeftIcon className="h-5 w-5" onClick={() => setShowAddEditLinkModal(true)}/>
   );
 }
 

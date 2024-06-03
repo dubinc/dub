@@ -29,9 +29,9 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { DotIcon } from "../../public";
+import { DotIcon } from "../../public/index";
 import IconMenu from "../../public/IconMenu";
-import { Button, Popover, TooltipProvider, useIntersectionObserver } from "../../ui/s/src";
+import { BlurImage, Button, Popover, TooltipProvider, useIntersectionObserver } from "../../ui/s/src";
 import { useArchiveLinkModal } from "../../ui/s/src/modal/archive-link-modal";
 import { useDeleteLinkModal } from "../../ui/s/src/modal/delete-link-modal";
 import { useTransferLinkModal } from "../../ui/s/src/modal/transfer-link-modal";
@@ -39,11 +39,14 @@ import { useAddEditLinkModal } from "../link/add-edit-link-modal";
 import { ShortLinkProps } from "../types";
 import { useLinkQRModal } from "./Qrcode/link-qr-modal";
 import { useShareLinkModal } from "./Share/share-link-modal";
+import { useSelectedWorkspace } from "../../src/workspace/workspace-now";
 
 
-const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
+const LinkCard: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
   const [copy, setCopy] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  const {selectedWorkspace} = useSelectedWorkspace()
 
   const apexDomain = getApexDomain(link.url);
 
@@ -110,6 +113,7 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
   const [selected, setSelected] = useState(false);
 
   useEffect(() => {
+    
     // if there's an existing modal backdrop and the link is selected, unselect it
     const existingModalBackdrop = document.getElementById("modal-backdrop");
     if (existingModalBackdrop && selected) {
@@ -225,7 +229,6 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
       tabIndex={0}
       style={{ transform: "none", userSelect: "none", touchAction: "pan-y" }}
     >
-      <TooltipProvider >
       {isVisible && (
         <>
           <LinkQRModal />
@@ -301,12 +304,12 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
           {link.shortLink}
         </a>
         <a
-          href={link?.url}
-          target={link?.url}
+          href={link.url}
+          target={link.url}
           rel="noreferrer"
-          className="line-clamp-2  text-xs text-gray-500 transition-all hover:text-gray-800 "
+          className={cn("line-clamp-2 text-xs text-gray-600 transition-all hover:text-gray-800 ")}
         >
-          {link?.url}
+          {link.url}
         </a>
       </div>
       <button
@@ -335,18 +338,13 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
       >
         <IconMenu icon={<Share2 className="h-4 w-4 " />} />
       </button>
-      <button
-        className="flex items-center justify-center gap-1 rounded-md bg-gray-100 p-1 text-gray-700 transition-all duration-75 hover:scale-105 active:scale-95"
-      >
-        {link?.clicks ? (
-          <>
-          <IconMenu icon={<Eye className="h-4 w-4 hover:text-black" />} />
-          <p className="text-sm">{nFormatter(clicks)}</p>
-          </>
-        ) : (
-            <DotIcon />
-        )}
-      </button>
+        <a
+        href={`https://dub.sh/stats/${link.key}`}
+        className="flex items-center space-x-1 rounded-md bg-gray-100 text-gray-500 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
+        >
+      <IconMenu icon={<Eye className="h-4 w-4 hover:text-black" />} />
+      <p className="text-sm">{nFormatter(clicks)}</p>
+      </a>
       <Popover
         content={
           <div className="grid w-full gap-px p-2 sm:w-40">
@@ -430,7 +428,7 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
               shortcut="X"
               className="h-9 px-2 font-medium"
             />
-            {true && ( // this is only shown in admin mode (where there's no slug)
+            {selectedWorkspace && ( // this is only shown in admin mode (where there's no slug)
               // !slug
               <button
                 onClick={() => {
@@ -484,9 +482,8 @@ const Link: React.FC<{ link: ShortLinkProps }> = ({ link }) => {
           />
         </button>
       </Popover>
-      </TooltipProvider>
     </div>
   );
 };
 
-export default Link;
+export default LinkCard;

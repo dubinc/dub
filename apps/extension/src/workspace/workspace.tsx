@@ -7,11 +7,11 @@ import { BlurImage, Popover } from "../../ui";
 import PlanBadge from "../../ui/src/plan-badge";
 import { useAuth } from "../auth/useAuth";
 import { PlanProps, WorkspaceProps } from "../types";
-const DICEBEAR_AVATAR_URL =
-  "https://api.dicebear.com/7.x/initials/svg?backgroundType=gradientLinear&fontFamily=Helvetica&fontSize=40&seed=";
+import { useSelectedWorkspace } from "./workspace-now";
+import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 
-interface showWorkspaceProps {
-  id?: string;
+interface ChooseWorkspaceProps {
+  id: string;
   name: string;
   slug: string;
   image: string;
@@ -21,7 +21,7 @@ interface showWorkspaceProps {
 export default function UserSpace() {
   const { workspaces } = useWorkspaces();
   const { user, loading } = useAuth();
-  const [selectedWorkspace, setSelectedWorkspace] = useState<string>();
+  const { selectedWorkspace, setSelectedWorkspace } = useSelectedWorkspace()
   const [openPopover, setOpenPopover] = useState(false);
 
   if (!loading) {
@@ -39,7 +39,7 @@ export default function UserSpace() {
 
   const selected = useMemo(() => {
     const workspace = workspaces?.find(
-      (workspace) => workspace.name === selectedWorkspace,
+      (workspace) => workspace === selectedWorkspace,
     );
     if (workspace) {
       return {
@@ -49,7 +49,7 @@ export default function UserSpace() {
       };
     }
     return null;
-  }, [selectedWorkspace, workspaces]) as showWorkspaceProps;
+  }, [selectedWorkspace, workspaces]) as ChooseWorkspaceProps;
 
   return (
     <div
@@ -74,7 +74,7 @@ export default function UserSpace() {
         >
           <div className="flex items-center pr-2">
             <img
-              src={user.image || `https://api.dicebear.com/7.x/micah/svg?seed`}
+              src={user.image ? user.image : `https://api.dicebear.com/7.x/micah/svg?seed`}
               alt="user"
               className="h-10 w-10  overflow-hidden rounded-full"
             />
@@ -111,39 +111,39 @@ function WorkspaceList({
   setSelectedWorkspace,
   setOpenPopover,
 }: {
-  selected: showWorkspaceProps;
+  selected: ChooseWorkspaceProps;
   workspaces: WorkspaceProps[] | undefined | null;
-  setSelectedWorkspace: (name: string) => void;
+  setSelectedWorkspace: (workspace: WorkspaceProps) => void;
   setOpenPopover: (open: boolean) => void;
 }) {
   return (
     <div className="relative w-full max-w-[400px] overflow-auto rounded-md bg-white text-base sm:text-sm">
       <div className="p-2 text-xs text-gray-500">My Workspaces</div>
       {workspaces?.length ? (
-        workspaces.map(({ id, name, logo }) => (
+        workspaces.map((workspace) => (
           <div
-            key={id}
+            key={workspace.id}
             className={`relative flex w-full cursor-pointer items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
-              selected?.name === name ? "font-medium" : ""
+              selected?.name === workspace.name ? "font-medium" : ""
             } transition-all duration-75`}
             onClick={() => {
-              setSelectedWorkspace(name);
+              setSelectedWorkspace(workspace);
               setOpenPopover(false);
             }}
           >
             <BlurImage
-              src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
-              alt={id}
+              src={workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`}
+              alt={workspace.id}
               className="h-5 w-5 shrink-0 overflow-hidden rounded-full"
             />
             <span
               className={`block overflow-auto truncate text-sm  ${
-                selected?.name === name ? "pr-5 font-medium" : "font-normal"
+                selected?.name === workspace.name ? "pr-5 font-medium" : "font-normal"
               }`}
             >
-              {name}
+              {workspace.name}
             </span>
-            {selected?.name === name && (
+            {selected?.name === workspace.name && (
               <span className="absolute inset-y-0 right-0 flex items-center pr-2 text-black">
                 <Check className="h-4 w-4" aria-hidden="true" />
               </span>

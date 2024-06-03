@@ -9,7 +9,7 @@ export default function useWorkspace() {
     data: workspace,
     error,
     mutate,
-  } = useSWR<WorkspaceProps>(selectedWorkspace && `/api/workspaces/${selectedWorkspace}`, fetcher, {
+  } = useSWR<WorkspaceProps>(selectedWorkspace && `/api/workspaces/${selectedWorkspace.slug}`, fetcher, {
     dedupingInterval: 30000,
   });
 
