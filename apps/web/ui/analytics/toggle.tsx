@@ -43,6 +43,7 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
+import va from "@vercel/analytics";
 import { readStreamableValue } from "ai/rsc";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
@@ -388,7 +389,8 @@ export default function Toggle() {
                 onSelect={async (key, value) => {
                   if (key === "ai") {
                     setStreaming(true);
-                    const { object } = await generateFilters(value);
+                    const prompt = value.replace("Ask AI ", "");
+                    const { object } = await generateFilters(prompt);
                     for await (const partialObject of readStreamableValue(
                       object,
                     )) {
@@ -400,6 +402,9 @@ export default function Toggle() {
                         });
                       }
                     }
+                    va.track("Generated AI filters", {
+                      prompt,
+                    });
                     setStreaming(false);
                   } else {
                     queryParams({
