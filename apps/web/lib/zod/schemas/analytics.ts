@@ -96,17 +96,17 @@ export const analyticsQuerySchema = z.object({
   device: z
     .string()
     .optional()
-    .transform((v) => capitalize(v))
+    .transform((v) => capitalize(v) as string | undefined)
     .describe("The device to retrieve analytics for."),
   browser: z
     .string()
     .optional()
-    .transform((v) => capitalize(v))
+    .transform((v) => capitalize(v) as string | undefined)
     .describe("The browser to retrieve analytics for."),
   os: z
     .string()
     .optional()
-    .transform((v) => capitalize(v))
+    .transform((v) => capitalize(v) as string | undefined)
     .describe("The OS to retrieve analytics for."),
   referer: z
     .string()
