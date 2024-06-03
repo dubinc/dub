@@ -1,5 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getLink } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import {
@@ -10,7 +11,12 @@ import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
-  async ({ params, searchParams, workspace, link }) => {
+  async ({ params, searchParams, workspace }) => {
+    const link = await getLink({
+      workspaceId: workspace.id,
+      linkId: params.linkId,
+    });
+
     const { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
     const parsedParams = analyticsQuerySchema.parse(searchParams);
