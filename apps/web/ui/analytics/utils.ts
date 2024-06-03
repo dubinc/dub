@@ -2,8 +2,12 @@ import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { fetcher } from "@dub/utils";
 import { useContext } from "react";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { AnalyticsContext } from ".";
+
+type AnalyticsFilterResult =
+  | ({ count?: number } & Record<string, any>)[]
+  | null;
 
 /**
  * Fetches event counts grouped by the specified filter
@@ -15,13 +19,25 @@ export function useAnalyticsFilterOption(
   groupByOrParams:
     | AnalyticsGroupByOptions
     | ({ groupBy: AnalyticsGroupByOptions } & Record<string, any>),
-  options?: { enabled?: boolean },
-): ({ count?: number } & Record<string, any>)[] | null {
+  options?: { cacheOnly?: boolean },
+): AnalyticsFilterResult {
+  const { cache } = useSWRConfig();
+
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     useContext(AnalyticsContext);
 
+  const enabled =
+    !options?.cacheOnly ||
+    [...cache.keys()].includes(
+      `${baseApiPath}?${editQueryString(queryString, {
+        ...(typeof groupByOrParams === "string"
+          ? { groupBy: groupByOrParams }
+          : groupByOrParams),
+      })}`,
+    );
+
   const { data } = useSWR<Record<string, any>[]>(
-    options?.enabled !== false
+    enabled
       ? `${baseApiPath}?${editQueryString(queryString, {
           ...(typeof groupByOrParams === "string"
             ? { groupBy: groupByOrParams }

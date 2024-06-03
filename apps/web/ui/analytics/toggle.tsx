@@ -38,6 +38,7 @@ import {
   COUNTRIES,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
+  capitalize,
   cn,
   getApexDomain,
   getNextPlan,
@@ -72,7 +73,7 @@ export default function Toggle() {
   const scrolled = useScroll(80);
 
   const { tags } = useTags();
-  const { allDomains: domains } = useDomains();
+  const { allDomains: domains, primaryDomain } = useDomains();
   const { links: allLinks } = useLinks();
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
@@ -95,7 +96,7 @@ export default function Toggle() {
     ];
   }, [searchParamsObj]);
 
-  const isEnabled = useCallback(
+  const isRequested = useCallback(
     (key: string) =>
       requestedFilters.includes(key) ||
       activeFilters.some((af) => af.key === key),
@@ -103,23 +104,50 @@ export default function Toggle() {
   );
 
   const links = useAnalyticsFilterOption("top_links", {
-    enabled: isEnabled("link"),
+    cacheOnly: !isRequested("link"),
   });
   const countries = useAnalyticsFilterOption("countries", {
-    enabled: isEnabled("country"),
+    cacheOnly: !isRequested("country"),
   });
   const cities = useAnalyticsFilterOption("cities", {
-    enabled: isEnabled("city"),
+    cacheOnly: !isRequested("city"),
   });
   const devices = useAnalyticsFilterOption("devices", {
-    enabled: isEnabled("device"),
+    cacheOnly: !isRequested("device"),
   });
   const browsers = useAnalyticsFilterOption("browsers", {
-    enabled: isEnabled("browser"),
+    cacheOnly: !isRequested("browser"),
   });
   const os = useAnalyticsFilterOption("os", {
-    enabled: isEnabled("os"),
+    cacheOnly: !isRequested("os"),
   });
+
+  // Some suggestions will only appear if previously requested (see isRequested above)
+  const aiFilterSuggestions = useMemo(
+    () => [
+      {
+        value: `Clicks on ${primaryDomain} domain this year`,
+        icon: Globe,
+      },
+      {
+        value: "Mobile Chrome users, US only",
+        icon: MobilePhone,
+      },
+      {
+        value: "Capital of Japan, last 3 months",
+        icon: OfficeBuilding,
+      },
+      {
+        value: "Safari, Singapore, last month",
+        icon: FlagWavy,
+      },
+      {
+        value: "QR scans last quarter",
+        icon: QRCode,
+      },
+    ],
+    [primaryDomain],
+  );
 
   const [streaming, setStreaming] = useState<boolean>(false);
 
@@ -133,18 +161,12 @@ export default function Toggle() {
               icon: Magic,
               label: "Ask AI",
               separatorAfter: true,
-              options: [
-                {
-                  value: "QR code scans in the last 30 days, US only",
-                  label: "QR code scans in the last 30 days, US only",
-                  icon: <QRCode className="h-4 w-4" />,
-                },
-                {
-                  value: "Canadian Desktop users in the last 90 days",
-                  label: "Canadian Desktop users in the last 90 days",
-                  icon: <Window className="h-4 w-4" />,
-                },
-              ],
+              options:
+                aiFilterSuggestions?.map(({ icon, value }) => ({
+                  value,
+                  label: value,
+                  icon,
+                })) ?? null,
             },
             {
               key: "domain",
@@ -296,7 +318,11 @@ export default function Toggle() {
         icon: MobilePhone,
         label: "Device",
         getOptionIcon: (value) => (
-          <DeviceIcon display={value} tab="devices" className="h-4 w-4" />
+          <DeviceIcon
+            display={capitalize(value) ?? value}
+            tab="devices"
+            className="h-4 w-4"
+          />
         ),
         options:
           devices?.map(({ device, count }) => ({
@@ -337,6 +363,7 @@ export default function Toggle() {
     [
       isPublicStatsPage,
       domains,
+      allLinks,
       links,
       tags,
       countries,
