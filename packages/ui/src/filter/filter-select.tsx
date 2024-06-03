@@ -87,16 +87,18 @@ export function FilterSelect({
 
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
-      if (!selectedFilter) return;
-
-      activeFilters?.find(({ key }) => key === selectedFilterKey)?.value ===
-      value
-        ? onRemove(selectedFilter.key)
-        : onSelect(selectedFilter.key, value);
+      if (askAI) {
+        onSelect("ai", value);
+      } else if (selectedFilter) {
+        activeFilters?.find(({ key }) => key === selectedFilterKey)?.value ===
+        value
+          ? onRemove(selectedFilter.key)
+          : onSelect(selectedFilter.key, value);
+      }
 
       setIsOpen(false);
     },
-    [activeFilters, selectedFilter],
+    [activeFilters, selectedFilter, askAI],
   );
 
   return (
@@ -128,9 +130,10 @@ export function FilterSelect({
                   selectedFilterKey ? reset() : setIsOpen(false);
                 }
               }}
-              onEnterKeyDownEmpty={(e) => {
+              emptySubmit={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                console.log({ search });
                 selectOption(search);
               }}
             />
@@ -221,7 +224,7 @@ export function FilterSelect({
 
 const CommandInput = (
   props: React.ComponentProps<typeof Command.Input> & {
-    onEnterKeyDownEmpty?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    emptySubmit?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   },
 ) => {
   const isEmpty = useCommandState((state) => state.filtered.count === 0);
@@ -234,7 +237,7 @@ const CommandInput = (
         props.onKeyDown?.(e);
 
         if (e.key === "Enter" && isEmpty) {
-          props.onEnterKeyDownEmpty?.(e);
+          props.emptySubmit?.(e);
         }
       }}
     />
