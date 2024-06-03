@@ -157,6 +157,8 @@ export default function Analytics({
     return new URLSearchParams({
       ...availableFilterParams,
       ...(workspaceId && { workspaceId }),
+      ...(domain && { domain }),
+      ...(key && { key }),
       ...(start &&
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
