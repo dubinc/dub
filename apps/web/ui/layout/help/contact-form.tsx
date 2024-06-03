@@ -1,9 +1,10 @@
+import { generateSupportTitle } from "@/lib/ai/generate-support-title";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button, FileUpload, LoadingSpinner, useEnterSubmit } from "@dub/ui";
-import { useCompletion } from "ai/react";
+import { readStreamableValue } from "ai/rsc";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, Paperclip, Trash2 } from "lucide-react";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
@@ -79,19 +80,6 @@ export function ContactForm({
   );
 
   const { handleKeyDown } = useEnterSubmit(formRef);
-
-  const { completion, complete } = useCompletion({
-    api: `/api/ai/generate-support-title`,
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  useEffect(() => {
-    if (completion) {
-      setData((prev) => ({ ...prev, title: completion }));
-    }
-  }, [completion]);
 
   return (
     <div className="relative w-full px-3 pb-16 pt-5 sm:px-6">
@@ -170,9 +158,16 @@ export function ContactForm({
                 autoFocus
                 autoComplete="off"
                 value={data.message}
-                onBlur={() => {
+                onBlur={async () => {
                   if (!data.title && data.message) {
-                    complete(data.message);
+                    const { output } = await generateSupportTitle(data.message);
+
+                    for await (const delta of readStreamableValue(output)) {
+                      setData((prev) => ({
+                        ...prev,
+                        title: prev.title + delta,
+                      }));
+                    }
                   }
                 }}
                 onChange={(e) =>
