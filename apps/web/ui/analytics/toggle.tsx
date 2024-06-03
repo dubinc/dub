@@ -526,7 +526,10 @@ export default function Toggle() {
           }
           onRemoveAll={() =>
             queryParams({
-              del: VALID_ANALYTICS_FILTERS,
+              // Reset all filters except for date range
+              del: VALID_ANALYTICS_FILTERS.filter(
+                (f) => !["interval", "start", "end"].includes(f),
+              ),
             })
           }
         />
