@@ -7,12 +7,12 @@ import type Stripe from "stripe";
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Checkout.Session;
-  const externalId = charge.metadata?.dubCustomerId;
+  const dubCustomerId = charge.metadata?.dubCustomerId;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = charge.customer as string;
   const invoiceId = charge.invoice as string;
 
-  if (!externalId) {
+  if (!dubCustomerId) {
     return;
   }
 
@@ -21,19 +21,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     where: {
       projectConnectId_externalId: {
         projectConnectId: stripeAccountId,
-        externalId,
+        externalId: dubCustomerId,
       },
     },
     data: {
       stripeCustomerId,
     },
   });
-
-  // Find lead
-  const leadEvent = await getLeadEvent({ customerId: customer.id });
-  if (!leadEvent || leadEvent.data.length === 0) {
-    return;
-  }
 
   if (invoiceId) {
     // Skip if invoice id is already processed
@@ -49,6 +43,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       );
       return;
     }
+  }
+
+  // Find lead
+  const leadEvent = await getLeadEvent({ customerId: customer.id });
+  if (!leadEvent || leadEvent.data.length === 0) {
+    return;
   }
 
   await Promise.all([
