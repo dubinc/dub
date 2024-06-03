@@ -58,12 +58,3 @@ export function useAnalyticsFilterOption(
     })) ?? null
   );
 }
-
-/**
- * Returns a random item from the first `n` items of the array
- */
-function randomItem<T>(arr: T[] | null | undefined, n?: number) {
-  return arr && arr.length
-    ? arr[Math.floor(Math.random() * Math.min(arr.length, n || arr.length))]
-    : null;
-}
