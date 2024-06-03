@@ -60,7 +60,7 @@ import { COLORS_LIST } from "../links/tag-badge";
 import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
 import SharePopover from "./share-popover";
-import { useAIFilterSuggestions, useAnalyticsFilterOption } from "./utils";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle() {
   const { plan } = useWorkspace();
@@ -73,7 +73,7 @@ export default function Toggle() {
   const scrolled = useScroll(80);
 
   const { tags } = useTags();
-  const { allDomains: domains } = useDomains();
+  const { allDomains: domains, primaryDomain } = useDomains();
   const { links: allLinks } = useLinks();
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
@@ -123,11 +123,31 @@ export default function Toggle() {
   });
 
   // Some suggestions will only appear if previously requested (see isRequested above)
-  const aiFilterSuggestions = useAIFilterSuggestions({
-    domains,
-    countries,
-    devices,
-  });
+  const aiFilterSuggestions = useMemo(
+    () => [
+      {
+        value: `Clicks on ${primaryDomain} domain this year`,
+        icon: Globe,
+      },
+      {
+        value: "Mobile Chrome users, US only",
+        icon: MobilePhone,
+      },
+      {
+        value: "Capital of Japan, last 3 months",
+        icon: OfficeBuilding,
+      },
+      {
+        value: "Safari, Singapore, last month",
+        icon: FlagWavy,
+      },
+      {
+        value: "QR scans last quarter",
+        icon: QRCode,
+      },
+    ],
+    [primaryDomain],
+  );
 
   const [streaming, setStreaming] = useState<boolean>(false);
 
