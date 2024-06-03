@@ -28,8 +28,7 @@ export const GET = withWorkspace(
 
     const link = await getLink({
       workspaceId: workspace.id,
-      domain,
-      key,
+      ...parsedParams,
     });
 
     validDateRangeForPlan({

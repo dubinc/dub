@@ -9,8 +9,8 @@ import { NextResponse } from "next/server";
 // GET /api/links/info – get the info for a link
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace }) => {
-    const { domain, key, linkId, externalId } =
-      getLinkInfoQuerySchema.parse(searchParams);
+    const parsedParams = getLinkInfoQuerySchema.parse(searchParams);
+    const { domain, key, linkId, externalId } = parsedParams;
 
     if (!domain && !key && !linkId && !externalId) {
       throw new DubApiError({
@@ -23,10 +23,7 @@ export const GET = withWorkspace(
 
     const link = await getLink({
       workspaceId: workspace.id,
-      domain,
-      key,
-      linkId,
-      externalId,
+      ...parsedParams,
     });
 
     const tags = await prisma.tag.findMany({
