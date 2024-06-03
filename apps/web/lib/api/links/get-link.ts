@@ -12,30 +12,24 @@ export const getLinkSchema = z.object({
 });
 
 // Find link
-export const getLink = async ({
-  workspaceId,
-  linkId,
-  externalId,
-  domain,
-  key,
-}: z.infer<typeof getLinkSchema>) => {
+export const getLink = async (params: z.infer<typeof getLinkSchema>) => {
+  const { workspaceId, domain, key, externalId } = params;
+  const linkId = params.linkId || params.externalId || undefined;
+
   let link: Link | null = null;
 
-  // Get link by linkId
+  // Get link by linkId or externalId
   if (linkId) {
     link = await prisma.link.findUnique({
-      where: { id: linkId },
-    });
-  }
-
-  // Get link by externalId
-  else if (externalId && workspaceId) {
-    link = await prisma.link.findUnique({
       where: {
-        projectId_externalId: {
-          projectId: workspaceId,
-          externalId: externalId.replace("ext_", ""),
-        },
+        ...(linkId.startsWith("ext_") && workspaceId
+          ? {
+              projectId_externalId: {
+                projectId: workspaceId,
+                externalId: linkId.replace("ext_", ""),
+              },
+            }
+          : { id: linkId }),
       },
     });
   }
@@ -51,6 +45,8 @@ export const getLink = async ({
       },
     });
   }
+
+  console.log("Link found for deletion", link);
 
   if (!link) {
     if (externalId && !externalId.startsWith("ext_")) {
@@ -72,8 +68,6 @@ export const getLink = async ({
       message: "You do not have permission to access this link.",
     });
   }
-
-  // console.log("Found link: ", link);
 
   return link;
 };

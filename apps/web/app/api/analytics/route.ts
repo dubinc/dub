@@ -36,7 +36,7 @@ export const GET = withWorkspace(
     if (linkId) {
       const link = await getLink({
         workspaceId: workspace.id,
-        linkId: searchParams.linkId,
+        ...searchParams,
       });
 
       id = link.id;
