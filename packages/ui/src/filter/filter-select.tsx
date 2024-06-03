@@ -155,8 +155,8 @@ export function FilterSelect({
                     filters.map((filter) => (
                       <>
                         <FilterButton
-                          {...filter}
                           key={filter.key}
+                          filter={filter}
                           onSelect={() => openFilter(filter.key)}
                         />
                         {filter.separatorAfter && (
@@ -173,8 +173,9 @@ export function FilterSelect({
 
                       return (
                         <FilterButton
-                          {...option}
                           key={option.value}
+                          filter={selectedFilter}
+                          option={option}
                           right={
                             isSelected ? (
                               <Check className="h-4 w-4" />
@@ -300,14 +301,27 @@ const FilterScroll = forwardRef(
 );
 
 function FilterButton({
-  icon: Icon,
-  label,
+  filter,
+  option,
   right,
   onSelect,
-}: Omit<Filter | FilterOption, "key" | "value"> & {
+}: {
+  filter: Filter;
+  option?: FilterOption;
   right?: ReactNode;
   onSelect: () => void;
 }) {
+  const Icon = option
+    ? option.icon ??
+      filter.getOptionIcon?.(option.value, { key: filter.key, option }) ??
+      filter.icon
+    : filter.icon;
+
+  const label = option
+    ? option.label ??
+      filter.getOptionLabel?.(option.value, { key: filter.key, option })
+    : filter.label;
+
   return (
     <Command.Item
       className={cn(

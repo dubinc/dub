@@ -57,6 +57,19 @@ export function FilterList({
                   : o.value === value,
               );
 
+              const OptionIcon =
+                option?.icon ??
+                filter.getOptionIcon?.(value, {
+                  key: filter.key,
+                  option,
+                }) ??
+                filter.icon;
+
+              const optionLabel =
+                option?.label ??
+                filter.getOptionLabel?.(value, { key: filter.key, option }) ??
+                value;
+
               return (
                 <motion.div
                   key={key}
@@ -82,20 +95,16 @@ export function FilterList({
                   {/* Option */}
                   <div className="flex items-center gap-2.5 px-3 py-2">
                     {filter.options ? (
-                      option ? (
-                        <>
-                          <span className="shrink-0 text-gray-600">
-                            {isReactNode(option.icon) ? (
-                              option.icon
-                            ) : (
-                              <option.icon className="h-4 w-4" />
-                            )}
-                          </span>
-                          {truncate(option.label, 30)}
-                        </>
-                      ) : (
-                        value
-                      )
+                      <>
+                        <span className="shrink-0 text-gray-600">
+                          {isReactNode(OptionIcon) ? (
+                            OptionIcon
+                          ) : (
+                            <OptionIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        {truncate(optionLabel, 30)}
+                      </>
                     ) : (
                       <div className="h-5 w-12 animate-pulse rounded-md bg-gray-200" />
                     )}
