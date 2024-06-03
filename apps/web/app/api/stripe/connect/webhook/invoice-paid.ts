@@ -23,12 +23,6 @@ export async function invoicePaid(event: Stripe.Event) {
     return;
   }
 
-  // Find lead
-  const leadEvent = await getLeadEvent({ customerId: customer.id });
-  if (!leadEvent || leadEvent.data.length === 0) {
-    return;
-  }
-
   // Skip if invoice id is already processed
   const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
     ex: 60 * 60 * 24 * 7,
@@ -40,6 +34,12 @@ export async function invoicePaid(event: Stripe.Event) {
       "[Stripe Webhook] Skipping already processed invoice.",
       invoiceId,
     );
+    return;
+  }
+
+  // Find lead
+  const leadEvent = await getLeadEvent({ customerId: customer.id });
+  if (!leadEvent || leadEvent.data.length === 0) {
     return;
   }
 
