@@ -1,5 +1,4 @@
 export const intervals = [
-  "1h",
   "24h",
   "7d",
   "30d",
@@ -7,6 +6,7 @@ export const intervals = [
   "ytd",
   "1y",
   "all",
+  "all_unfiltered",
 ] as const;
 
 export const INTERVAL_DISPLAYS = [
@@ -47,10 +47,6 @@ export const INTERVAL_DATA: Record<
     granularity: "minute" | "hour" | "day" | "month";
   }
 > = {
-  "1h": {
-    startDate: new Date(Date.now() - 3600000),
-    granularity: "minute",
-  },
   "24h": {
     startDate: new Date(Date.now() - 86400000),
     granularity: "hour",
@@ -85,28 +81,25 @@ export const INTERVAL_DATA: Record<
 export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
   "timeseries",
-  "country", // backwards compatibility
   "countries",
-  "city", // backwards compatibility
   "cities",
-  "device", // backwards compatibility
   "devices",
-  "browser", // backwards compatibility
   "browsers",
   "os",
-  "referer", // backwards compatibility
   "referers",
   "top_links",
   "top_urls",
+  "trigger",
 ] as const;
 
-export const DEPRECATED_ANALYTICS_ENDPOINTS = [
-  "country",
-  "city",
-  "device",
-  "browser",
-  "referer",
-];
+export const SINGULAR_ANALYTICS_ENDPOINTS = {
+  countries: "country",
+  cities: "city",
+  devices: "device",
+  browsers: "browser",
+  referers: "referer",
+  os: "os",
+};
 
 export const VALID_ANALYTICS_FILTERS = [
   "country",
@@ -121,3 +114,5 @@ export const VALID_ANALYTICS_FILTERS = [
   "qr",
   "root",
 ];
+
+export const EVENT_TYPES = ["clicks", "leads", "sales", "composite"] as const;

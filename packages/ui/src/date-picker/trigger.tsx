@@ -8,7 +8,7 @@ const triggerStyles = cva(
     "group peer flex cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 h-10 outline-none transition-all sm:text-sm",
     "bg-white border-gray-200 text-gray-900 placeholder-gray-400 transition-all",
     "disabled:pointer-events-none disabled:bg-gray-100 disabled:text-gray-400",
-    "data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+    "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
     //" aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-200 aria-[invalid=true]:border-red-500 invalid:ring-2 invalid:ring-red-200 invalid:border-red-500",
   ],
   {

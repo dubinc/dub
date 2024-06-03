@@ -321,7 +321,6 @@ function AddEditLinkModal({
 
   const [lockKey, setLockKey] = useState(true);
 
-  const welcomeFlow = pathname === "/welcome";
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (key?.endsWith("-copy")) {
@@ -351,9 +350,7 @@ function AddEditLinkModal({
       className="max-w-screen-lg"
       preventDefaultClose={homepageDemo ? false : true}
       onClose={() => {
-        if (welcomeFlow) {
-          router.back();
-        } else if (searchParams.has("newLink")) {
+        if (searchParams.has("newLink")) {
           queryParams({
             del: ["newLink", "newLinkDomain"],
           });
@@ -361,7 +358,7 @@ function AddEditLinkModal({
       }}
     >
       <div className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
-        {!welcomeFlow && !homepageDemo && (
+        {!homepageDemo && (
           <button
             onClick={() => {
               setShowAddEditLinkModal(false);
@@ -414,11 +411,6 @@ function AddEditLinkModal({
                     undefined,
                     { revalidate: true },
                   );
-                  // for welcome page, redirect to links page after adding a link
-                  if (pathname === "/welcome") {
-                    router.push("/links");
-                    setShowAddEditLinkModal(false);
-                  }
                   const data = await res.json();
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
@@ -436,7 +428,9 @@ function AddEditLinkModal({
                     toast.success("Successfully updated shortlink!");
                   }
                   setShowAddEditLinkModal(false);
-                  router.push(`/${slug}`);
+                  if (pathname !== `/${slug}`) {
+                    router.push(`/${slug}`);
+                  }
                 } else {
                   const { error } = await res.json();
                   if (error) {
@@ -736,7 +730,7 @@ function AddEditLinkModal({
             <div
               className={`${
                 atBottom ? "" : "md:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky  md:bottom-0 md:px-16`}
+              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky md:bottom-0 md:px-16`}
             >
               {homepageDemo ? (
                 <Button

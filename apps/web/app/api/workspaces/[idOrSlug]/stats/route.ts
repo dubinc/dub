@@ -1,1 +1,1 @@
-export * from "../../../analytics/route";
+export * from "../../../analytics/public-stats/route";

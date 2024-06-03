@@ -1,13 +1,13 @@
-import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { recordCustomer } from "@/lib/tinybird";
 import {
   trackCustomerRequestSchema,
   trackCustomerResponseSchema,
 } from "@/lib/zod/schemas/customers";
-import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -16,59 +16,52 @@ export const runtime = "edge";
 export const POST = withWorkspaceEdge(
   async ({ req, workspace }) => {
     const {
+      customerId: externalId,
       customerName,
       customerEmail,
       customerAvatar,
-      customerId: externalId,
     } = trackCustomerRequestSchema.parse(await parseRequestBody(req));
 
-    // Find customer
-    const existingCustomer = await prismaEdge.customer.findUnique({
+    const customer = await prismaEdge.customer.upsert({
       where: {
         projectId_externalId: {
           projectId: workspace.id,
           externalId,
         },
       },
-    });
-
-    if (existingCustomer) {
-      throw new DubApiError({
-        code: "conflict",
-        message: `A customer with customerId: ${externalId} already exists`,
-      });
-    }
-
-    // Create a new customer
-    const customer = await prismaEdge.customer.create({
-      data: {
-        id: nanoid(16),
-        name: customerName, // TODO: Generate random name if not provided
+      create: {
+        name: customerName || generateRandomName(),
         email: customerEmail,
         avatar: customerAvatar,
         externalId,
         projectId: workspace.id,
-        projectConnectId: "", // TODO: This can be null
+        projectConnectId: workspace.stripeConnectId,
+      },
+      update: {
+        name: customerName,
+        email: customerEmail,
+        avatar: customerAvatar,
       },
     });
 
-    // Record customer
-    await recordCustomer({
-      workspace_id: workspace.id,
-      customer_id: customer.id,
-      name: customerName || "",
-      email: customerEmail || "",
-      avatar: customerAvatar || "",
-    });
+    waitUntil(
+      recordCustomer({
+        workspace_id: workspace.id,
+        customer_id: customer.id,
+        name: customer.name || "",
+        email: customer.email || "",
+        avatar: customer.avatar || "",
+      }),
+    );
 
     const response = trackCustomerResponseSchema.parse({
       customerId: externalId,
-      customerName,
-      customerEmail,
-      customerAvatar,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
     });
 
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(response);
   },
   { betaFeature: true },
 );
