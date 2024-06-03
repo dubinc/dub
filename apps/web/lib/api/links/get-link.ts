@@ -73,7 +73,7 @@ export const getLink = async ({
     });
   }
 
-  console.log("Found link: ", link);
+  // console.log("Found link: ", link);
 
   return link;
 };

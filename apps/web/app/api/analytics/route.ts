@@ -12,16 +12,12 @@ import { NextResponse } from "next/server";
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace }) => {
-    const link = await getLink({
-      workspaceId: workspace.id,
-      linkId: searchParams.linkId,
-    });
-
     const { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    let { event, groupBy, domain, key, interval, start, end } = parsedParams;
+    let { event, groupBy, domain, key, interval, start, end, linkId } =
+      parsedParams;
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
@@ -34,11 +30,24 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const linkId = link
-      ? link.id
-      : domain && key === "_root"
-        ? await getDomainViaEdge(domain).then((d) => d?.id)
-        : null;
+    let id: string | undefined = undefined;
+
+    // For a link
+    if (linkId) {
+      const link = await getLink({
+        workspaceId: workspace.id,
+        linkId: searchParams.linkId,
+      });
+
+      id = link.id;
+    }
+
+    // For a domain
+    if (!id && domain && key === "_root") {
+      const domainRecord = await getDomainViaEdge(domain);
+
+      id = domainRecord?.id;
+    }
 
     // Identify the request is from deprecated endpoint
     // (/api/analytics/clicks)
@@ -50,7 +59,7 @@ export const GET = withWorkspace(
       ...parsedParams,
       event,
       groupBy,
-      ...(linkId && { linkId }),
+      ...(id && { linkId: id }),
       workspaceId: workspace.id,
       isDeprecatedEndpoint,
     });

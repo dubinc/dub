@@ -39,7 +39,7 @@ export const getDomain = async ({
 }: z.infer<typeof getDomainSchema>) => {
   let domain: Domain | null = null;
 
-  if (slug && key && key === "_root") {
+  if (slug) {
     domain = await prisma.domain.findUnique({
       where: {
         slug,
@@ -60,8 +60,6 @@ export const getDomain = async ({
       message: "Domain not found",
     });
   }
-
-  console.log("Found domain", domain);
 
   return domain;
 };
