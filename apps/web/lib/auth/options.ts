@@ -358,7 +358,7 @@ export const authOptions: NextAuthOptions = {
         if (clickId) {
           // send lead event to Dub
           await dub.track.lead({
-            clickId: clickId,
+            clickId,
             eventName: "Sign Up",
             customerId: user.id,
             customerName: user.name,
@@ -369,6 +369,9 @@ export const authOptions: NextAuthOptions = {
           cookies().set("dclid", "", {
             expires: new Date(0),
             path: "/",
+            domain: VERCEL_DEPLOYMENT
+              ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+              : undefined,
           });
         }
       }
