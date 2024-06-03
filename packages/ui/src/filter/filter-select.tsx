@@ -331,7 +331,7 @@ const CommandEmpty = ({
 }) => {
   if (askAI) {
     return (
-      <Command.Empty className="flex min-w-[180px] items-center space-x-2 p-2">
+      <Command.Empty className="flex min-w-[180px] items-center space-x-2 rounded-md bg-gray-100 px-3 py-2">
         <Magic className="h-4 w-4" />
         <p className="text-center text-sm text-gray-600">
           Ask AI <span className="text-black">"{search}"</span>
