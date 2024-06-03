@@ -204,13 +204,14 @@ export default function Toggle() {
               icon: Tag,
               label: "Tag",
               getOptionIcon: (value, { option }) => {
-                const tag =
-                  option?.data?.color ?? tags?.find(({ id }) => id === value);
-                return tag ? (
+                const tagColor =
+                  option?.data?.color ??
+                  tags?.find(({ id }) => id === value)?.color;
+                return tagColor ? (
                   <div
                     className={cn(
                       "rounded-md p-1.5",
-                      COLORS_LIST.find(({ color }) => color === tag.color)?.css,
+                      COLORS_LIST.find(({ color }) => color === tagColor)?.css,
                     )}
                   >
                     <Tag className="h-2.5 w-2.5" />
