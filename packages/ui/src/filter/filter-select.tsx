@@ -138,61 +138,64 @@ export function FilterSelect({
               }}
             />
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
-              {!selectedFilter ? (
-                <Command.List className="flex w-full min-w-[180px] flex-col gap-1 p-1">
-                  {filters.map((filter) => (
-                    <>
-                      <FilterButton
-                        {...filter}
-                        key={filter.key}
-                        onSelect={() => openFilter(filter.key)}
-                      />
-                      {filter.separatorAfter && (
-                        <Command.Separator className="-mx-1 my-1 border-b border-gray-200" />
-                      )}
-                    </>
-                  ))}
-                  <CommandEmpty search={search} askAI={askAI} />
-                </Command.List>
-              ) : (
-                <Command.List className="flex w-full min-w-[100px] flex-col gap-1 p-1">
-                  {selectedFilter.options ? (
-                    <>
-                      {selectedFilter.options?.map((option) => {
-                        const isSelected =
-                          activeFilters?.find(
-                            ({ key }) => key === selectedFilterKey,
-                          )?.value === option.value;
+              <Command.List
+                className={cn(
+                  "flex w-full flex-col gap-1 p-1",
+                  selectedFilter ? "min-w-[100px]" : "min-w-[180px]",
+                )}
+              >
+                {!selectedFilter
+                  ? // Top-level filters
+                    filters.map((filter) => (
+                      <>
+                        <FilterButton
+                          {...filter}
+                          key={filter.key}
+                          onSelect={() => openFilter(filter.key)}
+                        />
+                        {filter.separatorAfter && (
+                          <Command.Separator className="-mx-1 my-1 border-b border-gray-200" />
+                        )}
+                      </>
+                    ))
+                  : // Filter options
+                    selectedFilter.options?.map((option) => {
+                      const isSelected =
+                        activeFilters?.find(
+                          ({ key }) => key === selectedFilterKey,
+                        )?.value === option.value;
 
-                        return (
-                          <FilterButton
-                            {...option}
-                            key={option.value}
-                            right={
-                              isSelected ? (
-                                <Check className="h-4 w-4" />
-                              ) : (
-                                option.right
-                              )
-                            }
-                            onSelect={() => selectOption(option.value)}
-                          />
-                        );
-                      })}
-                      <CommandEmpty search={search} askAI={askAI} />
-                    </>
-                  ) : (
-                    <Command.Loading>
-                      <div
-                        className="-m-1 flex items-center justify-center"
-                        style={mainListDimensions.current}
-                      >
-                        <LoadingSpinner />
-                      </div>
-                    </Command.Loading>
-                  )}
-                </Command.List>
-              )}
+                      return (
+                        <FilterButton
+                          {...option}
+                          key={option.value}
+                          right={
+                            isSelected ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              option.right
+                            )
+                          }
+                          onSelect={() => selectOption(option.value)}
+                        />
+                      );
+                    }) ?? (
+                      // Filter options loading state
+                      <Command.Loading>
+                        <div
+                          className="-m-1 flex items-center justify-center"
+                          style={mainListDimensions.current}
+                        >
+                          <LoadingSpinner />
+                        </div>
+                      </Command.Loading>
+                    )}
+
+                {/* Only render CommandEmpty if not loading */}
+                {(!selectedFilter || selectedFilter.options) && (
+                  <CommandEmpty search={search} askAI={askAI} />
+                )}
+              </Command.List>
             </FilterScroll>
           </Command>
         </AnimatedSizeContainer>
