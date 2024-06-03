@@ -176,3 +176,11 @@ export interface QRLinkProps {
   url: string;
   key: string;
 }
+
+export interface ChooseWorkspaceProps {
+  id: string;
+  name: string;
+  slug: string;
+  image: string;
+  plan: PlanProps;
+}

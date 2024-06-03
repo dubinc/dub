@@ -1,7 +1,7 @@
 import { fetcher } from "@dub/utils";
 import { useEffect, useState } from "react";
+import { ShortLinkProps } from "src/types";
 import useSWR from "swr";
-import { LinkWithTagsProps, ShortLinkProps, UserProps } from "src/types";
 import useWorkspace from "./use-workspace";
 
 export default function useLinks() {
@@ -14,11 +14,9 @@ export default function useLinks() {
     }
   }, []);
 
-  const { data: links, isValidating } = useSWR<
-    (ShortLinkProps)[]
-  >(
-    id ?
-    `/api/links?workspaceId=${id}&includeUser=true`
+  const { data: links, isValidating } = useSWR<ShortLinkProps[]>(
+    id
+      ? `/api/links?workspaceId=${id}&includeUser=true`
       : admin
         ? `/api/admin/links`
         : null,

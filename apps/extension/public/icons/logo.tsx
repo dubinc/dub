@@ -1,6 +1,4 @@
-import React from "react";
-
-const DubLogo: React.FC = () => {
+const DubLogo = () => {
   return (
     <svg
       width="50px"

@@ -5,8 +5,8 @@ import {
   fetcher,
 } from "@dub/utils";
 import useSWR from "swr";
-import useDefaultDomains from "./use-default-domains";
 import { DomainProps } from "../../src/types";
+import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
 
 export default function useDomains({

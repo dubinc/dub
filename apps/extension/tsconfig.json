@@ -14,7 +14,15 @@
     "target": "esnext",
     "outDir": "./dist",
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["*"],
+      "@/src/*": ["src/*"],
+      "@/utils/*": ["utils/*"],
+      "@/public/*": ["public/*"],
+      "@/ui/*": ["ui/*"],
+      "@/lib/*": ["lib/*"],
+    },
   },
-  "include": ["./"],
+  "include": ["**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

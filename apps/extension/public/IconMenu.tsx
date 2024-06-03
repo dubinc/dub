@@ -1,4 +1,4 @@
-import React, { CSSProperties } from "react";
+import { CSSProperties } from "react";
 
 interface IconMenuProps {
   text?: string;
@@ -6,13 +6,14 @@ interface IconMenuProps {
   style?: CSSProperties;
 }
 
-const IconMenu: React.FC<IconMenuProps> = ({ text, icon, style }) => {
+function IconMenu(props: IconMenuProps) {
+  const { text, icon, style } = props;
   return (
     <div className={`flex items-center ${text ? "gap-1.5" : ""}`} style={style}>
       {icon}
       {text && <span className="text-xs">{text}</span>}
     </div>
   );
-};
+}
 
 export default IconMenu;

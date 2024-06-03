@@ -1,6 +1,4 @@
-import React from "react";
-
-const SlashIcon: React.FC = () => {
+const SlashIcon = () => {
   return (
     <svg
       fill="none"
