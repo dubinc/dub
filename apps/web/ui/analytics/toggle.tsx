@@ -6,6 +6,7 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
+import useLinks from "@/lib/swr/use-links";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
@@ -45,7 +46,13 @@ import {
 } from "@dub/utils";
 import va from "@vercel/analytics";
 import { readStreamableValue } from "ai/rsc";
-import { useCallback, useContext, useMemo, useState } from "react";
+import {
+  ComponentProps,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
@@ -66,6 +73,7 @@ export default function Toggle() {
 
   const { tags } = useTags();
   const { allDomains: domains } = useDomains();
+  const { links: allLinks } = useLinks();
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -115,7 +123,7 @@ export default function Toggle() {
 
   const [streaming, setStreaming] = useState<boolean>(false);
 
-  const filters = useMemo(
+  const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
       ...(isPublicStatsPage
         ? []
@@ -142,24 +150,40 @@ export default function Toggle() {
               key: "domain",
               icon: Globe,
               label: "Domain",
+              getOptionIcon: (value) => (
+                <BlurImage
+                  src={`${GOOGLE_FAVICON_URL}${value}`}
+                  alt={value}
+                  className="h-4 w-4 rounded-full"
+                  width={16}
+                  height={16}
+                />
+              ),
               options: domains.map((domain) => ({
                 value: domain.slug,
                 label: domain.slug,
-                icon: (
-                  <BlurImage
-                    src={`${GOOGLE_FAVICON_URL}${domain.slug}`}
-                    alt={domain.slug}
-                    className="h-4 w-4 rounded-full"
-                    width={16}
-                    height={16}
-                  />
-                ),
               })),
             },
             {
               key: "link",
               icon: Hyperlink,
               label: "Link",
+              getOptionIcon: (value, { option }) => {
+                const url =
+                  option?.data?.url ??
+                  allLinks?.find(
+                    ({ domain, key }) =>
+                      value.includes(key) &&
+                      linkConstructor({ domain, key }) === value,
+                  )?.url;
+
+                return url ? (
+                  <LinkLogo
+                    apexDomain={getApexDomain(url)}
+                    className="h-4 w-4 sm:h-4 sm:w-4"
+                  />
+                ) : null;
+              },
               options:
                 links?.map(
                   ({
@@ -170,13 +194,8 @@ export default function Toggle() {
                   }: LinkProps & { count?: number }) => ({
                     value: linkConstructor({ domain, key }),
                     label: linkConstructor({ domain, key, pretty: true }),
-                    icon: (
-                      <LinkLogo
-                        apexDomain={getApexDomain(url)}
-                        className="h-4 w-4 sm:h-4 sm:w-4"
-                      />
-                    ),
                     right: nFormatter(count, { full: true }),
+                    data: { url },
                   }),
                 ) ?? null,
             },
@@ -184,6 +203,20 @@ export default function Toggle() {
               key: "tagId",
               icon: Tag,
               label: "Tag",
+              getOptionIcon: (value, { option }) => {
+                const tag =
+                  option?.data?.color ?? tags?.find(({ id }) => id === value);
+                return tag ? (
+                  <div
+                    className={cn(
+                      "rounded-md p-1.5",
+                      COLORS_LIST.find(({ color }) => color === tag.color)?.css,
+                    )}
+                  >
+                    <Tag className="h-2.5 w-2.5" />
+                  </div>
+                ) : null;
+              },
               options:
                 tags?.map((tag) => ({
                   value: tag.id,
@@ -199,6 +232,7 @@ export default function Toggle() {
                     </div>
                   ),
                   label: tag.name,
+                  data: { color: tag.color },
                 })) ?? null,
             },
           ]),
@@ -223,17 +257,18 @@ export default function Toggle() {
         key: "country",
         icon: FlagWavy,
         label: "Country",
+        getOptionIcon: (value) => (
+          <img
+            alt={value}
+            src={`https://flag.vercel.app/m/${value}.svg`}
+            className="h-2.5 w-4"
+          />
+        ),
+        getOptionLabel: (value) => COUNTRIES[value],
         options:
           countries?.map(({ country, count }) => ({
             value: country,
             label: COUNTRIES[country],
-            icon: (
-              <img
-                alt={country}
-                src={`https://flag.vercel.app/m/${country}.svg`}
-                className="h-2.5 w-4"
-              />
-            ),
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
@@ -259,13 +294,13 @@ export default function Toggle() {
         key: "device",
         icon: MobilePhone,
         label: "Device",
+        getOptionIcon: (value) => (
+          <DeviceIcon display={value} tab="devices" className="h-4 w-4" />
+        ),
         options:
           devices?.map(({ device, count }) => ({
             value: device,
             label: device,
-            icon: (
-              <DeviceIcon display={device} tab="devices" className="h-4 w-4" />
-            ),
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
@@ -273,17 +308,13 @@ export default function Toggle() {
         key: "browser",
         icon: Window,
         label: "Browser",
+        getOptionIcon: (value) => (
+          <DeviceIcon display={value} tab="browsers" className="h-4 w-4" />
+        ),
         options:
           browsers?.map(({ browser, count }) => ({
             value: browser,
             label: browser,
-            icon: (
-              <DeviceIcon
-                display={browser}
-                tab="browsers"
-                className="h-4 w-4"
-              />
-            ),
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
@@ -291,11 +322,13 @@ export default function Toggle() {
         key: "os",
         icon: Cube,
         label: "OS",
+        getOptionIcon: (value) => (
+          <DeviceIcon display={value} tab="os" className="h-4 w-4" />
+        ),
         options:
           os?.map(({ os, count }) => ({
             value: os,
             label: os,
-            icon: <DeviceIcon display={os} tab="os" className="h-4 w-4" />,
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
