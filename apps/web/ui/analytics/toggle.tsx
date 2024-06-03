@@ -1,3 +1,4 @@
+import { generateFilters } from "@/lib/ai/generate-filters";
 import {
   INTERVAL_DATA,
   INTERVAL_DISPLAYS,
@@ -47,7 +48,6 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
-import { generateFilters } from "./actions";
 import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
 import SharePopover from "./share-popover";
