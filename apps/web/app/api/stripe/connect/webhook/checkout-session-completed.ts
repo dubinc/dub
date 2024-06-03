@@ -16,18 +16,25 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return;
   }
 
-  // Update customer with stripe customerId
-  const customer = await prisma.customer.update({
-    where: {
-      projectConnectId_externalId: {
-        projectConnectId: stripeAccountId,
-        externalId: dubCustomerId,
+  let customer;
+  try {
+    // Update customer with stripe customerId if exists
+    customer = await prisma.customer.update({
+      where: {
+        projectConnectId_externalId: {
+          projectConnectId: stripeAccountId,
+          externalId: dubCustomerId,
+        },
       },
-    },
-    data: {
-      stripeCustomerId,
-    },
-  });
+      data: {
+        stripeCustomerId,
+      },
+    });
+  } catch (error) {
+    // Skip if customer not found
+    console.error(error);
+    return;
+  }
 
   if (invoiceId) {
     // Skip if invoice id is already processed
