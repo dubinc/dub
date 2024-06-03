@@ -1,17 +1,22 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import { type NextAuthOptions } from "next-auth";
+import { User, type NextAuthOptions } from "next-auth";
+import { AdapterUser } from "next-auth/adapters";
+import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
+import { dub } from "../dub";
 import { subscribe } from "../flodesk";
 import { isStored, storage } from "../storage";
+import { UserProps } from "../types";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -275,7 +280,15 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    jwt: async ({ token, user, trigger }) => {
+    jwt: async ({
+      token,
+      user,
+      trigger,
+    }: {
+      token: JWT;
+      user: User | AdapterUser | UserProps;
+      trigger?: "signIn" | "update" | "signUp";
+    }) => {
       if (user) {
         token.user = user;
       }
@@ -310,14 +323,20 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email },
           select: {
+            id: true,
             name: true,
+            email: true,
+            image: true,
             createdAt: true,
           },
         });
+        if (!user) {
+          return;
+        }
         // only send the welcome email if the user was created in the last 10s
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
-          user?.createdAt &&
+          user.createdAt &&
           new Date(user.createdAt).getTime() > Date.now() - 10000 &&
           process.env.NEXT_PUBLIC_IS_DUB
         ) {
@@ -333,6 +352,27 @@ export const authOptions: NextAuthOptions = {
               marketing: true,
             }),
           ]);
+        }
+
+        const clickId = cookies().get("dclid")?.value;
+        if (clickId) {
+          // send lead event to Dub
+          await dub.track.lead({
+            clickId,
+            eventName: "Sign Up",
+            customerId: user.id,
+            customerName: user.name,
+            customerEmail: user.email,
+            customerAvatar: user.image,
+          });
+          // delete the clickId cookie
+          cookies().set("dclid", "", {
+            expires: new Date(0),
+            path: "/",
+            domain: VERCEL_DEPLOYMENT
+              ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+              : undefined,
+          });
         }
       }
       // lazily backup user avatar to R2

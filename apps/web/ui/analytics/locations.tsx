@@ -1,79 +1,60 @@
-import { LocationTabs } from "@/lib/analytics";
-import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, fetcher } from "@dub/utils";
-import { Maximize } from "lucide-react";
-import { useContext, useState } from "react";
-import useSWR from "swr";
-import { AnalyticsContext } from ".";
+import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { useRouterStuff } from "@dub/ui";
+import { COUNTRIES } from "@dub/utils";
+import { useState } from "react";
+import { AnalyticsCard } from "./analytics-card";
+import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
-  const [tab, setTab] = useState<LocationTabs>("country");
-
-  const { baseApiPath, queryString } = useContext(AnalyticsContext);
-
-  const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
-    `${baseApiPath}/${tab}?${queryString}`,
-    fetcher,
-  );
-
   const { queryParams } = useRouterStuff();
-  const [showModal, setShowModal] = useState(false);
 
-  const barList = (limit?: number) => (
-    <BarList
-      tab={tab}
-      data={
-        data?.map((d) => ({
-          icon: (
-            <img
-              alt={d.country}
-              src={`https://flag.vercel.app/m/${d.country}.svg`}
-              className="h-3 w-5"
-            />
-          ),
-          title: tab === "country" ? COUNTRIES[d.country] : d.city,
-          href: queryParams({
-            set: {
-              [tab]: d[tab],
-            },
-            getNewPath: true,
-          }) as string,
-          clicks: d.clicks,
-        })) || []
-      }
-      maxClicks={data?.[0]?.clicks || 0}
-      barBackground="bg-orange-100"
-      setShowModal={setShowModal}
-      {...(limit && { limit })}
-    />
-  );
+  const [tab, setTab] = useState<"countries" | "cities">("countries");
+  const data = useAnalyticsFilterOption(tab);
+  const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
-    <>
-      <Modal
-        showModal={showModal}
-        setShowModal={setShowModal}
-        className="max-w-lg"
-      >
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-lg font-semibold">Locations</h1>
-        </div>
-        {barList()}
-      </Modal>
-      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
-        <div className="mb-3 flex justify-between">
-          <h1 className="text-lg font-semibold">Locations</h1>
-          <TabSelect
-            options={["country", "city"]}
-            selected={tab}
-            // @ts-ignore
-            selectAction={setTab}
-          />
-        </div>
-        {data ? (
+    <AnalyticsCard
+      tabs={[
+        { id: "countries", label: "Countries" },
+        { id: "cities", label: "Cities" },
+      ]}
+      selectedTabId={tab}
+      onSelectTab={setTab}
+      expandLimit={8}
+      hasMore={(data?.length ?? 0) > 8}
+    >
+      {({ limit, setShowModal }) =>
+        data ? (
           data.length > 0 ? (
-            barList(9)
+            <BarList
+              tab={singularTabName}
+              data={
+                data?.map((d) => ({
+                  icon: (
+                    <img
+                      alt={d.country}
+                      src={`https://flag.vercel.app/m/${d.country}.svg`}
+                      className="h-3 w-5"
+                    />
+                  ),
+                  title: tab === "countries" ? COUNTRIES[d.country] : d.city,
+                  href: queryParams({
+                    set: {
+                      [singularTabName]: d[singularTabName],
+                    },
+                    getNewPath: true,
+                  }) as string,
+                  value: d.count || 0,
+                })) || []
+              }
+              maxValue={(data && data[0]?.count) || 0}
+              barBackground="bg-blue-100"
+              hoverBackground="hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent hover:border-blue-500"
+              setShowModal={setShowModal}
+              {...(limit && { limit })}
+            />
           ) : (
             <div className="flex h-[300px] items-center justify-center">
               <p className="text-sm text-gray-600">No data available</p>
@@ -81,19 +62,10 @@ export default function Locations() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingSpinner />
+            <AnalyticsLoadingSpinner />
           </div>
-        )}
-        {data && data.length > 9 && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center space-x-2 rounded-md bg-gradient-to-b from-transparent to-white py-2 text-gray-500 transition-all hover:text-gray-800 active:scale-95"
-          >
-            <Maximize className="h-4 w-4" />
-            <p className="text-xs font-semibold uppercase">View all</p>
-          </button>
-        )}
-      </div>
-    </>
+        )
+      }
+    </AnalyticsCard>
   );
 }

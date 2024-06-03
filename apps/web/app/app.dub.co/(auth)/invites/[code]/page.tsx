@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { LoadingSpinner, Logo } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";

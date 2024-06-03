@@ -1,5 +1,5 @@
 import { hashToken, withAdmin } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
@@ -90,7 +90,7 @@ async function getImpersonateUrl(email: string) {
   await prisma.verificationToken.create({
     data: {
       identifier: email,
-      token: hashToken(token),
+      token: await hashToken(token, { secret: true }),
       expires: new Date(Date.now() + 60000),
     },
   });

@@ -1,11 +1,51 @@
-import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics";
+import {
+  EVENT_TYPES,
+  VALID_ANALYTICS_ENDPOINTS,
+  intervals,
+} from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { COUNTRY_CODES } from "@dub/utils";
+import { COUNTRY_CODES, capitalize } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
-export const getAnalyticsQuerySchema = z.object({
-  domain: z.string().optional().describe("The domain of the short link."),
+const analyticsEvents = z
+  .enum(EVENT_TYPES, {
+    errorMap: (_issue, _ctx) => {
+      return {
+        message:
+          "Invalid event type. Valid event types are: clicks, leads, sales",
+      };
+    },
+  })
+  .default("clicks")
+  .describe(
+    "The type of event to retrieve analytics for. Defaults to 'clicks'.",
+  );
+
+const analyticsGroupBy = z
+  .enum(VALID_ANALYTICS_ENDPOINTS, {
+    errorMap: (_issue, _ctx) => {
+      return {
+        message: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
+      };
+    },
+  })
+  .default("count")
+  .describe(
+    "The parameter to group the analytics data points by. Defaults to 'count' if undefined.",
+  );
+
+// For backwards compatibility
+export const analyticsPathParamsSchema = z.object({
+  eventType: analyticsEvents.removeDefault().optional(),
+  endpoint: analyticsGroupBy.removeDefault().optional(),
+});
+
+// Query schema for /api/analytics endpoint
+export const analyticsQuerySchema = z.object({
+  event: analyticsEvents,
+  groupBy: analyticsGroupBy,
+  domain: z.string().optional().describe("The domain to filter analytics for."),
   key: z.string().optional().describe("The short link slug."),
   linkId: z
     .string()
@@ -21,7 +61,7 @@ export const getAnalyticsQuerySchema = z.object({
     .enum(intervals)
     .optional()
     .describe(
-      "The interval to retrieve analytics for. Takes precedence over start and end.",
+      "The interval to retrieve analytics for. Takes precedence over start and end. If undefined, defaults to 24h.",
     ),
   start: parseDateSchema
     .refine(
@@ -36,33 +76,38 @@ export const getAnalyticsQuerySchema = z.object({
     .optional()
     .describe("The start date and time when to retrieve analytics from."),
   end: parseDateSchema
-    .refine(
-      (value: Date) => {
-        const todaysDate = new Date();
-        return value <= todaysDate;
-      },
-      {
-        message: "The end date cannot be in future.",
-      },
-    )
     .optional()
     .describe(
       "The end date and time when to retrieve analytics from. If not provided, defaults to the current date.",
     ),
+  timezone: z
+    .string()
+    .optional()
+    .describe(
+      "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
+    )
+    .openapi({ example: "America/New_York", default: "UTC" }),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
-    .describe("The country to retrieve analytics for."),
+    .describe("The country to retrieve analytics for.")
+    .openapi({ ref: "countryCode" }),
   city: z.string().optional().describe("The city to retrieve analytics for."),
   device: z
     .string()
     .optional()
+    .transform((v) => capitalize(v) as string | undefined)
     .describe("The device to retrieve analytics for."),
   browser: z
     .string()
     .optional()
+    .transform((v) => capitalize(v) as string | undefined)
     .describe("The browser to retrieve analytics for."),
-  os: z.string().optional().describe("The OS to retrieve analytics for."),
+  os: z
+    .string()
+    .optional()
+    .transform((v) => capitalize(v) as string | undefined)
+    .describe("The OS to retrieve analytics for."),
   referer: z
     .string()
     .optional()
@@ -84,71 +129,38 @@ export const getAnalyticsQuerySchema = z.object({
     ),
 });
 
-export const getAnalyticsEdgeQuerySchema = getAnalyticsQuerySchema.required({
-  domain: true,
-});
-
-export const analyticsEndpointSchema = z.object({
-  endpoint: z.enum(VALID_TINYBIRD_ENDPOINTS, {
-    errorMap: (_issue, _ctx) => {
-      return {
-        message: `Invalid endpoint. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
-      };
-    },
-  }),
-});
-
-// Analytics response schemas
-export const analyticsResponseSchema = {
-  timeseries: z.object({
-    start: z.string().describe("The starting timestamp of the interval"),
-    clicks: z.number().describe("The number of clicks in the interval"),
-  }),
-
-  country: z.object({
-    country: z
-      .enum(COUNTRY_CODES)
-      .describe("The 2-letter country code: https://d.to/geo"),
-    clicks: z.number().describe("The number of clicks from this country"),
-  }),
-
-  city: z.object({
-    city: z.string().describe("The name of the city"),
-    country: z
-      .enum(COUNTRY_CODES)
-      .describe("The 2-letter country code of the city: https://d.to/geo"),
-    clicks: z.number().describe("The number of clicks from this city"),
-  }),
-
-  device: z.object({
-    device: z.string().describe("The name of the device"),
-    clicks: z.number().describe("The number of clicks from this device"),
-  }),
-
-  browser: z.object({
-    browser: z.string().describe("The name of the browser"),
-    clicks: z.number().describe("The number of clicks from this browser"),
-  }),
-
-  os: z.object({
-    os: z.string().describe("The name of the OS"),
-    clicks: z.number().describe("The number of clicks from this OS"),
-  }),
-
-  referer: z.object({
-    referer: z
+// Analytics filter params for Tinybird endpoints
+export const analyticsFilterTB = z
+  .object({
+    eventType: analyticsEvents,
+    workspaceId: z
       .string()
-      .describe("The name of the referer. If unknown, this will be `(direct)`"),
-    clicks: z.number().describe("The number of clicks from this referer"),
-  }),
-
-  topLinks: z.object({
-    link: z.string().describe("The unique ID of the short link"),
-    clicks: z.number().describe("The number of clicks from this link"),
-  }),
-
-  topUrls: z.object({
-    url: z.string().describe("The destination URL"),
-    clicks: z.number().describe("The number of clicks from this URL"),
-  }),
-} as const;
+      .optional()
+      .transform((v) => {
+        if (v && !v.startsWith("ws_")) {
+          return `ws_${v}`;
+        } else {
+          return v;
+        }
+      }),
+    root: z.boolean().optional(),
+    qr: z.boolean().optional(),
+    start: z.string(),
+    end: z.string(),
+    granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
+    timezone: z.string().optional(),
+  })
+  .merge(
+    analyticsQuerySchema.pick({
+      browser: true,
+      city: true,
+      country: true,
+      device: true,
+      domain: true,
+      linkId: true,
+      os: true,
+      referer: true,
+      tagId: true,
+      url: true,
+    }),
+  );

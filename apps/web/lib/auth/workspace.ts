@@ -1,5 +1,10 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import prisma from "@/lib/prisma";
+import {
+  DubApiError,
+  exceededLimitError,
+  handleAndReturnErrorResponse,
+} from "@/lib/api/errors";
+import { prisma } from "@/lib/prisma";
+import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {
   API_DOMAIN,
@@ -9,9 +14,8 @@ import {
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { exceededLimitError } from "../api/errors";
-import { PlanProps, WorkspaceProps } from "../types";
-import { Session, getSession, hashToken } from "./utils";
+import { hashToken } from "./hash-token";
+import { Session, getSession } from "./utils";
 
 interface WithWorkspaceHandler {
   ({
@@ -67,7 +71,7 @@ export const withWorkspace = (
 ) => {
   return async (
     req: Request,
-    { params }: { params: Record<string, string> | undefined },
+    { params = {} }: { params: Record<string, string> | undefined },
   ) => {
     const searchParams = getSearchParams(req.url);
 
@@ -112,7 +116,7 @@ export const withWorkspace = (
           // @ts-expect-error
           return await handler({
             req,
-            params: params || {},
+            params,
             searchParams,
             headers,
           });
@@ -132,9 +136,7 @@ export const withWorkspace = (
       }
 
       if (apiKey) {
-        const hashedKey = hashToken(apiKey, {
-          noSecret: true,
-        });
+        const hashedKey = await hashToken(apiKey);
 
         const user = await prisma.user.findFirst({
           where: {
@@ -417,7 +419,7 @@ export const withWorkspace = (
 
       return await handler({
         req,
-        params: params || {},
+        params,
         searchParams,
         headers,
         session,

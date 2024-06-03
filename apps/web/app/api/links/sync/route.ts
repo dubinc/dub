@@ -1,7 +1,7 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { propagateBulkLinkChanges } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { SimpleLinkProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 

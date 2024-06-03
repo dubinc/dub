@@ -1,5 +1,5 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import {
@@ -109,6 +109,14 @@ export async function deleteWorkspace(
         prisma.project.delete({
           where: {
             slug: workspace.slug,
+          },
+        }),
+        prisma.user.updateMany({
+          where: {
+            defaultWorkspace: workspace.slug,
+          },
+          data: {
+            defaultWorkspace: null,
           },
         }),
       ]);

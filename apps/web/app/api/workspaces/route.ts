@@ -6,8 +6,11 @@ import {
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
-import prisma from "@/lib/prisma";
-import { WorkspaceSchema, createWorkspaceSchema } from "@/lib/zod/schemas";
+import { prisma } from "@/lib/prisma";
+import {
+  WorkspaceSchema,
+  createWorkspaceSchema,
+} from "@/lib/zod/schemas/workspaces";
 import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -146,9 +149,19 @@ export const POST = withSession(async ({ req, session }) => {
     },
   });
 
-  if (domain) {
-    waitUntil(
-      (async () => {
+  waitUntil(
+    (async () => {
+      if (session.user["defaultWorkspace"] === null) {
+        await prisma.user.update({
+          where: {
+            id: session.user.id,
+          },
+          data: {
+            defaultWorkspace: projectResponse.slug,
+          },
+        });
+      }
+      if (domain) {
         const domainRepsonse = await addDomainToVercel(domain);
         if (domainRepsonse.error) {
           await prisma.domain.delete({
@@ -165,9 +178,9 @@ export const POST = withSession(async ({ req, session }) => {
             projectId: projectResponse.id,
           });
         }
-      })(),
-    );
-  }
+      }
+    })(),
+  );
 
   const response = {
     ...projectResponse,

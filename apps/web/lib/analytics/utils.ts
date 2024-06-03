@@ -1,6 +1,23 @@
 import { getDaysDifference } from "@dub/utils";
 import { DubApiError } from "../api/errors";
 
+export const editQueryString = (
+  queryString: string,
+  data: Record<string, string>,
+  del?: string | string[],
+) => {
+  const searchParams = new URLSearchParams(queryString);
+
+  for (const key in data) {
+    searchParams.set(key, data[key]);
+  }
+
+  if (del)
+    (Array.isArray(del) ? del : [del]).forEach((d) => searchParams.delete(d));
+
+  return searchParams.toString();
+};
+
 export const validDateRangeForPlan = ({
   plan,
   interval,
@@ -22,8 +39,8 @@ export const validDateRangeForPlan = ({
       interval === "1y" ||
       interval === "ytd" ||
       (start &&
-        (getDaysDifference(start, new Date(Date.now())) > 30 ||
-          getDaysDifference(start, end || new Date(Date.now())) > 30)))
+        (getDaysDifference(start, new Date(Date.now())) > 31 ||
+          getDaysDifference(start, end || new Date(Date.now())) > 31)))
   ) {
     if (throwError) {
       throw new DubApiError({
@@ -41,8 +58,8 @@ export const validDateRangeForPlan = ({
     plan === "pro" &&
     (interval === "all" ||
       (start &&
-        (getDaysDifference(start, new Date(Date.now())) > 365 ||
-          getDaysDifference(start, end || new Date(Date.now())) > 365)))
+        (getDaysDifference(start, new Date(Date.now())) > 366 ||
+          getDaysDifference(start, end || new Date(Date.now())) > 366)))
   ) {
     if (throwError) {
       throw new DubApiError({

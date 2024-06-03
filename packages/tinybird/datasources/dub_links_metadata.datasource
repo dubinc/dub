@@ -1,3 +1,4 @@
+
 SCHEMA >
     `timestamp` DateTime `json:$.timestamp` DEFAULT now(),
     `link_id` String `json:$.link_id`,
@@ -10,4 +11,5 @@ SCHEMA >
     `deleted` UInt8 `json:$.deleted`
 
 ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(timestamp)"
 ENGINE_SORTING_KEY "timestamp, link_id, workspace_id"

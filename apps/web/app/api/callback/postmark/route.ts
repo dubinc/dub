@@ -1,5 +1,5 @@
 import { unsubscribe } from "@/lib/flodesk";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 

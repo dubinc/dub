@@ -5,6 +5,7 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   id: expect.any(String),
   key: expect.any(String),
   domain: "dub.sh",
+  trackConversion: false,
   archived: false,
   expiresAt: null,
   password: null,
@@ -24,6 +25,8 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   publicStats: false,
   clicks: 0,
   lastClicked: null,
+  leads: 0,
+  sales: 0,
   tagId: null, // backwards compatibility
   comments: null,
   createdAt: expect.any(String),

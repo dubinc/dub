@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
-import { isReservedKey } from "@/lib/edge-config";
-import prisma from "@/lib/prisma";
+import { isBetaTester, isReservedKey } from "@/lib/edge-config";
+import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
-import { WorkspaceSchema } from "@/lib/zod/schemas";
+import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { DEFAULT_REDIRECTS, trim, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { NextResponse } from "next/server";
@@ -34,17 +34,20 @@ const updateWorkspaceSchema = z.object({
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(async ({ workspace, headers }) => {
+  const betaTester = await isBetaTester(workspace.id);
+
   return NextResponse.json(
     WorkspaceSchema.parse({
       ...workspace,
       id: `ws_${workspace.id}`,
+      betaTester,
     }),
     { headers },
   );
 });
 
-// PUT /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
-export const PUT = withWorkspace(
+// PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
+export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     try {
       const { name, slug } = await updateWorkspaceSchema.parseAsync(
@@ -60,6 +63,18 @@ export const PUT = withWorkspace(
           ...(slug && { slug }),
         },
       });
+
+      if (slug !== workspace.slug) {
+        await prisma.user.updateMany({
+          where: {
+            defaultWorkspace: workspace.slug,
+          },
+          data: {
+            defaultWorkspace: slug,
+          },
+        });
+      }
+
       return NextResponse.json(response);
     } catch (error) {
       if (error.code === "P2002") {
@@ -76,6 +91,8 @@ export const PUT = withWorkspace(
     requiredRole: ["owner"],
   },
 );
+
+export const PUT = PATCH;
 
 // DELETE /api/workspaces/[idOrSlug] – delete a specific project
 export const DELETE = withWorkspace(

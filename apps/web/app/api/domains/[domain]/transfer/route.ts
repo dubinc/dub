@@ -1,10 +1,13 @@
-import { getAnalytics } from "@/lib/analytics";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { setRootDomain } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import prisma from "@/lib/prisma";
-import { DomainSchema, transferDomainBodySchema } from "@/lib/zod/schemas";
+import { prisma } from "@/lib/prisma";
+import {
+  DomainSchema,
+  transferDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -88,10 +91,11 @@ export const POST = withWorkspace(
       });
     }
 
-    const totalLinkClicks = await getAnalytics({
+    const { clicks: totalLinkClicks } = await getAnalytics({
       domain,
+      event: "clicks",
+      groupBy: "count",
       workspaceId: workspace.id,
-      endpoint: "clicks",
       interval: "30d",
       root: false,
     });

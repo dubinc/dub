@@ -6,7 +6,7 @@ import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
-} from "@/lib/zod/schemas";
+} from "@/lib/zod/schemas/links";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
 

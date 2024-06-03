@@ -9,7 +9,7 @@ export default function NoLinksPlaceholder({
         No links found.
       </h2>
       <img
-        src="/_static/illustrations/call-waiting.svg"
+        src="/_static/illustrations/cat-shot.svg"
         alt="No links yet"
         width={400}
         height={400}

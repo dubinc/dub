@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { validDomainRegex } from "@dub/utils";
 
 export const validateDomain = async (domain: string) => {

@@ -1,9 +1,9 @@
+import { prisma } from "@/lib/prisma";
 import { Client, Receiver } from "@upstash/qstash";
 import Bottleneck from "bottleneck";
 import { sendEmail } from "emails";
 import ClicksExceeded from "emails/clicks-exceeded";
 import LinksLimitAlert from "emails/links-limit";
-import prisma from "./prisma";
 import { WorkspaceProps } from "./types";
 
 export const limiter = new Bottleneck({
