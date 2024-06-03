@@ -51,9 +51,7 @@ export function FilterList({
                 );
               }
 
-              const option = filter.options?.find(
-                (o) => o.value.toLowerCase() === value.toLowerCase(),
-              );
+              const option = filter.options?.find((o) => o.value === value);
 
               return (
                 <motion.div

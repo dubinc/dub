@@ -123,6 +123,7 @@ export default function Toggle() {
               key: "ai",
               icon: Magic,
               label: "Ask AI",
+              separatorAfter: true,
               options: [
                 {
                   value: "QR code scans in the last 30 days, US only",
@@ -435,7 +436,7 @@ export default function Toggle() {
                 <DateRangePicker
                   className="w-full sm:min-w-[200px]"
                   align="end"
-                  defaultValue={
+                  value={
                     start && end
                       ? {
                           from: start,
@@ -443,9 +444,7 @@ export default function Toggle() {
                         }
                       : undefined
                   }
-                  defaultPresetId={
-                    !start || !end ? interval ?? "24h" : undefined
-                  }
+                  presetId={!start || !end ? interval ?? "24h" : undefined}
                   onChange={(range, preset) => {
                     if (preset) {
                       queryParams({

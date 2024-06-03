@@ -139,18 +139,23 @@ export function FilterSelect({
             />
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
               {!selectedFilter ? (
-                <Command.List className="flex w-full min-w-[180px] flex-col gap-1 p-2">
+                <Command.List className="flex w-full min-w-[180px] flex-col gap-1 p-1">
                   {filters.map((filter) => (
-                    <FilterButton
-                      {...filter}
-                      key={filter.key}
-                      onSelect={() => openFilter(filter.key)}
-                    />
+                    <>
+                      <FilterButton
+                        {...filter}
+                        key={filter.key}
+                        onSelect={() => openFilter(filter.key)}
+                      />
+                      {filter.separatorAfter && (
+                        <Command.Separator className="-mx-1 my-1 border-b border-gray-200" />
+                      )}
+                    </>
                   ))}
                   <CommandEmpty search={search} askAI={askAI} />
                 </Command.List>
               ) : (
-                <Command.List className="flex w-full min-w-[100px] flex-col gap-1 p-2">
+                <Command.List className="flex w-full min-w-[100px] flex-col gap-1 p-1">
                   {selectedFilter.options ? (
                     <>
                       {selectedFilter.options?.map((option) => {
@@ -179,7 +184,7 @@ export function FilterSelect({
                   ) : (
                     <Command.Loading>
                       <div
-                        className="-m-2 flex items-center justify-center"
+                        className="-m-1 flex items-center justify-center"
                         style={mainListDimensions.current}
                       >
                         <LoadingSpinner />
