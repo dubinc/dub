@@ -13,13 +13,13 @@ export async function customerCreated(event: Stripe.Event) {
 
   // The client app should always send dclid via metadata
   if (!clickId) {
-    return;
+    return "Click ID not found in Stripe customer metadata, skipping...";
   }
 
   // Find click
   const clickEvent = await getClickEvent({ clickId });
   if (!clickEvent || clickEvent.data.length === 0) {
-    return;
+    return `Click event with ID ${clickId} not found, skipping...`;
   }
 
   // Check the customer is not already created
@@ -32,11 +32,7 @@ export async function customerCreated(event: Stripe.Event) {
   });
 
   if (customerFound) {
-    console.info(
-      "[Stripe Webhook] Found existing customer with externalId",
-      externalId,
-    );
-    return;
+    return `Customer with external ID ${externalId} already exists, skipping...`;
   }
 
   // Create customer
@@ -91,4 +87,6 @@ export async function customerCreated(event: Stripe.Event) {
       },
     }),
   ]);
+
+  return `Customer created: ${customer.id}`;
 }
