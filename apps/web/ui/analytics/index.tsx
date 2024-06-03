@@ -187,7 +187,7 @@ export default function Analytics({
           ));
           setRequiresUpgrade(true);
         } else {
-          toast.error(error.message);
+          toast.error(JSON.parse(error.message)?.error.message);
         }
       },
       onErrorRetry: (error, ...args) => {
