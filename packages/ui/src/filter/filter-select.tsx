@@ -92,8 +92,6 @@ export function FilterSelect({
         value
           ? onRemove(selectedFilter.key)
           : onSelect(selectedFilter.key, value);
-      } else if (askAI) {
-        onSelect("ai", value);
       }
 
       setIsOpen(false);
@@ -133,8 +131,16 @@ export function FilterSelect({
               emptySubmit={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log({ search });
-                selectOption(search);
+                if (askAI) {
+                  onSelect(
+                    "ai",
+                    // Prepend search with selected filter label for more context
+                    selectedFilter
+                      ? `${selectedFilter.label} ${search}`
+                      : search,
+                  );
+                  setIsOpen(false);
+                } else selectOption(search);
               }}
             />
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
