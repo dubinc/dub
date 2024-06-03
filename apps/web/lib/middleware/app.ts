@@ -5,7 +5,7 @@ import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
-  const { path, fullPath } = parse(req);
+  const { path, fullPath, searchParamsString } = parse(req);
   const user = await getUserViaToken(req);
 
   // if there's no user and the path isn't /login or /register, redirect to /login
@@ -44,7 +44,7 @@ export default async function AppMiddleware(req: NextRequest) {
 
       if (defaultWorkspace) {
         return NextResponse.redirect(
-          new URL(`/${defaultWorkspace}${fullPath}`, req.url),
+          new URL(`/${defaultWorkspace}${searchParamsString}`, req.url),
         );
       } else {
         return NextResponse.redirect(new URL("/workspaces", req.url));
