@@ -87,13 +87,13 @@ export function FilterSelect({
 
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
-      if (askAI) {
-        onSelect("ai", value);
-      } else if (selectedFilter) {
+      if (selectedFilter) {
         activeFilters?.find(({ key }) => key === selectedFilterKey)?.value ===
         value
           ? onRemove(selectedFilter.key)
           : onSelect(selectedFilter.key, value);
+      } else if (askAI) {
+        onSelect("ai", value);
       }
 
       setIsOpen(false);
