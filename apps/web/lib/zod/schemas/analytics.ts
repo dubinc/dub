@@ -4,7 +4,7 @@ import {
   intervals,
 } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { COUNTRY_CODES } from "@dub/utils";
+import { COUNTRY_CODES, capitalize } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
@@ -96,12 +96,18 @@ export const analyticsQuerySchema = z.object({
   device: z
     .string()
     .optional()
+    .transform((v) => capitalize(v) as string | undefined)
     .describe("The device to retrieve analytics for."),
   browser: z
     .string()
     .optional()
+    .transform((v) => capitalize(v) as string | undefined)
     .describe("The browser to retrieve analytics for."),
-  os: z.string().optional().describe("The OS to retrieve analytics for."),
+  os: z
+    .string()
+    .optional()
+    .transform((v) => capitalize(v) as string | undefined)
+    .describe("The OS to retrieve analytics for."),
   referer: z
     .string()
     .optional()

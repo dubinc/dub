@@ -1,3 +1,4 @@
+import { generateFilters } from "@/lib/ai/generate-filters";
 import {
   INTERVAL_DATA,
   INTERVAL_DISPLAYS,
@@ -24,6 +25,7 @@ import {
   FlagWavy,
   Globe,
   Hyperlink,
+  Magic,
   MobilePhone,
   OfficeBuilding,
   QRCode,
@@ -41,6 +43,7 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
+import { readStreamableValue } from "ai/rsc";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
@@ -109,11 +112,31 @@ export default function Toggle() {
     enabled: isEnabled("os"),
   });
 
+  const [streaming, setStreaming] = useState<boolean>(false);
+
   const filters = useMemo(
     () => [
       ...(isPublicStatsPage
         ? []
         : [
+            {
+              key: "ai",
+              icon: Magic,
+              label: "Ask AI",
+              separatorAfter: true,
+              options: [
+                {
+                  value: "QR code scans in the last 30 days, US only",
+                  label: "QR code scans in the last 30 days, US only",
+                  icon: <QRCode className="h-4 w-4" />,
+                },
+                {
+                  value: "Canadian Desktop users in the last 90 days",
+                  label: "Canadian Desktop users in the last 90 days",
+                  icon: <Window className="h-4 w-4" />,
+                },
+              ],
+            },
             {
               key: "domain",
               icon: Globe,
@@ -362,19 +385,36 @@ export default function Toggle() {
                 className="w-full"
                 filters={filters}
                 activeFilters={activeFilters}
-                onSelect={(key, value) =>
-                  queryParams({
-                    set:
-                      key === "link"
-                        ? {
-                            domain: new URL(value).hostname,
-                            key: new URL(value).pathname.slice(1) || "_root",
-                          }
-                        : {
-                            [key]: value,
+                onSelect={async (key, value) => {
+                  if (key === "ai") {
+                    setStreaming(true);
+                    const { object } = await generateFilters(value);
+                    for await (const partialObject of readStreamableValue(
+                      object,
+                    )) {
+                      if (partialObject) {
+                        queryParams({
+                          set: {
+                            ...partialObject,
                           },
-                  })
-                }
+                        });
+                      }
+                    }
+                    setStreaming(false);
+                  } else {
+                    queryParams({
+                      set:
+                        key === "link"
+                          ? {
+                              domain: new URL(value).hostname,
+                              key: new URL(value).pathname.slice(1) || "_root",
+                            }
+                          : {
+                              [key]: value,
+                            },
+                    });
+                  }
+                }}
                 onRemove={(key) =>
                   queryParams({
                     del: key === "link" ? ["domain", "key"] : key,
@@ -385,6 +425,7 @@ export default function Toggle() {
                     rf.includes(key) ? rf : [...rf, key],
                   )
                 }
+                askAI
               />
               <div
                 className={cn("flex w-full items-center gap-2", {
@@ -395,7 +436,7 @@ export default function Toggle() {
                 <DateRangePicker
                   className="w-full sm:min-w-[200px]"
                   align="end"
-                  defaultValue={
+                  value={
                     start && end
                       ? {
                           from: start,
@@ -403,9 +444,7 @@ export default function Toggle() {
                         }
                       : undefined
                   }
-                  defaultPresetId={
-                    !start || !end ? interval ?? "24h" : undefined
-                  }
+                  presetId={!start || !end ? interval ?? "24h" : undefined}
                   onChange={(range, preset) => {
                     if (preset) {
                       queryParams({
@@ -470,7 +509,15 @@ export default function Toggle() {
       <div className="mx-auto w-full max-w-screen-xl px-2.5 lg:px-20">
         <Filter.List
           filters={filters}
-          activeFilters={activeFilters}
+          activeFilters={[
+            ...activeFilters,
+            ...(streaming && !activeFilters.length
+              ? Array.from({ length: 2 }, (_, i) => i).map((i) => ({
+                  key: "loader",
+                  value: i,
+                }))
+              : []),
+          ]}
           onRemove={(key) =>
             queryParams({
               del: key === "link" ? ["domain", "key"] : key,
@@ -478,14 +525,17 @@ export default function Toggle() {
           }
           onRemoveAll={() =>
             queryParams({
-              del: ["domain", "key", ...VALID_ANALYTICS_FILTERS],
+              // Reset all filters except for date range
+              del: VALID_ANALYTICS_FILTERS.filter(
+                (f) => !["interval", "start", "end"].includes(f),
+              ),
             })
           }
         />
         <div
           className={cn(
             "transition-[height] duration-[300ms]",
-            activeFilters.length ? "h-6" : "h-0",
+            streaming || activeFilters.length ? "h-6" : "h-0",
           )}
         />
       </div>

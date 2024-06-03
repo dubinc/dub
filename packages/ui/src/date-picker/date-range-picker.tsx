@@ -12,15 +12,16 @@ import { DateRange, DateRangePreset, PickerProps } from "./types";
 
 type RangeDatePickerProps = {
   presets?: DateRangePreset[];
-  defaultPresetId?: DateRangePreset["id"];
+  presetId?: DateRangePreset["id"];
   defaultValue?: DateRange;
   value?: DateRange;
   onChange?: (dateRange?: DateRange, preset?: DateRangePreset) => void;
 } & PickerProps;
 
 const DateRangePickerInner = ({
+  value,
   defaultValue,
-  defaultPresetId,
+  presetId,
   onChange,
   presets,
   disabled,
@@ -36,20 +37,14 @@ const DateRangePickerInner = ({
 }: RangeDatePickerProps) => {
   const { isDesktop } = useMediaQuery();
 
-  const defaultPreset = useMemo(
-    () =>
-      presets && defaultPresetId
-        ? presets?.find(({ id }) => id === defaultPresetId)
-        : undefined,
-    [presets, defaultPresetId],
-  );
-
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useState<DateRangePreset | undefined>(
-    defaultPreset,
+    presets && presetId
+      ? presets?.find(({ id }) => id === presetId)
+      : undefined,
   );
   const [range, setRange] = useState<DateRange | undefined>(
-    defaultPreset?.dateRange ?? defaultValue ?? undefined,
+    preset?.dateRange ?? value ?? defaultValue ?? undefined,
   );
   const [month, setMonth] = useState<Date | undefined>(range?.from);
 
@@ -57,6 +52,18 @@ const DateRangePickerInner = ({
     return range;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Update internal state when value prop changes
+  useEffect(() => {
+    setRange(value);
+  }, [value]);
+
+  // Update internal state when preset props change
+  useEffect(() => {
+    const p = presets?.find(({ id }) => id === presetId);
+    setPreset(p);
+    setRange(p?.dateRange ?? value ?? defaultValue);
+  }, [presets, presetId]);
 
   useEffect(() => {
     if (!open) setMonth(range?.from);

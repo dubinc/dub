@@ -5,6 +5,7 @@ export type Filter = {
   key: string;
   icon: LucideIcon | ReactNode | ComponentType<SVGProps<SVGSVGElement>>;
   label: string;
+  separatorAfter?: boolean;
   options: FilterOption[] | null;
 };
 
