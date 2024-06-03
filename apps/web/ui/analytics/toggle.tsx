@@ -168,9 +168,9 @@ export default function Toggle() {
               key: "link",
               icon: Hyperlink,
               label: "Link",
-              getOptionIcon: (value, { option }) => {
+              getOptionIcon: (value, props) => {
                 const url =
-                  option?.data?.url ??
+                  props.option?.data?.url ??
                   allLinks?.find(
                     ({ domain, key }) =>
                       value.includes(key) &&
@@ -203,9 +203,9 @@ export default function Toggle() {
               key: "tagId",
               icon: Tag,
               label: "Tag",
-              getOptionIcon: (value, { option }) => {
+              getOptionIcon: (value, props) => {
                 const tagColor =
-                  option?.data?.color ??
+                  props.option?.data?.color ??
                   tags?.find(({ id }) => id === value)?.color;
                 return tagColor ? (
                   <div
