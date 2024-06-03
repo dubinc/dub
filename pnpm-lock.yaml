@@ -46,6 +46,9 @@ importers:
       '@chronark/zod-bird':
         specifier: ^0.3.9
         version: 0.3.9
+      '@dub/analytics':
+        specifier: ^0.0.11
+        version: 0.0.11
       '@dub/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
@@ -2912,6 +2915,12 @@ packages:
     resolution: {integrity: sha512-5+W0KUBDZKWl86OFgKZJ9/pLRg1jbhAEPKDIKBJUEAAJblwRU3FBrnkcEAqW4/JfPBFiiEC5wxG16A8UzgphAQ==}
     dependencies:
       zod: 3.22.4
+    dev: false
+
+  /@dub/analytics@0.0.11:
+    resolution: {integrity: sha512-Cn4DfDUqYW50tiVKsVJHVf+lNCImY5qcKD7L033Ar1er1al7gL38pf4PE//axN424Hr1T0Yyh0cADdb7sRZ7Qg==}
+    dependencies:
+      server-only: 0.0.1
     dev: false
 
   /@emnapi/runtime@1.1.1:
@@ -17416,6 +17425,10 @@ packages:
       send: 0.18.0
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /server-only@0.0.1:
+    resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
     dev: false
 
   /set-blocking@2.0.0:
