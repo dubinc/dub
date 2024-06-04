@@ -12,9 +12,11 @@
     "generate-openapi": "tsx ./scripts/generate-openapi.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^0.0.17",
     "@anthropic-ai/sdk": "^0.20.4",
     "@boxyhq/saml-jackson": "1.23.9",
     "@chronark/zod-bird": "^0.3.9",
+    "@dub/analytics": "^0.0.11",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
@@ -49,7 +51,7 @@
     "@visx/shape": "^2.12.2",
     "@visx/text": "^3.3.0",
     "@visx/tooltip": "^2.16.0",
-    "ai": "^3.0.22",
+    "ai": "^3.1.22",
     "aws4fetch": "^1.0.18",
     "bottleneck": "^2.19.5",
     "cmdk": "^0.2.0",
@@ -57,6 +59,7 @@
     "concurrently": "^8.0.1",
     "d3-array": "^3.2.4",
     "date-fns": "^3.6.0",
+    "dub": "^0.29.14",
     "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",
     "github-slugger": "^2.0.0",

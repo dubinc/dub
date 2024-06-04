@@ -7,32 +7,33 @@ import type Stripe from "stripe";
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Checkout.Session;
-  const externalId = charge.metadata?.dubCustomerId;
+  const dubCustomerId = charge.metadata?.dubCustomerId;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = charge.customer as string;
   const invoiceId = charge.invoice as string;
 
-  if (!externalId) {
-    return;
+  if (!dubCustomerId) {
+    return "Customer ID not found in Stripe checkout session metadata, skipping...";
   }
 
-  // Update customer with stripe customerId
-  const customer = await prisma.customer.update({
-    where: {
-      projectConnectId_externalId: {
-        projectConnectId: stripeAccountId,
-        externalId,
+  let customer;
+  try {
+    // Update customer with stripe customerId if exists
+    customer = await prisma.customer.update({
+      where: {
+        projectConnectId_externalId: {
+          projectConnectId: stripeAccountId,
+          externalId: dubCustomerId,
+        },
       },
-    },
-    data: {
-      stripeCustomerId,
-    },
-  });
-
-  // Find lead
-  const leadEvent = await getLeadEvent({ customerId: customer.id });
-  if (!leadEvent || leadEvent.data.length === 0) {
-    return;
+      data: {
+        stripeCustomerId,
+      },
+    });
+  } catch (error) {
+    // Skip if customer not found
+    console.error(error);
+    return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
   }
 
   if (invoiceId) {
@@ -47,8 +48,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         "[Stripe Webhook] Skipping already processed invoice.",
         invoiceId,
       );
-      return;
+      return `Invoice with ID ${invoiceId} already processed, skipping...`;
     }
+  }
+
+  // Find lead
+  const leadEvent = await getLeadEvent({ customerId: customer.id });
+  if (!leadEvent || leadEvent.data.length === 0) {
+    return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
   await Promise.all([
@@ -75,4 +82,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
     }),
   ]);
+
+  return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId}`;
 }

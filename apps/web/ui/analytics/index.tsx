@@ -155,6 +155,7 @@ export default function Analytics({
       {},
     );
     return new URLSearchParams({
+      ...availableFilterParams,
       ...(workspaceId && { workspaceId }),
       ...(domain && { domain }),
       ...(key && { key }),
@@ -162,7 +163,6 @@ export default function Analytics({
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
       ...(tagId && { tagId }),
-      ...availableFilterParams,
       event: selectedTab,
     }).toString();
   }, [workspaceId, domain, key, searchParams, start, end, tagId, selectedTab]);
@@ -189,7 +189,7 @@ export default function Analytics({
           ));
           setRequiresUpgrade(true);
         } else {
-          toast.error(error.message);
+          toast.error(JSON.parse(error.message)?.error.message);
         }
       },
       onErrorRetry: (error, ...args) => {
