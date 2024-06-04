@@ -164,6 +164,11 @@ export const DUB_DOMAINS_ARRAY = DUB_DOMAINS.map((domain) => domain.slug);
 export const DUB_DEMO_LINKS = [
   {
     id: "clqo10sum0006js08vutzfxt3",
+    domain: "d.to",
+    key: "try",
+  },
+  {
+    id: "cltshzzpd0005126z3rd2lvo4",
     domain: "dub.sh",
     key: "try",
   },

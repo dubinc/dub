@@ -37,6 +37,7 @@ import {
 import {
   APP_DOMAIN,
   COUNTRIES,
+  DUB_DEMO_LINKS,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
   capitalize,
@@ -575,7 +576,11 @@ export default function Toggle() {
                     const end = new Date();
 
                     const requiresUpgrade =
-                      admin || demo
+                      admin ||
+                      demo ||
+                      DUB_DEMO_LINKS.find(
+                        (l) => l.domain === domain && l.key === key,
+                      )
                         ? false
                         : !validDateRangeForPlan({
                             plan,
