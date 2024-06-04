@@ -49,7 +49,7 @@ export async function inviteUser({
   });
 
   const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}`,
+    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}?invite=true`,
     email,
     token,
   });
