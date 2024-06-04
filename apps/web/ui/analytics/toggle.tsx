@@ -30,6 +30,7 @@ import {
   MobilePhone,
   OfficeBuilding,
   QRCode,
+  ReferredVia,
   Tag,
   Window,
 } from "@dub/ui/src/icons";
@@ -38,6 +39,7 @@ import {
   COUNTRIES,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
+  capitalize,
   cn,
   getApexDomain,
   getNextPlan,
@@ -58,6 +60,7 @@ import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
 import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
+import RefererIcon from "./referer-icon";
 import SharePopover from "./share-popover";
 import { useAnalyticsFilterOption } from "./utils";
 
@@ -72,14 +75,24 @@ export default function Toggle() {
   const scrolled = useScroll(80);
 
   const { tags } = useTags();
-  const { allDomains: domains } = useDomains();
+  const { allDomains: domains, primaryDomain } = useDomains();
   const { links: allLinks } = useLinks();
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
   const activeFilters = useMemo(() => {
-    const { domain, tagId, qr, country, city, device, browser, os, key } =
-      searchParamsObj;
+    const {
+      domain,
+      key,
+      tagId,
+      qr,
+      country,
+      city,
+      device,
+      browser,
+      os,
+      referer,
+    } = searchParamsObj;
     return [
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
       ...(domain && key
@@ -92,10 +105,11 @@ export default function Toggle() {
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
+      ...(referer ? [{ key: "referer", value: referer }] : []),
     ];
   }, [searchParamsObj]);
 
-  const isEnabled = useCallback(
+  const isRequested = useCallback(
     (key: string) =>
       requestedFilters.includes(key) ||
       activeFilters.some((af) => af.key === key),
@@ -103,49 +117,77 @@ export default function Toggle() {
   );
 
   const links = useAnalyticsFilterOption("top_links", {
-    enabled: isEnabled("link"),
+    cacheOnly: !isRequested("link"),
   });
   const countries = useAnalyticsFilterOption("countries", {
-    enabled: isEnabled("country"),
+    cacheOnly: !isRequested("country"),
   });
   const cities = useAnalyticsFilterOption("cities", {
-    enabled: isEnabled("city"),
+    cacheOnly: !isRequested("city"),
   });
   const devices = useAnalyticsFilterOption("devices", {
-    enabled: isEnabled("device"),
+    cacheOnly: !isRequested("device"),
   });
   const browsers = useAnalyticsFilterOption("browsers", {
-    enabled: isEnabled("browser"),
+    cacheOnly: !isRequested("browser"),
   });
   const os = useAnalyticsFilterOption("os", {
-    enabled: isEnabled("os"),
+    cacheOnly: !isRequested("os"),
+  });
+  const referers = useAnalyticsFilterOption("referers", {
+    cacheOnly: !isRequested("referers"),
   });
 
-  const [streaming, setStreaming] = useState<boolean>(false);
-
-  const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
+  // Some suggestions will only appear if previously requested (see isRequested above)
+  const aiFilterSuggestions = useMemo(
     () => [
       ...(isPublicStatsPage
         ? []
         : [
             {
-              key: "ai",
-              icon: Magic,
-              label: "Ask AI",
-              separatorAfter: true,
-              options: [
-                {
-                  value: "QR code scans in the last 30 days, US only",
-                  label: "QR code scans in the last 30 days, US only",
-                  icon: <QRCode className="h-4 w-4" />,
-                },
-                {
-                  value: "Canadian Desktop users in the last 90 days",
-                  label: "Canadian Desktop users in the last 90 days",
-                  icon: <Window className="h-4 w-4" />,
-                },
-              ],
+              value: `Clicks on ${primaryDomain} domain this year`,
+              icon: Globe,
             },
+          ]),
+      {
+        value: "Mobile users, US only",
+        icon: MobilePhone,
+      },
+      {
+        value: "Tokyo, Chrome users",
+        icon: OfficeBuilding,
+      },
+      {
+        value: "Safari, Singapore, last month",
+        icon: FlagWavy,
+      },
+      {
+        value: "QR scans last quarter",
+        icon: QRCode,
+      },
+    ],
+    [primaryDomain, isPublicStatsPage],
+  );
+
+  const [streaming, setStreaming] = useState<boolean>(false);
+
+  const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
+    () => [
+      {
+        key: "ai",
+        icon: Magic,
+        label: "Ask AI",
+        separatorAfter: true,
+        options:
+          aiFilterSuggestions?.map(({ icon, value }) => ({
+            value,
+            label: value,
+            icon,
+          })) ?? null,
+      },
+      ...(isPublicStatsPage
+        ? []
+        : [
             {
               key: "domain",
               icon: Globe,
@@ -253,6 +295,7 @@ export default function Toggle() {
             icon: QRCode,
           },
         ],
+        separatorAfter: !isPublicStatsPage,
       },
       {
         key: "country",
@@ -296,7 +339,11 @@ export default function Toggle() {
         icon: MobilePhone,
         label: "Device",
         getOptionIcon: (value) => (
-          <DeviceIcon display={value} tab="devices" className="h-4 w-4" />
+          <DeviceIcon
+            display={capitalize(value) ?? value}
+            tab="devices"
+            className="h-4 w-4"
+          />
         ),
         options:
           devices?.map(({ device, count }) => ({
@@ -333,10 +380,25 @@ export default function Toggle() {
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
+      {
+        key: "referer",
+        icon: ReferredVia,
+        label: "Referer",
+        getOptionIcon: (value, props) => (
+          <RefererIcon display={value} className="h-4 w-4" />
+        ),
+        options:
+          referers?.map(({ referer, count }) => ({
+            value: referer,
+            label: referer,
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
     ],
     [
       isPublicStatsPage,
       domains,
+      allLinks,
       links,
       tags,
       countries,
@@ -344,6 +406,7 @@ export default function Toggle() {
       devices,
       browsers,
       os,
+      referers,
     ],
   );
 
