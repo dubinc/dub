@@ -36,7 +36,7 @@ export default async function AppMiddleware(req: NextRequest) {
       new Date(user.createdAt).getTime() > Date.now() - 10000 &&
       // here we include the root page + /new (since they're going through welcome flow already)
       path !== "/welcome" &&
-      // if the user was invited to a workspace, don't show the welcome page
+      // if the user was invited to a workspace, don't show the welcome page – redirect straight to the workspace
       !isWorkspaceInvite
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
