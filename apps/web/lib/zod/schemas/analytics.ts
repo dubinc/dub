@@ -4,7 +4,7 @@ import {
   intervals,
 } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { COUNTRY_CODES } from "@dub/utils";
+import { COUNTRY_CODES, capitalize } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
@@ -92,20 +92,92 @@ export const analyticsQuerySchema = z.object({
     .optional()
     .describe("The country to retrieve analytics for.")
     .openapi({ ref: "countryCode" }),
-  city: z.string().optional().describe("The city to retrieve analytics for."),
+  city: z
+    .string()
+    .optional()
+    .describe("The city to retrieve analytics for.")
+    .openapi({
+      examples: [
+        "New York",
+        "Los Angeles",
+        "Chicago",
+        "Houston",
+        "Phoenix",
+        "Philadelphia",
+        "San Antonio",
+        "San Diego",
+        "Dallas",
+        "Tokyo",
+        "Delhi",
+        "Shanghai",
+        "São Paulo",
+        "Mumbai",
+        "Beijing",
+      ],
+    }),
   device: z
     .string()
     .optional()
-    .describe("The device to retrieve analytics for."),
+    .transform((v) => capitalize(v) as string | undefined)
+    .describe("The device to retrieve analytics for.")
+    .openapi({
+      examples: ["Desktop", "Mobile", "Tablet", "Wearable", "Smarttv"],
+    }),
   browser: z
     .string()
     .optional()
-    .describe("The browser to retrieve analytics for."),
-  os: z.string().optional().describe("The OS to retrieve analytics for."),
+    .transform((v) => capitalize(v) as string | undefined)
+    .describe("The browser to retrieve analytics for.")
+    .openapi({
+      examples: [
+        "Chrome",
+        "Mobile Safari",
+        "Edge",
+        "Instagram",
+        "Firefox",
+        "Facebook",
+        "WebKit",
+        "Samsung Browser",
+        "Chrome WebView",
+        "Safari",
+        "Opera",
+        "IE",
+        "Yandex",
+      ],
+    }),
+  os: z
+    .string()
+    .optional()
+    .transform((v) => capitalize(v) as string | undefined)
+    .describe("The OS to retrieve analytics for.")
+    .openapi({
+      examples: [
+        "Windows",
+        "iOS",
+        "Android",
+        "Mac OS",
+        "Linux",
+        "Ubuntu",
+        "Chromium OS",
+        "Fedora",
+      ],
+    }),
   referer: z
     .string()
     .optional()
-    .describe("The referer to retrieve analytics for."),
+    .describe("The referer to retrieve analytics for.")
+    .openapi({
+      examples: [
+        "(direct)",
+        "t.co",
+        "youtube.com",
+        "perplexity.ai",
+        "l.instagram.com",
+        "m.facebook.com",
+        "linkedin.com",
+        "google.com",
+      ],
+    }),
   url: z.string().optional().describe("The URL to retrieve analytics for."),
   tagId: z
     .string()

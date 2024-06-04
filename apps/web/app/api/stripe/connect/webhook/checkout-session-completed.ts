@@ -13,21 +13,28 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const invoiceId = charge.invoice as string;
 
   if (!dubCustomerId) {
-    return;
+    return "Customer ID not found in Stripe checkout session metadata, skipping...";
   }
 
-  // Update customer with stripe customerId
-  const customer = await prisma.customer.update({
-    where: {
-      projectConnectId_externalId: {
-        projectConnectId: stripeAccountId,
-        externalId: dubCustomerId,
+  let customer;
+  try {
+    // Update customer with stripe customerId if exists
+    customer = await prisma.customer.update({
+      where: {
+        projectConnectId_externalId: {
+          projectConnectId: stripeAccountId,
+          externalId: dubCustomerId,
+        },
       },
-    },
-    data: {
-      stripeCustomerId,
-    },
-  });
+      data: {
+        stripeCustomerId,
+      },
+    });
+  } catch (error) {
+    // Skip if customer not found
+    console.error(error);
+    return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
+  }
 
   if (invoiceId) {
     // Skip if invoice id is already processed
@@ -41,14 +48,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         "[Stripe Webhook] Skipping already processed invoice.",
         invoiceId,
       );
-      return;
+      return `Invoice with ID ${invoiceId} already processed, skipping...`;
     }
   }
 
   // Find lead
   const leadEvent = await getLeadEvent({ customerId: customer.id });
   if (!leadEvent || leadEvent.data.length === 0) {
-    return;
+    return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
   await Promise.all([
@@ -75,4 +82,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
     }),
   ]);
+
+  return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId}`;
 }
