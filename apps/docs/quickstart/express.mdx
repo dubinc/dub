@@ -16,7 +16,7 @@ import Install from "/snippets/sdk-install-nodejs.mdx";
 
 Create a dub instance using the Dub Node.js SDK.
 
-```typescript
+```typescript dub.ts
 import { Dub } from "dub";
 
 export const dub = new Dub({
@@ -29,7 +29,10 @@ export const dub = new Dub({
 
 Let's create a short link using the Dub Node.js SDK.
 
-```typescript create-link.ts
+```typescript index.ts
+import express, { Request, Response } from "express";
+import { dub } from "./dub";
+
 app.get("/create-link", async (req: Request, res: Response) => {
   try {
     const result = await dub.links.create({
@@ -47,7 +50,7 @@ app.get("/create-link", async (req: Request, res: Response) => {
 
 Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
-```typescript upsert-link.ts
+```typescript index.ts
 app.get("/upsert-link", async (req: Request, res: Response) => {
   try {
     // Update the link if same URL already exists or create a new link
@@ -67,10 +70,10 @@ app.get("/upsert-link", async (req: Request, res: Response) => {
 
 Let's update an existing link using the Dub Node.js SDK.
 
-```typescript update-link.ts
+```typescript index.ts
 app.get("/update-link", async (req: Request, res: Response) => {
   try {
-    const result = await dub.links.create({
+    const result = await dub.links.update("LINK_ID OR EXTERNAL_ID", {
       url: "https://www.google.us",
     });
 
@@ -81,19 +84,16 @@ app.get("/update-link", async (req: Request, res: Response) => {
 });
 ```
 
-Both `upsert` and `update` methods accept the same parameters.
-
 ## 6. Retrieve analytics for link
 
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
-```typescript get-analytics.ts
+```typescript index.ts
 app.get("/analytics", async (req: Request, res: Response) => {
   try {
-    // Retrieve the timeseries analytics for the last 7 days for the link with the key "dummy"
+    // Retrieve the timeseries analytics for the last 7 days for a link
     const result = await dub.analytics.retrieve({
-      key: "dummy",
-      domain: "dub.sh",
+      linkId: "LINK_ID",
       interval: "7d",
       event: "clicks",
       groupBy: "timeseries",
@@ -112,7 +112,7 @@ app.get("/analytics", async (req: Request, res: Response) => {
   <Card
     title="Express Example"
     icon="arrow-up-right-from-square"
-    href="https://github.com/dubinc/examples"
+    href="https://github.com/dubinc/examples/tree/main/node/express"
   >
     See the full example on GitHub.
   </Card>

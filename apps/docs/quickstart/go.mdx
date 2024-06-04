@@ -5,7 +5,6 @@ description: "Learn how to create a short link using the Dub Go SDK."
 
 import Prerequisites from "/snippets/sdk-prerequisites.mdx";
 
-
 ## 1. Prerequisites
 
 <Prerequisites />
@@ -20,11 +19,105 @@ go get github.com/dubinc/dub-go
 
 ## 3. Create link
 
+Let's create a short link using the Dub Go SDK.
+
+```go main.go
+package main
+
+import (
+	"log"
+	"os"
+
+	dub "github.com/dubinc/dub-go"
+)
+
+func main() {
+	d := dub.New(
+		dub.WithSecurity(os.Getenv("DUB_API_KEY")),
+		dub.WithWorkspaceID(os.Getenv("DUB_WORKSPACE_ID")),
+	)
+
+	request := &operations.CreateLinkRequestBody{
+		URL: "https://google.com",
+	}
+
+	ctx := context.Background()
+	res, err := d.Links.Create(ctx, request)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if res.LinkSchema != nil {
+		fmt.Println(res.LinkSchema.ShortLink)
+	}
+}
+```
+
 ## 4. Upsert link
+
+Dub Go SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
+
+```go main.go
+func main() {
+	d := dub.New(
+		dub.WithSecurity(os.Getenv("DUB_API_KEY")),
+		dub.WithWorkspaceID(os.Getenv("DUB_WORKSPACE_ID")),
+	)
+
+	request := &operations.UpsertLinkRequestBody{
+		URL: "https://google.com",
+	}
+
+	ctx := context.Background()
+	res, err := d.Links.Upsert(ctx, request)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if res.LinkSchema != nil {
+		fmt.Println(res.LinkSchema.ShortLink)
+	}
+}
+```
 
 ## 5. Update link
 
+Let's update an existing link using the Dub Go SDK.
+
+```go main.go
+func main() {
+	d := dub.New(
+		dub.WithSecurity(os.Getenv("DUB_API_KEY")),
+		dub.WithWorkspaceID(os.Getenv("DUB_WORKSPACE_ID")),
+	)
+
+	request := &operations.UpdateLinkRequestBody{
+		URL: "https://google.us",
+	}
+
+	ctx := context.Background()
+  res, err := d.Links.Update(ctx, "LINK_ID", request)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if res.LinkSchema != nil {
+		fmt.Println(res.LinkSchema.ShortLink)
+	}
+}
+```
+
 ## 6. Retrieve analytics for link
+
+Let's retrieve analytics for a link using the Dub Go SDK.
+
+```go main.go
+func main() {
+	d := dub.New(
+		dub.WithSecurity(os.Getenv("DUB_API_KEY")),
+		dub.WithWorkspaceID(os.Getenv("DUB_WORKSPACE_ID")),
+	)
+
+	// Retrieve the timeseries analytics for the last 7 days for a link
+}
+```
 
 ## 7. Examples
 
@@ -32,7 +125,7 @@ go get github.com/dubinc/dub-go
   <Card
     title="Go Example"
     icon="arrow-up-right-from-square"
-    href="https://github.com/dubinc/examples"
+    href="https://github.com/dubinc/examples/tree/main/go"
   >
     See the full example on GitHub.
   </Card>

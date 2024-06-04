@@ -14,38 +14,108 @@ import Install from "/snippets/sdk-install-nodejs.mdx";
 
 <Install />
 
+Create a dub instance using the Dub Node.js SDK.
+
+```typescript dub.ts
+import { Dub } from "dub";
+
+export const dub = new Dub({
+  token: process.env.DUB_API_KEY,
+  workspaceId: process.env.DUB_WORKSPACE_ID,
+});
+```
+
 ## 3. Create link
 
 Let's create a short link using the Dub Node.js SDK.
 
-```typescript create-link.ts
+```typescript app/routes/create-link.ts
+import { json } from "@remix-run/node";
+import { dub } from "~/dub";
 
+export const loader = async () => {
+  try {
+    const result = await dub.links.create({
+      url: "https://www.google.com",
+    });
+
+    return json(result, 200);
+  } catch (error: any) {
+    console.error(error);
+    return json(error, 400);
+  }
+};
 ```
 
 ## 4. Upsert link
 
 Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
-```typescript upsert-link.ts
+```typescript app/routes/upsert-link.ts
+import { json } from "@remix-run/node";
+import { dub } from "~/dub";
 
+export const loader = async () => {
+  try {
+    const result = await dub.links.upsert({
+      url: "https://www.google.com",
+      externalId: "my-link-id",
+    });
+
+    return json(result, 200);
+  } catch (error: any) {
+    console.error(error);
+    return json(error, 400);
+  }
+};
 ```
 
 ## 5. Update link
 
 Let's update an existing link using the Dub Node.js SDK.
 
-```typescript update-link.ts
+```typescript app/routes/update-link.ts
+import { json } from "@remix-run/node";
+import { dub } from "~/dub";
 
+export const loader = async () => {
+  try {
+    const result = await dub.links.update("LINK_ID", {
+      url: "https://www.google.us",
+    });
+
+    return json(result, 200);
+  } catch (error: any) {
+    console.error(error);
+    return json(error, 400);
+  }
+};
 ```
-
-Both `upsert` and `update` methods accept the same parameters.
 
 ## 6. Retrieve analytics for link
 
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
-```typescript get-analytics.ts
+```typescript app/routes/analytics.ts
+import { json } from "@remix-run/node";
+import { dub } from "~/dub";
 
+export const loader = async () => {
+  try {
+    // Retrieve the timeseries analytics for the last 7 days for a link
+    const result = await dub.analytics.retrieve({
+      linkId: "LINK_ID",
+      interval: "7d",
+      event: "clicks",
+      groupBy: "timeseries",
+    });
+
+    return json(result, 200);
+  } catch (error: any) {
+    console.error(error);
+    return json(error, 400);
+  }
+};
 ```
 
 ## 7. Examples
@@ -54,7 +124,7 @@ Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
   <Card
     title="Remix Example"
     icon="arrow-up-right-from-square"
-    href="https://github.com/dubinc/examples"
+    href="https://github.com/dubinc/examples/tree/main/node/remix"
   >
     See the full example on GitHub.
   </Card>
