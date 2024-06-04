@@ -30,6 +30,7 @@ import {
   MobilePhone,
   OfficeBuilding,
   QRCode,
+  ReferredVia,
   Tag,
   Window,
 } from "@dub/ui/src/icons";
@@ -59,6 +60,7 @@ import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
 import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
+import RefererIcon from "./referer-icon";
 import SharePopover from "./share-popover";
 import { useAnalyticsFilterOption } from "./utils";
 
@@ -79,8 +81,18 @@ export default function Toggle() {
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
   const activeFilters = useMemo(() => {
-    const { domain, tagId, qr, country, city, device, browser, os, key } =
-      searchParamsObj;
+    const {
+      domain,
+      key,
+      tagId,
+      qr,
+      country,
+      city,
+      device,
+      browser,
+      os,
+      referer,
+    } = searchParamsObj;
     return [
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
       ...(domain && key
@@ -93,6 +105,7 @@ export default function Toggle() {
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
+      ...(referer ? [{ key: "referer", value: referer }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -121,6 +134,9 @@ export default function Toggle() {
   const os = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
   });
+  const referers = useAnalyticsFilterOption("referers", {
+    cacheOnly: !isRequested("referers"),
+  });
 
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
@@ -130,11 +146,11 @@ export default function Toggle() {
         icon: Globe,
       },
       {
-        value: "Mobile Chrome users, US only",
+        value: "Mobile users, US only",
         icon: MobilePhone,
       },
       {
-        value: "Capital of Japan, last 3 months",
+        value: "Tokyo, Chrome users",
         icon: OfficeBuilding,
       },
       {
@@ -275,6 +291,7 @@ export default function Toggle() {
             icon: QRCode,
           },
         ],
+        separatorAfter: true,
       },
       {
         key: "country",
@@ -359,6 +376,20 @@ export default function Toggle() {
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
+      {
+        key: "referer",
+        icon: ReferredVia,
+        label: "Referer",
+        getOptionIcon: (value, props) => (
+          <RefererIcon display={value} className="h-4 w-4" />
+        ),
+        options:
+          referers?.map(({ referer, count }) => ({
+            value: referer,
+            label: referer,
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
     ],
     [
       isPublicStatsPage,
@@ -371,6 +402,7 @@ export default function Toggle() {
       devices,
       browsers,
       os,
+      referers,
     ],
   );
 
