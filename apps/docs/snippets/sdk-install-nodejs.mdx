@@ -1,3 +1,5 @@
+## 2. Install and initialize the Dub Node.js SDK
+
 Install the Dub Node.js SDK using your preferred package manager:
 
 <Tabs>
@@ -8,6 +10,13 @@ Install the Dub Node.js SDK using your preferred package manager:
     ```
 
   </Tab>
+  <Tab title="yarn">
+  
+  ```bash
+  yarn add dub 
+  ```
+  
+  </Tab>
   
   <Tab title="pnpm">
   
@@ -16,12 +25,21 @@ Install the Dub Node.js SDK using your preferred package manager:
   ```
   
   </Tab>
-  
-  <Tab title="yarn">
-  
-  ```bash
-  yarn add dub 
-  ```
-  
-  </Tab>
 </Tabs>
+
+Then, initialize the Dub Node.js SDK with your API key.
+
+```typescript lib/dub.ts
+import { Dub } from "dub";
+
+export const dub = new Dub({
+  token: process.env.DUB_API_KEY, // optional, defaults to DUB_API_KEY env variable
+  workspaceId: "ws_clugls3...",
+});
+```
+
+You can now use the `dub` object to interact with the Dub API.
+
+```typescript
+import { dub } from "./lib/dub";
+```

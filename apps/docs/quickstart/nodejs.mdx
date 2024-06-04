@@ -4,32 +4,41 @@ description: "Learn how to create a short link using the Dub Node.js SDK."
 ---
 
 import Prerequisites from "/snippets/sdk-prerequisites.mdx";
-import Install from "/snippets/sdk-install-nodejs.mdx";
-
-## 1. Prerequisites
+import InstallNode from "/snippets/sdk-install-nodejs.mdx";
+import LinkArguments from "/snippets/link-arguments.mdx";
 
 <Prerequisites />
 
-## 2. Install
-
-<Install />
+<InstallNode />
 
 ## 3. Create link
 
 Let's create a short link using the Dub Node.js SDK.
 
 ```typescript create-link.ts
-import { Dub } from "dub";
-
-const dub = new Dub({
-  token: process.env.DUB_API_KEY,
-  workspaceId: "ws_clugls3...",
-});
-
-await dub.links.create({
+const { shortLink } = await dub.links.create({
   url: "https://google.com",
 });
+
+console.log(shortLink); // e.g. https://dub.sh/abc123
 ```
+
+<Accordion title="Full list of available attributes for the Link model">
+  <LinkArguments />
+</Accordion>
+
+## 3a. Create link with `externalId`
+
+Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
+
+```typescript create-link-external-id.ts
+await dub.links.create({
+  url: "https://google.com",
+  externalId: "12345",
+});
+```
+
+This will let you easily [update the link](#5-update-link) later on using the `externalId`, or [retrieve analytics](#6-retrieve-analytics-for-link) for it.
 
 ## 4. Upsert link
 
@@ -47,17 +56,20 @@ console.log(shortLink); // will always be the same short link
 
 Let's update an existing link using the Dub Node.js SDK.
 
+You can do that in two ways:
+
+- Using the link's `linkId` in Dub's system.
+- Using the link's `externalId` in your own database (prefixed with `ext_`).
+
 ```typescript update-link.ts
 // Update a link by its linkId
 await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
-  url: "https://www.google.uk",
-  archived: true,
+  url: "https://www.google.uk", // new URL
 });
 
 // Update a link by its externalId
-await dub.links.update("ext_123", {
-  url: "https://www.google.uk",
-  archived: true,
+await dub.links.update("ext_12345", {
+  url: "https://www.google.uk", // new URL
 });
 ```
 
@@ -70,9 +82,24 @@ import { ClicksTimeseries } from "dub/models/components";
 
 // Retrieve the timeseries analytics for the last 7 days for a link
 const response = await dub.analytics.retrieve({
-  linkId: "LINK_ID",
+  linkId: "clv3o9p9q000au1h0mc7r6l63",
   interval: "7d",
-  event: "clicks",
+  groupBy: "timeseries",
+});
+
+const timeseries = response as ClicksTimeseries[];
+```
+
+Simliarly, you can retrieve analytics for a link using the `externalId` field.
+
+```typescript get-analytics-external-id.ts
+import { ClicksTimeseries } from "dub/models/components";
+
+// Retrieve the timeseries analytics for the last 7 days for a link
+
+const response = await dub.analytics.retrieve({
+  externalId: "ext_12345",
+  interval: "7d",
   groupBy: "timeseries",
 });
 
