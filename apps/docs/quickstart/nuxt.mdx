@@ -14,36 +14,103 @@ import Install from "/snippets/sdk-install-nodejs.mdx";
 
 <Install />
 
+Create a dub instance using the Dub Node.js SDK.
+
+```typescript server/utils/dub.ts
+import { Dub } from "dub";
+
+export const dub = new Dub({
+  token: process.env.DUB_API_KEY,
+  workspaceId: process.env.DUB_WORKSPACE_ID,
+});
+```
+
 ## 3. Create link
 
 Let's create a short link using the Dub Node.js SDK.
 
-```typescript create-link.ts
+```typescript server/api/links.post.ts
+import { dub } from "../utils/dub";
 
+export default defineEventHandler(async () => {
+  try {
+    const result = await dub.links.create({
+      url: "https://www.google.com",
+    });
+
+    return result;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+});
 ```
 
 ## 4. Upsert link
 
 Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
-```typescript upsert-link.ts
+```typescript server/api/links.put.ts
+import { dub } from "../utils/dub";
 
+export default defineEventHandler(async () => {
+  try {
+    const result = await dub.links.upsert({
+      url: "https://www.google.com",
+      externalId: "my-link-id",
+    });
+
+    return result;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+});
 ```
 
 ## 5. Update link
 
 Let's update an existing link using the Dub Node.js SDK.
 
-```typescript update-link.ts
+```typescript server/api/links.patch.ts
+import { dub } from "../utils/dub";
 
+export default defineEventHandler(async () => {
+  try {
+    const result = await dub.links.update("LINK_ID", {
+      url: "https://www.google.us",
+    });
+
+    return result;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+});
 ```
 
 ## 6. Retrieve analytics for link
 
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
-```typescript get-analytics.ts
+```typescript server/api/analytics.get.ts
+import { dub } from "../utils/dub";
 
+export default defineEventHandler(async () => {
+  try {
+    const result = await dub.analytics.retrieve({
+      linkId: "LINK_ID",
+      interval: "7d",
+      event: "clicks",
+      groupBy: "timeseries",
+    });
+
+    return result;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+});
 ```
 
 ## 7. Examples
@@ -52,7 +119,7 @@ Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
   <Card
     title="Nuxt.js Example"
     icon="arrow-up-right-from-square"
-    href="https://github.com/dubinc/examples"
+    href="https://github.com/dubinc/examples/tree/main/node/nuxt"
   >
     See the full example on GitHub.
   </Card>
