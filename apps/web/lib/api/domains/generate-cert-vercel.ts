@@ -18,12 +18,12 @@ export const generateCert = async (domain: string) => {
 
   const data = await response.json();
 
-  console.log(data);
+  console.log("data", data);
 
   if (!response.ok) {
     throw new DubApiError({
       code: "bad_request",
-      message: data.error.message,
+      message: data.error.name,
     });
   }
 

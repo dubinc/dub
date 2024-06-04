@@ -105,8 +105,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     props,
   });
 
+  const [generatingCert, setGeneratingCert] = useState(false);
+
   // Generate the cert for the domain
   const generateCert = async () => {
+    setGeneratingCert(true);
     const response = await fetch(
       `/api/domains/${domain}/certs?workspaceId=${workspaceId}`,
       {
@@ -123,6 +126,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     } else {
       toast.success("A new certificate has been generated for this domain.");
     }
+    setGeneratingCert(false);
   };
 
   const activeDomainsCount = activeWorkspaceDomains?.length || 0;
@@ -187,6 +191,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               text="Generate cert"
               variant="secondary"
               onClick={() => generateCert()}
+              loading={generatingCert}
+              className="whitespace-nowrap"
             />
             <Popover
               content={
