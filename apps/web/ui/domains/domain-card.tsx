@@ -29,6 +29,7 @@ import {
 import { Archive, Edit3, FileCog, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
@@ -104,6 +105,26 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     props,
   });
 
+  // Generate the cert for the domain
+  const generateCert = async () => {
+    const response = await fetch(
+      `/api/domains/${domain}/certs?workspaceId=${workspaceId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const { error } = await response.json();
+      toast.error(error.message);
+    } else {
+      toast.success("A new certificate has been generated for this domain.");
+    }
+  };
+
   const activeDomainsCount = activeWorkspaceDomains?.length || 0;
 
   return (
@@ -161,6 +182,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               onClick={() => {
                 mutate();
               }}
+            />
+            <Button
+              text="Generate cert"
+              variant="secondary"
+              onClick={() => generateCert()}
             />
             <Popover
               content={
