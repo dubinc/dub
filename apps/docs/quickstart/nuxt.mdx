@@ -95,17 +95,21 @@ Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
 ```typescript server/api/analytics.get.ts
 import { dub } from "../utils/dub";
+import { ClicksTimeseries } from "dub/models/components";
 
 export default defineEventHandler(async () => {
   try {
-    const result = await dub.analytics.retrieve({
+    // Retrieve the timeseries analytics for the last 7 days for a link
+    const response = await dub.analytics.retrieve({
       linkId: "LINK_ID",
       interval: "7d",
       event: "clicks",
       groupBy: "timeseries",
     });
 
-    return result;
+    const timeseries = response as ClicksTimeseries[];
+
+    return timeseries;
   } catch (error) {
     console.error(error);
     return error;

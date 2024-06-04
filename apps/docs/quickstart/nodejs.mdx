@@ -66,23 +66,12 @@ await dub.links.update("ext_123", {
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
 ```typescript get-analytics.ts
-import { ClicksCount, ClicksTimeseries } from "dub/models/components";
+import { ClicksTimeseries } from "dub/models/components";
 
-// Retrieve total clicks for a link
+// Retrieve the timeseries analytics for the last 7 days for a link
 const response = await dub.analytics.retrieve({
-  key: "dummy",
-  domain: "dub.sh",
-  interval: "30d",
-  event: "clicks",
-});
-
-const clicks = response as ClicksCount;
-
-// Retrieve timeseries analytics for a link
-const response = await dub.analytics.retrieve({
-  key: "dummy",
-  domain: "dub.sh",
-  interval: "30d",
+  linkId: "LINK_ID",
+  interval: "7d",
   event: "clicks",
   groupBy: "timeseries",
 });

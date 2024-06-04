@@ -64,7 +64,7 @@ Let's update an existing link using the Dub Node.js SDK.
 ```typescript app/api/links/route.ts
 export async function PATCH() {
   try {
-    const link = await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
+    const link = await dub.links.update("LINK_ID", {
       url: "https://www.google.uk",
       archived: true,
     });
@@ -81,32 +81,21 @@ export async function PATCH() {
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
 ```typescript app/api/analytics/route.ts
-import { ClicksCount, ClicksTimeseries } from "dub/models/components";
+import { ClicksTimeseries } from "dub/models/components";
 
 export async function GET() {
   try {
-    // Retrieve total clicks for a link
-    let response = await dub.analytics.retrieve({
-      key: "dummy",
-      domain: "dub.sh",
-      interval: "30d",
-      event: "clicks",
-    });
-
-    const clicks = response as ClicksCount;
-
-    // Retrieve timeseries analytics for a link
-    response = await dub.analytics.retrieve({
-      key: "dummy",
-      domain: "dub.sh",
-      interval: "30d",
+    // Retrieve the timeseries analytics for the last 7 days for a link
+    const response = await dub.analytics.retrieve({
+      linkId: "LINK_ID",
+      interval: "7d",
       event: "clicks",
       groupBy: "timeseries",
     });
 
     const timeseries = response as ClicksTimeseries[];
 
-    return Response.json({ clicks, timeseries });
+    return Response.json(timeseries);
   } catch (error) {
     return Response.json({ error }, { status: 500 });
   }

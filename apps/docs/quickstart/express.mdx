@@ -73,7 +73,7 @@ Let's update an existing link using the Dub Node.js SDK.
 ```typescript index.ts
 app.get("/update-link", async (req: Request, res: Response) => {
   try {
-    const result = await dub.links.update("LINK_ID OR EXTERNAL_ID", {
+    const result = await dub.links.update("LINK_ID", {
       url: "https://www.google.us",
     });
 
@@ -89,17 +89,21 @@ app.get("/update-link", async (req: Request, res: Response) => {
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
 ```typescript index.ts
+import { ClicksTimeseries } from "dub/models/components";
+
 app.get("/analytics", async (req: Request, res: Response) => {
   try {
     // Retrieve the timeseries analytics for the last 7 days for a link
-    const result = await dub.analytics.retrieve({
+    const response = await dub.analytics.retrieve({
       linkId: "LINK_ID",
       interval: "7d",
       event: "clicks",
       groupBy: "timeseries",
     });
 
-    res.status(200).json(result);
+    const timeseries = response as ClicksTimeseries[];
+
+    res.status(200).json(timeseries);
   } catch (error: any) {
     res.status(400).json(error);
   }
