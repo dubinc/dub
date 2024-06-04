@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import RefererIcon from "./referer-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 function RefererOld() {
@@ -18,18 +19,7 @@ function RefererOld() {
       tab="Referrer"
       data={
         data?.map((d) => ({
-          icon:
-            d.referer === "(direct)" ? (
-              <Link2 className="h-4 w-4" />
-            ) : (
-              <BlurImage
-                src={`${GOOGLE_FAVICON_URL}${d.referer}`}
-                alt={d.referer}
-                width={20}
-                height={20}
-                className="h-4 w-4 rounded-full"
-              />
-            ),
+          icon: <RefererIcon display={d.referer} />,
           title: d.referer,
           href: queryParams({
             set: {
