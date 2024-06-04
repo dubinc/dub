@@ -141,10 +141,14 @@ export default function Toggle() {
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
-      {
-        value: `Clicks on ${primaryDomain} domain this year`,
-        icon: Globe,
-      },
+      ...(isPublicStatsPage
+        ? []
+        : [
+            {
+              value: `Clicks on ${primaryDomain} domain this year`,
+              icon: Globe,
+            },
+          ]),
       {
         value: "Mobile users, US only",
         icon: MobilePhone,
@@ -162,28 +166,28 @@ export default function Toggle() {
         icon: QRCode,
       },
     ],
-    [primaryDomain],
+    [primaryDomain, isPublicStatsPage],
   );
 
   const [streaming, setStreaming] = useState<boolean>(false);
 
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
+      {
+        key: "ai",
+        icon: Magic,
+        label: "Ask AI",
+        separatorAfter: true,
+        options:
+          aiFilterSuggestions?.map(({ icon, value }) => ({
+            value,
+            label: value,
+            icon,
+          })) ?? null,
+      },
       ...(isPublicStatsPage
         ? []
         : [
-            {
-              key: "ai",
-              icon: Magic,
-              label: "Ask AI",
-              separatorAfter: true,
-              options:
-                aiFilterSuggestions?.map(({ icon, value }) => ({
-                  value,
-                  label: value,
-                  icon,
-                })) ?? null,
-            },
             {
               key: "domain",
               icon: Globe,
@@ -291,7 +295,7 @@ export default function Toggle() {
             icon: QRCode,
           },
         ],
-        separatorAfter: true,
+        separatorAfter: !isPublicStatsPage,
       },
       {
         key: "country",
