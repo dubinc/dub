@@ -14,12 +14,33 @@ import Install from "/snippets/sdk-install-nodejs.mdx";
 
 <Install />
 
+Create a dub instance using the Dub Node.js SDK.
+
+```typescript
+import { Dub } from "dub";
+
+export const dub = new Dub({
+  token: process.env.DUB_API_KEY,
+  workspaceId: process.env.DUB_WORKSPACE_ID,
+});
+```
+
 ## 3. Create link
 
 Let's create a short link using the Dub Node.js SDK.
 
 ```typescript create-link.ts
+app.get("/create-link", async (req: Request, res: Response) => {
+  try {
+    const result = await dub.links.create({
+      url: "https://www.google.com",
+    });
 
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
 ```
 
 ## 4. Upsert link
@@ -27,7 +48,19 @@ Let's create a short link using the Dub Node.js SDK.
 Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
 ```typescript upsert-link.ts
+app.get("/upsert-link", async (req: Request, res: Response) => {
+  try {
+    // Update the link if same URL already exists or create a new link
+    const result = await dub.links.upsert({
+      url: "https://www.google.com",
+      externalId: "my-link-id",
+    });
 
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
 ```
 
 ## 5. Update link
@@ -35,7 +68,17 @@ Dub Node.js SDK provides a method to create or update a link so you don't have t
 Let's update an existing link using the Dub Node.js SDK.
 
 ```typescript update-link.ts
+app.get("/update-link", async (req: Request, res: Response) => {
+  try {
+    const result = await dub.links.create({
+      url: "https://www.google.us",
+    });
 
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
 ```
 
 Both `upsert` and `update` methods accept the same parameters.
@@ -45,7 +88,22 @@ Both `upsert` and `update` methods accept the same parameters.
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
 ```typescript get-analytics.ts
+app.get("/analytics", async (req: Request, res: Response) => {
+  try {
+    // Retrieve the timeseries analytics for the last 7 days for the link with the key "dummy"
+    const result = await dub.analytics.retrieve({
+      key: "dummy",
+      domain: "dub.sh",
+      interval: "7d",
+      event: "clicks",
+      groupBy: "timeseries",
+    });
 
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
 ```
 
 ## 7. Examples
