@@ -1,6 +1,7 @@
 import { AnimatedSizeContainer, Popover, useMediaQuery } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
 import { ReferredVia } from "@dub/ui/src/icons";
+import { cn } from "@dub/utils";
 import { useContext, useEffect, useState } from "react";
 import { AnalyticsContext } from ".";
 import { ThreeDots } from "../shared/icons";
@@ -45,14 +46,16 @@ export default function AnalyticsOptions() {
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
     >
-      <div>
-        <Button
-          variant="secondary"
-          onClick={() => setOpenPopover(!openPopover)}
-          icon={<ThreeDots className="h-5 w-5 text-gray-500" />}
-          className="h-10 space-x-0 px-1 py-2"
-        />
-      </div>
+      <button
+        onClick={() => setOpenPopover(!openPopover)}
+        className={cn(
+          "flex h-10 items-center rounded-md border px-1.5 outline-none transition-all",
+          "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
+          "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+        )}
+      >
+        <ThreeDots className="h-5 w-5 text-gray-500" />
+      </button>
     </Popover>
   );
 }
