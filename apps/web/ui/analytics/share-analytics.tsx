@@ -53,7 +53,7 @@ export default function ShareAnalytics() {
       </div>
       <div className="p-4">
         <div className="mb-2 flex items-center justify-between">
-          <p className="font-semibold text-gray-800">Public Stats Page</p>
+          <p className="font-semibold text-gray-800">Public Analytics Page</p>
           <Switch
             checked={data?.publicStats}
             loading={isLoading}
