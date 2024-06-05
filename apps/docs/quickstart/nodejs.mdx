@@ -96,7 +96,6 @@ Simliarly, you can retrieve analytics for a link using the `externalId` field.
 import { ClicksTimeseries } from "dub/models/components";
 
 // Retrieve the timeseries analytics for the last 7 days for a link
-
 const response = await dub.analytics.retrieve({
   externalId: "ext_12345",
   interval: "7d",
