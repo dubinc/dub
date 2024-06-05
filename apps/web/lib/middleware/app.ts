@@ -7,6 +7,7 @@ import { getUserViaToken } from "./utils/get-user-via-token";
 export default async function AppMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsString } = parse(req);
   const user = await getUserViaToken(req);
+  const isWorkspaceInvite = req.nextUrl.searchParams.get("invite");
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
@@ -34,7 +35,9 @@ export default async function AppMiddleware(req: NextRequest) {
       user.createdAt &&
       new Date(user.createdAt).getTime() > Date.now() - 10000 &&
       // here we include the root page + /new (since they're going through welcome flow already)
-      path !== "/welcome"
+      path !== "/welcome" &&
+      // if the user was invited to a workspace, don't show the welcome page – redirect straight to the workspace
+      !isWorkspaceInvite
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 

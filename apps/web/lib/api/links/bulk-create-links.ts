@@ -56,7 +56,9 @@ export async function bulkCreateLinks({
             combinedTagIds.length > 0 && {
               tags: {
                 createMany: {
-                  data: combinedTagIds.map((tagId) => ({ tagId })),
+                  data: combinedTagIds
+                    .filter((tagId) => typeof tagId === "string")
+                    .map((tagId) => ({ tagId })),
                 },
               },
             }),
