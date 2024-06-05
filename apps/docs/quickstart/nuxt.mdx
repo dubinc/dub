@@ -10,17 +10,6 @@ import InstallNode from "/snippets/sdk-install-nodejs.mdx";
 
 <InstallNode />
 
-Create a dub instance using the Dub Node.js SDK.
-
-```typescript server/utils/dub.ts
-import { Dub } from "dub";
-
-export const dub = new Dub({
-  token: process.env.DUB_API_KEY,
-  workspaceId: process.env.DUB_WORKSPACE_ID,
-});
-```
-
 ## 3. Create link
 
 Let's create a short link using the Dub Node.js SDK.
@@ -42,6 +31,28 @@ export default defineEventHandler(async () => {
 });
 ```
 
+## 3a. Create link with `externalId`
+
+Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
+
+```typescript server/api/links.post.ts
+import { dub } from "../utils/dub";
+
+export default defineEventHandler(async () => {
+  try {
+    const result = await dub.links.create({
+      url: "https://www.google.com",
+      externalId: "12345",
+    });
+
+    return result;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+});
+```
+
 ## 4. Upsert link
 
 Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
@@ -53,7 +64,6 @@ export default defineEventHandler(async () => {
   try {
     const result = await dub.links.upsert({
       url: "https://www.google.com",
-      externalId: "my-link-id",
     });
 
     return result;
@@ -68,16 +78,27 @@ export default defineEventHandler(async () => {
 
 Let's update an existing link using the Dub Node.js SDK.
 
+You can do that in two ways:
+
+- Using the link's `linkId` in Dub's system.
+- Using the link's `externalId` in your own database (prefixed with `ext_`).
+
 ```typescript server/api/links.patch.ts
 import { dub } from "../utils/dub";
 
 export default defineEventHandler(async () => {
   try {
-    const result = await dub.links.update("LINK_ID", {
-      url: "https://www.google.us",
+    // Update a link by its linkId
+    const { shortLink } = await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
+      url: "https://www.google.uk", // new URL
     });
 
-    return result;
+    // Update a link by its externalId
+    const { shortLink } = await dub.links.update("ext_12345", {
+      url: "https://www.google.uk", // new URL
+    });
+
+    return { shortLink };
   } catch (error) {
     console.error(error);
     return error;
@@ -97,9 +118,8 @@ export default defineEventHandler(async () => {
   try {
     // Retrieve the timeseries analytics for the last 7 days for a link
     const response = await dub.analytics.retrieve({
-      linkId: "LINK_ID",
+      linkId: "clv3o9p9q000au1h0mc7r6l63",
       interval: "7d",
-      event: "clicks",
       groupBy: "timeseries",
     });
 
@@ -111,6 +131,19 @@ export default defineEventHandler(async () => {
     return error;
   }
 });
+```
+
+Simliarly, you can retrieve analytics for a link using the `externalId` field.
+
+```typescript server/api/analytics.get.ts
+// Retrieve the timeseries analytics for the last 7 days for a link
+const response = await dub.analytics.retrieve({
+  externalId: "ext_12345",
+  interval: "7d",
+  groupBy: "timeseries",
+});
+
+const timeseries = response as ClicksTimeseries[];
 ```
 
 ## 7. Examples

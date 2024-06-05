@@ -128,24 +128,14 @@ export async function GET() {
 Simliarly, you can retrieve analytics for a link using the `externalId` field.
 
 ```typescript app/api/analytics/route.ts
-import { ClicksTimeseries } from "dub/models/components";
+// Retrieve the timeseries analytics for the last 7 days for a link
+const response = await dub.analytics.retrieve({
+  externalId: "ext_12345",
+  interval: "7d",
+  groupBy: "timeseries",
+});
 
-export async function GET() {
-  try {
-    // Retrieve the timeseries analytics for the last 7 days for a link
-    const response = await dub.analytics.retrieve({
-      externalId: "ext_12345",
-      interval: "7d",
-      groupBy: "timeseries",
-    });
-
-    const timeseries = response as ClicksTimeseries[];
-
-    return Response.json(timeseries);
-  } catch (error) {
-    return Response.json({ error }, { status: 500 });
-  }
-}
+const timeseries = response as ClicksTimeseries[];
 ```
 
 ## 7. Examples
