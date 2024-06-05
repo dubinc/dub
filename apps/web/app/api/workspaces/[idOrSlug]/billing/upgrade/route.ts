@@ -69,6 +69,9 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       mode: "subscription",
       allow_promotion_codes: true,
       client_reference_id: workspace.id,
+      metadata: {
+        dubCustomerId: session.user.id,
+      },
     });
 
     return NextResponse.json(stripeSession);

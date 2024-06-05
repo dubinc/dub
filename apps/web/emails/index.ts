@@ -10,6 +10,7 @@ export const sendEmail = async ({
   email,
   subject,
   from,
+  bcc,
   text,
   react,
   marketing,
@@ -17,6 +18,7 @@ export const sendEmail = async ({
   email: string;
   subject: string;
   from?: string;
+  bcc?: string;
   text?: string;
   react?: ReactElement<any, string | JSXElementConstructor<any>>;
   marketing?: boolean;
@@ -44,6 +46,7 @@ export const sendEmail = async ({
           ? "system@dub.co"
           : `${process.env.NEXT_PUBLIC_APP_NAME} <system@${process.env.NEXT_PUBLIC_APP_DOMAIN}>`,
     To: email,
+    Bcc: bcc,
     ReplyTo: process.env.NEXT_PUBLIC_IS_DUB
       ? "support@dub.co"
       : `support@${process.env.NEXT_PUBLIC_APP_DOMAIN}`,

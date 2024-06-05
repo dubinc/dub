@@ -102,14 +102,18 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
 };
 
 export const VALID_ANALYTICS_FILTERS = [
+  "domain",
+  "key",
+  "interval",
+  "start",
+  "end",
   "country",
   "city",
-  "url",
-  "alias",
   "device",
   "browser",
   "os",
   "referer",
+  "url",
   "tagId",
   "qr",
   "root",

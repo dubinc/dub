@@ -8,5 +8,6 @@ export * from "./invoice-dollar";
 export * from "./mobile-phone";
 export * from "./office-building";
 export * from "./qrcode";
+export * from "./referred-via";
 export * from "./tag";
 export * from "./window";
