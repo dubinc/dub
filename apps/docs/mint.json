@@ -82,10 +82,6 @@
             "quickstart/flask",
             "quickstart/django"
           ]
-        },
-        {
-          "group": "Ruby",
-          "pages": ["quickstart/ruby", "quickstart/rails", "quickstart/sinatra"]
         }
       ]
     },
