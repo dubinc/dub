@@ -3,7 +3,7 @@ import { DubApiError } from "../errors";
 
 export const generateCert = async (domain: string) => {
   const response = await fetch(
-    `https://api.vercel.com/v7/certs?slug=${domain}&teamId=${process.env.TEAM_ID_VERCEL}`,
+    `https://api.vercel.com/v7/certs?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       method: "POST",
       headers: {
