@@ -4,6 +4,7 @@ description: "Learn how to create a short link using the Django and Dub Python S
 ---
 
 import Prerequisites from "/snippets/sdk-prerequisites.mdx";
+import LinkArguments from "/snippets/link-arguments.mdx";
 
 <Prerequisites />
 
@@ -122,7 +123,7 @@ def analytics(request):
     interval="7d",
     group_by="timeseries",
   ))
-  
+
   return JsonResponse(res)
 ```
 
@@ -136,7 +137,7 @@ def analytics(request):
     interval="7d",
     group_by="timeseries",
   ))
-  
+
   return JsonResponse(res)
 ```
 
