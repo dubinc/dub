@@ -5,8 +5,8 @@ import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
-import { AnalyticsContext } from ".";
 import AnalyticsAreaChart from "./analytics-area-chart";
+import { AnalyticsContext } from "./analytics-provider";
 
 type Tab = {
   id: string;

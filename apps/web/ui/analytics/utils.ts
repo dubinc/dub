@@ -3,7 +3,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import { fetcher } from "@dub/utils";
 import { useContext } from "react";
 import useSWR, { useSWRConfig } from "swr";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 
 type AnalyticsFilterResult =
   | ({ count?: number } & Record<string, any>)[]

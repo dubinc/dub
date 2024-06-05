@@ -9,7 +9,7 @@ import {
   useContext,
   useState,
 } from "react";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 
 export function AnalyticsCard<T extends string>({
   tabs,

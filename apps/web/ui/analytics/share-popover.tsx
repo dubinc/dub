@@ -10,7 +10,7 @@ import { cn, linkConstructor } from "@dub/utils";
 import { Share2 } from "lucide-react";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 
 export default function SharePopover() {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);

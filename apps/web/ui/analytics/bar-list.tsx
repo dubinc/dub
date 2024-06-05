@@ -15,7 +15,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({

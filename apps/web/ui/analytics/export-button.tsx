@@ -2,7 +2,7 @@ import { LoadingSpinner } from "@dub/ui";
 import { Download } from "lucide-react";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 
 export default function ExportButton() {
   const [loading, setLoading] = useState(false);

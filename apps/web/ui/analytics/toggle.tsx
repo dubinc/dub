@@ -55,16 +55,20 @@ import {
   useMemo,
   useState,
 } from "react";
-import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
+import { AnalyticsContext } from "./analytics-provider";
 import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
 import RefererIcon from "./referer-icon";
 import SharePopover from "./share-popover";
 import { useAnalyticsFilterOption } from "./utils";
 
-export default function Toggle() {
+export default function Toggle({
+  heading = "Analytics",
+}: {
+  heading?: string;
+}) {
   const { plan } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
   const { basePath, domain, key, url, admin, demo, start, end, interval } =
@@ -469,7 +473,7 @@ export default function Toggle() {
               </a>
             ) : (
               <h1 className="text-2xl font-semibold tracking-tight text-black">
-                Analytics
+                {heading}
               </h1>
             )}
             <div
