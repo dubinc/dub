@@ -140,11 +140,11 @@ func main() {
 	request := operations.RetrieveAnalyticsRequest{
 		LinkId: "clv3o9p9q000au1h0mc7r6l63",
 		Interval: "7d",
-		groupBy: "timeseries"
+		GroupBy: "timeseries"
 	}
 
 	ctx := context.Background()
-	res, err := s.Analytics.Retrieve(ctx, request)
+	res, err := d.Analytics.Retrieve(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}
