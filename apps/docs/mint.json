@@ -86,10 +86,6 @@
         {
           "group": "Ruby",
           "pages": ["quickstart/ruby", "quickstart/rails", "quickstart/sinatra"]
-        },
-        {
-          "group": "PHP",
-          "pages": ["quickstart/php", "quickstart/laravel"]
         }
       ]
     },
