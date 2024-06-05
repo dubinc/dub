@@ -15,7 +15,47 @@ To install the Dub Ruby SDK, run the following command:
 gem install dub
 ```
 
+Initialize the Dub Ruby SDK by creating a new instance of the `Dub` class.
+
+```ruby
+require 'dub'
+
+d = ::OpenApiSDK::Dub.new(
+  workspace_id: "ws_clugls3...",
+)
+
+d.config_security(
+  ::OpenApiSDK::Shared::Security.new(
+    token: "DUB_API_KEY",
+  )
+)
+```
+
 ## 3. Create link
+
+Let's create a short link using the Dub Node.js SDK.
+
+```ruby index.rb
+res = d.links.create(workspace_id="<value>", project_slug="<value>", request_body=::OpenApiSDK::Operations::CreateLinkRequestBody.new(
+    url: "https://google/com",
+    external_id: "123456",
+    tag_ids: [
+    "<value>",
+  ],
+  ))
+```
+
+<Accordion title="Full list of available attributes for the Link model">
+  <LinkArguments />
+</Accordion>
+
+## 3a. Create link with `externalId`
+
+Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
+
+```ruby index.rb
+
+```
 
 ## 4. Upsert link
 
