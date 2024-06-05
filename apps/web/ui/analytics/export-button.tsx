@@ -1,5 +1,5 @@
 import { Button } from "@dub/ui/src/button";
-import { Download } from "lucide-react";
+import { Download } from "@dub/ui/src/icons";
 import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from ".";
@@ -41,7 +41,7 @@ export default function ExportButton({
 
   return (
     <Button
-      text="Export CSV"
+      text="Download as CSV"
       variant="outline"
       icon={<Download className="h-4 w-4" />}
       className="h-9 justify-start px-2 text-black"

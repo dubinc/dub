@@ -1,7 +1,7 @@
 import { AnimatedSizeContainer, Popover, useMediaQuery } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
 import { ReferredVia } from "@dub/ui/src/icons";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AnalyticsContext } from ".";
 import { ThreeDots } from "../shared/icons";
 import ExportButton from "./export-button";
@@ -10,20 +10,24 @@ import ShareAnalytics from "./share-analytics";
 export default function AnalyticsOptions() {
   const { isMobile } = useMediaQuery();
   const { key } = useContext(AnalyticsContext);
-
   const [openPopover, setOpenPopover] = useState(false);
 
   const [state, setState] = useState<"default" | "share">("default");
+  useEffect(() => {
+    if (!openPopover || !key) {
+      setState("default");
+    }
+  }, [openPopover, key]);
 
   return (
     <Popover
       align="end"
       content={
         <AnimatedSizeContainer width={!isMobile} height>
-          {key && state === "share" && <ShareAnalytics />}
+          {state === "share" && <ShareAnalytics />}
 
           {state === "default" && (
-            <div className="grid gap-px p-2 sm:w-44">
+            <div className="grid w-full gap-px p-2 sm:w-48">
               <ExportButton setOpenPopover={setOpenPopover} />
               {key && (
                 <Button

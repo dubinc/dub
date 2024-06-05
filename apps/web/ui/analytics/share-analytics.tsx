@@ -63,8 +63,8 @@ export default function ShareAnalytics() {
           />
         </div>
         <p className="text-gray-500">
-          Making stats public will allow anyone with the link to see the stats
-          for this short link.
+          Making stats public will allow anyone with the link to see the
+          analytics for this short link.
         </p>
       </div>
       <div className="p-4">
