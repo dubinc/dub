@@ -27,7 +27,7 @@ export default function AnalyticsOptions() {
           {state === "share" && <ShareAnalytics />}
 
           {state === "default" && (
-            <div className="grid w-full gap-px p-2 sm:w-48">
+            <div className="grid w-screen gap-px p-2 sm:w-48">
               <ExportButton setOpenPopover={setOpenPopover} />
               {key && (
                 <Button

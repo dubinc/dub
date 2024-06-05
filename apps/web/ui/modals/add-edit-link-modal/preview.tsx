@@ -1,5 +1,6 @@
 import { LinkProps } from "@/lib/types";
 import {
+  AnimatedSizeContainer,
   Facebook,
   FileUpload,
   LinkedIn,
@@ -9,11 +10,9 @@ import {
   Twitter,
   Unsplash,
   useMediaQuery,
-  useResizeObserver,
 } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
 import { getDomainWithoutWWW, resizeImage } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { Edit2, Link2, Upload } from "lucide-react";
 import {
   ChangeEvent,
@@ -321,68 +320,47 @@ const ImagePreviewPopoverContent = ({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
   setShowPromptModal: Dispatch<SetStateAction<boolean>>;
 }) => {
-  const contentWrapperRef = useRef<HTMLDivElement>(null);
-  const resizeObserverEntry = useResizeObserver(contentWrapperRef);
-
   const { isMobile } = useMediaQuery();
 
   const [state, setState] = useState<"default" | "unsplash">("default");
 
   return (
-    <motion.div
-      className="relative overflow-hidden"
-      animate={{
-        width: isMobile
-          ? "100%"
-          : resizeObserverEntry?.borderBoxSize[0].inlineSize ?? "auto",
-        height: resizeObserverEntry?.borderBoxSize[0].blockSize ?? "auto",
-      }}
-      transition={{ type: "spring", duration: 0.3, bounce: 0.15 }}
-    >
-      <div ref={contentWrapperRef} className="inline-block w-full sm:w-auto">
-        <AnimatePresence>
-          {state === "unsplash" && (
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <UnsplashSearch
-                onImageSelected={onImageChange}
-                setOpenPopover={setOpenPopover}
-              />
-            </motion.div>
-          )}
+    <AnimatedSizeContainer width={!isMobile} height>
+      {state === "unsplash" && (
+        <UnsplashSearch
+          onImageSelected={onImageChange}
+          setOpenPopover={setOpenPopover}
+        />
+      )}
 
-          {state === "default" && (
-            <div className="grid gap-px p-2">
-              <Button
-                text="Upload image"
-                variant="outline"
-                icon={<Upload className="h-4 w-4" />}
-                className="h-9 justify-start px-2 font-medium disabled:border-none disabled:bg-transparent"
-                onClick={() => {
-                  inputFileRef.current?.click();
-                  setOpenPopover(false);
-                }}
-              />
-              <Button
-                text="Use image from URL"
-                variant="outline"
-                icon={<Link2 className="h-4 w-4" />}
-                className="h-9 justify-start px-2 font-medium"
-                onClick={() => setShowPromptModal(true)}
-              />
-              <Button
-                text="Use image from Unsplash"
-                variant="outline"
-                icon={<Unsplash className="h-4 w-4 p-0.5" />}
-                className="h-9 justify-start px-2 font-medium"
-                onClick={() => setState("unsplash")}
-              />
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
+      {state === "default" && (
+        <div className="grid gap-px p-2">
+          <Button
+            text="Upload image"
+            variant="outline"
+            icon={<Upload className="h-4 w-4" />}
+            className="h-9 justify-start px-2 font-medium disabled:border-none disabled:bg-transparent"
+            onClick={() => {
+              inputFileRef.current?.click();
+              setOpenPopover(false);
+            }}
+          />
+          <Button
+            text="Use image from URL"
+            variant="outline"
+            icon={<Link2 className="h-4 w-4" />}
+            className="h-9 justify-start px-2 font-medium"
+            onClick={() => setShowPromptModal(true)}
+          />
+          <Button
+            text="Use image from Unsplash"
+            variant="outline"
+            icon={<Unsplash className="h-4 w-4 p-0.5" />}
+            className="h-9 justify-start px-2 font-medium"
+            onClick={() => setState("unsplash")}
+          />
+        </div>
+      )}
+    </AnimatedSizeContainer>
   );
 };
