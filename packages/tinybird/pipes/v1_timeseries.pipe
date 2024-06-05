@@ -2,18 +2,23 @@ DESCRIPTION >
 	Timeseries data
 
 
-TOKEN "timeseries_endpoint_read_0508" READ
+TOKEN "v2_timeseries_endpoint_read_1559" READ
 
 NODE month_intervals
 SQL >
 
     %
     WITH
-        toStartOfMonth(toDateTime64({{ DateTime64(start, '2024-04-24 00:00:00.000') }}, 3)) AS start,
-        toStartOfMonth(toDateTime64({{ DateTime64(end, '2024-05-23 00:00:00.000') }}, 3)) AS
+        toStartOfMonth(
+            toDateTime64({{ DateTime64(start, '2024-02-24 00:00:00.000') }}, 3),
+            {{ String(timezone, 'UTC') }}
+        ) AS start,
+        toStartOfMonth(
+            toDateTime64({{ DateTime64(end, '2024-05-23 00:00:00.000') }}, 3),
+            {{ String(timezone, 'UTC') }}
+        ) AS
     end,
-    dateDiff('month', start, end
-    ) + 1 AS months_diff
+    dateDiff('month', start, end) + 1 AS months_diff
     SELECT
         arrayJoin(
             arrayMap(
@@ -30,7 +35,7 @@ SQL >
     %
     WITH
         toStartOfDay(
-            toDateTime64({{ DateTime64(start, '2024-04-24 00:00:00.000') }}, 3),
+            toDateTime64({{ DateTime64(start, '2024-02-24 00:00:00.000') }}, 3),
             {{ String(timezone, 'UTC') }}
         ) AS start,
         toStartOfDay(
@@ -41,7 +46,7 @@ SQL >
     SELECT
         arrayJoin(
             arrayMap(
-                x -> toDateTime64(x, 3, {{ String(timezone, 'UTC') }}),
+                x -> toDateTime64(toStartOfDay(toDateTime64(x, 3), {{ String(timezone, 'UTC') }}), 3),
                 range(toUInt32(start + 86400), toUInt32(end + 86400),
                 86400
             )
@@ -104,7 +109,11 @@ SQL >
     SELECT
         {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
         {% elif granularity == "month" %}
-            toDateTime64(toStartOfMonth(timestamp), 3, {{ String(timezone, 'UTC') }})
+            toDateTime64(
+                toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}),
+                3,
+                {{ String(timezone, 'UTC') }}
+            )
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
         uniq(*) as clicks
@@ -162,7 +171,11 @@ SQL >
     SELECT
         {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
         {% elif granularity == "month" %}
-            toDateTime64(toStartOfMonth(timestamp), 3, {{ String(timezone, 'UTC') }})
+            toDateTime64(
+                toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}),
+                3,
+                {{ String(timezone, 'UTC') }}
+            )
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
         uniq(*) as leads
@@ -223,7 +236,11 @@ SQL >
     SELECT
         {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
         {% elif granularity == "month" %}
-            toDateTime64(toStartOfMonth(timestamp), 3, {{ String(timezone, 'UTC') }})
+            toDateTime64(
+                toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}),
+                3,
+                {{ String(timezone, 'UTC') }}
+            )
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
         uniq(*) as sales,
@@ -306,13 +323,13 @@ NODE endpoint
 SQL >
 
     %
-        SELECT *
-        FROM
-            {% if eventType == 'clicks' %} timeseries_clicks
-            {% elif eventType == 'leads' %} timeseries_leads
-            {% elif eventType == 'sales' %} timeseries_sales
-            {% elif eventType == 'billing' %} timeseries_billing
-            {% else %} timeseries_composite
-            {% end %}
+    SELECT *
+    FROM
+        {% if eventType == 'clicks' %} timeseries_clicks
+        {% elif eventType == 'leads' %} timeseries_leads
+        {% elif eventType == 'sales' %} timeseries_sales
+        {% elif eventType == 'billing' %} timeseries_billing
+        {% else %} timeseries_composite
+        {% end %}
 
 
