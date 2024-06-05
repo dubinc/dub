@@ -1,6 +1,7 @@
 export * from "./crosshairs";
 export * from "./cube";
 export * from "./cursor-rays";
+export * from "./download";
 export * from "./flag-wavy";
 export * from "./globe";
 export * from "./hyperlink";
