@@ -1,5 +1,5 @@
 import { verifySignature } from "@/lib/cron";
-import { getSearchParams, log } from "@dub/utils";
+import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { updateUsage } from "./utils";
 
@@ -12,10 +12,8 @@ export async function GET(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { skip } = getSearchParams(req.url);
-
   try {
-    await updateUsage(skip ? parseInt(skip) : undefined);
+    await updateUsage();
 
     return NextResponse.json({
       response: "success",

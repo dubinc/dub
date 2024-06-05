@@ -14,9 +14,19 @@ import ClicksSummary from "emails/clicks-summary";
 
 const limit = 100;
 
-export const updateUsage = async (skip?: number) => {
+export const updateUsage = async () => {
   const workspaces = await prisma.project.findMany({
     where: {
+      OR: [
+        {
+          lastUsageResetAt: {
+            lt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000), // 24 hours ago
+          },
+        },
+        {
+          lastUsageResetAt: null,
+        },
+      ],
       domains: {
         some: {
           verified: true,
@@ -36,7 +46,9 @@ export const updateUsage = async (skip?: number) => {
       },
       sentEmails: true,
     },
-    skip: skip || 0,
+    orderBy: {
+      createdAt: "asc",
+    },
     take: limit,
   });
 
@@ -44,6 +56,18 @@ export const updateUsage = async (skip?: number) => {
   if (workspaces.length === 0) {
     return;
   }
+
+  // Update lastUsageResetAt for workspaces
+  await prisma.project.updateMany({
+    where: {
+      id: {
+        in: workspaces.map(({ id }) => id),
+      },
+    },
+    data: {
+      lastUsageResetAt: new Date(),
+    },
+  });
 
   // Reset billing cycles for workspaces that have
   // adjustedBillingCycleStart that matches today's date
@@ -226,9 +250,7 @@ export const updateUsage = async (skip?: number) => {
   );
 
   return await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage?skip=${
-      skip ? skip + limit : limit
-    }`,
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
     method: "GET",
   });
 };
