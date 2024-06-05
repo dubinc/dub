@@ -5,8 +5,9 @@ import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
-  const { path, fullPath } = parse(req);
+  const { path, fullPath, searchParamsString } = parse(req);
   const user = await getUserViaToken(req);
+  const isWorkspaceInvite = req.nextUrl.searchParams.get("invite");
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
@@ -34,7 +35,9 @@ export default async function AppMiddleware(req: NextRequest) {
       user.createdAt &&
       new Date(user.createdAt).getTime() > Date.now() - 10000 &&
       // here we include the root page + /new (since they're going through welcome flow already)
-      path !== "/welcome"
+      path !== "/welcome" &&
+      // if the user was invited to a workspace, don't show the welcome page – redirect straight to the workspace
+      !isWorkspaceInvite
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 
@@ -44,7 +47,7 @@ export default async function AppMiddleware(req: NextRequest) {
 
       if (defaultWorkspace) {
         return NextResponse.redirect(
-          new URL(`/${defaultWorkspace}${fullPath}`, req.url),
+          new URL(`/${defaultWorkspace}${searchParamsString}`, req.url),
         );
       } else {
         return NextResponse.redirect(new URL("/workspaces", req.url));

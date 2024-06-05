@@ -34,24 +34,26 @@ export const POST = async (req: Request) => {
 
   // Ignore unsupported events
   if (!relevantEvents.has(event.type)) {
-    return new Response("OK", {
+    return new Response("Unsupported event, skipping...", {
       status: 200,
     });
   }
 
+  let response = "OK";
+
   switch (event.type) {
     case "customer.created":
-      await customerCreated(event);
+      response = await customerCreated(event);
       break;
     case "checkout.session.completed":
-      await checkoutSessionCompleted(event);
+      response = await checkoutSessionCompleted(event);
       break;
     case "invoice.paid":
-      await invoicePaid(event);
+      response = await invoicePaid(event);
       break;
   }
 
-  return new Response("OK", {
+  return new Response(response, {
     status: 200,
   });
 };

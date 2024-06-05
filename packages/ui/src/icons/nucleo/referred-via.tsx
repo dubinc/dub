@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export function Cube(props: SVGProps<SVGSVGElement>) {
+export function ReferredVia(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       height="18"
@@ -10,28 +10,25 @@ export function Cube(props: SVGProps<SVGSVGElement>) {
       {...props}
     >
       <g fill="currentColor">
-        <polyline
-          fill="none"
-          points="14.983 5.53 9 9 3.017 5.53"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
-        <line
+        <path
+          d="M2.75,10.75v2.5c0,1.105,.895,2,2,2H15.25"
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
-          x1="9"
-          x2="9"
-          y1="15.938"
-          y2="9"
         />
         <path
-          d="M7.997,2.332L3.747,4.797c-.617,.358-.997,1.017-.997,1.73v4.946c0,.713,.38,1.372,.997,1.73l4.25,2.465c.621,.36,1.386,.36,2.007,0l4.25-2.465c.617-.358,.997-1.017,.997-1.73V6.527c0-.713-.38-1.372-.997-1.73l-4.25-2.465c-.621-.36-1.386-.36-2.007,0Z"
+          d="M15,6h-4c-2.347,0-4.25,1.903-4.25,4.25h0"
           fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <polyline
+          fill="none"
+          points="12 2.75 15.25 6 12 9.25"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"

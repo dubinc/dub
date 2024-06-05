@@ -14,7 +14,6 @@ import {
   Button,
   CopyButton,
   IconMenu,
-  Magic,
   NumberTooltip,
   Popover,
   SimpleTooltipContent,
@@ -23,6 +22,7 @@ import {
   useIntersectionObserver,
   useRouterStuff,
 } from "@dub/ui";
+import { Crosshairs, CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
   cn,
@@ -38,7 +38,6 @@ import {
   Archive,
   Copy,
   CopyPlus,
-  CreditCard,
   Edit3,
   EyeOff,
   FolderInput,
@@ -477,22 +476,22 @@ export default function LinkCard({
           {trackConversion ? (
             <Link
               href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-              className="flex items-center space-x-2 rounded-md bg-gray-100 px-2 hover:bg-gray-200/75"
+              className="flex items-center space-x-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
             >
-              <div className="flex items-center space-x-1 p-0.5">
-                <Chart className="h-4 w-4 text-gray-700" />
+              <div className="flex items-center space-x-1">
+                <CursorRays className="h-4 w-4 text-gray-700" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
                   {nFormatter(totalEvents?.clicks)}
                 </p>
               </div>
-              <div className="flex items-center space-x-1 p-0.5">
-                <Magic className="h-4 w-4 text-gray-700" />
+              <div className="flex items-center space-x-1">
+                <Crosshairs className="h-4 w-4 text-gray-700" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
                   {nFormatter(totalEvents?.leads)}
                 </p>
               </div>
-              <div className="flex items-center space-x-1 p-0.5">
-                <CreditCard className="h-4 w-4 text-gray-700" />
+              <div className="flex items-center space-x-1">
+                <InvoiceDollar className="h-4 w-4 text-gray-700" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
                   {nFormatter(totalEvents?.sales)}
                 </p>

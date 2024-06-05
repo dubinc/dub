@@ -26,6 +26,8 @@ export default function WorkspacePeopleClient() {
     "Members",
   );
 
+  const { isOwner } = useWorkspace();
+
   const { users } = useUsers({ invites: currentTab === "Invitations" });
 
   return (
@@ -45,12 +47,20 @@ export default function WorkspacePeopleClient() {
               text="Invite"
               onClick={() => setShowInviteTeammateModal(true)}
               className="h-9"
+              {...(!isOwner && {
+                disabledTooltip:
+                  "Only workspace owners can invite new teammates.",
+              })}
             />
             <Button
               icon={<LinkIcon className="h-4 w-4 text-gray-800" />}
               variant="secondary"
               onClick={() => setShowInviteCodeModal(true)}
-              className="h-9"
+              className="h-9 space-x-0"
+              {...(!isOwner && {
+                disabledTooltip:
+                  "Only workspace owners can generate invite links for new teammates.",
+              })}
             />
           </div>
         </div>
@@ -111,7 +121,7 @@ const UserCard = ({
 }) => {
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { plan, isOwner } = useWorkspace();
+  const { isOwner } = useWorkspace();
 
   const { name, email, createdAt, role: currentRole } = user;
 
@@ -209,17 +219,23 @@ const UserCard = ({
             openPopover={openPopover}
             setOpenPopover={setOpenPopover}
           >
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpenPopover(!openPopover);
-              }}
-              className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
-            >
-              <span className="sr-only">Edit</span>
-              <ThreeDots className="h-5 w-5 text-gray-500" />
-            </button>
+            <div>
+              <Button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenPopover(!openPopover);
+                }}
+                icon={<ThreeDots className="h-5 w-5 text-gray-500" />}
+                className="h-8 space-x-0 px-1 py-2"
+                variant="outline"
+                {...(!isOwner &&
+                  session?.user?.email !== email && {
+                    disabledTooltip:
+                      "Only workspace owners can edit roles or remove teammates.",
+                  })}
+              />
+            </div>
           </Popover>
         </div>
       </div>

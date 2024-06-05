@@ -1,3 +1,4 @@
+import { generateFilters } from "@/lib/ai/generate-filters";
 import {
   INTERVAL_DATA,
   INTERVAL_DISPLAYS,
@@ -5,6 +6,7 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
+import useLinks from "@/lib/swr/use-links";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
@@ -24,29 +26,42 @@ import {
   FlagWavy,
   Globe,
   Hyperlink,
+  Magic,
   MobilePhone,
   OfficeBuilding,
   QRCode,
+  ReferredVia,
   Tag,
   Window,
 } from "@dub/ui/src/icons";
 import {
   APP_DOMAIN,
   COUNTRIES,
+  DUB_DEMO_LINKS,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
+  capitalize,
   cn,
   getApexDomain,
   getNextPlan,
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
-import { useCallback, useContext, useMemo, useState } from "react";
+import va from "@vercel/analytics";
+import { readStreamableValue } from "ai/rsc";
+import {
+  ComponentProps,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
 import DeviceIcon from "./device-icon";
 import ExportButton from "./export-button";
+import RefererIcon from "./referer-icon";
 import SharePopover from "./share-popover";
 import { useAnalyticsFilterOption } from "./utils";
 
@@ -61,13 +76,24 @@ export default function Toggle() {
   const scrolled = useScroll(80);
 
   const { tags } = useTags();
-  const { allDomains: domains } = useDomains();
+  const { allDomains: domains, primaryDomain } = useDomains();
+  const { links: allLinks } = useLinks();
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
   const activeFilters = useMemo(() => {
-    const { domain, tagId, qr, country, city, device, browser, os, key } =
-      searchParamsObj;
+    const {
+      domain,
+      key,
+      tagId,
+      qr,
+      country,
+      city,
+      device,
+      browser,
+      os,
+      referer,
+    } = searchParamsObj;
     return [
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
       ...(domain && key
@@ -80,10 +106,11 @@ export default function Toggle() {
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
+      ...(referer ? [{ key: "referer", value: referer }] : []),
     ];
   }, [searchParamsObj]);
 
-  const isEnabled = useCallback(
+  const isRequested = useCallback(
     (key: string) =>
       requestedFilters.includes(key) ||
       activeFilters.some((af) => af.key === key),
@@ -91,83 +118,168 @@ export default function Toggle() {
   );
 
   const links = useAnalyticsFilterOption("top_links", {
-    enabled: isEnabled("link"),
+    cacheOnly: !isRequested("link"),
   });
   const countries = useAnalyticsFilterOption("countries", {
-    enabled: isEnabled("country"),
+    cacheOnly: !isRequested("country"),
   });
   const cities = useAnalyticsFilterOption("cities", {
-    enabled: isEnabled("city"),
+    cacheOnly: !isRequested("city"),
   });
   const devices = useAnalyticsFilterOption("devices", {
-    enabled: isEnabled("device"),
+    cacheOnly: !isRequested("device"),
   });
   const browsers = useAnalyticsFilterOption("browsers", {
-    enabled: isEnabled("browser"),
+    cacheOnly: !isRequested("browser"),
   });
   const os = useAnalyticsFilterOption("os", {
-    enabled: isEnabled("os"),
+    cacheOnly: !isRequested("os"),
+  });
+  const referers = useAnalyticsFilterOption("referers", {
+    cacheOnly: !isRequested("referers"),
   });
 
-  const filters = useMemo(
+  // Some suggestions will only appear if previously requested (see isRequested above)
+  const aiFilterSuggestions = useMemo(
+    () => [
+      ...(isPublicStatsPage
+        ? []
+        : [
+            {
+              value: `Clicks on ${primaryDomain} domain this year`,
+              icon: Globe,
+            },
+          ]),
+      {
+        value: "Mobile users, US only",
+        icon: MobilePhone,
+      },
+      {
+        value: "Tokyo, Chrome users",
+        icon: OfficeBuilding,
+      },
+      {
+        value: "Safari, Singapore, last month",
+        icon: FlagWavy,
+      },
+      {
+        value: "QR scans last quarter",
+        icon: QRCode,
+      },
+    ],
+    [primaryDomain, isPublicStatsPage],
+  );
+
+  const [streaming, setStreaming] = useState<boolean>(false);
+
+  const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
       {
-        key: "domain",
-        icon: Globe,
-        label: "Domain",
-        options: domains.map((domain) => ({
-          value: domain.slug,
-          label: domain.slug,
-          icon: (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${domain.slug}`}
-              alt={domain.slug}
-              className="h-4 w-4 rounded-full"
-              width={16}
-              height={16}
-            />
-          ),
-        })),
-      },
-      {
-        key: "link",
-        icon: Hyperlink,
-        label: "Link",
+        key: "ai",
+        icon: Magic,
+        label: "Ask AI",
+        separatorAfter: true,
         options:
-          links?.map(
-            ({ domain, key, url, count }: LinkProps & { count?: number }) => ({
-              value: linkConstructor({ domain, key }),
-              label: linkConstructor({ domain, key, pretty: true }),
-              icon: (
-                <LinkLogo
-                  apexDomain={getApexDomain(url)}
-                  className="h-4 w-4 sm:h-4 sm:w-4"
-                />
-              ),
-              right: nFormatter(count, { full: true }),
-            }),
-          ) ?? null,
-      },
-      {
-        key: "tagId",
-        icon: Tag,
-        label: "Tag",
-        options:
-          tags?.map((tag) => ({
-            value: tag.id,
-            icon: (
-              <div
-                className={cn(
-                  "rounded-md p-1.5",
-                  COLORS_LIST.find(({ color }) => color === tag.color)?.css,
-                )}
-              >
-                <Tag className="h-2.5 w-2.5" />
-              </div>
-            ),
-            label: tag.name,
+          aiFilterSuggestions?.map(({ icon, value }) => ({
+            value,
+            label: value,
+            icon,
           })) ?? null,
       },
+      ...(isPublicStatsPage
+        ? []
+        : [
+            {
+              key: "domain",
+              icon: Globe,
+              label: "Domain",
+              getOptionIcon: (value) => (
+                <BlurImage
+                  src={`${GOOGLE_FAVICON_URL}${value}`}
+                  alt={value}
+                  className="h-4 w-4 rounded-full"
+                  width={16}
+                  height={16}
+                />
+              ),
+              options: domains.map((domain) => ({
+                value: domain.slug,
+                label: domain.slug,
+              })),
+            },
+            {
+              key: "link",
+              icon: Hyperlink,
+              label: "Link",
+              getOptionIcon: (value, props) => {
+                const url =
+                  props.option?.data?.url ??
+                  allLinks?.find(
+                    ({ domain, key }) =>
+                      value.includes(key) &&
+                      linkConstructor({ domain, key }) === value,
+                  )?.url;
+
+                return url ? (
+                  <LinkLogo
+                    apexDomain={getApexDomain(url)}
+                    className="h-4 w-4 sm:h-4 sm:w-4"
+                  />
+                ) : null;
+              },
+              options:
+                links?.map(
+                  ({
+                    domain,
+                    key,
+                    url,
+                    count,
+                  }: LinkProps & { count?: number }) => ({
+                    value: linkConstructor({ domain, key }),
+                    label: linkConstructor({ domain, key, pretty: true }),
+                    right: nFormatter(count, { full: true }),
+                    data: { url },
+                  }),
+                ) ?? null,
+            },
+            {
+              key: "tagId",
+              icon: Tag,
+              label: "Tag",
+              getOptionIcon: (value, props) => {
+                const tagColor =
+                  props.option?.data?.color ??
+                  tags?.find(({ id }) => id === value)?.color;
+                return tagColor ? (
+                  <div
+                    className={cn(
+                      "rounded-md p-1.5",
+                      COLORS_LIST.find(({ color }) => color === tagColor)?.css,
+                    )}
+                  >
+                    <Tag className="h-2.5 w-2.5" />
+                  </div>
+                ) : null;
+              },
+              options:
+                tags?.map((tag) => ({
+                  value: tag.id,
+                  icon: (
+                    <div
+                      className={cn(
+                        "rounded-md p-1.5",
+                        COLORS_LIST.find(({ color }) => color === tag.color)
+                          ?.css,
+                      )}
+                    >
+                      <Tag className="h-2.5 w-2.5" />
+                    </div>
+                  ),
+                  label: tag.name,
+                  data: { color: tag.color },
+                })) ?? null,
+            },
+          ]),
       {
         key: "qr",
         icon: CursorRays,
@@ -184,22 +296,24 @@ export default function Toggle() {
             icon: QRCode,
           },
         ],
+        separatorAfter: !isPublicStatsPage,
       },
       {
         key: "country",
         icon: FlagWavy,
         label: "Country",
+        getOptionIcon: (value) => (
+          <img
+            alt={value}
+            src={`https://flag.vercel.app/m/${value}.svg`}
+            className="h-2.5 w-4"
+          />
+        ),
+        getOptionLabel: (value) => COUNTRIES[value],
         options:
           countries?.map(({ country, count }) => ({
             value: country,
             label: COUNTRIES[country],
-            icon: (
-              <img
-                alt={country}
-                src={`https://flag.vercel.app/m/${country}.svg`}
-                className="h-2.5 w-4"
-              />
-            ),
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
@@ -225,13 +339,17 @@ export default function Toggle() {
         key: "device",
         icon: MobilePhone,
         label: "Device",
+        getOptionIcon: (value) => (
+          <DeviceIcon
+            display={capitalize(value) ?? value}
+            tab="devices"
+            className="h-4 w-4"
+          />
+        ),
         options:
           devices?.map(({ device, count }) => ({
             value: device,
             label: device,
-            icon: (
-              <DeviceIcon display={device} tab="devices" className="h-4 w-4" />
-            ),
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
@@ -239,17 +357,13 @@ export default function Toggle() {
         key: "browser",
         icon: Window,
         label: "Browser",
+        getOptionIcon: (value) => (
+          <DeviceIcon display={value} tab="browsers" className="h-4 w-4" />
+        ),
         options:
           browsers?.map(({ browser, count }) => ({
             value: browser,
             label: browser,
-            icon: (
-              <DeviceIcon
-                display={browser}
-                tab="browsers"
-                className="h-4 w-4"
-              />
-            ),
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
@@ -257,16 +371,44 @@ export default function Toggle() {
         key: "os",
         icon: Cube,
         label: "OS",
+        getOptionIcon: (value) => (
+          <DeviceIcon display={value} tab="os" className="h-4 w-4" />
+        ),
         options:
           os?.map(({ os, count }) => ({
             value: os,
             label: os,
-            icon: <DeviceIcon display={os} tab="os" className="h-4 w-4" />,
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
+      {
+        key: "referer",
+        icon: ReferredVia,
+        label: "Referer",
+        getOptionIcon: (value, props) => (
+          <RefererIcon display={value} className="h-4 w-4" />
+        ),
+        options:
+          referers?.map(({ referer, count }) => ({
+            value: referer,
+            label: referer,
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
     ],
-    [domains, links, tags, countries, cities, devices, browsers, os],
+    [
+      isPublicStatsPage,
+      domains,
+      allLinks,
+      links,
+      tags,
+      countries,
+      cities,
+      devices,
+      browsers,
+      os,
+      referers,
+    ],
   );
 
   return (
@@ -338,12 +480,31 @@ export default function Toggle() {
               })}
             >
               {!isPublicStatsPage && key && <SharePopover />}
-              {!isPublicStatsPage && (
-                <Filter.Select
-                  className="w-full"
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={(key, value) =>
+              <Filter.Select
+                className="w-full"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={async (key, value) => {
+                  if (key === "ai") {
+                    setStreaming(true);
+                    const prompt = value.replace("Ask AI ", "");
+                    const { object } = await generateFilters(prompt);
+                    for await (const partialObject of readStreamableValue(
+                      object,
+                    )) {
+                      if (partialObject) {
+                        queryParams({
+                          set: {
+                            ...partialObject,
+                          },
+                        });
+                      }
+                    }
+                    va.track("Generated AI filters", {
+                      prompt,
+                    });
+                    setStreaming(false);
+                  } else {
                     queryParams({
                       set:
                         key === "link"
@@ -354,20 +515,21 @@ export default function Toggle() {
                           : {
                               [key]: value,
                             },
-                    })
+                    });
                   }
-                  onRemove={(key) =>
-                    queryParams({
-                      del: key === "link" ? ["domain", "key"] : key,
-                    })
-                  }
-                  onOpenFilter={(key) =>
-                    setRequestedFilters((rf) =>
-                      rf.includes(key) ? rf : [...rf, key],
-                    )
-                  }
-                />
-              )}
+                }}
+                onRemove={(key) =>
+                  queryParams({
+                    del: key === "link" ? ["domain", "key"] : key,
+                  })
+                }
+                onOpenFilter={(key) =>
+                  setRequestedFilters((rf) =>
+                    rf.includes(key) ? rf : [...rf, key],
+                  )
+                }
+                askAI
+              />
               <div
                 className={cn("flex w-full items-center gap-2", {
                   "min-[550px]:w-auto": !key,
@@ -377,7 +539,7 @@ export default function Toggle() {
                 <DateRangePicker
                   className="w-full sm:min-w-[200px]"
                   align="end"
-                  defaultValue={
+                  value={
                     start && end
                       ? {
                           from: start,
@@ -385,9 +547,7 @@ export default function Toggle() {
                         }
                       : undefined
                   }
-                  defaultPresetId={
-                    !start || !end ? interval ?? "24h" : undefined
-                  }
+                  presetId={!start || !end ? interval ?? "24h" : undefined}
                   onChange={(range, preset) => {
                     if (preset) {
                       queryParams({
@@ -416,7 +576,11 @@ export default function Toggle() {
                     const end = new Date();
 
                     const requiresUpgrade =
-                      admin || demo
+                      admin ||
+                      demo ||
+                      DUB_DEMO_LINKS.find(
+                        (l) => l.domain === domain && l.key === key,
+                      )
                         ? false
                         : !validDateRangeForPlan({
                             plan,
@@ -452,7 +616,15 @@ export default function Toggle() {
       <div className="mx-auto w-full max-w-screen-xl px-2.5 lg:px-20">
         <Filter.List
           filters={filters}
-          activeFilters={activeFilters}
+          activeFilters={[
+            ...activeFilters,
+            ...(streaming && !activeFilters.length
+              ? Array.from({ length: 2 }, (_, i) => i).map((i) => ({
+                  key: "loader",
+                  value: i,
+                }))
+              : []),
+          ]}
           onRemove={(key) =>
             queryParams({
               del: key === "link" ? ["domain", "key"] : key,
@@ -460,14 +632,17 @@ export default function Toggle() {
           }
           onRemoveAll={() =>
             queryParams({
-              del: ["domain", "key", ...VALID_ANALYTICS_FILTERS],
+              // Reset all filters except for date range
+              del: VALID_ANALYTICS_FILTERS.filter(
+                (f) => !["interval", "start", "end"].includes(f),
+              ),
             })
           }
         />
         <div
           className={cn(
             "transition-[height] duration-[300ms]",
-            activeFilters.length ? "h-6" : "h-0",
+            streaming || activeFilters.length ? "h-6" : "h-0",
           )}
         />
       </div>

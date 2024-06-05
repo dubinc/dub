@@ -33,6 +33,17 @@ export function FilterList({
         <div className="flex grow flex-wrap gap-x-4 gap-y-2">
           <AnimatePresence>
             {activeFilters?.map(({ key, value }) => {
+              if (key === "loader") {
+                return (
+                  <motion.div
+                    key={`loader-${value}`}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="h-9 w-48 animate-pulse rounded-md border border-gray-200 bg-white"
+                  />
+                );
+              }
+
               const filter = filters.find((f) => f.key === key);
               if (!filter) {
                 throw new Error(
@@ -40,7 +51,24 @@ export function FilterList({
                 );
               }
 
-              const option = filter.options?.find((o) => o.value === value);
+              const option = filter.options?.find((o) =>
+                typeof o.value === "string" && typeof value === "string"
+                  ? o.value.toLowerCase() === value.toLowerCase()
+                  : o.value === value,
+              );
+
+              const OptionIcon =
+                option?.icon ??
+                filter.getOptionIcon?.(value, {
+                  key: filter.key,
+                  option,
+                }) ??
+                filter.icon;
+
+              const optionLabel =
+                option?.label ??
+                filter.getOptionLabel?.(value, { key: filter.key, option }) ??
+                value;
 
               return (
                 <motion.div
@@ -67,20 +95,16 @@ export function FilterList({
                   {/* Option */}
                   <div className="flex items-center gap-2.5 px-3 py-2">
                     {filter.options ? (
-                      option ? (
-                        <>
-                          <span className="shrink-0 text-gray-600">
-                            {isReactNode(option.icon) ? (
-                              option.icon
-                            ) : (
-                              <option.icon className="h-4 w-4" />
-                            )}
-                          </span>
-                          {truncate(option.label, 30)}
-                        </>
-                      ) : (
-                        value
-                      )
+                      <>
+                        <span className="shrink-0 text-gray-600">
+                          {isReactNode(OptionIcon) ? (
+                            OptionIcon
+                          ) : (
+                            <OptionIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        {truncate(optionLabel, 30)}
+                      </>
                     ) : (
                       <div className="h-5 w-12 animate-pulse rounded-md bg-gray-200" />
                     )}

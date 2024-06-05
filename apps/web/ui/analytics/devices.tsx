@@ -27,7 +27,7 @@ export default function Devices() {
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 8}
     >
-      {({ limit, event, setShowModal }) =>
+      {({ limit, setShowModal }) =>
         data ? (
           data.length > 0 ? (
             <BarList
@@ -48,10 +48,10 @@ export default function Devices() {
                     },
                     getNewPath: true,
                   }) as string,
-                  value: d[event] || 0,
+                  value: d.count || 0,
                 })) || []
               }
-              maxValue={(data && data[0]?.[event]) || 0}
+              maxValue={(data && data[0]?.count) || 0}
               barBackground="bg-green-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-green-50 hover:to-transparent hover:border-green-500"
               setShowModal={setShowModal}

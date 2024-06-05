@@ -20,13 +20,7 @@ export async function invoicePaid(event: Stripe.Event) {
   });
 
   if (!customer) {
-    return;
-  }
-
-  // Find lead
-  const leadEvent = await getLeadEvent({ customerId: customer.id });
-  if (!leadEvent || leadEvent.data.length === 0) {
-    return;
+    return `Customer with stripeCustomerId ${stripeCustomerId} not found, skipping...`;
   }
 
   // Skip if invoice id is already processed
@@ -40,7 +34,13 @@ export async function invoicePaid(event: Stripe.Event) {
       "[Stripe Webhook] Skipping already processed invoice.",
       invoiceId,
     );
-    return;
+    return `Invoice with ID ${invoiceId} already processed, skipping...`;
+  }
+
+  // Find lead
+  const leadEvent = await getLeadEvent({ customerId: customer.id });
+  if (!leadEvent || leadEvent.data.length === 0) {
+    return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
   await Promise.all([
@@ -67,4 +67,6 @@ export async function invoicePaid(event: Stripe.Event) {
       },
     }),
   ]);
+
+  return `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`;
 }
