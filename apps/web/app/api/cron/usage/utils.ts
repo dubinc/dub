@@ -54,59 +54,8 @@ export const updateUsage = async () => {
       new Date().getDate(),
   );
 
-  // Get all workspaces that have exceeded usage
-  const exceedingUsage = workspaces.filter(
-    ({ usage, usageLimit }) => usage > usageLimit,
-  );
-
-  // Send email to notify overages
-  await Promise.allSettled(
-    exceedingUsage.map(async (workspace) => {
-      const { slug, plan, usage, usageLimit, users, sentEmails } = workspace;
-      const emails = users.map((user) => user.user.email) as string[];
-
-      await log({
-        message: `*${slug}* is over their *${capitalize(
-          plan,
-        )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
-          ", ",
-        )}`,
-        type: plan === "free" ? "cron" : "alerts",
-        mention: plan !== "free",
-      });
-      const sentFirstUsageLimitEmail = sentEmails.some(
-        (email) => email.type === "firstUsageLimitEmail",
-      );
-      if (!sentFirstUsageLimitEmail) {
-        sendLimitEmail({
-          emails,
-          workspace: workspace as unknown as WorkspaceProps,
-          type: "firstUsageLimitEmail",
-        });
-      } else {
-        const sentSecondUsageLimitEmail = sentEmails.some(
-          (email) => email.type === "secondUsageLimitEmail",
-        );
-        if (!sentSecondUsageLimitEmail) {
-          const daysSinceFirstEmail = Math.floor(
-            (new Date().getTime() -
-              new Date(sentEmails[0].createdAt).getTime()) /
-              (1000 * 3600 * 24),
-          );
-          if (daysSinceFirstEmail >= 3) {
-            sendLimitEmail({
-              emails,
-              workspace: workspace as unknown as WorkspaceProps,
-              type: "secondUsageLimitEmail",
-            });
-          }
-        }
-      }
-    }),
-  );
-
-  // Reset usage for workspaces that have billingCycleStart today
-  // also delete sentEmails for those workspaces
+  // Reset usage and alert emails for the billingReset workspaces
+  // also send 30-day summary email
   await Promise.allSettled(
     billingReset.map(async (workspace) => {
       const { plan, usage, usageLimit } = workspace;
@@ -232,6 +181,57 @@ export const updateUsage = async () => {
       usageLastChecked: new Date(),
     },
   });
+
+  // Get all workspaces that have exceeded usage
+  const exceedingUsage = workspaces.filter(
+    ({ usage, usageLimit }) => usage > usageLimit,
+  );
+
+  // Send email to notify overages
+  await Promise.allSettled(
+    exceedingUsage.map(async (workspace) => {
+      const { slug, plan, usage, usageLimit, users, sentEmails } = workspace;
+      const emails = users.map((user) => user.user.email) as string[];
+
+      await log({
+        message: `*${slug}* is over their *${capitalize(
+          plan,
+        )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
+          ", ",
+        )}`,
+        type: plan === "free" ? "cron" : "alerts",
+        mention: plan !== "free",
+      });
+      const sentFirstUsageLimitEmail = sentEmails.some(
+        (email) => email.type === "firstUsageLimitEmail",
+      );
+      if (!sentFirstUsageLimitEmail) {
+        sendLimitEmail({
+          emails,
+          workspace: workspace as unknown as WorkspaceProps,
+          type: "firstUsageLimitEmail",
+        });
+      } else {
+        const sentSecondUsageLimitEmail = sentEmails.some(
+          (email) => email.type === "secondUsageLimitEmail",
+        );
+        if (!sentSecondUsageLimitEmail) {
+          const daysSinceFirstEmail = Math.floor(
+            (new Date().getTime() -
+              new Date(sentEmails[0].createdAt).getTime()) /
+              (1000 * 3600 * 24),
+          );
+          if (daysSinceFirstEmail >= 3) {
+            sendLimitEmail({
+              emails,
+              workspace: workspace as unknown as WorkspaceProps,
+              type: "secondUsageLimitEmail",
+            });
+          }
+        }
+      }
+    }),
+  );
 
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
