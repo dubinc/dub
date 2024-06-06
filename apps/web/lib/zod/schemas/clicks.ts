@@ -28,10 +28,12 @@ export const clickEventSchemaTB = z.object({
   qr: z.number().nullable(),
 });
 
-export const clickEventMVSchemaTB = z.object({
+export const clickEventEnrichedSchema = z.object({
   timestamp: z.string(),
   click_id: z.string(),
   link_id: z.string(),
+  domain: z.string(),
+  key: z.string(),
   url: z.string(),
   country: z.string().nullable(),
   city: z.string().nullable(),

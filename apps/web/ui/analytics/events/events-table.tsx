@@ -1,7 +1,6 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, LinkLogo, LoadingSpinner } from "@dub/ui";
 import { COUNTRIES, capitalize, cn, fetcher } from "@dub/utils";
 import {
@@ -19,21 +18,18 @@ import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 100;
 const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6";
 
 type FakeDatum = {
-  // link: { domain: string; key: string; url: string };
-  link_id: string;
+  link: { id: string; domain: string; key: string };
   country: string;
   device: string;
   timestamp: string;
 };
 
 export default function EventsTable() {
-  const { id: workspaceId } = useWorkspace();
-
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: PAGE_SIZE,
@@ -57,9 +53,9 @@ export default function EventsTable() {
             />
             <span>
               <span className="font-medium text-gray-950">
-                {/* {getValue().domain} */}dub.sh
+                {getValue().domain}
               </span>
-              /{getValue()}
+              {getValue().key === "_root" ? "" : `/${getValue().key}`}
             </span>
           </div>
         ),
