@@ -1,7 +1,7 @@
 import { tb } from "@/lib/tinybird";
 import { tbDemo } from "../tinybird/demo-client";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
-import { clickEventSchemaTB } from "../zod/schemas/clicks";
+import { clickEventMVSchemaTB } from "../zod/schemas/clicks";
 import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
 
@@ -27,15 +27,7 @@ export const getEvents = async (params: EventsFilters) => {
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `v1_events`,
     parameters: analyticsFilterTB,
-    data: clickEventSchemaTB,
-  });
-
-  console.log({
-    ...params,
-    eventType: event,
-    workspaceId,
-    start: start.toISOString().replace("T", " ").replace("Z", ""),
-    end: end.toISOString().replace("T", " ").replace("Z", ""),
+    data: clickEventMVSchemaTB,
   });
 
   const response = await pipe({

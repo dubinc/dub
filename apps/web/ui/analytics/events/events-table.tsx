@@ -3,7 +3,7 @@
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, LinkLogo, LoadingSpinner } from "@dub/ui";
-import { COUNTRIES, capitalize, cn, fetcher, getApexDomain } from "@dub/utils";
+import { COUNTRIES, capitalize, cn, fetcher } from "@dub/utils";
 import {
   ColumnDef,
   PaginationState,
@@ -24,10 +24,11 @@ const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6";
 
 type FakeDatum = {
-  link: { domain: string; key: string; url: string };
+  // link: { domain: string; key: string; url: string };
+  link_id: string;
   country: string;
   device: string;
-  date: string;
+  timestamp: string;
 };
 
 export default function EventsTable() {
@@ -51,14 +52,14 @@ export default function EventsTable() {
         cell: ({ getValue }) => (
           <div className="flex items-center gap-3">
             <LinkLogo
-              apexDomain={getApexDomain(getValue().url)}
+              // apexDomain={getApexDomain(getValue().url)}
               className="h-4 w-4 sm:h-4 sm:w-4"
             />
             <span>
               <span className="font-medium text-gray-950">
-                {getValue().domain}
+                {/* {getValue().domain} */}dub.sh
               </span>
-              /{getValue().key}
+              /{getValue()}
             </span>
           </div>
         ),
@@ -98,11 +99,12 @@ export default function EventsTable() {
         header: "Date",
         enableSorting: true,
         accessorFn: (d) =>
-          new Date(d.date).toLocaleTimeString("en-US", {
+          new Date(d.timestamp).toLocaleTimeString("en-US", {
             month: "short",
             day: "numeric",
             hour: "numeric",
             minute: "numeric",
+            second: "numeric",
             hour12: true,
           }),
       },
