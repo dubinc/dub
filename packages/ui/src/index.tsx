@@ -36,6 +36,7 @@ export * from "./nav-mobile";
 export * from "./content";
 
 // misc
+export * from "./animated-size-container";
 export * from "./blur-image";
 export * from "./client-only";
 export * from "./copy-button";
