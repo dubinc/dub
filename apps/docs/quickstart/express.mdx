@@ -16,9 +16,6 @@ import LinkArguments from "/snippets/link-arguments.mdx";
 Let's create a short link using the Dub Node.js SDK.
 
 ```typescript index.ts
-import express, { Request, Response } from "express";
-import { dub } from "./dub";
-
 app.get("/create-link", async (req: Request, res: Response) => {
   try {
     const result = await dub.links.create({
@@ -41,9 +38,6 @@ app.get("/create-link", async (req: Request, res: Response) => {
 Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
 
 ```typescript index.ts
-import express, { Request, Response } from "express";
-import { dub } from "./dub";
-
 app.get("/create-link", async (req: Request, res: Response) => {
   try {
     const result = await dub.links.create({

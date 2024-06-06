@@ -16,9 +16,6 @@ import LinkArguments from "/snippets/link-arguments.mdx";
 Let's create a short link using the Dub Node.js SDK.
 
 ```typescript app/routes/create-link.ts
-import { json } from "@remix-run/node";
-import { dub } from "~/dub";
-
 export const loader = async () => {
   try {
     const result = await dub.links.create({
@@ -42,9 +39,6 @@ export const loader = async () => {
 Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
 
 ```typescript app/routes/create-link.ts
-import { json } from "@remix-run/node";
-import { dub } from "~/dub";
-
 export const loader = async () => {
   try {
     const result = await dub.links.create({
@@ -67,9 +61,6 @@ This will let you easily [update the link](#5-update-link) later on using the `e
 Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
 ```typescript app/routes/upsert-link.ts
-import { json } from "@remix-run/node";
-import { dub } from "~/dub";
-
 export const loader = async () => {
   try {
     const result = await dub.links.upsert({
@@ -94,9 +85,6 @@ You can do that in two ways:
 - Using the link's `externalId` in your own database (prefixed with `ext_`).
 
 ```typescript app/routes/update-link.ts
-import { json } from "@remix-run/node";
-import { dub } from "~/dub";
-
 export const loader = async () => {
   try {
     // Update a link by its linkId
@@ -122,9 +110,6 @@ export const loader = async () => {
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
 ```typescript app/routes/analytics.ts
-import { json } from "@remix-run/node";
-import { dub } from "~/dub";
-
 export const loader = async () => {
   try {
     // Retrieve the timeseries analytics for the last 7 days for a link

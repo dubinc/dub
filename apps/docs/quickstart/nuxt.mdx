@@ -15,8 +15,6 @@ import InstallNode from "/snippets/sdk-install-nodejs.mdx";
 Let's create a short link using the Dub Node.js SDK.
 
 ```typescript server/api/links.post.ts
-import { dub } from "../utils/dub";
-
 export default defineEventHandler(async () => {
   try {
     const result = await dub.links.create({
@@ -36,8 +34,6 @@ export default defineEventHandler(async () => {
 Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
 
 ```typescript server/api/links.post.ts
-import { dub } from "../utils/dub";
-
 export default defineEventHandler(async () => {
   try {
     const result = await dub.links.create({
@@ -58,8 +54,6 @@ export default defineEventHandler(async () => {
 Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
 ```typescript server/api/links.put.ts
-import { dub } from "../utils/dub";
-
 export default defineEventHandler(async () => {
   try {
     const result = await dub.links.upsert({
@@ -84,8 +78,6 @@ You can do that in two ways:
 - Using the link's `externalId` in your own database (prefixed with `ext_`).
 
 ```typescript server/api/links.patch.ts
-import { dub } from "../utils/dub";
-
 export default defineEventHandler(async () => {
   try {
     // Update a link by its linkId
@@ -111,7 +103,6 @@ export default defineEventHandler(async () => {
 Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
 
 ```typescript server/api/analytics.get.ts
-import { dub } from "../utils/dub";
 import { ClicksTimeseries } from "dub/models/components";
 
 export default defineEventHandler(async () => {

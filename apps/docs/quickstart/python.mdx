@@ -100,9 +100,9 @@ Dub allows you to retrieve analytics for a link using the Dub Python SDK.
 ```python index.py
 # Retrieve the timeseries analytics for the last 7 days for a link
 result = d.analytics.retrieve(request=operations.RetrieveAnalyticsRequest(
-  link_id="clx1gvi9o0005hf5momm6f7hj",
-  interval="7d",
-  group_by="timeseries",
+  link_id='clx1gvi9o0005hf5momm6f7hj',
+  interval='7d',
+  group_by='timeseries',
 ))
 
 print(result)
@@ -113,9 +113,9 @@ Simliarly, you can retrieve analytics for a link using the `externalId` field.
 ```python index.py
 # Retrieve the timeseries analytics for the last 7 days for a link
 result = d.analytics.retrieve(request=operations.RetrieveAnalyticsRequest(
-  external_id: 'ext_12345',
-  interval="7d",
-  group_by="timeseries",
+  external_id='ext_12345',
+  interval='7d',
+  group_by='timeseries',
 ))
 ```
 

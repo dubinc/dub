@@ -104,7 +104,6 @@ You can do that in two ways:
 - Using the link's `externalId` in your own database (prefixed with `ext_`).
 
 ```python app.py
-# Update a link by its linkId
 @app.route('/update-link')
 def update():
   res = None
@@ -132,9 +131,9 @@ def analytics():
   try:
     # Retrieve the timeseries analytics for the last 7 days for a link
     res = d.analytics.retrieve(request=operations.RetrieveAnalyticsRequest(
-      link_id="clx1gvi9o0005hf5momm6f7hj",
-      interval="7d",
-      group_by="timeseries",
+      link_id='clx1gvi9o0005hf5momm6f7hj',
+      interval='7d',
+      group_by='timeseries',
     ))
   except Exception as e:
     return str(e)
@@ -148,9 +147,9 @@ Simliarly, you can retrieve analytics for a link using the `externalId` field.
 ```python app.py
 # Retrieve the timeseries analytics for the last 7 days for a link
 result = d.analytics.retrieve(request=operations.RetrieveAnalyticsRequest(
-  external_id: 'ext_12345',
-  interval="7d",
-  group_by="timeseries",
+  external_id='ext_12345',
+  interval='7d',
+  group_by='timeseries',
 ))
 ```
 
