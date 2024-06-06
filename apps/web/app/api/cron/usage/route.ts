@@ -8,6 +8,8 @@ import { updateUsage } from "./utils";
 // Cron to update the usage stats of each workspace.
 // Runs once every day at noon UTC (0 12 * * *)
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);

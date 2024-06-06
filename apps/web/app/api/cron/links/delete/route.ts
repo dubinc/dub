@@ -3,6 +3,8 @@ import { deleteLink } from "@/lib/api/links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();

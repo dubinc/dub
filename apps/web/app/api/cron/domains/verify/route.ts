@@ -18,6 +18,8 @@ import { handleDomainUpdates } from "./utils";
  **/
 // Runs every hour (0 * * * *)
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);

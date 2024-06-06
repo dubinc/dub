@@ -7,6 +7,8 @@ import { sendLinksUsageEmail } from "./utils";
 // Cron to update the links usage of each workspace.
 // Runs once every 15 mins (*/15 * * * *)
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);

@@ -7,6 +7,8 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromBitly } from "./utils";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
