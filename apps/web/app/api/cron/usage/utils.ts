@@ -17,8 +17,9 @@ const limit = 100;
 export const updateUsage = async () => {
   const workspaces = await prisma.project.findMany({
     where: {
+      // Check only workspaces that haven't been checked in the last 12 hours
       usageLastChecked: {
-        lt: new Date(new Date().getTime() - 12 * 60 * 60 * 1000), // 12 hours ago
+        lt: new Date(new Date().getTime() - 12 * 60 * 60 * 1000),
       },
     },
     include: {
