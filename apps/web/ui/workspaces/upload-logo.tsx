@@ -34,7 +34,7 @@ export default function UploadLogo() {
               mutate("/api/workspaces"),
               mutate(`/api/workspaces/${id}`),
             ]);
-            toast.success("Succesfully uploaded workspace logo!");
+            toast.success("Successfully uploaded workspace logo!");
           } else {
             const { error } = await res.json();
             toast.error(error.message);
