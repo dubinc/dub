@@ -97,6 +97,8 @@ model Project {
   stripeId          String?  @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
   stripeConnectId   String?  @unique // for Stripe Connect
+  inviteCode        String?  @unique
+
   usage             Int      @default(0)
   usageLimit        Int      @default(1000)
   aiUsage           Int      @default(0)
@@ -106,9 +108,9 @@ model Project {
   domainsLimit      Int      @default(3)
   tagsLimit         Int      @default(5)
   usersLimit        Int      @default(1)
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  inviteCode        String?  @unique
   usageLastChecked  DateTime @default(now())
 
   users          ProjectUsers[]
