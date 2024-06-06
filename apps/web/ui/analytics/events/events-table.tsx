@@ -1,5 +1,6 @@
 "use client";
 
+import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, LinkLogo, LoadingSpinner } from "@dub/ui";
 import { COUNTRIES, capitalize, cn, fetcher, getApexDomain } from "@dub/utils";
@@ -13,8 +14,9 @@ import {
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
+import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 
 const PAGE_SIZE = 15;
@@ -110,30 +112,26 @@ export default function EventsTable() {
 
   const defaultData = useMemo(() => [], []);
 
-  const path = useMemo(
-    () =>
-      `/api/analytics/events?${new URLSearchParams({
-        ...(workspaceId && { workspaceId }),
-        pageIndex: pagination.pageIndex.toString(),
-        pageSize: pagination.pageSize.toString(),
-        sortBy: sorting?.[0]?.id ?? "date",
-        sortOrder: sorting?.[0]?.desc ?? true ? "desc" : "asc",
-      }).toString()}`,
-    [workspaceId, pagination, sorting],
+  const { queryString, totalEvents } = useContext(AnalyticsContext);
+
+  const { data, isLoading } = useSWR<FakeDatum[]>(
+    `/api/analytics/events?${editQueryString(queryString, {
+      pageIndex: pagination.pageIndex.toString(),
+      pageSize: pagination.pageSize.toString(),
+      sortBy: sorting?.[0]?.id ?? "date",
+      sortOrder: sorting?.[0]?.desc ?? true ? "desc" : "asc",
+    }).toString()}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
-  const { data, isLoading } = useSWR<{
-    events: FakeDatum[];
-    totalRows: number;
-  }>(path, fetcher, {
-    keepPreviousData: true,
-  });
-
   const table = useReactTable({
-    data: data?.events ?? defaultData,
+    data: data ?? defaultData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    rowCount: data?.totalRows,
+    rowCount: totalEvents?.clicks ?? 0,
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     state: {
