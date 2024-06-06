@@ -1,8 +1,8 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
+import { editQueryString } from "@/lib/analytics/utils";
 import { Button, LinkLogo, LoadingSpinner } from "@dub/ui";
-import { COUNTRIES, capitalize, cn, fetcher, getApexDomain } from "@dub/utils";
+import { COUNTRIES, capitalize, cn, fetcher } from "@dub/utils";
 import {
   ColumnDef,
   PaginationState,
@@ -13,24 +13,23 @@ import {
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
+import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 100;
 const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6";
 
 type FakeDatum = {
-  link: { domain: string; key: string; url: string };
+  link: { id: string; domain: string; key: string };
   country: string;
   device: string;
-  date: string;
+  timestamp: string;
 };
 
 export default function EventsTable() {
-  const { id: workspaceId } = useWorkspace();
-
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: PAGE_SIZE,
@@ -49,14 +48,14 @@ export default function EventsTable() {
         cell: ({ getValue }) => (
           <div className="flex items-center gap-3">
             <LinkLogo
-              apexDomain={getApexDomain(getValue().url)}
+              // apexDomain={getApexDomain(getValue().url)}
               className="h-4 w-4 sm:h-4 sm:w-4"
             />
             <span>
               <span className="font-medium text-gray-950">
                 {getValue().domain}
               </span>
-              /{getValue().key}
+              {getValue().key === "_root" ? "" : `/${getValue().key}`}
             </span>
           </div>
         ),
@@ -96,11 +95,12 @@ export default function EventsTable() {
         header: "Date",
         enableSorting: true,
         accessorFn: (d) =>
-          new Date(d.date).toLocaleTimeString("en-US", {
+          new Date(d.timestamp).toLocaleTimeString("en-US", {
             month: "short",
             day: "numeric",
             hour: "numeric",
             minute: "numeric",
+            second: "numeric",
             hour12: true,
           }),
       },
@@ -110,30 +110,26 @@ export default function EventsTable() {
 
   const defaultData = useMemo(() => [], []);
 
-  const path = useMemo(
-    () =>
-      `/api/analytics/events?${new URLSearchParams({
-        ...(workspaceId && { workspaceId }),
-        pageIndex: pagination.pageIndex.toString(),
-        pageSize: pagination.pageSize.toString(),
-        sortBy: sorting?.[0]?.id ?? "date",
-        sortOrder: sorting?.[0]?.desc ?? true ? "desc" : "asc",
-      }).toString()}`,
-    [workspaceId, pagination, sorting],
+  const { queryString, totalEvents } = useContext(AnalyticsContext);
+
+  const { data, isLoading } = useSWR<FakeDatum[]>(
+    `/api/analytics/events?${editQueryString(queryString, {
+      pageIndex: pagination.pageIndex.toString(),
+      pageSize: pagination.pageSize.toString(),
+      sortBy: sorting?.[0]?.id ?? "date",
+      sortOrder: sorting?.[0]?.desc ?? true ? "desc" : "asc",
+    }).toString()}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
-  const { data, isLoading } = useSWR<{
-    events: FakeDatum[];
-    totalRows: number;
-  }>(path, fetcher, {
-    keepPreviousData: true,
-  });
-
   const table = useReactTable({
-    data: data?.events ?? defaultData,
+    data: data ?? defaultData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    rowCount: data?.totalRows,
+    rowCount: totalEvents?.clicks ?? 0,
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     state: {
