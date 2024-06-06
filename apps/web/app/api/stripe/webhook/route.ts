@@ -274,7 +274,7 @@ export const POST = async (req: Request) => {
       }
     } catch (error) {
       await log({
-        message: `Stripe webook failed. Error: ${error.message}`,
+        message: `Stripe webhook failed. Error: ${error.message}`,
         type: "errors",
       });
       return new Response(
