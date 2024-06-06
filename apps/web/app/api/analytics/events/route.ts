@@ -2,8 +2,7 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { nanoid } from "@dub/utils";
-import { subDays, subMinutes } from "date-fns";
+import { addDays, addMinutes, subDays, subMinutes } from "date-fns";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -15,12 +14,24 @@ export const GET = withWorkspace(
         z.object({
           pageIndex: z.coerce.number(),
           pageSize: z.coerce.number().min(1).max(100),
+          sortBy: z.enum(["date"]).default("date"),
+          sortOrder: z.enum(["asc", "desc"]).default("desc"),
         }),
       )
       .parse(searchParams);
 
-    let { event, domain, key, interval, start, end, pageIndex, pageSize } =
-      parsedParams;
+    let {
+      event,
+      domain,
+      key,
+      interval,
+      start,
+      end,
+      pageIndex,
+      pageSize,
+      sortBy,
+      sortOrder,
+    } = parsedParams;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -36,16 +47,21 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
+    // Fake data
     const response = {
       events: [...Array(pageSize)].map((_, idx) => ({
+        type: event,
         link: {
           domain: "dub.localhost",
-          key: nanoid(),
+          key: (12345 + (idx + pageIndex * pageSize) * 12345).toString(36),
           url: "https://dub.co",
         },
         country: "US",
-        device: Math.random() > 0.25 ? "Desktop" : "Mobile",
-        date: subMinutes(subDays(new Date(), pageIndex), idx),
+        device: idx % 3 > 0 ? "Desktop" : "Mobile",
+        date:
+          sortOrder === "desc"
+            ? subMinutes(subDays(new Date(), pageIndex), idx)
+            : addMinutes(addDays(subDays(new Date(), 300), pageIndex), idx),
       })),
       totalRows: 4322,
     };

@@ -17,11 +17,11 @@ export default function AnalyticsEvents({
 }) {
   return (
     <AnalyticsProvider {...{ staticDomain, staticUrl, admin, demo }}>
-      <div className="pb-3 pt-10">
+      <div className="py-10">
         <Toggle heading="Events" />
-      </div>
-      <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
-        <EventsTable />
+        <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
+          <EventsTable />
+        </div>
       </div>
     </AnalyticsProvider>
   );
