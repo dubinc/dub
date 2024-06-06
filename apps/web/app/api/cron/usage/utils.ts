@@ -17,16 +17,9 @@ const limit = 100;
 export const updateUsage = async () => {
   const workspaces = await prisma.project.findMany({
     where: {
-      OR: [
-        {
-          usageLastChecked: {
-            lt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000), // 24 hours ago
-          },
-        },
-        {
-          usageLastChecked: null,
-        },
-      ],
+      usageLastChecked: {
+        lt: new Date(new Date().getTime() - 12 * 60 * 60 * 1000), // 12 hours ago
+      },
       domains: {
         some: {
           verified: true,
@@ -47,6 +40,7 @@ export const updateUsage = async () => {
       sentEmails: true,
     },
     orderBy: {
+      usageLastChecked: "asc",
       createdAt: "asc",
     },
     take: limit,
@@ -56,18 +50,6 @@ export const updateUsage = async () => {
   if (workspaces.length === 0) {
     return;
   }
-
-  // Update usageLastChecked for workspaces
-  await prisma.project.updateMany({
-    where: {
-      id: {
-        in: workspaces.map(({ id }) => id),
-      },
-    },
-    data: {
-      usageLastChecked: new Date(),
-    },
-  });
 
   // Reset billing cycles for workspaces that have
   // adjustedBillingCycleStart that matches today's date
@@ -248,6 +230,18 @@ export const updateUsage = async () => {
       });
     }),
   );
+
+  // Update usageLastChecked for workspaces
+  await prisma.project.updateMany({
+    where: {
+      id: {
+        in: workspaces.map(({ id }) => id),
+      },
+    },
+    data: {
+      usageLastChecked: new Date(),
+    },
+  });
 
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
