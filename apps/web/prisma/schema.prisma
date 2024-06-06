@@ -119,7 +119,7 @@ model Project {
   tags           Tag[]
   customers      Customer[]
   defaultDomains DefaultDomains[]
-  
+
   @@index(usageLastChecked(sort: Asc))
 }
 
