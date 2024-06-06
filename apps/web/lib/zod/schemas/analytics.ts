@@ -96,88 +96,30 @@ export const analyticsQuerySchema = z.object({
     .string()
     .optional()
     .describe("The city to retrieve analytics for.")
-    .openapi({
-      examples: [
-        "New York",
-        "Los Angeles",
-        "Chicago",
-        "Houston",
-        "Phoenix",
-        "Philadelphia",
-        "San Antonio",
-        "San Diego",
-        "Dallas",
-        "Tokyo",
-        "Delhi",
-        "Shanghai",
-        "São Paulo",
-        "Mumbai",
-        "Beijing",
-      ],
-    }),
+    .openapi({ example: "New York" }),
   device: z
     .string()
     .optional()
     .transform((v) => capitalize(v) as string | undefined)
     .describe("The device to retrieve analytics for.")
-    .openapi({
-      examples: ["Desktop", "Mobile", "Tablet", "Wearable", "Smarttv"],
-    }),
+    .openapi({ example: "Desktop" }),
   browser: z
     .string()
     .optional()
     .transform((v) => capitalize(v) as string | undefined)
     .describe("The browser to retrieve analytics for.")
-    .openapi({
-      examples: [
-        "Chrome",
-        "Mobile Safari",
-        "Edge",
-        "Instagram",
-        "Firefox",
-        "Facebook",
-        "WebKit",
-        "Samsung Browser",
-        "Chrome WebView",
-        "Safari",
-        "Opera",
-        "IE",
-        "Yandex",
-      ],
-    }),
+    .openapi({ example: "Chrome" }),
   os: z
     .string()
     .optional()
     .transform((v) => capitalize(v) as string | undefined)
     .describe("The OS to retrieve analytics for.")
-    .openapi({
-      examples: [
-        "Windows",
-        "iOS",
-        "Android",
-        "Mac OS",
-        "Linux",
-        "Ubuntu",
-        "Chromium OS",
-        "Fedora",
-      ],
-    }),
+    .openapi({ example: "Windows" }),
   referer: z
     .string()
     .optional()
     .describe("The referer to retrieve analytics for.")
-    .openapi({
-      examples: [
-        "(direct)",
-        "t.co",
-        "youtube.com",
-        "perplexity.ai",
-        "l.instagram.com",
-        "m.facebook.com",
-        "linkedin.com",
-        "google.com",
-      ],
-    }),
+    .openapi({ example: "google.com" }),
   url: z.string().optional().describe("The URL to retrieve analytics for."),
   tagId: z
     .string()
