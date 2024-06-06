@@ -1,5 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { limiter, qstash, sendLimitEmail } from "@/lib/cron";
+import { qstash } from "@/lib/cron";
+import { limiter } from "@/lib/cron/limiter";
+import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import {
@@ -34,10 +36,14 @@ export const updateUsage = async () => {
       },
       sentEmails: true,
     },
-    orderBy: {
-      usageLastChecked: "asc",
-      createdAt: "asc",
-    },
+    orderBy: [
+      {
+        usageLastChecked: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
     take: limit,
   });
 
@@ -235,6 +241,7 @@ export const updateUsage = async () => {
 
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
-    method: "GET",
+    method: "POST",
+    body: {},
   });
 };
