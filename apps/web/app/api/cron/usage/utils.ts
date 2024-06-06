@@ -19,12 +19,12 @@ export const updateUsage = async () => {
     where: {
       OR: [
         {
-          lastUsageResetAt: {
+          usageLastChecked: {
             lt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000), // 24 hours ago
           },
         },
         {
-          lastUsageResetAt: null,
+          usageLastChecked: null,
         },
       ],
       domains: {
@@ -57,7 +57,7 @@ export const updateUsage = async () => {
     return;
   }
 
-  // Update lastUsageResetAt for workspaces
+  // Update usageLastChecked for workspaces
   await prisma.project.updateMany({
     where: {
       id: {
@@ -65,7 +65,7 @@ export const updateUsage = async () => {
       },
     },
     data: {
-      lastUsageResetAt: new Date(),
+      usageLastChecked: new Date(),
     },
   });
 

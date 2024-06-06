@@ -109,7 +109,7 @@ model Project {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   inviteCode        String?  @unique
-  lastUsageResetAt  DateTime?
+  usageLastChecked  DateTime @default(now())
 
   users          ProjectUsers[]
   invites        ProjectInvite[]
@@ -119,6 +119,8 @@ model Project {
   tags           Tag[]
   customers      Customer[]
   defaultDomains DefaultDomains[]
+  
+  @@index(usageLastChecked(sort: Asc))
 }
 
 model ProjectInvite {
