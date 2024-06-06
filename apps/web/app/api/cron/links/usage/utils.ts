@@ -1,4 +1,4 @@
-import { sendLimitEmail } from "@/lib/cron";
+import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { log } from "@dub/utils";

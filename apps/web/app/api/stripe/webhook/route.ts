@@ -1,4 +1,4 @@
-import { limiter } from "@/lib/cron";
+import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
