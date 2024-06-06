@@ -20,22 +20,16 @@ export const updateUsage = async () => {
       usageLastChecked: {
         lt: new Date(new Date().getTime() - 12 * 60 * 60 * 1000), // 12 hours ago
       },
-      domains: {
-        some: {
-          verified: true,
-        },
-      },
     },
     include: {
       users: {
         select: {
           user: true,
         },
-      },
-      domains: {
-        where: {
-          verified: true,
+        orderBy: {
+          createdAt: "asc",
         },
+        take: 10, // Only send to the first 10 users
       },
       sentEmails: true,
     },
@@ -114,6 +108,42 @@ export const updateUsage = async () => {
   // also delete sentEmails for those workspaces
   await Promise.allSettled(
     billingReset.map(async (workspace) => {
+      const { plan, usage, usageLimit } = workspace;
+
+      /* 
+        We only reset clicks usage if it's not over usageLimit by:
+        - 4x for free plan (4K clicks)
+        - 2x for all other plans
+      */
+
+      const resetUsage =
+        plan === "free" ? usage <= usageLimit * 4 : usage <= usageLimit * 2;
+
+      await prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          ...(resetUsage && {
+            usage: 0,
+          }),
+          linksUsage: 0,
+          aiUsage: 0,
+          sentEmails: {
+            deleteMany: {
+              type: {
+                in: [
+                  "firstUsageLimitEmail",
+                  "secondUsageLimitEmail",
+                  "firstLinksLimitEmail",
+                  "secondLinksLimitEmail",
+                ],
+              },
+            },
+          },
+        },
+      });
+
       // Only send the 30-day summary email if the workspace was created more than 30 days ago
       if (
         workspace.createdAt.getTime() <
@@ -187,47 +217,6 @@ export const updateUsage = async () => {
           }),
         );
       }
-
-      const { plan, usage, usageLimit } = workspace;
-
-      // only reset clicks usage if it's not over usageLimit by:
-      // 3x for free plan (3K clicks)
-      // 1.5x for pro plan (75K clicks)
-      // 1.2x for business plan (300K clicks)
-
-      const resetUsage =
-        plan === "free"
-          ? usage < usageLimit * 3
-          : plan === "pro"
-            ? usage < usageLimit * 1.5
-            : plan.startsWith("business")
-              ? usage < usageLimit * 1.2
-              : true;
-
-      return await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          ...(resetUsage && {
-            usage: 0,
-          }),
-          linksUsage: 0,
-          aiUsage: 0,
-          sentEmails: {
-            deleteMany: {
-              type: {
-                in: [
-                  "firstUsageLimitEmail",
-                  "secondUsageLimitEmail",
-                  "firstLinksLimitEmail",
-                  "secondLinksLimitEmail",
-                ],
-              },
-            },
-          },
-        },
-      });
     }),
   );
 
