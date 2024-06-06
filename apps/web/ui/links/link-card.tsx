@@ -185,7 +185,7 @@ export default function LinkCard({
     }
   }, [selected]);
 
-  const handlClickOnLinkCard = (e: any) => {
+  const handleClickOnLinkCard = (e: any) => {
     // Check if the clicked element is a linkRef or one of its descendants
     const isLinkCardClick =
       linkRef.current && linkRef.current.contains(e.target);
@@ -204,12 +204,12 @@ export default function LinkCard({
 
   useEffect(() => {
     if (isVisible) {
-      document.addEventListener("click", handlClickOnLinkCard);
+      document.addEventListener("click", handleClickOnLinkCard);
     }
     return () => {
-      document.removeEventListener("click", handlClickOnLinkCard);
+      document.removeEventListener("click", handleClickOnLinkCard);
     };
-  }, [handlClickOnLinkCard]);
+  }, [handleClickOnLinkCard]);
 
   const [copiedLinkId, setCopiedLinkId] = useState(false);
 

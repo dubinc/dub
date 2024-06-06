@@ -11,7 +11,7 @@ export default function Intro() {
   const onLoad = () => {
     setLoading(false);
   };
-  // workarouond to avoid the blinking effect when Spline loads
+  // workaround to avoid the blinking effect when Spline loads
   const [opacity] = useDebounce(loading ? 0 : 1, 200);
 
   const [showText] = useDebounce(loading ? false : true, 800);
