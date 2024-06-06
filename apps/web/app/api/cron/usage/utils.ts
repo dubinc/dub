@@ -14,13 +14,12 @@ import ClicksSummary from "emails/clicks-summary";
 
 const limit = 100;
 
-export const updateUsage = async (skip?: number) => {
+export const updateUsage = async () => {
   const workspaces = await prisma.project.findMany({
     where: {
-      domains: {
-        some: {
-          verified: true,
-        },
+      // Check only workspaces that haven't been checked in the last 12 hours
+      usageLastChecked: {
+        lt: new Date(new Date().getTime() - 12 * 60 * 60 * 1000),
       },
     },
     include: {
@@ -28,15 +27,17 @@ export const updateUsage = async (skip?: number) => {
         select: {
           user: true,
         },
-      },
-      domains: {
-        where: {
-          verified: true,
+        orderBy: {
+          createdAt: "asc",
         },
+        take: 10, // Only send to the first 10 users
       },
       sentEmails: true,
     },
-    skip: skip || 0,
+    orderBy: {
+      usageLastChecked: "asc",
+      createdAt: "asc",
+    },
     take: limit,
   });
 
@@ -53,61 +54,46 @@ export const updateUsage = async (skip?: number) => {
       new Date().getDate(),
   );
 
-  // Get all workspaces that have exceeded usage
-  const exceedingUsage = workspaces.filter(
-    ({ usage, usageLimit }) => usage > usageLimit,
-  );
-
-  // Send email to notify overages
-  await Promise.allSettled(
-    exceedingUsage.map(async (workspace) => {
-      const { slug, plan, usage, usageLimit, users, sentEmails } = workspace;
-      const emails = users.map((user) => user.user.email) as string[];
-
-      await log({
-        message: `*${slug}* is over their *${capitalize(
-          plan,
-        )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
-          ", ",
-        )}`,
-        type: plan === "free" ? "cron" : "alerts",
-        mention: plan !== "free",
-      });
-      const sentFirstUsageLimitEmail = sentEmails.some(
-        (email) => email.type === "firstUsageLimitEmail",
-      );
-      if (!sentFirstUsageLimitEmail) {
-        sendLimitEmail({
-          emails,
-          workspace: workspace as unknown as WorkspaceProps,
-          type: "firstUsageLimitEmail",
-        });
-      } else {
-        const sentSecondUsageLimitEmail = sentEmails.some(
-          (email) => email.type === "secondUsageLimitEmail",
-        );
-        if (!sentSecondUsageLimitEmail) {
-          const daysSinceFirstEmail = Math.floor(
-            (new Date().getTime() -
-              new Date(sentEmails[0].createdAt).getTime()) /
-              (1000 * 3600 * 24),
-          );
-          if (daysSinceFirstEmail >= 3) {
-            sendLimitEmail({
-              emails,
-              workspace: workspace as unknown as WorkspaceProps,
-              type: "secondUsageLimitEmail",
-            });
-          }
-        }
-      }
-    }),
-  );
-
-  // Reset usage for workspaces that have billingCycleStart today
-  // also delete sentEmails for those workspaces
+  // Reset usage and alert emails for the billingReset workspaces
+  // also send 30-day summary email
   await Promise.allSettled(
     billingReset.map(async (workspace) => {
+      const { plan, usage, usageLimit } = workspace;
+
+      /* 
+        We only reset clicks usage if it's not over usageLimit by:
+        - 4x for free plan (4K clicks)
+        - 2x for all other plans
+      */
+
+      const resetUsage =
+        plan === "free" ? usage <= usageLimit * 4 : usage <= usageLimit * 2;
+
+      await prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          ...(resetUsage && {
+            usage: 0,
+          }),
+          linksUsage: 0,
+          aiUsage: 0,
+          sentEmails: {
+            deleteMany: {
+              type: {
+                in: [
+                  "firstUsageLimitEmail",
+                  "secondUsageLimitEmail",
+                  "firstLinksLimitEmail",
+                  "secondLinksLimitEmail",
+                ],
+              },
+            },
+          },
+        },
+      });
+
       // Only send the 30-day summary email if the workspace was created more than 30 days ago
       if (
         workspace.createdAt.getTime() <
@@ -181,54 +167,74 @@ export const updateUsage = async (skip?: number) => {
           }),
         );
       }
+    }),
+  );
 
-      const { plan, usage, usageLimit } = workspace;
+  // Update usageLastChecked for workspaces
+  await prisma.project.updateMany({
+    where: {
+      id: {
+        in: workspaces.map(({ id }) => id),
+      },
+    },
+    data: {
+      usageLastChecked: new Date(),
+    },
+  });
 
-      // only reset clicks usage if it's not over usageLimit by:
-      // 3x for free plan (3K clicks)
-      // 1.5x for pro plan (75K clicks)
-      // 1.2x for business plan (300K clicks)
+  // Get all workspaces that have exceeded usage
+  const exceedingUsage = workspaces.filter(
+    ({ usage, usageLimit }) => usage > usageLimit,
+  );
 
-      const resetUsage =
-        plan === "free"
-          ? usage < usageLimit * 3
-          : plan === "pro"
-            ? usage < usageLimit * 1.5
-            : plan.startsWith("business")
-              ? usage < usageLimit * 1.2
-              : true;
+  // Send email to notify overages
+  await Promise.allSettled(
+    exceedingUsage.map(async (workspace) => {
+      const { slug, plan, usage, usageLimit, users, sentEmails } = workspace;
+      const emails = users.map((user) => user.user.email) as string[];
 
-      return await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          ...(resetUsage && {
-            usage: 0,
-          }),
-          linksUsage: 0,
-          aiUsage: 0,
-          sentEmails: {
-            deleteMany: {
-              type: {
-                in: [
-                  "firstUsageLimitEmail",
-                  "secondUsageLimitEmail",
-                  "firstLinksLimitEmail",
-                  "secondLinksLimitEmail",
-                ],
-              },
-            },
-          },
-        },
+      await log({
+        message: `*${slug}* is over their *${capitalize(
+          plan,
+        )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
+          ", ",
+        )}`,
+        type: plan === "free" ? "cron" : "alerts",
+        mention: plan !== "free",
       });
+      const sentFirstUsageLimitEmail = sentEmails.some(
+        (email) => email.type === "firstUsageLimitEmail",
+      );
+      if (!sentFirstUsageLimitEmail) {
+        sendLimitEmail({
+          emails,
+          workspace: workspace as unknown as WorkspaceProps,
+          type: "firstUsageLimitEmail",
+        });
+      } else {
+        const sentSecondUsageLimitEmail = sentEmails.some(
+          (email) => email.type === "secondUsageLimitEmail",
+        );
+        if (!sentSecondUsageLimitEmail) {
+          const daysSinceFirstEmail = Math.floor(
+            (new Date().getTime() -
+              new Date(sentEmails[0].createdAt).getTime()) /
+              (1000 * 3600 * 24),
+          );
+          if (daysSinceFirstEmail >= 3) {
+            sendLimitEmail({
+              emails,
+              workspace: workspace as unknown as WorkspaceProps,
+              type: "secondUsageLimitEmail",
+            });
+          }
+        }
+      }
     }),
   );
 
   return await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage?skip=${
-      skip ? skip + limit : limit
-    }`,
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
     method: "GET",
   });
 };
