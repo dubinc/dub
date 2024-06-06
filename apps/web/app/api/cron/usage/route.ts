@@ -10,13 +10,16 @@ import { updateUsage } from "./utils";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+async function handler(req: Request) {
   try {
-    await verifyVercelSignature(req);
-    const body = await req.json();
-    await verifyQstashSignature(req, body);
+    if (req.method === "GET") {
+      await verifyVercelSignature(req);
+    } else if (req.method === "POST") {
+      await verifyQstashSignature(req);
+    }
 
     await updateUsage();
+
     return NextResponse.json({
       response: "success",
     });
@@ -29,3 +32,5 @@ export async function GET(req: Request) {
     return handleAndReturnErrorResponse(error);
   }
 }
+
+export { handler as GET, handler as POST };

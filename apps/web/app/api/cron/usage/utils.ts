@@ -241,6 +241,7 @@ export const updateUsage = async () => {
 
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
-    method: "GET",
+    method: "POST",
+    body: {},
   });
 };

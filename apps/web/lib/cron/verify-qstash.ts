@@ -18,8 +18,6 @@ export const verifyQstashSignature = async (
     body: JSON.stringify(body),
   });
 
-  console.log({ isValid });
-
   if (!isValid) {
     throw new DubApiError({
       code: "unauthorized",
