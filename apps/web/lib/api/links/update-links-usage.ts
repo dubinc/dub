@@ -1,31 +1,53 @@
-import { sendLimitEmail } from "@/lib/cron";
+import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { log } from "@dub/utils";
-import { Project, SentEmail } from "@prisma/client";
 
-// Check if the workspace is close to the links limit and send an email to the users
-export const sendLinksUsageEmail = async (
-  workspace: Pick<
-    Project,
-    "id" | "name" | "slug" | "plan" | "linksUsage" | "linksLimit"
-  > & {
-    sentEmails: SentEmail[];
-  },
-) => {
+export async function updateLinksUsage({
+  workspaceId,
+  increment,
+}: {
+  workspaceId: string;
+  increment: number;
+}) {
+  const workspace = await prisma.project.update({
+    where: {
+      id: workspaceId,
+    },
+    data: {
+      linksUsage: {
+        increment,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      linksUsage: true,
+      linksLimit: true,
+      plan: true,
+    },
+  });
+
   const percentage = Math.round(
     (workspace.linksUsage / workspace.linksLimit) * 100,
   );
 
   // Skip if the workspace is below 80% of the limit
   if (percentage < 80) {
-    console.log(
-      `${workspace.slug} is below 80% of the links limit (${percentage}%), skipping...`,
-    );
     return;
   }
 
-  const sentNotification = workspace.sentEmails.some(
+  const sentEmails = await prisma.sentEmail.findMany({
+    where: {
+      projectId: workspaceId,
+    },
+    select: {
+      type: true,
+    },
+  });
+
+  const sentNotification = sentEmails.some(
     (email) =>
       email.type ===
       (percentage >= 80 && percentage < 100
@@ -43,7 +65,7 @@ export const sendLinksUsageEmail = async (
     where: {
       projects: {
         some: {
-          projectId: workspace.id,
+          projectId: workspaceId,
         },
       },
     },
@@ -54,10 +76,10 @@ export const sendLinksUsageEmail = async (
 
   const emails = users.map(({ email }) => email) as string[];
 
-  await Promise.allSettled([
+  return await Promise.allSettled([
     sendLimitEmail({
       emails,
-      workspace: workspace as WorkspaceProps & { sentEmails: SentEmail[] },
+      workspace: workspace as WorkspaceProps,
       type:
         percentage >= 80 && percentage < 100
           ? "firstLinksLimitEmail"
@@ -72,4 +94,4 @@ export const sendLinksUsageEmail = async (
       mention: workspace.plan !== "free",
     }),
   ]);
-};
+}

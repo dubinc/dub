@@ -1,4 +1,6 @@
-import { qstash, receiver } from "@/lib/cron";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
@@ -13,46 +15,39 @@ const schema = z.object({
   linksCount: z.number(),
 });
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
-  const body = await req.json();
-
-  if (process.env.VERCEL === "1") {
-    const isValid = await receiver.verify({
-      signature: req.headers.get("Upstash-Signature") || "",
-      body: JSON.stringify(body),
-    });
-
-    if (!isValid) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-  }
-
-  const { currentWorkspaceId, newWorkspaceId, domain, linksCount } =
-    schema.parse(body);
-
-  const links = await prisma.link.findMany({
-    where: { domain, projectId: currentWorkspaceId },
-    take: 100,
-  });
-
-  // No remaining links to transfer
-  if (!links || links.length === 0) {
-    domainTransferredEmail({
-      domain,
-      currentWorkspaceId,
-      newWorkspaceId,
-      linksCount,
-    });
-
-    return NextResponse.json({
-      response: "success",
-    });
-  }
-
-  // Transfer links to the new workspace
-  const linkIds = links.map((link) => link.id);
-
   try {
+    const body = await req.json();
+
+    await verifyQstashSignature(req, body);
+
+    const { currentWorkspaceId, newWorkspaceId, domain, linksCount } =
+      schema.parse(body);
+
+    const links = await prisma.link.findMany({
+      where: { domain, projectId: currentWorkspaceId },
+      take: 100,
+    });
+
+    // No remaining links to transfer
+    if (!links || links.length === 0) {
+      domainTransferredEmail({
+        domain,
+        currentWorkspaceId,
+        newWorkspaceId,
+        linksCount,
+      });
+
+      return NextResponse.json({
+        response: "success",
+      });
+    }
+
+    // Transfer links to the new workspace
+    const linkIds = links.map((link) => link.id);
+
     await Promise.all([
       prisma.link.updateMany({
         where: { domain, projectId: currentWorkspaceId, id: { in: linkIds } },
@@ -108,10 +103,10 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     await log({
-      message: `Domain transfer cron for the workspace ${newWorkspaceId} failed. Error: ${error.message}`,
-      type: "errors",
+      message: `Error transferring domain: ${error.message}`,
+      type: "cron",
     });
 
-    return NextResponse.json({ error: error.message });
+    return handleAndReturnErrorResponse(error);
   }
 }
