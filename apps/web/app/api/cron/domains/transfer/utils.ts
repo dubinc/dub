@@ -38,7 +38,7 @@ export const updateLinksInRedis = async ({
 };
 
 // Send email to the owner after the domain transfer is completed
-export const domainTransferredEmail = async ({
+export const sendDomainTransferredEmail = async ({
   domain,
   currentWorkspaceId,
   newWorkspaceId,
