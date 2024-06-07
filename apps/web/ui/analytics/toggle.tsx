@@ -16,6 +16,7 @@ import {
   DateRangePicker,
   ExpandingArrow,
   Filter,
+  LinkLogo,
   TooltipContent,
   useRouterStuff,
   useScroll,
@@ -56,7 +57,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";

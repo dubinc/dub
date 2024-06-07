@@ -7,6 +7,7 @@ import { Clipboard, Download } from "@/ui/shared/icons";
 import {
   IconMenu,
   InfoTooltip,
+  LinkLogo,
   Modal,
   Photo,
   Popover,
@@ -36,7 +37,6 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import LinkLogo from "../links/link-logo";
 
 function LinkQRModalHelper({
   showLinkQRModal,

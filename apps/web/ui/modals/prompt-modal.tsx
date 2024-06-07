@@ -1,4 +1,4 @@
-import { Button, ButtonProps, Modal, useMediaQuery } from "@dub/ui";
+import { Button, ButtonProps, LinkLogo, Modal, useMediaQuery } from "@dub/ui";
 import {
   Dispatch,
   HTMLProps,
@@ -7,7 +7,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import LinkLogo from "../links/link-logo";
 
 type PromptModelProps = {
   title: string;
