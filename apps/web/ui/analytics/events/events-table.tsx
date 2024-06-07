@@ -230,7 +230,7 @@ export default function EventsTable() {
             </table>
           </div>
         ) : (
-          <div className="flex h-64 h-full w-full items-center justify-center text-sm text-gray-500">
+          <div className="flex h-64 w-full items-center justify-center text-sm text-gray-500">
             {error ? "Failed to fetch data" : "No data available"}
           </div>
         )}
