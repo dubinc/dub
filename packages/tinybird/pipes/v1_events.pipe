@@ -33,7 +33,21 @@ NODE click_events
 SQL >
 
     %
-    SELECT *, wl.domain, wl.key
+    SELECT
+        click_id,
+        link_id,
+        url,
+        country,
+        city,
+        device,
+        browser,
+        os,
+        referer,
+        ip,
+        qr,
+        formatDateTime(timestamp, '%FT%T.000%z') AS timestamp,
+        wl.domain,
+        wl.key
     FROM
         dub_click_events_mv dce
         {% if not defined(linkId) and defined(workspaceId) %}
@@ -63,7 +77,23 @@ NODE lead_events
 SQL >
 
     %
-    SELECT *, wl.domain, wl.key
+    SELECT
+        event_id,
+        click_id,
+        link_id,
+        customer_id,
+        event_name,
+        metadata,
+        url,
+        country,
+        city,
+        device,
+        browser,
+        os,
+        referer,
+        formatDateTime(timestamp, '%FT%T.000%z') AS timestamp, 
+        wl.domain,
+        wl.key
     FROM
         dub_lead_events_mv dle
         {% if not defined(linkId) and defined(workspaceId) %}
@@ -93,7 +123,23 @@ NODE sale_events
 SQL >
 
     %
-    SELECT *, wl.domain, wl.key
+    SELECT
+        event_id,
+        click_id,
+        link_id,
+        customer_id,
+        payment_processor,
+        amount,
+        url,
+        country,
+        city,
+        device,
+        browser,
+        os,
+        referer,
+        formatDateTime(timestamp, '%FT%T.000%z') AS timestamp,
+        wl.domain,
+        wl.key
     FROM
         dub_sale_events_mv dse
         {% if not defined(linkId) and defined(workspaceId) %}
