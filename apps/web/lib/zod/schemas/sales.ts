@@ -27,7 +27,7 @@ export const trackSaleRequestSchema = z.object({
     .optional()
     .default("Purchase")
     .describe(
-      "The name of the sale event. It can be used to track different types of event for example 'Purchase', 'Upgrade', etc.",
+      "The name of the sale event. It can be used to track different types of event for example 'Purchase', 'Upgrade', 'Payment', etc.",
     )
     .openapi({ example: "Purchase" }),
   invoiceId: z
