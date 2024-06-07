@@ -47,7 +47,7 @@ export async function invoicePaid(event: Stripe.Event) {
     recordSale({
       ...leadEvent.data[0],
       event_id: nanoid(16),
-      event_name: "Invoice payment",
+      event_name: "Subscription update",
       payment_processor: "stripe",
       amount: invoice.amount_paid,
       currency: invoice.currency,
