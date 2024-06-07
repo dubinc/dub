@@ -111,7 +111,7 @@ Next, you'll need to set up the [Tinybird](https://tinybird.co) Clickhouse datab
 
 In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
-    Install the Tinybird CLI with `pip install tinybird-cli` (requires Python >= 3.8).
+    Install the Tinybird CLI with `pip install tinybird-cli` (requires 3.8 <= Python < 3.12).
 
     Run `tb auth` and paste your `admin` Auth Token.
 
@@ -158,7 +158,7 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
     ```
 
   </Step>
-  
+
 </Steps>
 
 ## Step 3: Set up Upstash Redis database
@@ -196,15 +196,15 @@ Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `Q
 
 Next, you'll need to set up a [PlanetScale](https://planetscale.com/)-compatible MySQL database. This will be used to store user data and link metadata.
 
-{/* prettier-ignore */}
+{/_ prettier-ignore _/}
 <Note>
-  PlanetScale recently [removed their free
-  tier](https://planetscale.com/blog/planetscale-forever), so you'll need to pay
-  for this option. A cheaper alternative is to use a [MySQL database on
-  Railway](https://railway.app/template/mysql) ($5/month).
-  
-  For [local development](local-development), we recommend using a [local MySQL database
-  with PlanetScale simulator](local-development#option-1-local-mysql-database-with-planetscale-simulator-recommended) (100% free).
+PlanetScale recently [removed their free
+tier](https://planetscale.com/blog/planetscale-forever), so you'll need to pay
+for this option. A cheaper alternative is to use a [MySQL database on
+Railway](https://railway.app/template/mysql) ($5/month).
+
+For [local development](local-development), we recommend using a [local MySQL database
+with PlanetScale simulator](local-development#option-1-local-mysql-database-with-planetscale-simulator-recommended) (100% free).
 </Note>
 
 <Steps>
@@ -435,9 +435,9 @@ Add both the `NEXT_PUBLIC_APP_DOMAIN` and `NEXT_PUBLIC_APP_SHORT_DOMAIN` as doma
   </Step>
 
   <Step title="Redeploy your Vercel project">
-  Go back to the **Deployments** page and redeploy your project. 
-  
-  Once the deployment is complete, you should be able to visit your app domain (e.g. `https://app.acme.com`) and see the following login page:
+  Go back to the **Deployments** page and redeploy your project.
+
+Once the deployment is complete, you should be able to visit your app domain (e.g. `https://app.acme.com`) and see the following login page:
 
 <Frame>![Whitelabeled Login](/images/whitelabeled-login.png)</Frame>
 
