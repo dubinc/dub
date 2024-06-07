@@ -27,7 +27,7 @@ export const GET = withWorkspace(
 
     const response = await getEvents({
       ...parsedParams,
-      event: "clicks",
+      event,
       ...(linkId && { linkId }),
     });
 

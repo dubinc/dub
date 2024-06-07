@@ -173,13 +173,20 @@ export const analyticsFilterTB = z
     }),
   );
 
+export const eventsFilterTB = analyticsFilterTB
+  .omit({ granularity: true, timezone: true })
+  .and(
+    z.object({
+      offset: z.coerce.number().default(0),
+      order: z.enum(["asc", "desc"]).default("desc"),
+    }),
+  );
+
 export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
   .and(
     z.object({
-      pageIndex: z.coerce.number(),
-      pageSize: z.coerce.number().min(1).max(100),
-      sortBy: z.enum(["date"]).default("date"),
-      sortOrder: z.enum(["asc", "desc"]).default("desc"),
+      offset: z.coerce.number().default(0),
+      order: z.enum(["asc", "desc"]).default("desc"),
     }),
   );

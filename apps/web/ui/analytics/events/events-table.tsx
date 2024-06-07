@@ -18,7 +18,7 @@ import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 500;
 const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6";
 
@@ -36,7 +36,7 @@ export default function EventsTable() {
   });
 
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "date", desc: true },
+    { id: "timestamp", desc: true },
   ]);
 
   const columns = useMemo<ColumnDef<FakeDatum, any>[]>(
@@ -91,7 +91,7 @@ export default function EventsTable() {
         ),
       },
       {
-        id: "date",
+        id: "timestamp",
         header: "Date",
         enableSorting: true,
         accessorFn: (d) =>
@@ -114,10 +114,8 @@ export default function EventsTable() {
 
   const { data, isLoading } = useSWR<FakeDatum[]>(
     `/api/analytics/events?${editQueryString(queryString, {
-      pageIndex: pagination.pageIndex.toString(),
-      pageSize: pagination.pageSize.toString(),
-      sortBy: sorting?.[0]?.id ?? "date",
-      sortOrder: sorting?.[0]?.desc ?? true ? "desc" : "asc",
+      offset: (pagination.pageIndex * pagination.pageSize).toString(),
+      order: sorting?.[0]?.desc ?? true ? "desc" : "asc",
     }).toString()}`,
     fetcher,
     {
@@ -220,7 +218,11 @@ export default function EventsTable() {
             Viewing{" "}
             <span className="font-medium">
               {pagination.pageIndex * pagination.pageSize + 1}-
-              {pagination.pageIndex * pagination.pageSize + pagination.pageSize}
+              {Math.min(
+                pagination.pageIndex * pagination.pageSize +
+                  pagination.pageSize,
+                table.getRowCount(),
+              )}
             </span>{" "}
             of{" "}
             <span className="font-medium">
