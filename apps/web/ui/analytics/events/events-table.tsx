@@ -1,24 +1,38 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
+import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
+import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import {
   Button,
+  CursorRays,
   LinkLogo,
   LoadingSpinner,
+  QRCode,
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
 import { SortOrder } from "@dub/ui/src/icons";
-import { COUNTRIES, capitalize, cn, fetcher, getApexDomain } from "@dub/utils";
+import {
+  COUNTRIES,
+  capitalize,
+  cn,
+  fetcher,
+  getApexDomain,
+  nFormatter,
+} from "@dub/utils";
 import {
   ColumnDef,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { useContext, useMemo } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
+import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import usePagination from "./use-pagination";
@@ -27,11 +41,29 @@ const PAGE_SIZE = 20;
 const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6";
 
-type FakeDatum = {
-  link: { id: string; domain: string; key: string };
-  country: string;
-  device: string;
-  timestamp: string;
+type EventType = "clicks" | "leads" | "sales";
+
+type Datum =
+  | z.infer<typeof clickEventEnrichedSchema>
+  | z.infer<typeof leadEventEnrichedSchema>
+  | z.infer<typeof saleEventEnrichedSchema>;
+
+const eventColumns: Record<
+  EventType,
+  { all: string[]; defaultVisible: string[] }
+> = {
+  clicks: {
+    all: ["trigger", "link", "country", "device", "timestamp"],
+    defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
+  },
+  leads: {
+    all: ["event", "link", "country", "device", "timestamp"],
+    defaultVisible: ["event", "link", "country", "device", "timestamp"],
+  },
+  sales: {
+    all: ["saleType", "link", "country", "device", "amount", "timestamp"],
+    defaultVisible: ["saleType", "link", "country", "amount", "timestamp"],
+  },
 };
 
 export default function EventsTable() {
@@ -42,91 +74,140 @@ export default function EventsTable() {
 
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
 
-  const columns = useMemo<ColumnDef<FakeDatum, any>[]>(
-    () => [
-      {
-        header: "Link",
-        accessorKey: "link",
-        cell: ({ getValue }) => (
-          <div className="flex items-center gap-3 sm:min-w-[125px]">
-            <LinkLogo
-              apexDomain={getApexDomain(getValue().url)}
-              className="h-4 w-4 sm:h-4 sm:w-4"
-            />
-            <span>
-              <span className="font-medium text-gray-950">
-                {getValue().domain}
+  const columns = useMemo<ColumnDef<Datum, any>[]>(
+    () =>
+      [
+        // Click trigger
+        {
+          id: "trigger",
+          header: "Event",
+          accessorKey: "qr",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              {getValue() ? (
+                <>
+                  <QRCode className="h-4 w-4" />
+                  QR scan
+                </>
+              ) : (
+                <>
+                  <CursorRays className="h-4 w-4" />
+                  Link click
+                </>
+              )}
+            </div>
+          ),
+        },
+        // Lead event name
+        {
+          id: "event",
+          header: "Event",
+          accessorKey: "event_name",
+        },
+        // Sale type
+        {
+          id: "saleType",
+          header: "Event",
+          accessorFn: () => "Invoice paid", // TODO: Get this data form somewhere
+        },
+        {
+          id: "link",
+          header: "Link",
+          accessorKey: "link",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3 sm:min-w-[125px]">
+              <LinkLogo
+                apexDomain={getApexDomain(getValue().url)}
+                className="h-4 w-4 sm:h-4 sm:w-4"
+              />
+              <span>
+                <span className="font-medium text-gray-950">
+                  {getValue().domain}
+                </span>
+                {getValue().key === "_root" ? "" : `/${getValue().key}`}
               </span>
-              {getValue().key === "_root" ? "" : `/${getValue().key}`}
-            </span>
-          </div>
-        ),
-      },
-      {
-        header: "Country",
-        accessorKey: "country",
-        cell: ({ getValue }) => (
-          <div className="flex items-center gap-3">
-            <img
-              alt={getValue()}
-              src={`https://flag.vercel.app/m/${getValue()}.svg`}
-              className="h-2.5 w-4"
-            />
-            <span>{COUNTRIES[getValue()] ?? getValue()}</span>
-          </div>
-        ),
-      },
-      {
-        header: "Device",
-        accessorKey: "device",
-        cell: ({ getValue }) => (
-          <div className="flex items-center gap-3">
-            <DeviceIcon
-              display={capitalize(getValue()) ?? getValue()}
-              tab="devices"
-              className="h-4 w-4"
-            />
-            <span>{getValue()}</span>
-          </div>
-        ),
-      },
-      {
-        id: "timestamp",
-        header: "Date",
-        accessorFn: (d) => new Date(d.timestamp),
-        cell: ({ getValue }) => (
-          <Tooltip
-            content={getValue().toLocaleTimeString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "numeric",
-              second: "numeric",
-              hour12: true,
-            })}
-          >
-            <span>
-              {getValue().toLocaleTimeString("en-US", {
+            </div>
+          ),
+        },
+        {
+          id: "country",
+          header: "Country",
+          accessorKey: "country",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <img
+                alt={getValue()}
+                src={`https://flag.vercel.app/m/${getValue()}.svg`}
+                className="h-2.5 w-4"
+              />
+              <span>{COUNTRIES[getValue()] ?? getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "device",
+          header: "Device",
+          accessorKey: "device",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <DeviceIcon
+                display={capitalize(getValue()) ?? getValue()}
+                tab="devices"
+                className="h-4 w-4"
+              />
+              <span>{getValue()}</span>
+            </div>
+          ),
+        },
+        // Sales amount
+        {
+          id: "amount",
+          header: "Sales Amount",
+          accessorKey: "amount",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-2">
+              <span>${nFormatter(getValue() / 100)}</span>
+              <span className="text-gray-400">USD</span>
+            </div>
+          ),
+        },
+        {
+          id: "timestamp",
+          header: "Date",
+          accessorFn: (d) => new Date(d.timestamp),
+          cell: ({ getValue }) => (
+            <Tooltip
+              content={getValue().toLocaleTimeString("en-US", {
+                year: "numeric",
                 month: "short",
                 day: "numeric",
                 hour: "numeric",
                 minute: "numeric",
+                second: "numeric",
                 hour12: true,
               })}
-            </span>
-          </Tooltip>
-        ),
-      },
-    ],
-    [],
+            >
+              <span>
+                {getValue().toLocaleTimeString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                })}
+              </span>
+            </Tooltip>
+          ),
+        },
+      ].filter((c) => eventColumns[tab].all.includes(c.id)),
+    [tab],
   );
 
   const defaultData = useMemo(() => [], []);
 
   const { queryString, totalEvents } = useContext(AnalyticsContext);
 
-  const { data, isLoading, error } = useSWR<FakeDatum[]>(
+  const { data, isLoading, error } = useSWR<Datum[]>(
     `/api/analytics/events?${editQueryString(queryString, {
       event: tab,
       offset: (pagination.pageIndex * pagination.pageSize).toString(),
@@ -138,8 +219,6 @@ export default function EventsTable() {
       keepPreviousData: true,
     },
   );
-
-  console.log(data);
 
   const table = useReactTable({
     data: data ?? defaultData,
