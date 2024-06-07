@@ -47,6 +47,7 @@ export default function EventsTabs() {
     <div className="grid w-full grid-cols-3 gap-2 overflow-x-auto sm:gap-4">
       {["clicks", "leads", "sales"].map((event) => (
         <button
+          key={event}
           className={cn(
             "flex justify-between gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left transition-all",
             tab === event && "border-black shadow-[0_0_0_1px_black_inset]",
