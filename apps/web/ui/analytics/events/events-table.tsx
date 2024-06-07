@@ -12,16 +12,16 @@ import { SortOrder } from "@dub/ui/src/icons";
 import { COUNTRIES, capitalize, cn, fetcher, getApexDomain } from "@dub/utils";
 import {
   ColumnDef,
-  PaginationState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
+import usePagination from "./use-pagination";
 
 const PAGE_SIZE = 20;
 const tableCellClassName =
@@ -40,10 +40,7 @@ export default function EventsTable() {
 
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: PAGE_SIZE,
-  });
+  const { pagination, setPagination } = usePagination(PAGE_SIZE);
 
   const columns = useMemo<ColumnDef<FakeDatum, any>[]>(
     () => [
@@ -161,7 +158,7 @@ export default function EventsTable() {
   return (
     <div className="border border-gray-200 bg-white sm:rounded-xl">
       <div className="relative rounded-[inherit]">
-        {!error && !!data?.length ? (
+        {(!error && !!data?.length) || isLoading ? (
           <div className="min-h-[400px] rounded-[inherit]">
             <table
               className={cn(
