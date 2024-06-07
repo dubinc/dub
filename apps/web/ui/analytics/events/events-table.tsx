@@ -21,6 +21,7 @@ import {
   fetcher,
   getApexDomain,
   nFormatter,
+  truncate,
 } from "@dub/utils";
 import {
   ColumnDef,
@@ -36,7 +37,7 @@ import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import usePagination from "./use-pagination";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 500;
 const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6";
 
@@ -140,7 +141,8 @@ export default function EventsTable() {
           header: "Customer",
           accessorKey: "customer",
           cell: ({ getValue }) => {
-            const display = getValue().name || getValue().email;
+            const display =
+              truncate(getValue().name || getValue().email, 20) ?? "Unknown";
             return (
               <div className="flex items-center gap-3">
                 <img
