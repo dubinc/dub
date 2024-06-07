@@ -11,6 +11,10 @@ export const verifyQstashSignature = async (
   req: Request,
   body?: Record<string, unknown>,
 ) => {
+  if (process.env.NODE_ENV === "development") {
+    return;
+  }
+
   body = body || (await req.json());
 
   const isValid = await receiver.verify({

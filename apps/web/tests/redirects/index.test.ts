@@ -1,15 +1,9 @@
 import { describe, expect, test } from "vitest";
+import { fetchOptions } from "../../tests/utils/helpers";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 
 const poweredBy = "Dub.co - Link management for modern marketing teams";
-const fetchOptions: RequestInit = {
-  cache: "no-store",
-  redirect: "manual",
-  headers: {
-    "dub-no-track": "true",
-  },
-};
 
 describe.runIf(env.CI)("Link Redirects", async () => {
   const h = new IntegrationHarness();
