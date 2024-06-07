@@ -62,7 +62,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     recordSale({
       ...leadEvent.data[0],
       event_id: nanoid(16),
-      event_name: "Checkout completed",
+      event_name: "Subscription creation",
       payment_processor: "stripe",
       amount: charge.amount_total!,
       currency: charge.currency!,
