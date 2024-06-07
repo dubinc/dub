@@ -32,7 +32,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     });
   } catch (error) {
     // Skip if customer not found
-    console.error(error);
+    console.log(error);
     return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
   }
 
