@@ -36,6 +36,7 @@ type FakeDatum = {
 
 export default function EventsTable() {
   const { searchParams, queryParams } = useRouterStuff();
+  const tab = searchParams.get("tab") || "clicks";
 
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
@@ -128,8 +129,9 @@ export default function EventsTable() {
 
   const { queryString, totalEvents } = useContext(AnalyticsContext);
 
-  const { data, isLoading } = useSWR<FakeDatum[]>(
+  const { data, isLoading, error } = useSWR<FakeDatum[]>(
     `/api/analytics/events?${editQueryString(queryString, {
+      event: tab,
       offset: (pagination.pageIndex * pagination.pageSize).toString(),
       limit: pagination.pageSize.toString(),
       order,
@@ -144,7 +146,7 @@ export default function EventsTable() {
     data: data ?? defaultData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    rowCount: totalEvents?.clicks ?? 0,
+    rowCount: totalEvents?.[tab] ?? 0,
     onPaginationChange: setPagination,
     state: {
       pagination,
@@ -157,77 +159,82 @@ export default function EventsTable() {
   return (
     <div className="border border-gray-200 bg-white sm:rounded-xl">
       <div className="relative rounded-[inherit]">
-        {/* Could make this scrollable */}
-        <div className="scrollbar-hide min-h-[400px] overflow-y-auto rounded-[inherit]">
-          <table
-            className={cn(
-              "w-full border-separate border-spacing-0",
+        {!error && !!data?.length ? (
+          <div className="min-h-[400px] rounded-[inherit]">
+            <table
+              className={cn(
+                "w-full border-separate border-spacing-0",
 
-              // Remove side borders from table to avoid interfering with outer border
-              "[&_thead_tr:first-child>*]:border-t-0", // Top row
-              "[&_tbody_tr:last-child>*]:border-b-0", // Bottom row
-              "[&_tr>*:first-child]:border-l-0", // Left column
-              "[&_tr>*:last-child]:border-r-0", // Right column
-            )}
-          >
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    const isDateColumn = header.column.id === "timestamp";
-                    return (
-                      <th
-                        key={header.id}
-                        className={cn(tableCellClassName, "font-medium")}
-                        style={{ width: `${header.getSize()}px` }}
-                      >
-                        <button
-                          className="flex items-center gap-2"
-                          disabled={!isDateColumn}
-                          onClick={() =>
-                            queryParams({
-                              set: {
-                                order: order === "asc" ? "desc" : "asc",
-                              },
-                            })
-                          }
-                          aria-label="Sort by column"
+                // Remove side borders from table to avoid interfering with outer border
+                "[&_thead_tr:first-child>*]:border-t-0", // Top row
+                "[&_tbody_tr:last-child>*]:border-b-0", // Bottom row
+                "[&_tr>*:first-child]:border-l-0", // Left column
+                "[&_tr>*:last-child]:border-r-0", // Right column
+              )}
+            >
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      const isDateColumn = header.column.id === "timestamp";
+                      return (
+                        <th
+                          key={header.id}
+                          className={cn(tableCellClassName, "font-medium")}
+                          style={{ width: `${header.getSize()}px` }}
                         >
-                          <span>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
-                          </span>
-                          {isDateColumn && <SortOrder order={order} />}
-                        </button>
-                      </th>
-                    );
-                  })}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className={cn(tableCellClassName, "text-gray-600")}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                          <button
+                            className="flex items-center gap-2"
+                            disabled={!isDateColumn}
+                            onClick={() =>
+                              queryParams({
+                                set: {
+                                  order: order === "asc" ? "desc" : "asc",
+                                },
+                              })
+                            }
+                            aria-label="Sort by column"
+                          >
+                            <span>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                  )}
+                            </span>
+                            {isDateColumn && <SortOrder order={order} />}
+                          </button>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </thead>
+              <tbody>
+                {table.getRowModel().rows.map((row) => (
+                  <tr key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className={cn(tableCellClassName, "text-gray-600")}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="flex h-64 h-full w-full items-center justify-center text-sm text-gray-500">
+            {error ? "Failed to fetch data" : "No data available"}
+          </div>
+        )}
         <div className="sticky bottom-0 flex items-center justify-between rounded-b-[inherit] border-t border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600">
           <div>
             Viewing{" "}
@@ -263,7 +270,7 @@ export default function EventsTable() {
           </div>
         </div>
 
-        {/* Loading overlay */}
+        {/* Loading/error overlay */}
         <AnimatePresence>
           {isLoading && (
             <motion.div

@@ -3,6 +3,7 @@
 import AnalyticsProvider from "../analytics-provider";
 import Toggle from "../toggle";
 import EventsTable from "./events-table";
+import EventsTabs from "./events-tabs";
 
 export default function AnalyticsEvents({
   staticDomain,
@@ -20,6 +21,7 @@ export default function AnalyticsEvents({
       <div className="py-10">
         <Toggle heading="Events" />
         <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
+          <EventsTabs />
           <EventsTable />
         </div>
       </div>
