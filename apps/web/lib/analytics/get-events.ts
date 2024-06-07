@@ -2,6 +2,8 @@ import { tb } from "@/lib/tinybird";
 import { tbDemo } from "../tinybird/demo-client";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import { clickEventEnrichedSchema } from "../zod/schemas/clicks";
+import { leadEventEnrichedSchema } from "../zod/schemas/leads";
+import { saleEventEnrichedSchema } from "../zod/schemas/sales";
 import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
 
@@ -27,7 +29,12 @@ export const getEvents = async (params: EventsFilters) => {
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `v1_events`,
     parameters: eventsFilterTB,
-    data: clickEventEnrichedSchema,
+    data:
+      {
+        clicks: clickEventEnrichedSchema,
+        leads: leadEventEnrichedSchema,
+        sales: saleEventEnrichedSchema,
+      }[event] ?? clickEventEnrichedSchema,
   });
 
   const response = await pipe({

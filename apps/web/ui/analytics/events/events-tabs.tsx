@@ -6,7 +6,7 @@ import { AnalyticsContext } from "../analytics-provider";
 export default function EventsTabs() {
   const { searchParams, queryParams } = useRouterStuff();
 
-  const tab = searchParams.get("tab");
+  const tab = searchParams.get("tab") || "clicks";
   const { totalEvents } = useContext(AnalyticsContext);
 
   return (
