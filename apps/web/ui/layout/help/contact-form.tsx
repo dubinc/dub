@@ -165,7 +165,8 @@ export function ContactForm({
                     for await (const delta of readStreamableValue(output)) {
                       setData((prev) => ({
                         ...prev,
-                        title: prev.title + delta,
+                        // if prev.title is not null, append the delta to it
+                        title: prev.title ? prev.title + delta : delta,
                       }));
                     }
                   }
