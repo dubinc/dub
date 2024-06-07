@@ -55,5 +55,10 @@ export const getEvents = async (params: EventsFilters) => {
       key: d.key,
       url: d.url,
     },
+    customer: {
+      name: d.customer_name,
+      email: d.customer_email,
+      avatar: d.customer_avatar,
+    },
   }));
 };

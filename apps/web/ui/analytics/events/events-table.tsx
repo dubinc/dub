@@ -24,13 +24,12 @@ import {
 } from "@dub/utils";
 import {
   ColumnDef,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
@@ -57,8 +56,15 @@ const eventColumns: Record<
     defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
   },
   leads: {
-    all: ["event", "link", "country", "device", "timestamp"],
-    defaultVisible: ["event", "link", "country", "device", "timestamp"],
+    all: ["event", "link", "customer", "country", "device", "timestamp"],
+    defaultVisible: [
+      "event",
+      "link",
+      "customer",
+      "country",
+      "device",
+      "timestamp",
+    ],
   },
   sales: {
     all: ["saleType", "link", "country", "device", "amount", "timestamp"],
@@ -130,6 +136,24 @@ export default function EventsTable() {
           ),
         },
         {
+          id: "customer",
+          header: "Customer",
+          accessorKey: "customer",
+          cell: ({ getValue }) => {
+            const display = getValue().name || getValue().email;
+            return (
+              <div className="flex items-center gap-3">
+                <img
+                  alt={display}
+                  src={getValue().avatar}
+                  className="h-4 w-4 rounded-full"
+                />
+                <span>{display}</span>
+              </div>
+            );
+          },
+        },
+        {
           id: "country",
           header: "Country",
           accessorKey: "country",
@@ -137,8 +161,8 @@ export default function EventsTable() {
             <div className="flex items-center gap-3">
               <img
                 alt={getValue()}
-                src={`https://flag.vercel.app/m/${getValue()}.svg`}
-                className="h-2.5 w-4"
+                src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
+                className="h-4 w-4"
               />
               <span>{COUNTRIES[getValue()] ?? getValue()}</span>
             </div>
@@ -219,6 +243,8 @@ export default function EventsTable() {
       keepPreviousData: true,
     },
   );
+
+  console.log({ data });
 
   const table = useReactTable({
     data: data ?? defaultData,
