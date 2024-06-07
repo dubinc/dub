@@ -142,6 +142,8 @@ export default function EventsTable() {
     },
   );
 
+  console.log(data);
+
   const table = useReactTable({
     data: data ?? defaultData,
     columns,

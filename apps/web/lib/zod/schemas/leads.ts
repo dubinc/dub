@@ -75,6 +75,8 @@ export const leadEventEnrichedSchema = z.object({
   event_id: z.string(),
   click_id: z.string(),
   link_id: z.string(),
+  domain: z.string(),
+  key: z.string(),
   customer_id: z.string(),
   event_name: z.string(),
   metadata: z.string(),

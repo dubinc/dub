@@ -66,6 +66,8 @@ export const saleEventEnrichedSchema = z.object({
   event_id: z.string(),
   click_id: z.string(),
   link_id: z.string(),
+  domain: z.string(),
+  key: z.string(),
   customer_id: z.string(),
   payment_processor: z.string(),
   amount: z.number(),

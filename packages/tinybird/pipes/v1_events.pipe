@@ -63,12 +63,13 @@ NODE lead_events
 SQL >
 
     %
-    SELECT *
+    SELECT *, wl.domain, wl.key
     FROM
-        dub_lead_events_mv
+        dub_lead_events_mv dle
         {% if not defined(linkId) and defined(workspaceId) %}
             PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
+    JOIN workspace_links wl ON dle.link_id = wl.link_id
     WHERE
         true
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
@@ -92,12 +93,13 @@ NODE sale_events
 SQL >
 
     %
-    SELECT *
+    SELECT *, wl.domain, wl.key
     FROM
-        dub_sale_events_mv
+        dub_sale_events_mv dse
         {% if not defined(linkId) and defined(workspaceId) %}
             PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
+    JOIN workspace_links wl ON dse.link_id = wl.link_id
     WHERE
         true
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
