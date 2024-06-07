@@ -7,8 +7,7 @@ import { EventsFilters } from "./types";
 
 // Fetch data for /api/analytics/events
 export const getEvents = async (params: EventsFilters) => {
-  let { event, workspaceId, interval, start, end, isDemo, offset, order } =
-    params;
+  let { event, workspaceId, interval, start, end, isDemo } = params;
 
   if (start) {
     start = new Date(start);
@@ -30,8 +29,6 @@ export const getEvents = async (params: EventsFilters) => {
     parameters: eventsFilterTB,
     data: clickEventEnrichedSchema,
   });
-
-  console.log({ offset, order });
 
   const response = await pipe({
     ...params,

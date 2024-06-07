@@ -178,6 +178,7 @@ export const eventsFilterTB = analyticsFilterTB
   .and(
     z.object({
       offset: z.coerce.number().default(0),
+      limit: z.coerce.number().default(50),
       order: z.enum(["asc", "desc"]).default("desc"),
     }),
   );
@@ -187,6 +188,7 @@ export const eventsQuerySchema = analyticsQuerySchema
   .and(
     z.object({
       offset: z.coerce.number().default(0),
+      limit: z.coerce.number().default(50),
       order: z.enum(["asc", "desc"]).default("desc"),
     }),
   );

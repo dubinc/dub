@@ -1,24 +1,29 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
-import { Button, LinkLogo, LoadingSpinner } from "@dub/ui";
-import { COUNTRIES, capitalize, cn, fetcher } from "@dub/utils";
+import {
+  Button,
+  LinkLogo,
+  LoadingSpinner,
+  Tooltip,
+  useRouterStuff,
+} from "@dub/ui";
+import { SortOrder } from "@dub/ui/src/icons";
+import { COUNTRIES, capitalize, cn, fetcher, getApexDomain } from "@dub/utils";
 import {
   ColumnDef,
   PaginationState,
-  SortingState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronUp } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 
-const PAGE_SIZE = 500;
+const PAGE_SIZE = 20;
 const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6";
 
@@ -30,25 +35,24 @@ type FakeDatum = {
 };
 
 export default function EventsTable() {
+  const { searchParams, queryParams } = useRouterStuff();
+
+  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: PAGE_SIZE,
   });
 
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "timestamp", desc: true },
-  ]);
-
   const columns = useMemo<ColumnDef<FakeDatum, any>[]>(
     () => [
       {
         header: "Link",
-        enableSorting: false,
         accessorKey: "link",
         cell: ({ getValue }) => (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 sm:min-w-[125px]">
             <LinkLogo
-              // apexDomain={getApexDomain(getValue().url)}
+              apexDomain={getApexDomain(getValue().url)}
               className="h-4 w-4 sm:h-4 sm:w-4"
             />
             <span>
@@ -62,7 +66,6 @@ export default function EventsTable() {
       },
       {
         header: "Country",
-        enableSorting: false,
         accessorKey: "country",
         cell: ({ getValue }) => (
           <div className="flex items-center gap-3">
@@ -77,7 +80,6 @@ export default function EventsTable() {
       },
       {
         header: "Device",
-        enableSorting: false,
         accessorKey: "device",
         cell: ({ getValue }) => (
           <div className="flex items-center gap-3">
@@ -93,16 +95,30 @@ export default function EventsTable() {
       {
         id: "timestamp",
         header: "Date",
-        enableSorting: true,
-        accessorFn: (d) =>
-          new Date(d.timestamp).toLocaleTimeString("en-US", {
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hour12: true,
-          }),
+        accessorFn: (d) => new Date(d.timestamp),
+        cell: ({ getValue }) => (
+          <Tooltip
+            content={getValue().toLocaleTimeString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "numeric",
+              second: "numeric",
+              hour12: true,
+            })}
+          >
+            <span>
+              {getValue().toLocaleTimeString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "numeric",
+                hour12: true,
+              })}
+            </span>
+          </Tooltip>
+        ),
       },
     ],
     [],
@@ -115,7 +131,8 @@ export default function EventsTable() {
   const { data, isLoading } = useSWR<FakeDatum[]>(
     `/api/analytics/events?${editQueryString(queryString, {
       offset: (pagination.pageIndex * pagination.pageSize).toString(),
-      order: sorting?.[0]?.desc ?? true ? "desc" : "asc",
+      limit: pagination.pageSize.toString(),
+      order,
     }).toString()}`,
     fetcher,
     {
@@ -129,10 +146,8 @@ export default function EventsTable() {
     getCoreRowModel: getCoreRowModel(),
     rowCount: totalEvents?.clicks ?? 0,
     onPaginationChange: setPagination,
-    onSortingChange: setSorting,
     state: {
       pagination,
-      sorting,
     },
     manualPagination: true,
     autoResetPageIndex: false,
@@ -158,39 +173,39 @@ export default function EventsTable() {
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header, idx) => (
-                    <th
-                      key={header.id}
-                      className={cn(tableCellClassName, "font-medium")}
-                    >
-                      <button
-                        className="flex items-center gap-1"
-                        disabled={!header.column.getCanSort()}
-                        onClick={() => header.column.toggleSorting()}
+                  {headerGroup.headers.map((header) => {
+                    const isDateColumn = header.column.id === "timestamp";
+                    return (
+                      <th
+                        key={header.id}
+                        className={cn(tableCellClassName, "font-medium")}
+                        style={{ width: `${header.getSize()}px` }}
                       >
-                        <span>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </span>
-                        {header.column.getIsSorted() && (
+                        <button
+                          className="flex items-center gap-2"
+                          disabled={!isDateColumn}
+                          onClick={() =>
+                            queryParams({
+                              set: {
+                                order: order === "asc" ? "desc" : "asc",
+                              },
+                            })
+                          }
+                          aria-label="Sort by column"
+                        >
                           <span>
-                            <ChevronUp
-                              className={cn(
-                                "h-3.5 w-3.5 transition-transform",
-                                header.column.getIsSorted() === "desc" &&
-                                  "rotate-180",
-                              )}
-                              transform=""
-                            />
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
                           </span>
-                        )}
-                      </button>
-                    </th>
-                  ))}
+                          {isDateColumn && <SortOrder order={order} />}
+                        </button>
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>
