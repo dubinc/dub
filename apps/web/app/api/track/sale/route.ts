@@ -89,6 +89,7 @@ export const POST = withWorkspaceEdge(
       currency,
       invoiceId,
       metadata,
+      eventName,
     });
 
     return NextResponse.json(response);
