@@ -71,7 +71,7 @@ export async function customerCreated(event: Stripe.Event) {
     recordLead({
       ...clickData,
       event_id: nanoid(16),
-      event_name: "Customer created",
+      event_name: "New customer",
       customer_id: customer.id,
     }),
 

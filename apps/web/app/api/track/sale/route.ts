@@ -23,6 +23,7 @@ export const POST = withWorkspaceEdge(
       amount,
       currency,
       metadata,
+      eventName,
     } = trackSaleRequestSchema.parse(await parseRequestBody(req));
 
     // Find customer
@@ -60,6 +61,7 @@ export const POST = withWorkspaceEdge(
       recordSale({
         ...clickData,
         event_id: nanoid(16),
+        event_name: eventName,
         customer_id: customer.id,
         payment_processor: paymentProcessor,
         amount,
@@ -87,6 +89,7 @@ export const POST = withWorkspaceEdge(
       currency,
       invoiceId,
       metadata,
+      eventName,
     });
 
     return NextResponse.json(response);
