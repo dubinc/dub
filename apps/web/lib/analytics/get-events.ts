@@ -47,6 +47,8 @@ export const getEvents = async (params: EventsFilters) => {
 
   return response.data.map((d) => ({
     ...d,
+    // timestamp is always in UTC
+    timestamp: new Date(d.timestamp + "Z"),
     link: {
       id: d.link_id,
       domain: d.domain,
