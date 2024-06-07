@@ -1,4 +1,4 @@
-import { limiter } from "@/lib/cron";
+import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
@@ -274,7 +274,7 @@ export const POST = async (req: Request) => {
       }
     } catch (error) {
       await log({
-        message: `Stripe webook failed. Error: ${error.message}`,
+        message: `Stripe webhook failed. Error: ${error.message}`,
         type: "errors",
       });
       return new Response(

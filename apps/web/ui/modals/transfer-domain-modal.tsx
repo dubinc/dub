@@ -28,7 +28,7 @@ function TransferDomainModal({
   const currentWorkspace = useWorkspace();
   const { workspaces } = useWorkspaces();
   const [transferring, setTransferring] = useState(false);
-  const [selectedWorkspace, setselectedWorkspace] =
+  const [selectedWorkspace, setSelectedWorkspace] =
     useState<InputSelectItemProps | null>(null);
 
   const transferDomain = async (domain: string, newWorkspaceId: string) => {
@@ -97,7 +97,7 @@ function TransferDomainModal({
               label: workspace.id === currentWorkspace.id ? "Current" : "",
             }))}
             selectedItem={selectedWorkspace}
-            setSelectedItem={setselectedWorkspace}
+            setSelectedItem={setSelectedWorkspace}
             inputAttrs={{
               placeholder: "Select a workspace",
             }}

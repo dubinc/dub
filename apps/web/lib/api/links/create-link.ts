@@ -7,6 +7,7 @@ import { formatRedisLink, redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { updateLinksUsage } from "./update-links-usage";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
@@ -126,15 +127,9 @@ export async function createLink(link: ProcessedLinkProps) {
         }),
       // update links usage for workspace
       link.projectId &&
-        prisma.project.update({
-          where: {
-            id: link.projectId,
-          },
-          data: {
-            linksUsage: {
-              increment: 1,
-            },
-          },
+        updateLinksUsage({
+          workspaceId: link.projectId,
+          increment: 1,
         }),
     ]),
   );
