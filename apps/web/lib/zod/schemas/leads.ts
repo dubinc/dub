@@ -16,7 +16,7 @@ export const trackLeadRequestSchema = z.object({
     .min(1, "eventName is required")
     .max(50)
     .describe("The name of the event to track.")
-    .openapi({ example: "Signup" }),
+    .openapi({ example: "Sign up" }),
   customerId: z
     .string({ required_error: "customerId is required" })
     .trim()
