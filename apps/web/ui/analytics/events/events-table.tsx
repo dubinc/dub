@@ -81,10 +81,6 @@ export default function EventsTable() {
 
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
 
-  useEffect(() => {
-    setPagination({ pageIndex: 0, pageSize: PAGE_SIZE });
-  }, [tab]);
-
   const columns = useMemo<ColumnDef<Datum, any>[]>(
     () =>
       [
@@ -263,6 +259,11 @@ export default function EventsTable() {
     autoResetPageIndex: false,
     manualSorting: true,
   });
+
+  useEffect(() => {
+    // reset page index when tab or filters change
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
+  }, [tab, queryString]);
 
   return (
     <div className="border border-gray-200 bg-white sm:rounded-xl">
