@@ -29,6 +29,7 @@ export const GET = withWorkspace(
       ...parsedParams,
       event,
       ...(linkId && { linkId }),
+      workspaceId: workspace.id,
     });
 
     return NextResponse.json(response);

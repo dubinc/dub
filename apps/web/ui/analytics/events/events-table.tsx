@@ -115,7 +115,7 @@ export default function EventsTable() {
         {
           id: "saleType",
           header: "Event",
-          accessorFn: () => "Invoice paid", // TODO: Get this data form somewhere
+          accessorKey: "event_name",
         },
         {
           id: "link",
