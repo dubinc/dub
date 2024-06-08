@@ -30,7 +30,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { useContext, useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
@@ -80,6 +80,10 @@ export default function EventsTable() {
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
+
+  useEffect(() => {
+    setPagination({ pageIndex: 0, pageSize: PAGE_SIZE });
+  }, [tab]);
 
   const columns = useMemo<ColumnDef<Datum, any>[]>(
     () =>
@@ -245,8 +249,6 @@ export default function EventsTable() {
       keepPreviousData: true,
     },
   );
-
-  console.log({ data });
 
   const table = useReactTable({
     data: data ?? defaultData,
