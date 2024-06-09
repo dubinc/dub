@@ -64,24 +64,27 @@ export async function processLink<T extends Record<string, any>>({
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
-
+  const isRootDomain = key === "_root";
   const tagIds = combineTagIds(payload);
 
   // url checks
-  if (!url) {
+  if (!isRootDomain && !url) {
     return {
       link: payload,
       error: "Missing destination url.",
       code: "bad_request",
     };
   }
-  url = getUrlFromString(url);
-  if (!isValidUrl(url)) {
-    return {
-      link: payload,
-      error: "Invalid destination url.",
-      code: "unprocessable_entity",
-    };
+
+  if (url) {
+    url = getUrlFromString(url);
+    if (!isValidUrl(url)) {
+      return {
+        link: payload,
+        error: "Invalid destination url.",
+        code: "unprocessable_entity",
+      };
+    }
   }
 
   // free plan restrictions (after Jan 19, 2024)

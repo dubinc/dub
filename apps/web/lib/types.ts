@@ -174,7 +174,10 @@ export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
 
 type ProcessedLinkOverrides = "domain" | "key" | "url" | "projectId";
 export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
-  Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] };
+  Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] } & {
+    createdAt?: Date;
+    id?: string;
+  };
 
 export const plans = [
   "free",

@@ -47,12 +47,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       [linkId],
     );
 
-    if (response.rows.length === 0 && event === "clicks") {
-      response = await conn.execute(`SELECT clicks FROM Domain WHERE id = ?`, [
-        linkId,
-      ]);
-    }
-
     return response.rows[0];
   }
 
@@ -112,61 +106,33 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     }[];
     const linkIds = topLinksData.map((item) => item.link);
 
-    const [links, domains] = await Promise.all([
-      prismaEdge.link.findMany({
-        where: {
-          projectId: workspaceId,
-          id: {
-            in: linkIds,
-          },
+    const links = await prismaEdge.link.findMany({
+      where: {
+        projectId: workspaceId,
+        id: {
+          in: linkIds,
         },
-        select: {
-          id: true,
-          domain: true,
-          key: true,
-          url: true,
-          createdAt: true,
-        },
-      }),
-      prismaEdge.domain.findMany({
-        where: {
-          projectId: workspaceId,
-          id: {
-            in: linkIds,
-          },
-        },
-        select: {
-          id: true,
-          slug: true,
-          target: true,
-          createdAt: true,
-        },
-      }),
-    ]);
+      },
+      select: {
+        id: true,
+        domain: true,
+        key: true,
+        url: true,
+        createdAt: true,
+      },
+    });
 
-    const allLinks = [
-      ...links.map((link) => ({
-        id: link.id,
+    const allLinks = links.map((link) => ({
+      id: link.id,
+      domain: link.domain,
+      key: link.key,
+      shortLink: linkConstructor({
         domain: link.domain,
         key: link.key,
-        shortLink: linkConstructor({
-          domain: link.domain,
-          key: link.key,
-        }),
-        url: link.url,
-        createdAt: link.createdAt,
-      })),
-      ...domains.map((domain) => ({
-        id: domain.id,
-        domain: domain.slug,
-        key: "",
-        shortLink: linkConstructor({
-          domain: domain.slug,
-        }),
-        url: domain.target || "",
-        createdAt: domain.createdAt,
-      })),
-    ];
+      }),
+      url: link.url,
+      createdAt: link.createdAt,
+    }));
 
     return topLinksData.map((d) => ({
       ...allLinks.find((l) => l.id === d.link),

@@ -3,12 +3,13 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
-import { exceededLimitError } from "@/lib/api/errors";
+import { transformDomain } from "@/lib/api/domains/transform-domain";
+import { DubApiError, ErrorCodes, exceededLimitError } from "@/lib/api/errors";
+import { createLink, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import z from "@/lib/zod";
-import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas/domains";
+import { addDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -18,13 +19,28 @@ export const GET = withWorkspace(async ({ workspace }) => {
     where: {
       projectId: workspace.id,
     },
+    include: {
+      links: {
+        select: {
+          url: true,
+          rewrite: true,
+          clicks: true,
+          expiredUrl: true,
+        },
+        take: 1,
+      },
+    },
   });
 
-  return NextResponse.json(z.array(DomainSchema).parse(domains));
+  const result = domains.map((domain) =>
+    transformDomain({ ...domain, ...domain.links[0] }),
+  );
+
+  return NextResponse.json(result);
 });
 
 // POST /api/domains - add a domain
-export const POST = withWorkspace(async ({ req, workspace }) => {
+export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const body = await parseRequestBody(req);
   const {
     slug: domain,
@@ -59,32 +75,67 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
   ) {
     return new Response(vercelResponse.error.message, { status: 422 });
   }
+
   /* 
-          If the domain is being added, we need to:
-            1. Add the domain to Vercel
-            2. If there's a landing page set, update the root domain in Redis
-            3. If the workspace has no domains (meaning this is the first domain added), set it as primary
-        */
-  const response = await prisma.domain.create({
+    If the domain is being added, we need to:
+      1. Add the domain to Vercel
+      2. If there's a landing page set, update the root domain in Redis
+      3. If the workspace has no domains (meaning this is the first domain added), set it as primary
+  */
+  const domainRecord = await prisma.domain.create({
     data: {
       slug: domain,
-      type,
       projectId: workspace.id,
       primary: workspace.domains.length === 0,
       ...(placeholder && { placeholder }),
-      ...(workspace.plan !== "free" && {
-        target,
-        expiredUrl,
-        noindex: noindex === undefined ? true : noindex,
-      }),
     },
   });
 
+  workspace.domains.push({
+    slug: domainRecord.slug,
+    primary: domainRecord.primary,
+  });
+
+  // TODO:
+  // Store noindex
+
+  const { link, error, code } = await processLink({
+    payload: {
+      id: domainRecord.id,
+      domain: domainRecord.slug,
+      key: "_root",
+      rewrite: type === "rewrite",
+      createdAt: domainRecord.createdAt,
+      archived: false,
+      proxy: false,
+      publicStats: false,
+      trackConversion: false,
+      ...(workspace.plan === "free"
+        ? { url: "", expiredUrl: null }
+        : {
+            url: target || "",
+            expiredUrl: expiredUrl || null,
+          }),
+    },
+    workspace,
+    userId: session.user.id,
+    skipKeyChecks: true,
+  });
+
+  if (error != null) {
+    throw new DubApiError({
+      code: code as ErrorCodes,
+      message: error,
+    });
+  }
+
+  const newLink = await createLink(link);
+
   waitUntil(
     setRootDomain({
-      id: response.id,
+      id: domainRecord.id,
       domain,
-      domainCreatedAt: response.createdAt,
+      domainCreatedAt: domainRecord.createdAt,
       projectId: workspace.id,
       ...(workspace.plan !== "free" && {
         url: target || undefined,
@@ -94,5 +145,12 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     }),
   );
 
-  return NextResponse.json(DomainSchema.parse(response), { status: 201 });
+  const result = transformDomain({
+    ...domainRecord,
+    ...newLink,
+  });
+
+  return NextResponse.json(result, {
+    status: 201,
+  });
 });

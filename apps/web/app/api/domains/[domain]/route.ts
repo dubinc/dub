@@ -5,6 +5,7 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
+import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -19,31 +20,36 @@ import { NextResponse } from "next/server";
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
   async ({ domain }) => {
-    const data = await prisma.domain.findUnique({
+    const domainRecord = await prisma.domain.findUnique({
       where: {
         slug: domain,
       },
-      select: {
-        slug: true,
-        verified: true,
-        primary: true,
-        target: true,
-        type: true,
-        placeholder: true,
-        clicks: true,
-        expiredUrl: true,
+      include: {
+        links: {
+          select: {
+            url: true,
+            rewrite: true,
+            clicks: true,
+            expiredUrl: true,
+          },
+          take: 1,
+        },
       },
     });
-    if (!data) {
+
+    if (!domainRecord) {
       throw new DubApiError({
         code: "not_found",
         message: "Domain not found",
       });
     }
-    return NextResponse.json({
-      ...data,
-      url: data.target,
+
+    const result = transformDomain({
+      ...domainRecord,
+      ...domainRecord.links[0],
     });
+
+    return NextResponse.json(result);
   },
   {
     domainChecks: true,
@@ -87,14 +93,13 @@ export const PATCH = withWorkspace(
       },
       data: {
         slug: newDomain,
-        type,
         archived,
         ...(placeholder && { placeholder }),
-        ...(workspace.plan !== "free" && {
-          target,
-          expiredUrl,
-          noindex: noindex === undefined ? true : noindex,
-        }),
+        // ...(workspace.plan !== "free" && {
+        //   target,
+        //   expiredUrl,
+        //   noindex: noindex === undefined ? true : noindex,
+        // }),
       },
     });
 

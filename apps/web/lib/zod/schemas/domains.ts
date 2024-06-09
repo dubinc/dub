@@ -32,14 +32,14 @@ export const DomainSchema = z.object({
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
   expiredUrl: z
     .string()
-    .nullable()
+    .nullish()
     .describe(
       "The URL to redirect to when a link under this domain has expired.",
     )
     .openapi({ example: "https://acme.com/expired" }),
   target: z
     .string()
-    .nullable()
+    .nullish()
     .describe(
       "The page your users will get redirected to when they visit your domain.",
     )

@@ -14,7 +14,6 @@ export async function deleteDomainAndLinks(domain: string) {
       },
       select: {
         id: true,
-        target: true,
         projectId: true,
         createdAt: true,
       },
@@ -35,6 +34,7 @@ export async function deleteDomainAndLinks(domain: string) {
       },
     }),
   ]);
+
   if (!domainData) {
     return null;
   }
@@ -52,15 +52,6 @@ export async function deleteDomainAndLinks(domain: string) {
         redis.del(domain.toLowerCase()),
         // record deletes in tinybird for domain & links
         recordLink([
-          {
-            link_id: domainData.id,
-            domain,
-            key: "_root",
-            url: domainData.target || "",
-            workspace_id: domainData.projectId,
-            created_at: domainData.createdAt,
-            deleted: true,
-          },
           ...allLinks.map((link) => ({
             link_id: link.id,
             domain: link.domain,
@@ -80,7 +71,6 @@ export async function deleteDomainAndLinks(domain: string) {
         // remove the domain from Vercel
         removeDomainFromVercel(domain),
       ]);
-      console.log(res);
     })(),
   );
 
