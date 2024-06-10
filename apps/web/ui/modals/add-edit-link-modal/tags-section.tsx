@@ -170,7 +170,7 @@ export default function TagsSection({
   };
 
   return (
-    <div className="overflow-hidden border-b border-gray-200 pb-2">
+    <div className="border-b border-gray-200 pb-2">
       <Command
         ref={commandRef}
         className="relative"

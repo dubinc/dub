@@ -39,7 +39,7 @@ export async function bulkCreateLinks({
           ...(tagNames?.length &&
             link.projectId && {
               tags: {
-                create: tagNames.map((tagName) => ({
+                create: tagNames.filter(Boolean).map((tagName) => ({
                   tag: {
                     connect: {
                       name_projectId: {
@@ -58,7 +58,7 @@ export async function bulkCreateLinks({
               tags: {
                 createMany: {
                   data: combinedTagIds
-                    .filter((tagId) => typeof tagId === "string")
+                    .filter(Boolean)
                     .map((tagId) => ({ tagId })),
                 },
               },
