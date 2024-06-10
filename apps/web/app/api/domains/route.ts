@@ -110,7 +110,11 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       publicStats: false,
       trackConversion: false,
       ...(workspace.plan === "free"
-        ? { url: "", expiredUrl: null, rewrite: false }
+        ? {
+            url: "",
+            expiredUrl: null,
+            rewrite: false,
+          }
         : {
             url: target || "",
             expiredUrl: expiredUrl || null,
