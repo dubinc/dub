@@ -68,7 +68,7 @@ const eventColumns: Record<
     ],
   },
   sales: {
-    all: ["saleType", "link", "country", "device", "amount", "timestamp"],
+    all: ["event", "link", "country", "device", "amount", "timestamp"],
     defaultVisible: ["saleType", "link", "country", "amount", "timestamp"],
   },
 };
@@ -105,15 +105,9 @@ export default function EventsTable() {
             </div>
           ),
         },
-        // Lead event name
+        // Lead/sale event name
         {
           id: "event",
-          header: "Event",
-          accessorKey: "event_name",
-        },
-        // Sale type
-        {
-          id: "saleType",
           header: "Event",
           accessorKey: "event_name",
         },
@@ -276,7 +270,6 @@ export default function EventsTable() {
 
                 // Remove side borders from table to avoid interfering with outer border
                 "[&_thead_tr:first-child>*]:border-t-0", // Top row
-                "[&_tbody_tr:last-child>*]:border-b-0", // Bottom row
                 "[&_tr>*:first-child]:border-l-0", // Left column
                 "[&_tr>*:last-child]:border-r-0", // Right column
               )}
