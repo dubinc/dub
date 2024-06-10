@@ -104,17 +104,17 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       id: domainRecord.id,
       domain: domainRecord.slug,
       key: "_root",
-      rewrite: type === "rewrite",
       createdAt: domainRecord.createdAt,
       archived: false,
       proxy: false,
       publicStats: false,
       trackConversion: false,
       ...(workspace.plan === "free"
-        ? { url: "", expiredUrl: null }
+        ? { url: "", expiredUrl: null, rewrite: false }
         : {
             url: target || "",
             expiredUrl: expiredUrl || null,
+            rewrite: type === "rewrite",
           }),
     },
     workspace,
