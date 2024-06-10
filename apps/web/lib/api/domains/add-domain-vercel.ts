@@ -9,10 +9,6 @@ export const addDomainToVercel = async (
     redirectToApex?: boolean;
   } = {},
 ): Promise<CustomResponse> => {
-  if (domain.startsWith("dubtest.")) {
-    return {} as any;
-  }
-
   return await fetch(
     `https://api.vercel.com/v10/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
