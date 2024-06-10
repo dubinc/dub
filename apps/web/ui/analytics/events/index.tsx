@@ -20,7 +20,7 @@ export default function AnalyticsEvents({
     <AnalyticsProvider {...{ staticDomain, staticUrl, admin, demo }}>
       <div className="py-10">
         <Toggle heading="Events" />
-        <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
+        <div className="mx-auto flex max-w-screen-xl flex-col gap-5 px-2.5 lg:px-20">
           <EventsTabs />
           <EventsTable />
         </div>

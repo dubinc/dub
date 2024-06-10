@@ -39,7 +39,7 @@ import usePagination from "./use-pagination";
 
 const PAGE_SIZE = 500;
 const tableCellClassName =
-  "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6";
+  "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap overflow-hidden [&>.flex]:pr-4";
 
 type EventType = "clicks" | "leads" | "sales";
 
@@ -77,7 +77,7 @@ export default function EventsTable() {
   const { searchParams, queryParams } = useRouterStuff();
   const tab = searchParams.get("tab") || "clicks";
 
-  const sortBy = searchParams.get("sort") || "date";
+  const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
@@ -117,7 +117,7 @@ export default function EventsTable() {
           header: "Link",
           accessorKey: "link",
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3 sm:min-w-[125px]">
+            <div className="flex items-center gap-3">
               <LinkLogo
                 apexDomain={getApexDomain(getValue().url)}
                 className="h-4 w-4 sm:h-4 sm:w-4"
@@ -266,7 +266,7 @@ export default function EventsTable() {
     <div className="border border-gray-200 bg-white sm:rounded-xl">
       <div className="relative rounded-[inherit]">
         {(!error && !!data?.length) || isLoading ? (
-          <div className="min-h-[400px] rounded-[inherit]">
+          <div className="min-h-[400px] overflow-x-auto rounded-[inherit]">
             <table
               className={cn(
                 "w-full border-separate border-spacing-0",

@@ -45,7 +45,8 @@ export default function EventsTabs() {
 
   const onEventTabClick = useCallback(
     (event: string) => {
-      const sortOptions = event === "sales" ? ["date", "amount"] : ["date"];
+      const sortOptions =
+        event === "sales" ? ["timestamp", "amount"] : ["date"];
       const currentSort = searchParams.get("sort");
       queryParams({
         set: { tab: event },
@@ -61,7 +62,7 @@ export default function EventsTabs() {
 
   useEffect(() => {
     const sortBy = searchParams.get("sort");
-    if (tab !== "sales" && sortBy !== "date") queryParams({ del: "sort" });
+    if (tab !== "sales" && sortBy !== "timestamp") queryParams({ del: "sort" });
   }, [tab, searchParams.get("sort")]);
 
   return (
