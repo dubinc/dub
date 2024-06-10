@@ -92,7 +92,7 @@ export default function UpdateDefaultWorkspace() {
         <a
           href="https://dub.co/help/article/how-to-change-default-workspace"
           target="_blank"
-          className="nderline-offset-4 text-sm text-gray-500 underline hover:text-gray-700"
+          className="text-sm text-gray-500 underline underline-offset-4 hover:text-gray-700"
         >
           Learn more about how default workspaces work
         </a>

@@ -1,5 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { limiter, qstash, sendLimitEmail } from "@/lib/cron";
+import { qstash } from "@/lib/cron";
+import { limiter } from "@/lib/cron/limiter";
+import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import {
@@ -14,13 +16,12 @@ import ClicksSummary from "emails/clicks-summary";
 
 const limit = 100;
 
-export const updateUsage = async (skip?: number) => {
+export const updateUsage = async () => {
   const workspaces = await prisma.project.findMany({
     where: {
-      domains: {
-        some: {
-          verified: true,
-        },
+      // Check only workspaces that haven't been checked in the last 12 hours
+      usageLastChecked: {
+        lt: new Date(new Date().getTime() - 12 * 60 * 60 * 1000),
       },
     },
     include: {
@@ -28,15 +29,21 @@ export const updateUsage = async (skip?: number) => {
         select: {
           user: true,
         },
-      },
-      domains: {
-        where: {
-          verified: true,
+        orderBy: {
+          createdAt: "asc",
         },
+        take: 10, // Only send to the first 10 users
       },
       sentEmails: true,
     },
-    skip: skip || 0,
+    orderBy: [
+      {
+        usageLastChecked: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
     take: limit,
   });
 
@@ -52,6 +59,135 @@ export const updateUsage = async (skip?: number) => {
       getAdjustedBillingCycleStart(billingCycleStart as number) ===
       new Date().getDate(),
   );
+
+  // Reset usage and alert emails for the billingReset workspaces
+  // also send 30-day summary email
+  await Promise.allSettled(
+    billingReset.map(async (workspace) => {
+      const { plan, usage, usageLimit } = workspace;
+
+      /* 
+        We only reset clicks usage if it's not over usageLimit by:
+        - 4x for free plan (4K clicks)
+        - 2x for all other plans
+      */
+
+      const resetUsage =
+        plan === "free" ? usage <= usageLimit * 4 : usage <= usageLimit * 2;
+
+      await prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          ...(resetUsage && {
+            usage: 0,
+          }),
+          linksUsage: 0,
+          aiUsage: 0,
+          sentEmails: {
+            deleteMany: {
+              type: {
+                in: [
+                  "firstUsageLimitEmail",
+                  "secondUsageLimitEmail",
+                  "firstLinksLimitEmail",
+                  "secondLinksLimitEmail",
+                ],
+              },
+            },
+          },
+        },
+      });
+
+      /* Only send the 30-day summary email if:
+         - the workspace has at least 1 link click
+         - the workspace was created more than 30 days ago
+       */
+      if (
+        workspace.usage > 0 &&
+        workspace.createdAt.getTime() <
+          new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+      ) {
+        const topLinks = await getAnalytics({
+          workspaceId: workspace.id,
+          event: "clicks",
+          groupBy: "top_links",
+          interval: "30d",
+          root: false,
+        }).then(async (data) => {
+          const topFive = data.slice(0, 5);
+          return await Promise.all(
+            topFive.map(
+              async ({
+                link: linkId,
+                clicks,
+              }: {
+                link: string;
+                clicks: number;
+              }) => {
+                const link = await prisma.link.findUnique({
+                  where: {
+                    id: linkId,
+                  },
+                  select: {
+                    domain: true,
+                    key: true,
+                  },
+                });
+                if (!link) return;
+                return {
+                  link: linkConstructor({
+                    domain: link.domain,
+                    key: link.key,
+                    pretty: true,
+                  }),
+                  clicks,
+                };
+              },
+            ),
+          );
+        });
+
+        const emails = workspace.users.map(
+          (user) => user.user.email,
+        ) as string[];
+
+        await Promise.allSettled(
+          emails.map((email) => {
+            limiter.schedule(() =>
+              sendEmail({
+                subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
+                email,
+                react: ClicksSummary({
+                  email,
+                  appName: process.env.NEXT_PUBLIC_APP_NAME as string,
+                  appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
+                  workspaceName: workspace.name,
+                  workspaceSlug: workspace.slug,
+                  totalClicks: workspace.usage,
+                  createdLinks: workspace.linksUsage,
+                  topLinks,
+                }),
+              }),
+            );
+          }),
+        );
+      }
+    }),
+  );
+
+  // Update usageLastChecked for workspaces
+  await prisma.project.updateMany({
+    where: {
+      id: {
+        in: workspaces.map(({ id }) => id),
+      },
+    },
+    data: {
+      usageLastChecked: new Date(),
+    },
+  });
 
   // Get all workspaces that have exceeded usage
   const exceedingUsage = workspaces.filter(
@@ -104,131 +240,9 @@ export const updateUsage = async (skip?: number) => {
     }),
   );
 
-  // Reset usage for workspaces that have billingCycleStart today
-  // also delete sentEmails for those workspaces
-  await Promise.allSettled(
-    billingReset.map(async (workspace) => {
-      // Only send the 30-day summary email if the workspace was created more than 30 days ago
-      if (
-        workspace.createdAt.getTime() <
-        new Date().getTime() - 30 * 24 * 60 * 60 * 1000
-      ) {
-        const topLinks =
-          workspace.usage > 0
-            ? await getAnalytics({
-                workspaceId: workspace.id,
-                event: "clicks",
-                groupBy: "top_links",
-                interval: "30d",
-                root: false,
-              }).then(async (data) => {
-                const topFive = data.slice(0, 5);
-                return await Promise.all(
-                  topFive.map(
-                    async ({
-                      link: linkId,
-                      clicks,
-                    }: {
-                      link: string;
-                      clicks: number;
-                    }) => {
-                      const link = await prisma.link.findUnique({
-                        where: {
-                          id: linkId,
-                        },
-                        select: {
-                          domain: true,
-                          key: true,
-                        },
-                      });
-                      if (!link) return;
-                      return {
-                        link: linkConstructor({
-                          domain: link.domain,
-                          key: link.key,
-                          pretty: true,
-                        }),
-                        clicks,
-                      };
-                    },
-                  ),
-                );
-              })
-            : [];
-
-        const emails = workspace.users.map(
-          (user) => user.user.email,
-        ) as string[];
-
-        await Promise.allSettled(
-          emails.map((email) => {
-            limiter.schedule(() =>
-              sendEmail({
-                subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
-                email,
-                react: ClicksSummary({
-                  email,
-                  appName: process.env.NEXT_PUBLIC_APP_NAME as string,
-                  appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
-                  workspaceName: workspace.name,
-                  workspaceSlug: workspace.slug,
-                  totalClicks: workspace.usage,
-                  createdLinks: workspace.linksUsage,
-                  topLinks,
-                }),
-              }),
-            );
-          }),
-        );
-      }
-
-      const { plan, usage, usageLimit } = workspace;
-
-      // only reset clicks usage if it's not over usageLimit by:
-      // 3x for free plan (3K clicks)
-      // 1.5x for pro plan (75K clicks)
-      // 1.2x for business plan (300K clicks)
-
-      const resetUsage =
-        plan === "free"
-          ? usage < usageLimit * 3
-          : plan === "pro"
-            ? usage < usageLimit * 1.5
-            : plan.startsWith("business")
-              ? usage < usageLimit * 1.2
-              : true;
-
-      return await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          ...(resetUsage && {
-            usage: 0,
-          }),
-          linksUsage: 0,
-          aiUsage: 0,
-          sentEmails: {
-            deleteMany: {
-              type: {
-                in: [
-                  "firstUsageLimitEmail",
-                  "secondUsageLimitEmail",
-                  "firstLinksLimitEmail",
-                  "secondLinksLimitEmail",
-                ],
-              },
-            },
-          },
-        },
-      });
-    }),
-  );
-
   return await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage?skip=${
-      skip ? skip + limit : limit
-    }`,
-    method: "GET",
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
+    method: "POST",
+    body: {},
   });
 };

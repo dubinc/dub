@@ -122,28 +122,7 @@ const DateRangePickerInner = ({
         popoverContentClassName="rounded-xl"
         content={
           <div className="flex w-full">
-            <div className="scrollbar-hide flex w-full flex-col-reverse overflow-x-scroll sm:flex-row sm:items-start">
-              <div className="scrollbar-hide overflow-x-scroll">
-                <CalendarPrimitive
-                  mode="range"
-                  selected={range}
-                  onSelect={onCalendarSelect}
-                  month={month}
-                  onMonthChange={setMonth}
-                  numberOfMonths={isDesktop ? 2 : 1}
-                  disabled={disabledDays}
-                  disableNavigation={disableNavigation}
-                  showYearNavigation={showYearNavigation}
-                  locale={locale}
-                  initialFocus
-                  className="scrollbar-hide overflow-x-scroll"
-                  classNames={{
-                    months:
-                      "flex flex-row divide-x divide-gray-200 overflow-x-scroll scrollbar-hide",
-                  }}
-                  {...props}
-                />
-              </div>
+            <div className="scrollbar-hide flex w-full flex-col overflow-x-scroll sm:flex-row-reverse sm:items-start">
               {presets && presets.length > 0 && (
                 <div
                   className={cn(
@@ -161,6 +140,26 @@ const DateRangePickerInner = ({
                   </div>
                 </div>
               )}
+              <div className="scrollbar-hide overflow-x-scroll">
+                <CalendarPrimitive
+                  mode="range"
+                  selected={range}
+                  onSelect={onCalendarSelect}
+                  month={month}
+                  onMonthChange={setMonth}
+                  numberOfMonths={isDesktop ? 2 : 1}
+                  disabled={disabledDays}
+                  disableNavigation={disableNavigation}
+                  showYearNavigation={showYearNavigation}
+                  locale={locale}
+                  className="scrollbar-hide overflow-x-scroll"
+                  classNames={{
+                    months:
+                      "flex flex-row divide-x divide-gray-200 overflow-x-scroll scrollbar-hide",
+                  }}
+                  {...props}
+                />
+              </div>
             </div>
           </div>
         }

@@ -37,6 +37,7 @@ import {
 import {
   APP_DOMAIN,
   COUNTRIES,
+  DUB_DEMO_LINKS,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
   capitalize,
@@ -58,10 +59,9 @@ import {
 import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import { COLORS_LIST } from "../links/tag-badge";
+import AnalyticsOptions from "./analytics-options";
 import DeviceIcon from "./device-icon";
-import ExportButton from "./export-button";
 import RefererIcon from "./referer-icon";
-import SharePopover from "./share-popover";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle() {
@@ -478,7 +478,6 @@ export default function Toggle() {
                 "w-full md:w-auto": key,
               })}
             >
-              {!isPublicStatsPage && key && <SharePopover />}
               <Filter.Select
                 className="w-full"
                 filters={filters}
@@ -575,7 +574,11 @@ export default function Toggle() {
                     const end = new Date();
 
                     const requiresUpgrade =
-                      admin || demo
+                      admin ||
+                      demo ||
+                      DUB_DEMO_LINKS.find(
+                        (l) => l.domain === domain && l.key === key,
+                      )
                         ? false
                         : !validDateRangeForPlan({
                             plan,
@@ -601,7 +604,7 @@ export default function Toggle() {
                     };
                   })}
                 />
-                {!isPublicStatsPage && <ExportButton />}
+                {!isPublicStatsPage && <AnalyticsOptions />}
               </div>
             </div>
           </div>

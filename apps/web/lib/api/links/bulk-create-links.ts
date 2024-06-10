@@ -3,6 +3,7 @@ import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { getParamsFromURL, truncate } from "@dub/utils";
+import { updateLinksUsage } from "./update-links-usage";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function bulkCreateLinks({
@@ -38,7 +39,7 @@ export async function bulkCreateLinks({
           ...(tagNames?.length &&
             link.projectId && {
               tags: {
-                create: tagNames.map((tagName) => ({
+                create: tagNames.filter(Boolean).map((tagName) => ({
                   tag: {
                     connect: {
                       name_projectId: {
@@ -56,7 +57,9 @@ export async function bulkCreateLinks({
             combinedTagIds.length > 0 && {
               tags: {
                 createMany: {
-                  data: combinedTagIds.map((tagId) => ({ tagId })),
+                  data: combinedTagIds
+                    .filter(Boolean)
+                    .map((tagId) => ({ tagId })),
                 },
               },
             }),
@@ -124,16 +127,9 @@ export async function propagateBulkLinkChanges(
         created_at: link.createdAt,
       })),
     ),
-    // update links usage for workspace
-    prisma.project.update({
-      where: {
-        id: links[0].projectId!, // this will always be present
-      },
-      data: {
-        linksUsage: {
-          increment: links.length,
-        },
-      },
+    updateLinksUsage({
+      workspaceId: links[0].projectId!, // this will always be present
+      increment: links.length,
     }),
   ]);
 }

@@ -32,8 +32,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     });
   } catch (error) {
     // Skip if customer not found
-    console.error(error);
-    return `Customer with external ID ${dubCustomerId} not found, skipping...`;
+    console.log(error);
+    return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
   }
 
   if (invoiceId) {
@@ -62,6 +62,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     recordSale({
       ...leadEvent.data[0],
       event_id: nanoid(16),
+      event_name: "Subscription creation",
       payment_processor: "stripe",
       amount: charge.amount_total!,
       currency: charge.currency!,
