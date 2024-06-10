@@ -8,13 +8,21 @@ import LinkArguments from "/snippets/link-arguments.mdx";
 
 <Prerequisites />
 
-## 2. Install
+## 2. Install and initialize the Dub Go SDK
 
-To install the Dub Go SDK, run the following command:
+<Steps titleSize="h3">
+
+<Step title="Install">
+
+To install the [Dub Go SDK](https://d.to/go), run the following command:
 
 ```bash bash
 go get github.com/dubinc/dub-go
 ```
+
+</Step>
+
+<Step title="Initialize">
 
 Initialize the Dub Go SDK by creating a new instance of the `Dub` struct.
 
@@ -34,9 +42,13 @@ d := dub.New(
 )
 ```
 
+</Step>
+
+</Steps>
+
 ## 3. Create link
 
-Let's create a short link using the Dub Go SDK.
+Let's create a short link using the [Dub Go SDK](https://d.to/go).
 
 ```go main.go
 func main() {
