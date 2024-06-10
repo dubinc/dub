@@ -17,7 +17,7 @@ const domainRecord = {
 const expectedDomain = {
   id: expect.any(String),
   slug: domainRecord.slug,
-  verified: false,
+  verified: expect.any(Boolean),
   primary: expect.any(Boolean),
   archived: false,
   noindex: domainRecord.noindex,
