@@ -59,6 +59,33 @@
       "pages": ["introduction", "data-model"]
     },
     {
+      "group": "Quickstart",
+      "pages": [
+        {
+          "group": "Typescript",
+          "pages": [
+            "quickstart/typescript",
+            "quickstart/nextjs",
+            "quickstart/remix",
+            "quickstart/nuxt",
+            "quickstart/express"
+          ]
+        },
+        {
+          "group": "Go",
+          "pages": ["quickstart/go"]
+        },
+        {
+          "group": "Python",
+          "pages": [
+            "quickstart/python",
+            "quickstart/flask",
+            "quickstart/django"
+          ]
+        }
+      ]
+    },
+    {
       "group": "Resources",
       "pages": ["integrations", "examples"]
     },
@@ -196,8 +223,8 @@
   },
   "footerSocials": {
     "twitter": "https://twitter.com/dubdotco",
-    "github": "https://github.com/steven-tey/dub",
-    "linkedin": "https://www.linkedin.com/company/dubhq",
+    "github": "https://github.com/dubinc/dub",
+    "linkedin": "https://www.linkedin.com/company/dubinc",
     "website": "https://dub.co"
   },
   "redirects": [
@@ -308,6 +335,10 @@
     {
       "source": "/sdks/typescript/analytics/top-urls",
       "destination": "/sdks/typescript/analytics/clicks/top-urls"
+    },
+    {
+      "source": "/quickstart/nodejs",
+      "destination": "/quickstart/typescript"
     }
   ]
 }
