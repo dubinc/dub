@@ -47,6 +47,26 @@ describe.sequential("/domains/**", async () => {
     expect(domain).toStrictEqual(expectedDomain);
   });
 
+  test("GET /domains/{slug}/exists", async () => {
+    // A domain exists (We just created it, so it should exist)
+    const { status, data } = await http.get({
+      path: `/domains/${domainRecord.slug}/exists`,
+      query: { workspaceId: workspace.id },
+    });
+
+    expect(status).toEqual(200);
+    expect(data).toEqual(1);
+
+    // A domain does not exist
+    const { status: status2, data: data2 } = await http.get({
+      path: `/domains/random.com/exists`,
+      query: { workspaceId: workspace.id },
+    });
+
+    expect(status2).toEqual(200);
+    expect(data2).toEqual(0);
+  });
+
   test("GET /domains/{slug}", async () => {
     const { status, data: domain } = await http.get<Domain>({
       path: `/domains/${domainRecord.slug}`,
@@ -70,7 +90,20 @@ describe.sequential("/domains/**", async () => {
     expect(domains).toContainEqual(expectedDomain);
   });
 
-  test("PATCH /domains/{slug}", async () => {
+  test("POST /domains/{slug}/primary", { retry: 3 }, async () => {
+    const { status, data: domain } = await http.post<Domain>({
+      path: `/domains/${domainRecord.slug}/primary`,
+      query: { workspaceId: workspace.id },
+    });
+
+    expect(status).toEqual(200);
+    expect(domain).toStrictEqual({
+      ...expectedDomain,
+      primary: true,
+    });
+  });
+
+  test("PATCH /domains/{slug}", { retry: 3 }, async () => {
     const toUpdate = {
       target: `https://dubtest.${slug}.com/landing-new`,
       expiredUrl: `https://dubtest.${slug}.com/expired-new`,
@@ -90,6 +123,7 @@ describe.sequential("/domains/**", async () => {
     expect(domain).toStrictEqual({
       ...expectedDomain,
       ...toUpdate,
+      primary: true,
     });
   });
 });
