@@ -4,6 +4,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
+import { Filter } from "@/ui/shared/icons";
 import {
   Button,
   CursorRays,
@@ -30,6 +31,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
@@ -37,7 +39,7 @@ import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import usePagination from "./use-pagination";
 
-const PAGE_SIZE = 500;
+const PAGE_SIZE = 100;
 const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap overflow-hidden [&>.flex]:pr-4";
 
@@ -80,6 +82,13 @@ const eventColumns: Record<
     defaultVisible: ["event", "link", "country", "amount", "timestamp"],
   },
 };
+
+const FilterButton = () => (
+  <div className="group-hover:animate-slide-left-fade absolute right-0 rounded-lg border border-gray-200 bg-white p-1 opacity-0 shadow-lg group-hover:opacity-100">
+    <span className="sr-only">Filter</span>
+    <Filter className="h-3 w-3 text-black" />
+  </div>
+);
 
 export default function EventsTable() {
   const { searchParams, queryParams } = useRouterStuff();
@@ -135,7 +144,18 @@ export default function EventsTable() {
           header: "Link",
           accessorKey: "link",
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
+            <Link
+              href={
+                queryParams({
+                  set: {
+                    domain: getValue().domain,
+                    key: getValue().key,
+                  },
+                  getNewPath: true,
+                }) as string
+              }
+              className="group relative flex items-center gap-3"
+            >
               <LinkLogo
                 apexDomain={getApexDomain(getValue().url)}
                 className="h-4 w-4 sm:h-4 sm:w-4"
@@ -146,7 +166,8 @@ export default function EventsTable() {
                 </span>
                 {getValue().key === "_root" ? "" : `/${getValue().key}`}
               </span>
-            </div>
+              <FilterButton />
+            </Link>
           ),
         },
         {
@@ -173,14 +194,25 @@ export default function EventsTable() {
           header: "Country",
           accessorKey: "country",
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
+            <Link
+              href={
+                queryParams({
+                  set: {
+                    country: getValue(),
+                  },
+                  getNewPath: true,
+                }) as string
+              }
+              className="group relative flex items-center gap-3"
+            >
               <img
                 alt={getValue()}
                 src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
                 className="h-4 w-4"
               />
               <span>{COUNTRIES[getValue()] ?? getValue()}</span>
-            </div>
+              <FilterButton />
+            </Link>
           ),
         },
         {
@@ -188,14 +220,25 @@ export default function EventsTable() {
           header: "Device",
           accessorKey: "device",
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
+            <Link
+              href={
+                queryParams({
+                  set: {
+                    device: getValue(),
+                  },
+                  getNewPath: true,
+                }) as string
+              }
+              className="group relative flex items-center gap-3"
+            >
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="devices"
                 className="h-4 w-4"
               />
               <span>{getValue()}</span>
-            </div>
+              <FilterButton />
+            </Link>
           ),
         },
         // Date
