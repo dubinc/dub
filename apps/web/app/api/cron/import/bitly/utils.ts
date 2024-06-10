@@ -99,8 +99,32 @@ export const importLinksFromBitly = async ({
     },
   );
 
+  // check if links are already in the database
+  const alreadyCreatedLinks = await prisma.link.findMany({
+    where: {
+      domain: {
+        in: domains,
+      },
+      key: {
+        in: importedLinks.map((link) => link.key),
+      },
+    },
+    select: {
+      domain: true,
+      key: true,
+    },
+  });
+
+  // filter out links that are already in the database
+  const linksToCreate = importedLinks.filter(
+    (link) =>
+      !alreadyCreatedLinks.some(
+        (l) => l.domain === link.domain && l.key === link.key,
+      ),
+  );
+
   // bulk create links
-  await bulkCreateLinks({ links: importedLinks });
+  await bulkCreateLinks({ links: linksToCreate });
 
   count += importedLinks.length;
 
