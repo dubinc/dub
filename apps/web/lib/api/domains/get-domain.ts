@@ -35,10 +35,5 @@ export const getDomain = async (input: GetDomainInput) => {
     });
   }
 
-  const { links, ...domainRecord } = domain;
-
-  return transformDomain({
-    ...domainRecord,
-    ...links[0],
-  });
+  return transformDomain(domain);
 };

@@ -4,7 +4,7 @@ import z from "@/lib/zod";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { DubApiError, ErrorCodes } from "../errors";
 import { processLink, updateLink } from "../links";
-import { transformDomain } from "./transform-domain";
+import { getDomain } from "./get-domain";
 
 type UpdateDomainInput = z.infer<typeof updateDomainBodySchema> & {
   newSlug?: string;
@@ -74,17 +74,17 @@ export const updateDomain = async (input: UpdateDomainInput) => {
   }
 
   // Update the link
-  const response = await updateLink({
+  await updateLink({
     oldDomain: link.domain,
     oldKey: link.key,
     updatedLink: processedLink,
   });
 
-  // Combine the domain and link data
-  const result = transformDomain({
-    ...domain,
-    ...response,
+  // Return the domain record
+  const domainRecord = await getDomain({
+    slug: domain.slug,
+    workspaceId: workspace.id,
   });
 
-  return result;
+  return domainRecord;
 };

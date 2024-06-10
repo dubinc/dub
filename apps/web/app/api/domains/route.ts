@@ -32,9 +32,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
     },
   });
 
-  const result = domains.map((domain) =>
-    transformDomain({ ...domain, ...domain.links[0] }),
-  );
+  const result = domains.map((domain) => transformDomain(domain));
 
   return NextResponse.json(result);
 });

@@ -4,7 +4,7 @@ import z from "@/lib/zod";
 import { addDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { DubApiError, ErrorCodes } from "../errors";
 import { createLink, processLink } from "../links";
-import { transformDomain } from "./transform-domain";
+import { getDomain } from "./get-domain";
 
 type AddDomainInput = z.infer<typeof addDomainBodySchema> & {
   workspace: WorkspaceProps;
@@ -75,13 +75,13 @@ export const addDomain = async (input: AddDomainInput) => {
   }
 
   // Create a link for the domain
-  const newLink = await createLink(link);
+  await createLink(link);
 
-  // Combine the domain and link data
-  const result = transformDomain({
-    ...domain,
-    ...newLink,
+  // Return the domain record
+  const domainRecord = await getDomain({
+    slug: domain.slug,
+    workspaceId: workspace.id,
   });
 
-  return result;
+  return domainRecord;
 };
