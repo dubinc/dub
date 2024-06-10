@@ -20,15 +20,11 @@ export const GET = withWorkspace(async ({ searchParams }) => {
 export const PUT = withWorkspace(async ({ req, searchParams }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);
   const { publicStats } = updatePublicStatsSchema.parse(await req.json());
-  const response =
-    key === "_root"
-      ? await prisma.domain.update({
-          where: { slug: domain },
-          data: { publicStats },
-        })
-      : await prisma.link.update({
-          where: { domain_key: { domain, key } },
-          data: { publicStats },
-        });
+
+  const response = await prisma.link.update({
+    where: { domain_key: { domain, key } },
+    data: { publicStats },
+  });
+
   return NextResponse.json(response);
 });

@@ -8,7 +8,7 @@ import { transformDomain } from "./transform-domain";
 
 type UpdateDomainInput = z.infer<typeof updateDomainBodySchema> & {
   newSlug?: string;
-  workspace: WorkspaceProps;
+  workspace: Pick<WorkspaceProps, "id" | "plan" | "domains">;
 };
 
 export const updateDomain = async (input: UpdateDomainInput) => {

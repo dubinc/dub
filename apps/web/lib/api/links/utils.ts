@@ -43,7 +43,7 @@ export async function keyChecks({
 }: {
   domain: string;
   key: string;
-  workspace?: WorkspaceProps;
+  workspace?: Pick<WorkspaceProps, "plan">;
 }) {
   if (key.length === 0) {
     if (workspace?.plan === "free") {

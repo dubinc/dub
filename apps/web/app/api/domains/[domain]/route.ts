@@ -5,46 +5,21 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
-import { transformDomain } from "@/lib/api/domains/transform-domain";
+import { getDomain } from "@/lib/api/domains/get-domain";
 import { updateDomain } from "@/lib/api/domains/update-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
-  async ({ domain }) => {
-    const domainRecord = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-      },
-      include: {
-        links: {
-          select: {
-            url: true,
-            rewrite: true,
-            clicks: true,
-            expiredUrl: true,
-          },
-          take: 1,
-        },
-      },
-    });
-
-    if (!domainRecord) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Domain not found",
-      });
-    }
-
-    const result = transformDomain({
-      ...domainRecord,
-      ...domainRecord.links[0],
+  async ({ domain, workspace }) => {
+    const result = await getDomain({
+      slug: domain,
+      workspaceId: workspace.id,
     });
 
     return NextResponse.json(result);

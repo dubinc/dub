@@ -1,6 +1,8 @@
+import { updateDomain } from "@/lib/api/domains/update-domain";
 import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
 import { sendEmail } from "emails";
@@ -189,6 +191,7 @@ export const POST = async (req: Request) => {
             id: true,
             slug: true,
             domains: true,
+            plan: true,
             users: {
               select: {
                 user: {
@@ -260,14 +263,11 @@ export const POST = async (req: Request) => {
             }),
           ),
           workspace.domains.forEach((domain) => {
-            prisma.domain.update({
-              where: {
-                id: domain.id,
-              },
-              data: {
-                target: null,
-                noindex: false,
-              },
+            updateDomain({
+              slug: domain.slug,
+              target: null,
+              noindex: false,
+              workspace: workspace as unknown as WorkspaceProps,
             });
           }),
         ]);
