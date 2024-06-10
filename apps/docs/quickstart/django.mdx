@@ -8,7 +8,11 @@ import LinkArguments from "/snippets/link-arguments.mdx";
 
 <Prerequisites />
 
-## 2. Install
+## 2. Install and initialize the Dub Python SDK
+
+<Steps titleSize="h3">
+
+<Step title="Install">
 
 To install the [Dub Python SDK](https://d.to/python), run the following command:
 
@@ -16,11 +20,15 @@ To install the [Dub Python SDK](https://d.to/python), run the following command:
 pip install dub
 ```
 
+</Step>
+
+<Step title="Initialize">
+
 Initialize the Dub Python SDK by creating a new instance of the `Dub` class.
 
 ```python
-import dub
 import os
+import dub
 from dub.models import operations
 from django.http import JsonResponse
 
@@ -29,6 +37,10 @@ d = dub.Dub(
   workspace_id='ws_clugls3...',
 )
 ```
+
+</Step>
+
+</Steps>
 
 ## 3. Create link
 
