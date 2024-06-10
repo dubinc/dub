@@ -112,6 +112,7 @@ SQL >
         dse.event_id as event_id,
         dse.event_name as event_name,
         dse.amount as amount,
+        dse.payment_processor as payment_processor,
         dcm.name as customer_name,
         dcm.email as customer_email,
         dcm.avatar as customer_avatar,
