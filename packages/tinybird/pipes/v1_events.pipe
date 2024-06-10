@@ -116,7 +116,7 @@ SQL >
         dcm.avatar as customerAvatar
     FROM dub_sale_events_mv dse
     INNER JOIN workspace_links wl ON dse.link_id = wl.link_id
-    JOIN dub_customers_metadata dcm ON dse.customer_id = dcm.customer_id
+    INNER JOIN dub_customers_metadata dcm ON dse.customer_id = dcm.customer_id
     WHERE
         dse.timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
         AND dse.timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
