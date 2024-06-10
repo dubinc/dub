@@ -3,13 +3,13 @@ import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
-const slug = randomId();
+const slug = `${randomId()}.dub-internal-test.com`;
 
 const domainRecord = {
-  slug: `dubtest.${slug}.com`,
-  target: `https://dubtest.${slug}.com/landing`,
-  expiredUrl: `https://dubtest.${slug}.com/expired`,
-  placeholder: `https://dubtest.${slug}.com/placeholder`,
+  slug: slug,
+  target: `https://${slug}/landing`,
+  expiredUrl: `https://${slug}/expired`,
+  placeholder: `https://${slug}/placeholder`,
   type: ["redirect", "rewrite"][Math.floor(Math.random() * 2)],
   noindex: true,
 };
@@ -105,9 +105,9 @@ describe.sequential("/domains/**", async () => {
 
   test("PATCH /domains/{slug}", { retry: 3 }, async () => {
     const toUpdate = {
-      target: `https://dubtest.${slug}.com/landing-new`,
-      expiredUrl: `https://dubtest.${slug}.com/expired-new`,
-      placeholder: `https://dubtest.${slug}.com/placeholder-new`,
+      target: `https://${slug}/landing-new`,
+      expiredUrl: `https://${slug}/expired-new`,
+      placeholder: `https://${slug}/placeholder-new`,
       type: "rewrite",
       noindex: false,
       archived: true,
