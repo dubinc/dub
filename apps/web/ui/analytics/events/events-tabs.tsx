@@ -45,32 +45,34 @@ export default function EventsTabs() {
 
   return (
     <div className="grid w-full grid-cols-3 gap-2 overflow-x-auto sm:gap-4">
-      {["clicks", "leads", "sales"].map((event) => (
-        <button
-          key={event}
-          className={cn(
-            "flex justify-between gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left transition-all",
-            tab === event && "border-black shadow-[0_0_0_1px_black_inset]",
-          )}
-          onClick={() =>
-            queryParams({
-              set: { tab: event },
-            })
-          }
-        >
-          <div>
-            <p className="text-sm text-gray-600">{capitalize(event)}</p>
-            <p className="mt-2 text-2xl">
-              {(totalEvents?.[event] ?? 0).toLocaleString()}
-            </p>
-          </div>
-          {data?.length && !isMobile && (
-            <div className="relative h-full max-w-[140px] grow">
-              <Chart data={data} event={event} />
+      {["clicks", ...(demo || betaTester ? ["leads", "sales"] : [])].map(
+        (event) => (
+          <button
+            key={event}
+            className={cn(
+              "flex justify-between gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left transition-all",
+              tab === event && "border-black shadow-[0_0_0_1px_black_inset]",
+            )}
+            onClick={() =>
+              queryParams({
+                set: { tab: event },
+              })
+            }
+          >
+            <div>
+              <p className="text-sm text-gray-600">{capitalize(event)}</p>
+              <p className="mt-2 text-2xl">
+                {(totalEvents?.[event] ?? 0).toLocaleString()}
+              </p>
             </div>
-          )}
-        </button>
-      ))}
+            {data?.length && !isMobile && (
+              <div className="relative h-full max-w-[140px] grow">
+                <Chart data={data} event={event} />
+              </div>
+            )}
+          </button>
+        ),
+      )}
     </div>
   );
 }
