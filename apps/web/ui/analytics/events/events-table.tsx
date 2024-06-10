@@ -68,8 +68,16 @@ const eventColumns: Record<
     ],
   },
   sales: {
-    all: ["event", "link", "country", "device", "amount", "timestamp"],
-    defaultVisible: ["saleType", "link", "country", "amount", "timestamp"],
+    all: [
+      "event",
+      "invoiceId",
+      "link",
+      "country",
+      "device",
+      "amount",
+      "timestamp",
+    ],
+    defaultVisible: ["event", "link", "country", "amount", "timestamp"],
   },
 };
 
@@ -111,6 +119,16 @@ export default function EventsTable() {
           id: "event",
           header: "Event",
           accessorKey: "event_name",
+          cell: ({ getValue }) =>
+            getValue() || <span className="text-gray-400">-</span>,
+        },
+        // Sale invoice ID
+        {
+          id: "invoiceId",
+          header: "Invoice ID",
+          accessorKey: "invoice_id",
+          cell: ({ getValue }) =>
+            getValue() || <span className="text-gray-400">-</span>,
         },
         {
           id: "link",

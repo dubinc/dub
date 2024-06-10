@@ -1,5 +1,5 @@
 DESCRIPTION >
-	Top countries
+	Clicks, leads, and sales events
 
 
 TOKEN "v1_events_endpoint_read_2795" READ
@@ -113,6 +113,7 @@ SQL >
         dse.event_name as event_name,
         dse.amount as amount,
         dse.payment_processor as payment_processor,
+        dse.invoice_id as invoice_id,
         dcm.name as customer_name,
         dcm.email as customer_email,
         dcm.avatar as customer_avatar,

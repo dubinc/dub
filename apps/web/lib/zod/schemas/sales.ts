@@ -80,6 +80,7 @@ export const saleEventEnrichedSchema = z.object({
   customer_email: z.string(),
   customer_avatar: z.string(),
   payment_processor: z.string(),
+  invoice_id: z.string(),
   amount: z.number(),
   click_id: z.string(),
   link_id: z.string(),
