@@ -1,6 +1,6 @@
 ---
 title: "Express"
-description: "Learn how to create a short link using the Express and Dub Node.js SDK."
+description: "Learn how to create a short link using the Express and Dub TypeScript SDK."
 ---
 
 import Prerequisites from "/snippets/sdk-prerequisites.mdx";
@@ -13,7 +13,7 @@ import LinkArguments from "/snippets/link-arguments.mdx";
 
 ## 3. Create link
 
-Let's create a short link using the Dub Node.js SDK.
+Let's create a short link using the [Dub TypeScript SDK](/sdks/typescript/overview).
 
 ```typescript index.ts
 app.get("/create-link", async (req: Request, res: Response) => {
@@ -54,7 +54,7 @@ app.get("/create-link", async (req: Request, res: Response) => {
 
 ## 4. Upsert link
 
-Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
+Dub TypeScript SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
 ```typescript index.ts
 app.get("/upsert-link", async (req: Request, res: Response) => {
@@ -73,7 +73,7 @@ app.get("/upsert-link", async (req: Request, res: Response) => {
 
 ## 5. Update link
 
-Let's update an existing link using the Dub Node.js SDK.
+Let's update an existing link using the Dub TypeScript SDK.
 
 You can do that in two ways:
 
@@ -102,7 +102,7 @@ app.get("/update-link", async (req: Request, res: Response) => {
 
 ## 6. Retrieve analytics for link
 
-Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
+Dub allows you to retrieve analytics for a link using the Dub TypeScript SDK.
 
 ```typescript index.ts
 import { ClicksTimeseries } from "dub/models/components";

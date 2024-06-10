@@ -1,6 +1,6 @@
 ---
 title: "Introduction"
-description: "Learn how to create a short link using the Dub Node.js SDK."
+description: "Learn how to create a short link using the Dub TypeScript SDK."
 ---
 
 import Prerequisites from "/snippets/sdk-prerequisites.mdx";
@@ -13,7 +13,7 @@ import LinkArguments from "/snippets/link-arguments.mdx";
 
 ## 3. Create link
 
-Let's create a short link using the Dub Node.js SDK.
+Let's create a short link using the [Dub TypeScript SDK](/sdks/typescript/overview).
 
 ```typescript create-link.ts
 const { shortLink } = await dub.links.create({
@@ -42,7 +42,7 @@ This will let you easily [update the link](#5-update-link) later on using the `e
 
 ## 4. Upsert link
 
-Dub Node.js SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
+Dub TypeScript SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
 ```typescript upsert-link.ts
 const { shortLink } = await dub.links.upsert({
@@ -54,7 +54,7 @@ console.log(shortLink); // will always be the same short link
 
 ## 5. Update link
 
-Let's update an existing link using the Dub Node.js SDK.
+Let's update an existing link using the Dub TypeScript SDK.
 
 You can do that in two ways:
 
@@ -75,7 +75,7 @@ await dub.links.update("ext_12345", {
 
 ## 6. Retrieve analytics for link
 
-Dub allows you to retrieve analytics for a link using the Dub Node.js SDK.
+Dub allows you to retrieve analytics for a link using the Dub TypeScript SDK.
 
 ```typescript get-analytics.ts
 import { ClicksTimeseries } from "dub/models/components";
