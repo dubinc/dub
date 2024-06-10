@@ -3,9 +3,9 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
+import { addDomain } from "@/lib/api/domains/add-domain";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
-import { DubApiError, ErrorCodes, exceededLimitError } from "@/lib/api/errors";
-import { createLink, processLink } from "@/lib/api/links";
+import { exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -42,14 +42,9 @@ export const GET = withWorkspace(async ({ workspace }) => {
 // POST /api/domains - add a domain
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const body = await parseRequestBody(req);
-  const {
-    slug: domain,
-    target,
-    type,
-    expiredUrl,
-    placeholder,
-    noindex,
-  } = addDomainBodySchema.parse(body);
+  const payload = addDomainBodySchema.parse(body);
+
+  const { slug, type, target, noindex } = payload;
 
   if (workspace.domains.length >= workspace.domainsLimit) {
     return new Response(
@@ -62,12 +57,13 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     );
   }
 
-  const validDomain = await validateDomain(domain);
+  const validDomain = await validateDomain(slug);
 
   if (validDomain !== true) {
     return new Response(validDomain, { status: 422 });
   }
-  const vercelResponse = await addDomainToVercel(domain);
+
+  const vercelResponse = await addDomainToVercel(slug);
 
   if (
     vercelResponse.error &&
@@ -82,63 +78,19 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       2. If there's a landing page set, update the root domain in Redis
       3. If the workspace has no domains (meaning this is the first domain added), set it as primary
   */
-  const domainRecord = await prisma.domain.create({
-    data: {
-      slug: domain,
-      projectId: workspace.id,
-      primary: workspace.domains.length === 0,
-      ...(placeholder && { placeholder }),
-    },
-  });
-
-  workspace.domains.push({
-    slug: domainRecord.slug,
-    primary: domainRecord.primary,
+  const domainRecord = await addDomain({
+    ...payload,
+    workspace,
+    userId: session.user.id,
   });
 
   // TODO:
   // Store noindex
 
-  const { link, error, code } = await processLink({
-    payload: {
-      id: domainRecord.id,
-      domain: domainRecord.slug,
-      key: "_root",
-      createdAt: domainRecord.createdAt,
-      archived: false,
-      proxy: false,
-      publicStats: false,
-      trackConversion: false,
-      ...(workspace.plan === "free"
-        ? {
-            url: "",
-            expiredUrl: null,
-            rewrite: false,
-          }
-        : {
-            url: target || "",
-            expiredUrl: expiredUrl || null,
-            rewrite: type === "rewrite",
-          }),
-    },
-    workspace,
-    userId: session.user.id,
-    skipKeyChecks: true,
-  });
-
-  if (error != null) {
-    throw new DubApiError({
-      code: code as ErrorCodes,
-      message: error,
-    });
-  }
-
-  const newLink = await createLink(link);
-
   waitUntil(
     setRootDomain({
       id: domainRecord.id,
-      domain,
+      domain: slug,
       domainCreatedAt: domainRecord.createdAt,
       projectId: workspace.id,
       ...(workspace.plan !== "free" && {
@@ -149,12 +101,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     }),
   );
 
-  const result = transformDomain({
-    ...domainRecord,
-    ...newLink,
-  });
-
-  return NextResponse.json(result, {
+  return NextResponse.json(domainRecord, {
     status: 201,
   });
 });

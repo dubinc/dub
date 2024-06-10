@@ -49,6 +49,8 @@ export const DomainSchema = z.object({
     .describe("The type of redirect to use for this domain.")
     .openapi({ enum: ["redirect", "rewrite"] }),
   clicks: z.number().describe("The number of clicks on the domain.").default(0),
+  createdAt: z.date().describe("The date the domain was created."),
+  updatedAt: z.date().describe("The date the domain was last updated."),
 });
 
 export const addDomainBodySchema = z.object({

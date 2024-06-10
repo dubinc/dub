@@ -28,5 +28,7 @@ export const transformDomain = (
     target: url || null,
     type: rewrite ? "rewrite" : "redirect",
     clicks,
+    createdAt: domain.createdAt,
+    updatedAt: domain.updatedAt,
   });
 };

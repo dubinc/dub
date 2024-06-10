@@ -6,12 +6,11 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
-import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { processLink, updateLink } from "@/lib/api/links";
+import { updateDomain } from "@/lib/api/domains/update-domain";
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { NewLinkProps } from "@/lib/types";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -61,15 +60,7 @@ export const PATCH = withWorkspace(
     const body = await parseRequestBody(req);
     const payload = updateDomainBodySchema.parse(body);
 
-    const {
-      slug: newDomain,
-      target,
-      type,
-      placeholder,
-      expiredUrl,
-      archived,
-      noindex,
-    } = payload;
+    const { slug: newDomain, target, type, noindex } = payload;
 
     if (newDomain && newDomain !== domain) {
       const validDomain = await validateDomain(newDomain);
@@ -88,68 +79,15 @@ export const PATCH = withWorkspace(
       }
     }
 
-    const domainRecord = await prisma.domain.update({
-      where: {
-        slug: domain,
-      },
-      data: {
-        slug: newDomain,
-        archived,
-        ...(placeholder && { placeholder }),
-      },
-      include: {
-        links: {
-          take: 1,
-        },
-      },
+    const domainRecord = await updateDomain({
+      ...payload,
+      slug: domain,
+      newSlug: newDomain,
+      workspace,
     });
 
     // TODO:
     // Store noindex
-
-    const link = domainRecord.links[0];
-
-    const updatedLink = {
-      ...link,
-      expiresAt:
-        link.expiresAt instanceof Date
-          ? link.expiresAt.toISOString()
-          : link.expiresAt,
-      geo: link.geo as NewLinkProps["geo"],
-      ...(workspace.plan != "free" && {
-        ...("rewrite" in payload && { rewrite: type === "rewrite" }),
-        ...("target" in payload && { url: target || "" }),
-        ...("expiredUrl" in payload && { expiredUrl }),
-      }),
-    };
-
-    const {
-      link: processedLink,
-      error,
-      code,
-    } = await processLink({
-      payload: updatedLink,
-      workspace,
-      skipKeyChecks: true,
-    });
-
-    if (error != null) {
-      throw new DubApiError({
-        code: code as ErrorCodes,
-        message: error,
-      });
-    }
-
-    const response = await updateLink({
-      oldDomain: link.domain,
-      oldKey: link.key,
-      updatedLink: processedLink,
-    });
-
-    const result = transformDomain({
-      ...domainRecord,
-      ...response,
-    });
 
     waitUntil(
       Promise.all([
@@ -172,7 +110,7 @@ export const PATCH = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(result);
+    return NextResponse.json(domainRecord);
   },
   {
     domainChecks: true,
