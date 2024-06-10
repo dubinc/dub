@@ -108,12 +108,26 @@ SQL >
 
     %
     SELECT
-        dse.*,
-        wl.domain,
-        wl.key,
-        dcm.name as customerName,
-        dcm.email as customerEmail,
-        dcm.avatar as customerAvatar
+        dse.timestamp as timestamp,
+        dse.event_id as event_id,
+        dse.event_name as event_name,
+        dse.amount as amount,
+        dcm.name as customer_name,
+        dcm.email as customer_email,
+        dcm.avatar as customer_avatar,
+        dse.click_id as click_id,
+        dse.link_id as link_id,
+        wl.domain as domain,
+        wl.key as key,
+        dse.url as url,
+        dse.country as country,
+        dse.city as city,
+        dse.device as device,
+        dse.browser as browser,
+        dse.os as os,
+        dse.referer as referer,
+        dse.qr as qr,
+        dse.ip as ip
     FROM dub_sale_events_mv dse
     INNER JOIN workspace_links wl ON dse.link_id = wl.link_id
     INNER JOIN dub_customers_metadata dcm ON dse.customer_id = dcm.customer_id
