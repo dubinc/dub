@@ -2,18 +2,21 @@ import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../errors";
 import { transformDomain } from "./transform-domain";
 
-type GetDomainInput = {
-  slug: string;
-  workspaceId: string;
-};
+type GetDomainInput =
+  | {
+      slug: string;
+      workspaceId: string;
+    }
+  | {
+      id: string;
+    };
 
 export const getDomain = async (input: GetDomainInput) => {
-  const { slug, workspaceId } = input;
-
   const domain = await prisma.domain.findUnique({
     where: {
-      slug: slug,
-      projectId: workspaceId,
+      ...("id" in input
+        ? { id: input.id }
+        : { slug: input.slug, projectId: input.workspaceId }),
     },
     include: {
       links: {
@@ -31,7 +34,7 @@ export const getDomain = async (input: GetDomainInput) => {
   if (!domain) {
     throw new DubApiError({
       code: "not_found",
-      message: `Domain ${slug} not found in the workspace.`,
+      message: `Domain not found in the workspace.`,
     });
   }
 

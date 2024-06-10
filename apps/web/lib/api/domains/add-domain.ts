@@ -78,10 +78,8 @@ export const addDomain = async (input: AddDomainInput) => {
   await createLink(link);
 
   // Return the domain record
-  const domainRecord = await getDomain({
+  return await getDomain({
     slug: domain.slug,
     workspaceId: workspace.id,
   });
-
-  return domainRecord;
 };

@@ -1,3 +1,4 @@
+import { getDomain } from "@/lib/api/domains/get-domain";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
@@ -14,11 +15,10 @@ export const GET = withAdmin(async ({ params }) => {
   });
 
   if (!link) {
-    const domain = await prisma.domain.findUnique({
-      where: {
-        id: linkId,
-      },
+    const domain = await getDomain({
+      id: linkId,
     });
+
     if (domain) {
       link = {
         ...domain,
