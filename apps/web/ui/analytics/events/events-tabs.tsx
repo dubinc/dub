@@ -9,7 +9,7 @@ import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleUtc } from "@visx/scale";
 import { Area, AreaClosed } from "@visx/shape";
 import { motion } from "framer-motion";
-import { useContext, useMemo } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 
@@ -43,6 +43,27 @@ export default function EventsTabs() {
     },
   );
 
+  const onEventTabClick = useCallback(
+    (event: string) => {
+      const sortOptions = event === "sales" ? ["date", "amount"] : ["date"];
+      const currentSort = searchParams.get("sort");
+      queryParams({
+        set: { tab: event },
+        // Reset sort when tab changes (only sales have `amount`)
+        del:
+          currentSort && !sortOptions.includes(currentSort)
+            ? "sort"
+            : undefined,
+      });
+    },
+    [queryParams, searchParams.get("sort")],
+  );
+
+  useEffect(() => {
+    const sortBy = searchParams.get("sort");
+    if (tab !== "sales" && sortBy !== "date") queryParams({ del: "sort" });
+  }, [tab, searchParams.get("sort")]);
+
   return (
     <div className="grid w-full grid-cols-3 gap-2 overflow-x-auto sm:gap-4">
       {["clicks", ...(demo || betaTester ? ["leads", "sales"] : [])].map(
@@ -53,11 +74,7 @@ export default function EventsTabs() {
               "flex justify-between gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left transition-all",
               tab === event && "border-black shadow-[0_0_0_1px_black_inset]",
             )}
-            onClick={() =>
-              queryParams({
-                set: { tab: event },
-              })
-            }
+            onClick={() => onEventTabClick(event)}
           >
             <div>
               <p className="text-sm text-gray-600">{capitalize(event)}</p>

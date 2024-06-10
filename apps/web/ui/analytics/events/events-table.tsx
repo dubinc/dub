@@ -77,6 +77,7 @@ export default function EventsTable() {
   const { searchParams, queryParams } = useRouterStuff();
   const tab = searchParams.get("tab") || "clicks";
 
+  const sortBy = searchParams.get("sort") || "date";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
@@ -179,18 +180,7 @@ export default function EventsTable() {
             </div>
           ),
         },
-        // Sales amount
-        {
-          id: "amount",
-          header: "Sales Amount",
-          accessorKey: "amount",
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-2">
-              <span>${nFormatter(getValue() / 100)}</span>
-              <span className="text-gray-400">USD</span>
-            </div>
-          ),
-        },
+        // Date
         {
           id: "timestamp",
           header: "Date",
@@ -219,6 +209,18 @@ export default function EventsTable() {
             </Tooltip>
           ),
         },
+        // Sales amount
+        {
+          id: "amount",
+          header: "Sales Amount",
+          accessorKey: "amount",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-2">
+              <span>${nFormatter(getValue() / 100)}</span>
+              <span className="text-gray-400">USD</span>
+            </div>
+          ),
+        },
       ].filter((c) => eventColumns[tab].all.includes(c.id)),
     [tab],
   );
@@ -232,6 +234,7 @@ export default function EventsTable() {
       event: tab,
       offset: (pagination.pageIndex * pagination.pageSize).toString(),
       limit: pagination.pageSize.toString(),
+      sortBy,
       order,
     }).toString()}`,
     fetcher,
@@ -278,7 +281,9 @@ export default function EventsTable() {
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
-                      const isDateColumn = header.column.id === "timestamp";
+                      const isSortableColumn = ["timestamp", "amount"].includes(
+                        header.column.id,
+                      );
                       return (
                         <th
                           key={header.id}
@@ -287,11 +292,17 @@ export default function EventsTable() {
                         >
                           <button
                             className="flex items-center gap-2"
-                            disabled={!isDateColumn}
+                            disabled={!isSortableColumn}
                             onClick={() =>
                               queryParams({
                                 set: {
-                                  order: order === "asc" ? "desc" : "asc",
+                                  sort: header.column.id,
+                                  order:
+                                    sortBy !== header.column.id
+                                      ? "desc"
+                                      : order === "asc"
+                                        ? "desc"
+                                        : "asc",
                                 },
                               })
                             }
@@ -305,7 +316,13 @@ export default function EventsTable() {
                                     header.getContext(),
                                   )}
                             </span>
-                            {isDateColumn && <SortOrder order={order} />}
+                            {isSortableColumn && (
+                              <SortOrder
+                                order={
+                                  sortBy === header.column.id ? order : null
+                                }
+                              />
+                            )}
                           </button>
                         </th>
                       );

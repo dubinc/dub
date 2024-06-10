@@ -8,7 +8,7 @@ export default function SortOrder({
   order,
   className,
 }: {
-  order: "asc" | "desc";
+  order: "asc" | "desc" | null;
   className?: string;
 }) {
   return (
@@ -19,6 +19,7 @@ export default function SortOrder({
       xmlns="http://www.w3.org/2000/svg"
     >
       <motion.path
+        className={cn(!order && "opacity-40")}
         animate={{ d: order === "asc" ? downPath : upPath }}
         stroke="currentColor"
         strokeWidth="1.5"

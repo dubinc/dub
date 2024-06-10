@@ -180,6 +180,7 @@ export const eventsFilterTB = analyticsFilterTB
       offset: z.coerce.number().default(0),
       limit: z.coerce.number().default(50),
       order: z.enum(["asc", "desc"]).default("desc"),
+      sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
     }),
   );
 
@@ -190,5 +191,6 @@ export const eventsQuerySchema = analyticsQuerySchema
       offset: z.coerce.number().default(0),
       limit: z.coerce.number().default(50),
       order: z.enum(["asc", "desc"]).default("desc"),
+      sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
     }),
   );

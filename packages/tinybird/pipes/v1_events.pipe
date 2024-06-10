@@ -146,7 +146,7 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
-    ORDER BY dse.timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
+    ORDER BY {% if sortBy == 'amount' %} dse.amount {% else %} dse.timestamp {% end %} {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 500) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
 
