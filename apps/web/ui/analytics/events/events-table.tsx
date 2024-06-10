@@ -161,7 +161,7 @@ export default function EventsTable() {
                 <img
                   alt={display}
                   src={getValue().avatar}
-                  className="h-4 w-4 rounded-full"
+                  className="h-4 w-4 rounded-full border border-gray-200"
                 />
                 <span>{display}</span>
               </div>
