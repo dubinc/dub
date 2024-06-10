@@ -8,15 +8,23 @@ import LinkArguments from "/snippets/link-arguments.mdx";
 
 <Prerequisites />
 
-## 2. Install
+## 2. Install and initialize the Dub Python SDK
 
-To install the Dub Python SDK, run the following command:
+<Steps titleSize="h3">
+
+<Step title="Install">
+
+To install the [Dub Python SDK](https://d.to/python), run the following command:
 
 ```bash pip
 pip install dub
 ```
 
-initialize the Dub Python SDK by creating a new instance of the `Dub` class.
+</Step>
+
+<Step title="Initialize">
+
+Initialize the Dub Python SDK by creating a new instance of the `Dub` class.
 
 ```python
 import os
@@ -28,6 +36,10 @@ d = dub.Dub(
   workspace_id='ws_clugls3...',
 )
 ```
+
+</Step>
+
+</Steps>
 
 ## 3. Create link
 
@@ -72,7 +84,7 @@ print(result.link_schema.short_link)
 
 ## 5. Update link
 
-Let's update an existing link using the Dub Node.js SDK.
+Let's update an existing link using the Dub Python SDK.
 
 You can do that in two ways:
 
