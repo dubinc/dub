@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       });
       throw new DubApiError({
         code: "bad_request",
-        message: `Workspace: ${workspace?.slug || workspaceId}$. Error: ${error.message}`,
+        message: `Workspace: ${workspace?.slug || workspaceId}. Error: ${error.message}`,
       });
     }
   } catch (error) {
