@@ -62,9 +62,9 @@
       "group": "Quickstart",
       "pages": [
         {
-          "group": "Node.js",
+          "group": "Typescript",
           "pages": [
-            "quickstart/nodejs",
+            "quickstart/typescript",
             "quickstart/nextjs",
             "quickstart/remix",
             "quickstart/nuxt",
@@ -335,6 +335,10 @@
     {
       "source": "/sdks/typescript/analytics/top-urls",
       "destination": "/sdks/typescript/analytics/clicks/top-urls"
+    },
+    {
+      "source": "/quickstart/nodejs",
+      "destination": "/quickstart/typescript"
     }
   ]
 }
