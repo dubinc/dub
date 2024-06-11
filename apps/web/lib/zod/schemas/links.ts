@@ -323,6 +323,10 @@ export const LinkSchema = z
       .boolean()
       .default(false)
       .describe("Whether the short link uses link cloaking."),
+    noindex: z
+      .boolean()
+      .default(false)
+      .describe("Whether to noindex the short link."),
     ios: z
       .string()
       .nullable()
