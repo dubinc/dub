@@ -75,4 +75,14 @@ export class IntegrationHarness {
       query: { workspaceId },
     });
   }
+
+  // Delete domain
+  public async deleteDomain(slug: string) {
+    const { workspaceId } = this.resources.workspace;
+
+    await this.http.delete({
+      path: `/domains/${slug}`,
+      query: { workspaceId },
+    });
+  }
 }
