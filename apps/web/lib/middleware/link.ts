@@ -1,4 +1,9 @@
-import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
+import {
+  detectBot,
+  getFinalUrl,
+  isSupportedDeeplinkProtocol,
+  parse,
+} from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
@@ -194,10 +199,10 @@ export default async function LinkMiddleware(
       },
     );
 
-    // rewrite to mailto page if the link is a mailto link
-  } else if (url.startsWith("mailto:")) {
+    // rewrite to deeplink page if the link is a mailto: or tel:
+  } else if (isSupportedDeeplinkProtocol(url)) {
     return NextResponse.rewrite(
-      new URL(`/mailto/${encodeURIComponent(url)}`, req.url),
+      new URL(`/deeplink/${encodeURIComponent(url)}`, req.url),
       {
         headers: {
           ...DUB_HEADERS,
