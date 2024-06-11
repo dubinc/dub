@@ -121,14 +121,20 @@ export const VALID_ANALYTICS_FILTERS = [
 
 export const EVENT_TYPES = ["clicks", "leads", "sales", "composite"] as const;
 
-export const DEPRECATED_ANALYTICS_ENDPOINTS = [
+export const OLD_ANALYTICS_ENDPOINTS = [
   "clicks",
+  "count",
   "timeseries",
+  "countries",
   "country",
+  "cities",
   "city",
+  "devices",
   "device",
+  "browsers",
   "browser",
   "os",
+  "referers",
   "referer",
   "top_links",
   "top_urls",

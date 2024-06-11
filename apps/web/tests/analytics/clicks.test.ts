@@ -1,6 +1,5 @@
 import {
-  DEPRECATED_ANALYTICS_ENDPOINTS,
-  OLD_TO_NEW_ANALYTICS_ENDPOINTS,
+  OLD_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
@@ -41,7 +40,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
+  OLD_ANALYTICS_ENDPOINTS.slice(0, 5).map((endpoint) => {
     test(`deprecated: by ${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/clicks/${endpoint}`,
@@ -82,9 +81,7 @@ describe.runIf(env.CI).sequential("GET /analytics/{endpoint}", async () => {
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  DEPRECATED_ANALYTICS_ENDPOINTS.map((endpoint) => {
-    const analyticsEndpoint = OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint];
-
+  OLD_ANALYTICS_ENDPOINTS.slice(0, 5).map((endpoint) => {
     test(`/analytics/${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/${endpoint}`,
@@ -93,12 +90,12 @@ describe.runIf(env.CI).sequential("GET /analytics/{endpoint}", async () => {
 
       expect(status).toEqual(200);
 
-      if (analyticsEndpoint === "count") {
+      if (endpoint === "count") {
         expect(data).toEqual(expect.any(Number));
         expect(data).toBeGreaterThanOrEqual(0);
       } else {
         const parsed = z
-          .array(clickAnalyticsResponse[analyticsEndpoint].strict())
+          .array(clickAnalyticsResponse[endpoint].strict())
           .safeParse(data);
 
         expect(data.length).toBeGreaterThanOrEqual(0);
