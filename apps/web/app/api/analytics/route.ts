@@ -1,3 +1,4 @@
+import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -11,8 +12,15 @@ import { NextResponse } from "next/server";
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link }) => {
-    const { eventType: oldEvent, endpoint: oldType } =
+    let { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
+
+    // for backwards compatibility (we used to support /analytics/[endpoint] as well)
+    if (oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent)) {
+      oldType = oldEvent;
+      oldEvent = undefined;
+    }
+
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
     let { event, groupBy, domain, key, interval, start, end } = parsedParams;

@@ -37,7 +37,10 @@ const analyticsGroupBy = z
 
 // For backwards compatibility
 export const analyticsPathParamsSchema = z.object({
-  eventType: analyticsEvents.removeDefault().optional(),
+  eventType: analyticsEvents
+    .removeDefault()
+    .and(analyticsGroupBy.removeDefault())
+    .optional(),
   endpoint: analyticsGroupBy.removeDefault().optional(),
 });
 
