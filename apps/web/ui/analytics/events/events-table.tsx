@@ -162,7 +162,7 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "qr",
           enableHiding: false,
-          size: 120,
+          size: 130,
           meta: {
             filterParams: ({ getValue }) => ({
               qr: !!getValue(),
@@ -591,7 +591,7 @@ export default function EventsTable() {
         )}
         <div className="sticky bottom-0 flex items-center justify-between rounded-b-[inherit] border-t border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600">
           <div>
-            Viewing{" "}
+            <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">
               {pagination.pageIndex * pagination.pageSize + 1}-
               {Math.min(
