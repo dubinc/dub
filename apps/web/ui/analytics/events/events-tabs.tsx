@@ -1,6 +1,6 @@
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useMediaQuery, useRouterStuff } from "@dub/ui";
+import { CountingNumbers, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
 import { curveNatural } from "@visx/curve";
 import { LinearGradient } from "@visx/gradient";
@@ -81,11 +81,17 @@ export default function EventsTabs() {
           >
             <div>
               <p className="text-sm text-gray-600">{capitalize(event)}</p>
-              <p className="mt-2 text-2xl">
-                {(totalEvents?.[event] ?? 0).toLocaleString()}
-              </p>
+              <div className="mt-2">
+                {totalEvents ? (
+                  <CountingNumbers as="p" className="text-2xl">
+                    {totalEvents?.[event] ?? 0}
+                  </CountingNumbers>
+                ) : (
+                  <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
+                )}
+              </div>
             </div>
-            {data?.length && !isMobile && (
+            {data && !isMobile && (
               <div className="relative h-full max-w-[140px] grow">
                 <Chart data={data} event={event} />
               </div>
@@ -99,18 +105,12 @@ export default function EventsTabs() {
 
 type ChartProps = { data: TimeseriesData; event: string };
 function Chart(props: ChartProps) {
-  const noData = useMemo(
-    () => props.data.every((d) => (d?.[props.event] ?? 0) === 0),
-    [props.data],
-  );
-
   return (
     <ParentSize className="relative">
       {({ width, height }) => {
         return (
           width > 0 &&
-          height > 0 &&
-          !noData && <ChartInner {...{ width, height, ...props }} />
+          height > 0 && <ChartInner {...{ width, height, ...props }} />
         );
       }}
     </ParentSize>
@@ -127,7 +127,7 @@ function ChartInner({
 }: ChartProps & { width: number; height: number }) {
   const chartData = useMemo(
     () =>
-      data?.map((d) => ({
+      data.map((d) => ({
         date: new Date(d.start),
         value: (d?.[event] as number | undefined) ?? 0,
       })) ?? null,
@@ -153,14 +153,15 @@ function ChartInner({
 
     return {
       yScale: scaleLinear<number>({
-        domain: [-2, maxY],
+        domain: [-2, Math.max(maxY, 2)],
         range: [height - padding.top - padding.bottom, 0],
         nice: true,
         clamp: true,
       }),
       xScale: scaleUtc<number>({
         domain: [minDate, maxDate],
-        range: [0, width - padding.left - padding.right * 2],
+        range: [0, width - padding.left - padding.right],
+        nice: true,
       }),
     };
   }, [chartData, height, width]);
@@ -173,7 +174,8 @@ function ChartInner({
           from="#7D3AEC"
           to="#DA2778"
           x1={0}
-          x2={1}
+          x2={width - padding.left - padding.right}
+          gradientUnits="userSpaceOnUse"
         />
         <LinearGradient
           id="mask-gradient"
