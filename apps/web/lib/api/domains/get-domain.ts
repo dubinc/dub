@@ -25,6 +25,7 @@ export const getDomain = async (input: GetDomainInput) => {
           rewrite: true,
           clicks: true,
           expiredUrl: true,
+          noindex: true,
         },
         take: 1,
       },

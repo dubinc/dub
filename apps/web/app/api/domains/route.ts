@@ -26,6 +26,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
           rewrite: true,
           clicks: true,
           expiredUrl: true,
+          noindex: true,
         },
         take: 1,
       },
@@ -81,9 +82,6 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     workspace,
     userId: session.user.id,
   });
-
-  // TODO:
-  // Store noindex
 
   waitUntil(
     setRootDomain({

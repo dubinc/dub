@@ -24,8 +24,11 @@ const expectedDomain = {
   placeholder: domainRecord.placeholder,
   expiredUrl: domainRecord.expiredUrl,
   target: domainRecord.target,
+  url: domainRecord.target,
   type: domainRecord.type,
   clicks: 0,
+  createdAt: expect.any(String),
+  updatedAt: expect.any(String),
 };
 
 describe.sequential("/domains/**", async () => {
@@ -123,7 +126,7 @@ describe.sequential("/domains/**", async () => {
     expect(domain).toStrictEqual({
       ...expectedDomain,
       ...toUpdate,
-      primary: true,
+      url: toUpdate.target,
     });
   });
 });

@@ -236,6 +236,11 @@ export const createLinkBodySchema = z.object({
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
     )
     .openapi({ ref: "linkGeoTargeting" }),
+  noindex: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Whether to noindex the short link."),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial().optional();

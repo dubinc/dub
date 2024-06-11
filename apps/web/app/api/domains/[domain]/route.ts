@@ -61,9 +61,6 @@ export const PATCH = withWorkspace(
       workspace,
     });
 
-    // TODO:
-    // Store noindex
-
     waitUntil(
       Promise.all([
         setRootDomain({

@@ -5,7 +5,6 @@ import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { DubApiError, ErrorCodes } from "../errors";
 import { processLink, updateLink } from "../links";
 import { getDomain } from "./get-domain";
-import { transformDomain } from "./transform-domain";
 
 type UpdateDomainInput = z.infer<typeof updateDomainBodySchema> & {
   newSlug?: string;
@@ -22,6 +21,7 @@ export const updateDomain = async (input: UpdateDomainInput) => {
     target,
     expiredUrl,
     archived,
+    noindex,
   } = input;
 
   // Update domain
@@ -42,9 +42,14 @@ export const updateDomain = async (input: UpdateDomainInput) => {
   });
 
   // Skip link update if no link data is provided
-  if (!("type" in input) && !("target" in input) && !("expiredUrl" in input)) {
-    return transformDomain(domain);
-  }
+  // if (
+  //   !("type" in input) &&
+  //   !("target" in input) &&
+  //   !("expiredUrl" in input) &&
+  //   !("noindex" in input)
+  // ) {
+  //   return transformDomain(domain);
+  // }
 
   const link = domain.links[0];
 
@@ -59,6 +64,7 @@ export const updateDomain = async (input: UpdateDomainInput) => {
       ...("rewrite" in input && { rewrite: type === "rewrite" }),
       ...("target" in input && { url: target || "" }),
       ...("expiredUrl" in input && { expiredUrl }),
+      ...("noindex" in input && { noindex }),
     }),
   };
 
