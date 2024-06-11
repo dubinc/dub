@@ -28,7 +28,6 @@ export async function processLink<T extends Record<string, any>>({
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  // workspace?: WorkspaceProps;
   workspace?: Pick<WorkspaceProps, "id" | "plan" | "domains">;
   userId?: string;
   bulk?: boolean;

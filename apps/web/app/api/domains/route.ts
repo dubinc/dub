@@ -28,7 +28,6 @@ export const GET = withWorkspace(async ({ workspace }) => {
           expiredUrl: true,
           noindex: true,
         },
-        take: 1,
       },
     },
   });

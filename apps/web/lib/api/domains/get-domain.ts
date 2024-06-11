@@ -27,7 +27,6 @@ export const getDomain = async (input: GetDomainInput) => {
           expiredUrl: true,
           noindex: true,
         },
-        take: 1,
       },
     },
   });

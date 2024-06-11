@@ -3,10 +3,13 @@ import {
   domainExists,
   setRootDomain,
 } from "@/lib/api/domains";
+import { addDomain } from "@/lib/api/domains/add-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
+import { WorkspaceProps } from "@/lib/types";
+import { addDomainBodySchema } from "@/lib/zod/schemas/domains";
 import {
   WorkspaceSchema,
   createWorkspaceSchema,
@@ -118,14 +121,6 @@ export const POST = withSession(async ({ req, session }) => {
           role: "owner",
         },
       },
-      ...(domain && {
-        domains: {
-          create: {
-            slug: domain,
-            primary: true,
-          },
-        },
-      }),
       billingCycleStart: new Date().getDate(),
       inviteCode: nanoid(24),
       defaultDomains: {
@@ -138,7 +133,6 @@ export const POST = withSession(async ({ req, session }) => {
           id: true,
           slug: true,
           primary: true,
-          createdAt: true,
         },
       },
       users: {
@@ -147,6 +141,12 @@ export const POST = withSession(async ({ req, session }) => {
         },
       },
     },
+  });
+
+  const domainRecord = await addDomain({
+    ...addDomainBodySchema.parse({ slug: domain }),
+    workspace: projectResponse as WorkspaceProps,
+    userId: session.user.id,
   });
 
   waitUntil(
@@ -172,9 +172,9 @@ export const POST = withSession(async ({ req, session }) => {
           });
         } else {
           await setRootDomain({
-            id: projectResponse.domains[0].id,
+            id: domainRecord.id,
             domain,
-            domainCreatedAt: projectResponse.domains[0].createdAt,
+            domainCreatedAt: domainRecord.createdAt,
             projectId: projectResponse.id,
           });
         }
