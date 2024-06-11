@@ -50,11 +50,14 @@ export default function EventsTabs() {
       const currentSort = searchParams.get("sort");
       queryParams({
         set: { tab: event },
-        // Reset sort when tab changes (only sales have `amount`)
-        del:
-          currentSort && !sortOptions.includes(currentSort)
-            ? "sort"
-            : undefined,
+        del: [
+          // Reset pagination
+          "offset",
+          // Reset sort if not possible
+          ...(currentSort && !sortOptions.includes(currentSort)
+            ? ["sort"]
+            : []),
+        ],
       });
     },
     [queryParams, searchParams.get("sort")],

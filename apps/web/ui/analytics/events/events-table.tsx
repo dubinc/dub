@@ -434,11 +434,6 @@ export default function EventsTable() {
     manualSorting: true,
   });
 
-  useEffect(() => {
-    // reset page index when tab or filters change
-    setPagination((p) => ({ ...p, pageIndex: 0 }));
-  }, [tab, queryString]);
-
   // Memoize column sizes to pass to table as CSS variables
   const columnSizeVars = useMemo(() => {
     const headers = table.getFlatHeaders();
