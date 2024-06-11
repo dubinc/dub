@@ -32,8 +32,6 @@ export function Popover({
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
-  if (collisionBoundary) console.log(collisionBoundary);
-
   if (mobileOnly || isMobile) {
     return (
       <Drawer.Root open={openPopover} onOpenChange={setOpenPopover}>

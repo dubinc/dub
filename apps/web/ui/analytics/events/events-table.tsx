@@ -4,7 +4,6 @@ import { editQueryString } from "@/lib/analytics/utils";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
-import { Filter } from "@/ui/shared/icons";
 import {
   Button,
   CursorRays,
@@ -22,9 +21,9 @@ import {
   fetcher,
   getApexDomain,
   nFormatter,
-  truncate,
 } from "@dub/utils";
 import {
+  Cell,
   ColumnDef,
   VisibilityState,
   flexRender,
@@ -32,6 +31,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
+import { ListFilter } from "lucide-react";
 import Link from "next/link";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
@@ -43,7 +43,7 @@ import usePagination from "./use-pagination";
 
 const PAGE_SIZE = 100;
 const tableCellClassName =
-  "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap overflow-hidden";
+  "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap";
 
 type EventType = "clicks" | "leads" | "sales";
 
@@ -51,6 +51,12 @@ type Datum =
   | z.infer<typeof clickEventEnrichedSchema>
   | z.infer<typeof leadEventEnrichedSchema>
   | z.infer<typeof saleEventEnrichedSchema>;
+
+type ColumnMeta = {
+  filterParams?: (
+    args: Pick<Cell<Datum, any>, "getValue">,
+  ) => Record<string, any>;
+};
 
 const eventColumns: Record<
   EventType,
@@ -115,12 +121,26 @@ const getDefaultColumnVisibility = (event: EventType) =>
     ]),
   );
 
-const FilterButton = () => (
-  <div className="group-hover:animate-slide-left-fade absolute right-0 rounded-lg border border-gray-200 bg-white p-1 opacity-0 shadow-lg group-hover:opacity-100">
-    <span className="sr-only">Filter</span>
-    <Filter className="h-3 w-3 text-black" />
-  </div>
-);
+const FilterButton = ({ set }: { set: Record<string, any> }) => {
+  const { queryParams } = useRouterStuff();
+
+  return (
+    <div className="relative h-[1.25rem] w-0 shrink-0 opacity-0 transition-all group-hover:w-[1.25rem] group-hover:opacity-100">
+      <Link
+        href={
+          queryParams({
+            set,
+            getNewPath: true,
+          }) as string
+        }
+        className="absolute left-0 top-0 rounded-md border border-transparent bg-white p-0.5 transition-colors hover:border-gray-200 hover:bg-gray-100"
+      >
+        <span className="sr-only">Filter</span>
+        <ListFilter className="h-3.5 w-3.5 text-black" />
+      </Link>
+    </div>
+  );
+};
 
 export default function EventsTable() {
   const { searchParams, queryParams } = useRouterStuff();
@@ -142,17 +162,23 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "qr",
           enableHiding: false,
+          size: 120,
+          meta: {
+            filterParams: ({ getValue }) => ({
+              qr: !!getValue(),
+            }),
+          },
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3">
               {getValue() ? (
                 <>
-                  <QRCode className="h-4 w-4" />
-                  QR scan
+                  <QRCode className="h-4 w-4 shrink-0" />
+                  <span className="truncate">QR scan</span>
                 </>
               ) : (
                 <>
-                  <CursorRays className="h-4 w-4" />
-                  Link click
+                  <CursorRays className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Link click</span>
                 </>
               )}
             </div>
@@ -164,9 +190,7 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "event_name",
           enableHiding: false,
-          meta: {
-            maxWidth: 150,
-          },
+          size: 120,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -175,9 +199,7 @@ export default function EventsTable() {
           id: "invoiceId",
           header: "Invoice ID",
           accessorKey: "invoice_id",
-          meta: {
-            maxWidth: 150,
-          },
+          size: 120,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -185,25 +207,18 @@ export default function EventsTable() {
           id: "link",
           header: "Link",
           accessorKey: "link",
+          size: 200,
           meta: {
-            maxWidth: 200,
+            filterParams: ({ getValue }) => ({
+              domain: getValue().domain,
+              key: getValue().key,
+            }),
           },
           cell: ({ getValue }) => {
             const path = getValue().key === "_root" ? "" : `/${getValue().key}`;
 
             return (
-              <Link
-                href={
-                  queryParams({
-                    set: {
-                      domain: getValue().domain,
-                      key: getValue().key,
-                    },
-                    getNewPath: true,
-                  }) as string
-                }
-                className="group relative flex items-center gap-3"
-              >
+              <div className="flex items-center gap-3">
                 <LinkLogo
                   apexDomain={getApexDomain(getValue().url)}
                   className="h-4 w-4 sm:h-4 sm:w-4"
@@ -217,8 +232,7 @@ export default function EventsTable() {
                   </span>
                   {path}
                 </span>
-                <FilterButton />
-              </Link>
+              </div>
             );
           },
         },
@@ -227,16 +241,15 @@ export default function EventsTable() {
           header: "Customer",
           accessorKey: "customer",
           cell: ({ getValue }) => {
-            const display =
-              truncate(getValue().name || getValue().email, 20) ?? "Unknown";
+            const display = getValue().name || getValue().email || "Unknown";
             return (
               <div className="flex items-center gap-3">
                 <img
                   alt={display}
                   src={getValue().avatar}
-                  className="h-4 w-4 rounded-full border border-gray-200"
+                  className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
                 />
-                <span>{display}</span>
+                <span className="truncate">{display}</span>
               </div>
             );
           },
@@ -245,26 +258,20 @@ export default function EventsTable() {
           id: "country",
           header: "Country",
           accessorKey: "country",
+          meta: {
+            filterParams: ({ getValue }) => ({ country: getValue() }),
+          },
           cell: ({ getValue }) => (
-            <Link
-              href={
-                queryParams({
-                  set: {
-                    country: getValue(),
-                  },
-                  getNewPath: true,
-                }) as string
-              }
-              className="group relative flex items-center gap-3"
-            >
+            <div className="flex items-center gap-3">
               <img
                 alt={getValue()}
                 src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
               />
-              <span>{COUNTRIES[getValue()] ?? getValue()}</span>
-              <FilterButton />
-            </Link>
+              <span className="truncate">
+                {COUNTRIES[getValue()] ?? getValue()}
+              </span>
+            </div>
           ),
         },
         {
@@ -276,9 +283,9 @@ export default function EventsTable() {
               <img
                 alt={row.original.country}
                 src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
               />
-              <span>{getValue()}</span>
+              <span className="truncate">{getValue()}</span>
             </div>
           ),
         },
@@ -286,26 +293,18 @@ export default function EventsTable() {
           id: "device",
           header: "Device",
           accessorKey: "device",
+          meta: {
+            filterParams: ({ getValue }) => ({ device: getValue() }),
+          },
           cell: ({ getValue }) => (
-            <Link
-              href={
-                queryParams({
-                  set: {
-                    device: getValue(),
-                  },
-                  getNewPath: true,
-                }) as string
-              }
-              className="group relative flex items-center gap-3"
-            >
+            <div className="flex items-center gap-3">
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="devices"
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
               />
-              <span>{getValue()}</span>
-              <FilterButton />
-            </Link>
+              <span className="truncate">{getValue()}</span>
+            </div>
           ),
         },
         {
@@ -317,9 +316,9 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="browsers"
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
               />
-              <span>{getValue()}</span>
+              <span className="truncate">{getValue()}</span>
             </div>
           ),
         },
@@ -332,9 +331,9 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="os"
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
               />
-              <span>{getValue()}</span>
+              <span className="truncate">{getValue()}</span>
             </div>
           ),
         },
@@ -344,6 +343,7 @@ export default function EventsTable() {
           header: "Date",
           accessorFn: (d) => new Date(d.timestamp),
           enableHiding: false,
+          minSize: 100,
           cell: ({ getValue }) => (
             <Tooltip
               content={getValue().toLocaleTimeString("en-US", {
@@ -356,7 +356,7 @@ export default function EventsTable() {
                 hour12: true,
               })}
             >
-              <span>
+              <div className="w-full truncate">
                 {getValue().toLocaleTimeString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -364,7 +364,7 @@ export default function EventsTable() {
                   minute: "numeric",
                   hour12: true,
                 })}
-              </span>
+              </div>
             </Tooltip>
           ),
         },
@@ -374,6 +374,7 @@ export default function EventsTable() {
           header: "Sales Amount",
           accessorKey: "amount",
           enableHiding: false,
+          minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>${nFormatter(getValue() / 100)}</span>
@@ -389,10 +390,9 @@ export default function EventsTable() {
     getDefaultColumnVisibility(tab as EventType),
   );
 
-  useEffect(
-    () => setColumnVisibility(getDefaultColumnVisibility(tab as EventType)),
-    [tab],
-  );
+  useEffect(() => {
+    setColumnVisibility(getDefaultColumnVisibility(tab as EventType));
+  }, [tab]);
 
   const defaultData = useMemo(() => [], []);
 
@@ -414,9 +414,15 @@ export default function EventsTable() {
 
   const table = useReactTable({
     data: data ?? defaultData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
     rowCount: totalEvents?.[tab] ?? 0,
+    columns,
+    defaultColumn: {
+      minSize: 60,
+      size: 150,
+      maxSize: 250,
+    },
+    columnResizeMode: "onChange",
+    getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
     state: {
@@ -433,6 +439,23 @@ export default function EventsTable() {
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   }, [tab, queryString]);
 
+  // Memoize column sizes to pass to table as CSS variables
+  const columnSizeVars = useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [
+    columns,
+    columnVisibility,
+    table.getState().columnSizingInfo,
+    table.getState().columnSizing,
+  ]);
+
   return (
     <div className="border border-gray-200 bg-white sm:rounded-xl">
       <div className="relative rounded-[inherit]">
@@ -443,13 +466,14 @@ export default function EventsTable() {
           >
             <table
               className={cn(
-                "w-full border-separate border-spacing-0",
+                "w-full table-fixed border-separate border-spacing-0",
 
                 // Remove side borders from table to avoid interfering with outer border
                 "[&_thead_tr:first-child>*]:border-t-0", // Top row
                 "[&_tr>*:first-child]:border-l-0", // Left column
                 "[&_tr>*:last-child]:border-r-0", // Right column
               )}
+              style={columnSizeVars}
             >
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -460,8 +484,14 @@ export default function EventsTable() {
                       );
                       return (
                         <th
-                          key={header.id}
-                          className={cn(tableCellClassName, "font-medium")}
+                          key={`${tab}-${header.id}`}
+                          className={cn(
+                            tableCellClassName,
+                            "relative select-none font-medium",
+                          )}
+                          style={{
+                            width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                          }}
                         >
                           <div className="flex items-center justify-between gap-6 !pr-0">
                             <button
@@ -507,6 +537,14 @@ export default function EventsTable() {
                               />
                             )}
                           </div>
+                          <div
+                            className="absolute -right-[4px] top-0 z-[1] h-full w-[7px] cursor-col-resize"
+                            {...{
+                              onDoubleClick: () => header.column.resetSize(),
+                              onMouseDown: header.getResizeHandler(),
+                              onTouchStart: header.getResizeHandler(),
+                            }}
+                          />
                         </th>
                       );
                     })}
@@ -516,23 +554,36 @@ export default function EventsTable() {
               <tbody>
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className={cn(tableCellClassName, "text-gray-600")}
-                        style={{
-                          maxWidth: (cell.column.columnDef.meta as any)
-                            ?.maxWidth,
-                        }}
-                      >
-                        <div className="w-full overflow-hidden truncate">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
+                    {row.getVisibleCells().map((cell) => {
+                      const meta = cell.column.columnDef.meta as
+                        | ColumnMeta
+                        | undefined;
+
+                      return (
+                        <td
+                          key={`${tab}-${cell.id}`}
+                          className={cn(
+                            tableCellClassName,
+                            "group relative text-gray-600",
                           )}
-                        </div>
-                      </td>
-                    ))}
+                          style={{
+                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                          }}
+                        >
+                          <div className="flex w-full items-center justify-between overflow-hidden truncate">
+                            <div className="min-w-0 shrink">
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
+                            </div>
+                            {meta?.filterParams && (
+                              <FilterButton set={meta.filterParams(cell)} />
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
