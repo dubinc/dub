@@ -133,10 +133,10 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
             getNewPath: true,
           }) as string
         }
-        className="absolute left-0 top-0 rounded-md border border-transparent bg-white p-0.5 transition-colors hover:border-gray-200 hover:bg-gray-100"
+        className="absolute left-0 top-0 rounded-md border border-transparent bg-white p-0.5 text-gray-400 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
       >
         <span className="sr-only">Filter</span>
-        <ListFilter className="h-3.5 w-3.5 text-black" />
+        <ListFilter className="h-3.5 w-3.5" />
       </Link>
     </div>
   );
