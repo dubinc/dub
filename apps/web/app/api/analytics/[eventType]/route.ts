@@ -1,4 +1,7 @@
-import { DEPRECATED_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import {
+  DEPRECATED_ANALYTICS_ENDPOINTS,
+  OLD_TO_NEW_ANALYTICS_ENDPOINTS,
+} from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -41,20 +44,11 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
-    const oldSingularEndpoints = {
-      country: "countries",
-      city: "cities",
-      device: "devices",
-      browser: "browsers",
-      referer: "referers",
-      clicks: "count",
-    };
-
     const response = await getAnalytics({
       ...parsedParams,
       ...(linkId && { linkId }),
       event: "clicks",
-      groupBy: oldSingularEndpoints[endpoint] || endpoint,
+      groupBy: OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint],
       workspaceId: workspace.id,
       isDeprecatedEndpoint: true,
     });

@@ -83,14 +83,13 @@ describe.runIf(env.CI).sequential("GET /analytics/{endpoint}", async () => {
   const { workspaceId } = workspace;
 
   DEPRECATED_ANALYTICS_ENDPOINTS.map((endpoint) => {
+    const analyticsEndpoint = OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint];
+
     test(`/analytics/${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/${endpoint}`,
         query: { workspaceId, ...filter },
       });
-
-      const analyticsEndpoint =
-        OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint] || endpoint;
 
       expect(status).toEqual(200);
 
