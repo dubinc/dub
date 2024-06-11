@@ -316,7 +316,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="browsers"
-                className="h-4 w-4 shrink-0"
+                className="h-4 w-4 shrink-0 rounded-full"
               />
               <span className="truncate">{getValue()}</span>
             </div>
