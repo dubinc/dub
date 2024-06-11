@@ -1,3 +1,8 @@
+// @ts-nocheck
+
+// TODO:
+// Fix the script
+
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";

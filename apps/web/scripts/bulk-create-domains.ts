@@ -42,8 +42,8 @@ async function main() {
           response = await prisma.domain.create({
             data: {
               slug: domain,
-              target,
-              type: "redirect",
+              // target,
+              // type: "redirect",
               projectId,
             },
           });
