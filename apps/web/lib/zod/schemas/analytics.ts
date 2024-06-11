@@ -51,7 +51,7 @@ const oldAnalyticsEndpoints = z
 export const analyticsPathParamsSchema = z.object({
   eventType: analyticsEvents
     .removeDefault()
-    .and(oldAnalyticsEndpoints)
+    .or(oldAnalyticsEndpoints)
     .optional(),
   endpoint: oldAnalyticsEndpoints.optional(),
 });
