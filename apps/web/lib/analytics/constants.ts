@@ -145,4 +145,4 @@ export const OLD_TO_NEW_ANALYTICS_ENDPOINTS = {
   referer: "referers",
   top_links: "top_links",
   top_urls: "top_urls",
-};
+} as const;
