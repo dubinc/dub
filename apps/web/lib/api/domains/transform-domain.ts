@@ -1,3 +1,4 @@
+import { DomainSchema } from "@/lib/zod/schemas/domains";
 import { Domain, Link } from "@prisma/client";
 
 type Input = Domain & {
@@ -8,7 +9,7 @@ export const transformDomain = (domain: Input) => {
   const { id, slug, verified, primary, archived, placeholder } = domain;
   const { url, rewrite, clicks, expiredUrl, noindex } = domain.links[0];
 
-  return {
+  return DomainSchema.parse({
     id,
     slug,
     verified,
@@ -18,10 +19,9 @@ export const transformDomain = (domain: Input) => {
     placeholder,
     expiredUrl,
     target: url || null,
-    url: url || null, // Deprecated
     type: rewrite ? "rewrite" : "redirect",
     clicks,
     createdAt: domain.createdAt,
     updatedAt: domain.updatedAt,
-  };
+  });
 };

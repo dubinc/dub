@@ -24,7 +24,6 @@ const expectedDomain = {
   placeholder: domainRecord.placeholder,
   expiredUrl: domainRecord.expiredUrl,
   target: domainRecord.target,
-  url: domainRecord.target,
   type: domainRecord.type,
   clicks: 0,
   createdAt: expect.any(String),
@@ -77,10 +76,7 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domain).toStrictEqual({
-      ...expectedDomain,
-      url: domainRecord.target,
-    });
+    expect(domain).toStrictEqual(expectedDomain);
   });
 
   test("GET /domains", async () => {
@@ -90,7 +86,10 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domains).toContainEqual(expectedDomain);
+    expect(domains).toContainEqual({
+      ...expectedDomain,
+      url: domainRecord.target,
+    });
   });
 
   test("POST /domains/{slug}/primary", { retry: 3 }, async () => {
@@ -126,7 +125,6 @@ describe.sequential("/domains/**", async () => {
     expect(domain).toStrictEqual({
       ...expectedDomain,
       ...toUpdate,
-      url: toUpdate.target,
     });
   });
 });

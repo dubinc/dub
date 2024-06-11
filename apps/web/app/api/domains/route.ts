@@ -33,7 +33,14 @@ export const GET = withWorkspace(async ({ workspace }) => {
     },
   });
 
-  const result = domains.map((domain) => transformDomain(domain));
+  const result = domains.map((domain) => {
+    const domainRecord = transformDomain(domain);
+
+    return {
+      ...domainRecord,
+      url: domainRecord.target,
+    };
+  });
 
   return NextResponse.json(result);
 });
