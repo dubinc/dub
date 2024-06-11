@@ -25,16 +25,18 @@ import {
 } from "@dub/utils";
 import {
   ColumnDef,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
+import EventsTableMenu from "./events-table-menu";
 import usePagination from "./use-pagination";
 
 const PAGE_SIZE = 500;
@@ -53,11 +55,30 @@ const eventColumns: Record<
   { all: string[]; defaultVisible: string[] }
 > = {
   clicks: {
-    all: ["trigger", "link", "country", "device", "timestamp"],
+    all: [
+      "trigger",
+      "link",
+      "country",
+      "city",
+      "device",
+      "browser",
+      "os",
+      "timestamp",
+    ],
     defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
   },
   leads: {
-    all: ["event", "link", "customer", "country", "device", "timestamp"],
+    all: [
+      "event",
+      "link",
+      "customer",
+      "country",
+      "city",
+      "device",
+      "browser",
+      "os",
+      "timestamp",
+    ],
     defaultVisible: [
       "event",
       "link",
@@ -73,13 +94,24 @@ const eventColumns: Record<
       "invoiceId",
       "link",
       "country",
+      "city",
       "device",
+      "browser",
+      "os",
       "amount",
       "timestamp",
     ],
     defaultVisible: ["event", "link", "country", "amount", "timestamp"],
   },
 };
+
+const getDefaultColumnVisibility = (event: EventType) =>
+  Object.fromEntries(
+    eventColumns[event].all.map((id) => [
+      id,
+      eventColumns[event].defaultVisible.includes(id),
+    ]),
+  );
 
 export default function EventsTable() {
   const { searchParams, queryParams } = useRouterStuff();
@@ -90,6 +122,8 @@ export default function EventsTable() {
 
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
 
+  const scrollContainer = useRef<HTMLDivElement>(null);
+
   const columns = useMemo<ColumnDef<Datum, any>[]>(
     () =>
       [
@@ -98,6 +132,7 @@ export default function EventsTable() {
           id: "trigger",
           header: "Event",
           accessorKey: "qr",
+          enableHiding: false,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3">
               {getValue() ? (
@@ -119,6 +154,7 @@ export default function EventsTable() {
           id: "event",
           header: "Event",
           accessorKey: "event_name",
+          enableHiding: false,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -184,6 +220,21 @@ export default function EventsTable() {
           ),
         },
         {
+          id: "city",
+          header: "City",
+          accessorKey: "city",
+          cell: ({ getValue, row }) => (
+            <div className="flex items-center gap-3">
+              <img
+                alt={row.original.country}
+                src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                className="h-4 w-4"
+              />
+              <span>{getValue()}</span>
+            </div>
+          ),
+        },
+        {
           id: "device",
           header: "Device",
           accessorKey: "device",
@@ -198,11 +249,42 @@ export default function EventsTable() {
             </div>
           ),
         },
+        {
+          id: "browser",
+          header: "Browser",
+          accessorKey: "browser",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <DeviceIcon
+                display={capitalize(getValue()) ?? getValue()}
+                tab="browsers"
+                className="h-4 w-4"
+              />
+              <span>{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "os",
+          header: "OS",
+          accessorKey: "os",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <DeviceIcon
+                display={capitalize(getValue()) ?? getValue()}
+                tab="os"
+                className="h-4 w-4"
+              />
+              <span>{getValue()}</span>
+            </div>
+          ),
+        },
         // Date
         {
           id: "timestamp",
           header: "Date",
           accessorFn: (d) => new Date(d.timestamp),
+          enableHiding: false,
           cell: ({ getValue }) => (
             <Tooltip
               content={getValue().toLocaleTimeString("en-US", {
@@ -232,6 +314,7 @@ export default function EventsTable() {
           id: "amount",
           header: "Sales Amount",
           accessorKey: "amount",
+          enableHiding: false,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>${nFormatter(getValue() / 100)}</span>
@@ -240,6 +323,15 @@ export default function EventsTable() {
           ),
         },
       ].filter((c) => eventColumns[tab].all.includes(c.id)),
+    [tab],
+  );
+
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    getDefaultColumnVisibility(tab as EventType),
+  );
+
+  useEffect(
+    () => setColumnVisibility(getDefaultColumnVisibility(tab as EventType)),
     [tab],
   );
 
@@ -267,8 +359,10 @@ export default function EventsTable() {
     getCoreRowModel: getCoreRowModel(),
     rowCount: totalEvents?.[tab] ?? 0,
     onPaginationChange: setPagination,
+    onColumnVisibilityChange: setColumnVisibility,
     state: {
       pagination,
+      columnVisibility,
     },
     manualPagination: true,
     autoResetPageIndex: false,
@@ -284,7 +378,10 @@ export default function EventsTable() {
     <div className="border border-gray-200 bg-white sm:rounded-xl">
       <div className="relative rounded-[inherit]">
         {(!error && !!data?.length) || isLoading ? (
-          <div className="min-h-[400px] overflow-x-auto rounded-[inherit]">
+          <div
+            ref={scrollContainer}
+            className="min-h-[400px] overflow-x-auto rounded-[inherit]"
+          >
             <table
               className={cn(
                 "w-full border-separate border-spacing-0",
@@ -298,7 +395,7 @@ export default function EventsTable() {
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
+                    {headerGroup.headers.map((header, columnIdx) => {
                       const isSortableColumn = ["timestamp", "amount"].includes(
                         header.column.id,
                       );
@@ -308,40 +405,50 @@ export default function EventsTable() {
                           className={cn(tableCellClassName, "font-medium")}
                           style={{ width: `${header.getSize()}px` }}
                         >
-                          <button
-                            className="flex items-center gap-2"
-                            disabled={!isSortableColumn}
-                            onClick={() =>
-                              queryParams({
-                                set: {
-                                  sort: header.column.id,
-                                  order:
-                                    sortBy !== header.column.id
-                                      ? "desc"
-                                      : order === "asc"
+                          <div className="flex items-center justify-between gap-6 !pr-0">
+                            <button
+                              type="button"
+                              className="flex items-center gap-2"
+                              disabled={!isSortableColumn}
+                              onClick={() =>
+                                queryParams({
+                                  set: {
+                                    sort: header.column.id,
+                                    order:
+                                      sortBy !== header.column.id
                                         ? "desc"
-                                        : "asc",
-                                },
-                              })
-                            }
-                            aria-label="Sort by column"
-                          >
-                            <span>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext(),
-                                  )}
-                            </span>
-                            {isSortableColumn && (
-                              <SortOrder
-                                order={
-                                  sortBy === header.column.id ? order : null
-                                }
+                                        : order === "asc"
+                                          ? "desc"
+                                          : "asc",
+                                  },
+                                })
+                              }
+                              aria-label="Sort by column"
+                            >
+                              <span>
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext(),
+                                    )}
+                              </span>
+                              {isSortableColumn && (
+                                <SortOrder
+                                  order={
+                                    sortBy === header.column.id ? order : null
+                                  }
+                                />
+                              )}
+                            </button>
+                            {columnIdx === headerGroup.headers.length - 1 && (
+                              // Last column
+                              <EventsTableMenu
+                                table={table}
+                                scrollContainer={scrollContainer}
                               />
                             )}
-                          </button>
+                          </div>
                         </th>
                       );
                     })}

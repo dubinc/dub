@@ -3,6 +3,7 @@ export * from "./cube";
 export * from "./cursor-rays";
 export * from "./download";
 export * from "./flag-wavy";
+export * from "./gear";
 export * from "./globe";
 export * from "./hyperlink";
 export * from "./invoice-dollar";
