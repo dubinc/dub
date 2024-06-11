@@ -41,16 +41,6 @@ export const updateDomain = async (input: UpdateDomainInput) => {
     },
   });
 
-  // Skip link update if no link data is provided
-  // if (
-  //   !("type" in input) &&
-  //   !("target" in input) &&
-  //   !("expiredUrl" in input) &&
-  //   !("noindex" in input)
-  // ) {
-  //   return transformDomain(domain);
-  // }
-
   const link = domain.links[0];
 
   const updatedLink = {

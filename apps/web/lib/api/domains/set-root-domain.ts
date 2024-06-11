@@ -47,13 +47,13 @@ export async function setRootDomain({
         projectId,
       },
     }),
-    recordLink({
-      link_id: id,
-      domain: newDomain || domain,
-      key: "_root",
-      url: url || "",
-      workspace_id: projectId,
-      created_at: domainCreatedAt,
-    }),
+    // recordLink({
+    //   link_id: id,
+    //   domain: newDomain || domain,
+    //   key: "_root",
+    //   url: url || "",
+    //   workspace_id: projectId,
+    //   created_at: domainCreatedAt,
+    // }),
   ]);
 }

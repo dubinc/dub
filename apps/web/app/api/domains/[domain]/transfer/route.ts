@@ -1,14 +1,12 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { setRootDomain } from "@/lib/api/domains";
 import { getDomain } from "@/lib/api/domains/get-domain";
+import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import {
-  DomainSchema,
-  transferDomainBodySchema,
-} from "@/lib/zod/schemas/domains";
+import { transferDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -103,6 +101,17 @@ export const POST = withWorkspace(
           projectId: newWorkspaceId,
           primary: newWorkspace.domains.length === 0,
         },
+        include: {
+          links: {
+            select: {
+              url: true,
+              rewrite: true,
+              clicks: true,
+              expiredUrl: true,
+              noindex: true,
+            },
+          },
+        },
       }),
       setRootDomain({
         id: domainRecord.id,
@@ -149,7 +158,7 @@ export const POST = withWorkspace(
       },
     });
 
-    return NextResponse.json(DomainSchema.parse(domainResponse), { headers });
+    return NextResponse.json(transformDomain(domainResponse), { headers });
   },
   { requiredRole: ["owner"] },
 );
