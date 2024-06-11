@@ -47,7 +47,7 @@ export async function deleteDomainAndLinks(domain: string) {
 
   waitUntil(
     (async () => {
-      const res = await Promise.allSettled([
+      await Promise.allSettled([
         // delete all links from redis
         redis.del(domain.toLowerCase()),
         // record deletes in tinybird for domain & links

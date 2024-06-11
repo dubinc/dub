@@ -14,6 +14,7 @@ import {
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { getDomain } from "../api/domains/get-domain";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -239,22 +240,16 @@ export const withWorkspace = (
                   : { id: linkId }),
               },
             })
-          : domain &&
-            key &&
-            (key === "_root"
-              ? prisma.domain.findUnique({
-                  where: {
-                    slug: domain,
+          : domain && key
+            ? prisma.link.findUnique({
+                where: {
+                  domain_key: {
+                    domain,
+                    key,
                   },
-                })
-              : prisma.link.findUnique({
-                  where: {
-                    domain_key: {
-                      domain,
-                      key,
-                    },
-                  },
-                })),
+                },
+              })
+            : undefined,
       ])) as [WorkspaceProps, LinkProps | undefined];
 
       if (!workspace || !workspace.users) {
@@ -393,11 +388,7 @@ export const withWorkspace = (
         // special case for getting domain by ID
         // TODO: refactor domains to use the same logic as links
         if (!link && searchParams.checkDomain === "true") {
-          const domain = await prisma.domain.findUnique({
-            where: {
-              id: linkId,
-            },
-          });
+          const domain = await getDomain({ id: linkId! });
           if (domain) {
             link = {
               ...domain,
