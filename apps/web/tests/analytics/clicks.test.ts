@@ -84,7 +84,7 @@ describe.runIf(env.CI).sequential("GET /analytics/{endpoint}", async () => {
 
       expect(status).toEqual(200);
 
-      if (endpoint === "clicks") {
+      if (endpoint === "clicks" || endpoint === "count") {
         expect(data).toEqual(expect.any(Number));
         expect(data).toBeGreaterThanOrEqual(0);
       } else {

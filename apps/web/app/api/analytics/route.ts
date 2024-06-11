@@ -16,7 +16,7 @@ export const GET = withWorkspace(
       analyticsPathParamsSchema.parse(params);
 
     // for backwards compatibility (we used to support /analytics/[endpoint] as well)
-    if (oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent)) {
+    if (!oldType && oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent)) {
       oldType = oldEvent;
       oldEvent = undefined;
     }
@@ -48,7 +48,7 @@ export const GET = withWorkspace(
     // (/api/analytics/clicks/clicks)
     // (/api/analytics/clicks/count)
     const isDeprecatedClicksEndpoint =
-      oldEvent && oldEvent === "clicks" && (!oldType || oldType === "count");
+      oldEvent === "clicks" || oldType === "count";
 
     const response = await getAnalytics({
       ...parsedParams,
