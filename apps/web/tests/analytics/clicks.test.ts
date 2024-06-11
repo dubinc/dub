@@ -48,7 +48,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
         query: { workspaceId, ...filter },
       });
 
-      if (endpoint === "clicks") {
+      if (endpoint === "clicks" || endpoint === "count") {
         expect(status).toEqual(200);
         expect(data).toEqual(expect.any(Number));
         expect(data).toBeGreaterThanOrEqual(0);
