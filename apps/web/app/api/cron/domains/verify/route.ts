@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
-    // await verifyVercelSignature(req);
+    await verifyVercelSignature(req);
 
     const result = await prisma.domain.findMany({
       where: {

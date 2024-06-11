@@ -118,7 +118,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
-  console.error("API error occurred", error.message);
+  console.error("API error occurred", error);
 
   // Zod errors
   if (error instanceof ZodError) {
