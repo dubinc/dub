@@ -1,6 +1,5 @@
 import { redis } from "@/lib/upstash";
 import { isIframeable } from "@dub/utils";
-import { recordLink } from "../../tinybird";
 
 export async function setRootDomain({
   id,
