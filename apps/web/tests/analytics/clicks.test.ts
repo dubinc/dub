@@ -1,5 +1,6 @@
 import {
   OLD_ANALYTICS_ENDPOINTS,
+  OLD_TO_NEW_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
@@ -47,13 +48,17 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
         query: { workspaceId, ...filter },
       });
 
-      if (endpoint === "count") {
+      if (endpoint === "clicks" || endpoint === "count") {
         expect(status).toEqual(200);
         expect(data).toEqual(expect.any(Number));
         expect(data).toBeGreaterThanOrEqual(0);
       } else {
         const parsed = z
-          .array(clickAnalyticsResponse[endpoint].strict())
+          .array(
+            clickAnalyticsResponse[
+              OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint] || endpoint
+            ].strict(),
+          )
           .safeParse(data);
 
         expect(status).toEqual(200);
@@ -61,17 +66,6 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
         expect(parsed.success).toBeTruthy();
       }
     });
-  });
-
-  test("deprecated: by count", async () => {
-    const { status, data: clicks } = await http.get<number>({
-      path: "/analytics/clicks",
-      query: { workspaceId, ...filter },
-    });
-
-    expect(status).toEqual(200);
-    expect(clicks).toEqual(expect.any(Number));
-    expect(clicks).toBeGreaterThanOrEqual(0);
   });
 });
 
@@ -90,12 +84,16 @@ describe.runIf(env.CI).sequential("GET /analytics/{endpoint}", async () => {
 
       expect(status).toEqual(200);
 
-      if (endpoint === "count") {
+      if (endpoint === "clicks" || endpoint === "count") {
         expect(data).toEqual(expect.any(Number));
         expect(data).toBeGreaterThanOrEqual(0);
       } else {
         const parsed = z
-          .array(clickAnalyticsResponse[endpoint].strict())
+          .array(
+            clickAnalyticsResponse[
+              OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint] || endpoint
+            ].strict(),
+          )
           .safeParse(data);
 
         expect(data.length).toBeGreaterThanOrEqual(0);
