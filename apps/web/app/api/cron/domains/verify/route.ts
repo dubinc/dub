@@ -4,11 +4,11 @@ import {
   verifyDomain,
 } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { handleDomainUpdates } from "./utils";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 
 /**
  * Cron to check if domains are verified.
