@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { handleDomainUpdates } from "./utils";
+import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 
 /**
  * Cron to check if domains are verified.
