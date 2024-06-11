@@ -1,4 +1,8 @@
-import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import {
+  DEPRECATED_ANALYTICS_ENDPOINTS,
+  OLD_TO_NEW_ANALYTICS_ENDPOINTS,
+  VALID_ANALYTICS_ENDPOINTS,
+} from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { clickAnalyticsResponse } from "@/lib/zod/schemas/clicks-analytics";
 import { describe, expect, test } from "vitest";
@@ -69,5 +73,38 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
     expect(status).toEqual(200);
     expect(clicks).toEqual(expect.any(Number));
     expect(clicks).toBeGreaterThanOrEqual(0);
+  });
+});
+
+// deprecated, backwards compatiblity
+describe.runIf(env.CI).sequential("GET /analytics/{endpoint}", async () => {
+  const h = new IntegrationHarness();
+  const { workspace, http } = await h.init();
+  const { workspaceId } = workspace;
+
+  DEPRECATED_ANALYTICS_ENDPOINTS.map((endpoint) => {
+    test(`/analytics/${endpoint}`, async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/analytics/${endpoint}`,
+        query: { workspaceId, ...filter },
+      });
+
+      const analyticsEndpoint =
+        OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint] || endpoint;
+
+      expect(status).toEqual(200);
+
+      if (analyticsEndpoint === "count") {
+        expect(data).toEqual(expect.any(Number));
+        expect(data).toBeGreaterThanOrEqual(0);
+      } else {
+        const parsed = z
+          .array(clickAnalyticsResponse[analyticsEndpoint].strict())
+          .safeParse(data);
+
+        expect(data.length).toBeGreaterThanOrEqual(0);
+        expect(parsed.success).toBeTruthy();
+      }
+    });
   });
 });
