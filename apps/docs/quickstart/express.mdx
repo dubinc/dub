@@ -1,0 +1,151 @@
+---
+title: "Express"
+description: "Learn how to create a short link using the Express and Dub TypeScript SDK."
+---
+
+import Prerequisites from "/snippets/sdk-prerequisites.mdx";
+import InstallTypescript from "/snippets/sdk-install-ts.mdx";
+import LinkArguments from "/snippets/link-arguments.mdx";
+
+<Prerequisites />
+
+<InstallTypescript />
+
+## 3. Create link
+
+Let's create a short link using the [Dub TypeScript SDK](/sdks/typescript/overview).
+
+```typescript index.ts
+app.get("/create-link", async (req: Request, res: Response) => {
+  try {
+    const result = await dub.links.create({
+      url: "https://www.google.com",
+    });
+
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
+```
+
+<Accordion title="Full list of available attributes for the Link model">
+  <LinkArguments />
+</Accordion>
+
+## 3a. Create link with `externalId`
+
+Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
+
+```typescript index.ts
+app.get("/create-link", async (req: Request, res: Response) => {
+  try {
+    const result = await dub.links.create({
+      url: "https://www.google.com",
+      externalId: "12345",
+    });
+
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
+```
+
+## 4. Upsert link
+
+Dub TypeScript SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
+
+```typescript index.ts
+app.get("/upsert-link", async (req: Request, res: Response) => {
+  try {
+    // Update the link if same URL already exists or create a new link
+    const result = await dub.links.upsert({
+      url: "https://www.google.com",
+    });
+
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
+```
+
+## 5. Update link
+
+Let's update an existing link using the Dub TypeScript SDK.
+
+You can do that in two ways:
+
+- Using the link's `linkId` in Dub's system.
+- Using the link's `externalId` in your own database (prefixed with `ext_`).
+
+```typescript index.ts
+app.get("/update-link", async (req: Request, res: Response) => {
+  try {
+    // Update a link by its linkId
+    const { shortLink } = await dub.links.update("clv3o9p9q000au1h0mc7r6l63", {
+      url: "https://www.google.uk", // new URL
+    });
+
+    // Update a link by its externalId
+    const { shortLink } = await dub.links.update("ext_12345", {
+      url: "https://www.google.uk", // new URL
+    });
+
+    res.status(200).json({ shortLink });
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
+```
+
+## 6. Retrieve analytics for link
+
+Dub allows you to retrieve analytics for a link using the Dub TypeScript SDK.
+
+```typescript index.ts
+import { ClicksTimeseries } from "dub/models/components";
+
+app.get("/analytics", async (req: Request, res: Response) => {
+  try {
+    // Retrieve the timeseries analytics for the last 7 days for a link
+    const response = await dub.analytics.retrieve({
+      linkId: "clv3o9p9q000au1h0mc7r6l63",
+      interval: "7d",
+      groupBy: "timeseries",
+    });
+
+    const timeseries = response as ClicksTimeseries[];
+
+    res.status(200).json(timeseries);
+  } catch (error: any) {
+    res.status(400).json(error);
+  }
+});
+```
+
+Simliarly, you can retrieve analytics for a link using the `externalId` field.
+
+```typescript index.ts
+// Retrieve the timeseries analytics for the last 7 days for a link
+const response = await dub.analytics.retrieve({
+  externalId: "ext_12345",
+  interval: "7d",
+  groupBy: "timeseries",
+});
+
+const timeseries = response as ClicksTimeseries[];
+```
+
+## 7. Examples
+
+<CardGroup cols={2}>
+  <Card
+    title="Express Example"
+    icon="arrow-up-right-from-square"
+    href="https://github.com/dubinc/examples/tree/main/typescript/express"
+  >
+    See the full example on GitHub.
+  </Card>
+</CardGroup>
