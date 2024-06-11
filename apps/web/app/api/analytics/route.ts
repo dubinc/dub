@@ -42,10 +42,12 @@ export const GET = withWorkspace(
         ? await getDomainViaEdge(domain).then((d) => d?.id)
         : null;
 
-    // Identify the request is from deprecated endpoint
+    // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)
+    // (/api/analytics/count)
+    // (/api/analytics/clicks/clicks)
     // (/api/analytics/clicks/count)
-    const isDeprecatedEndpoint =
+    const isDeprecatedClicksEndpoint =
       oldEvent && oldEvent === "clicks" && (!oldType || oldType === "count");
 
     const response = await getAnalytics({
@@ -54,7 +56,7 @@ export const GET = withWorkspace(
       groupBy,
       ...(linkId && { linkId }),
       workspaceId: workspace.id,
-      isDeprecatedEndpoint,
+      isDeprecatedClicksEndpoint,
     });
 
     return NextResponse.json(response);
