@@ -43,7 +43,7 @@ import usePagination from "./use-pagination";
 
 const PAGE_SIZE = 100;
 const tableCellClassName =
-  "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap overflow-hidden [&>.flex]:pr-4";
+  "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap overflow-hidden";
 
 type EventType = "clicks" | "leads" | "sales";
 
@@ -164,6 +164,9 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "event_name",
           enableHiding: false,
+          meta: {
+            maxWidth: 150,
+          },
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -172,6 +175,9 @@ export default function EventsTable() {
           id: "invoiceId",
           header: "Invoice ID",
           accessorKey: "invoice_id",
+          meta: {
+            maxWidth: 150,
+          },
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -179,32 +185,42 @@ export default function EventsTable() {
           id: "link",
           header: "Link",
           accessorKey: "link",
-          cell: ({ getValue }) => (
-            <Link
-              href={
-                queryParams({
-                  set: {
-                    domain: getValue().domain,
-                    key: getValue().key,
-                  },
-                  getNewPath: true,
-                }) as string
-              }
-              className="group relative flex items-center gap-3"
-            >
-              <LinkLogo
-                apexDomain={getApexDomain(getValue().url)}
-                className="h-4 w-4 sm:h-4 sm:w-4"
-              />
-              <span>
-                <span className="font-medium text-gray-950">
-                  {getValue().domain}
+          meta: {
+            maxWidth: 200,
+          },
+          cell: ({ getValue }) => {
+            const path = getValue().key === "_root" ? "" : `/${getValue().key}`;
+
+            return (
+              <Link
+                href={
+                  queryParams({
+                    set: {
+                      domain: getValue().domain,
+                      key: getValue().key,
+                    },
+                    getNewPath: true,
+                  }) as string
+                }
+                className="group relative flex items-center gap-3"
+              >
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue().url)}
+                  className="h-4 w-4 sm:h-4 sm:w-4"
+                />
+                <span
+                  className="truncate"
+                  title={`${getValue().domain}${path}`}
+                >
+                  <span className="font-medium text-gray-950">
+                    {getValue().domain}
+                  </span>
+                  {path}
                 </span>
-                {getValue().key === "_root" ? "" : `/${getValue().key}`}
-              </span>
-              <FilterButton />
-            </Link>
-          ),
+                <FilterButton />
+              </Link>
+            );
+          },
         },
         {
           id: "customer",
@@ -446,7 +462,6 @@ export default function EventsTable() {
                         <th
                           key={header.id}
                           className={cn(tableCellClassName, "font-medium")}
-                          style={{ width: `${header.getSize()}px` }}
                         >
                           <div className="flex items-center justify-between gap-6 !pr-0">
                             <button
@@ -505,11 +520,17 @@ export default function EventsTable() {
                       <td
                         key={cell.id}
                         className={cn(tableCellClassName, "text-gray-600")}
+                        style={{
+                          maxWidth: (cell.column.columnDef.meta as any)
+                            ?.maxWidth,
+                        }}
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
+                        <div className="w-full overflow-hidden truncate">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </div>
                       </td>
                     ))}
                   </tr>
