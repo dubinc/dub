@@ -31,7 +31,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end,
     timezone = "UTC",
     isDemo,
-    isDeprecatedEndpoint = false,
+    isDeprecatedClicksEndpoint = false,
   } = params;
 
   // get all-time clicks count if:
@@ -100,7 +100,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   if (groupBy === "count") {
     // Return the count value for deprecated endpoints
-    if (isDeprecatedEndpoint) {
+    if (isDeprecatedClicksEndpoint) {
       return response.data[0][event];
       // Return the object for count endpoints
     } else {

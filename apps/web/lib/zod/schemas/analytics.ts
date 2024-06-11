@@ -1,5 +1,7 @@
 import {
   EVENT_TYPES,
+  OLD_ANALYTICS_ENDPOINTS,
+  OLD_TO_NEW_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
   intervals,
 } from "@/lib/analytics/constants";
@@ -35,10 +37,23 @@ const analyticsGroupBy = z
     "The parameter to group the analytics data points by. Defaults to 'count' if undefined.",
   );
 
+const oldAnalyticsEndpoints = z
+  .enum(OLD_ANALYTICS_ENDPOINTS, {
+    errorMap: (_issue, _ctx) => {
+      return {
+        message: `Invalid type value. Valid values are: ${OLD_ANALYTICS_ENDPOINTS.join(", ")}`,
+      };
+    },
+  })
+  .transform((v) => OLD_TO_NEW_ANALYTICS_ENDPOINTS[v] || v);
+
 // For backwards compatibility
 export const analyticsPathParamsSchema = z.object({
-  eventType: analyticsEvents.removeDefault().optional(),
-  endpoint: analyticsGroupBy.removeDefault().optional(),
+  eventType: analyticsEvents
+    .removeDefault()
+    .or(oldAnalyticsEndpoints)
+    .optional(),
+  endpoint: oldAnalyticsEndpoints.optional(),
 });
 
 // Query schema for /api/analytics endpoint
