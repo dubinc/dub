@@ -1,6 +1,7 @@
 SCHEMA >
     `timestamp` DateTime64(3),
     `event_id` String,
+    `event_name` String,
     `click_id` String,
     `link_id` String,
     `customer_id` String,
