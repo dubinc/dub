@@ -11,8 +11,9 @@ export const detectBot = (req: NextRequest) => {
      * - facebookexternalhit is for Facebook crawler
      * - WhatsApp is for WhatsApp crawler
      * - MetaInspector is for https://metatags.io/
+     * - Go-http-client/1.1 is a bot: https://user-agents.net/string/go-http-client-1-1
      */
-    return /bot|chatgpt|facebookexternalhit|WhatsApp|google|baidu|bing|msn|duckduckbot|teoma|slurp|yandex|MetaInspector/i.test(
+    return /bot|chatgpt|facebookexternalhit|WhatsApp|google|baidu|bing|msn|duckduckbot|teoma|slurp|yandex|MetaInspector|Go-http-client/i.test(
       ua,
     );
   }

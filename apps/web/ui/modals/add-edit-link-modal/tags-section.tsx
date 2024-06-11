@@ -280,7 +280,7 @@ export default function TagsSection({
           </Command.List>
         )}
       </Command>
-      <div className="flex h-10 items-center space-x-2">
+      <div className="flex min-h-[40px] flex-wrap items-center gap-x-2 gap-y-1 py-2">
         {suggestedTags.length > 0 && (
           <>
             <Tooltip content="AI-suggested tags based on the content of the link. Click to add.">

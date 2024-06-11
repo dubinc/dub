@@ -79,9 +79,6 @@ export interface WorkspaceProps extends Project {
   users: {
     role: RoleProps;
   }[];
-  metadata?: {
-    defaultDomains?: string[];
-  };
   inviteCode: string;
   betaTester?: boolean;
 }

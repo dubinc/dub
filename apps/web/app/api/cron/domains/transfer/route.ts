@@ -1,98 +1,76 @@
-import { qstash, receiver } from "@/lib/cron";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { domainTransferredEmail, updateLinksInRedis } from "./utils";
+import { sendDomainTransferredEmail, updateLinksInRedis } from "./utils";
 
 const schema = z.object({
   currentWorkspaceId: z.string(),
   newWorkspaceId: z.string(),
   domain: z.string(),
-  linksCount: z.number(),
 });
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
-  const body = await req.json();
-
-  if (process.env.VERCEL === "1") {
-    const isValid = await receiver.verify({
-      signature: req.headers.get("Upstash-Signature") || "",
-      body: JSON.stringify(body),
-    });
-
-    if (!isValid) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-  }
-
-  const { currentWorkspaceId, newWorkspaceId, domain, linksCount } =
-    schema.parse(body);
-
-  const links = await prisma.link.findMany({
-    where: { domain, projectId: currentWorkspaceId },
-    take: 100,
-  });
-
-  // No remaining links to transfer
-  if (!links || links.length === 0) {
-    domainTransferredEmail({
-      domain,
-      currentWorkspaceId,
-      newWorkspaceId,
-      linksCount,
-    });
-
-    return NextResponse.json({
-      response: "success",
-    });
-  }
-
-  // Transfer links to the new workspace
-  const linkIds = links.map((link) => link.id);
-
   try {
-    await Promise.all([
-      prisma.link.updateMany({
-        where: { domain, projectId: currentWorkspaceId, id: { in: linkIds } },
-        data: { projectId: newWorkspaceId },
-      }),
-      prisma.linkTag.deleteMany({
-        where: { linkId: { in: linkIds } },
-      }),
-      updateLinksInRedis({ links, newWorkspaceId, domain }),
-      recordLink(
-        links.map((link) => ({
-          link_id: link.id,
-          domain: link.domain,
-          key: link.key,
-          url: link.url,
-          tag_ids: [],
-          workspace_id: newWorkspaceId,
-          created_at: link.createdAt,
-        })),
-      ),
-    ]);
+    const body = await req.json();
 
-    // wait 500 ms before making another request
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await verifyQstashSignature(req, body);
 
-    const remainingLinksCount = await prisma.link.count({
+    const { currentWorkspaceId, newWorkspaceId, domain } = schema.parse(body);
+
+    const links = await prisma.link.findMany({
       where: { domain, projectId: currentWorkspaceId },
+      take: 100,
     });
 
-    // No more links to transfer
-    if (remainingLinksCount === 0) {
-      domainTransferredEmail({
+    // No remaining links to transfer
+    if (!links || links.length === 0) {
+      // Send email to the owner of the current workspace
+      const linksCount = await prisma.link.count({
+        where: { domain, projectId: newWorkspaceId },
+      });
+
+      await sendDomainTransferredEmail({
         domain,
         currentWorkspaceId,
         newWorkspaceId,
         linksCount,
       });
-    }
+    } else {
+      // Transfer links to the new workspace
+      const linkIds = links.map((link) => link.id);
 
-    if (remainingLinksCount > 0) {
+      await Promise.all([
+        prisma.link.updateMany({
+          where: { domain, projectId: currentWorkspaceId, id: { in: linkIds } },
+          data: { projectId: newWorkspaceId },
+        }),
+        prisma.linkTag.deleteMany({
+          where: { linkId: { in: linkIds } },
+        }),
+        updateLinksInRedis({ links, newWorkspaceId, domain }),
+        recordLink(
+          links.map((link) => ({
+            link_id: link.id,
+            domain: link.domain,
+            key: link.key,
+            url: link.url,
+            tag_ids: [],
+            workspace_id: newWorkspaceId,
+            created_at: link.createdAt,
+          })),
+        ),
+      ]);
+
+      // wait 500 ms before making another request
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,
         body: {
@@ -108,10 +86,10 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     await log({
-      message: `Domain transfer cron for the workspace ${newWorkspaceId} failed. Error: ${error.message}`,
-      type: "errors",
+      message: `Error transferring domain: ${error.message}`,
+      type: "cron",
     });
 
-    return NextResponse.json({ error: error.message });
+    return handleAndReturnErrorResponse(error);
   }
 }
