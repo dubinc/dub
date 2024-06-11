@@ -1,5 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { limiter, qstash, sendLimitEmail } from "@/lib/cron";
+import { qstash } from "@/lib/cron";
+import { limiter } from "@/lib/cron/limiter";
+import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import {
@@ -34,10 +36,14 @@ export const updateUsage = async () => {
       },
       sentEmails: true,
     },
-    orderBy: {
-      usageLastChecked: "asc",
-      createdAt: "asc",
-    },
+    orderBy: [
+      {
+        usageLastChecked: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
     take: limit,
   });
 
@@ -94,53 +100,54 @@ export const updateUsage = async () => {
         },
       });
 
-      // Only send the 30-day summary email if the workspace was created more than 30 days ago
+      /* Only send the 30-day summary email if:
+         - the workspace has at least 1 link click
+         - the workspace was created more than 30 days ago
+       */
       if (
+        workspace.usage > 0 &&
         workspace.createdAt.getTime() <
-        new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+          new Date().getTime() - 30 * 24 * 60 * 60 * 1000
       ) {
-        const topLinks =
-          workspace.usage > 0
-            ? await getAnalytics({
-                workspaceId: workspace.id,
-                event: "clicks",
-                groupBy: "top_links",
-                interval: "30d",
-                root: false,
-              }).then(async (data) => {
-                const topFive = data.slice(0, 5);
-                return await Promise.all(
-                  topFive.map(
-                    async ({
-                      link: linkId,
-                      clicks,
-                    }: {
-                      link: string;
-                      clicks: number;
-                    }) => {
-                      const link = await prisma.link.findUnique({
-                        where: {
-                          id: linkId,
-                        },
-                        select: {
-                          domain: true,
-                          key: true,
-                        },
-                      });
-                      if (!link) return;
-                      return {
-                        link: linkConstructor({
-                          domain: link.domain,
-                          key: link.key,
-                          pretty: true,
-                        }),
-                        clicks,
-                      };
-                    },
-                  ),
-                );
-              })
-            : [];
+        const topLinks = await getAnalytics({
+          workspaceId: workspace.id,
+          event: "clicks",
+          groupBy: "top_links",
+          interval: "30d",
+          root: false,
+        }).then(async (data) => {
+          const topFive = data.slice(0, 5);
+          return await Promise.all(
+            topFive.map(
+              async ({
+                link: linkId,
+                clicks,
+              }: {
+                link: string;
+                clicks: number;
+              }) => {
+                const link = await prisma.link.findUnique({
+                  where: {
+                    id: linkId,
+                  },
+                  select: {
+                    domain: true,
+                    key: true,
+                  },
+                });
+                if (!link) return;
+                return {
+                  link: linkConstructor({
+                    domain: link.domain,
+                    key: link.key,
+                    pretty: true,
+                  }),
+                  clicks,
+                };
+              },
+            ),
+          );
+        });
 
         const emails = workspace.users.map(
           (user) => user.user.email,
@@ -235,6 +242,7 @@ export const updateUsage = async () => {
 
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
-    method: "GET",
+    method: "POST",
+    body: {},
   });
 };
