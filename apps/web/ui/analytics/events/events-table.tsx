@@ -13,7 +13,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { SortOrder } from "@dub/ui/src/icons";
+import { FilterBars, SortOrder } from "@dub/ui/src/icons";
 import {
   COUNTRIES,
   capitalize,
@@ -31,7 +31,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { ListFilter } from "lucide-react";
 import Link from "next/link";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
@@ -133,10 +132,10 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
             getNewPath: true,
           }) as string
         }
-        className="absolute left-0 top-0 rounded-md border border-transparent bg-white p-0.5 text-gray-400 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
+        className="absolute left-0 top-0 rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
       >
         <span className="sr-only">Filter</span>
-        <ListFilter className="h-3.5 w-3.5" />
+        <FilterBars className="h-3.5 w-3.5" />
       </Link>
     </div>
   );

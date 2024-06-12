@@ -2,6 +2,7 @@ export * from "./crosshairs";
 export * from "./cube";
 export * from "./cursor-rays";
 export * from "./download";
+export * from "./filter-bars";
 export * from "./flag-wavy";
 export * from "./gear";
 export * from "./globe";
