@@ -1,8 +1,4 @@
-import {
-  addDomainToVercel,
-  setRootDomain,
-  validateDomain,
-} from "@/lib/api/domains";
+import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { addDomain } from "@/lib/api/domains/add-domain";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { exceededLimitError } from "@/lib/api/errors";
@@ -10,7 +6,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { addDomainBodySchema } from "@/lib/zod/schemas/domains";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -88,20 +83,6 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     workspace,
     userId: session.user.id,
   });
-
-  waitUntil(
-    setRootDomain({
-      id: domainRecord.id,
-      domain: slug,
-      domainCreatedAt: domainRecord.createdAt,
-      projectId: workspace.id,
-      ...(workspace.plan !== "free" && {
-        url: target || undefined,
-        noindex: noindex === undefined ? true : noindex,
-      }),
-      rewrite: type === "rewrite",
-    }),
-  );
 
   return NextResponse.json(domainRecord, {
     status: 201,

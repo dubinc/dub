@@ -51,7 +51,7 @@ export const updateDomain = async (input: UpdateDomainInput) => {
         : link.expiresAt,
     geo: link.geo as NewLinkProps["geo"],
     ...(workspace.plan != "free" && {
-      ...("rewrite" in input && { rewrite: type === "rewrite" }),
+      ...("type" in input && { rewrite: type === "rewrite" }),
       ...("target" in input && { url: target || "" }),
       ...("expiredUrl" in input && { expiredUrl }),
       ...("noindex" in input && { noindex }),

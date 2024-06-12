@@ -2,7 +2,6 @@ import {
   addDomainToVercel,
   deleteDomainAndLinks,
   removeDomainFromVercel,
-  setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
 import { getDomain } from "@/lib/api/domains/get-domain";
@@ -35,7 +34,7 @@ export const PATCH = withWorkspace(
     const body = await parseRequestBody(req);
     const payload = updateDomainBodySchema.parse(body);
 
-    const { slug: newDomain, target, type, noindex } = payload;
+    const { slug: newDomain } = payload;
 
     if (newDomain && newDomain !== domain) {
       const validDomain = await validateDomain(newDomain);
@@ -63,20 +62,6 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       Promise.all([
-        setRootDomain({
-          id: domainRecord.id,
-          domain,
-          domainCreatedAt: domainRecord.createdAt,
-          ...(workspace.plan !== "free" && {
-            url: target || undefined,
-            noindex: noindex === undefined ? true : noindex,
-          }),
-          rewrite: type === "rewrite",
-          ...(newDomain !== domain && {
-            newDomain,
-          }),
-          projectId: workspace.id,
-        }),
         // remove old domain from Vercel
         newDomain !== domain && removeDomainFromVercel(domain),
       ]),

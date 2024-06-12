@@ -73,6 +73,7 @@ export async function formatRedisLink(
     android,
     geo,
     projectId,
+    noindex,
   } = link;
   const hasPassword = password && password.length > 0 ? true : false;
 
@@ -92,6 +93,7 @@ export async function formatRedisLink(
     ...(android && { android }),
     ...(geo && { geo: geo as object }),
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
+    ...(noindex && { noindex: true }),
   };
 }
 
