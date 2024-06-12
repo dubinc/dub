@@ -189,7 +189,6 @@ export const POST = async (req: Request) => {
             id: true,
             slug: true,
             domains: true,
-            plan: true,
             users: {
               select: {
                 user: {
