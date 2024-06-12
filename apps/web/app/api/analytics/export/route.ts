@@ -2,7 +2,6 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getDomainViaEdge } from "@/lib/planetscale";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { json2csv } from "json-2-csv";
 import JSZip from "jszip";
@@ -19,7 +18,7 @@ const convertToCSV = (data: object[]) => {
   });
 };
 
-// GET /api/analytics/[endpoint]/export – get export data for analytics
+// GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
     const parsedParams = analyticsQuerySchema.parse(searchParams);
@@ -33,11 +32,7 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const linkId = link
-      ? link.id
-      : domain && key === "_root"
-        ? await getDomainViaEdge(domain).then((d) => d?.id)
-        : null;
+    const linkId = link ? link.id : null;
 
     const zip = new JSZip();
 
