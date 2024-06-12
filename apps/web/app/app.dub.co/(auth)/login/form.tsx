@@ -178,6 +178,7 @@ export default function LoginForm() {
               placeholder="my-team"
               autoComplete="off"
               required
+              pattern=".*\S+.*"
               className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
             />
           </div>

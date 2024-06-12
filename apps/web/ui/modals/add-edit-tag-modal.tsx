@@ -149,6 +149,7 @@ function AddEditTagModal({
               id="name"
               type="text"
               required
+              pattern=".*\S+.*"
               autoFocus={!isMobile}
               autoComplete="off"
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"

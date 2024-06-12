@@ -8,7 +8,11 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, generateDomainFromName } from "@dub/utils";
+import {
+  FADE_IN_ANIMATION_SETTINGS,
+  cn,
+  generateDomainFromName,
+} from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
@@ -48,6 +52,7 @@ function AddWorkspaceModalHelper({
   });
   const { name, slug, domain } = data;
 
+  const [nameError, setNameError] = useState<string | null>(null);
   const [slugError, setSlugError] = useState<string | null>(null);
   const [domainError, setDomainError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -145,6 +150,10 @@ function AddWorkspaceModalHelper({
               const { error } = await res.json();
               const message = error.message;
 
+              if (message.toLowerCase().includes("name")) {
+                setNameError(message);
+              }
+
               if (message.toLowerCase().includes("slug")) {
                 setSlugError(message);
               }
@@ -169,7 +178,7 @@ function AddWorkspaceModalHelper({
               content={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
             />
           </label>
-          <div className="mt-2 flex rounded-md shadow-sm">
+          <div className="relative mt-2 flex rounded-md shadow-sm">
             <input
               name="name"
               id="name"
@@ -177,14 +186,29 @@ function AddWorkspaceModalHelper({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                    nameError,
+                },
+              )}
               placeholder="Acme, Inc."
               value={name}
               onChange={(e) => {
                 setData({ ...data, name: e.target.value });
+                setNameError(null);
               }}
               aria-invalid="true"
             />
+            {nameError ? (
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <AlertCircleFill
+                  className="h-5 w-5 text-red-500"
+                  aria-hidden="true"
+                />
+              </div>
+            ) : null}
           </div>
         </div>
 

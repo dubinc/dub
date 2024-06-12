@@ -49,6 +49,7 @@ const Form = () => {
         id="slug"
         type="text"
         required
+        pattern=".*\S+.*"
         disabled={pending}
         autoComplete="off"
         className={cn(

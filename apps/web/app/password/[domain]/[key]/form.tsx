@@ -48,6 +48,7 @@ export default function PasswordForm() {
             id="password"
             autoFocus={!isMobile}
             required
+            pattern=".*\S+.*"
             className={`${
               state.error
                 ? "border-red-300 pr-10 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
