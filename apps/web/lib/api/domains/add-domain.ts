@@ -22,7 +22,6 @@ export const addDomain = async (input: AddDomainInput) => {
     expiredUrl,
     userId,
     noindex,
-    archived,
   } = input;
 
   // Add domain to the workspace
@@ -47,7 +46,7 @@ export const addDomain = async (input: AddDomainInput) => {
       domain: domain.slug,
       key: "_root",
       createdAt: domain.createdAt,
-      archived: archived,
+      archived: false,
       proxy: false,
       publicStats: false,
       trackConversion: false,

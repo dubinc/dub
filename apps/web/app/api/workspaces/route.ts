@@ -143,12 +143,6 @@ export const POST = withSession(async ({ req, session }) => {
     },
   });
 
-  const domainRecord = await addDomain({
-    ...addDomainBodySchema.parse({ slug: domain }),
-    workspace: projectResponse as WorkspaceProps,
-    userId: session.user.id,
-  });
-
   waitUntil(
     (async () => {
       if (session.user["defaultWorkspace"] === null) {
@@ -171,6 +165,12 @@ export const POST = withSession(async ({ req, session }) => {
             },
           });
         } else {
+          const domainRecord = await addDomain({
+            ...addDomainBodySchema.parse({ slug: domain }),
+            workspace: projectResponse as WorkspaceProps,
+            userId: session.user.id,
+          });
+
           await setRootDomain({
             id: domainRecord.id,
             domain,
