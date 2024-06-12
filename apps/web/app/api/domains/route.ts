@@ -44,7 +44,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const body = await parseRequestBody(req);
   const payload = addDomainBodySchema.parse(body);
 
-  const { slug, type, target, noindex } = payload;
+  const { slug } = payload;
 
   if (workspace.domains.length >= workspace.domainsLimit) {
     return new Response(
