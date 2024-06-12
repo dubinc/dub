@@ -1,9 +1,9 @@
-import { AnimatedSizeContainer, Gear, Popover, useMediaQuery } from "@dub/ui";
+import { AnimatedSizeContainer, Popover, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Table } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { Ellipsis } from "lucide-react";
-import { RefObject, useEffect, useState } from "react";
+import { RefObject, useState } from "react";
 
 export default function EventsTableMenu({
   table,
@@ -15,11 +15,6 @@ export default function EventsTableMenu({
   const { isMobile } = useMediaQuery();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [state, setState] = useState<"idle" | "columns">("idle");
-
-  useEffect(() => {
-    if (!isOpen) setState("idle");
-  }, [isOpen]);
 
   return (
     <Popover
@@ -36,43 +31,27 @@ export default function EventsTableMenu({
         >
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-full w-screen flex-col gap-1 p-1 text-sm sm:w-auto sm:min-w-[130px]">
-              {state === "idle" && (
-                <Command.Item
-                  className={cn(
-                    "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
-                    "data-[selected=true]:bg-gray-100",
-                  )}
-                  onSelect={() => setState("columns")}
-                >
-                  <Gear className="h-4 w-4" />
-                  Edit columns
-                </Command.Item>
-              )}
-              {state === "columns" && (
-                <>
-                  {table
-                    .getAllColumns()
-                    .filter((c) => c.getCanHide())
-                    .map((column) => (
-                      <Command.Item
-                        key={column.id}
-                        className={cn(
-                          "flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5",
-                          "data-[selected=true]:bg-gray-100",
-                        )}
-                        onSelect={() => column.toggleVisibility()}
-                      >
-                        <input
-                          checked={column.getIsVisible()}
-                          type="checkbox"
-                          className="h-3 w-3 rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
-                          disabled
-                        />
-                        {column.columnDef.header?.toString()}
-                      </Command.Item>
-                    ))}
-                </>
-              )}
+              {table
+                .getAllColumns()
+                .filter((c) => c.getCanHide())
+                .map((column) => (
+                  <Command.Item
+                    key={column.id}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5",
+                      "data-[selected=true]:bg-gray-100",
+                    )}
+                    onSelect={() => column.toggleVisibility()}
+                  >
+                    <input
+                      checked={column.getIsVisible()}
+                      type="checkbox"
+                      className="h-3 w-3 rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                      disabled
+                    />
+                    {column.columnDef.header?.toString()}
+                  </Command.Item>
+                ))}
             </Command.List>
           </Command>
         </AnimatedSizeContainer>
