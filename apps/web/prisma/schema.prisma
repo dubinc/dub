@@ -93,25 +93,25 @@ model Project {
   slug String  @unique
   logo String?
 
-  plan              String  @default("free")
-  stripeId          String? @unique // Stripe subscription ID
+  plan              String   @default("free")
+  stripeId          String?  @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
-  stripeConnectId   String? @unique // for Stripe Connect
-  inviteCode        String? @unique
+  stripeConnectId   String?  @unique // for Stripe Connect
+  inviteCode        String?  @unique
 
-  usage        Int @default(0)
-  usageLimit   Int @default(1000)
-  aiUsage      Int @default(0)
-  aiLimit      Int @default(10)
-  linksUsage   Int @default(0)
-  linksLimit   Int @default(25)
-  domainsLimit Int @default(3)
-  tagsLimit    Int @default(5)
-  usersLimit   Int @default(1)
+  usage             Int      @default(0)
+  usageLimit        Int      @default(1000)
+  aiUsage           Int      @default(0)
+  aiLimit           Int      @default(10)
+  linksUsage        Int      @default(0)
+  linksLimit        Int      @default(25)
+  domainsLimit      Int      @default(3)
+  tagsLimit         Int      @default(5)
+  usersLimit        Int      @default(1)
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  usageLastChecked DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  usageLastChecked  DateTime @default(now())
 
   users          ProjectUsers[]
   invites        ProjectInvite[]
@@ -182,17 +182,30 @@ model Domain {
   slug        String   @unique
   verified    Boolean  @default(false)
   placeholder String   @default("https://dub.co/help/article/what-is-dub")
+  description String?
   primary     Boolean  @default(false)
-  archived    Boolean  @default(false) // Hide domain from the link creation modal
+  archived    Boolean  @default(false)
+  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
+  noindex     Boolean  @default(false)
   lastChecked DateTime @default(now())
+  links       Link[]
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  links   Link[]
-  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // TODO: migrate these attributes to Link model
+  target      String?
+  type        String    @default("redirect")
+  clicks      Int       @default(0)
+  lastClicked DateTime? // when the link was last clicked
+  publicStats Boolean   @default(false)
+
+  // these attributes will exist on both Link and Domain models
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index(projectId)
+  @@index(clicks(sort: Desc))
+  @@index(lastClicked)
   @@index(lastChecked(sort: Asc))
 }
 
@@ -223,8 +236,6 @@ model Link {
 
   // Link cloaking/masking via rewrite
   rewrite Boolean @default(false) // whether to rewrite the link or not
-  
-  noindex Boolean @default(false) // whether to noindex the link or not
 
   // Custom device targeting
   ios     String? @db.LongText // custom link for iOS devices
