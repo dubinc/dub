@@ -1,8 +1,4 @@
-import {
-  addDomainToVercel,
-  domainExists,
-  setRootDomain,
-} from "@/lib/api/domains";
+import { addDomainToVercel, domainExists } from "@/lib/api/domains";
 import { addDomain } from "@/lib/api/domains/add-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
@@ -165,17 +161,10 @@ export const POST = withSession(async ({ req, session }) => {
             },
           });
         } else {
-          const domainRecord = await addDomain({
+          await addDomain({
             ...addDomainBodySchema.parse({ slug: domain }),
             workspace: projectResponse as WorkspaceProps,
             userId: session.user.id,
-          });
-
-          await setRootDomain({
-            id: domainRecord.id,
-            domain,
-            domainCreatedAt: domainRecord.createdAt,
-            projectId: projectResponse.id,
           });
         }
       }
