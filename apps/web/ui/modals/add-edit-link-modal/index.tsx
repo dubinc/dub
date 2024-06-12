@@ -539,188 +539,193 @@ function AddEditLinkModal({
                   </div>
                 )}
               </div>
-              <div>
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor={`key-${randomIdx}`}
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Short Link
-                  </label>
-                  {props && lockKey ? (
-                    <button
-                      className="flex h-6 items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                      type="button"
-                      onClick={() => {
-                        window.confirm(
-                          "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
-                        ) && setLockKey(false);
-                      }}
+
+              {key !== "_root" && (
+                <div>
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor={`key-${randomIdx}`}
+                      className="block text-sm font-medium text-gray-700"
                     >
-                      <Lock className="h-3 w-3" />
-                    </button>
-                  ) : (
-                    <div className="flex items-center">
-                      <ButtonTooltip
-                        tooltipContent="Generate a random key"
-                        onClick={generateRandomKey}
-                        disabled={generatingRandomKey || generatingAIKey}
-                        className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                      Short Link
+                    </label>
+                    {props && lockKey ? (
+                      <button
+                        className="flex h-6 items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                        type="button"
+                        onClick={() => {
+                          window.confirm(
+                            "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
+                          ) && setLockKey(false);
+                        }}
                       >
-                        {generatingRandomKey ? (
-                          <LoadingCircle />
-                        ) : (
-                          <Random className="h-3 w-3" />
+                        <Lock className="h-3 w-3" />
+                      </button>
+                    ) : (
+                      <div className="flex items-center">
+                        <ButtonTooltip
+                          tooltipContent="Generate a random key"
+                          onClick={generateRandomKey}
+                          disabled={generatingRandomKey || generatingAIKey}
+                          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                        >
+                          {generatingRandomKey ? (
+                            <LoadingCircle />
+                          ) : (
+                            <Random className="h-3 w-3" />
+                          )}
+                        </ButtonTooltip>
+                        <ButtonTooltip
+                          tooltipContent="Generate a key using AI"
+                          onClick={generateAIKey}
+                          disabled={
+                            generatingRandomKey ||
+                            generatingAIKey ||
+                            (aiLimit && aiUsage && aiUsage >= aiLimit) ||
+                            !url
+                          }
+                          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                        >
+                          {generatingAIKey ? (
+                            <LoadingCircle />
+                          ) : (
+                            <Magic className="h-4 w-4" />
+                          )}
+                        </ButtonTooltip>
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative mt-1 flex rounded-md shadow-sm">
+                    <div>
+                      <select
+                        disabled={props && lockKey}
+                        value={domain}
+                        onChange={(e) => {
+                          setKeyError(null);
+                          setData({ ...data, domain: e.target.value });
+                        }}
+                        className={cn(
+                          "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                          props && lockKey && "cursor-not-allowed",
+                          loading && "w-[6rem] text-transparent",
                         )}
-                      </ButtonTooltip>
-                      <ButtonTooltip
-                        tooltipContent="Generate a key using AI"
-                        onClick={generateAIKey}
-                        disabled={
-                          generatingRandomKey ||
-                          generatingAIKey ||
-                          (aiLimit && aiUsage && aiUsage >= aiLimit) ||
-                          !url
-                        }
-                        className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                       >
-                        {generatingAIKey ? (
-                          <LoadingCircle />
-                        ) : (
-                          <Magic className="h-4 w-4" />
-                        )}
-                      </ButtonTooltip>
+                        {domains?.map(({ slug }) => (
+                          <option key={slug} value={slug}>
+                            {punycode(slug)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  )}
-                </div>
-                <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <div>
-                    <select
+                    <input
+                      ref={keyRef}
+                      type="text"
+                      name="key"
+                      id={`key-${randomIdx}`}
+                      // allow letters, numbers, '-', '/' and emojis
+                      pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
+                      onInvalid={(e) => {
+                        e.currentTarget.setCustomValidity(
+                          "Only letters, numbers, '-', '/', and emojis are allowed.",
+                        );
+                      }}
+                      onBlur={(e) =>
+                        e.target.value && runKeyChecks(e.target.value)
+                      }
                       disabled={props && lockKey}
-                      value={domain}
+                      autoComplete="off"
+                      className={cn(
+                        "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                        {
+                          "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                            keyError,
+                          "border-amber-300 pr-10 text-amber-900 placeholder-amber-300 focus:border-amber-500 focus:ring-amber-500":
+                            shortLink.length > 25,
+                          "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
+                            props && lockKey,
+                        },
+                      )}
+                      placeholder="(optional)"
+                      value={punycode(key)}
                       onChange={(e) => {
                         setKeyError(null);
-                        setData({ ...data, domain: e.target.value });
+                        e.currentTarget.setCustomValidity("");
+                        setData({
+                          ...data,
+                          key: e.target.value.replace(" ", "-"),
+                        });
                       }}
-                      className={cn(
-                        "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
-                        props && lockKey && "cursor-not-allowed",
-                        loading && "w-[6rem] text-transparent",
-                      )}
-                    >
-                      {domains?.map(({ slug }) => (
-                        <option key={slug} value={slug}>
-                          {punycode(slug)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <input
-                    ref={keyRef}
-                    type="text"
-                    name="key"
-                    id={`key-${randomIdx}`}
-                    // allow letters, numbers, '-', '/' and emojis
-                    pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
-                    onInvalid={(e) => {
-                      e.currentTarget.setCustomValidity(
-                        "Only letters, numbers, '-', '/', and emojis are allowed.",
-                      );
-                    }}
-                    onBlur={(e) =>
-                      e.target.value && runKeyChecks(e.target.value)
-                    }
-                    disabled={props && lockKey}
-                    autoComplete="off"
-                    className={cn(
-                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
-                      {
-                        "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
-                          keyError,
-                        "border-amber-300 pr-10 text-amber-900 placeholder-amber-300 focus:border-amber-500 focus:ring-amber-500":
-                          shortLink.length > 25,
-                        "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
-                          props && lockKey,
-                      },
-                    )}
-                    placeholder="(optional)"
-                    value={punycode(key)}
-                    onChange={(e) => {
-                      setKeyError(null);
-                      e.currentTarget.setCustomValidity("");
-                      setData({
-                        ...data,
-                        key: e.target.value.replace(" ", "-"),
-                      });
-                    }}
-                    aria-invalid="true"
-                    aria-describedby="key-error"
-                  />
-                  {(keyError || shortLink.length > 25) && (
-                    <Tooltip
-                      content={
-                        keyError || (
-                          <div className="flex max-w-xs items-start space-x-2 bg-white p-4">
-                            <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-500" />
-                            <div>
-                              <p className="text-sm text-gray-700">
-                                Short links longer than 25 characters will show
-                                up differently on some platforms.
-                              </p>
-                              <div className="mt-2 flex items-center space-x-2">
-                                <LinkedIn className="h-4 w-4" />
-                                <p className="cursor-pointer text-sm font-semibold text-[#4783cf] hover:underline">
-                                  {linkConstructor({
-                                    domain: "lnkd.in",
-                                    key: randomLinkedInNonce,
-                                    pretty: true,
-                                  })}
+                      aria-invalid="true"
+                      aria-describedby="key-error"
+                    />
+                    {(keyError || shortLink.length > 25) && (
+                      <Tooltip
+                        content={
+                          keyError || (
+                            <div className="flex max-w-xs items-start space-x-2 bg-white p-4">
+                              <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-500" />
+                              <div>
+                                <p className="text-sm text-gray-700">
+                                  Short links longer than 25 characters will
+                                  show up differently on some platforms.
                                 </p>
-                              </div>
-                              {shortLink.length > 25 && (
-                                <div className="mt-1 flex items-center space-x-2">
-                                  <Twitter className="h-4 w-4" />
-                                  <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
-                                    {truncate(shortLink, 25)}
+                                <div className="mt-2 flex items-center space-x-2">
+                                  <LinkedIn className="h-4 w-4" />
+                                  <p className="cursor-pointer text-sm font-semibold text-[#4783cf] hover:underline">
+                                    {linkConstructor({
+                                      domain: "lnkd.in",
+                                      key: randomLinkedInNonce,
+                                      pretty: true,
+                                    })}
                                   </p>
                                 </div>
-                              )}
+                                {shortLink.length > 25 && (
+                                  <div className="mt-1 flex items-center space-x-2">
+                                    <Twitter className="h-4 w-4" />
+                                    <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
+                                      {truncate(shortLink, 25)}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )
-                      }
-                    >
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                        {keyError ? (
-                          <AlertCircleFill
-                            className="h-5 w-5 text-red-500"
-                            aria-hidden="true"
-                          />
-                        ) : shortLink.length > 25 ? (
-                          <AlertCircleFill className="h-5 w-5 text-amber-500" />
-                        ) : null}
-                      </div>
-                    </Tooltip>
-                  )}
-                </div>
-                {keyError &&
-                  (keyError.includes("Upgrade to Pro") ? (
-                    <p className="mt-2 text-sm text-red-600" id="key-error">
-                      {keyError.split("Upgrade to Pro")[0]}
-                      <span
-                        className="cursor-pointer underline"
-                        onClick={() => queryParams({ set: { upgrade: "pro" } })}
+                          )
+                        }
                       >
-                        Upgrade to Pro
-                      </span>
-                      {keyError.split("Upgrade to Pro")[1]}
-                    </p>
-                  ) : (
-                    <p className="mt-2 text-sm text-red-600" id="key-error">
-                      {keyError}
-                    </p>
-                  ))}
-              </div>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                          {keyError ? (
+                            <AlertCircleFill
+                              className="h-5 w-5 text-red-500"
+                              aria-hidden="true"
+                            />
+                          ) : shortLink.length > 25 ? (
+                            <AlertCircleFill className="h-5 w-5 text-amber-500" />
+                          ) : null}
+                        </div>
+                      </Tooltip>
+                    )}
+                  </div>
+                  {keyError &&
+                    (keyError.includes("Upgrade to Pro") ? (
+                      <p className="mt-2 text-sm text-red-600" id="key-error">
+                        {keyError.split("Upgrade to Pro")[0]}
+                        <span
+                          className="cursor-pointer underline"
+                          onClick={() =>
+                            queryParams({ set: { upgrade: "pro" } })
+                          }
+                        >
+                          Upgrade to Pro
+                        </span>
+                        {keyError.split("Upgrade to Pro")[1]}
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-sm text-red-600" id="key-error">
+                        {keyError}
+                      </p>
+                    ))}
+                </div>
+              )}
             </div>
 
             {/* Divider */}
