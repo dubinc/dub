@@ -9,10 +9,12 @@ import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
   ButtonTooltip,
+  InfoTooltip,
   LinkedIn,
   LoadingCircle,
   Magic,
   Modal,
+  SimpleTooltipContent,
   Tooltip,
   TooltipContent,
   Twitter,
@@ -89,6 +91,7 @@ function AddEditLinkModal({
     aiLimit,
     mutate: mutateWorkspace,
     betaTester,
+    plan,
   } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -461,12 +464,25 @@ function AddEditLinkModal({
             <div className="grid gap-6 px-4 md:px-16">
               <div>
                 <div className="flex items-center justify-between">
-                  <label
-                    htmlFor={`url-${randomIdx}`}
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Destination URL
-                  </label>
+                  <div className="flex items-center space-x-2">
+                    <label
+                      htmlFor={`url-${randomIdx}`}
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Destination URL
+                    </label>
+                    {key === "_root" && (
+                      <InfoTooltip
+                        content={
+                          <SimpleTooltipContent
+                            title="The page your users will get redirected to when they visit your domain."
+                            cta="Learn more."
+                            href="https://dub.co/help/article/how-to-redirect-root-domain"
+                          />
+                        }
+                      />
+                    )}
+                  </div>
                   {urlError ? (
                     <p className="text-sm text-red-600" id="key-error">
                       Invalid URL
@@ -477,39 +493,51 @@ function AddEditLinkModal({
                     </div>
                   ) : null}
                 </div>
-                <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <input
-                    name="url"
-                    id={`url-${randomIdx}`}
-                    required
-                    placeholder={
-                      domains?.find(({ slug }) => slug === domain)
-                        ?.placeholder ||
-                      "https://dub.co/help/article/what-is-dub"
+                {plan === "free" && key === "_root" ? (
+                  <Tooltip
+                    content={
+                      <TooltipContent title="You can't configure a custom landing page on a free plan." />
                     }
-                    value={url}
-                    autoFocus={!key && !isMobile}
-                    autoComplete="off"
-                    onChange={(e) => {
-                      setUrlError(null);
-                      setData({ ...data, url: e.target.value });
-                    }}
-                    className={`${
-                      urlError
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                    } block w-full rounded-md focus:outline-none sm:text-sm`}
-                    aria-invalid="true"
-                  />
-                  {urlError && (
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <AlertCircleFill
-                        className="h-5 w-5 text-red-500"
-                        aria-hidden="true"
-                      />
+                  >
+                    <div className="mt-2 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
+                      https://yourdomain.com
                     </div>
-                  )}
-                </div>
+                  </Tooltip>
+                ) : (
+                  <div className="relative mt-1 flex rounded-md shadow-sm">
+                    <input
+                      name="url"
+                      id={`url-${randomIdx}`}
+                      required
+                      placeholder={
+                        domains?.find(({ slug }) => slug === domain)
+                          ?.placeholder ||
+                        "https://dub.co/help/article/what-is-dub"
+                      }
+                      value={url}
+                      autoFocus={!key && !isMobile}
+                      autoComplete="off"
+                      onChange={(e) => {
+                        setUrlError(null);
+                        setData({ ...data, url: e.target.value });
+                      }}
+                      className={`${
+                        urlError
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                      } block w-full rounded-md focus:outline-none sm:text-sm`}
+                      aria-invalid="true"
+                    />
+                    {urlError && (
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                        <AlertCircleFill
+                          className="h-5 w-5 text-red-500"
+                          aria-hidden="true"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <div className="flex items-center justify-between">
