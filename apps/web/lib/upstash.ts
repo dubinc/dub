@@ -1,12 +1,7 @@
 import { getDomainWithoutWWW, isIframeable } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import {
-  DomainProps,
-  LinkProps,
-  RedisDomainProps,
-  RedisLinkProps,
-} from "./types";
+import { LinkProps, RedisDomainProps, RedisLinkProps } from "./types";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
@@ -100,20 +95,22 @@ export async function formatRedisLink(
   };
 }
 
+// TODO:
+// Can we replace this with the formatRedisLink function?
 export async function formatRedisDomain(
-  domain: DomainProps,
+  link: LinkProps,
 ): Promise<RedisDomainProps> {
-  const { id, slug, target: url, type, projectId, noindex } = domain;
+  const { id, domain, url, rewrite, projectId, noindex } = link;
 
   return {
     id,
     ...(url && { url }), // on free plans you cannot set a root domain redirect, hence URL is undefined
     ...(url &&
-      type === "rewrite" && {
+      rewrite && {
         rewrite: true,
-        iframeable: await isIframeable({ url, requestDomain: slug }),
+        iframeable: await isIframeable({ url, requestDomain: domain }),
       }),
-    projectId,
+    projectId: projectId!,
     ...(noindex && { noindex: true }),
   };
 }

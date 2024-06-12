@@ -2,7 +2,7 @@ import { recordClick } from "@/lib/tinybird";
 import { formatRedisDomain, redis } from "@/lib/upstash";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { getDomainViaEdge } from "../planetscale";
+import { getLinkViaEdge } from "../planetscale";
 import { RedisDomainProps } from "../types";
 import { parse } from "./utils";
 
@@ -19,7 +19,7 @@ export default async function RootMiddleware(
   let link = await redis.hget<RedisDomainProps>(domain, "_root");
 
   if (!link) {
-    const linkData = await getDomainViaEdge(domain);
+    const linkData = await getLinkViaEdge(domain, "_root");
 
     if (!linkData) {
       // rewrite to placeholder page if domain doesn't exist
