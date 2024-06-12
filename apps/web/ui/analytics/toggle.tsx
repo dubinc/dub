@@ -50,6 +50,7 @@ import {
 } from "@dub/utils";
 import va from "@vercel/analytics";
 import { readStreamableValue } from "ai/rsc";
+import { Link2 } from "lucide-react";
 import {
   ComponentProps,
   useCallback,
@@ -96,6 +97,7 @@ export default function Toggle({
       browser,
       os,
       referer,
+      type,
     } = searchParamsObj;
     return [
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
@@ -110,6 +112,7 @@ export default function Toggle({
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
       ...(referer ? [{ key: "referer", value: referer }] : []),
+      ...(type ? [{ key: "type", value: type }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -297,6 +300,23 @@ export default function Toggle({
             value: true,
             label: "QR Scan",
             icon: QRCode,
+          },
+        ],
+      },
+      {
+        key: "type",
+        icon: Link2,
+        label: "Link type",
+        options: [
+          {
+            value: "root",
+            icon: Globe,
+            label: "Root domain link",
+          },
+          {
+            value: "all",
+            icon: Hyperlink,
+            label: "All links",
           },
         ],
         separatorAfter: !isPublicStatsPage,

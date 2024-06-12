@@ -113,6 +113,8 @@ export default function AnalyticsProvider({
       : "composite";
   }, [searchParams.get("tab")]);
 
+  const linkType = searchParams?.get("type");
+
   const { basePath, domain, baseApiPath } = useMemo(() => {
     if (admin) {
       return {
@@ -161,6 +163,9 @@ export default function AnalyticsProvider({
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
       ...(tagId && { tagId }),
+      ...(linkType !== "all" && {
+        root: (linkType === "root").toString(),
+      }),
       event: selectedTab,
     }).toString();
   }, [workspaceId, domain, key, searchParams, start, end, tagId, selectedTab]);
