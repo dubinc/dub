@@ -1,8 +1,6 @@
-import { updateDomain } from "@/lib/api/domains/update-domain";
 import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
 import { sendEmail } from "emails";
@@ -263,11 +261,17 @@ export const POST = async (req: Request) => {
             }),
           ),
           workspace.domains.forEach((domain) => {
-            updateDomain({
-              slug: domain.slug,
-              target: null,
-              noindex: false,
-              workspace: workspace as unknown as WorkspaceProps,
+            // TODO:
+            // We may want to update Redis as well
+
+            prisma.link.update({
+              where: {
+                id: domain.id,
+              },
+              data: {
+                url: "",
+                noindex: false,
+              },
             });
           }),
         ]);
