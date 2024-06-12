@@ -64,7 +64,7 @@ export default function EventsLinkType({
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
         >
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1 text-sm sm:w-auto sm:min-w-[200px]">
+            <Command.List className="flex w-screen flex-col gap-1 p-1 text-sm sm:w-auto sm:min-w-[180px]">
               {linkTypes.map(({ id, label, icon: Icon }) => (
                 <Command.Item
                   key={id}
