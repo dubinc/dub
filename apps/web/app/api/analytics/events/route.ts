@@ -36,5 +36,6 @@ export const GET = withWorkspace(
   },
   {
     needNotExceededClicks: true,
+    betaFeature: true,
   },
 );

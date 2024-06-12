@@ -40,8 +40,8 @@ export const AnalyticsContext = createContext<{
   totalEvents?: {
     [key in CompositeAnalyticsResponseOptions]: number;
   };
-  admin?: boolean;
-  demo?: boolean;
+  adminPage?: boolean;
+  demoPage?: boolean;
   requiresUpgrade?: boolean;
 }>({
   basePath: "",
@@ -51,22 +51,24 @@ export const AnalyticsContext = createContext<{
   queryString: "",
   start: new Date(),
   end: new Date(),
-  admin: false,
-  demo: false,
+  adminPage: false,
+  demoPage: false,
   requiresUpgrade: false,
 });
 
 export default function AnalyticsProvider({
   staticDomain,
   staticUrl,
-  admin,
-  demo,
+  adminPage,
+  demoPage,
+  eventsPage,
   children,
 }: PropsWithChildren<{
   staticDomain?: string;
   staticUrl?: string;
-  admin?: boolean;
-  demo?: boolean;
+  adminPage?: boolean;
+  demoPage?: boolean;
+  eventsPage?: boolean;
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -104,7 +106,7 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const selectedTab: EventType = useMemo(() => {
-    if (!demo && !betaTester) return "clicks";
+    if (!demoPage && !betaTester) return "clicks";
 
     const tab = searchParams.get("tab");
 
@@ -114,13 +116,13 @@ export default function AnalyticsProvider({
   }, [searchParams.get("tab")]);
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
-    if (admin) {
+    if (adminPage) {
       return {
         basePath: `/analytics`,
         baseApiPath: `/api/analytics/admin`,
         domain: domainSlug,
       };
-    } else if (demo) {
+    } else if (demoPage) {
       return {
         basePath: `/analytics/demo`,
         baseApiPath: `/api/analytics/demo`,
@@ -140,7 +142,16 @@ export default function AnalyticsProvider({
         domain: staticDomain,
       };
     }
-  }, [admin, demo, slug, pathname, staticDomain, domainSlug, key, selectedTab]);
+  }, [
+    adminPage,
+    demoPage,
+    slug,
+    pathname,
+    staticDomain,
+    domainSlug,
+    key,
+    selectedTab,
+  ]);
 
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
@@ -161,6 +172,9 @@ export default function AnalyticsProvider({
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
       ...(tagId && { tagId }),
+      ...(eventsPage && {
+        root: searchParams.get("root") || "false",
+      }),
       event: selectedTab,
     }).toString();
   }, [workspaceId, domain, key, searchParams, start, end, tagId, selectedTab]);
@@ -172,7 +186,7 @@ export default function AnalyticsProvider({
     [key in CompositeAnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demo || betaTester ? "composite" : "clicks",
+      event: demoPage || betaTester ? "composite" : "clicks",
     })}`,
     fetcher,
     {
@@ -212,8 +226,8 @@ export default function AnalyticsProvider({
         interval, /// time period interval
         tagId, // id of a single tag
         totalEvents, // totalEvents (clicks, leads, sales)
-        admin, // whether the user is an admin
-        demo, // whether the user is viewing demo analytics
+        adminPage, // whether the user is an admin
+        demoPage, // whether the user is viewing demo analytics
         requiresUpgrade, // whether an upgrade is required to perform the query
       }}
     >

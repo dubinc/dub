@@ -71,8 +71,17 @@ export default function Toggle({
 }) {
   const { plan } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
-  const { basePath, domain, key, url, admin, demo, start, end, interval } =
-    useContext(AnalyticsContext);
+  const {
+    basePath,
+    domain,
+    key,
+    url,
+    adminPage,
+    demoPage,
+    start,
+    end,
+    interval,
+  } = useContext(AnalyticsContext);
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -421,8 +430,8 @@ export default function Toggle({
           "sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-3",
           {
             "top-14": isPublicStatsPage,
-            "top-0": admin,
-            "top-16": demo,
+            "top-0": adminPage,
+            "top-16": demoPage,
             "shadow-md": scrolled,
           },
         )}
@@ -578,8 +587,8 @@ export default function Toggle({
                     const end = new Date();
 
                     const requiresUpgrade =
-                      admin ||
-                      demo ||
+                      adminPage ||
+                      demoPage ||
                       DUB_DEMO_LINKS.find(
                         (l) => l.domain === domain && l.key === key,
                       )
