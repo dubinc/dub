@@ -120,3 +120,35 @@ export const VALID_ANALYTICS_FILTERS = [
 ];
 
 export const EVENT_TYPES = ["clicks", "leads", "sales", "composite"] as const;
+
+export const OLD_ANALYTICS_ENDPOINTS = [
+  "clicks",
+  "count",
+  "timeseries",
+  "countries",
+  "country",
+  "cities",
+  "city",
+  "devices",
+  "device",
+  "browsers",
+  "browser",
+  "os",
+  "referers",
+  "referer",
+  "top_links",
+  "top_urls",
+] as const;
+
+export const OLD_TO_NEW_ANALYTICS_ENDPOINTS = {
+  clicks: "count",
+  timeseries: "timeseries",
+  country: "countries",
+  city: "cities",
+  device: "devices",
+  browser: "browsers",
+  os: "os",
+  referer: "referers",
+  top_links: "top_links",
+  top_urls: "top_urls",
+} as const;

@@ -20,5 +20,5 @@ export type DeviceTabs = "devices" | "browsers" | "os";
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
-  isDeprecatedEndpoint?: boolean;
+  isDeprecatedClicksEndpoint?: boolean;
 };

@@ -1,4 +1,8 @@
-import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import {
+  OLD_ANALYTICS_ENDPOINTS,
+  OLD_TO_NEW_ANALYTICS_ENDPOINTS,
+  VALID_ANALYTICS_ENDPOINTS,
+} from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { clickAnalyticsResponse } from "@/lib/zod/schemas/clicks-analytics";
 import { describe, expect, test } from "vitest";
@@ -37,20 +41,24 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   const { workspace, http } = await h.init();
   const { workspaceId } = workspace;
 
-  VALID_ANALYTICS_ENDPOINTS.map((endpoint) => {
+  OLD_ANALYTICS_ENDPOINTS.slice(0, 5).map((endpoint) => {
     test(`deprecated: by ${endpoint}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics/clicks/${endpoint}`,
         query: { workspaceId, ...filter },
       });
 
-      if (endpoint === "count") {
+      if (endpoint === "clicks" || endpoint === "count") {
         expect(status).toEqual(200);
         expect(data).toEqual(expect.any(Number));
         expect(data).toBeGreaterThanOrEqual(0);
       } else {
         const parsed = z
-          .array(clickAnalyticsResponse[endpoint].strict())
+          .array(
+            clickAnalyticsResponse[
+              OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint] || endpoint
+            ].strict(),
+          )
           .safeParse(data);
 
         expect(status).toEqual(200);
@@ -59,15 +67,38 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
       }
     });
   });
+});
 
-  test("deprecated: by count", async () => {
-    const { status, data: clicks } = await http.get<number>({
-      path: "/analytics/clicks",
-      query: { workspaceId, ...filter },
+// deprecated, backwards compatiblity
+describe.runIf(env.CI).sequential("GET /analytics/{endpoint}", async () => {
+  const h = new IntegrationHarness();
+  const { workspace, http } = await h.init();
+  const { workspaceId } = workspace;
+
+  OLD_ANALYTICS_ENDPOINTS.slice(0, 5).map((endpoint) => {
+    test(`/analytics/${endpoint}`, async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/analytics/${endpoint}`,
+        query: { workspaceId, ...filter },
+      });
+
+      expect(status).toEqual(200);
+
+      if (endpoint === "clicks" || endpoint === "count") {
+        expect(data).toEqual(expect.any(Number));
+        expect(data).toBeGreaterThanOrEqual(0);
+      } else {
+        const parsed = z
+          .array(
+            clickAnalyticsResponse[
+              OLD_TO_NEW_ANALYTICS_ENDPOINTS[endpoint] || endpoint
+            ].strict(),
+          )
+          .safeParse(data);
+
+        expect(data.length).toBeGreaterThanOrEqual(0);
+        expect(parsed.success).toBeTruthy();
+      }
     });
-
-    expect(status).toEqual(200);
-    expect(clicks).toEqual(expect.any(Number));
-    expect(clicks).toBeGreaterThanOrEqual(0);
   });
 });
