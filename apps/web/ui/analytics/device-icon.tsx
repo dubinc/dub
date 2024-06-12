@@ -1,6 +1,14 @@
 import { DeviceTabs } from "@/lib/analytics/types";
 import { Apple, Chrome, Safari } from "@/ui/shared/icons/devices";
 import { BlurImage } from "@dub/ui";
+import {
+  Desktop,
+  GamingConsole,
+  MobilePhone,
+  TV,
+  Tablet,
+  Watch,
+} from "@dub/ui/src/icons";
 
 export default function DeviceIcon({
   display,
@@ -12,20 +20,22 @@ export default function DeviceIcon({
   className: string;
 }) {
   if (tab === "devices") {
-    return (
-      <BlurImage
-        src={
-          display === "Desktop"
-            ? `https://faisalman.github.io/ua-parser-js/images/types/default.png`
-            : `https://faisalman.github.io/ua-parser-js/images/types/${display.toLowerCase()}.png`
-        }
-        alt={display}
-        width={20}
-        height={20}
-        sizes="10vw"
-        className={className}
-      />
-    );
+    switch (display) {
+      case "Desktop":
+        return <Desktop className={className} />;
+      case "Mobile":
+        return <MobilePhone className={className} />;
+      case "Tablet":
+        return <Tablet className={className} />;
+      case "Wearable":
+        return <Watch className={className} />;
+      case "Console":
+        return <GamingConsole className={className} />;
+      case "Smarttv":
+        return <TV className={className} />;
+      default:
+        return <Desktop className={className} />;
+    }
   } else if (tab === "browsers") {
     if (display === "Chrome") {
       return <Chrome className={className} />;
