@@ -11,16 +11,6 @@ export const pscale_config = {
 
 export const conn = connect(pscale_config);
 
-type GetCustomerParams =
-  | {
-      externalId: string;
-      workspaceId: string;
-    }
-  | {
-      externalId: string;
-      projectConnectId: string;
-    };
-
 export const getWorkspaceViaEdge = async (workspaceId: string) => {
   if (!DATABASE_URL) return null;
 
