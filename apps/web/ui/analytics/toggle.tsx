@@ -50,7 +50,6 @@ import {
 } from "@dub/utils";
 import va from "@vercel/analytics";
 import { readStreamableValue } from "ai/rsc";
-import { Link2 } from "lucide-react";
 import {
   ComponentProps,
   useCallback,
@@ -72,8 +71,17 @@ export default function Toggle({
 }) {
   const { plan } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
-  const { basePath, domain, key, url, admin, demo, start, end, interval } =
-    useContext(AnalyticsContext);
+  const {
+    basePath,
+    domain,
+    key,
+    url,
+    adminPage,
+    demoPage,
+    start,
+    end,
+    interval,
+  } = useContext(AnalyticsContext);
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -97,7 +105,6 @@ export default function Toggle({
       browser,
       os,
       referer,
-      type,
     } = searchParamsObj;
     return [
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
@@ -112,7 +119,6 @@ export default function Toggle({
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
       ...(referer ? [{ key: "referer", value: referer }] : []),
-      ...(type ? [{ key: "type", value: type }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -302,23 +308,6 @@ export default function Toggle({
             icon: QRCode,
           },
         ],
-      },
-      {
-        key: "type",
-        icon: Link2,
-        label: "Link type",
-        options: [
-          {
-            value: "root",
-            icon: Globe,
-            label: "Root domain link",
-          },
-          {
-            value: "all",
-            icon: Hyperlink,
-            label: "All links",
-          },
-        ],
         separatorAfter: !isPublicStatsPage,
       },
       {
@@ -441,8 +430,8 @@ export default function Toggle({
           "sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-3",
           {
             "top-14": isPublicStatsPage,
-            "top-0": admin,
-            "top-16": demo,
+            "top-0": adminPage,
+            "top-16": demoPage,
             "shadow-md": scrolled,
           },
         )}
@@ -598,8 +587,8 @@ export default function Toggle({
                     const end = new Date();
 
                     const requiresUpgrade =
-                      admin ||
-                      demo ||
+                      adminPage ||
+                      demoPage ||
                       DUB_DEMO_LINKS.find(
                         (l) => l.domain === domain && l.key === key,
                       )

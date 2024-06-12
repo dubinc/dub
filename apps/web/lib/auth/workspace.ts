@@ -14,6 +14,7 @@ import {
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -57,7 +58,8 @@ export const withWorkspace = (
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     allowSelf, // special case for removing yourself from a workspace
     skipLinkChecks, // special case for /api/links/exists – skip link checks
-    domainChecks,
+    domainChecks, // if the action needs to check if the domain belongs to the workspace
+    betaFeature, // if the action is a beta feature
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredRole?: Array<"owner" | "member">;
@@ -67,6 +69,7 @@ export const withWorkspace = (
     allowSelf?: boolean;
     skipLinkChecks?: boolean;
     domainChecks?: boolean;
+    betaFeature?: boolean;
   } = {},
 ) => {
   return async (
@@ -263,6 +266,17 @@ export const withWorkspace = (
           code: "not_found",
           message: "Workspace not found.",
         });
+      }
+
+      // beta feature checks
+      if (betaFeature) {
+        const betaTester = await isBetaTester(workspace.id);
+        if (!betaTester) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "Unauthorized: Beta feature.",
+          });
+        }
       }
 
       // edge case where linkId is an externalId and workspaceId was not provided (they must've used projectSlug instead)

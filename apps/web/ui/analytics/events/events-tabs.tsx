@@ -25,7 +25,7 @@ export default function EventsTabs() {
   const { isMobile } = useMediaQuery();
 
   const tab = searchParams.get("tab") || "clicks";
-  const { totalEvents, demo } = useContext(AnalyticsContext);
+  const { totalEvents, demoPage } = useContext(AnalyticsContext);
 
   const { betaTester } = useWorkspace();
   const { baseApiPath, queryString, requiresUpgrade } =
@@ -34,7 +34,7 @@ export default function EventsTabs() {
   const { data } = useSWR<TimeseriesData>(
     `${baseApiPath}?${editQueryString(queryString, {
       groupBy: "timeseries",
-      event: demo || betaTester ? "composite" : "clicks",
+      event: demoPage || betaTester ? "composite" : "clicks",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })}`,
     fetcher,
@@ -70,7 +70,7 @@ export default function EventsTabs() {
 
   return (
     <div className="grid w-full grid-cols-3 gap-2 overflow-x-auto sm:gap-4">
-      {["clicks", ...(demo || betaTester ? ["leads", "sales"] : [])].map(
+      {["clicks", ...(demoPage || betaTester ? ["leads", "sales"] : [])].map(
         (event) => (
           <button
             key={event}

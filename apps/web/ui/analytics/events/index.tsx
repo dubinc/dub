@@ -9,19 +9,22 @@ import EventsTabs from "./events-tabs";
 export default function AnalyticsEvents({
   staticDomain,
   staticUrl,
-  admin,
-  demo,
+  adminPage,
+  demoPage,
 }: {
   staticDomain?: string;
   staticUrl?: string;
-  admin?: boolean;
-  demo?: boolean;
+  adminPage?: boolean;
+  demoPage?: boolean;
 }) {
   const { searchParams } = useRouterStuff();
   const tab = searchParams.get("tab");
 
   return (
-    <AnalyticsProvider {...{ staticDomain, staticUrl, admin, demo }}>
+    <AnalyticsProvider
+      {...{ staticDomain, staticUrl, adminPage, demoPage }}
+      eventsPage
+    >
       <div className="py-10">
         <Toggle heading="Events" />
         <div className="mx-auto flex max-w-screen-xl flex-col gap-5 px-2.5 lg:px-20">

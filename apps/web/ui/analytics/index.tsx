@@ -16,16 +16,16 @@ import TopLinks from "./top-links";
 export default function Analytics({
   staticDomain,
   staticUrl,
-  admin,
-  demo,
+  adminPage,
+  demoPage,
 }: {
   staticDomain?: string;
   staticUrl?: string;
-  admin?: boolean;
-  demo?: boolean;
+  adminPage?: boolean;
+  demoPage?: boolean;
 }) {
   return (
-    <AnalyticsProvider {...{ staticDomain, staticUrl, admin, demo }}>
+    <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage, demoPage }}>
       <AnalyticsContext.Consumer>
         {({ basePath }) => {
           const isPublicStatsPage = basePath.startsWith("/stats");

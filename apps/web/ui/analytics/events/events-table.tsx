@@ -37,7 +37,7 @@ import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
-import EventsTableMenu from "./events-table-menu";
+import EventsLinkType from "./events-link-type";
 import usePagination from "./use-pagination";
 
 const PAGE_SIZE = 100;
@@ -404,6 +404,7 @@ export default function EventsTable() {
       limit: pagination.pageSize.toString(),
       sortBy,
       order,
+      root: searchParams.get("root") || "false",
     }).toString()}`,
     fetcher,
     {
@@ -523,10 +524,8 @@ export default function EventsTable() {
                                 />
                               )}
                             </button>
-                            {columnIdx === headerGroup.headers.length - 1 && (
-                              // Last column
-                              <EventsTableMenu
-                                table={table}
+                            {header.id === "link" && (
+                              <EventsLinkType
                                 scrollContainer={scrollContainer}
                               />
                             )}
