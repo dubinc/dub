@@ -31,7 +31,7 @@
     "@splinetool/runtime": "^1.2.8",
     "@stripe/stripe-js": "^1.44.1",
     "@tanstack/react-table": "^8.17.3",
-    "@team-plain/typescript-sdk": "^3.9.0",
+    "@team-plain/typescript-sdk": "^4.5.0",
     "@upstash/qstash": "^2.3.0",
     "@upstash/ratelimit": "^1.1.3",
     "@upstash/redis": "^1.25.1",
