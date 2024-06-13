@@ -17,8 +17,6 @@ export default function ExportButton({
   const { queryString } = useContext(AnalyticsContext);
   const { exportQueryString } = useContext(EventsTableContext);
 
-  console.log(exportQueryString);
-
   async function exportData() {
     setLoading(true);
     try {
