@@ -2,7 +2,6 @@ import { constructMetadata } from "@dub/utils";
 import ImpersonateUser from "./components/impersonate-user";
 import ImpersonateWorkspace from "./components/impersonate-workspace";
 import RefreshDomain from "./components/refresh-domain";
-import SendThanks from "./components/send-thanks";
 
 export const metadata = constructMetadata({
   title: "Dub Admin",
@@ -30,11 +29,6 @@ export default function AdminPage() {
           Remove and re-add domain from Vercel
         </p>
         <RefreshDomain />
-      </div>
-      <div className="flex flex-col space-y-4 px-5 py-10">
-        <h2 className="text-xl font-semibold">Send Thanks</h2>
-        <p className="text-sm text-gray-500">Send thank you email to a user</p>
-        <SendThanks />
       </div>
     </div>
   );
