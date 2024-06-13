@@ -1,3 +1,4 @@
+import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CountingNumbers, useMediaQuery, useRouterStuff } from "@dub/ui";
@@ -10,6 +11,7 @@ import { scaleLinear, scaleUtc } from "@visx/scale";
 import { Area, AreaClosed } from "@visx/shape";
 import { motion } from "framer-motion";
 import { useCallback, useContext, useEffect, useMemo } from "react";
+import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import { AnalyticsContext } from "../analytics-provider";
 
@@ -25,23 +27,37 @@ export default function EventsTabs() {
   const { isMobile } = useMediaQuery();
 
   const tab = searchParams.get("tab") || "clicks";
-  const { totalEvents, demoPage } = useContext(AnalyticsContext);
+  const { demoPage } = useContext(AnalyticsContext);
 
   const { betaTester } = useWorkspace();
   const { baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
-  const { data } = useSWRImmutable<TimeseriesData>(
+  const { data: totalEvents, isLoading: isLoadingTotalEvents } = useSWR<{
+    [key in CompositeAnalyticsResponseOptions]: number;
+  }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      groupBy: "timeseries",
       event: demoPage || betaTester ? "composite" : "clicks",
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })}`,
     fetcher,
     {
-      shouldRetryOnError: !requiresUpgrade,
+      keepPreviousData: true,
     },
   );
+
+  const { data: timeseriesData, isLoading: isLoadingTimeseries } =
+    useSWRImmutable<TimeseriesData>(
+      `${baseApiPath}?${editQueryString(queryString, {
+        groupBy: "timeseries",
+        event: demoPage || betaTester ? "composite" : "clicks",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      })}`,
+      fetcher,
+      {
+        shouldRetryOnError: !requiresUpgrade,
+        keepPreviousData: true,
+      },
+    );
 
   const onEventTabClick = useCallback(
     (event: string) => {
@@ -86,7 +102,13 @@ export default function EventsTabs() {
               <p className="text-sm text-gray-600">{capitalize(event)}</p>
               <div className="mt-2">
                 {totalEvents ? (
-                  <CountingNumbers as="p" className="text-2xl">
+                  <CountingNumbers
+                    as="p"
+                    className={cn(
+                      "text-2xl transition-opacity",
+                      isLoadingTotalEvents && "opacity-40",
+                    )}
+                  >
                     {totalEvents?.[event] ?? 0}
                   </CountingNumbers>
                 ) : (
@@ -94,9 +116,14 @@ export default function EventsTabs() {
                 )}
               </div>
             </div>
-            {data && !isMobile && (
-              <div className="relative h-full max-w-[140px] grow">
-                <Chart data={data} event={event} />
+            {timeseriesData && !isMobile && (
+              <div
+                className={cn(
+                  "relative h-full max-w-[140px] grow transition-opacity",
+                  isLoadingTimeseries && "opacity-40",
+                )}
+              >
+                <Chart data={timeseriesData} event={event} />
               </div>
             )}
           </button>
