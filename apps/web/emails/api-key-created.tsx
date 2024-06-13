@@ -1,4 +1,4 @@
-import { DUB_LOGO, formatDate } from "@dub/utils";
+import { DUB_WORDMARK, formatDate } from "@dub/utils";
 import {
   Body,
   Container,
@@ -30,8 +30,7 @@ export default function APIKeyCreated({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
-                width="40"
+                src={DUB_WORDMARK}
                 height="40"
                 alt="Dub.co"
                 className="mx-auto my-0"
