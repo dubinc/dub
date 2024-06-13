@@ -89,8 +89,8 @@ importers:
         specifier: ^1.44.1
         version: 1.44.1
       '@team-plain/typescript-sdk':
-        specifier: ^3.9.0
-        version: 3.9.0
+        specifier: ^4.5.0
+        version: 4.5.0
       '@upstash/qstash':
         specifier: ^2.3.0
         version: 2.3.0
@@ -7837,8 +7837,8 @@ packages:
       tailwindcss: 3.3.3
     dev: false
 
-  /@team-plain/typescript-sdk@3.9.0:
-    resolution: {integrity: sha512-fS22kpwPuKzXpIHs+tK+974Wx/+CPs3+vmxW1kldmuXGWZ1p8V4PdYC0R8AC0uiG9f48VX4gq6x1Uw2isPpM+w==}
+  /@team-plain/typescript-sdk@4.5.0:
+    resolution: {integrity: sha512-+m9sfToLtlkV6wOnpYBxGnRwEpvn4zcaXHhA+C4lst52U6cvTzTCw2t7z2EYgXqe/IG/5voR5DiiyKK1vIM32g==}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       ajv: 8.12.0
