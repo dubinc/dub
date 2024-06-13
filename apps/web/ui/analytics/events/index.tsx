@@ -34,7 +34,7 @@ export default function AnalyticsEvents({
     >
       <div className="py-10">
         <Toggle page="events" />
-        <div className="mx-auto flex max-w-screen-xl flex-col gap-8 px-2.5 lg:px-20">
+        <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-2.5 lg:px-20">
           <EventsTabs />
           <EventsTable key={tab} />
         </div>

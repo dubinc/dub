@@ -493,7 +493,7 @@ export default function EventsTable() {
           <EditColumnsButton table={table} />
         </div>
       </div>
-      <div className="mt-2 border border-gray-200 bg-white sm:rounded-xl">
+      <div className="mt-3 border border-gray-200 bg-white sm:rounded-xl">
         <div className="relative rounded-[inherit]">
           {(!error && !!data?.length) || isLoading ? (
             <div
