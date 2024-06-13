@@ -10,7 +10,7 @@ import { scaleLinear, scaleUtc } from "@visx/scale";
 import { Area, AreaClosed } from "@visx/shape";
 import { motion } from "framer-motion";
 import { useCallback, useContext, useEffect, useMemo } from "react";
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import { AnalyticsContext } from "../analytics-provider";
 
 type TimeseriesData = {
@@ -31,7 +31,7 @@ export default function EventsTabs() {
   const { baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
-  const { data } = useSWR<TimeseriesData>(
+  const { data } = useSWRImmutable<TimeseriesData>(
     `${baseApiPath}?${editQueryString(queryString, {
       groupBy: "timeseries",
       event: demoPage || betaTester ? "composite" : "clicks",
