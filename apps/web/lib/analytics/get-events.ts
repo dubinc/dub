@@ -1,4 +1,5 @@
 import { tb } from "@/lib/tinybird";
+import { z } from "zod";
 import { tbDemo } from "../tinybird/demo-client";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import { clickEventEnrichedSchema } from "../zod/schemas/clicks";
@@ -8,7 +9,13 @@ import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
 
 // Fetch data for /api/analytics/events
-export const getEvents = async (params: EventsFilters) => {
+export const getEvents = async (
+  params: EventsFilters,
+): Promise<
+  | z.infer<typeof clickEventEnrichedSchema>[]
+  | z.infer<typeof leadEventEnrichedSchema>[]
+  | z.infer<typeof saleEventEnrichedSchema>[]
+> => {
   let { event, workspaceId, interval, start, end, isDemo } = params;
 
   if (start) {

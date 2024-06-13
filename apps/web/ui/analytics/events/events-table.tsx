@@ -35,9 +35,11 @@ import Link from "next/link";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import z from "zod";
+import { EventsTableContext } from ".";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import EventsLinkType from "./events-link-type";
+import EventsTableMenu from "./events-table-menu";
 import usePagination from "./use-pagination";
 
 const PAGE_SIZE = 100;
@@ -395,17 +397,31 @@ export default function EventsTable() {
 
   const defaultData = useMemo(() => [], []);
 
-  const { queryString, totalEvents } = useContext(AnalyticsContext);
+  const { queryString: originalQueryString, totalEvents } =
+    useContext(AnalyticsContext);
 
-  const { data, isLoading, error } = useSWR<Datum[]>(
-    `/api/analytics/events?${editQueryString(queryString, {
-      event: tab,
-      offset: (pagination.pageIndex * pagination.pageSize).toString(),
-      limit: pagination.pageSize.toString(),
+  const queryString = useMemo(
+    () =>
+      editQueryString(originalQueryString, {
+        event: tab,
+        offset: (pagination.pageIndex * pagination.pageSize).toString(),
+        limit: pagination.pageSize.toString(),
+        sortBy,
+        order,
+        root: searchParams.get("root") || "false",
+      }).toString(),
+    [
+      originalQueryString,
+      tab,
+      pagination,
       sortBy,
       order,
-      root: searchParams.get("root") || "false",
-    }).toString()}`,
+      searchParams.get("root"),
+    ],
+  );
+
+  const { data, isLoading, error } = useSWR<Datum[]>(
+    `/api/analytics/events?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -433,6 +449,24 @@ export default function EventsTable() {
     autoResetPageIndex: false,
     manualSorting: true,
   });
+
+  const { setExportQueryString } = useContext(EventsTableContext);
+  useEffect(
+    () =>
+      setExportQueryString(
+        editQueryString(
+          queryString,
+          {
+            columns: table
+              .getVisibleFlatColumns()
+              .map((c) => c.id)
+              .join(","),
+          },
+          ["offset", "limit"], // Remove offset and limit
+        ),
+      ),
+    [queryString, table.getVisibleFlatColumns()],
+  );
 
   // Memoize column sizes to pass to table as CSS variables
   const columnSizeVars = useMemo(() => {
@@ -526,6 +560,13 @@ export default function EventsTable() {
                             </button>
                             {header.id === "link" && (
                               <EventsLinkType
+                                scrollContainer={scrollContainer}
+                              />
+                            )}
+                            {columnIdx === headerGroup.headers.length - 1 && (
+                              // Last column
+                              <EventsTableMenu
+                                table={table}
                                 scrollContainer={scrollContainer}
                               />
                             )}

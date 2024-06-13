@@ -65,9 +65,9 @@ import RefererIcon from "./referer-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle({
-  heading = "Analytics",
+  page = "analytics",
 }: {
-  heading?: string;
+  page?: "analytics" | "events";
 }) {
   const { plan } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
@@ -482,7 +482,7 @@ export default function Toggle({
               </a>
             ) : (
               <h1 className="text-2xl font-semibold tracking-tight text-black">
-                {heading}
+                {page === "analytics" ? "Analytics" : "Events"}
               </h1>
             )}
             <div
@@ -617,7 +617,7 @@ export default function Toggle({
                     };
                   })}
                 />
-                {!isPublicStatsPage && <AnalyticsOptions />}
+                {!isPublicStatsPage && <AnalyticsOptions page={page} />}
               </div>
             </div>
           </div>
