@@ -8,11 +8,7 @@ import { AnalyticsContext } from "./analytics-provider";
 import ExportButton from "./export-button";
 import ShareAnalytics from "./share-analytics";
 
-export default function AnalyticsOptions({
-  page,
-}: {
-  page: "analytics" | "events";
-}) {
+export default function AnalyticsOptions() {
   const { isMobile } = useMediaQuery();
   const { key } = useContext(AnalyticsContext);
   const [openPopover, setOpenPopover] = useState(false);
@@ -33,8 +29,8 @@ export default function AnalyticsOptions({
 
           {state === "default" && (
             <div className="grid w-screen gap-px p-2 sm:w-48">
-              <ExportButton page={page} setOpenPopover={setOpenPopover} />
-              {page === "analytics" && key && (
+              <ExportButton setOpenPopover={setOpenPopover} />
+              {key && (
                 <Button
                   text="Share Analytics"
                   variant="outline"

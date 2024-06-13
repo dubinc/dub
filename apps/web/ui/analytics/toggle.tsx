@@ -617,7 +617,9 @@ export default function Toggle({
                     };
                   })}
                 />
-                {!isPublicStatsPage && <AnalyticsOptions page={page} />}
+                {!isPublicStatsPage && page === "analytics" && (
+                  <AnalyticsOptions />
+                )}
               </div>
             </div>
           </div>

@@ -1,38 +1,26 @@
 import { Button } from "@dub/ui/src/button";
 import { Download } from "@dub/ui/src/icons";
-import { capitalize } from "@dub/utils";
 import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from "./analytics-provider";
-import { EventsTableContext } from "./events";
 
 export default function ExportButton({
-  page,
   setOpenPopover,
 }: {
-  page: "analytics" | "events";
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
 }) {
   const [loading, setLoading] = useState(false);
   const { queryString } = useContext(AnalyticsContext);
-  const { exportQueryString } = useContext(EventsTableContext);
-
-  console.log(exportQueryString);
 
   async function exportData() {
     setLoading(true);
     try {
-      const response = await fetch(
-        page === "analytics"
-          ? `/api/analytics/export?${queryString}`
-          : `/api/analytics/events/export?${exportQueryString}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+      const response = await fetch(`/api/analytics/export?${queryString}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+      });
 
       if (!response.ok) {
         setLoading(false);
@@ -43,7 +31,7 @@ export default function ExportButton({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Dub ${capitalize(page)} Export - ${new Date().toISOString()}.${page === "analytics" ? "zip" : "csv"}`;
+      a.download = `Dub Analytics Export - ${new Date().toISOString()}.zip`;
       a.click();
     } catch (error) {
       throw new Error(error);
