@@ -287,14 +287,12 @@ const ImagePreview = ({
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
-        <div className="absolute right-2 top-2">
-          <Button
-            variant="secondary"
-            onClick={() => setOpenPopover(!openPopover)}
-            icon={<Edit2 className="h-3 w-3" />}
-            className="h-8 w-8 rounded-md p-0 transition-all hover:bg-gray-100"
-          />
-        </div>
+        <Button
+          variant="secondary"
+          onClick={() => setOpenPopover(!openPopover)}
+          icon={<Edit2 className="h-3 w-3" />}
+          className="absolute right-2 top-2 h-8 w-8 rounded-md p-0 transition-all hover:bg-gray-100"
+        />
       </Popover>
       <input
         key={image}

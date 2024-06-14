@@ -1,5 +1,7 @@
-import { Button } from "@dub/ui";
+import { buttonVariants } from "@dub/ui";
 import { InvoiceDollar } from "@dub/ui/src/icons";
+import { cn } from "@dub/utils";
+import Link from "next/link";
 
 export default function EmptyState() {
   return (
@@ -15,16 +17,18 @@ export default function EmptyState() {
         top-converting leads and best-selling products.
       </p>
       <div className="mt-8">
-        <Button
-          onClick={() => window.open("https://dub.co/docs", "_blank")}
-          className="h-8"
-          variant="secondary"
-          text={
-            <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
-              Enable Sales Analytics
-            </span>
-          }
-        />
+        <Link
+          href="https://dub.co/docs"
+          target="_blank"
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm transition-all",
+          )}
+        >
+          <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            Enable Sales Analytics
+          </span>
+        </Link>
       </div>
     </div>
   );
