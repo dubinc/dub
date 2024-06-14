@@ -6,7 +6,6 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
-import useLinks from "@/lib/swr/use-links";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
@@ -43,6 +42,7 @@ import {
   GOOGLE_FAVICON_URL,
   capitalize,
   cn,
+  fetcher,
   getApexDomain,
   getNextPlan,
   linkConstructor,
@@ -57,6 +57,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import useSWR from "swr";
 import { COLORS_LIST } from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
@@ -89,7 +90,6 @@ export default function Toggle({
 
   const { tags } = useTags();
   const { allDomains: domains, primaryDomain } = useDomains();
-  const { links: allLinks } = useLinks();
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -109,7 +109,12 @@ export default function Toggle({
     return [
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
       ...(domain && key
-        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
+        ? [
+            {
+              key: "link",
+              value: linkConstructor({ domain, key, pretty: true }),
+            },
+          ]
         : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
       ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
@@ -224,20 +229,10 @@ export default function Toggle({
               icon: Hyperlink,
               label: "Link",
               getOptionIcon: (value, props) => {
-                const url =
-                  props.option?.data?.url ??
-                  allLinks?.find(
-                    ({ domain, key }) =>
-                      value.includes(key) &&
-                      linkConstructor({ domain, key }) === value,
-                  )?.url;
+                const url = props.option?.data?.url;
+                const [domain, key] = value.split("/");
 
-                return url ? (
-                  <LinkLogo
-                    apexDomain={getApexDomain(url)}
-                    className="h-4 w-4 sm:h-4 sm:w-4"
-                  />
-                ) : null;
+                return <LinkIcon url={url} domain={domain} linkKey={key} />;
               },
               options:
                 links?.map(
@@ -247,7 +242,7 @@ export default function Toggle({
                     url,
                     count,
                   }: LinkProps & { count?: number }) => ({
-                    value: linkConstructor({ domain, key }),
+                    value: linkConstructor({ domain, key, pretty: true }),
                     label: linkConstructor({ domain, key, pretty: true }),
                     right: nFormatter(count, { full: true }),
                     data: { url },
@@ -411,7 +406,6 @@ export default function Toggle({
     [
       isPublicStatsPage,
       domains,
-      allLinks,
       links,
       tags,
       countries,
@@ -696,5 +690,33 @@ function UpgradeTooltip({
             },
           })}
     />
+  );
+}
+
+function LinkIcon({
+  url: urlProp,
+  domain,
+  linkKey,
+}: {
+  url?: string;
+  domain?: string;
+  linkKey?: string;
+}) {
+  const { id: workspaceId } = useWorkspace();
+  const { data } = useSWR<{ url: string }>(
+    !urlProp && workspaceId && domain && linkKey
+      ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key: linkKey }).toString()}`
+      : null,
+    fetcher,
+  );
+
+  const url = urlProp || data?.url;
+  return url ? (
+    <LinkLogo
+      apexDomain={getApexDomain(url)}
+      className="h-4 w-4 sm:h-4 sm:w-4"
+    />
+  ) : (
+    <Hyperlink className="h-4 w-4" />
   );
 }
