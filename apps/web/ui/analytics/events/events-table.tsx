@@ -38,6 +38,7 @@ import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
+import EmptyState from "./empty-state";
 import EventsLinkType from "./events-link-type";
 import ExportButton from "./export-button";
 import usePagination from "./use-pagination";
@@ -632,8 +633,14 @@ export default function EventsTable() {
               </table>
             </div>
           ) : (
-            <div className="flex h-64 w-full items-center justify-center text-sm text-gray-500">
-              {error ? "Failed to fetch data" : "No data available"}
+            <div className="flex h-96 w-full items-center justify-center text-sm text-gray-500">
+              {error ? (
+                "Failed to fetch data"
+              ) : tab === "clicks" ? (
+                "No data available"
+              ) : (
+                <EmptyState />
+              )}
             </div>
           )}
           <div className="sticky bottom-0 flex items-center justify-between rounded-b-[inherit] border-t border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600">
