@@ -4,32 +4,28 @@ import { ReactNode, forwardRef } from "react";
 import { LoadingSpinner } from "./icons";
 import { Tooltip } from "./tooltip";
 
-const buttonVariants = cva(
-  "group flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all",
-  {
-    variants: {
-      variant: {
-        primary:
-          "border-black bg-black text-white hover:bg-gray-800 hover:ring-4 hover:ring-gray-200",
-        secondary: cn(
-          "border-gray-200 bg-white text-gray-900 hover:bg-gray-50 focus-visible:border-gray-500 outline-none",
-          "data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
-        ),
-        outline:
-          "border-transparent text-gray-500 duration-75 hover:bg-gray-100",
-        success:
-          "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:ring-4 hover:ring-blue-100",
-        danger:
-          "border-red-500 bg-red-500 text-white hover:bg-red-600 hover:ring-4 hover:ring-red-100",
-        "danger-outline":
-          "border-transparent bg-white text-red-500 hover:bg-red-600 hover:text-white",
-      },
-    },
-    defaultVariants: {
-      variant: "primary",
+const buttonVariants = cva("", {
+  variants: {
+    variant: {
+      primary:
+        "border-black bg-black text-white hover:bg-gray-800 hover:ring-4 hover:ring-gray-200",
+      secondary: cn(
+        "border-gray-200 bg-white text-gray-900 hover:bg-gray-50 focus-visible:border-gray-500 outline-none",
+        "data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+      ),
+      outline: "border-transparent text-gray-500 duration-75 hover:bg-gray-100",
+      success:
+        "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:ring-4 hover:ring-blue-100",
+      danger:
+        "border-red-500 bg-red-500 text-white hover:bg-red-600 hover:ring-4 hover:ring-red-100",
+      "danger-outline":
+        "border-transparent bg-white text-red-500 hover:bg-red-600 hover:text-white",
     },
   },
-);
+  defaultVariants: {
+    variant: "primary",
+  },
+});
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -92,9 +88,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
         type={props.onClick ? "button" : "submit"}
         className={cn(
-          buttonVariants({ variant }),
-          (props.disabled || loading) &&
-            "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400",
+          "group flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all",
+          props.disabled || loading
+            ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+            : buttonVariants({ variant }),
           className,
         )}
         disabled={props.disabled || loading}
