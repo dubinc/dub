@@ -3,8 +3,8 @@ import { Button } from "@dub/ui/src/button";
 import { ReferredVia } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useContext, useEffect, useState } from "react";
-import { AnalyticsContext } from ".";
 import { ThreeDots } from "../shared/icons";
+import { AnalyticsContext } from "./analytics-provider";
 import ExportButton from "./export-button";
 import ShareAnalytics from "./share-analytics";
 

@@ -5,8 +5,8 @@ import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
-import { AnalyticsContext } from ".";
 import AnalyticsAreaChart from "./analytics-area-chart";
+import { AnalyticsContext } from "./analytics-provider";
 
 type Tab = {
   id: string;
@@ -17,7 +17,7 @@ type Tab = {
 
 export default function Main() {
   const { betaTester } = useWorkspace();
-  const { totalEvents, requiresUpgrade, demo, selectedTab } =
+  const { totalEvents, requiresUpgrade, demoPage, selectedTab } =
     useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
@@ -34,7 +34,7 @@ export default function Main() {
           colorClassName: "text-blue-500/50",
           show: ["clicks"],
         },
-        ...(betaTester || demo
+        ...(betaTester || demoPage
           ? [
               {
                 id: "leads",

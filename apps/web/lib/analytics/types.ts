@@ -1,5 +1,8 @@
 import z from "../zod";
-import { analyticsQuerySchema } from "../zod/schemas/analytics";
+import {
+  analyticsQuerySchema,
+  eventsQuerySchema,
+} from "../zod/schemas/analytics";
 import { EVENT_TYPES, VALID_ANALYTICS_ENDPOINTS, intervals } from "./constants";
 
 export type IntervalOptions = (typeof intervals)[number];
@@ -21,4 +24,9 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
+};
+
+export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
+  workspaceId?: string;
+  isDemo?: boolean;
 };

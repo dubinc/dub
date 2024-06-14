@@ -5,7 +5,7 @@ import { Suspense } from "react";
 export default function DemoAnalytics() {
   return (
     <Suspense fallback={<LayoutLoader />}>
-      <Analytics demo />
+      <Analytics demoPage />
     </Suspense>
   );
 }

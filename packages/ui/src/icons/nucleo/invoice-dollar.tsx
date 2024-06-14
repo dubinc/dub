@@ -1,6 +1,9 @@
 import { SVGProps } from "react";
 
-export function InvoiceDollar(props: SVGProps<SVGSVGElement>) {
+export function InvoiceDollar({
+  strokeWidth = 1.5,
+  ...props
+}: SVGProps<SVGSVGElement>) {
   return (
     <svg
       height="18"
@@ -16,7 +19,7 @@ export function InvoiceDollar(props: SVGProps<SVGSVGElement>) {
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
         />
         <path
           d="M10.724,6.556c-.374-.885-1.122-1.086-1.688-1.086-.526,0-1.907,.28-1.779,1.606,.09,.931,.967,1.277,1.734,1.414s1.88,.429,1.907,1.551c.023,.949-.83,1.597-1.861,1.597-.985,0-1.67-.383-1.934-1.25"
@@ -24,14 +27,14 @@ export function InvoiceDollar(props: SVGProps<SVGSVGElement>) {
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
         />
         <line
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
           x1="9"
           x2="9"
           y1="4.75"
@@ -42,7 +45,7 @@ export function InvoiceDollar(props: SVGProps<SVGSVGElement>) {
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
           x1="9"
           x2="9"
           y1="11.638"

@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
-import { Button, Modal } from "@dub/ui";
+import { Button, LinkLogo, Modal } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -10,7 +10,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import LinkLogo from "../links/link-logo";
 
 function PrimaryDomainModal({
   showPrimaryDomainModal,
