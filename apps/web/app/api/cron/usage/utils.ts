@@ -114,7 +114,6 @@ export const updateUsage = async () => {
           event: "clicks",
           groupBy: "top_links",
           interval: "30d",
-          root: false,
         }).then(async (data) => {
           const topFive = data.slice(0, 5);
           return await Promise.all(
