@@ -24,12 +24,10 @@ import { usePromptModal } from "../prompt-modal";
 import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({
-  props,
   data,
   setData,
   generatingMetatags,
 }: {
-  props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
@@ -141,18 +139,6 @@ export default function OGSection({
       setData((prev) => ({ ...prev, description: completionDescription }));
     }
   }, [completionDescription]);
-
-  useEffect(() => {
-    if (proxy && props) {
-      // if custom OG is enabled
-      setData((prev) => ({
-        ...prev,
-        title: props.title || title,
-        description: props.description || description,
-        image: props.image || image,
-      }));
-    }
-  }, [proxy]);
 
   const [resizingImage, setResizingImage] = useState(false);
 
