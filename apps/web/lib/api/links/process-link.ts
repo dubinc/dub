@@ -182,10 +182,11 @@ export async function processLink<T extends Record<string, any>>({
     key = processedKey;
 
     const response = await keyChecks({ domain, key, workspace });
-    if (response.error) {
+    if (response.error && response.code) {
       return {
         link: payload,
-        ...response,
+        error: response.error,
+        code: response.code,
       };
     }
   }
