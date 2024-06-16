@@ -17,12 +17,21 @@ export const POST = withWorkspace(async ({ req, session, workspace }) => {
 
   let machineUser: User | null = null;
 
-  // Create service account
+  // Create machine user if needed
   if (isMachine) {
     machineUser = await prisma.user.create({
       data: {
         name: "Machine user",
         isMachine: true,
+      },
+    });
+
+    // Add machine user to workspace
+    await prisma.projectUsers.create({
+      data: {
+        role: "member",
+        userId: machineUser.id,
+        projectId: workspace.id,
       },
     });
   }
