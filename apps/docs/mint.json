@@ -63,6 +63,7 @@
       "pages": [
         {
           "group": "Typescript",
+          "icon": "js",
           "pages": [
             "quickstart/typescript",
             "quickstart/nextjs",
@@ -73,10 +74,12 @@
         },
         {
           "group": "Go",
+          "icon": "golang",
           "pages": ["quickstart/go"]
         },
         {
           "group": "Python",
+          "icon": "python",
           "pages": [
             "quickstart/python",
             "quickstart/flask",
@@ -170,6 +173,7 @@
         "sdks/typescript/overview",
         {
           "group": "Links",
+          "icon": "link",
           "pages": [
             "sdks/typescript/links/create",
             "sdks/typescript/links/get",
@@ -183,10 +187,12 @@
         },
         {
           "group": "Analytics",
+          "icon": "chart-line",
           "pages": ["sdks/typescript/analytics/retrieve"]
         },
         {
           "group": "Workspaces",
+          "icon": "folder",
           "pages": [
             "sdks/typescript/workspaces/create",
             "sdks/typescript/workspaces/get",
@@ -195,6 +201,7 @@
         },
         {
           "group": "Domains",
+          "icon": "globe",
           "pages": [
             "sdks/typescript/domains/add",
             "sdks/typescript/domains/update",
@@ -206,10 +213,12 @@
         },
         {
           "group": "Tags",
+          "icon": "tag",
           "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
         },
         {
           "group": "Metatags",
+          "icon": "image",
           "pages": ["sdks/typescript/metatags/get"]
         }
       ]
