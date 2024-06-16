@@ -14,6 +14,7 @@ import {
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { Scope, scopes as allScopes } from "../api/tokens/scopes";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -27,6 +28,7 @@ interface WithWorkspaceHandler {
     workspace,
     domain,
     link,
+    scopes,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -36,6 +38,7 @@ interface WithWorkspaceHandler {
     workspace: WorkspaceProps;
     domain: string;
     link?: LinkProps;
+    scopes: Scope[];
   }): Promise<Response>;
 }
 
@@ -102,6 +105,7 @@ export const withWorkspace = (
       let session: Session | undefined;
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
+      let scopes: Scope[] = [];
 
       const idOrSlug =
         params?.idOrSlug ||
@@ -136,23 +140,43 @@ export const withWorkspace = (
       }
 
       if (apiKey) {
+        const isRestrictedToken = apiKey.startsWith("dub_");
         const hashedKey = await hashToken(apiKey);
 
-        const user = await prisma.user.findFirst({
-          where: {
-            tokens: {
-              some: {
+        const token = isRestrictedToken
+          ? await prisma.restrictedToken.findUnique({
+              where: {
                 hashedKey,
               },
-            },
-          },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        });
-        if (!user) {
+              select: {
+                scopes: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    isMachine: true,
+                  },
+                },
+              },
+            })
+          : await prisma.token.findUnique({
+              where: {
+                hashedKey,
+              },
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    isMachine: true,
+                  },
+                },
+              },
+            });
+
+        if (!token || !token.user) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Unauthorized: Invalid API key.",
@@ -186,11 +210,16 @@ export const withWorkspace = (
             },
           }),
         );
+
+        // @ts-ignore (TODO: fix TS error)
+        scopes = isRestrictedToken ? token.scopes.split("") : allScopes;
+
         session = {
           user: {
-            id: user.id,
-            name: user.name || "",
-            email: user.email || "",
+            id: token.user.id,
+            name: token.user.name || "",
+            email: token.user.email || "",
+            isMachine: token.user.isMachine,
           },
         };
       } else {
@@ -426,6 +455,7 @@ export const withWorkspace = (
         workspace,
         domain,
         link,
+        scopes,
       });
     } catch (error) {
       return handleAndReturnErrorResponse(error, headers);

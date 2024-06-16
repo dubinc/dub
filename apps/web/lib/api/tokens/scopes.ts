@@ -14,6 +14,8 @@ export const scopes = [
   "tags.write",
 ] as const;
 
+export type Scope = typeof scopes[number];
+
 // TODO:
 // Make the structure of the scopes more dynamic so that it can be used in the UI
 

@@ -1,5 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
+import { throwIfNotAllowed } from "@/lib/api/tokens/permissions";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
@@ -11,40 +12,50 @@ import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
-export const GET = withWorkspace(async ({ req, headers, workspace }) => {
-  const searchParams = getSearchParamsWithArray(req.url);
+export const GET = withWorkspace(
+  async ({ req, headers, workspace, scopes }) => {
+    throwIfNotAllowed({
+      scopes,
+      requiredScope: "links.read",
+    });
 
-  const {
-    domain,
-    tagId,
-    tagIds,
-    search,
-    sort,
-    page,
-    userId,
-    showArchived,
-    withTags,
-    includeUser,
-  } = getLinksQuerySchemaExtended.parse(searchParams);
+    console.log("Kiran GET /api/links");
 
-  const response = await getLinksForWorkspace({
-    workspaceId: workspace.id,
-    domain,
-    tagId,
-    tagIds,
-    search,
-    sort,
-    page,
-    userId,
-    showArchived,
-    withTags,
-    includeUser,
-  });
+    const searchParams = getSearchParamsWithArray(req.url);
+    console.log(scopes);
 
-  return NextResponse.json(response, {
-    headers,
-  });
-});
+    const {
+      domain,
+      tagId,
+      tagIds,
+      search,
+      sort,
+      page,
+      userId,
+      showArchived,
+      withTags,
+      includeUser,
+    } = getLinksQuerySchemaExtended.parse(searchParams);
+
+    const response = await getLinksForWorkspace({
+      workspaceId: workspace.id,
+      domain,
+      tagId,
+      tagIds,
+      search,
+      sort,
+      page,
+      userId,
+      showArchived,
+      withTags,
+      includeUser,
+    });
+
+    return NextResponse.json(response, {
+      headers,
+    });
+  },
+);
 
 // POST /api/links – create a new link
 export const POST = withWorkspace(

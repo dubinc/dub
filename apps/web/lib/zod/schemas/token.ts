@@ -1,4 +1,4 @@
-import { scopes } from "@/lib/api/api-keys/scopes";
+import { scopes } from "@/lib/api/tokens/scopes";
 import z from "@/lib/zod";
 
 // Schema to validate the request body when creating a new token

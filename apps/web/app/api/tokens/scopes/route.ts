@@ -1,4 +1,4 @@
-import { scopes } from "@/lib/api/api-keys/scopes";
+import { scopes } from "@/lib/api/tokens/scopes";
 import { withWorkspace } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
