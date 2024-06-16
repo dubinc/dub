@@ -12,11 +12,18 @@ import {
   getSearchParams,
   isDubDomain,
 } from "@dub/utils";
-import { Link as LinkProps } from "@prisma/client";
+import {
+  Link as LinkProps,
+  RestrictedToken,
+  Token,
+  User,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { Scope, scopes as allScopes, roleToScopes } from "../api/tokens/scopes";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
+
+type TokenFound = (RestrictedToken & { user: User }) | (Token & { user: User });
 
 interface WithWorkspaceHandler {
   ({
@@ -143,38 +150,24 @@ export const withWorkspace = (
         const isRestrictedToken = apiKey.startsWith("dub_");
         const hashedKey = await hashToken(apiKey);
 
-        const token = isRestrictedToken
-          ? await prisma.restrictedToken.findUnique({
-              where: {
-                hashedKey,
-              },
+        const token: TokenFound = await (
+          prisma[isRestrictedToken ? "restrictedToken" : "token"] as any
+        ).findUnique({
+          where: {
+            hashedKey,
+          },
+          select: {
+            ...(isRestrictedToken && { scopes: true }),
+            user: {
               select: {
-                scopes: true,
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    isMachine: true,
-                  },
-                },
+                id: true,
+                name: true,
+                email: true,
+                isMachine: true,
               },
-            })
-          : await prisma.token.findUnique({
-              where: {
-                hashedKey,
-              },
-              select: {
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    isMachine: true,
-                  },
-                },
-              },
-            });
+            },
+          },
+        });
 
         if (!token || !token.user) {
           throw new DubApiError({
@@ -211,7 +204,7 @@ export const withWorkspace = (
           }),
         );
 
-        // @ts-ignore (TODO: fix TS error)
+        // @ts-ignore
         scopes = isRestrictedToken ? token.scopes.split(" ") : allScopes;
 
         session = {
