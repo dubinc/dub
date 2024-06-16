@@ -1,17 +1,25 @@
 import { DubApiError } from "../errors";
 import { Scope } from "./scopes";
 
-export const throwIfNotAllowed = ({
+export const throwIfNoAccess = ({
   scopes,
-  requiredScope,
+  requiredAnyOf,
 }: {
   scopes: Scope[];
-  requiredScope: Scope;
+  requiredAnyOf: Scope | Scope[];
 }) => {
-  if (!scopes.includes(requiredScope)) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: `You do not have permission to make this action. API key must have the "${requiredScope}" scope.`,
-    });
+  const requiredScopes = Array.isArray(requiredAnyOf)
+    ? requiredAnyOf
+    : [requiredAnyOf];
+
+  for (const requiredScope of requiredScopes) {
+    if (scopes.includes(requiredScope)) {
+      return;
+    }
   }
+
+  throw new DubApiError({
+    code: "forbidden",
+    message: `You do not have permission to make this action.`,
+  });
 };

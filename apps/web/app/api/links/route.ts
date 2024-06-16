@@ -1,6 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
-import { throwIfNotAllowed } from "@/lib/api/tokens/permissions";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
@@ -14,15 +14,12 @@ import { NextResponse } from "next/server";
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
   async ({ req, headers, workspace, scopes }) => {
-    throwIfNotAllowed({
+    throwIfNoAccess({
       scopes,
-      requiredScope: "links.read",
+      requiredAnyOf: ["links.read", "links.write"],
     });
 
-    console.log("Kiran GET /api/links");
-
     const searchParams = getSearchParamsWithArray(req.url);
-    console.log(scopes);
 
     const {
       domain,
@@ -59,7 +56,12 @@ export const GET = withWorkspace(
 
 // POST /api/links – create a new link
 export const POST = withWorkspace(
-  async ({ req, headers, session, workspace }) => {
+  async ({ req, headers, session, workspace, scopes }) => {
+    throwIfNoAccess({
+      scopes,
+      requiredAnyOf: ["links.write"],
+    });
+
     const bodyRaw = await parseRequestBody(req);
     const body = createLinkBodySchema.parse(bodyRaw);
 

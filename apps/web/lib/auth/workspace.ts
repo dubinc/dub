@@ -14,7 +14,7 @@ import {
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { Scope, scopes as allScopes } from "../api/tokens/scopes";
+import { Scope, scopes as allScopes, roleToScopes } from "../api/tokens/scopes";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -212,7 +212,7 @@ export const withWorkspace = (
         );
 
         // @ts-ignore (TODO: fix TS error)
-        scopes = isRestrictedToken ? token.scopes.split("") : allScopes;
+        scopes = isRestrictedToken ? token.scopes.split(" ") : allScopes;
 
         session = {
           user: {
@@ -294,6 +294,11 @@ export const withWorkspace = (
         });
       }
 
+      // For session requests, find the scopes based on the user's role
+      if (!apiKey) {
+        scopes = roleToScopes[workspace.users[0].role];
+      }
+
       // edge case where linkId is an externalId and workspaceId was not provided (they must've used projectSlug instead)
       // in this case, we need to try fetching the link again
       if (linkId && linkId.startsWith("ext_") && !link && !workspaceId) {
@@ -358,15 +363,15 @@ export const withWorkspace = (
       }
 
       // workspace role checks
-      if (
-        !requiredRole.includes(workspace.users[0].role) &&
-        !(allowSelf && searchParams.userId === session.user.id)
-      ) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "Unauthorized: Insufficient permissions.",
-        });
-      }
+      // if (
+      //   !requiredRole.includes(workspace.users[0].role) &&
+      //   !(allowSelf && searchParams.userId === session.user.id)
+      // ) {
+      //   throw new DubApiError({
+      //     code: "forbidden",
+      //     message: "Unauthorized: Insufficient permissions.",
+      //   });
+      // }
 
       // clicks usage overage checks
       if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {
