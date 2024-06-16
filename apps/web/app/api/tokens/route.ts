@@ -21,7 +21,7 @@ export const POST = withWorkspace(async ({ req, session, workspace }) => {
   if (isMachine) {
     machineUser = await prisma.user.create({
       data: {
-        name,
+        name: "Machine user",
         isMachine: true,
       },
     });
@@ -37,9 +37,9 @@ export const POST = withWorkspace(async ({ req, session, workspace }) => {
       name,
       hashedKey,
       partialKey,
-      userId: machineUser ? machineUser.id : session.user.id,
+      userId: isMachine ? machineUser?.id! : session.user.id,
       projectId: workspace.id,
-      scopes: scopes ? scopes.join(" ") : null,
+      scopes: scopes && scopes.length > 0 ? scopes.join(" ") : null,
     },
   });
 
