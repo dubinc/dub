@@ -33,7 +33,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
-    const { slug: domain } = await getDomain({
+    const { id: domainId, slug: domain } = await getDomain({
       workspaceId: workspace.id,
       slug: params.domain,
     });
@@ -49,12 +49,12 @@ export const PATCH = withWorkspace(
       noindex,
     } = updateDomainBodySchema.parse(body);
 
-    if (newDomain && newDomain !== domain) {
+    if (newDomain && newDomain.toLowerCase() !== domain.toLowerCase()) {
       const validDomain = await validateDomain(newDomain);
-      if (validDomain !== true) {
+      if (validDomain.error && validDomain.code) {
         throw new DubApiError({
-          code: "unprocessable_entity",
-          message: validDomain,
+          code: validDomain.code,
+          message: validDomain.error,
         });
       }
       const vercelResponse = await addDomainToVercel(newDomain);
@@ -100,7 +100,9 @@ export const PATCH = withWorkspace(
           projectId: workspace.id,
         }),
         // remove old domain from Vercel
-        newDomain !== domain && removeDomainFromVercel(domain),
+        newDomain &&
+          newDomain.toLowerCase() !== domain.toLowerCase() &&
+          removeDomainFromVercel(domain),
       ]),
     );
 
