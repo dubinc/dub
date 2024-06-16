@@ -140,6 +140,18 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
     };
   }
 
+  // Prisma record not found error
+  if (error.code === "P2025") {
+    return {
+      error: {
+        code: "not_found",
+        message: `${error.meta.cause} Please check the provided identifier.`,
+        doc_url: `${docErrorUrl}#not-found`,
+      },
+      status: 404,
+    };
+  }
+
   // Fallback
   // Unhandled errors are not user-facing, so we don't expose the actual error
   return {

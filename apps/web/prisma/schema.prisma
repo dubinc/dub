@@ -13,19 +13,21 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
+  id               String    @id @default(cuid())
+  name             String?
+  email            String?   @unique
+  emailVerified    DateTime?
+  image            String?
+  isBot            Boolean   @default(false)
 
   accounts         Account[]
   sessions         Session[]
   projects         ProjectUsers[]
   links            Link[]
   tokens           Token[]
-  createdAt        DateTime       @default(now())
-  subscribed       Boolean        @default(true)
+  restrictedTokens RestrictedToken[]
+  createdAt        DateTime          @default(now())
+  subscribed       Boolean           @default(true)
   source           String?
   defaultWorkspace String?
 
@@ -87,40 +89,60 @@ model Token {
   @@index([userId])
 }
 
+model RestrictedToken {
+  id         String    @id @default(cuid())
+  name       String
+  hashedKey  String    @unique
+  partialKey String
+  scopes     String? // space separated
+  expires    DateTime?
+  lastUsed   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  userId     String
+  projectId  String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 model Project {
   id   String  @id @default(cuid())
   name String
   slug String  @unique
   logo String?
 
-  plan              String   @default("free")
-  stripeId          String?  @unique // Stripe subscription ID
+  plan              String  @default("free")
+  stripeId          String? @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
-  stripeConnectId   String?  @unique // for Stripe Connect
-  inviteCode        String?  @unique
+  stripeConnectId   String? @unique // for Stripe Connect
+  inviteCode        String? @unique
 
-  usage             Int      @default(0)
-  usageLimit        Int      @default(1000)
-  aiUsage           Int      @default(0)
-  aiLimit           Int      @default(10)
-  linksUsage        Int      @default(0)
-  linksLimit        Int      @default(25)
-  domainsLimit      Int      @default(3)
-  tagsLimit         Int      @default(5)
-  usersLimit        Int      @default(1)
+  usage        Int @default(0)
+  usageLimit   Int @default(1000)
+  aiUsage      Int @default(0)
+  aiLimit      Int @default(10)
+  linksUsage   Int @default(0)
+  linksLimit   Int @default(25)
+  domainsLimit Int @default(3)
+  tagsLimit    Int @default(5)
+  usersLimit   Int @default(1)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  usageLastChecked  DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  usageLastChecked DateTime @default(now())
 
-  users          ProjectUsers[]
-  invites        ProjectInvite[]
-  sentEmails     SentEmail[]
-  links          Link[]
-  domains        Domain[]
-  tags           Tag[]
-  customers      Customer[]
-  defaultDomains DefaultDomains[]
+  users            ProjectUsers[]
+  invites          ProjectInvite[]
+  sentEmails       SentEmail[]
+  links            Link[]
+  domains          Domain[]
+  tags             Tag[]
+  customers        Customer[]
+  defaultDomains   DefaultDomains[]
+  restrictedTokens RestrictedToken[]
 
   @@index(usageLastChecked(sort: Asc))
 }
