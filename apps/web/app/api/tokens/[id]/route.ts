@@ -25,7 +25,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
           id: true,
           name: true,
           image: true,
-          isBot: true,
+          isMachine: true,
         },
       },
     },
@@ -66,7 +66,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
           id: true,
           name: true,
           image: true,
-          isBot: true,
+          isMachine: true,
         },
       },
     },
@@ -87,7 +87,7 @@ export const DELETE = withWorkspace(async ({ workspace, params }) => {
       user: {
         select: {
           id: true,
-          isBot: true,
+          isMachine: true,
         },
       },
     },
@@ -95,7 +95,7 @@ export const DELETE = withWorkspace(async ({ workspace, params }) => {
 
   // If the user is a service account, delete the user as well
   // It is one-to-one relationship between service account and token
-  if (token.user.isBot) {
+  if (token.user.isMachine) {
     await prisma.user.delete({
       where: {
         id: token.user.id,

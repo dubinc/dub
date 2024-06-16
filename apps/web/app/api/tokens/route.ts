@@ -11,18 +11,18 @@ import { NextResponse } from "next/server";
 
 // POST /api/tokens – create a new token for a workspace
 export const POST = withWorkspace(async ({ req, session, workspace }) => {
-  const { name, isBot, scopes } = createTokenSchema.parse(
+  const { name, isMachine, scopes } = createTokenSchema.parse(
     await parseRequestBody(req),
   );
 
-  let botUser: User | null = null;
+  let machineUser: User | null = null;
 
   // Create service account
-  if (isBot) {
-    botUser = await prisma.user.create({
+  if (isMachine) {
+    machineUser = await prisma.user.create({
       data: {
         name,
-        isBot: true,
+        isMachine: true,
       },
     });
   }
@@ -37,7 +37,7 @@ export const POST = withWorkspace(async ({ req, session, workspace }) => {
       name,
       hashedKey,
       partialKey,
-      userId: botUser ? botUser.id : session.user.id,
+      userId: machineUser ? machineUser.id : session.user.id,
       projectId: workspace.id,
       scopes: scopes ? scopes.join(" ") : null,
     },
@@ -76,7 +76,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
           id: true,
           name: true,
           image: true,
-          isBot: true,
+          isMachine: true,
         },
       },
     },

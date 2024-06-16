@@ -18,7 +18,7 @@ model User {
   email            String?   @unique
   emailVerified    DateTime?
   image            String?
-  isBot            Boolean   @default(false)
+  isMachine            Boolean   @default(false)
 
   accounts         Account[]
   sessions         Session[]

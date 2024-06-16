@@ -28,8 +28,8 @@ export async function recordClick({
   url?: string;
   root?: boolean;
 }) {
-  const isBot = detectBot(req);
-  if (isBot) {
+  const isMachine = detectBot(req);
+  if (isMachine) {
     return null; // don't record clicks from bots
   }
   const isQr = detectQr(req);
@@ -85,7 +85,7 @@ export async function recordClick({
           os_version: ua.os.version || "Unknown",
           cpu_architecture: ua.cpu?.architecture || "Unknown",
           ua: ua.ua || "Unknown",
-          bot: ua.isBot,
+          bot: ua.isMachine,
           qr: isQr,
           referer: referer
             ? getDomainWithoutWWW(referer) || "(direct)"

@@ -9,7 +9,7 @@ export const createTokenSchema = z.object({
     })
     .min(1)
     .max(50),
-  isBot: z.boolean().optional().default(false),
+  isMachine: z.boolean().optional().default(false),
   scopes: z.array(z.enum(scopes)).optional(),
 });
 
@@ -35,6 +35,6 @@ export const tokenSchema = z.object({
   user: z.object({
     id: z.string(),
     name: z.string().nullable(),
-    isBot: z.boolean(),
+    isMachine: z.boolean(),
   }),
 });
