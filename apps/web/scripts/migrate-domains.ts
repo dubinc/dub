@@ -11,7 +11,7 @@ async function main() {
           plan: true,
           users: {
             select: {
-              id: true,
+              userId: true,
             },
           },
         },
@@ -29,8 +29,10 @@ async function main() {
       description: domain.description,
       publicStats: domain.publicStats,
       projectId: domain.projectId,
-      userId: domain.project?.users[0].id,
+      userId: domain.project?.users[0].userId,
       createdAt: domain.createdAt,
+      lastClicked: domain.lastClicked,
+      clicks: domain.clicks,
       ...(domain.project?.plan === "free"
         ? {
             url: "",
@@ -52,51 +54,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // const promises = domains.map(async (domain) => {
-  //   const user = domain?.project?.users[0];
-  //   const workspace = domain.project!;
-
-  //   const link = await createLink({
-  //     id: domain.id,
-  //     domain: domain.slug,
-  //     key: "_root",
-  //     description: domain.description,
-  //     publicStats: domain.publicStats,
-  //     projectId: domain.projectId,
-  //     userId: user?.id,
-  //     createdAt: domain.createdAt,
-  //     ...(workspace.plan === "free"
-  //       ? {
-  //           url: "",
-  //           expiredUrl: null,
-  //           rewrite: false,
-  //           noindex: false,
-  //         }
-  //       : {
-  //           url: domain.target || "",
-  //           expiredUrl: domain.expiredUrl || null,
-  //           rewrite: domain.type === "rewrite",
-  //           noindex: domain.noindex,
-  //         }),
-  //     archived: false,
-  //     proxy: false,
-  //     trackConversion: false,
-  //   });
-
-  //   return await prisma.link.update({
-  //     where: {
-  //       id: link.id,
-  //     },
-  //     data: {
-  //       lastClicked: domain.lastClicked,
-  //       clicks: domain.clicks,
-  //     },
-  //   });
-  // });
-
-  // const result = await Promise.allSettled(promises);
-
-  console.log(result);
+  console.log(`Added ${result.count} links`);
 }
 
 main();
