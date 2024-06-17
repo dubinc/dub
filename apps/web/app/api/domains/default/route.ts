@@ -11,12 +11,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
       projectId: workspace.id,
     },
     select: {
-      dubsh: true,
-      chatgpt: true,
-      sptifi: true,
-      gitnew: true,
-      amznid: true,
-      loooooooong: true,
+      shamemyid: true,
     },
   });
 
@@ -48,12 +43,7 @@ export const PUT = withWorkspace(async ({ req, workspace }) => {
       projectId: workspace.id,
     },
     data: {
-      dubsh: defaultDomains.includes("dub.sh"),
-      chatgpt: defaultDomains.includes("chatg.pt"),
-      sptifi: defaultDomains.includes("spti.fi"),
-      gitnew: defaultDomains.includes("git.new"),
-      amznid: defaultDomains.includes("amzn.id"),
-      loooooooong: defaultDomains.includes("loooooooo.ng"),
+      shamemyid: defaultDomains.includes("s.hame.my.id"),
     },
   });
 
