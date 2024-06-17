@@ -237,7 +237,7 @@ model Link {
   // Link cloaking/masking via rewrite
   rewrite Boolean @default(false) // whether to rewrite the link or not
 
-  noindex Boolean @default(false) // whether to noindex the link or not
+  noindex Boolean @default(true) // whether to noindex the link or not
 
   // Custom device targeting
   ios     String? @db.LongText // custom link for iOS devices
