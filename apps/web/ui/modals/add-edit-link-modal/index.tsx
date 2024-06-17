@@ -3,13 +3,13 @@
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
-import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
   ButtonTooltip,
   InfoTooltip,
+  LinkLogo,
   LinkedIn,
   LoadingCircle,
   Magic,
@@ -257,7 +257,7 @@ function AddEditLinkModal({
     } else {
       setGeneratingMetatags(false);
     }
-  }, [debouncedUrl, password, showAddEditLinkModal, proxy]);
+  }, [debouncedUrl, password, showAddEditLinkModal]);
 
   const endpoint = useMemo(() => {
     if (props?.key) {
@@ -295,18 +295,13 @@ function AddEditLinkModal({
     */
     if (
       !showAddEditLinkModal ||
+      generatingMetatags ||
       saving ||
       keyError ||
       urlError ||
       (props &&
         Object.entries(props).every(([key, value]) => {
-          // If the key is "title" or "description" and proxy is not enabled, return true (skip the check)
-          if (
-            (key === "title" || key === "description" || key === "image") &&
-            !proxy
-          ) {
-            return true;
-          } else if (key === "geo") {
+          if (key === "geo") {
             const equalGeo = deepEqual(props.geo as object, data.geo as object);
             return equalGeo;
           }
@@ -318,7 +313,15 @@ function AddEditLinkModal({
     } else {
       return false;
     }
-  }, [showAddEditLinkModal, saving, keyError, urlError, props, data]);
+  }, [
+    showAddEditLinkModal,
+    generatingMetatags,
+    saving,
+    keyError,
+    urlError,
+    props,
+    data,
+  ]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 

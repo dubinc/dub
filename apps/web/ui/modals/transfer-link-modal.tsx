@@ -1,7 +1,13 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { LinkProps } from "@/lib/types";
-import { Button, InputSelect, InputSelectItemProps, Modal } from "@dub/ui";
+import {
+  Button,
+  InputSelect,
+  InputSelectItemProps,
+  LinkLogo,
+  Modal,
+} from "@dub/ui";
 import {
   APP_NAME,
   DICEBEAR_AVATAR_URL,
@@ -18,7 +24,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import LinkLogo from "../links/link-logo";
 
 function TransferLinkModal({
   showTransferLinkModal,

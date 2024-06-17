@@ -3,7 +3,7 @@ import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Lock } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 
 export function AnalyticsLoadingSpinner() {
   const { slug, nextPlan } = useWorkspace();

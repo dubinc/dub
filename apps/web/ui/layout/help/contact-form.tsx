@@ -1,7 +1,5 @@
-import { generateSupportTitle } from "@/lib/ai/generate-support-title";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button, FileUpload, LoadingSpinner, useEnterSubmit } from "@dub/ui";
-import { readStreamableValue } from "ai/rsc";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, Paperclip, Trash2 } from "lucide-react";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
@@ -14,11 +12,9 @@ export function ContactForm({
   setScreen: Dispatch<SetStateAction<"main" | "contact">>;
 }) {
   const [data, setData] = useState<{
-    title: string | null;
     message: string;
     attachmentIds: string[];
   }>({
-    title: null,
     message: "",
     attachmentIds: [],
   });
@@ -120,32 +116,13 @@ export function ContactForm({
                 toast.error(res.error);
                 setFormStatus("idle");
               } else {
-                setData({ title: null, message: "", attachmentIds: [] });
+                setData({ message: "", attachmentIds: [] });
                 setFormStatus("success");
               }
             }}
             initial={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            {typeof data.title === "string" && (
-              <label>
-                <span className="text-sm font-medium text-gray-700">
-                  Issue title
-                </span>
-                <input
-                  name="title"
-                  required
-                  placeholder="E.g. Custom domain not working"
-                  autoComplete="off"
-                  value={data.title}
-                  onChange={(e) =>
-                    setData((prev) => ({ ...prev, title: e.target.value }))
-                  }
-                  className="mt-1 block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                />
-              </label>
-            )}
-
             <label>
               <span className="text-sm font-medium text-gray-700">
                 Describe the issue
@@ -158,19 +135,6 @@ export function ContactForm({
                 autoFocus
                 autoComplete="off"
                 value={data.message}
-                onBlur={async () => {
-                  if (!data.title && data.message) {
-                    const { output } = await generateSupportTitle(data.message);
-
-                    for await (const delta of readStreamableValue(output)) {
-                      setData((prev) => ({
-                        ...prev,
-                        // if prev.title is not null, append the delta to it
-                        title: prev.title ? prev.title + delta : delta,
-                      }));
-                    }
-                  }
-                }}
                 onChange={(e) =>
                   setData((prev) => ({ ...prev, message: e.target.value }))
                 }
