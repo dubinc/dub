@@ -243,16 +243,14 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               openPopover={openPopover}
               setOpenPopover={setOpenPopover}
             >
-              <div>
-                <Button
-                  variant="secondary"
-                  className="px-2"
-                  icon={<ThreeDots className="h-5 w-5" />}
-                  onClick={() => {
-                    setOpenPopover(!openPopover);
-                  }}
-                />
-              </div>
+              <Button
+                variant="secondary"
+                className="px-2"
+                icon={<ThreeDots className="h-5 w-5" />}
+                onClick={() => {
+                  setOpenPopover(!openPopover);
+                }}
+              />
             </Popover>
           </div>
         </div>

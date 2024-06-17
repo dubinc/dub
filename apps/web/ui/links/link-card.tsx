@@ -14,6 +14,7 @@ import {
   Button,
   CopyButton,
   IconMenu,
+  LinkLogo,
   NumberTooltip,
   Popover,
   SimpleTooltipContent,
@@ -53,7 +54,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
-import LinkLogo from "./link-logo";
 
 export default function LinkCard({
   props,

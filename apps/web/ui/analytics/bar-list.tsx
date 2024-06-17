@@ -7,15 +7,7 @@ import { cn, nFormatter, truncate } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
-import { AnalyticsContext } from ".";
+import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
 import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
@@ -42,8 +34,6 @@ export default function BarList({
   limit?: number;
 }) {
   const [search, setSearch] = useState("");
-
-  const { selectedTab } = useContext(AnalyticsContext);
 
   // TODO: mock pagination for better perf in React
   // TODO: fix for top links since it's technically link IDs

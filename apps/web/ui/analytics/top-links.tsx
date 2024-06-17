@@ -1,10 +1,9 @@
-import { useRouterStuff } from "@dub/ui";
+import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { getApexDomain } from "@dub/utils";
 import { useContext, useState } from "react";
-import { AnalyticsContext } from ".";
-import LinkLogo from "../links/link-logo";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
+import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 

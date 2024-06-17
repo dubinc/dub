@@ -2,7 +2,7 @@ import { Copy, Switch, Tick, useOptimisticUpdate } from "@dub/ui";
 import { linkConstructor } from "@dub/utils";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 
 export default function ShareAnalytics() {
   const { queryString, domain, key } = useContext(AnalyticsContext) as {

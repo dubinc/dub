@@ -187,3 +187,25 @@ export const analyticsFilterTB = z
       url: true,
     }),
   );
+
+export const eventsFilterTB = analyticsFilterTB
+  .omit({ granularity: true, timezone: true })
+  .and(
+    z.object({
+      offset: z.coerce.number().default(0),
+      limit: z.coerce.number().default(50),
+      order: z.enum(["asc", "desc"]).default("desc"),
+      sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
+    }),
+  );
+
+export const eventsQuerySchema = analyticsQuerySchema
+  .omit({ groupBy: true })
+  .and(
+    z.object({
+      offset: z.coerce.number().default(0),
+      limit: z.coerce.number().default(50),
+      order: z.enum(["asc", "desc"]).default("desc"),
+      sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
+    }),
+  );
