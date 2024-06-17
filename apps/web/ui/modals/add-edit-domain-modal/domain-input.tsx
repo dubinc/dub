@@ -20,16 +20,17 @@ export default function DomainInput({
   setDomainError,
 }) {
   const domain = data[identifier];
-
+  const originalDomain = useMemo(() => domain, []);
   const [debouncedDomain] = useDebounce(domain, 500);
 
   useEffect(() => {
-    if (debouncedDomain.length > 0) {
-      fetch(`/api/domains/${debouncedDomain}/exists`).then(async (res) => {
-        if (res.status === 200) {
-          const exists = await res.json();
-          setDomainError(exists === 1 ? "Domain is already in use." : null);
-        }
+    if (
+      debouncedDomain.length > 0 &&
+      debouncedDomain.toLowerCase() !== originalDomain.toLowerCase()
+    ) {
+      fetch(`/api/domains/${domain}/exists`).then(async (res) => {
+        const exists = await res.json();
+        setDomainError(exists === 1 ? "Domain is already in use." : null);
       });
     }
   }, [debouncedDomain]);
