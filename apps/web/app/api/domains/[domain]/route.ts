@@ -6,6 +6,7 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -18,7 +19,12 @@ import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
-  async ({ domain }) => {
+  async ({ domain, scopes }) => {
+    throwIfNoAccess({
+      scopes,
+      requiredAnyOf: ["domains.read"],
+    });
+
     const data = await prisma.domain.findUnique({
       where: {
         slug: domain,
@@ -55,7 +61,12 @@ export const GET = withWorkspace(
 
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
-  async ({ req, workspace, domain }) => {
+  async ({ req, workspace, domain, scopes }) => {
+    throwIfNoAccess({
+      scopes,
+      requiredAnyOf: ["domains.write"],
+    });
+
     const body = await parseRequestBody(req);
     const {
       slug: newDomain,
@@ -132,7 +143,12 @@ export const PATCH = withWorkspace(
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
-  async ({ domain }) => {
+  async ({ domain, scopes }) => {
+    throwIfNoAccess({
+      scopes,
+      requiredAnyOf: ["domains.write"],
+    });
+
     await deleteDomainAndLinks(domain);
     return NextResponse.json({ slug: domain });
   },

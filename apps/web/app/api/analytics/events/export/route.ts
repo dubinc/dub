@@ -1,5 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -37,7 +38,12 @@ const columnAccessors = {
 
 // GET /api/analytics/events/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace, link }) => {
+  async ({ searchParams, workspace, link, scopes }) => {
+    throwIfNoAccess({
+      scopes,
+      requiredAnyOf: ["analytics.read"],
+    });
+
     const parsedParams = eventsQuerySchema
       .and(
         z.object({

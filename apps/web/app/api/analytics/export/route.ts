@@ -1,6 +1,7 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -8,7 +9,12 @@ import JSZip from "jszip";
 
 // GET /api/analytics/[endpoint]/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace, link }) => {
+  async ({ searchParams, workspace, link, scopes }) => {
+    throwIfNoAccess({
+      scopes,
+      requiredAnyOf: ["analytics.read"],
+    });
+
     const parsedParams = analyticsQuerySchema.parse(searchParams);
     const { domain, key, interval, start, end } = parsedParams;
 

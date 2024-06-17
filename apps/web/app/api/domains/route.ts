@@ -4,6 +4,7 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import { exceededLimitError } from "@/lib/api/errors";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -13,7 +14,12 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
-export const GET = withWorkspace(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace, scopes }) => {
+  throwIfNoAccess({
+    scopes,
+    requiredAnyOf: ["domains.read"],
+  });
+
   const domains = await prisma.domain.findMany({
     where: {
       projectId: workspace.id,
@@ -24,7 +30,12 @@ export const GET = withWorkspace(async ({ workspace }) => {
 });
 
 // POST /api/domains - add a domain
-export const POST = withWorkspace(async ({ req, workspace }) => {
+export const POST = withWorkspace(async ({ req, workspace, scopes }) => {
+  throwIfNoAccess({
+    scopes,
+    requiredAnyOf: ["domains.write"],
+  });
+
   const body = await parseRequestBody(req);
   const {
     slug: domain,

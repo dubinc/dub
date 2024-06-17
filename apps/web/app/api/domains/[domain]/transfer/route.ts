@@ -1,6 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { setRootDomain } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -13,7 +14,12 @@ import { NextResponse } from "next/server";
 
 // POST /api/domains/[domain]/transfer – transfer a domain to another workspace
 export const POST = withWorkspace(
-  async ({ req, headers, session, params, workspace }) => {
+  async ({ req, headers, session, params, workspace, scopes }) => {
+    throwIfNoAccess({
+      scopes,
+      requiredAnyOf: ["domains.write"],
+    });
+
     const { domain } = params;
     const { newWorkspaceId } = transferDomainBodySchema.parse(await req.json());
 

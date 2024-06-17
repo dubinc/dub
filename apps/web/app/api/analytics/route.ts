@@ -1,6 +1,7 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import {
@@ -11,7 +12,12 @@ import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
-  async ({ params, searchParams, workspace, link }) => {
+  async ({ params, searchParams, workspace, link, scopes }) => {
+    throwIfNoAccess({
+      scopes,
+      requiredAnyOf: ["analytics.read"],
+    });
+
     let { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
 

@@ -3,6 +3,7 @@ import {
   getDomainResponse,
   verifyDomain,
 } from "@/lib/api/domains";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
@@ -11,7 +12,12 @@ import { NextResponse } from "next/server";
 export const maxDuration = 30;
 
 // GET /api/domains/[domain]/verify - get domain verification status
-export const GET = withWorkspace(async ({ domain }) => {
+export const GET = withWorkspace(async ({ domain, scopes }) => {
+  throwIfNoAccess({
+    scopes,
+    requiredAnyOf: ["domains.write"],
+  });
+
   let status: DomainVerificationStatusProps = "Valid Configuration";
 
   const [domainJson, configJson] = await Promise.all([

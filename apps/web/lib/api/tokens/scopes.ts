@@ -14,6 +14,10 @@ export const scopes = [
 
   // Analytics
   "analytics.read",
+
+  // Domains
+  "domains.read",
+  "domains.write",
 ] as const;
 
 export const scopeDescriptions = [
@@ -69,6 +73,21 @@ export const scopeDescriptions = [
       },
     ],
   },
+  {
+    name: "Domains",
+    description: "Create, read, update, and delete domains",
+    endpoints: ["/domains"],
+    permissions: [
+      {
+        scope: "domains.read",
+        description: "Read domains",
+      },
+      {
+        scope: "domains.write",
+        description: "Write domains",
+      },
+    ],
+  },
 ] as const;
 
 export const roleToScopes: Record<Role, Scope[]> = {
@@ -79,8 +98,16 @@ export const roleToScopes: Record<Role, Scope[]> = {
     "tags.read",
     "tags.write",
     "analytics.read",
+    "domains.read",
+    "domains.write",
   ],
-  member: ["workspaces.read", "links.read", "tags.read", "analytics.read"],
+  member: [
+    "workspaces.read",
+    "links.read",
+    "tags.read",
+    "analytics.read",
+    "domains.read",
+  ],
 } as const;
 
 export type Scope = (typeof scopes)[number];

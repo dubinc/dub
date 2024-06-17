@@ -1,3 +1,4 @@
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
@@ -5,7 +6,12 @@ import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/default - get default domains
-export const GET = withWorkspace(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace, scopes }) => {
+  throwIfNoAccess({
+    scopes,
+    requiredAnyOf: ["domains.write"],
+  });
+
   const defaultDomains = await prisma.defaultDomains.findUnique({
     where: {
       projectId: workspace.id,
@@ -38,7 +44,12 @@ const updateDefaultDomainsSchema = z.object({
 });
 
 // PUT /api/domains/default - edit default domains
-export const PUT = withWorkspace(async ({ req, workspace }) => {
+export const PUT = withWorkspace(async ({ req, workspace, scopes }) => {
+  throwIfNoAccess({
+    scopes,
+    requiredAnyOf: ["domains.write"],
+  });
+
   const { defaultDomains } = await updateDefaultDomainsSchema.parseAsync(
     await req.json(),
   );
