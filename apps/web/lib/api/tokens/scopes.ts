@@ -3,6 +3,7 @@ import { Role } from "@prisma/client";
 export const scopes = [
   // Workspaces
   "workspaces.read",
+  "workspaces.write",
 
   // Links
   "links.read",
@@ -20,6 +21,19 @@ export const scopes = [
   "domains.write",
 ] as const;
 
+export type Scope = (typeof scopes)[number];
+
+interface ScopeDescription {
+  name: string;
+  description: string;
+  endpoints: string[];
+  permissions: {
+    scope: Scope;
+    description: string;
+    roles: Role[];
+  }[];
+}
+
 export const scopeDescriptions = [
   {
     name: "Workspaces",
@@ -29,6 +43,12 @@ export const scopeDescriptions = [
       {
         scope: "workspaces.read",
         description: "Read workspaces",
+        roles: ["owner", "member"],
+      },
+      {
+        scope: "workspaces.write",
+        description: "Write workspaces",
+        roles: ["owner"],
       },
     ],
   },
@@ -40,10 +60,12 @@ export const scopeDescriptions = [
       {
         scope: "links.read",
         description: "Read links",
+        roles: ["owner", "member"],
       },
       {
         scope: "links.write",
         description: "Write links",
+        roles: ["owner", "member"],
       },
     ],
   },
@@ -55,10 +77,12 @@ export const scopeDescriptions = [
       {
         scope: "tags.read",
         description: "Read tags",
+        roles: ["owner", "member"],
       },
       {
         scope: "tags.write",
         description: "Write tags",
+        roles: ["owner", "member"],
       },
     ],
   },
@@ -70,6 +94,7 @@ export const scopeDescriptions = [
       {
         scope: "analytics.read",
         description: "Read analytics",
+        roles: ["owner", "member"],
       },
     ],
   },
@@ -81,33 +106,32 @@ export const scopeDescriptions = [
       {
         scope: "domains.read",
         description: "Read domains",
+        roles: ["owner", "member"],
       },
       {
         scope: "domains.write",
         description: "Write domains",
+        roles: ["owner"],
       },
     ],
   },
 ] as const;
 
-export const roleToScopes: Record<Role, Scope[]> = {
-  owner: [
-    "workspaces.read",
-    "links.read",
-    "links.write",
-    "tags.read",
-    "tags.write",
-    "analytics.read",
-    "domains.read",
-    "domains.write",
-  ],
-  member: [
-    "workspaces.read",
-    "links.read",
-    "tags.read",
-    "analytics.read",
-    "domains.read",
-  ],
-} as const;
+// Map roles to scopes
+// { owner: ["workspace.write"], member: ["workspace.read"] }
+export const roleToScopes = scopeDescriptions.reduce<Record<Role, Scope[]>>(
+  (acc, { permissions }) => {
+    permissions.forEach(({ scope, roles }) => {
+      roles.forEach((role) => {
+        if (!acc[role]) {
+          acc[role] = [];
+        }
 
-export type Scope = (typeof scopes)[number];
+        acc[role].push(scope);
+      });
+    });
+
+    return acc;
+  },
+  {} as Record<Role, Scope[]>,
+);
