@@ -1,4 +1,4 @@
-import { AxisMachinetom } from "@visx/axis";
+import { AxisBottom } from "@visx/axis";
 import { Group } from "@visx/group";
 import { Line } from "@visx/shape";
 import { useMemo } from "react";
@@ -54,7 +54,7 @@ export default function XAxis({
 
   return (
     <>
-      <AxisMachinetom
+      <AxisBottom
         left={margin.left}
         top={margin.top + height}
         scale={xScale}

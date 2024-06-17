@@ -182,13 +182,13 @@ export default async function LinkMiddleware(
     );
   }
 
-  const isMachine = detectBot(req);
+  const isBot = detectBot(req);
 
   const { country } =
     process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
-  if (isMachine && proxy) {
+  if (isBot && proxy) {
     return NextResponse.rewrite(
       new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
       {
