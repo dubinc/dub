@@ -41,9 +41,9 @@ export const GET = async (req: NextRequest) => {
       workspace,
     });
 
-    if (response.error) {
+    if (response.error && response.code) {
       throw new DubApiError({
-        code: "unprocessable_entity",
+        code: response.code,
         message: response.error,
       });
     }

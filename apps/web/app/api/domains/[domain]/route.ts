@@ -17,7 +17,7 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// GET /api/domains/[domain] – get a workspace's domain
+// GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
   async ({ domain, scopes }) => {
     throwIfNoAccess({
@@ -78,12 +78,12 @@ export const PATCH = withWorkspace(
       noindex,
     } = updateDomainBodySchema.parse(body);
 
-    if (newDomain && newDomain !== domain) {
+    if (newDomain && newDomain.toLowerCase() !== domain.toLowerCase()) {
       const validDomain = await validateDomain(newDomain);
-      if (validDomain !== true) {
+      if (validDomain.error && validDomain.code) {
         throw new DubApiError({
-          code: "unprocessable_entity",
-          message: validDomain,
+          code: validDomain.code,
+          message: validDomain.error,
         });
       }
       const vercelResponse = await addDomainToVercel(newDomain);
@@ -129,7 +129,9 @@ export const PATCH = withWorkspace(
           projectId: workspace.id,
         }),
         // remove old domain from Vercel
-        newDomain !== domain && removeDomainFromVercel(domain),
+        newDomain &&
+          newDomain.toLowerCase() !== domain.toLowerCase() &&
+          removeDomainFromVercel(domain),
       ]),
     );
 
