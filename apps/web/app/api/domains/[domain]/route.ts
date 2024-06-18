@@ -20,10 +20,7 @@ import { NextResponse } from "next/server";
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
   async ({ domain, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["domains.read"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["domains.read"] });
 
     const data = await prisma.domain.findUnique({
       where: {
@@ -62,10 +59,7 @@ export const GET = withWorkspace(
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
   async ({ req, workspace, domain, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["domains.write"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["domains.write"] });
 
     const body = await parseRequestBody(req);
     const {
@@ -146,10 +140,7 @@ export const PATCH = withWorkspace(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
   async ({ domain, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["domains.write"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["domains.write"] });
 
     await deleteDomainAndLinks(domain);
     return NextResponse.json({ slug: domain });

@@ -10,10 +10,7 @@ import JSZip from "jszip";
 // GET /api/analytics/[endpoint]/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["analytics.read"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["analytics.read"] });
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
     const { domain, key, interval, start, end } = parsedParams;

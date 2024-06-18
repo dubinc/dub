@@ -15,10 +15,7 @@ import { NextResponse } from "next/server";
 // POST /api/domains/[domain]/transfer – transfer a domain to another workspace
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["domains.write"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["domains.write"] });
 
     const { domain } = params;
     const { newWorkspaceId } = transferDomainBodySchema.parse(await req.json());

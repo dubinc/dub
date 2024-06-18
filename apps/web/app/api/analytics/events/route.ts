@@ -8,10 +8,7 @@ import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["analytics.read"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["analytics.read"] });
 
     const parsedParams = eventsQuerySchema.parse(searchParams);
 

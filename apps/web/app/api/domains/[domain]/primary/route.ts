@@ -7,10 +7,7 @@ import { NextResponse } from "next/server";
 // POST /api/domains/[domain]/primary – set a domain as primary
 export const POST = withWorkspace(
   async ({ headers, workspace, domain, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["domains.write"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["domains.write"] });
 
     const responses = await Promise.all([
       prisma.domain.update({

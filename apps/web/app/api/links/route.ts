@@ -14,10 +14,7 @@ import { NextResponse } from "next/server";
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
   async ({ req, headers, workspace, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["links.read", "links.write"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["links.read", "links.write"] });
 
     const searchParams = getSearchParamsWithArray(req.url);
 
@@ -57,10 +54,7 @@ export const GET = withWorkspace(
 // POST /api/links – create a new link
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace, scopes }) => {
-    throwIfNoAccess({
-      scopes,
-      requiredAnyOf: ["links.write"],
-    });
+    throwIfNoAccess({ scopes, requiredAnyOf: ["links.write"] });
 
     const bodyRaw = await parseRequestBody(req);
     const body = createLinkBodySchema.parse(bodyRaw);
