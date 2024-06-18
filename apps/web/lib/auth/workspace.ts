@@ -19,6 +19,7 @@ import {
   User,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, scopes as allScopes, roleToScopes } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
@@ -70,6 +71,7 @@ export const withWorkspace = (
     skipLinkChecks, // special case for /api/links/exists – skip link checks
     domainChecks, // if the action needs to check if the domain belongs to the workspace
     betaFeature, // if the action is a beta feature
+    requiredScopes = [],
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredRole?: Array<"owner" | "member">;
@@ -80,6 +82,7 @@ export const withWorkspace = (
     skipLinkChecks?: boolean;
     domainChecks?: boolean;
     betaFeature?: boolean;
+    requiredScopes?: Scope[];
   } = {},
 ) => {
   return async (
@@ -290,6 +293,14 @@ export const withWorkspace = (
         });
       }
 
+      // For session requests, find the scopes based on the user's role
+      if (!apiKey) {
+        scopes = roleToScopes[workspace.users[0].role];
+      }
+
+      // Check user has permission to make the action
+      throwIfNoAccess({ scopes, requiredScopes });
+
       // beta feature checks
       if (betaFeature) {
         const betaTester = await isBetaTester(workspace.id);
@@ -299,11 +310,6 @@ export const withWorkspace = (
             message: "Unauthorized: Beta feature.",
           });
         }
-      }
-
-      // For session requests, find the scopes based on the user's role
-      if (!apiKey) {
-        scopes = roleToScopes[workspace.users[0].role];
       }
 
       // edge case where linkId is an externalId and workspaceId was not provided (they must've used projectSlug instead)

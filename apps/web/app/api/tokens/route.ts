@@ -21,7 +21,8 @@ export const POST = withWorkspace(async ({ req, session, workspace }) => {
   if (isMachine) {
     machineUser = await prisma.user.create({
       data: {
-        name: "Machine user",
+        name: "Machine",
+        image: "https://api.dicebear.com/9.x/bottts/svg",
         isMachine: true,
       },
     });

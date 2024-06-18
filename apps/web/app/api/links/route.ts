@@ -1,6 +1,5 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
-import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
@@ -13,9 +12,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
-  async ({ req, headers, workspace, scopes }) => {
-    throwIfNoAccess({ scopes, requiredScopes: ["links.read", "links.write"] });
-
+  async ({ req, headers, workspace }) => {
     const searchParams = getSearchParamsWithArray(req.url);
 
     const {
@@ -49,13 +46,14 @@ export const GET = withWorkspace(
       headers,
     });
   },
+  {
+    requiredScopes: ["links.read"],
+  },
 );
 
 // POST /api/links – create a new link
 export const POST = withWorkspace(
-  async ({ req, headers, session, workspace, scopes }) => {
-    throwIfNoAccess({ scopes, requiredScopes: ["links.write"] });
-
+  async ({ req, headers, session, workspace }) => {
     const bodyRaw = await parseRequestBody(req);
     const body = createLinkBodySchema.parse(bodyRaw);
 
@@ -105,5 +103,6 @@ export const POST = withWorkspace(
   {
     needNotExceededLinks: true,
     allowAnonymous: true,
+    requiredScopes: ["links.write"],
   },
 );
