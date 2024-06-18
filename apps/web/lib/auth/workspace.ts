@@ -299,7 +299,9 @@ export const withWorkspace = (
       }
 
       // Check user has permission to make the action
-      throwIfNoAccess({ scopes, requiredScopes });
+      if (requiredScopes.length > 0) {
+        throwIfNoAccess({ scopes, requiredScopes });
+      }
 
       // beta feature checks
       if (betaFeature) {

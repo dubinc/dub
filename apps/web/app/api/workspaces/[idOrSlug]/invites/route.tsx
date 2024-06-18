@@ -10,18 +10,23 @@ const emailInviteSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
-export const GET = withWorkspace(async ({ workspace }) => {
-  const invites = await prisma.projectInvite.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      email: true,
-      createdAt: true,
-    },
-  });
-  return NextResponse.json(invites);
-});
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const invites = await prisma.projectInvite.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        email: true,
+        createdAt: true,
+      },
+    });
+    return NextResponse.json(invites);
+  },
+  {
+    requiredScopes: ["workspaces.read"],
+  },
+);
 
 // POST /api/workspaces/[idOrSlug]/invites – invite a teammate
 export const POST = withWorkspace(
@@ -77,7 +82,7 @@ export const POST = withWorkspace(
     return NextResponse.json({ message: "Invite sent" });
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );
 
@@ -96,6 +101,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );

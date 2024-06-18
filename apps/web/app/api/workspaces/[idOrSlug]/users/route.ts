@@ -19,31 +19,36 @@ const removeUserSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
-export const GET = withWorkspace(async ({ workspace }) => {
-  const users = await prisma.projectUsers.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      role: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-        },
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const users = await prisma.projectUsers.findMany({
+      where: {
+        projectId: workspace.id,
       },
-      createdAt: true,
-    },
-  });
-  return NextResponse.json(
-    users.map((u) => ({
-      ...u.user,
-      role: u.role,
-    })),
-  );
-});
+      select: {
+        role: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+    return NextResponse.json(
+      users.map((u) => ({
+        ...u.user,
+        role: u.role,
+      })),
+    );
+  },
+  {
+    requiredScopes: ["workspaces.read"],
+  },
+);
 
 // PUT /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PUT = withWorkspace(
@@ -63,12 +68,11 @@ export const PUT = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );
 
 // DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace
-
 export const DELETE = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const { userId } = removeUserSchema.parse(searchParams);
@@ -120,7 +124,7 @@ export const DELETE = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
     allowSelf: true,
   },
 );

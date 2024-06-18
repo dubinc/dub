@@ -33,18 +33,23 @@ const updateWorkspaceSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
-export const GET = withWorkspace(async ({ workspace, headers }) => {
-  const betaTester = await isBetaTester(workspace.id);
+export const GET = withWorkspace(
+  async ({ workspace, headers }) => {
+    const betaTester = await isBetaTester(workspace.id);
 
-  return NextResponse.json(
-    WorkspaceSchema.parse({
-      ...workspace,
-      id: `ws_${workspace.id}`,
-      betaTester,
-    }),
-    { headers },
-  );
-});
+    return NextResponse.json(
+      WorkspaceSchema.parse({
+        ...workspace,
+        id: `ws_${workspace.id}`,
+        betaTester,
+      }),
+      { headers },
+    );
+  },
+  {
+    requiredScopes: ["workspaces.read"],
+  },
+);
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
@@ -88,7 +93,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );
 
@@ -102,6 +107,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(workspace);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );

@@ -19,6 +19,10 @@ export const scopes = [
   // Domains
   "domains.read",
   "domains.write",
+
+  // API tokens
+  "tokens.read",
+  "tokens.write",
 ] as const;
 
 export type Scope = (typeof scopes)[number];

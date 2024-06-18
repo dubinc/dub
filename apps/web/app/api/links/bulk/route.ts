@@ -126,5 +126,6 @@ export const POST = withWorkspace(
   },
   {
     needNotExceededLinks: true,
+    requiredScopes: ["links.write"],
   },
 );
