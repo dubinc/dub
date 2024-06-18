@@ -47,8 +47,8 @@ importers:
         specifier: ^0.3.9
         version: 0.3.9
       '@dub/analytics':
-        specifier: ^0.0.11
-        version: 0.0.11
+        specifier: ^0.0.14
+        version: 0.0.14
       '@dub/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
@@ -2923,8 +2923,8 @@ packages:
       zod: 3.22.4
     dev: false
 
-  /@dub/analytics@0.0.11:
-    resolution: {integrity: sha512-Cn4DfDUqYW50tiVKsVJHVf+lNCImY5qcKD7L033Ar1er1al7gL38pf4PE//axN424Hr1T0Yyh0cADdb7sRZ7Qg==}
+  /@dub/analytics@0.0.14:
+    resolution: {integrity: sha512-Cl4TvJODbUoXBCxeLV9rOaYhyzV8N2tgmClzfIu75dwvA5GO1rGV3KFwKy9acNrOPixHDl1OI/kYGnT9k6mjCw==}
     dependencies:
       server-only: 0.0.1
     dev: false
