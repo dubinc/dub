@@ -1,7 +1,7 @@
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { addDomain } from "@/lib/api/domains/add-domain";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
-import { exceededLimitError } from "@/lib/api/errors";
+import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -59,8 +59,11 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
 
   const validDomain = await validateDomain(slug);
 
-  if (validDomain !== true) {
-    return new Response(validDomain, { status: 422 });
+  if (validDomain.error && validDomain.code) {
+    throw new DubApiError({
+      code: validDomain.code,
+      message: validDomain.error,
+    });
   }
 
   const vercelResponse = await addDomainToVercel(slug);

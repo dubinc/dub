@@ -14,6 +14,7 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import { Link, Tag } from "@prisma/client";
+import { DubApiError } from "../errors";
 
 export type LinkWithTags = Link & {
   tags: { tag: Pick<Tag, "id" | "name" | "color"> }[];
@@ -44,7 +45,7 @@ export async function keyChecks({
   domain: string;
   key: string;
   workspace?: Pick<WorkspaceProps, "plan">;
-}) {
+}): Promise<{ error: string | null; code?: DubApiError["code"] }> {
   if (key.length === 0) {
     if (workspace?.plan === "free") {
       return {

@@ -1,4 +1,4 @@
-import { addDomainToVercel, domainExists } from "@/lib/api/domains";
+import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { addDomain } from "@/lib/api/domains/add-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
@@ -81,7 +81,7 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  const [slugExist, domainExist] = await Promise.all([
+  const [slugExist, validDomain] = await Promise.all([
     prisma.project.findUnique({
       where: {
         slug,
@@ -90,7 +90,7 @@ export const POST = withSession(async ({ req, session }) => {
         slug: true,
       },
     }),
-    domain ? domainExists(domain) : false,
+    domain ? validateDomain(domain) : { error: null },
   ]);
 
   if (slugExist) {
@@ -100,10 +100,10 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  if (domainExist) {
+  if (validDomain.error && validDomain.code) {
     throw new DubApiError({
-      code: "conflict",
-      message: "Domain is already in use.",
+      code: validDomain.code,
+      message: validDomain.error,
     });
   }
 

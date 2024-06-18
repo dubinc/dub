@@ -13,7 +13,7 @@ import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// GET /api/domains/[domain] – get a workspace's domain
+// GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
   async ({ domain, workspace }) => {
     const result = await getDomain({
@@ -36,12 +36,12 @@ export const PATCH = withWorkspace(
 
     const { slug: newDomain } = payload;
 
-    if (newDomain && newDomain !== domain) {
+    if (newDomain && newDomain.toLowerCase() !== domain.toLowerCase()) {
       const validDomain = await validateDomain(newDomain);
-      if (validDomain !== true) {
+      if (validDomain.error && validDomain.code) {
         throw new DubApiError({
-          code: "unprocessable_entity",
-          message: validDomain,
+          code: validDomain.code,
+          message: validDomain.error,
         });
       }
       const vercelResponse = await addDomainToVercel(newDomain);
@@ -63,7 +63,9 @@ export const PATCH = withWorkspace(
     waitUntil(
       Promise.all([
         // remove old domain from Vercel
-        newDomain !== domain && removeDomainFromVercel(domain),
+        newDomain &&
+          newDomain.toLowerCase() !== domain.toLowerCase() &&
+          removeDomainFromVercel(domain),
       ]),
     );
 
