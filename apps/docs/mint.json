@@ -44,7 +44,8 @@
   "anchors": [
     {
       "name": "Help Center",
-      "icon": "question",
+      "icon": "circle-info",
+      "iconType": "sharp-solid",
       "url": "https://dub.co/help"
     },
     {
@@ -165,7 +166,7 @@
     },
     {
       "group": "SDKs",
-      "pages": ["sdks/overview"]
+      "pages": ["sdks/overview", "sdks/js-client/overview"]
     },
     {
       "group": "TypeScript",
