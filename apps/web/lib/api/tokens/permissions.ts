@@ -3,23 +3,19 @@ import { Scope } from "./scopes";
 
 export const throwIfNoAccess = ({
   scopes,
-  requiredAnyOf,
+  requiredScopes,
 }: {
   scopes: Scope[];
-  requiredAnyOf: Scope | Scope[];
+  requiredScopes: Scope[];
 }) => {
-  const requiredScopes = Array.isArray(requiredAnyOf)
-    ? requiredAnyOf
-    : [requiredAnyOf];
-
   for (const requiredScope of requiredScopes) {
-    if (scopes.includes(requiredScope)) {
-      return;
+    // Check if the required scope is in the list of scopes
+    // If not, throw an error immediately with a message
+    if (!scopes.includes(requiredScope)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: `You do not have permission to make this action.`,
+      });
     }
   }
-
-  throw new DubApiError({
-    code: "forbidden",
-    message: `You do not have permission to make this action.`,
-  });
 };

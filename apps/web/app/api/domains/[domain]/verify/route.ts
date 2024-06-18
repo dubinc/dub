@@ -13,7 +13,7 @@ export const maxDuration = 30;
 
 // GET /api/domains/[domain]/verify - get domain verification status
 export const GET = withWorkspace(async ({ domain, scopes }) => {
-  throwIfNoAccess({ scopes, requiredAnyOf: ["domains.write"] });
+  throwIfNoAccess({ scopes, requiredScopes: ["domains.write"] });
 
   let status: DomainVerificationStatusProps = "Valid Configuration";
 

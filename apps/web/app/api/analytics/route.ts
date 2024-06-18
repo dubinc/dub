@@ -13,7 +13,7 @@ import { NextResponse } from "next/server";
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, link, scopes }) => {
-    throwIfNoAccess({ scopes, requiredAnyOf: ["analytics.read"] });
+    throwIfNoAccess({ scopes, requiredScopes: ["analytics.read"] });
 
     let { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);

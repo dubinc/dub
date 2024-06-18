@@ -12,7 +12,7 @@ const updatePublicStatsSchema = z.object({
 
 // GET /api/analytics – get the publicStats setting for a link
 export const GET = withWorkspace(async ({ searchParams, scopes }) => {
-  throwIfNoAccess({ scopes, requiredAnyOf: ["links.read"] });
+  throwIfNoAccess({ scopes, requiredScopes: ["links.read"] });
 
   const { domain, key } = domainKeySchema.parse(searchParams);
   const response = await getDomainOrLink({ domain, key });
@@ -21,7 +21,7 @@ export const GET = withWorkspace(async ({ searchParams, scopes }) => {
 
 // PUT /api/analytics – update the publicStats setting for a link
 export const PUT = withWorkspace(async ({ req, searchParams, scopes }) => {
-  throwIfNoAccess({ scopes, requiredAnyOf: ["links.write"] });
+  throwIfNoAccess({ scopes, requiredScopes: ["links.write"] });
 
   const { domain, key } = domainKeySchema.parse(searchParams);
   const { publicStats } = updatePublicStatsSchema.parse(await req.json());

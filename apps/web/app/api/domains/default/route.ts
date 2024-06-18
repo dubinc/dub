@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/domains/default - get default domains
 export const GET = withWorkspace(async ({ workspace, scopes }) => {
-  throwIfNoAccess({ scopes, requiredAnyOf: ["domains.write"] });
+  throwIfNoAccess({ scopes, requiredScopes: ["domains.write"] });
 
   const defaultDomains = await prisma.defaultDomains.findUnique({
     where: {
@@ -42,7 +42,7 @@ const updateDefaultDomainsSchema = z.object({
 
 // PUT /api/domains/default - edit default domains
 export const PUT = withWorkspace(async ({ req, workspace, scopes }) => {
-  throwIfNoAccess({ scopes, requiredAnyOf: ["domains.write"] });
+  throwIfNoAccess({ scopes, requiredScopes: ["domains.write"] });
 
   const { defaultDomains } = await updateDefaultDomainsSchema.parseAsync(
     await req.json(),

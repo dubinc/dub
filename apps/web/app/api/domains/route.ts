@@ -15,7 +15,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(async ({ workspace, scopes }) => {
-  throwIfNoAccess({ scopes, requiredAnyOf: ["domains.read"] });
+  throwIfNoAccess({ scopes, requiredScopes: ["domains.read"] });
 
   const domains = await prisma.domain.findMany({
     where: {
@@ -28,7 +28,7 @@ export const GET = withWorkspace(async ({ workspace, scopes }) => {
 
 // POST /api/domains - add a domain
 export const POST = withWorkspace(async ({ req, workspace, scopes }) => {
-  throwIfNoAccess({ scopes, requiredAnyOf: ["domains.write"] });
+  throwIfNoAccess({ scopes, requiredScopes: ["domains.write"] });
 
   const body = await parseRequestBody(req);
   const {
