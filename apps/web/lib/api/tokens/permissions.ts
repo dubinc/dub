@@ -1,6 +1,8 @@
 import { DubApiError } from "../errors";
 import { Scope } from "./scopes";
 
+// Check if the required scope is in the list of scopes
+// If not, throw an error immediately with a message
 export const throwIfNoAccess = ({
   scopes,
   requiredScopes,
@@ -8,9 +10,11 @@ export const throwIfNoAccess = ({
   scopes: Scope[];
   requiredScopes: Scope[];
 }) => {
+  if (requiredScopes.length === 0) {
+    return;
+  }
+
   for (const requiredScope of requiredScopes) {
-    // Check if the required scope is in the list of scopes
-    // If not, throw an error immediately with a message
     if (!scopes.includes(requiredScope)) {
       throw new DubApiError({
         code: "forbidden",
