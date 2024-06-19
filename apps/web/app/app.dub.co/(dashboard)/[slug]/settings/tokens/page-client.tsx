@@ -4,10 +4,11 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
-import { IconMenu, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
+import { Delete } from "@/ui/shared/icons";
+import { Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
 import { Token } from "@prisma/client";
-import { FolderOpen, MoreVertical, Trash } from "lucide-react";
+import { Edit3, FolderOpen, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -19,11 +20,19 @@ export default function TokensPageClient() {
   );
 
   const [createdToken, setCreatedToken] = useState<string | null>(null);
-
-  const { AddEditTokenModal, setShowAddEditTokenModal, AddTokenButton } =
-    useAddEditTokenModal();
   const { TokenCreatedModal, setShowTokenCreatedModal } = useTokenCreatedModal({
     token: createdToken || "",
+  });
+
+  // TODO:
+  // Check if there is a better way to display the token after creation
+  const onTokenCreated = (token: string) => {
+    setCreatedToken(token);
+    setShowTokenCreatedModal(true);
+  };
+
+  const { AddEditTokenModal, AddTokenButton } = useAddEditTokenModal({
+    onTokenCreated,
   });
 
   return (
@@ -79,7 +88,9 @@ const TokenRow = (token: Token) => {
   const [openPopover, setOpenPopover] = useState(false);
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
     token,
+    tokenType: "workspace",
   });
+
   return (
     <>
       <DeleteTokenModal />
@@ -102,19 +113,29 @@ const TokenRow = (token: Token) => {
         </div>
         <Popover
           content={
-            <div className="grid w-full gap-1 p-2 sm:w-48">
-              <button
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowDeleteTokenModal(true);
-                }}
-                className="rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-              >
-                <IconMenu
-                  text="Delete API Key"
-                  icon={<Trash className="h-4 w-4" />}
+            <div className="w-full sm:w-48">
+              <div className="grid gap-px p-2">
+                <Button
+                  text="Edit API Key"
+                  variant="outline"
+                  icon={<Edit3 className="h-4 w-4" />}
+                  className="h-9 justify-start px-2 font-medium"
+                  // onClick={() => {
+                  //   setOpenPopover(false);
+                  //   setShowAddEditDomainModal(true);
+                  // }}
                 />
-              </button>
+                <Button
+                  text="Delete API Key"
+                  variant="danger-outline"
+                  icon={<Delete className="h-4 w-4" />}
+                  className="h-9 justify-start px-2 font-medium"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDeleteTokenModal(true);
+                  }}
+                />
+              </div>
             </div>
           }
           align="end"

@@ -30,27 +30,28 @@ type APIKeyProps = {
   isMachine: boolean;
 };
 
+const newToken: APIKeyProps = {
+  name: "",
+  scopes: {},
+  isMachine: false,
+};
+
 function AddEditTokenModal({
   showAddEditTokenModal,
   setShowAddEditTokenModal,
   props,
+  onTokenCreated,
 }: {
   showAddEditTokenModal: boolean;
   setShowAddEditTokenModal: Dispatch<SetStateAction<boolean>>;
   props?: APIKeyProps;
+  onTokenCreated: (token: string) => void;
 }) {
   const { id: workspaceId, logo, slug } = useWorkspace();
 
   const [saving, setSaving] = useState(false);
   const [domainError, setDomainError] = useState<string | null>(null);
-  const [data, setData] = useState<APIKeyProps>(
-    props || {
-      id: "",
-      name: "",
-      scopes: {},
-      isMachine: false,
-    },
-  );
+  const [data, setData] = useState<APIKeyProps>(props || newToken);
 
   const saveDisabled = useMemo(() => {
     /* 
@@ -73,6 +74,7 @@ function AddEditTokenModal({
     }
   }, [showAddEditTokenModal, saving, domainError, props, data]);
 
+  // Determine the endpoint
   const endpoint = useMemo(() => {
     if (props) {
       return {
@@ -88,8 +90,6 @@ function AddEditTokenModal({
       };
     }
   }, [props]);
-
-  const { name, scopes, isMachine } = data;
 
   // Save the form data
   const onSubmit = async (e: FormEvent) => {
@@ -107,108 +107,113 @@ function AddEditTokenModal({
       }),
     });
 
-    const json = await response.json();
+    const result = await response.json();
 
     if (response.ok) {
       mutate(`/api/tokens?workspaceId=${workspaceId}`);
       toast.success(endpoint.successMessage);
+      onTokenCreated(result.token);
       setShowAddEditTokenModal(false);
     } else {
-      toast.error(json.error.message);
+      toast.error(result.error.message);
     }
   };
 
+  const { name, scopes, isMachine } = data;
+
   return (
-    <Modal
-      showModal={showAddEditTokenModal}
-      setShowModal={setShowAddEditTokenModal}
-      className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
-    >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-        {logo ? (
-          <BlurImage
-            src={logo}
-            alt={`Logo for ${slug}`}
-            className="h-10 w-10 rounded-full border border-gray-200"
-            width={20}
-            height={20}
-          />
-        ) : (
-          <Logo />
-        )}
-        <h1 className="text-lg font-medium">
-          {props ? "Edit" : "Add New"} API Key
-        </h1>
-      </div>
-
-      <form
-        onSubmit={onSubmit}
-        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-10"
+    <>
+      <Modal
+        showModal={showAddEditTokenModal}
+        setShowModal={setShowAddEditTokenModal}
+        className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
       >
-        <div>
-          <label htmlFor="name" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Name</h2>
-          </label>
-          <div className="relative mt-2 rounded-md shadow-sm">
-            <input
-              name="target"
-              id="target"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="My Test Key"
-              required
-              value={name}
-              onChange={(e) => setData({ ...data, name: e.target.value })}
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+          {logo ? (
+            <BlurImage
+              src={logo}
+              alt={`Logo for ${slug}`}
+              className="h-10 w-10 rounded-full border border-gray-200"
+              width={20}
+              height={20}
             />
-          </div>
+          ) : (
+            <Logo />
+          )}
+          <h1 className="text-lg font-medium">
+            {props ? "Edit" : "Add New"} API Key
+          </h1>
         </div>
 
-        <div className="flex flex-col divide-y text-sm">
-          {allScopes.map((scope) => (
-            <div
-              className="flex items-center justify-between py-4"
-              key={`${scope.resource}-resource`}
-            >
-              <div className="text-gray-500">{scope.resource}</div>
-              <div>
-                <RadioGroup
-                  defaultValue=""
-                  className="flex gap-4"
-                  onValueChange={(v) => {
-                    setData({
-                      ...data,
-                      scopes: {
-                        ...scopes,
-                        [scope.resource.toLocaleLowerCase()]: v,
-                      },
-                    });
-                  }}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="" />
-                    <div>None</div>
-                  </div>
-                  {scope.permissions.map((permission) => (
-                    <div
-                      className="flex items-center space-x-2"
-                      key={permission.scope}
-                    >
-                      <RadioGroupItem value={permission.scope} />
-                      <div>{permission.permission}</div>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
+        <form
+          onSubmit={onSubmit}
+          className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-10"
+        >
+          <div>
+            <label htmlFor="name" className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-gray-900">Name</h2>
+            </label>
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                name="target"
+                id="target"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                placeholder="My Test Key"
+                required
+                value={name}
+                onChange={(e) => setData({ ...data, name: e.target.value })}
+              />
             </div>
-          ))}
-        </div>
+          </div>
 
-        <Button
-          text={props ? "Save changes" : "Create API key"}
-          disabled={saveDisabled}
-          loading={saving}
-        />
-      </form>
-    </Modal>
+          <div className="flex flex-col divide-y text-sm">
+            {allScopes.map((scope) => (
+              <div
+                className="flex items-center justify-between py-4"
+                key={`${scope.resource}-resource`}
+              >
+                <div className="text-gray-500">{scope.resource}</div>
+                <div>
+                  <RadioGroup
+                    defaultValue=""
+                    className="flex gap-4"
+                    onValueChange={(v) => {
+                      setData({
+                        ...data,
+                        scopes: {
+                          ...scopes,
+                          [scope.resource.toLocaleLowerCase()]: v,
+                        },
+                      });
+                    }}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="" />
+                      <div>None</div>
+                    </div>
+                    {scope.permissions.map((permission) => (
+                      <div
+                        className="flex items-center space-x-2"
+                        key={permission.scope}
+                      >
+                        <RadioGroupItem value={permission.scope} />
+                        <div>{permission.permission}</div>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Button
+            text={props ? "Save changes" : "Create API key"}
+            disabled={saveDisabled}
+            loading={saving}
+          />
+        </form>
+      </Modal>
+    </>
   );
 }
 
@@ -231,7 +236,15 @@ function AddTokenButton({
   );
 }
 
-export function useAddEditTokenModal({ props }: { props?: APIKeyProps } = {}) {
+export function useAddEditTokenModal(
+  {
+    props,
+    onTokenCreated,
+  }: {
+    props?: APIKeyProps;
+    onTokenCreated: (token: string) => void;
+  } = { onTokenCreated: () => {} },
+) {
   const [showAddEditTokenModal, setShowAddEditTokenModal] = useState(false);
 
   const AddEditTokenModalCallback = useCallback(() => {
@@ -240,6 +253,7 @@ export function useAddEditTokenModal({ props }: { props?: APIKeyProps } = {}) {
         showAddEditTokenModal={showAddEditTokenModal}
         setShowAddEditTokenModal={setShowAddEditTokenModal}
         props={props}
+        onTokenCreated={onTokenCreated}
       />
     );
   }, [showAddEditTokenModal, setShowAddEditTokenModal]);

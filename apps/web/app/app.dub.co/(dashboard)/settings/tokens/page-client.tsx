@@ -25,7 +25,7 @@ export default function TokensPageClient() {
   return (
     <>
       <Alert>
-        <Info className="h-5 w-5 mt-2 text-yellow-500" />
+        <Info className="mt-2 h-5 w-5 text-yellow-500" />
         <AlertTitle>
           User API Keys have been replaced by Workspace API Keys.
         </AlertTitle>
@@ -80,7 +80,9 @@ const TokenRow = (token: Token) => {
   const [openPopover, setOpenPopover] = useState(false);
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
     token,
+    tokenType: "user",
   });
+
   return (
     <>
       <DeleteTokenModal />

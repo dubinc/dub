@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Badge,
   Button,
@@ -22,14 +23,31 @@ function DeleteTokenModal({
   showDeleteTokenModal,
   setShowDeleteTokenModal,
   token,
+  tokenType,
 }: {
   showDeleteTokenModal: boolean;
   setShowDeleteTokenModal: Dispatch<SetStateAction<boolean>>;
   token: Token;
+  tokenType: "user" | "workspace";
 }) {
+  const { isMobile } = useMediaQuery();
+  const { id: workspaceId } = useWorkspace();
   const [removing, setRemoving] = useState(false);
 
-  const { isMobile } = useMediaQuery();
+  // Determine the endpoint
+  const endpoint = useMemo(() => {
+    if (tokenType === "user") {
+      return {
+        url: `/api/user/tokens?id=${token.id}`,
+        mutate: "/api/user/tokens",
+      };
+    } else {
+      return {
+        url: `/api/tokens/${token.id}?workspaceId=${workspaceId}`,
+        mutate: `/api/tokens?workspaceId=${workspaceId}`,
+      };
+    }
+  }, [tokenType]);
 
   return (
     <Modal
@@ -67,14 +85,14 @@ function DeleteTokenModal({
           loading={removing}
           onClick={() => {
             setRemoving(true);
-            fetch(`/api/user/tokens?id=${token.id}`, {
+            fetch(endpoint.url, {
               method: "DELETE",
               headers: { "Content-Type": "application/json" },
             }).then(async (res) => {
               setRemoving(false);
               if (res.status === 200) {
                 toast.success(`Successfully deleted API key`);
-                mutate("/api/user/tokens");
+                mutate(endpoint.mutate);
                 setShowDeleteTokenModal(false);
               } else {
                 const error = await res.text();
@@ -88,7 +106,13 @@ function DeleteTokenModal({
   );
 }
 
-export function useDeleteTokenModal({ token }: { token: Token }) {
+export function useDeleteTokenModal({
+  token,
+  tokenType,
+}: {
+  token: Token;
+  tokenType: "user" | "workspace";
+}) {
   const [showDeleteTokenModal, setShowDeleteTokenModal] = useState(false);
 
   const DeleteTokenModalCallback = useCallback(() => {
@@ -97,6 +121,7 @@ export function useDeleteTokenModal({ token }: { token: Token }) {
         showDeleteTokenModal={showDeleteTokenModal}
         setShowDeleteTokenModal={setShowDeleteTokenModal}
         token={token}
+        tokenType={tokenType}
       />
     );
   }, [showDeleteTokenModal, setShowDeleteTokenModal]);
