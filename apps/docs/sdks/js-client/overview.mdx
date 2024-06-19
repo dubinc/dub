@@ -3,3 +3,76 @@ title: "@dub/analytics"
 description: Client-side JavaScript SDK for for Dub Conversions
 icon: node-js
 ---
+
+With Dub Analytics, you can track leads and sales conversions on your website, enabling you to measure the effectiveness of your marketing campaigns.
+
+This quick start guide will show you how to get started with Dub Analytics on your website.
+
+<Steps>
+  <Step title="Enable conversion tracking in Dub">
+    You must first enable conversion tracking in Dub for the short links you want to track conversions for.
+
+    Follow the steps below to enable conversion tracking for a short link in Dub:
+
+    - Go to the [Dub dashboard](https://app.dub.co/)
+    - Click on the "Links" tab
+    - Click "Edit" on the short link you want to track conversions for
+    - Enable "Conversion Tracking" and click "Save changes"
+
+    ![Enable Conversion Tracking in Dub](/images/enable-conversion-tracking.png)
+
+  </Step>
+
+  <Step title="Install `@dub/analytics` to your project">
+    Using the package manager of your choice, add the `@dub/analytics` to your project.
+
+    <CodeGroup>
+
+      ```bash npm
+      npm install @dub/analytics
+      ```
+
+      ```bash yarn
+      yarn add @dub/analytics
+      ```
+
+      ```bash pnpm
+      pnpm add @dub/analytics
+      ```
+
+    </CodeGroup>
+
+  </Step>
+  
+  <Step title="Use `<Analytics />` in your project">
+    Add `<Analytics />` component to pages you want to track conversions for. Ideally, you should add it to the `<head>` of your website or in a shared layout component.
+
+    Add the following code to your project:
+
+    ```jsx
+      import { Analytics as DubAnalytics } from '@dub/analytics/react';
+
+      export default function RootLayout({
+        children,
+      }: Readonly<{
+        children: React.ReactNode;
+      }>) {
+        return (
+          <html lang="en">
+            <body>{children}</body>
+            <DubAnalytics />
+          </html>
+        );
+      }
+    ```
+
+  </Step>
+
+  <Step title="Track conversions">
+    Dub Analytics will now track conversions on your website. You can view the conversion data in the Dub dashboard.
+
+    ![Conversion data in Dub dashboard](/images/conversion-data.png)
+  </Step>
+</Steps>
+
+https://github.com/dubinc/analytics
