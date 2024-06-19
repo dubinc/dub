@@ -22,9 +22,6 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-// TODO:
-// Fetch the scopes from the API
-
 type APIKeyProps = {
   id?: string;
   name: string;
@@ -41,24 +38,24 @@ const newToken: APIKeyProps = {
 function AddEditTokenModal({
   showAddEditTokenModal,
   setShowAddEditTokenModal,
-  props,
+  token,
   onTokenCreated,
 }: {
   showAddEditTokenModal: boolean;
   setShowAddEditTokenModal: Dispatch<SetStateAction<boolean>>;
-  props?: APIKeyProps;
-  onTokenCreated: (token: string) => void;
+  token?: APIKeyProps;
+  onTokenCreated?: (token: string) => void;
 }) {
   const [saving, setSaving] = useState(false);
   const { id: workspaceId, logo, slug } = useWorkspace();
-  const [data, setData] = useState<APIKeyProps>(props || newToken);
+  const [data, setData] = useState<APIKeyProps>(token || newToken);
 
   // Determine the endpoint
   const endpoint = useMemo(() => {
-    if (props) {
+    if (token) {
       return {
         method: "PATCH",
-        url: `/api/tokens/${"id"}?workspaceId=${workspaceId}`,
+        url: `/api/tokens/${token.id}?workspaceId=${workspaceId}`,
         successMessage: "API key updated!",
       };
     } else {
@@ -68,7 +65,7 @@ function AddEditTokenModal({
         successMessage: "API key created!",
       };
     }
-  }, [props]);
+  }, [token]);
 
   // Save the form data
   const onSubmit = async (e: FormEvent) => {
@@ -91,15 +88,16 @@ function AddEditTokenModal({
     if (response.ok) {
       mutate(`/api/tokens?workspaceId=${workspaceId}`);
       toast.success(endpoint.successMessage);
-      onTokenCreated(result.token);
+      onTokenCreated?.(result.token);
       setShowAddEditTokenModal(false);
     } else {
       toast.error(result.error.message);
     }
   };
 
-  const { name, scopes, isMachine } = data;
-  const buttonDisabled = !name;
+  const { name, scopes } = data;
+  const buttonDisabled =
+    (!name || token?.name === name) && token?.scopes === scopes;
 
   return (
     <>
@@ -121,7 +119,7 @@ function AddEditTokenModal({
             <Logo />
           )}
           <h1 className="text-lg font-medium">
-            {props ? "Edit" : "Add New"} API Key
+            {token ? "Edit" : "Add New"} API Key
           </h1>
         </div>
 
@@ -129,37 +127,44 @@ function AddEditTokenModal({
           onSubmit={onSubmit}
           className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-10"
         >
-          <div>
-            <RadioGroup
-              className="flex"
-              defaultValue="user"
-              required
-              onValueChange={(value) =>
-                setData({ ...data, isMachine: value === "machine" })
-              }
-            >
-              <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
-                <RadioGroupItem value="user" id="user" className="ml-3" />
-                <Label
-                  htmlFor="user"
-                  className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
-                >
-                  <p className="text-gray-600">You</p>
-                  <InfoTooltip content="This API key is tied to your user and can make requests against the selected workspace. If you are removed from the workspace, this key will be disabled." />
-                </Label>
-              </div>
-              <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
-                <RadioGroupItem value="machine" id="machine" className="ml-3" />
-                <Label
-                  htmlFor="machine"
-                  className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
-                >
-                  <p className="text-gray-600">Machine</p>
-                  <InfoTooltip content="A new bot member will be added to your workspace, and an API key will be created. Since this are not tied to a user, you can enusre that API key remains active even if you leave the workspace." />
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+          {/* Can't change the type of the token */}
+          {!token && (
+            <div>
+              <RadioGroup
+                className="flex"
+                defaultValue="user"
+                required
+                onValueChange={(value) =>
+                  setData({ ...data, isMachine: value === "machine" })
+                }
+              >
+                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                  <RadioGroupItem value="user" id="user" className="ml-3" />
+                  <Label
+                    htmlFor="user"
+                    className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                  >
+                    <p className="text-gray-600">You</p>
+                    <InfoTooltip content="This API key is tied to your user and can make requests against the selected workspace. If you are removed from the workspace, this key will be disabled." />
+                  </Label>
+                </div>
+                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                  <RadioGroupItem
+                    value="machine"
+                    id="machine"
+                    className="ml-3"
+                  />
+                  <Label
+                    htmlFor="machine"
+                    className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                  >
+                    <p className="text-gray-600">Machine</p>
+                    <InfoTooltip content="A new bot member will be added to your workspace, and an API key will be created. Since this are not tied to a user, you can enusre that API key remains active even if you leave the workspace." />
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
 
           <div>
             <label htmlFor="name" className="flex items-center space-x-2">
@@ -167,27 +172,25 @@ function AddEditTokenModal({
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <input
-                name="target"
-                id="target"
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                placeholder="My Test Key"
                 required
                 value={name}
                 onChange={(e) => setData({ ...data, name: e.target.value })}
+                autoFocus
               />
             </div>
           </div>
 
           <span className="text-sm text-gray-500">
-            Choose the permissions for this API key. These permissions apply
-            when the API key is used to make requests to Dub.
+            These permissions apply when the API key is used to make requests to
+            Dub APIs.
           </span>
 
           <div className="flex flex-col divide-y text-sm">
             {allScopes.map((scope) => (
               <div
                 className="flex items-center justify-between py-4"
-                key={`${scope.resource}-resource`}
+                key={scope.key}
               >
                 <div className="flex gap-1 text-gray-500">
                   <p>{scope.resource}</p>
@@ -195,14 +198,14 @@ function AddEditTokenModal({
                 </div>
                 <div>
                   <RadioGroup
-                    defaultValue=""
+                    defaultValue={scopes[scope.key] || ""}
                     className="flex gap-4"
                     onValueChange={(v) => {
                       setData({
                         ...data,
                         scopes: {
                           ...scopes,
-                          [scope.resource.toLocaleLowerCase()]: v,
+                          [scope.key]: v,
                         },
                       });
                     }}
@@ -227,7 +230,7 @@ function AddEditTokenModal({
           </div>
 
           <Button
-            text={props ? "Save changes" : "Create API key"}
+            text={token ? "Save changes" : "Create API key"}
             disabled={buttonDisabled}
             loading={saving}
           />
@@ -258,11 +261,11 @@ function AddTokenButton({
 
 export function useAddEditTokenModal(
   {
-    props,
+    token,
     onTokenCreated,
   }: {
-    props?: APIKeyProps;
-    onTokenCreated: (token: string) => void;
+    token?: APIKeyProps;
+    onTokenCreated?: (token: string) => void;
   } = { onTokenCreated: () => {} },
 ) {
   const [showAddEditTokenModal, setShowAddEditTokenModal] = useState(false);
@@ -272,7 +275,7 @@ export function useAddEditTokenModal(
       <AddEditTokenModal
         showAddEditTokenModal={showAddEditTokenModal}
         setShowAddEditTokenModal={setShowAddEditTokenModal}
-        props={props}
+        token={token}
         onTokenCreated={onTokenCreated}
       />
     );

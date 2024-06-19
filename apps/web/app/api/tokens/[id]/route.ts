@@ -49,7 +49,9 @@ export const GET = withWorkspace(
 // PATCH /api/tokens/:id - update a specific token
 export const PATCH = withWorkspace(
   async ({ workspace, params, req }) => {
-    const { scopes } = updateTokenSchema.parse(await parseRequestBody(req));
+    const { name, scopes } = updateTokenSchema.parse(
+      await parseRequestBody(req),
+    );
 
     const token = await prisma.restrictedToken.update({
       where: {
@@ -57,6 +59,7 @@ export const PATCH = withWorkspace(
         projectId: workspace.id,
       },
       data: {
+        name,
         scopes: scopes.join(" "),
       },
       select: {

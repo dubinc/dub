@@ -41,6 +41,7 @@ interface ScopeDescription {
 export const scopeDescriptions = [
   {
     resource: "Workspaces",
+    key: "workspaces",
     description: "Read, update, and delete workspaces",
     endpoints: ["/workspaces"],
     permissions: [
@@ -60,6 +61,7 @@ export const scopeDescriptions = [
   },
   {
     resource: "Links",
+    key: "links",
     description: "Create, read, update, and delete links",
     endpoints: ["/links"],
     permissions: [
@@ -79,6 +81,7 @@ export const scopeDescriptions = [
   },
   {
     resource: "Tags",
+    key: "tags",
     description: "Create, read, update, and delete tags",
     endpoints: ["/tags"],
     permissions: [
@@ -98,6 +101,7 @@ export const scopeDescriptions = [
   },
   {
     resource: "Domains",
+    key: "domains",
     description: "Create, read, update, and delete domains",
     endpoints: ["/domains"],
     permissions: [
@@ -117,6 +121,7 @@ export const scopeDescriptions = [
   },
   {
     resource: "API Keys",
+    key: "tokens",
     description: "Create, read, update, and delete API keys",
     endpoints: ["/tokens"],
     permissions: [
@@ -136,6 +141,7 @@ export const scopeDescriptions = [
   },
   {
     resource: "Analytics",
+    key: "analytics",
     description: "Read analytics",
     endpoints: ["/analytics"],
     permissions: [

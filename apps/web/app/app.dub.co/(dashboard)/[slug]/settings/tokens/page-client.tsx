@@ -1,20 +1,20 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { TokenProps } from "@/lib/types";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import { Delete } from "@/ui/shared/icons";
 import { Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
-import { Token } from "@prisma/client";
 import { Edit3, FolderOpen, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { data: tokens, isLoading } = useSWR<Token[]>(
+  const { data: tokens, isLoading } = useSWR<TokenProps[]>(
     `/api/tokens?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -84,15 +84,27 @@ export default function TokensPageClient() {
   );
 }
 
-const TokenRow = (token: Token) => {
+const TokenRow = (token: TokenProps) => {
   const [openPopover, setOpenPopover] = useState(false);
+
+  const { setShowAddEditTokenModal, AddEditTokenModal } = useAddEditTokenModal({
+    token: {
+      id: token.id,
+      name: token.name,
+      isMachine: token.user.isMachine,
+      scopes: mapScopesToResource(token.scopes),
+    },
+    onTokenCreated: () => {},
+  });
+
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
-    token,
+    token: token as any, // TODO: Fix this
     tokenType: "workspace",
   });
 
   return (
     <>
+      <AddEditTokenModal />
       <DeleteTokenModal />
       <div className="relative grid grid-cols-5 items-center px-5 py-3 sm:px-10">
         <div className="col-span-3 flex items-center space-x-3">
@@ -120,10 +132,10 @@ const TokenRow = (token: Token) => {
                   variant="outline"
                   icon={<Edit3 className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
-                  // onClick={() => {
-                  //   setOpenPopover(false);
-                  //   setShowAddEditDomainModal(true);
-                  // }}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowAddEditTokenModal(true);
+                  }}
                 />
                 <Button
                   text="Delete API Key"
@@ -154,4 +166,16 @@ const TokenRow = (token: Token) => {
       </div>
     </>
   );
+};
+
+const mapScopesToResource = (scopes: string[]) => {
+  const result = scopes.map((scope) => {
+    const [resource] = scope.split(".");
+
+    return {
+      [resource]: scope,
+    };
+  });
+
+  return Object.assign({}, ...result);
 };

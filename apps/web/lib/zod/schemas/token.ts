@@ -16,6 +16,7 @@ export const createTokenSchema = z.object({
 // Schema to validate the request body when updating a token
 export const updateTokenSchema = createTokenSchema
   .pick({
+    name: true,
     scopes: true,
   })
   .required();
