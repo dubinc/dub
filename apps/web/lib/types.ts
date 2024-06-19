@@ -105,6 +105,7 @@ export interface UserProps {
   source: string | null;
   migratedWorkspace: string | null;
   defaultWorkspace?: string;
+  isMachine: boolean;
 }
 
 export interface WorkspaceUserProps extends UserProps {

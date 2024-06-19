@@ -33,6 +33,7 @@ export const GET = withWorkspace(
             name: true,
             email: true,
             image: true,
+            isMachine: true,
           },
         },
         createdAt: true,
@@ -60,6 +61,9 @@ export const PUT = withWorkspace(
           projectId: workspace.id,
           userId,
         },
+        user: {
+          isMachine: false,
+        },
       },
       data: {
         role,
@@ -86,6 +90,11 @@ export const DELETE = withWorkspace(
         },
         select: {
           role: true,
+          user: {
+            select: {
+              isMachine: true,
+            },
+          },
         },
       }),
       prisma.projectUsers.count({
@@ -121,6 +130,15 @@ export const DELETE = withWorkspace(
         },
       },
     });
+
+    if (projectUser.user.isMachine) {
+      await prisma.user.delete({
+        where: {
+          id: userId,
+        },
+      });
+    }
+
     return NextResponse.json(response);
   },
   {

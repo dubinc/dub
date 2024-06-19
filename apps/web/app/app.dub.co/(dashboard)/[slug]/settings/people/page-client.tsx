@@ -85,11 +85,7 @@ export default function WorkspacePeopleClient() {
           {users ? (
             users.length > 0 ? (
               users.map((user) => (
-                <UserCard
-                  key={user.email}
-                  user={user}
-                  currentTab={currentTab}
-                />
+                <UserCard key={user.id} user={user} currentTab={currentTab} />
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-10">
@@ -123,7 +119,7 @@ const UserCard = ({
 
   const { isOwner } = useWorkspace();
 
-  const { name, email, createdAt, role: currentRole } = user;
+  const { id, name, email, createdAt, role: currentRole, isMachine } = user;
 
   const [role, setRole] = useState<"owner" | "member">(currentRole);
 
@@ -148,7 +144,7 @@ const UserCard = ({
       <EditRoleModal />
       <RemoveTeammateModal />
       <div
-        key={email}
+        key={id}
         className="flex items-center justify-between space-x-3 px-4 py-3 sm:pl-8"
       >
         <div className="flex items-start space-x-3">
@@ -167,24 +163,26 @@ const UserCard = ({
             session?.user?.email === email ? (
               <p className="text-xs capitalize text-gray-500">{role}</p>
             ) : (
-              <select
-                className={cn(
-                  "rounded-md border border-gray-200 text-xs text-gray-500 focus:border-gray-600 focus:ring-gray-600",
-                  {
-                    "cursor-not-allowed bg-gray-100": !isOwner,
-                  },
-                )}
-                value={role}
-                disabled={!isOwner}
-                onChange={(e) => {
-                  setRole(e.target.value as "owner" | "member");
-                  setOpenPopover(false);
-                  setShowEditRoleModal(true);
-                }}
-              >
-                <option value="owner">Owner</option>
-                <option value="member">Member</option>
-              </select>
+              !isMachine && (
+                <select
+                  className={cn(
+                    "rounded-md border border-gray-200 text-xs text-gray-500 focus:border-gray-600 focus:ring-gray-600",
+                    {
+                      "cursor-not-allowed bg-gray-100": !isOwner,
+                    },
+                  )}
+                  value={role}
+                  disabled={!isOwner}
+                  onChange={(e) => {
+                    setRole(e.target.value as "owner" | "member");
+                    setOpenPopover(false);
+                    setShowEditRoleModal(true);
+                  }}
+                >
+                  <option value="owner">Owner</option>
+                  <option value="member">Member</option>
+                </select>
+              )
             )
           ) : (
             <p className="text-xs text-gray-500" suppressHydrationWarning>

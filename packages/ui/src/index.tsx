@@ -2,6 +2,7 @@
 import "./styles.css";
 
 // components
+export * from "./alert";
 export * from "./accordion";
 export * from "./avatar";
 export * from "./badge";

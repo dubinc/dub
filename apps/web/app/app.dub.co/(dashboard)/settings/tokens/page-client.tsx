@@ -1,61 +1,41 @@
 "use client";
 
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
-import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
-import { Form, IconMenu, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  IconMenu,
+  LoadingSpinner,
+  Popover,
+  TokenAvatar,
+} from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
 import { Token } from "@prisma/client";
 import { FolderOpen, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
-  const {
-    data: tokens,
-    mutate,
-    isLoading,
-  } = useSWR<Token[]>("/api/user/tokens", fetcher);
+  const { data: tokens, isLoading } = useSWR<Token[]>(
+    "/api/user/tokens",
+    fetcher,
+  );
 
-  const [createdToken, setCreatedToken] = useState<string | null>(null);
-  const { TokenCreatedModal, setShowTokenCreatedModal } = useTokenCreatedModal({
-    token: createdToken || "",
-  });
   return (
     <>
-      <TokenCreatedModal />
-      <Form
-        title="Create New API Key"
-        description="Enter a unique name for your API key to differentiate it from other keys."
-        inputAttrs={{
-          name: "name",
-          defaultValue: "",
-          placeholder: "Jetpack API Key",
-          maxLength: 140,
-        }}
-        helpText="<a href='https://d.to/api' target='_blank'>Learn more about Dub's API</a>"
-        buttonText="Submit"
-        handleSubmit={(data) =>
-          fetch("/api/user/tokens", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          }).then(async (res) => {
-            if (res.status === 200) {
-              const { token } = await res.json();
-              setCreatedToken(token);
-              setShowTokenCreatedModal(true);
-              mutate();
-              toast.success("Successfully created a new token!");
-            } else {
-              const errorMessage = await res.text();
-              toast.error(errorMessage || "Something went wrong");
-            }
-          })
-        }
-      />
+      <Alert>
+        {/* <Info className="h-6 w-6 mt-1" /> */}
+        <AlertTitle>
+          User API Keys have been replaced by Workspace API Keys.
+        </AlertTitle>
+        <AlertDescription>
+          We recommend creating a new Workspace API Key for more granular
+          control over your resources such as Links, Tags, Domains, Analytics,
+          etc.
+        </AlertDescription>
+      </Alert>
+
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col space-y-3 p-5 sm:p-10">
           <h2 className="text-xl font-medium">Your API Keys</h2>
