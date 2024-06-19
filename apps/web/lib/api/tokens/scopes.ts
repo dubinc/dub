@@ -40,16 +40,18 @@ interface ScopeDescription {
 
 export const scopeDescriptions = [
   {
-    name: "Workspaces",
+    resource: "Workspaces",
     description: "Read workspaces",
     endpoints: ["/workspaces"],
     permissions: [
       {
+        permission: "Read",
         scope: "workspaces.read",
         description: "Read workspaces",
         roles: ["owner", "member"],
       },
       {
+        permission: "Write",
         scope: "workspaces.write",
         description: "Write workspaces",
         roles: ["owner"],
@@ -57,16 +59,18 @@ export const scopeDescriptions = [
     ],
   },
   {
-    name: "Links",
+    resource: "Links",
     description: "Create, read, update, and delete links",
     endpoints: ["/links"],
     permissions: [
       {
+        permission: "Read",
         scope: "links.read",
         description: "Read links",
         roles: ["owner", "member"],
       },
       {
+        permission: "Write",
         scope: "links.write",
         description: "Write links",
         roles: ["owner", "member"],
@@ -74,16 +78,18 @@ export const scopeDescriptions = [
     ],
   },
   {
-    name: "Tags",
+    resource: "Tags",
     description: "Create, read, update, and delete tags",
     endpoints: ["/tags"],
     permissions: [
       {
+        permission: "Read",
         scope: "tags.read",
         description: "Read tags",
         roles: ["owner", "member"],
       },
       {
+        permission: "Write",
         scope: "tags.write",
         description: "Write tags",
         roles: ["owner", "member"],
@@ -91,11 +97,12 @@ export const scopeDescriptions = [
     ],
   },
   {
-    name: "Analytics",
+    resource: "Analytics",
     description: "Read analytics",
     endpoints: ["/analytics"],
     permissions: [
       {
+        permission: "Read",
         scope: "analytics.read",
         description: "Read analytics",
         roles: ["owner", "member"],
@@ -103,16 +110,18 @@ export const scopeDescriptions = [
     ],
   },
   {
-    name: "Domains",
+    resource: "Domains",
     description: "Create, read, update, and delete domains",
     endpoints: ["/domains"],
     permissions: [
       {
+        permission: "Read",
         scope: "domains.read",
         description: "Read domains",
         roles: ["owner", "member"],
       },
       {
+        permission: "Write",
         scope: "domains.write",
         description: "Write domains",
         roles: ["owner"],
