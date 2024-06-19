@@ -1,5 +1,5 @@
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
-import { addDomain } from "@/lib/api/domains/add-domain";
+import { createDomain } from "@/lib/api/domains/create-domain";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -81,7 +81,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       2. If there's a landing page set, update the root domain in Redis
       3. If the workspace has no domains (meaning this is the first domain added), set it as primary
   */
-  const domainRecord = await addDomain({
+  const domainRecord = await createDomain({
     ...payload,
     workspace,
     userId: session.user.id,

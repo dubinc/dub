@@ -1,18 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import z from "@/lib/zod";
-import { addDomainBodySchema } from "@/lib/zod/schemas/domains";
+import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { DubApiError, ErrorCodes } from "../errors";
 import { createLink, processLink } from "../links";
 import { getDomain } from "./get-domain";
 
-type AddDomainInput = z.infer<typeof addDomainBodySchema> & {
+type CreateDomainInput = z.infer<typeof createDomainBodySchema> & {
   workspace: WorkspaceProps;
   userId: string;
   archived?: boolean;
 };
 
-export const addDomain = async (input: AddDomainInput) => {
+export const createDomain = async (input: CreateDomainInput) => {
   const {
     slug,
     workspace,

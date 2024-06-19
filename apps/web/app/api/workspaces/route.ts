@@ -1,11 +1,11 @@
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
-import { addDomain } from "@/lib/api/domains/add-domain";
+import { createDomain } from "@/lib/api/domains/create-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
-import { addDomainBodySchema } from "@/lib/zod/schemas/domains";
+import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
 import {
   WorkspaceSchema,
   createWorkspaceSchema,
@@ -161,8 +161,8 @@ export const POST = withSession(async ({ req, session }) => {
             },
           });
         } else {
-          await addDomain({
-            ...addDomainBodySchema.parse({ slug: domain }),
+          await createDomain({
+            ...createDomainBodySchema.parse({ slug: domain }),
             workspace: projectResponse as WorkspaceProps,
             userId: session.user.id,
           });
