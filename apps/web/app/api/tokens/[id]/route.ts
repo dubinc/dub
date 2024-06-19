@@ -59,8 +59,8 @@ export const PATCH = withWorkspace(
         projectId: workspace.id,
       },
       data: {
-        name,
-        scopes: scopes.join(" "),
+        ...(name && { name }),
+        ...(scopes && { scopes: [...new Set(scopes)].join(" ") }),
       },
       select: {
         id: true,

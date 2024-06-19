@@ -10,7 +10,7 @@ export const createTokenSchema = z.object({
     .min(1)
     .max(50),
   isMachine: z.boolean().optional().default(false),
-  scopes: z.array(z.enum(availableScopes)).optional(),
+  scopes: z.array(z.enum(availableScopes)).default([]).optional(),
 });
 
 // Schema to validate the request body when updating a token

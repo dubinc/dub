@@ -16,8 +16,6 @@ export const throwIfNoAccess = ({
     return;
   }
 
-  console.log("Checking scopes", scopes, requiredScopes);
-
   for (const requiredScope of requiredScopes) {
     if (scopes.includes(requiredScope)) {
       return;

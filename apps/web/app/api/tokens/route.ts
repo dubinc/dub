@@ -50,7 +50,8 @@ export const POST = withWorkspace(
         partialKey,
         userId: isMachine ? machineUser?.id! : session.user.id,
         projectId: workspace.id,
-        scopes: scopes && scopes.length > 0 ? scopes.join(" ") : null,
+        scopes:
+          scopes && scopes.length > 0 ? [...new Set(scopes)].join(" ") : null,
       },
     });
 
