@@ -23,6 +23,10 @@ export default function WorkspaceSettingsLayout({
       name: "Security",
       segment: "security",
     },
+    {
+      name: "API Keys",
+      segment: "tokens",
+    },
   ];
 
   return <SettingsLayout tabs={tabs}>{children}</SettingsLayout>;

@@ -12,7 +12,7 @@ import {
 } from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
 import { Token } from "@prisma/client";
-import { FolderOpen, MoreVertical, Trash } from "lucide-react";
+import { FolderOpen, Info, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -25,7 +25,7 @@ export default function TokensPageClient() {
   return (
     <>
       <Alert>
-        {/* <Info className="h-6 w-6 mt-1" /> */}
+        <Info className="h-5 w-5 mt-2 text-yellow-500" />
         <AlertTitle>
           User API Keys have been replaced by Workspace API Keys.
         </AlertTitle>
