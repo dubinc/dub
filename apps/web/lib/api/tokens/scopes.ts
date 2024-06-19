@@ -41,7 +41,7 @@ interface ScopeDescription {
 export const scopeDescriptions = [
   {
     resource: "Workspaces",
-    description: "Read workspaces",
+    description: "Read, update, and delete workspaces",
     endpoints: ["/workspaces"],
     permissions: [
       {
@@ -97,19 +97,6 @@ export const scopeDescriptions = [
     ],
   },
   {
-    resource: "Analytics",
-    description: "Read analytics",
-    endpoints: ["/analytics"],
-    permissions: [
-      {
-        permission: "Read",
-        scope: "analytics.read",
-        description: "Read analytics",
-        roles: ["owner", "member"],
-      },
-    ],
-  },
-  {
     resource: "Domains",
     description: "Create, read, update, and delete domains",
     endpoints: ["/domains"],
@@ -143,6 +130,19 @@ export const scopeDescriptions = [
         permission: "Write",
         scope: "tokens.write",
         description: "Write tokens",
+        roles: ["owner", "member"],
+      },
+    ],
+  },
+  {
+    resource: "Analytics",
+    description: "Read analytics",
+    endpoints: ["/analytics"],
+    permissions: [
+      {
+        permission: "Read",
+        scope: "analytics.read",
+        description: "Read analytics",
         roles: ["owner", "member"],
       },
     ],

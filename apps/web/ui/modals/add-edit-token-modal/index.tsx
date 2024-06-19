@@ -189,7 +189,10 @@ function AddEditTokenModal({
                 className="flex items-center justify-between py-4"
                 key={`${scope.resource}-resource`}
               >
-                <div className="text-gray-500">{scope.resource}</div>
+                <div className="flex gap-1 text-gray-500">
+                  <p>{scope.resource}</p>
+                  <InfoTooltip content={scope.description} />
+                </div>
                 <div>
                   <RadioGroup
                     defaultValue=""
