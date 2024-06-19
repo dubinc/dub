@@ -20,7 +20,7 @@ import {
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, roleScopeMapping } from "../api/tokens/scopes";
+import { Scope, availableScopes, roleScopeMapping } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -153,11 +153,10 @@ export const withWorkspace = (
 
       if (apiKey) {
         const isRestrictedToken = apiKey.startsWith("dub_");
+        const tokenTable = isRestrictedToken ? "restrictedToken" : "token";
         const hashedKey = await hashToken(apiKey);
 
-        const token: TokenFound = await (
-          prisma[isRestrictedToken ? "restrictedToken" : "token"] as any
-        ).findUnique({
+        const token: TokenFound = await (prisma[tokenTable] as any).findUnique({
           where: {
             hashedKey,
           },
@@ -198,8 +197,10 @@ export const withWorkspace = (
             message: "Too many requests.",
           });
         }
+
         waitUntil(
-          prisma.token.update({
+          // update last used time
+          (prisma[tokenTable] as any).update({
             where: {
               hashedKey,
             },
@@ -210,7 +211,7 @@ export const withWorkspace = (
         );
 
         // @ts-ignore
-        scopes = isRestrictedToken ? token.scopes.split(" ") : allScopes;
+        scopes = isRestrictedToken ? token.scopes.split(" ") : availableScopes;
 
         session = {
           user: {
