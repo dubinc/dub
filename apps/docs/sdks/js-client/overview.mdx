@@ -6,6 +6,8 @@ icon: node-js
 
 With Dub Analytics, you can track leads and sales conversions on your website, enabling you to measure the effectiveness of your marketing campaigns.
 
+## Installation
+
 This quick start guide will show you how to get started with Dub Analytics on your website.
 
 <Steps>
@@ -45,9 +47,9 @@ This quick start guide will show you how to get started with Dub Analytics on yo
   </Step>
   
   <Step title="Use `<Analytics />` in your project">
-    Add `<Analytics />` component to pages you want to track conversions for. Ideally, you should add it to the `<head>` of your website or in a shared layout component.
+    If you are using React, you can use the `<Analytics />` component to track conversions on your website.
 
-    Add the following code to your project:
+    You can add the `<Analytics />` component to your root layout component or any other pages where you want to track conversions.
 
     ```jsx
       import { Analytics as DubAnalytics } from '@dub/analytics/react';
@@ -66,13 +68,58 @@ This quick start guide will show you how to get started with Dub Analytics on yo
       }
     ```
 
+    You can use the `inject()` function to add the tracking script to other frameworks.
+
+    ```jsx
+      import { inject } from '@dub/analytics';
+
+      inject();
+    ```
+
   </Step>
 
   <Step title="Track conversions">
     Dub Analytics will now track conversions on your website. You can view the conversion data in the Dub dashboard.
 
     ![Conversion data in Dub dashboard](/images/conversion-data.png)
+
   </Step>
 </Steps>
 
-https://github.com/dubinc/analytics
+## Available Props
+
+You can pass the following props to the `<Analytics />` component to customize the tracking script.
+
+#### cookieOptions
+
+The `cookieOptions` prop allows you to customize the cookie that is set by the tracking script. The following properties are available:
+
+<ResponseField name="cookieOptions">
+  <Expandable title="properties">
+| Key   | Default | Description | Example |
+|----------|---------|-------------|---------|
+| `domain` | `null` | Specifies the value for the `Domain` Set-Cookie attribute. | `example.com` |
+| `expires` | 90 days from now | Specifies the `Date` object to be the value for the `Expires` Set-Cookie attribute. | `new Date('2024-12-31')` |
+| `expiresInDays` | `90` | Specifies the number (in days) to be the value for the `Expires` Set-Cookie attribute. | `90` |
+| `httpOnly` | `false` | Specifies the boolean value for the `HttpOnly` Set-Cookie attribute. Be careful when setting this to true, as compliant clients will not allow client-side JavaScript to see the cookie in `document.cookie`. | `true` |
+| `maxAge` | `null` | Specifies the number (in seconds) to be the value for the `Max-Age` Set-Cookie attribute. | `3600` |
+| `path` | `/` | Specifies the value for the `Path` Set-Cookie attribute. By default, the path is considered the "default path". | `/` |
+| `sameSite` | `Lax` | Specifies the boolean or string to be the value for the `SameSite` Set-Cookie attribute. | `strict` |
+| `secure` | `false` | Specifies the boolean value for the `Secure` Set-Cookie attribute. | `true` |
+
+  </Expandable>
+</ResponseField>
+
+For example, to set a cross domain cookie, you can use the following code:
+
+```tsx
+import { Analytics as DubAnalytics } from "@dub/analytics";
+
+<DubAnalytics
+  cookieOptions={{
+    domain: process.env.IS_PRODUCTION_ENV
+      ? ".yourdomain.com" // for cross-domain tracking
+      : undefined,
+  }}
+/>;
+```
