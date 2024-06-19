@@ -4,6 +4,8 @@ import {
   BlurImage,
   Button,
   ButtonProps,
+  InfoTooltip,
+  Label,
   Logo,
   Modal,
   RadioGroup,
@@ -47,32 +49,9 @@ function AddEditTokenModal({
   props?: APIKeyProps;
   onTokenCreated: (token: string) => void;
 }) {
-  const { id: workspaceId, logo, slug } = useWorkspace();
-
   const [saving, setSaving] = useState(false);
-  const [domainError, setDomainError] = useState<string | null>(null);
+  const { id: workspaceId, logo, slug } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(props || newToken);
-
-  const saveDisabled = useMemo(() => {
-    /* 
-      Disable save if:
-      - modal is not open
-      - saving is in progress
-      - domain is invalid
-      - for an existing domain, there's no changes
-    */
-    if (
-      !showAddEditTokenModal ||
-      saving ||
-      domainError ||
-      (props &&
-        Object.entries(props).every(([key, value]) => data[key] === value))
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }, [showAddEditTokenModal, saving, domainError, props, data]);
 
   // Determine the endpoint
   const endpoint = useMemo(() => {
@@ -120,6 +99,7 @@ function AddEditTokenModal({
   };
 
   const { name, scopes, isMachine } = data;
+  const buttonDisabled = !name;
 
   return (
     <>
@@ -147,8 +127,40 @@ function AddEditTokenModal({
 
         <form
           onSubmit={onSubmit}
-          className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-10"
+          className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-10"
         >
+          <div>
+            <RadioGroup
+              className="flex"
+              defaultValue="user"
+              required
+              onValueChange={(value) =>
+                setData({ ...data, isMachine: value === "machine" })
+              }
+            >
+              <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                <RadioGroupItem value="user" id="user" className="ml-3" />
+                <Label
+                  htmlFor="user"
+                  className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                >
+                  <p className="text-gray-600">You</p>
+                  <InfoTooltip content="This API key is tied to your user and can make requests against the selected workspace. If you are removed from the workspace, this key will be disabled." />
+                </Label>
+              </div>
+              <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                <RadioGroupItem value="machine" id="machine" className="ml-3" />
+                <Label
+                  htmlFor="machine"
+                  className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                >
+                  <p className="text-gray-600">Machine</p>
+                  <InfoTooltip content="A new bot member will be added to your workspace, and an API key will be created. Since this are not tied to a user, you can enusre that API key remains active even if you leave the workspace." />
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           <div>
             <label htmlFor="name" className="flex items-center space-x-2">
               <h2 className="text-sm font-medium text-gray-900">Name</h2>
@@ -165,6 +177,11 @@ function AddEditTokenModal({
               />
             </div>
           </div>
+
+          <span className="text-sm text-gray-500">
+            Choose the permissions for this API key. These permissions apply
+            when the API key is used to make requests to Dub.
+          </span>
 
           <div className="flex flex-col divide-y text-sm">
             {allScopes.map((scope) => (
@@ -208,7 +225,7 @@ function AddEditTokenModal({
 
           <Button
             text={props ? "Save changes" : "Create API key"}
-            disabled={saveDisabled}
+            disabled={buttonDisabled}
             loading={saving}
           />
         </form>
