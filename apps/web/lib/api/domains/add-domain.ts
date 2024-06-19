@@ -61,7 +61,7 @@ export const addDomain = async (input: AddDomainInput) => {
             url: target || "",
             expiredUrl: expiredUrl || null,
             rewrite: type === "rewrite",
-            noindex: noindex,
+            noindex,
           }),
     },
     workspace,
