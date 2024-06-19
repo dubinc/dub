@@ -47,7 +47,7 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredScopes: ["workspaces.read"],
+    requiredScopes: ["workspaces.read", "workspaces.write"],
   },
 );
 

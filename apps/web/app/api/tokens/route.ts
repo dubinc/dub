@@ -102,6 +102,6 @@ export const GET = withWorkspace(
     return NextResponse.json(tokenSchema.array().parse(tokens));
   },
   {
-    requiredScopes: ["tokens.read"],
+    requiredScopes: ["tokens.read", "tokens.write"],
   },
 );

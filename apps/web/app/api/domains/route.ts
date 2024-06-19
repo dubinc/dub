@@ -24,7 +24,7 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(DomainSchema).parse(domains));
   },
   {
-    requiredScopes: ["domains.read"],
+    requiredScopes: ["domains.read", "domains.write"],
   },
 );
 

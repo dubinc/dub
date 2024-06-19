@@ -50,7 +50,7 @@ export const GET = withWorkspace(
   },
   {
     domainChecks: true,
-    requiredScopes: ["domains.read"],
+    requiredScopes: ["domains.read", "domains.write"],
   },
 );
 

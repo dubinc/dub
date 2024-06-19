@@ -34,7 +34,7 @@ export const GET = withWorkspace(
     return NextResponse.json(defaultDomainsArray);
   },
   {
-    requiredScopes: ["domains.read"],
+    requiredScopes: ["domains.read", "domains.write"],
   },
 );
 

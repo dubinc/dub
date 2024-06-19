@@ -47,7 +47,7 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["links.read"],
+    requiredScopes: ["links.read", "links.write"],
   },
 );
 
