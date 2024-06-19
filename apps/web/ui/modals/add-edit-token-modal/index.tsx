@@ -6,7 +6,8 @@ import {
   ButtonProps,
   Logo,
   Modal,
-  Toggle,
+  RadioGroup,
+  RadioGroupItem,
   useRouterStuff,
 } from "@dub/ui";
 import { useParams, useRouter } from "next/navigation";
@@ -144,49 +145,32 @@ function AddEditTokenModal({
           </div>
         </div>
 
-        {/* This is the format we should display the scopes in the modal:
-        Links -> None, Read, Write
-        - /api/links
-        - /api/links/:id
-        Tags -> None, Read, Write
-        - /api/tags
-        - /api/tags/:id */}
-
-        {/* <div className="font-sm flex justify-between text-sm text-gray-500">
-          <div>Resources</div>
-          <div>Permissions</div>
-        </div> */}
-
-        <div className="flex flex-col space-y-3 text-sm text-gray-900">
+        <div className="flex flex-col gap-8 text-sm text-gray-900">
           {allScopes.map((scope) => (
-            <div className="flex items-center justify-between">
+            <div
+              className="flex items-center justify-between"
+              key={`${scope.resource}-resource`}
+            >
               <div>{scope.resource}</div>
               <div>
-                <Toggle size="sm" aria-label="Toggle italic">
-                  None
-                </Toggle>
-                {scope.permissions.map((permission) => (
-                  <Toggle size="sm" aria-label="Toggle italic">
-                    {permission.permission}
-                  </Toggle>
-                ))}
-
-                {/* <select
-                  name="scopes"
-                  id={`scopes-${scope.resource}`}
-                  className="block w-40 rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  value={scopes[0]}
-                  onChange={(e) =>
-                    setData({
-                      ...data,
-                      scopes: [e.target.value, scopes[1]],
-                    })
-                  }
-                >
-                  <option value="none">None</option>
-                  <option value="read">Read</option>
-                  <option value="write">Write</option>
-                </select> */}
+                <RadioGroup defaultValue="none" className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="none" id={scope.resource} />
+                    <div>None</div>
+                  </div>
+                  {scope.permissions.map((permission) => (
+                    <div
+                      className="flex items-center space-x-2"
+                      key={permission.scope}
+                    >
+                      <RadioGroupItem
+                        value={permission.scope}
+                        id={permission.scope}
+                      />
+                      <div>{permission.permission}</div>
+                    </div>
+                  ))}
+                </RadioGroup>
               </div>
             </div>
           ))}
