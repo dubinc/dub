@@ -1,49 +1,26 @@
 import { Role } from "@prisma/client";
 
-export const scopes = [
-  // Workspaces
+export const availableScopes = [
   "workspaces.read",
   "workspaces.write",
-
-  // Links
   "links.read",
   "links.write",
-
-  // Tags
   "tags.read",
   "tags.write",
-
-  // Analytics
   "analytics.read",
-
-  // Domains
   "domains.read",
   "domains.write",
-
-  // API tokens
   "tokens.read",
   "tokens.write",
 ] as const;
 
-export type Scope = (typeof scopes)[number];
+export type Scope = (typeof availableScopes)[number];
 
-interface ScopeDescription {
-  name: string;
-  description: string;
-  endpoints: string[];
-  permissions: {
-    scope: Scope;
-    description: string;
-    roles: Role[];
-  }[];
-}
-
-export const scopeDescriptions = [
+export const resourcePermissions = [
   {
-    resource: "Workspaces",
+    name: "Workspaces",
     key: "workspaces",
     description: "Read, update, and delete workspaces",
-    endpoints: ["/workspaces"],
     permissions: [
       {
         permission: "Read",
@@ -60,10 +37,9 @@ export const scopeDescriptions = [
     ],
   },
   {
-    resource: "Links",
+    name: "Links",
     key: "links",
     description: "Create, read, update, and delete links",
-    endpoints: ["/links"],
     permissions: [
       {
         permission: "Read",
@@ -80,10 +56,9 @@ export const scopeDescriptions = [
     ],
   },
   {
-    resource: "Tags",
+    name: "Tags",
     key: "tags",
     description: "Create, read, update, and delete tags",
-    endpoints: ["/tags"],
     permissions: [
       {
         permission: "Read",
@@ -100,10 +75,9 @@ export const scopeDescriptions = [
     ],
   },
   {
-    resource: "Domains",
+    name: "Domains",
     key: "domains",
     description: "Create, read, update, and delete domains",
-    endpoints: ["/domains"],
     permissions: [
       {
         permission: "Read",
@@ -120,10 +94,9 @@ export const scopeDescriptions = [
     ],
   },
   {
-    resource: "API Keys",
+    name: "API Keys",
     key: "tokens",
     description: "Create, read, update, and delete API keys",
-    endpoints: ["/tokens"],
     permissions: [
       {
         permission: "Read",
@@ -140,10 +113,9 @@ export const scopeDescriptions = [
     ],
   },
   {
-    resource: "Analytics",
+    name: "Analytics",
     key: "analytics",
     description: "Read analytics",
-    endpoints: ["/analytics"],
     permissions: [
       {
         permission: "Read",
@@ -157,7 +129,9 @@ export const scopeDescriptions = [
 
 // Map roles to scopes
 // { owner: ["workspace.write"], member: ["workspace.read"] }
-export const roleToScopes = scopeDescriptions.reduce<Record<Role, Scope[]>>(
+export const roleScopeMapping = resourcePermissions.reduce<
+  Record<Role, Scope[]>
+>(
   (acc, { permissions }) => {
     permissions.forEach(({ scope, roles }) => {
       roles.forEach((role) => {

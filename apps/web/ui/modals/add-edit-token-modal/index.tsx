@@ -1,4 +1,4 @@
-import { scopeDescriptions as allScopes } from "@/lib/api/tokens/scopes";
+import { resourcePermissions } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BlurImage,
@@ -187,25 +187,25 @@ function AddEditTokenModal({
           </span>
 
           <div className="flex flex-col divide-y text-sm">
-            {allScopes.map((scope) => (
+            {resourcePermissions.map((resource) => (
               <div
                 className="flex items-center justify-between py-4"
-                key={scope.key}
+                key={resource.key}
               >
                 <div className="flex gap-1 text-gray-500">
-                  <p>{scope.resource}</p>
-                  <InfoTooltip content={scope.description} />
+                  <p>{resource.name}</p>
+                  <InfoTooltip content={resource.description} />
                 </div>
                 <div>
                   <RadioGroup
-                    defaultValue={scopes[scope.key] || ""}
+                    defaultValue={scopes[resource.key] || ""}
                     className="flex gap-4"
                     onValueChange={(v) => {
                       setData({
                         ...data,
                         scopes: {
                           ...scopes,
-                          [scope.key]: v,
+                          [resource.key]: v,
                         },
                       });
                     }}
@@ -214,7 +214,7 @@ function AddEditTokenModal({
                       <RadioGroupItem value="" />
                       <div>None</div>
                     </div>
-                    {scope.permissions.map((permission) => (
+                    {resource.permissions.map((permission) => (
                       <div
                         className="flex items-center space-x-2"
                         key={permission.scope}

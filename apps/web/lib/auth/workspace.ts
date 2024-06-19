@@ -20,7 +20,7 @@ import {
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, scopes as allScopes, roleToScopes } from "../api/tokens/scopes";
+import { Scope, roleScopeMapping } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -63,7 +63,6 @@ export const withWorkspace = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
-    requiredRole = ["owner", "member"],
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
@@ -295,7 +294,7 @@ export const withWorkspace = (
 
       // For session requests, find the scopes based on the user's role
       if (!apiKey) {
-        scopes = roleToScopes[workspace.users[0].role];
+        scopes = roleScopeMapping[workspace.users[0].role];
       }
 
       // Check user has permission to make the action
