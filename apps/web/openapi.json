@@ -50,9 +50,7 @@
         "x-speakeasy-usage-example": true,
         "summary": "Create a new link",
         "description": "Create a new link for the authenticated workspace.",
-        "tags": [
-          "Links"
-        ],
+        "tags": ["Links"],
         "security": [
           {
             "token": []
@@ -141,9 +139,7 @@
                       }
                     ],
                     "description": "The unique IDs of the tags assigned to the short link.",
-                    "example": [
-                      "clux0rgak00011..."
-                    ]
+                    "example": ["clux0rgak00011..."]
                   },
                   "tagNames": {
                     "anyOf": [
@@ -973,9 +969,7 @@
                     "description": "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`."
                   }
                 },
-                "required": [
-                  "url"
-                ]
+                "required": ["url"]
               }
             }
           }
@@ -1025,9 +1019,7 @@
         "x-speakeasy-name-override": "list",
         "summary": "Retrieve a list of links",
         "description": "Retrieve a list of links for the authenticated workspace. The list will be paginated and the provided query parameters allow filtering the returned links.",
-        "tags": [
-          "Links"
-        ],
+        "tags": ["Links"],
         "security": [
           {
             "token": []
@@ -1156,11 +1148,7 @@
             "description": "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
             "schema": {
               "type": "string",
-              "enum": [
-                "createdAt",
-                "clicks",
-                "lastClicked"
-              ],
+              "enum": ["createdAt", "clicks", "lastClicked"],
               "default": "createdAt",
               "description": "The field to sort the links by. The default is `createdAt`, and sort order is always descending."
             }
@@ -1225,9 +1213,7 @@
         "x-speakeasy-name-override": "count",
         "summary": "Retrieve the number of links",
         "description": "Retrieve the number of links for the authenticated workspace. The provided query parameters allow filtering the returned links.",
-        "tags": [
-          "Links"
-        ],
+        "tags": ["Links"],
         "security": [
           {
             "token": []
@@ -1358,15 +1344,11 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "enum": [
-                    "domain"
-                  ]
+                  "enum": ["domain"]
                 },
                 {
                   "type": "string",
-                  "enum": [
-                    "tagId"
-                  ]
+                  "enum": ["tagId"]
                 }
               ],
               "description": "The field to group the links by."
@@ -1421,9 +1403,7 @@
         "x-speakeasy-name-override": "get",
         "summary": "Retrieve a link",
         "description": "Retrieve the info for a link.",
-        "tags": [
-          "Links"
-        ],
+        "tags": ["Links"],
         "security": [
           {
             "token": []
@@ -1539,9 +1519,7 @@
         "x-speakeasy-max-method-params": 2,
         "summary": "Update a link",
         "description": "Update a link for the authenticated workspace.",
-        "tags": [
-          "Links"
-        ],
+        "tags": ["Links"],
         "security": [
           {
             "token": []
@@ -1640,9 +1618,7 @@
                       }
                     ],
                     "description": "The unique IDs of the tags assigned to the short link.",
-                    "example": [
-                      "clux0rgak00011..."
-                    ]
+                    "example": ["clux0rgak00011..."]
                   },
                   "tagNames": {
                     "anyOf": [
@@ -2472,9 +2448,7 @@
                     "description": "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`."
                   }
                 },
-                "required": [
-                  "url"
-                ]
+                "required": ["url"]
               }
             }
           }
@@ -2525,9 +2499,7 @@
         "x-speakeasy-max-method-params": 1,
         "summary": "Delete a link",
         "description": "Delete a link for the authenticated workspace.",
-        "tags": [
-          "Links"
-        ],
+        "tags": ["Links"],
         "security": [
           {
             "token": []
@@ -2579,9 +2551,7 @@
                       "description": "The ID of the link."
                     }
                   },
-                  "required": [
-                    "id"
-                  ]
+                  "required": ["id"]
                 }
               }
             }
@@ -2622,9 +2592,7 @@
         "x-speakeasy-name-override": "createMany",
         "summary": "Bulk create links",
         "description": "Bulk create up to 100 links for the authenticated workspace.",
-        "tags": [
-          "Links"
-        ],
+        "tags": ["Links"],
         "security": [
           {
             "token": []
@@ -2715,9 +2683,7 @@
                         }
                       ],
                       "description": "The unique IDs of the tags assigned to the short link.",
-                      "example": [
-                        "clux0rgak00011..."
-                      ]
+                      "example": ["clux0rgak00011..."]
                     },
                     "tagNames": {
                       "anyOf": [
@@ -3547,9 +3513,7 @@
                       "description": "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`."
                     }
                   },
-                  "required": [
-                    "url"
-                  ]
+                  "required": ["url"]
                 }
               }
             }
@@ -3605,9 +3569,7 @@
         "x-speakeasy-name-override": "get",
         "summary": "Retrieve a QR code",
         "description": "Retrieve a QR code for a link.",
-        "tags": [
-          "QR Codes"
-        ],
+        "tags": ["QR Codes"],
         "security": [
           {
             "token": []
@@ -3641,12 +3603,7 @@
             "description": "The level of error correction to use for the QR code. Defaults to `L` if not provided.",
             "schema": {
               "type": "string",
-              "enum": [
-                "L",
-                "M",
-                "Q",
-                "H"
-              ],
+              "enum": ["L", "M", "Q", "H"],
               "default": "L",
               "description": "The level of error correction to use for the QR code. Defaults to `L` if not provided."
             }
@@ -3729,9 +3686,7 @@
         "x-speakeasy-name-override": "clicks",
         "summary": "Retrieve clicks analytics",
         "description": "Retrieve the number of clicks for a link, a domain, or the authenticated workspace.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -3821,16 +3776,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -4220,10 +4166,7 @@
                             "description": "The number of clicks in the interval"
                           }
                         },
-                        "required": [
-                          "start",
-                          "clicks"
-                        ]
+                        "required": ["start", "clicks"]
                       }
                     },
                     {
@@ -4492,10 +4435,7 @@
                             "description": "The number of clicks from this country"
                           }
                         },
-                        "required": [
-                          "country",
-                          "clicks"
-                        ]
+                        "required": ["country", "clicks"]
                       }
                     },
                     {
@@ -4768,11 +4708,7 @@
                             "description": "The number of clicks from this city"
                           }
                         },
-                        "required": [
-                          "city",
-                          "country",
-                          "clicks"
-                        ]
+                        "required": ["city", "country", "clicks"]
                       }
                     },
                     {
@@ -4789,10 +4725,7 @@
                             "description": "The number of clicks from this device"
                           }
                         },
-                        "required": [
-                          "device",
-                          "clicks"
-                        ]
+                        "required": ["device", "clicks"]
                       }
                     },
                     {
@@ -4809,10 +4742,7 @@
                             "description": "The number of clicks from this browser"
                           }
                         },
-                        "required": [
-                          "browser",
-                          "clicks"
-                        ]
+                        "required": ["browser", "clicks"]
                       }
                     },
                     {
@@ -4829,10 +4759,7 @@
                             "description": "The number of clicks from this OS"
                           }
                         },
-                        "required": [
-                          "os",
-                          "clicks"
-                        ]
+                        "required": ["os", "clicks"]
                       }
                     },
                     {
@@ -4849,10 +4776,7 @@
                             "description": "The number of clicks from this referer"
                           }
                         },
-                        "required": [
-                          "referer",
-                          "clicks"
-                        ]
+                        "required": ["referer", "clicks"]
                       }
                     },
                     {
@@ -4869,10 +4793,7 @@
                             "description": "The number of clicks from this link"
                           }
                         },
-                        "required": [
-                          "link",
-                          "clicks"
-                        ]
+                        "required": ["link", "clicks"]
                       }
                     },
                     {
@@ -4889,10 +4810,7 @@
                             "description": "The number of clicks from this URL"
                           }
                         },
-                        "required": [
-                          "url",
-                          "clicks"
-                        ]
+                        "required": ["url", "clicks"]
                       }
                     }
                   ]
@@ -4937,9 +4855,7 @@
         "summary": "Retrieve timeseries analytics",
         "deprecated": true,
         "description": "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -5029,16 +4945,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -5422,10 +5329,7 @@
                         "description": "The number of clicks in the interval"
                       }
                     },
-                    "required": [
-                      "start",
-                      "clicks"
-                    ]
+                    "required": ["start", "clicks"]
                   }
                 }
               }
@@ -5468,9 +5372,7 @@
         "summary": "Retrieve country analytics",
         "deprecated": true,
         "description": "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -5560,16 +5462,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -6205,10 +6098,7 @@
                         "description": "The number of clicks from this country"
                       }
                     },
-                    "required": [
-                      "country",
-                      "clicks"
-                    ]
+                    "required": ["country", "clicks"]
                   }
                 }
               }
@@ -6251,9 +6141,7 @@
         "summary": "Retrieve city analytics",
         "deprecated": true,
         "description": "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -6343,16 +6231,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -6992,11 +6871,7 @@
                         "description": "The number of clicks from this city"
                       }
                     },
-                    "required": [
-                      "city",
-                      "country",
-                      "clicks"
-                    ]
+                    "required": ["city", "country", "clicks"]
                   }
                 }
               }
@@ -7039,9 +6914,7 @@
         "summary": "Retrieve device analytics",
         "deprecated": true,
         "description": "Retrieve the top devices by number of clicks for a link, a domain, or the authenticated workspace.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -7131,16 +7004,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -7524,10 +7388,7 @@
                         "description": "The number of clicks from this device"
                       }
                     },
-                    "required": [
-                      "device",
-                      "clicks"
-                    ]
+                    "required": ["device", "clicks"]
                   }
                 }
               }
@@ -7570,9 +7431,7 @@
         "summary": "Retrieve browser analytics",
         "deprecated": true,
         "description": "Retrieve the top browsers by number of clicks for a link, a domain, or the authenticated workspace.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -7662,16 +7521,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -8055,10 +7905,7 @@
                         "description": "The number of clicks from this browser"
                       }
                     },
-                    "required": [
-                      "browser",
-                      "clicks"
-                    ]
+                    "required": ["browser", "clicks"]
                   }
                 }
               }
@@ -8101,9 +7948,7 @@
         "summary": "Retrieve OS analytics",
         "deprecated": true,
         "description": "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -8193,16 +8038,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -8586,10 +8422,7 @@
                         "description": "The number of clicks from this OS"
                       }
                     },
-                    "required": [
-                      "os",
-                      "clicks"
-                    ]
+                    "required": ["os", "clicks"]
                   }
                 }
               }
@@ -8632,9 +8465,7 @@
         "summary": "Retrieve referer analytics",
         "deprecated": true,
         "description": "Retrieve the top referers by number of clicks for a link, a domain, or the authenticated workspace.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -8724,16 +8555,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -9117,10 +8939,7 @@
                         "description": "The number of clicks from this referer"
                       }
                     },
-                    "required": [
-                      "referer",
-                      "clicks"
-                    ]
+                    "required": ["referer", "clicks"]
                   }
                 }
               }
@@ -9163,9 +8982,7 @@
         "summary": "Retrieve top links",
         "deprecated": true,
         "description": "Retrieve the top links by number of clicks for a domain or the authenticated workspace.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -9255,16 +9072,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -9648,10 +9456,7 @@
                         "description": "The number of clicks from this link"
                       }
                     },
-                    "required": [
-                      "link",
-                      "clicks"
-                    ]
+                    "required": ["link", "clicks"]
                   }
                 }
               }
@@ -9694,9 +9499,7 @@
         "summary": "Retrieve top URLs",
         "deprecated": true,
         "description": "Retrieve the top URLs by number of clicks for a given short link.",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "security": [
           {
             "token": []
@@ -9786,16 +9589,7 @@
             "description": "The interval to retrieve analytics for. Takes precedence over start and end.",
             "schema": {
               "type": "string",
-              "enum": [
-                "1h",
-                "24h",
-                "7d",
-                "30d",
-                "90d",
-                "ytd",
-                "1y",
-                "all"
-              ],
+              "enum": ["1h", "24h", "7d", "30d", "90d", "ytd", "1y", "all"],
               "description": "The interval to retrieve analytics for. Takes precedence over start and end."
             }
           },
@@ -10179,10 +9973,7 @@
                         "description": "The number of clicks from this URL"
                       }
                     },
-                    "required": [
-                      "url",
-                      "clicks"
-                    ]
+                    "required": ["url", "clicks"]
                   }
                 }
               }
@@ -10224,9 +10015,7 @@
         "x-speakeasy-name-override": "list",
         "summary": "Retrieve a list of workspaces",
         "description": "Retrieve a list of workspaces for the authenticated user.",
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "security": [
           {
             "token": []
@@ -10280,9 +10069,7 @@
         "x-speakeasy-name-override": "create",
         "summary": "Create a workspace",
         "description": "Create a new workspace for the authenticated user.",
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "security": [
           {
             "token": []
@@ -10308,10 +10095,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "slug"
-                ]
+                "required": ["name", "slug"]
               }
             }
           }
@@ -10363,9 +10147,7 @@
         "x-speakeasy-name-override": "get",
         "summary": "Retrieve a workspace",
         "description": "Retrieve a workspace for the authenticated user.",
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "security": [
           {
             "token": []
@@ -10430,9 +10212,7 @@
         "x-speakeasy-name-override": "create",
         "summary": "Create a new tag",
         "description": "Create a new tag for the authenticated workspace.",
-        "tags": [
-          "Tags"
-        ],
+        "tags": ["Tags"],
         "security": [
           {
             "token": []
@@ -10486,9 +10266,7 @@
                     "description": "The color of the tag. If not provided, a random color will be used from the list: red, yellow, green, blue, purple, pink, brown."
                   }
                 },
-                "required": [
-                  "tag"
-                ]
+                "required": ["tag"]
               }
             }
           }
@@ -10538,9 +10316,7 @@
         "x-speakeasy-name-override": "list",
         "summary": "Retrieve a list of tags",
         "description": "Retrieve a list of tags for the authenticated workspace.",
-        "tags": [
-          "Tags"
-        ],
+        "tags": ["Tags"],
         "security": [
           {
             "token": []
@@ -10615,13 +10391,11 @@
     },
     "/domains": {
       "post": {
-        "operationId": "addDomain",
-        "x-speakeasy-name-override": "add",
-        "summary": "Add a domain",
-        "description": "Add a domain to the authenticated workspace.",
-        "tags": [
-          "Domains"
-        ],
+        "operationId": "createDomain",
+        "x-speakeasy-name-override": "create",
+        "summary": "Create a domain",
+        "description": "Create a domain for the authenticated workspace.",
+        "tags": ["Domains"],
         "security": [
           {
             "token": []
@@ -10664,10 +10438,7 @@
                   },
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "redirect",
-                      "rewrite"
-                    ],
+                    "enum": ["redirect", "rewrite"],
                     "default": "redirect",
                     "description": "The type of redirect to use for this domain.",
                     "example": "redirect"
@@ -10698,9 +10469,7 @@
                     "example": "https://dub.co/help/article/what-is-dub"
                   }
                 },
-                "required": [
-                  "slug"
-                ]
+                "required": ["slug"]
               }
             }
           }
@@ -10750,9 +10519,7 @@
         "x-speakeasy-name-override": "list",
         "summary": "Retrieve a list of domains",
         "description": "Retrieve a list of domains associated with the authenticated workspace.",
-        "tags": [
-          "Domains"
-        ],
+        "tags": ["Domains"],
         "security": [
           {
             "token": []
@@ -10832,9 +10599,7 @@
         "x-speakeasy-max-method-params": 2,
         "summary": "Update a domain",
         "description": "Update a domain for the authenticated workspace.",
-        "tags": [
-          "Domains"
-        ],
+        "tags": ["Domains"],
         "security": [
           {
             "token": []
@@ -10888,10 +10653,7 @@
                   },
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "redirect",
-                      "rewrite"
-                    ],
+                    "enum": ["redirect", "rewrite"],
                     "default": "redirect",
                     "description": "The type of redirect to use for this domain.",
                     "example": "redirect"
@@ -10972,9 +10734,7 @@
         "x-speakeasy-max-method-params": 1,
         "summary": "Delete a domain",
         "description": "Delete a domain from a workspace. It cannot be undone. This will also delete all the links associated with the domain.",
-        "tags": [
-          "Domains"
-        ],
+        "tags": ["Domains"],
         "security": [
           {
             "token": []
@@ -11028,9 +10788,7 @@
                       "example": "acme.com"
                     }
                   },
-                  "required": [
-                    "slug"
-                  ]
+                  "required": ["slug"]
                 }
               }
             }
@@ -11072,9 +10830,7 @@
         "x-speakeasy-max-method-params": 1,
         "summary": "Set a domain as primary",
         "description": "Set a domain as primary for the authenticated workspace.",
-        "tags": [
-          "Domains"
-        ],
+        "tags": ["Domains"],
         "security": [
           {
             "token": []
@@ -11162,9 +10918,7 @@
         "x-speakeasy-max-method-params": 2,
         "summary": "Transfer a domain",
         "description": "Transfer a domain to another workspace within the authenticated account.",
-        "tags": [
-          "Domains"
-        ],
+        "tags": ["Domains"],
         "security": [
           {
             "token": []
@@ -11216,9 +10970,7 @@
                     "description": "The ID of the new workspace to transfer the domain to."
                   }
                 },
-                "required": [
-                  "newWorkspaceId"
-                ]
+                "required": ["newWorkspaceId"]
               }
             }
           }
@@ -11270,9 +11022,7 @@
         "x-speakeasy-name-override": "get",
         "summary": "Retrieve the metatags for a URL",
         "description": "Retrieve the metatags for a URL.",
-        "tags": [
-          "Metatags"
-        ],
+        "tags": ["Metatags"],
         "parameters": [
           {
             "in": "query",
@@ -11313,11 +11063,7 @@
                       "example": "https://assets.dub.co/thumbnail.jpg"
                     }
                   },
-                  "required": [
-                    "title",
-                    "description",
-                    "image"
-                  ]
+                  "required": ["title", "description", "image"]
                 }
               }
             }
@@ -12637,16 +12383,11 @@
               "properties": {
                 "role": {
                   "type": "string",
-                  "enum": [
-                    "owner",
-                    "member"
-                  ],
+                  "enum": ["owner", "member"],
                   "description": "The role of the authenticated user in the workspace."
                 }
               },
-              "required": [
-                "role"
-              ]
+              "required": ["role"]
             },
             "description": "The role of the authenticated user in the workspace."
           },
@@ -12666,10 +12407,7 @@
                   "description": "Whether the domain is the primary domain for the workspace."
                 }
               },
-              "required": [
-                "slug",
-                "primary"
-              ]
+              "required": ["slug", "primary"]
             },
             "description": "The domains of the workspace."
           },
@@ -12726,11 +12464,7 @@
             "description": "The color of the tag."
           }
         },
-        "required": [
-          "id",
-          "name",
-          "color"
-        ],
+        "required": ["id", "name", "color"],
         "title": "Tag"
       },
       "DomainSchema": {
@@ -12781,10 +12515,7 @@
           "type": {
             "type": "string",
             "description": "The type of redirect to use for this domain.",
-            "enum": [
-              "redirect",
-              "rewrite"
-            ]
+            "enum": ["redirect", "rewrite"]
           },
           "clicks": {
             "type": "number",
@@ -12820,9 +12551,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "bad_request"
-                      ],
+                      "enum": ["bad_request"],
                       "description": "A short code indicating the error code returned.",
                       "example": "bad_request"
                     },
@@ -12837,15 +12566,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#bad_request"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }
@@ -12863,9 +12587,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "unauthorized"
-                      ],
+                      "enum": ["unauthorized"],
                       "description": "A short code indicating the error code returned.",
                       "example": "unauthorized"
                     },
@@ -12880,15 +12602,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#unauthorized"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }
@@ -12906,9 +12623,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "forbidden"
-                      ],
+                      "enum": ["forbidden"],
                       "description": "A short code indicating the error code returned.",
                       "example": "forbidden"
                     },
@@ -12923,15 +12638,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#forbidden"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }
@@ -12949,9 +12659,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "not_found"
-                      ],
+                      "enum": ["not_found"],
                       "description": "A short code indicating the error code returned.",
                       "example": "not_found"
                     },
@@ -12966,15 +12674,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#not_found"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }
@@ -12992,9 +12695,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "conflict"
-                      ],
+                      "enum": ["conflict"],
                       "description": "A short code indicating the error code returned.",
                       "example": "conflict"
                     },
@@ -13009,15 +12710,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#conflict"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }
@@ -13035,9 +12731,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "invite_expired"
-                      ],
+                      "enum": ["invite_expired"],
                       "description": "A short code indicating the error code returned.",
                       "example": "invite_expired"
                     },
@@ -13052,15 +12746,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#invite_expired"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }
@@ -13078,9 +12767,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "unprocessable_entity"
-                      ],
+                      "enum": ["unprocessable_entity"],
                       "description": "A short code indicating the error code returned.",
                       "example": "unprocessable_entity"
                     },
@@ -13095,15 +12782,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#unprocessable_entity"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }
@@ -13121,9 +12803,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "rate_limit_exceeded"
-                      ],
+                      "enum": ["rate_limit_exceeded"],
                       "description": "A short code indicating the error code returned.",
                       "example": "rate_limit_exceeded"
                     },
@@ -13138,15 +12818,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#rate_limit_exceeded"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }
@@ -13164,9 +12839,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "enum": [
-                        "internal_server_error"
-                      ],
+                      "enum": ["internal_server_error"],
                       "description": "A short code indicating the error code returned.",
                       "example": "internal_server_error"
                     },
@@ -13181,15 +12854,10 @@
                       "example": "https://dub.co/docs/api-reference/errors#internal_server_error"
                     }
                   },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "required": ["code", "message"]
                 }
               },
-              "required": [
-                "error"
-              ]
+              "required": ["error"]
             }
           }
         }

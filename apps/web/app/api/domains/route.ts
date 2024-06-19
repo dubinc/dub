@@ -8,7 +8,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
-import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas/domains";
+import {
+  DomainSchema,
+  createDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -39,7 +42,7 @@ export const POST = withWorkspace(
       expiredUrl,
       placeholder,
       noindex,
-    } = addDomainBodySchema.parse(body);
+    } = createDomainBodySchema.parse(body);
 
     if (workspace.domains.length >= workspace.domainsLimit) {
       return new Response(

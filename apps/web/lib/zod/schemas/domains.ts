@@ -51,7 +51,7 @@ export const DomainSchema = z.object({
   clicks: z.number().describe("The number of clicks on the domain.").default(0),
 });
 
-export const addDomainBodySchema = z.object({
+export const createDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "slug is required" })
     .min(1, "slug cannot be empty.")
@@ -98,7 +98,7 @@ export const addDomainBodySchema = z.object({
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
 });
 
-export const updateDomainBodySchema = addDomainBodySchema.partial();
+export const updateDomainBodySchema = createDomainBodySchema.partial();
 
 export const transferDomainBodySchema = z.object({
   newWorkspaceId: z
