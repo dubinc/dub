@@ -4,7 +4,7 @@ import {
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
-import { PlanProps, WorkspaceProps } from "@/lib/types";
+import { PlanProps, TokenFound, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {
   API_DOMAIN,
@@ -12,20 +12,13 @@ import {
   getSearchParams,
   isDubDomain,
 } from "@dub/utils";
-import {
-  Link as LinkProps,
-  RestrictedToken,
-  Token,
-  User,
-} from "@prisma/client";
+import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, availableScopes, roleScopeMapping } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
-
-type TokenFound = (RestrictedToken & { user: User }) | (Token & { user: User });
 
 interface WithWorkspaceHandler {
   ({

@@ -3,13 +3,15 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { PlanProps, WorkspaceProps } from "@/lib/types";
+import { PlanProps, TokenFound, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
+import { throwIfNoAccess } from "../api/tokens/permissions";
+import { Scope, roleScopeMapping } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
@@ -23,6 +25,7 @@ interface WithWorkspaceEdgeHandler {
     headers,
     session,
     workspace,
+    scopes,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -30,6 +33,7 @@ interface WithWorkspaceEdgeHandler {
     headers?: Record<string, string>;
     session: Session;
     workspace: WorkspaceProps;
+    scopes: Scope[];
   }): Promise<Response | StreamingTextResponse>;
 }
 
@@ -51,6 +55,7 @@ export const withWorkspaceEdge = (
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
     allowSelf, // special case for removing yourself from a workspace
     betaFeature, // if the action is a beta feature
+    requiredScopes = [],
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredRole?: Array<"owner" | "member">;
@@ -59,6 +64,7 @@ export const withWorkspaceEdge = (
     needNotExceededAI?: boolean;
     allowSelf?: boolean;
     betaFeature?: boolean;
+    requiredScopes?: Scope[];
   } = {},
 ) => {
   return async (
@@ -86,6 +92,7 @@ export const withWorkspaceEdge = (
       let session: Session | undefined;
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
+      let scopes: Scope[] = [];
 
       const idOrSlug =
         params?.idOrSlug ||
@@ -109,13 +116,18 @@ export const withWorkspaceEdge = (
       }
 
       if (apiKey) {
+        const isRestrictedToken = apiKey.startsWith("dub_");
+        const tokenTable = isRestrictedToken ? "restrictedToken" : "token";
         const hashedKey = await hashToken(apiKey);
 
-        const token = await prismaEdge.token.findUnique({
+        const token: TokenFound = await (
+          prismaEdge[tokenTable] as any
+        ).findUnique({
           where: {
             hashedKey,
           },
           select: {
+            ...(isRestrictedToken && { scopes: true }),
             user: {
               select: {
                 id: true,
@@ -126,7 +138,8 @@ export const withWorkspaceEdge = (
             },
           },
         });
-        if (!token) {
+
+        if (!token || !token.user) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Unauthorized: Invalid API key.",
@@ -150,8 +163,10 @@ export const withWorkspaceEdge = (
             message: "Too many requests.",
           });
         }
+
         waitUntil(
-          prismaEdge.token.update({
+          // update last used time
+          (prismaEdge[tokenTable] as any).update({
             where: {
               hashedKey,
             },
@@ -160,6 +175,10 @@ export const withWorkspaceEdge = (
             },
           }),
         );
+
+        // @ts-ignore
+        scopes = isRestrictedToken ? token.scopes.split(" ") : availableScopes;
+
         session = {
           user: {
             id: token.user.id,
@@ -212,6 +231,14 @@ export const withWorkspaceEdge = (
           message: "Workspace not found.",
         });
       }
+
+      // For session requests, find the scopes based on the user's role
+      if (!apiKey) {
+        scopes = roleScopeMapping[workspace.users[0].role];
+      }
+
+      // Check user has permission to make the action
+      throwIfNoAccess({ scopes, requiredScopes, workspaceId: workspace.id });
 
       // beta feature checks
       if (betaFeature) {
@@ -334,6 +361,7 @@ export const withWorkspaceEdge = (
         headers,
         session,
         workspace,
+        scopes,
       });
     } catch (error) {
       return handleAndReturnErrorResponse(error, headers);

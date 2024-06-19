@@ -12,6 +12,7 @@ export const availableScopes = [
   "domains.write",
   "tokens.read",
   "tokens.write",
+  "conversions.write",
 ] as const;
 
 export type Scope = (typeof availableScopes)[number];
@@ -31,7 +32,7 @@ export const resourcePermissions = [
       {
         permission: "Write",
         scope: "workspaces.write",
-        description: "Write workspaces",
+        description: "Update and delete workspaces",
         roles: ["owner"],
       },
     ],
@@ -50,7 +51,7 @@ export const resourcePermissions = [
       {
         permission: "Write",
         scope: "links.write",
-        description: "Write links",
+        description: "Update and delete links",
         roles: ["owner", "member"],
       },
     ],
@@ -69,7 +70,7 @@ export const resourcePermissions = [
       {
         permission: "Write",
         scope: "tags.write",
-        description: "Write tags",
+        description: "Update and delete tags",
         roles: ["owner", "member"],
       },
     ],
@@ -88,7 +89,7 @@ export const resourcePermissions = [
       {
         permission: "Write",
         scope: "domains.write",
-        description: "Write domains",
+        description: "Update and delete domains",
         roles: ["owner"],
       },
     ],
@@ -107,7 +108,7 @@ export const resourcePermissions = [
       {
         permission: "Write",
         scope: "tokens.write",
-        description: "Write tokens",
+        description: "Update and delete tokens",
         roles: ["owner", "member"],
       },
     ],
@@ -120,8 +121,21 @@ export const resourcePermissions = [
       {
         permission: "Read",
         scope: "analytics.read",
-        description: "Read analytics",
+        description: "Read analytics and events",
         roles: ["owner", "member"],
+      },
+    ],
+  },
+  {
+    name: "Conversions",
+    key: "conversions",
+    description: "Track conversions (customer, lead, sales)",
+    permissions: [
+      {
+        permission: "Write",
+        scope: "conversions.write",
+        description: "Track customer, lead, and sales events",
+        roles: ["owner"],
       },
     ],
   },
