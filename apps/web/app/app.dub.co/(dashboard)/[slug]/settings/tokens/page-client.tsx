@@ -1,5 +1,6 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
@@ -11,8 +12,9 @@ import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
+  const { id: workspaceId } = useWorkspace();
   const { data: tokens, isLoading } = useSWR<Token[]>(
-    "/api/user/tokens",
+    `/api/tokens?workspaceId=${workspaceId}`,
     fetcher,
   );
 

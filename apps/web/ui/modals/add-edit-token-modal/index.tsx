@@ -8,9 +8,7 @@ import {
   Modal,
   RadioGroup,
   RadioGroupItem,
-  useRouterStuff,
 } from "@dub/ui";
-import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
   FormEvent,
@@ -19,6 +17,8 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast } from "sonner";
+import { mutate } from "swr";
 
 // TODO:
 // Fetch the scopes from the API
@@ -26,7 +26,7 @@ import {
 type APIKeyProps = {
   id?: string;
   name: string;
-  scopes: string[];
+  scopes: { [key: string]: string };
   isMachine: boolean;
 };
 
@@ -39,20 +39,15 @@ function AddEditTokenModal({
   setShowAddEditTokenModal: Dispatch<SetStateAction<boolean>>;
   props?: APIKeyProps;
 }) {
-  const router = useRouter();
-  const { slug } = useParams() as { slug: string };
-  const { id, logo, plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
+  const { id: workspaceId, logo, slug } = useWorkspace();
 
   const [saving, setSaving] = useState(false);
-  const [lockDomain, setLockDomain] = useState(true);
   const [domainError, setDomainError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
   const [data, setData] = useState<APIKeyProps>(
     props || {
       id: "",
       name: "",
-      scopes: [],
+      scopes: {},
       isMachine: false,
     },
   );
@@ -82,14 +77,14 @@ function AddEditTokenModal({
     if (props) {
       return {
         method: "PATCH",
-        url: `/api/domains/${"domain"}?workspaceId=${id}`,
-        successMessage: "Successfully updated domain!",
+        url: `/api/tokens/${"id"}?workspaceId=${workspaceId}`,
+        successMessage: "API key updated!",
       };
     } else {
       return {
         method: "POST",
-        url: `/api/domains?workspaceId=${id}`,
-        successMessage: "Successfully added domain!",
+        url: `/api/tokens?workspaceId=${workspaceId}`,
+        successMessage: "API key created!",
       };
     }
   }, [props]);
@@ -97,9 +92,30 @@ function AddEditTokenModal({
   const { name, scopes, isMachine } = data;
 
   // Save the form data
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
+
+    const response = await fetch(endpoint.url, {
+      method: endpoint.method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...data,
+        scopes: Object.values(scopes).filter((v) => v),
+      }),
+    });
+
+    const json = await response.json();
+
+    if (response.ok) {
+      mutate(`/api/tokens?workspaceId=${workspaceId}`);
+      toast.success(endpoint.successMessage);
+      setShowAddEditTokenModal(false);
+    } else {
+      toast.error(json.error.message);
+    }
   };
 
   return (
@@ -121,7 +137,7 @@ function AddEditTokenModal({
           <Logo />
         )}
         <h1 className="text-lg font-medium">
-          {props ? "Edit" : "Add"} API Key
+          {props ? "Edit" : "Add New"} API Key
         </h1>
       </div>
 
@@ -139,23 +155,36 @@ function AddEditTokenModal({
               id="target"
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="My Test Key"
+              required
               value={name}
               onChange={(e) => setData({ ...data, name: e.target.value })}
             />
           </div>
         </div>
 
-        <div className="flex flex-col gap-8 text-sm text-gray-900">
+        <div className="flex flex-col divide-y text-sm">
           {allScopes.map((scope) => (
             <div
-              className="flex items-center justify-between"
+              className="flex items-center justify-between py-4"
               key={`${scope.resource}-resource`}
             >
-              <div>{scope.resource}</div>
+              <div className="text-gray-500">{scope.resource}</div>
               <div>
-                <RadioGroup defaultValue="none" className="flex gap-4">
+                <RadioGroup
+                  defaultValue=""
+                  className="flex gap-4"
+                  onValueChange={(v) => {
+                    setData({
+                      ...data,
+                      scopes: {
+                        ...scopes,
+                        [scope.resource.toLocaleLowerCase()]: v,
+                      },
+                    });
+                  }}
+                >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="none" id={scope.resource} />
+                    <RadioGroupItem value="" />
                     <div>None</div>
                   </div>
                   {scope.permissions.map((permission) => (
@@ -163,10 +192,7 @@ function AddEditTokenModal({
                       className="flex items-center space-x-2"
                       key={permission.scope}
                     >
-                      <RadioGroupItem
-                        value={permission.scope}
-                        id={permission.scope}
-                      />
+                      <RadioGroupItem value={permission.scope} />
                       <div>{permission.permission}</div>
                     </div>
                   ))}

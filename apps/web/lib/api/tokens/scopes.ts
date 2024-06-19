@@ -128,6 +128,25 @@ export const scopeDescriptions = [
       },
     ],
   },
+  {
+    resource: "API Keys",
+    description: "Create, read, update, and delete API keys",
+    endpoints: ["/tokens"],
+    permissions: [
+      {
+        permission: "Read",
+        scope: "tokens.read",
+        description: "Read tokens",
+        roles: ["owner", "member"],
+      },
+      {
+        permission: "Write",
+        scope: "tokens.write",
+        description: "Write tokens",
+        roles: ["owner", "member"],
+      },
+    ],
+  },
 ] as const;
 
 // Map roles to scopes
