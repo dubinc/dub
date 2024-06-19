@@ -53,7 +53,7 @@ export const DomainSchema = z.object({
   updatedAt: z.date().describe("The date the domain was last updated."),
 });
 
-export const addDomainBodySchema = z.object({
+export const createDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "slug is required" })
     .min(1, "slug cannot be empty.")
@@ -102,7 +102,7 @@ export const addDomainBodySchema = z.object({
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
 });
 
-export const updateDomainBodySchema = addDomainBodySchema.partial();
+export const updateDomainBodySchema = createDomainBodySchema.partial();
 
 export const transferDomainBodySchema = z.object({
   newWorkspaceId: z

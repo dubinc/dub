@@ -136,7 +136,7 @@
     {
       "group": "Domains",
       "pages": [
-        "api-reference/endpoint/add-a-domain",
+        "api-reference/endpoint/create-a-domain",
         "api-reference/endpoint/update-a-domain",
         "api-reference/endpoint/delete-a-domain",
         "api-reference/endpoint/retrieve-a-list-of-domains",
@@ -203,7 +203,7 @@
           "group": "Domains",
           "icon": "globe",
           "pages": [
-            "sdks/typescript/domains/add",
+            "sdks/typescript/domains/create",
             "sdks/typescript/domains/update",
             "sdks/typescript/domains/delete",
             "sdks/typescript/domains/list",
@@ -348,6 +348,14 @@
     {
       "source": "/quickstart/nodejs",
       "destination": "/quickstart/typescript"
+    },
+    {
+      "source": "/sdks/typescript/domains/add",
+      "destination": "/sdks/typescript/domains/create"
+    },
+    {
+      "source": "/api-reference/endpoint/add-a-domain",
+      "destination": "/api-reference/endpoint/create-a-domain"
     }
   ]
 }
