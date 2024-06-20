@@ -1,6 +1,5 @@
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { createDomain } from "@/lib/api/domains/create-domain";
-import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -27,16 +26,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
     },
   });
 
-  const result = domains.map((domain) => {
-    const domainRecord = transformDomain(domain);
-
-    return {
-      ...domainRecord,
-      url: domainRecord.target,
-    };
-  });
-
-  return NextResponse.json(result);
+  return NextResponse.json(domains);
 });
 
 // POST /api/domains - add a domain

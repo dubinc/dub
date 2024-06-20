@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../errors";
-import { transformDomain } from "./transform-domain";
 
 type GetDomainInput =
   | {
@@ -38,5 +37,5 @@ export const getDomain = async (input: GetDomainInput) => {
     });
   }
 
-  return transformDomain(domain);
+  return domain;
 };

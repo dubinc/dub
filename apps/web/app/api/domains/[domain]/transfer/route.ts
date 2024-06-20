@@ -1,7 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { setRootDomain } from "@/lib/api/domains";
 import { getDomain } from "@/lib/api/domains/get-domain";
-import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
@@ -118,11 +117,6 @@ export const POST = withWorkspace(
         domain,
         domainCreatedAt: domainRecord.createdAt,
         projectId: newWorkspaceId,
-        ...(newWorkspace.plan !== "free" &&
-          domainRecord.target && {
-            url: domainRecord.target,
-          }),
-        rewrite: domainRecord.type === "rewrite",
       }),
       prisma.project.update({
         where: { id: workspace.id },
@@ -158,7 +152,7 @@ export const POST = withWorkspace(
       },
     });
 
-    return NextResponse.json(transformDomain(domainResponse), { headers });
+    return NextResponse.json(domainResponse, { headers });
   },
   { requiredRole: ["owner"] },
 );
