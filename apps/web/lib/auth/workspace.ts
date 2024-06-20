@@ -63,21 +63,21 @@ export const withWorkspace = (
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
-    allowSelf, // special case for removing yourself from a workspace
     skipLinkChecks, // special case for /api/links/exists – skip link checks
     domainChecks, // if the action needs to check if the domain belongs to the workspace
     betaFeature, // if the action is a beta feature
     requiredScopes = [],
+    skipScopeChecks, // if the action doesn't need to check for required scopes
   }: {
     requiredPlan?: Array<PlanProps>;
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     allowAnonymous?: boolean;
-    allowSelf?: boolean;
     skipLinkChecks?: boolean;
     domainChecks?: boolean;
     betaFeature?: boolean;
     requiredScopes?: Scope[];
+    skipScopeChecks?: boolean;
   } = {},
 ) => {
   return async (
@@ -298,11 +298,13 @@ export const withWorkspace = (
       }
 
       // Check user has permission to make the action
-      throwIfNoAccess({
-        scopes,
-        requiredScopes,
-        workspaceId: workspace.id,
-      });
+      if (!skipScopeChecks) {
+        throwIfNoAccess({
+          scopes,
+          requiredScopes,
+          workspaceId: workspace.id,
+        });
+      }
 
       // beta feature checks
       if (betaFeature) {
@@ -377,19 +379,6 @@ export const withWorkspace = (
           });
         }
       }
-
-      console.log({ allowSelf });
-
-      // workspace role checks
-      // if (
-      //   !requiredRole.includes(workspace.users[0].role) &&
-      //   !(allowSelf && searchParams.userId === session.user.id)
-      // ) {
-      //   throw new DubApiError({
-      //     code: "forbidden",
-      //     message: "Unauthorized: Insufficient permissions.",
-      //   });
-      // }
 
       // clicks usage overage checks
       if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {

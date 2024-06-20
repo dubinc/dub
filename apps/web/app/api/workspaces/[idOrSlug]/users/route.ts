@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { roles } from "@/lib/types";
@@ -76,10 +77,19 @@ export const PUT = withWorkspace(
   },
 );
 
-// DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace
+// DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace or leave a workspace
 export const DELETE = withWorkspace(
-  async ({ searchParams, workspace, session }) => {
+  async ({ searchParams, workspace, session, scopes }) => {
     const { userId } = removeUserSchema.parse(searchParams);
+
+    if (userId !== session.user.id) {
+      throwIfNoAccess({
+        scopes,
+        requiredScopes: ["workspaces.write"],
+        workspaceId: workspace.id,
+      });
+    }
+
     const [projectUser, totalOwners] = await Promise.all([
       prisma.projectUsers.findUnique({
         where: {
@@ -104,12 +114,14 @@ export const DELETE = withWorkspace(
         },
       }),
     ]);
+
     if (!projectUser) {
       throw new DubApiError({
         code: "not_found",
         message: "User not found",
       });
     }
+
     // If there is only one owner and the user is an owner and the user is trying to remove themselves
     if (
       totalOwners === 1 &&
@@ -122,6 +134,7 @@ export const DELETE = withWorkspace(
           "Cannot remove owner from workspace. Please transfer ownership to another user first.",
       });
     }
+
     const response = await prisma.projectUsers.delete({
       where: {
         userId_projectId: {
@@ -142,7 +155,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["workspaces.write"],
-    allowSelf: true,
+    skipScopeChecks: true,
   },
 );

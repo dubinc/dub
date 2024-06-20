@@ -52,7 +52,6 @@ export const withWorkspaceEdge = (
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
-    allowSelf, // special case for removing yourself from a workspace
     betaFeature, // if the action is a beta feature
     requiredScopes = [],
   }: {
@@ -60,7 +59,6 @@ export const withWorkspaceEdge = (
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     needNotExceededAI?: boolean;
-    allowSelf?: boolean;
     betaFeature?: boolean;
     requiredScopes?: Scope[];
   } = {},
@@ -286,17 +284,6 @@ export const withWorkspaceEdge = (
           });
         }
       }
-
-      // workspace role checks
-      // if (
-      //   !requiredRole.includes(workspace.users[0].role) &&
-      //   !(allowSelf && searchParams.userId === session.user.id)
-      // ) {
-      //   throw new DubApiError({
-      //     code: "forbidden",
-      //     message: "Unauthorized: Insufficient permissions.",
-      //   });
-      // }
 
       // clicks usage overage checks
       if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {
