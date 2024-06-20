@@ -70,7 +70,6 @@ export const withWorkspace = (
     requiredScopes = [],
   }: {
     requiredPlan?: Array<PlanProps>;
-    requiredRole?: Array<"owner" | "member">;
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     allowAnonymous?: boolean;
@@ -378,6 +377,8 @@ export const withWorkspace = (
           });
         }
       }
+
+      console.log({ allowSelf });
 
       // workspace role checks
       // if (

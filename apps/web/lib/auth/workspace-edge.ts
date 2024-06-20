@@ -49,7 +49,6 @@ export const withWorkspaceEdge = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
-    requiredRole = ["owner", "member"],
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
@@ -58,7 +57,6 @@ export const withWorkspaceEdge = (
     requiredScopes = [],
   }: {
     requiredPlan?: Array<PlanProps>;
-    requiredRole?: Array<"owner" | "member">;
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     needNotExceededAI?: boolean;
@@ -290,15 +288,15 @@ export const withWorkspaceEdge = (
       }
 
       // workspace role checks
-      if (
-        !requiredRole.includes(workspace.users[0].role) &&
-        !(allowSelf && searchParams.userId === session.user.id)
-      ) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "Unauthorized: Insufficient permissions.",
-        });
-      }
+      // if (
+      //   !requiredRole.includes(workspace.users[0].role) &&
+      //   !(allowSelf && searchParams.userId === session.user.id)
+      // ) {
+      //   throw new DubApiError({
+      //     code: "forbidden",
+      //     message: "Unauthorized: Insufficient permissions.",
+      //   });
+      // }
 
       // clicks usage overage checks
       if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {

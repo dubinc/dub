@@ -17,4 +17,4 @@ export const getRateLimitForPlan = (plan: PlanProps) => {
   }
 
   return 600;
-}
+};

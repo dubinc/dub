@@ -80,7 +80,7 @@ const TokenRow = (token: TokenProps) => {
   const [openPopover, setOpenPopover] = useState(false);
 
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
-    token
+    token,
   });
 
   return (
