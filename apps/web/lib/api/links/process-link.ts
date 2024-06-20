@@ -64,11 +64,10 @@ export async function processLink<T extends Record<string, any>>({
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
-  const isRootDomain = key === "_root";
   const tagIds = combineTagIds(payload);
 
   // url checks
-  if (!isRootDomain && !url) {
+  if (!url) {
     return {
       link: payload,
       error: "Missing destination url.",
@@ -317,9 +316,16 @@ export async function processLink<T extends Record<string, any>>({
   delete payload["qrCode"];
   delete payload["prefix"];
 
+  // Use domain ID for root links
+  let linkId =
+    key === "_root"
+      ? workspace?.domains.find((d) => d.slug === domain)?.id
+      : null;
+
   return {
     link: {
       ...payload,
+      ...(linkId && { id: linkId }),
       domain,
       key,
       // we're redefining these fields because they're processed in the function
