@@ -116,36 +116,59 @@ export const updateUsage = async () => {
           interval: "30d",
         }).then(async (data) => {
           const topFive = data.slice(0, 5);
-          return await Promise.all(
-            topFive.map(
-              async ({
-                link: linkId,
-                clicks,
-              }: {
-                link: string;
-                clicks: number;
-              }) => {
-                const link = await prisma.link.findUnique({
-                  where: {
-                    id: linkId,
-                  },
-                  select: {
-                    domain: true,
-                    key: true,
-                  },
-                });
-                if (!link) return;
-                return {
-                  link: linkConstructor({
-                    domain: link.domain,
-                    key: link.key,
-                    pretty: true,
-                  }),
-                  clicks,
-                };
+          const topFiveLinkIds = topFive.map(({ link }) => link);
+
+          const [links, domains] = await Promise.all([
+            prisma.link.findMany({
+              where: {
+                projectId: workspace.id,
+                id: {
+                  in: topFiveLinkIds,
+                },
               },
-            ),
-          );
+              select: {
+                id: true,
+                domain: true,
+                key: true,
+              },
+            }),
+            prisma.domain.findMany({
+              where: {
+                projectId: workspace.id,
+                id: {
+                  in: topFiveLinkIds,
+                },
+              },
+              select: {
+                id: true,
+                slug: true,
+              },
+            }),
+          ]);
+
+          const allLinks = [
+            ...links.map((link) => ({
+              id: link.id,
+              shortLink: linkConstructor({
+                domain: link.domain,
+                key: link.key,
+                pretty: true,
+              }),
+            })),
+            ...domains.map((domain) => ({
+              id: domain.id,
+              shortLink: linkConstructor({
+                domain: domain.slug,
+                key: "_root",
+                pretty: true,
+              }),
+            })),
+          ];
+
+          return topFive.map((d) => ({
+            link: allLinks.find((l) => l.id === d.link)?.shortLink || "",
+            clicks: d.clicks,
+          }));
         });
 
         const emails = workspace.users.map(
