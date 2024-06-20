@@ -3,7 +3,7 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { PlanProps, TokenFound, WorkspaceProps } from "@/lib/types";
+import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -89,6 +89,7 @@ export const withWorkspaceEdge = (
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
       let scopes: Scope[] = [];
+      let token: any | null = null;
 
       const idOrSlug =
         params?.idOrSlug ||
@@ -105,25 +106,19 @@ export const withWorkspaceEdge = (
         });
       }
 
-      if (idOrSlug.startsWith("ws_")) {
-        workspaceId = idOrSlug.replace("ws_", "");
-      } else {
-        workspaceSlug = idOrSlug;
-      }
-
       if (apiKey) {
         const isRestrictedToken = apiKey.startsWith("dub_");
-        const tokenTable = isRestrictedToken ? "restrictedToken" : "token";
         const hashedKey = await hashToken(apiKey);
-
-        const token: TokenFound = await (
-          prismaEdge[tokenTable] as any
-        ).findUnique({
+        const prismaArgs = {
           where: {
             hashedKey,
           },
           select: {
-            ...(isRestrictedToken && { scopes: true, ratelimit: true }),
+            ...(isRestrictedToken && {
+              scopes: true,
+              rateLimit: true,
+              projectId: true,
+            }),
             user: {
               select: {
                 id: true,
@@ -133,7 +128,13 @@ export const withWorkspaceEdge = (
               },
             },
           },
-        });
+        };
+
+        if (isRestrictedToken) {
+          token = await prismaEdge.restrictedToken.findUnique(prismaArgs);
+        } else {
+          token = await prismaEdge.token.findUnique(prismaArgs);
+        }
 
         if (!token || !token.user) {
           throw new DubApiError({
@@ -143,7 +144,7 @@ export const withWorkspaceEdge = (
         }
 
         // Rate limit checks for API keys
-        const rateLimit = "rateLimit" in token ? token.rateLimit : 600;
+        const rateLimit = token?.rateLimit || 600;
 
         const { success, limit, reset, remaining } = await ratelimit(
           rateLimit,
@@ -164,19 +165,24 @@ export const withWorkspaceEdge = (
         }
 
         waitUntil(
-          // update last used time
-          (prismaEdge[tokenTable] as any).update({
-            where: {
-              hashedKey,
-            },
-            data: {
-              lastUsed: new Date(),
-            },
-          }),
-        );
+          // update last used time for the token
+          (async () => {
+            const prismaArgs = {
+              where: {
+                hashedKey,
+              },
+              data: {
+                lastUsed: new Date(),
+              },
+            };
 
-        // @ts-ignore
-        scopes = isRestrictedToken ? token.scopes.split(" ") : availableScopes;
+            if (isRestrictedToken) {
+              await prismaEdge.restrictedToken.update(prismaArgs);
+            } else {
+              await prismaEdge.token.update(prismaArgs);
+            }
+          })(),
+        );
 
         session = {
           user: {
@@ -198,6 +204,12 @@ export const withWorkspaceEdge = (
             message: "Unauthorized: Login required.",
           });
         }
+      }
+
+      if (idOrSlug.startsWith("ws_")) {
+        workspaceId = idOrSlug.replace("ws_", "");
+      } else {
+        workspaceSlug = idOrSlug;
       }
 
       const workspace = (await prismaEdge.project.findUnique({
@@ -231,8 +243,10 @@ export const withWorkspaceEdge = (
         });
       }
 
-      // For session requests, find the scopes based on the user's role
-      if (session && !apiKey) {
+      // Find scopes based on the token or user's role
+      if (token && "scopes" in token) {
+        scopes = (token.scopes?.split(" ") as Scope[]) || [];
+      } else {
         scopes = roleScopesMapping[workspace.users[0].role];
       }
 

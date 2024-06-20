@@ -4,7 +4,7 @@ import {
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
-import { PlanProps, TokenFound, WorkspaceProps } from "@/lib/types";
+import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {
   API_DOMAIN,
@@ -15,11 +15,7 @@ import {
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import {
-  Scope,
-  availableScopes,
-  roleScopesMapping,
-} from "../api/tokens/scopes";
+import { Scope, roleScopesMapping } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -114,6 +110,7 @@ export const withWorkspace = (
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
       let scopes: Scope[] = [];
+      let token: any | null = null;
 
       const idOrSlug =
         params?.idOrSlug ||
@@ -141,23 +138,19 @@ export const withWorkspace = (
         }
       }
 
-      if (idOrSlug.startsWith("ws_")) {
-        workspaceId = idOrSlug.replace("ws_", "");
-      } else {
-        workspaceSlug = idOrSlug;
-      }
-
       if (apiKey) {
         const isRestrictedToken = apiKey.startsWith("dub_");
-        const tokenTable = isRestrictedToken ? "restrictedToken" : "token";
         const hashedKey = await hashToken(apiKey);
-
-        const token: TokenFound = await (prisma[tokenTable] as any).findUnique({
+        const prismaArgs = {
           where: {
             hashedKey,
           },
           select: {
-            ...(isRestrictedToken && { scopes: true, rateLimit: true }),
+            ...(isRestrictedToken && {
+              scopes: true,
+              rateLimit: true,
+              projectId: true,
+            }),
             user: {
               select: {
                 id: true,
@@ -167,7 +160,13 @@ export const withWorkspace = (
               },
             },
           },
-        });
+        };
+
+        if (isRestrictedToken) {
+          token = await prisma.restrictedToken.findUnique(prismaArgs);
+        } else {
+          token = await prisma.token.findUnique(prismaArgs);
+        }
 
         if (!token || !token.user) {
           throw new DubApiError({
@@ -177,7 +176,7 @@ export const withWorkspace = (
         }
 
         // Rate limit checks for API keys
-        const rateLimit = "rateLimit" in token ? token.rateLimit : 600;
+        const rateLimit = token?.rateLimit || 600;
 
         const { success, limit, reset, remaining } = await ratelimit(
           rateLimit,
@@ -198,19 +197,24 @@ export const withWorkspace = (
         }
 
         waitUntil(
-          // update last used time
-          (prisma[tokenTable] as any).update({
-            where: {
-              hashedKey,
-            },
-            data: {
-              lastUsed: new Date(),
-            },
-          }),
-        );
+          // update last used time for the token
+          (async () => {
+            const prismaArgs = {
+              where: {
+                hashedKey,
+              },
+              data: {
+                lastUsed: new Date(),
+              },
+            };
 
-        // @ts-ignore
-        scopes = isRestrictedToken ? token.scopes.split(" ") : availableScopes;
+            if (isRestrictedToken) {
+              await prisma.restrictedToken.update(prismaArgs);
+            } else {
+              await prisma.token.update(prismaArgs);
+            }
+          })(),
+        );
 
         session = {
           user: {
@@ -222,12 +226,19 @@ export const withWorkspace = (
         };
       } else {
         session = await getSession();
+
         if (!session?.user?.id) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Unauthorized: Login required.",
           });
         }
+      }
+
+      if (idOrSlug.startsWith("ws_")) {
+        workspaceId = idOrSlug.replace("ws_", "");
+      } else {
+        workspaceSlug = idOrSlug;
       }
 
       let [workspace, link] = (await Promise.all([
@@ -284,16 +295,18 @@ export const withWorkspace = (
                 })),
       ])) as [WorkspaceProps, LinkProps | undefined];
 
+      // workspace doesn't exist
       if (!workspace || !workspace.users) {
-        // workspace doesn't exist
         throw new DubApiError({
           code: "not_found",
           message: "Workspace not found.",
         });
       }
 
-      // For session requests, find the scopes based on the user's role
-      if (session && !apiKey) {
+      // Find scopes based on the token or user's role
+      if (token && "scopes" in token) {
+        scopes = (token.scopes?.split(" ") as Scope[]) || [];
+      } else {
         scopes = roleScopesMapping[workspace.users[0].role];
       }
 
