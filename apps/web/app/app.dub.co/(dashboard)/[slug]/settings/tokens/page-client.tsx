@@ -42,7 +42,7 @@ export default function TokensPageClient() {
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-center justify-between gap-2 space-y-3 p-5 sm:flex-row sm:space-y-0 sm:p-10">
           <div className="flex flex-col space-y-3">
-            <h2 className="text-xl font-medium">Workspace API Keys</h2>
+            <h2 className="text-xl font-medium">API Keys</h2>
             <p className="text-sm text-gray-500">
               These API keys allow other apps to access your workspace. Use it
               with caution – do not share your API key with others, or expose it
@@ -75,7 +75,7 @@ export default function TokensPageClient() {
           <div className="flex flex-col items-center justify-center space-y-4 pb-20 pt-10">
             <FolderOpen className="h-6 w-6 text-gray-500" />
             <p className="text-sm text-gray-500">
-              No API keys found. Create one above.
+              No API keys found for this workspace.
             </p>
           </div>
         )}

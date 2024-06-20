@@ -15,7 +15,11 @@ import {
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, availableScopes, roleScopeMapping } from "../api/tokens/scopes";
+import {
+  Scope,
+  availableScopes,
+  roleScopesMapping,
+} from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -154,7 +158,7 @@ export const withWorkspace = (
             hashedKey,
           },
           select: {
-            ...(isRestrictedToken && { scopes: true }),
+            ...(isRestrictedToken && { scopes: true, rateLimit: true }),
             user: {
               select: {
                 id: true,
@@ -173,8 +177,11 @@ export const withWorkspace = (
           });
         }
 
+        // Rate limit checks for API keys
+        const rateLimit = "rateLimit" in token ? token.rateLimit : 600;
+
         const { success, limit, reset, remaining } = await ratelimit(
-          600,
+          rateLimit,
           "1 m",
         ).limit(apiKey);
         headers = {
@@ -287,12 +294,16 @@ export const withWorkspace = (
       }
 
       // For session requests, find the scopes based on the user's role
-      if (!apiKey) {
-        scopes = roleScopeMapping[workspace.users[0].role];
+      if (session && !apiKey) {
+        scopes = roleScopesMapping[workspace.users[0].role];
       }
 
       // Check user has permission to make the action
-      throwIfNoAccess({ scopes, requiredScopes, workspaceId: workspace.id });
+      throwIfNoAccess({
+        scopes,
+        requiredScopes,
+        workspaceId: workspace.id,
+      });
 
       // beta feature checks
       if (betaFeature) {

@@ -143,7 +143,7 @@ export const resourcePermissions = [
 
 // Map roles to scopes
 // { owner: ["workspace.write"], member: ["workspace.read"] }
-export const roleScopeMapping = resourcePermissions.reduce<
+export const roleScopesMapping = resourcePermissions.reduce<
   Record<Role, Scope[]>
 >(
   (acc, { permissions }) => {

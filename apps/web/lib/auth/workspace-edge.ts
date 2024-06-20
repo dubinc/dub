@@ -11,7 +11,7 @@ import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, roleScopeMapping } from "../api/tokens/scopes";
+import { Scope, roleScopesMapping } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
@@ -127,7 +127,7 @@ export const withWorkspaceEdge = (
             hashedKey,
           },
           select: {
-            ...(isRestrictedToken && { scopes: true }),
+            ...(isRestrictedToken && { scopes: true, ratelimit: true }),
             user: {
               select: {
                 id: true,
@@ -146,8 +146,11 @@ export const withWorkspaceEdge = (
           });
         }
 
+        // Rate limit checks for API keys
+        const rateLimit = "rateLimit" in token ? token.rateLimit : 600;
+
         const { success, limit, reset, remaining } = await ratelimit(
-          600,
+          rateLimit,
           "1 m",
         ).limit(apiKey);
         headers = {
@@ -233,12 +236,16 @@ export const withWorkspaceEdge = (
       }
 
       // For session requests, find the scopes based on the user's role
-      if (!apiKey) {
-        scopes = roleScopeMapping[workspace.users[0].role];
+      if (session && !apiKey) {
+        scopes = roleScopesMapping[workspace.users[0].role];
       }
 
       // Check user has permission to make the action
-      throwIfNoAccess({ scopes, requiredScopes, workspaceId: workspace.id });
+      throwIfNoAccess({
+        scopes,
+        requiredScopes,
+        workspaceId: workspace.id,
+      });
 
       // beta feature checks
       if (betaFeature) {
