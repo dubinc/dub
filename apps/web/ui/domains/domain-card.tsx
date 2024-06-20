@@ -47,7 +47,7 @@ import { useTransferDomainModal } from "../modals/transfer-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
-  const { id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId, slug, plan } = useWorkspace();
   const { activeWorkspaceDomains } = useDomains();
 
   const { slug: domain, primary, archived } = props || {};
@@ -60,7 +60,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   );
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
-    props: linkProps || DEFAULT_LINK_PROPS,
+    props: linkProps || { ...DEFAULT_LINK_PROPS, key: "_root", domain },
   });
 
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
@@ -188,39 +188,63 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               content={
                 <div className="w-full sm:w-44">
                   <div className="grid gap-px p-2">
-                    <Button
-                      text="Edit Link"
-                      variant="outline"
-                      onClick={() => {
-                        setOpenPopover(false);
-                        setShowAddEditLinkModal(true);
-                      }}
-                      icon={<Edit3 className="h-4 w-4" />}
-                      className="h-9 justify-start px-2 font-medium"
-                    />
-                    <Button
-                      text="QR Code"
-                      variant="outline"
-                      onClick={() => {
-                        setOpenPopover(false);
-                        setShowLinkQRModal(true);
-                      }}
-                      icon={<QrCode className="h-4 w-4" />}
-                      className="h-9 justify-start px-2 font-medium"
-                    />
-                    <Button
-                      text="Copy Link ID"
-                      variant="outline"
-                      onClick={() => copyLinkId()}
-                      icon={
-                        copiedLinkId ? (
-                          <CheckCircleFill className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )
-                      }
-                      className="h-9 justify-start px-2 font-medium"
-                    />
+                    {linkProps?.url ? (
+                      <>
+                        <Button
+                          text="Edit Link"
+                          variant="outline"
+                          onClick={() => {
+                            setOpenPopover(false);
+                            setShowAddEditLinkModal(true);
+                          }}
+                          icon={<Edit3 className="h-4 w-4" />}
+                          className="h-9 justify-start px-2 font-medium"
+                        />
+                        <Button
+                          text="QR Code"
+                          variant="outline"
+                          onClick={() => {
+                            setOpenPopover(false);
+                            setShowLinkQRModal(true);
+                          }}
+                          icon={<QrCode className="h-4 w-4" />}
+                          className="h-9 justify-start px-2 font-medium"
+                        />
+                        <Button
+                          text="Copy Link ID"
+                          variant="outline"
+                          onClick={() => copyLinkId()}
+                          icon={
+                            copiedLinkId ? (
+                              <CheckCircleFill className="h-4 w-4" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )
+                          }
+                          className="h-9 justify-start px-2 font-medium"
+                        />
+                      </>
+                    ) : (
+                      <Button
+                        text="Create Link"
+                        variant="outline"
+                        icon={<Edit3 className="h-4 w-4" />}
+                        className="h-9 justify-start px-2 font-medium"
+                        onClick={() => {
+                          setOpenPopover(false);
+                          setShowAddEditLinkModal(true);
+                        }}
+                        {...(plan === "free" && {
+                          disabledTooltip: (
+                            <SimpleTooltipContent
+                              title="You can only create root links on a Pro plan and above. Upgrade to Pro to use this feature."
+                              cta="Learn more."
+                              href="https://dub.co/help/article/how-to-redirect-root-domain"
+                            />
+                          ),
+                        })}
+                      />
+                    )}
                   </div>
                   <div className="border-t border-gray-200" />
                   <div className="grid gap-px p-2">

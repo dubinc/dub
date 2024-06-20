@@ -92,6 +92,15 @@ export async function processLink<T extends Record<string, any>>({
     (!workspace || workspace.plan === "free") &&
     (!createdAt || new Date(createdAt) > new Date("2024-01-19"))
   ) {
+    if (key === "_root") {
+      return {
+        link: payload,
+        error:
+          "You can only create root links on a Pro plan and above. Upgrade to Pro to use this feature.",
+        code: "unprocessable_entity",
+      };
+    }
+
     if (proxy || password || rewrite || expiresAt || ios || android || geo) {
       const proFeaturesString = [
         proxy && "custom social media cards",

@@ -109,6 +109,11 @@ export async function keyChecks({
 }
 
 export function processKey(key: string) {
+  // Skip if root domain
+  if (key === "_root") {
+    return key;
+  }
+
   if (!validKeyRegex.test(key)) {
     return null;
   }

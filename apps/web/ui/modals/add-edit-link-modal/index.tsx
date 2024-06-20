@@ -260,7 +260,7 @@ function AddEditLinkModal({
   }, [debouncedUrl, password, showAddEditLinkModal]);
 
   const endpoint = useMemo(() => {
-    if (props?.key) {
+    if (props?.id) {
       return {
         method: "PATCH",
         url: `/api/links/${props.id}?workspaceId=${workspaceId}`,
