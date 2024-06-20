@@ -24,7 +24,7 @@ export const GET = withWorkspace(
     return NextResponse.json(tags, { headers });
   },
   {
-    requiredScopes: ["tags.read", "tags.write"],
+    requiredScopes: ["tags.read"],
   },
 );
 

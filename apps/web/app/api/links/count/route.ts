@@ -19,6 +19,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["links.read", "links.write"],
+    requiredScopes: ["links.read"],
   },
 );

@@ -1,8 +1,7 @@
 import { DubApiError } from "../errors";
-import { Scope } from "./scopes";
+import { Scope, scopeMapping } from "./scopes";
 
-// Check if the required scope is in the list of scopes
-// If not, throw an error immediately with a message
+// Check if the required scope is in the list of user scopes
 export const throwIfNoAccess = ({
   scopes,
   requiredScopes,
@@ -16,18 +15,20 @@ export const throwIfNoAccess = ({
     return;
   }
 
-  for (const requiredScope of requiredScopes) {
-    if (scopes.includes(requiredScope)) {
-      return;
-    }
-  }
+  const userScopes: Scope[] = scopes
+    .map((scope) => scopeMapping[scope] || scope)
+    .flat();
 
   const missingScopes = requiredScopes
-    .filter((requiredScope) => !scopes.includes(requiredScope))
+    .filter((requiredScope) => !userScopes.includes(requiredScope))
     .join(", ");
 
-  throw new DubApiError({
-    code: "forbidden",
-    message: `The provided key does not have the required permissions for this endpoint on the workspace 'w_${workspaceId}'. Having the '${missingScopes}' permission would allow this request to continue.`,
-  });
+  for (const requiredScope of requiredScopes) {
+    if (!userScopes.includes(requiredScope)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: `The provided key does not have the required permissions for this endpoint on the workspace 'w_${workspaceId}'. Having the '${missingScopes}' permission would allow this request to continue.`,
+      });
+    }
+  }
 };

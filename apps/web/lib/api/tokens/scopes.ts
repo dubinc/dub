@@ -161,3 +161,10 @@ export const roleScopesMapping = resourcePermissions.reduce<
   },
   {} as Record<Role, Scope[]>,
 );
+
+export const scopeMapping = {
+  "workspaces.write": ["workspaces.write", "workspaces.read"],
+  "links.write": ["links.write", "links.read"],
+  "tags.write": ["tags.write", "tags.read"],
+  "domains.write": ["domains.write", "domains.read"],
+};

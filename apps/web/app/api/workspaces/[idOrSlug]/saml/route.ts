@@ -45,7 +45,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["workspaces.read", "workspaces.write"],
+    requiredScopes: ["workspaces.read"],
   },
 );
 

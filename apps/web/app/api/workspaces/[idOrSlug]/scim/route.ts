@@ -35,7 +35,7 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["workspaces.read", "workspaces.write"],
+    requiredScopes: ["workspaces.read"],
   },
 );
 

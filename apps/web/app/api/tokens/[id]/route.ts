@@ -42,7 +42,7 @@ export const GET = withWorkspace(
     return NextResponse.json(tokenSchema.parse(token));
   },
   {
-    requiredScopes: ["tokens.read", "tokens.write"],
+    requiredScopes: ["tokens.read"],
   },
 );
 

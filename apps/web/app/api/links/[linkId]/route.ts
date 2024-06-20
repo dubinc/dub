@@ -48,7 +48,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response, { headers });
   },
   {
-    requiredScopes: ["links.read", "links.write"],
+    requiredScopes: ["links.read"],
   },
 );
 
