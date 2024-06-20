@@ -1,11 +1,7 @@
-import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
-import { createDomain } from "@/lib/api/domains/create-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
-import { WorkspaceProps } from "@/lib/types";
-import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
 import {
   WorkspaceSchema,
   createWorkspaceSchema,
@@ -16,7 +12,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/workspaces - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
-  const projects = await prisma.project.findMany({
+  const workspaces = await prisma.project.findMany({
     where: {
       users: {
         some: {
@@ -42,14 +38,14 @@ export const GET = withSession(async ({ session }) => {
     },
   });
   return NextResponse.json(
-    projects.map((project) =>
+    workspaces.map((project) =>
       WorkspaceSchema.parse({ ...project, id: `ws_${project.id}` }),
     ),
   );
 });
 
 export const POST = withSession(async ({ req, session }) => {
-  const { name, slug, domain } = await createWorkspaceSchema.parseAsync(
+  const { name, slug } = await createWorkspaceSchema.parseAsync(
     await req.json(),
   );
 
@@ -81,17 +77,14 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  const [slugExist, validDomain] = await Promise.all([
-    prisma.project.findUnique({
-      where: {
-        slug,
-      },
-      select: {
-        slug: true,
-      },
-    }),
-    domain ? validateDomain(domain) : { error: null },
-  ]);
+  const slugExist = await prisma.project.findUnique({
+    where: {
+      slug,
+    },
+    select: {
+      slug: true,
+    },
+  });
 
   if (slugExist) {
     throw new DubApiError({
@@ -100,14 +93,7 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  if (validDomain.error && validDomain.code) {
-    throw new DubApiError({
-      code: validDomain.code,
-      message: validDomain.error,
-    });
-  }
-
-  const projectResponse = await prisma.project.create({
+  const workspaceResponse = await prisma.project.create({
     data: {
       name,
       slug,
@@ -124,16 +110,18 @@ export const POST = withSession(async ({ req, session }) => {
       },
     },
     include: {
-      domains: {
-        select: {
-          id: true,
-          slug: true,
-          primary: true,
-        },
-      },
       users: {
+        where: {
+          userId: session.user.id,
+        },
         select: {
           role: true,
+        },
+      },
+      domains: {
+        select: {
+          slug: true,
+          primary: true,
         },
       },
     },
@@ -147,38 +135,17 @@ export const POST = withSession(async ({ req, session }) => {
             id: session.user.id,
           },
           data: {
-            defaultWorkspace: projectResponse.slug,
+            defaultWorkspace: workspaceResponse.slug,
           },
         });
-      }
-      if (domain) {
-        const domainRepsonse = await addDomainToVercel(domain);
-        if (domainRepsonse.error) {
-          await prisma.domain.delete({
-            where: {
-              slug: domain,
-              projectId: projectResponse.id,
-            },
-          });
-        } else {
-          await createDomain({
-            ...createDomainBodySchema.parse({ slug: domain }),
-            workspace: projectResponse as WorkspaceProps,
-            userId: session.user.id,
-          });
-        }
       }
     })(),
   );
 
-  const response = {
-    ...projectResponse,
-    id: `ws_${projectResponse.id}`,
-    domains: projectResponse.domains.map(({ slug, primary }) => ({
-      slug,
-      primary,
-    })),
-  };
-
-  return NextResponse.json(response);
+  return NextResponse.json(
+    WorkspaceSchema.parse({
+      ...workspaceResponse,
+      id: `ws_${workspaceResponse.id}`,
+    }),
+  );
 });

@@ -39,7 +39,7 @@ function AddEditDomainModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { id, logo, plan } = useWorkspace();
+  const { id: workspaceId, logo, plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const [data, setData] = useState<DomainProps>(
@@ -49,7 +49,7 @@ function AddEditDomainModal({
       verified: false,
       primary: false,
       archived: false,
-      projectId: id || "",
+      projectId: workspaceId || "",
     },
   );
 
@@ -84,13 +84,13 @@ function AddEditDomainModal({
     if (props) {
       return {
         method: "PATCH",
-        url: `/api/domains/${domain}?workspaceId=${id}`,
+        url: `/api/domains/${domain}?workspaceId=${workspaceId}`,
         successMessage: "Successfully updated domain!",
       };
     } else {
       return {
         method: "POST",
-        url: `/api/domains?workspaceId=${id}`,
+        url: `/api/domains?workspaceId=${workspaceId}`,
         successMessage: "Successfully added domain!",
       };
     }
@@ -128,16 +128,29 @@ function AddEditDomainModal({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              ...data,
-              placeholder: placeholder || null,
-              expiredUrl: expiredUrl || null,
-            }),
+            body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.ok) {
-              await mutate(`/api/domains?workspaceId=${id}`);
+              if (endpoint.method === "POST") {
+                await fetch(`/api/links?workspaceId=${workspaceId}`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    domain: data.slug,
+                    key: "_root",
+                    url: "",
+                  }),
+                });
+              }
+              await Promise.all([
+                mutate(`/api/domains?workspaceId=${workspaceId}`),
+                mutate(`/api/links?workspaceId=${workspaceId}`),
+              ]);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
+              // TODO: Remove after links dashboard is refactored to use new filter UX
               if (!props) {
                 router.push(`/${slug}/domains`);
               }

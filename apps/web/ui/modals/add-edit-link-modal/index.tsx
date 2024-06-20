@@ -36,12 +36,7 @@ import {
 import va from "@vercel/analytics";
 import { useCompletion } from "ai/react";
 import { TriangleAlert } from "lucide-react";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -83,8 +78,6 @@ function AddEditLinkModal({
 }) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const router = useRouter();
-  const pathname = usePathname();
   const {
     id: workspaceId,
     aiUsage,

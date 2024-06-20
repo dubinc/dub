@@ -127,10 +127,10 @@ export interface DomainProps {
   primary: boolean;
   archived: boolean;
   placeholder?: string;
-  projectId: string;
   expiredUrl?: string;
-  noindex?: boolean;
+  projectId: string;
 }
+
 export interface RedisDomainProps {
   id: string;
   url?: string;

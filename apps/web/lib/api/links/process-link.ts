@@ -67,7 +67,7 @@ export async function processLink<T extends Record<string, any>>({
   const tagIds = combineTagIds(payload);
 
   // url checks
-  if (!url) {
+  if (!url && key !== "_root") {
     return {
       link: payload,
       error: "Missing destination url.",

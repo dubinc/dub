@@ -1,5 +1,4 @@
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
-import { createDomain } from "@/lib/api/domains/create-domain";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -23,11 +22,9 @@ export const GET = withWorkspace(async ({ workspace }) => {
 });
 
 // POST /api/domains - add a domain
-export const POST = withWorkspace(async ({ req, workspace, session }) => {
+export const POST = withWorkspace(async ({ req, workspace }) => {
   const body = await parseRequestBody(req);
-  const payload = createDomainBodySchema.parse(body);
-
-  const { slug } = payload;
+  const { slug, placeholder, expiredUrl } = createDomainBodySchema.parse(body);
 
   if (workspace.domains.length >= workspace.domainsLimit) {
     return new Response(
@@ -58,16 +55,16 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     return new Response(vercelResponse.error.message, { status: 422 });
   }
 
-  /* 
-    If the domain is being added, we need to:
-      1. Add the domain to Vercel
-      2. If there's a landing page set, update the root domain in Redis
-      3. If the workspace has no domains (meaning this is the first domain added), set it as primary
-  */
-  const domainRecord = await createDomain({
-    ...payload,
-    workspace,
-    userId: session.user.id,
+  const domainRecord = await prisma.domain.create({
+    data: {
+      slug: slug,
+      projectId: workspace.id,
+      primary: workspace.domains.length === 0,
+      ...(placeholder && { placeholder }),
+      ...(workspace.plan !== "free" && {
+        expiredUrl,
+      }),
+    },
   });
 
   return NextResponse.json(DomainSchema.parse(domainRecord), {

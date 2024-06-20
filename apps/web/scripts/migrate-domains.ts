@@ -30,6 +30,7 @@ async function main() {
       id: domain.id,
       domain: domain.slug,
       key: "_root",
+      url: domain.target || "",
       description: domain.description,
       publicStats: domain.publicStats,
       projectId: domain.projectId,
@@ -39,13 +40,11 @@ async function main() {
       clicks: domain.clicks,
       ...(domain.project?.plan === "free"
         ? {
-            url: "",
             expiredUrl: null,
             rewrite: false,
             noindex: false,
           }
         : {
-            url: domain.target || "",
             expiredUrl: domain.expiredUrl || null,
             rewrite: domain.type === "rewrite",
             noindex: domain.noindex,
@@ -60,6 +59,15 @@ async function main() {
   });
 
   console.log(`Added ${result.count} links`);
+
+  // const links = await prisma.link.deleteMany({
+  //   where: {
+  //     projectId: "cl7wsy2836920mjrb352g5wfx",
+  //     key: "_root",
+  //   },
+  // });
+
+  // console.log(links);
 }
 
 main();

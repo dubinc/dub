@@ -49,11 +49,11 @@ import DomainConfiguration from "./domain-configuration";
 export default function DomainCard({ props }: { props: DomainProps }) {
   const { slug: domain, primary, archived } = props || {};
 
-  const { id: workspaceId, slug, plan } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { activeWorkspaceDomains } = useDomains();
 
-  const { data: linkProps } = useSWR<LinkProps>(
-    workspaceId && domain && plan != "free"
+  const { data: linkProps } = useSWRImmutable<LinkProps>(
+    workspaceId
       ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key: "_root" }).toString()}`
       : null,
     fetcher,
@@ -76,6 +76,16 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     setTimeout(() => setCopiedLinkId(false), 3000);
   };
 
+  const { data: totalEvents } = useSWR<{ clicks: number }>(
+    workspaceId &&
+      linkProps &&
+      `/api/analytics?event=clicks&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
+    fetcher,
+    {
+      dedupingInterval: 15000,
+    },
+  );
+
   const domainRef = useRef<any>();
   const entry = useIntersectionObserver(domainRef, {});
   const isVisible = !!entry?.isIntersecting;
@@ -88,16 +98,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       isVisible &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
-  );
-
-  const { data: totalEvents } = useSWR<{ clicks: number }>(
-    workspaceId &&
-      linkProps &&
-      `/api/analytics?event=clicks&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
-    fetcher,
-    {
-      dedupingInterval: 15000,
-    },
   );
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -191,65 +191,41 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             />
             <Popover
               content={
-                <div className="w-full sm:w-44">
+                <div className="w-full sm:w-48">
                   <div className="grid gap-px p-2">
-                    {linkProps?.url ? (
-                      <>
-                        <Button
-                          text="Edit Link"
-                          variant="outline"
-                          onClick={() => {
-                            setOpenPopover(false);
-                            setShowAddEditLinkModal(true);
-                          }}
-                          icon={<Edit3 className="h-4 w-4" />}
-                          className="h-9 justify-start px-2 font-medium"
-                        />
-                        <Button
-                          text="QR Code"
-                          variant="outline"
-                          onClick={() => {
-                            setOpenPopover(false);
-                            setShowLinkQRModal(true);
-                          }}
-                          icon={<QrCode className="h-4 w-4" />}
-                          className="h-9 justify-start px-2 font-medium"
-                        />
-                        <Button
-                          text="Copy Link ID"
-                          variant="outline"
-                          onClick={() => copyLinkId()}
-                          icon={
-                            copiedLinkId ? (
-                              <CheckCircleFill className="h-4 w-4" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )
-                          }
-                          className="h-9 justify-start px-2 font-medium"
-                        />
-                      </>
-                    ) : (
-                      <Button
-                        text="Create Link"
-                        variant="outline"
-                        icon={<Edit3 className="h-4 w-4" />}
-                        className="h-9 justify-start px-2 font-medium"
-                        onClick={() => {
-                          setOpenPopover(false);
-                          setShowAddEditLinkModal(true);
-                        }}
-                        {...(plan === "free" && {
-                          disabledTooltip: (
-                            <SimpleTooltipContent
-                              title="You can only create root links on a Pro plan and above. Upgrade to Pro to use this feature."
-                              cta="Learn more."
-                              href="https://dub.co/help/article/how-to-redirect-root-domain"
-                            />
-                          ),
-                        })}
-                      />
-                    )}
+                    <Button
+                      text="Edit Link"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowAddEditLinkModal(true);
+                      }}
+                      icon={<Edit3 className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                    <Button
+                      text="QR Code"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowLinkQRModal(true);
+                      }}
+                      icon={<QrCode className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                    <Button
+                      text="Copy Link ID"
+                      variant="outline"
+                      onClick={() => copyLinkId()}
+                      icon={
+                        copiedLinkId ? (
+                          <CheckCircleFill className="h-4 w-4" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )
+                      }
+                      className="h-9 justify-start px-2 font-medium"
+                    />
                   </div>
                   <div className="border-t border-gray-200" />
                   <div className="grid gap-px p-2">
@@ -352,15 +328,23 @@ export default function DomainCard({ props }: { props: DomainProps }) {
           </div>
           <div className="flex items-center space-x-2">
             {linkProps ? (
-              <CheckCircleFill className="h-6 w-6 text-blue-500" />
+              linkProps.url ? (
+                <CheckCircleFill className="h-6 w-6 text-blue-500" />
+              ) : (
+                <XCircleFill className="h-6 w-6 text-gray-400" />
+              )
             ) : (
-              <XCircleFill className="h-6 w-6 text-gray-400" />
+              <LoadingCircle className="mr-1 h-5 w-5" />
             )}
             <div className="flex space-x-1">
               <p className="text-sm text-gray-500">
-                {linkProps ? `Redirects to` : `No redirect configured`}
+                {linkProps
+                  ? linkProps.url
+                    ? `Redirects to`
+                    : `No redirect configured`
+                  : `Checking link status`}
               </p>
-              {linkProps?.url && (
+              {linkProps && (
                 <a
                   href={linkProps.url}
                   target="_blank"
