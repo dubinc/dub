@@ -94,19 +94,16 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // increment the click count for the link or domain (based on their ID)
-    // also increment the usage count for the workspace
+    conn.execute(
+      "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
+      [linkId],
+    ),
+    // if the link has a destination URL, increment the usage count for the workspace
     // and then we have a cron that will reset it at the start of new billing cycle
-    url
-      ? [
-          conn.execute(
-            "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-            [linkId],
-          ),
-          conn.execute(
-            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
-            [linkId],
-          ),
-        ]
-      : undefined,
+    url &&
+      conn.execute(
+        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
+        [linkId],
+      ),
   ]);
 }
