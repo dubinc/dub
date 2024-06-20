@@ -1,5 +1,6 @@
 "use client";
 
+import { TokenProps } from "@/lib/types";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import {
   Alert,
@@ -11,13 +12,12 @@ import {
   TokenAvatar,
 } from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
-import { Token } from "@prisma/client";
 import { FolderOpen, Info, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
-  const { data: tokens, isLoading } = useSWR<Token[]>(
+  const { data: tokens, isLoading } = useSWR<TokenProps[]>(
     "/api/user/tokens",
     fetcher,
   );
@@ -76,11 +76,11 @@ export default function TokensPageClient() {
   );
 }
 
-const TokenRow = (token: Token) => {
+const TokenRow = (token: TokenProps) => {
   const [openPopover, setOpenPopover] = useState(false);
+
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
-    token,
-    tokenType: "user",
+    token
   });
 
   return (

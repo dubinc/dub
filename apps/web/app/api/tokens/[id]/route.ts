@@ -117,9 +117,6 @@ export const DELETE = withWorkspace(
       });
     }
 
-    // TODO:
-    // Send email to user that their token has been deleted
-
     return NextResponse.json({
       id: token.id,
     });

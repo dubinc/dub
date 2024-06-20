@@ -24,8 +24,6 @@ export default function TokensPageClient() {
     token: createdToken || "",
   });
 
-  // TODO:
-  // Check if there is a better way to display the token after creation
   const onTokenCreated = (token: string) => {
     setCreatedToken(token);
     setShowTokenCreatedModal(true);
@@ -94,12 +92,10 @@ const TokenRow = (token: TokenProps) => {
       isMachine: token.user.isMachine,
       scopes: mapScopesToResource(token.scopes),
     },
-    onTokenCreated: () => {},
   });
 
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
-    token: token as any, // TODO: Fix this
-    tokenType: "workspace",
+    token,
   });
 
   return (

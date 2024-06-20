@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { TokenProps } from "@/lib/types";
 import {
   Badge,
   Button,
@@ -8,7 +9,6 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { timeAgo } from "@dub/utils";
-import { Token } from "@prisma/client";
 import {
   Dispatch,
   SetStateAction,
@@ -23,20 +23,20 @@ function DeleteTokenModal({
   showDeleteTokenModal,
   setShowDeleteTokenModal,
   token,
-  tokenType,
 }: {
   showDeleteTokenModal: boolean;
   setShowDeleteTokenModal: Dispatch<SetStateAction<boolean>>;
-  token: Token;
-  tokenType: "user" | "workspace";
+  token: TokenProps;
 }) {
   const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
   const [removing, setRemoving] = useState(false);
 
   // Determine the endpoint
+  const isRestrictedToken = "scopes" in token ? true : false;
+
   const endpoint = useMemo(() => {
-    if (tokenType === "user") {
+    if (!isRestrictedToken) {
       return {
         url: `/api/user/tokens?id=${token.id}`,
         mutate: "/api/user/tokens",
@@ -47,7 +47,7 @@ function DeleteTokenModal({
         mutate: `/api/tokens?workspaceId=${workspaceId}`,
       };
     }
-  }, [tokenType]);
+  }, [isRestrictedToken]);
 
   return (
     <Modal
@@ -106,13 +106,7 @@ function DeleteTokenModal({
   );
 }
 
-export function useDeleteTokenModal({
-  token,
-  tokenType,
-}: {
-  token: Token;
-  tokenType: "user" | "workspace";
-}) {
+export function useDeleteTokenModal({ token }: { token: TokenProps }) {
   const [showDeleteTokenModal, setShowDeleteTokenModal] = useState(false);
 
   const DeleteTokenModalCallback = useCallback(() => {
@@ -121,7 +115,6 @@ export function useDeleteTokenModal({
         showDeleteTokenModal={showDeleteTokenModal}
         setShowDeleteTokenModal={setShowDeleteTokenModal}
         token={token}
-        tokenType={tokenType}
       />
     );
   }, [showDeleteTokenModal, setShowDeleteTokenModal]);
