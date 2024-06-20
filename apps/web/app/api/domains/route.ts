@@ -13,17 +13,6 @@ export const GET = withWorkspace(async ({ workspace }) => {
     where: {
       projectId: workspace.id,
     },
-    include: {
-      links: {
-        select: {
-          url: true,
-          rewrite: true,
-          clicks: true,
-          expiredUrl: true,
-          noindex: true,
-        },
-      },
-    },
   });
 
   return NextResponse.json(domains);

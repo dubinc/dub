@@ -141,25 +141,6 @@ export const PUT = PATCH;
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withWorkspace(async ({ headers, link }) => {
-  if (link?.key === "_root") {
-    const linksCount = await prisma.link.count({
-      where: {
-        domain: link.domain,
-        NOT: {
-          key: "_root",
-        },
-      },
-    });
-
-    if (linksCount > 0) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You cannot delete the root link. Please delete the domain instead.",
-      });
-    }
-  }
-
   await deleteLink(link!.id);
 
   return NextResponse.json(
