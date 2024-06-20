@@ -4,8 +4,12 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
+import {
+  DomainSchema,
+  createDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(async ({ workspace }) => {
@@ -15,7 +19,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
     },
   });
 
-  return NextResponse.json(domains);
+  return NextResponse.json(z.array(DomainSchema).parse(domains));
 });
 
 // POST /api/domains - add a domain
@@ -66,7 +70,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     userId: session.user.id,
   });
 
-  return NextResponse.json(domainRecord, {
+  return NextResponse.json(DomainSchema.parse(domainRecord), {
     status: 201,
   });
 });

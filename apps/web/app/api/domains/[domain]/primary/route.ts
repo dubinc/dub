@@ -1,6 +1,6 @@
-import { getDomain } from "@/lib/api/domains/get-domain";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { DomainSchema } from "@/lib/zod/schemas/domains";
 import { NextResponse } from "next/server";
 
 // POST /api/domains/[domain]/primary – set a domain as primary
@@ -30,12 +30,14 @@ export const POST = withWorkspace(
       }),
     ]);
 
-    const domainRecord = await getDomain({
-      slug: domain,
-      workspaceId: workspace.id,
+    const domainRecord = await prisma.domain.findUnique({
+      where: {
+        slug: domain,
+        projectId: workspace.id,
+      },
     });
 
-    return NextResponse.json(domainRecord, { headers });
+    return NextResponse.json(DomainSchema.parse(domainRecord), { headers });
   },
   {
     domainChecks: true,

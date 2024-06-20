@@ -4,26 +4,30 @@ import {
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
-import { getDomain } from "@/lib/api/domains/get-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
+import {
+  DomainSchema,
+  updateDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
   async ({ domain, workspace }) => {
-    const result = await getDomain({
-      slug: domain,
-      workspaceId: workspace.id,
+    const domainRecord = await prisma.domain.findUnique({
+      where: {
+        slug: domain,
+        projectId: workspace.id,
+      },
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
     domainChecks: true,
@@ -107,7 +111,7 @@ export const PATCH = withWorkspace(
       })(),
     );
 
-    return NextResponse.json(domainRecord);
+    return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
     domainChecks: true,
