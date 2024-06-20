@@ -1,8 +1,3 @@
-// @ts-nocheck
-
-// TODO:
-// Fix the script
-
 import { addDomainToVercel, setRootDomain } from "@/lib/api/domains";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
@@ -47,8 +42,6 @@ async function main() {
           response = await prisma.domain.create({
             data: {
               slug: domain,
-              target,
-              type: "redirect",
               projectId,
             },
           });

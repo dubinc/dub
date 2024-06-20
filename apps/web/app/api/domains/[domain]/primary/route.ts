@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 // POST /api/domains/[domain]/primary – set a domain as primary
 export const POST = withWorkspace(
   async ({ headers, workspace, domain }) => {
-    await Promise.all([
+    const [domainRecord] = await Promise.all([
       prisma.domain.update({
         where: {
           slug: domain,
@@ -29,13 +29,6 @@ export const POST = withWorkspace(
         },
       }),
     ]);
-
-    const domainRecord = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-        projectId: workspace.id,
-      },
-    });
 
     return NextResponse.json(DomainSchema.parse(domainRecord), { headers });
   },

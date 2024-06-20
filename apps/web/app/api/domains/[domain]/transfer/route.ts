@@ -5,7 +5,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { transferDomainBodySchema } from "@/lib/zod/schemas/domains";
+import {
+  DomainSchema,
+  transferDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -100,17 +103,6 @@ export const POST = withWorkspace(
           projectId: newWorkspaceId,
           primary: newWorkspace.domains.length === 0,
         },
-        include: {
-          links: {
-            select: {
-              url: true,
-              rewrite: true,
-              clicks: true,
-              expiredUrl: true,
-              noindex: true,
-            },
-          },
-        },
       }),
       setRootDomain({
         id: domainRecord.id,
@@ -152,7 +144,7 @@ export const POST = withWorkspace(
       },
     });
 
-    return NextResponse.json(domainResponse, { headers });
+    return NextResponse.json(DomainSchema.parse(domainResponse), { headers });
   },
   { requiredRole: ["owner"] },
 );
