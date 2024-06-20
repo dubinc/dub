@@ -155,24 +155,22 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               <ExternalLink className="h-5 w-5" />
             </a>
 
-            {linkProps && (
-              <NumberTooltip value={totalEvents?.clicks}>
-                <Link
-                  href={`/${slug}/analytics?domain=${domain}&key=_root`}
-                  className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
-                >
-                  <Chart className="h-4 w-4" />
-                  <p className="text-sm">
-                    {!totalEvents ? (
-                      <LoadingDots />
-                    ) : (
-                      nFormatter(totalEvents?.clicks)
-                    )}
-                    <span className="ml-1 hidden sm:inline-block">clicks</span>
-                  </p>
-                </Link>
-              </NumberTooltip>
-            )}
+            <NumberTooltip value={totalEvents?.clicks}>
+              <Link
+                href={`/${slug}/analytics?domain=${domain}&key=_root`}
+                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
+              >
+                <Chart className="h-4 w-4" />
+                <p className="text-sm">
+                  {!totalEvents ? (
+                    <LoadingDots />
+                  ) : (
+                    nFormatter(totalEvents?.clicks)
+                  )}
+                  <span className="ml-1 hidden sm:inline-block">clicks</span>
+                </p>
+              </Link>
+            </NumberTooltip>
 
             {primary && (
               <span className="rounded-full bg-blue-500 px-3 py-0.5 text-xs text-white">

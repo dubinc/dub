@@ -32,6 +32,7 @@ import {
   isDubDomain,
   linkConstructor,
   nFormatter,
+  nanoid,
   punycode,
   timeAgo,
 } from "@dub/utils";
@@ -158,7 +159,7 @@ export default function LinkCard({
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: `${punycode(key)}-copy`,
+      key: key === "_root" ? nanoid(7) : `${punycode(key)}-copy`,
       clicks: 0,
     },
   });
@@ -460,14 +461,18 @@ export default function LinkCard({
                   <Lock className="xs:block hidden h-4 w-4 text-gray-500" />
                 </Tooltip>
               )}
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
-              >
-                {url}
-              </a>
+              {url ? (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
+                >
+                  {url}
+                </a>
+              ) : (
+                <p className="text-sm text-gray-400">No URL configured</p>
+              )}
             </div>
           </div>
         </div>
