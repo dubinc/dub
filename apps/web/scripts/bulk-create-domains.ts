@@ -1,4 +1,5 @@
-import { addDomainToVercel, setRootDomain } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains";
+import { createLink } from "@/lib/api/links";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
@@ -42,19 +43,21 @@ async function main() {
           response = await prisma.domain.create({
             data: {
               slug: domain,
-              target,
-              type: "redirect",
               projectId,
             },
           });
         }
 
-        const effects = await setRootDomain({
-          id: response.id,
-          domain,
-          domainCreatedAt: response.createdAt,
-          projectId,
+        const effects = await createLink({
           url: target,
+          domain: domain,
+          key: "_root",
+          projectId,
+          archived: false,
+          publicStats: false,
+          doIndex: false,
+          trackConversion: false,
+          proxy: false,
           rewrite: false,
         });
 

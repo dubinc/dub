@@ -63,8 +63,6 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       prisma.domain.createMany({
         data: doaminsNotInWorkspace.map(({ domain }) => ({
           slug: domain,
-          target: null,
-          type: "redirect",
           projectId: workspace.id,
           primary: false,
         })),

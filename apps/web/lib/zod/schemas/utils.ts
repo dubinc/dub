@@ -6,6 +6,10 @@ export const parseUrlSchema = z
   .transform((v) => getUrlFromString(v))
   .refine((v) => isValidUrl(v), { message: "Invalid URL" });
 
+export const parseUrlSchemaAllowEmpty = z
+  .string()
+  .transform((v) => getUrlFromString(v));
+
 export const parseDateSchema = z
   .string()
   .transform((v) => parseDateTime(v))

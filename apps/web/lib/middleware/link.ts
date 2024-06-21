@@ -31,7 +31,7 @@ export default async function LinkMiddleware(
 ) {
   let { domain, fullKey: key } = parse(req);
 
-  if (!domain || !key) {
+  if (!domain) {
     return NextResponse.next();
   }
 
@@ -58,6 +58,11 @@ export default async function LinkMiddleware(
     key = key.slice(0, -1);
   }
 
+  // if key is empty string, set to _root (root domain link)
+  if (key === "") {
+    key = "_root";
+  }
+
   let link = await redis.hget<RedisLinkProps>(domain, key);
 
   if (!link) {
@@ -69,7 +74,6 @@ export default async function LinkMiddleware(
       return NextResponse.redirect(new URL("/", req.url), {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
         },
         status: 302,
       });
@@ -98,7 +102,12 @@ export default async function LinkMiddleware(
     android,
     geo,
     expiredUrl,
+    doIndex,
   } = link;
+
+  // by default, we only index default dub domain links (e.g. dub.sh)
+  // everything else is not indexed by default, unless the user has explicitly set it to be indexed
+  const shouldIndex = isDubDomain(domain) || doIndex === true;
 
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
@@ -107,7 +116,7 @@ export default async function LinkMiddleware(
       {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       },
     );
@@ -127,7 +136,7 @@ export default async function LinkMiddleware(
         {
           headers: {
             ...DUB_HEADERS,
-            ...(!isDubDomain(domain) && {
+            ...(!shouldIndex && {
               "X-Robots-Tag": "googlebot: noindex",
             }),
           },
@@ -144,7 +153,7 @@ export default async function LinkMiddleware(
     return NextResponse.rewrite(new URL("/banned", req.url), {
       headers: {
         ...DUB_HEADERS,
-        ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+        ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
       },
     });
   }
@@ -155,14 +164,14 @@ export default async function LinkMiddleware(
       return NextResponse.redirect(expiredUrl, {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       });
     } else {
       return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       });
     }
@@ -178,8 +187,25 @@ export default async function LinkMiddleware(
     )
   ) {
     ev.waitUntil(
-      recordClick({ req, linkId, clickId, url: getFinalUrl(url, { req }) }),
+      recordClick({
+        req,
+        linkId,
+        clickId,
+        ...(url && { url: getFinalUrl(url, { req }) }),
+      }),
     );
+  }
+
+  // for root domain links, if there's no destination URL, rewrite to placeholder page
+  if (!url) {
+    return NextResponse.rewrite(new URL(`/${domain}`, req.url), {
+      headers: {
+        ...DUB_HEADERS,
+        // we only index root domain links if they're not subdomains
+        ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+      },
+      status: 302,
+    });
   }
 
   const isBot = detectBot(req);
@@ -194,7 +220,7 @@ export default async function LinkMiddleware(
       {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       },
     );
@@ -206,7 +232,7 @@ export default async function LinkMiddleware(
       {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       },
     );
@@ -219,7 +245,7 @@ export default async function LinkMiddleware(
         {
           headers: {
             ...DUB_HEADERS,
-            ...(!isDubDomain(domain) && {
+            ...(!shouldIndex && {
               "X-Robots-Tag": "googlebot: noindex",
             }),
           },
@@ -230,7 +256,7 @@ export default async function LinkMiddleware(
       return NextResponse.rewrite(url, {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       });
     }
@@ -245,9 +271,9 @@ export default async function LinkMiddleware(
       {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-        status: 302,
+        status: key === "_root" ? 301 : 302,
       },
     );
 
@@ -261,9 +287,9 @@ export default async function LinkMiddleware(
       {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-        status: 302,
+        status: key === "_root" ? 301 : 302,
       },
     );
 
@@ -277,9 +303,9 @@ export default async function LinkMiddleware(
       {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-        status: 302,
+        status: key === "_root" ? 301 : 302,
       },
     );
 
@@ -293,9 +319,9 @@ export default async function LinkMiddleware(
       {
         headers: {
           ...DUB_HEADERS,
-          ...(!isDubDomain(domain) && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-        status: 302,
+        status: key === "_root" ? 301 : 302,
       },
     );
   }

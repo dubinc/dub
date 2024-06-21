@@ -24,7 +24,7 @@ export interface QRLinkProps {
 
 export interface RedisLinkProps {
   id: string;
-  url: string;
+  url?: string;
   trackConversion?: boolean;
   password?: boolean;
   proxy?: boolean;
@@ -35,6 +35,7 @@ export interface RedisLinkProps {
   ios?: string;
   android?: string;
   geo?: object;
+  doIndex?: boolean;
   projectId?: string;
 }
 
@@ -86,6 +87,7 @@ export interface WorkspaceProps {
   stripeConnectId: string | null;
   createdAt: Date;
   domains: {
+    id: string;
     slug: string;
     primary: boolean;
   }[];
@@ -125,22 +127,9 @@ export interface DomainProps {
   verified: boolean;
   primary: boolean;
   archived: boolean;
-  publicStats: boolean;
-  target?: string;
-  type: string;
   placeholder?: string;
-  clicks: number;
-  projectId: string;
   expiredUrl?: string;
-  noindex?: boolean;
-}
-export interface RedisDomainProps {
-  id: string;
-  url?: string;
-  rewrite?: boolean;
-  iframeable?: boolean;
   projectId: string;
-  noindex?: boolean;
 }
 
 export interface BitlyGroupProps {
@@ -171,7 +160,10 @@ export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
 
 type ProcessedLinkOverrides = "domain" | "key" | "url" | "projectId";
 export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
-  Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] };
+  Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] } & {
+    createdAt?: Date;
+    id?: string;
+  };
 
 export const plans = [
   "free",

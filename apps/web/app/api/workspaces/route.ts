@@ -1,8 +1,3 @@
-import {
-  addDomainToVercel,
-  setRootDomain,
-  validateDomain,
-} from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
@@ -17,7 +12,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/workspaces - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
-  const projects = await prisma.project.findMany({
+  const workspaces = await prisma.project.findMany({
     where: {
       users: {
         some: {
@@ -43,14 +38,14 @@ export const GET = withSession(async ({ session }) => {
     },
   });
   return NextResponse.json(
-    projects.map((project) =>
+    workspaces.map((project) =>
       WorkspaceSchema.parse({ ...project, id: `ws_${project.id}` }),
     ),
   );
 });
 
 export const POST = withSession(async ({ req, session }) => {
-  const { name, slug, domain } = await createWorkspaceSchema.parseAsync(
+  const { name, slug } = await createWorkspaceSchema.parseAsync(
     await req.json(),
   );
 
@@ -82,17 +77,14 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  const [slugExist, validDomain] = await Promise.all([
-    prisma.project.findUnique({
-      where: {
-        slug,
-      },
-      select: {
-        slug: true,
-      },
-    }),
-    domain ? validateDomain(domain) : { error: null },
-  ]);
+  const slugExist = await prisma.project.findUnique({
+    where: {
+      slug,
+    },
+    select: {
+      slug: true,
+    },
+  });
 
   if (slugExist) {
     throw new DubApiError({
@@ -101,14 +93,7 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  if (validDomain.error && validDomain.code) {
-    throw new DubApiError({
-      code: validDomain.code,
-      message: validDomain.error,
-    });
-  }
-
-  const projectResponse = await prisma.project.create({
+  const workspaceResponse = await prisma.project.create({
     data: {
       name,
       slug,
@@ -118,14 +103,6 @@ export const POST = withSession(async ({ req, session }) => {
           role: "owner",
         },
       },
-      ...(domain && {
-        domains: {
-          create: {
-            slug: domain,
-            primary: true,
-          },
-        },
-      }),
       billingCycleStart: new Date().getDate(),
       inviteCode: nanoid(24),
       defaultDomains: {
@@ -133,17 +110,18 @@ export const POST = withSession(async ({ req, session }) => {
       },
     },
     include: {
-      domains: {
-        select: {
-          id: true,
-          slug: true,
-          primary: true,
-          createdAt: true,
-        },
-      },
       users: {
+        where: {
+          userId: session.user.id,
+        },
         select: {
           role: true,
+        },
+      },
+      domains: {
+        select: {
+          slug: true,
+          primary: true,
         },
       },
     },
@@ -157,39 +135,17 @@ export const POST = withSession(async ({ req, session }) => {
             id: session.user.id,
           },
           data: {
-            defaultWorkspace: projectResponse.slug,
+            defaultWorkspace: workspaceResponse.slug,
           },
         });
-      }
-      if (domain) {
-        const domainRepsonse = await addDomainToVercel(domain);
-        if (domainRepsonse.error) {
-          await prisma.domain.delete({
-            where: {
-              slug: domain,
-              projectId: projectResponse.id,
-            },
-          });
-        } else {
-          await setRootDomain({
-            id: projectResponse.domains[0].id,
-            domain,
-            domainCreatedAt: projectResponse.domains[0].createdAt,
-            projectId: projectResponse.id,
-          });
-        }
       }
     })(),
   );
 
-  const response = {
-    ...projectResponse,
-    id: `ws_${projectResponse.id}`,
-    domains: projectResponse.domains.map(({ slug, primary }) => ({
-      slug,
-      primary,
-    })),
-  };
-
-  return NextResponse.json(response);
+  return NextResponse.json(
+    WorkspaceSchema.parse({
+      ...workspaceResponse,
+      id: `ws_${workspaceResponse.id}`,
+    }),
+  );
 });

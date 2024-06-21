@@ -1,6 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   BlurImage,
   Button,
@@ -9,8 +11,6 @@ import {
   Logo,
   Modal,
   SimpleTooltipContent,
-  Switch,
-  Tooltip,
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
@@ -22,7 +22,6 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -41,7 +40,7 @@ function AddEditDomainModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { id, logo, plan } = useWorkspace();
+  const { id: workspaceId, logo, plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const [data, setData] = useState<DomainProps>(
@@ -51,23 +50,11 @@ function AddEditDomainModal({
       verified: false,
       primary: false,
       archived: false,
-      publicStats: false,
-      target: "",
-      type: "redirect",
-      clicks: 0,
-      projectId: id || "",
+      projectId: workspaceId || "",
     },
   );
 
-  const { slug: domain, target, type, placeholder, expiredUrl } = data;
-
-  // set noindex to true if target is set
-  useEffect(() => {
-    setData((prev) => ({
-      ...prev,
-      noindex: target ? true : false,
-    }));
-  }, [target]);
+  const { slug: domain, placeholder, expiredUrl } = data;
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -98,13 +85,13 @@ function AddEditDomainModal({
     if (props) {
       return {
         method: "PATCH",
-        url: `/api/domains/${domain}?workspaceId=${id}`,
+        url: `/api/domains/${domain}?workspaceId=${workspaceId}`,
         successMessage: "Successfully updated domain!",
       };
     } else {
       return {
         method: "POST",
-        url: `/api/domains?workspaceId=${id}`,
+        url: `/api/domains?workspaceId=${workspaceId}`,
         successMessage: "Successfully added domain!",
       };
     }
@@ -142,25 +129,47 @@ function AddEditDomainModal({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              ...data,
-              target: target || null,
-              placeholder: placeholder || null,
-              expiredUrl: expiredUrl || null,
-            }),
+            body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.ok) {
-              await mutate(`/api/domains?workspaceId=${id}`);
+              if (endpoint.method === "POST") {
+                await fetch(`/api/links?workspaceId=${workspaceId}`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    domain: data.slug,
+                    key: "_root",
+                    url: "",
+                  }),
+                });
+              }
+              await Promise.all([
+                mutate(`/api/domains?workspaceId=${workspaceId}`),
+                mutate(
+                  (key) =>
+                    typeof key === "string" && key.startsWith("/api/links"),
+                  undefined,
+                  { revalidate: true },
+                ),
+              ]);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
-              if (!props) {
-                router.push(`/${slug}/domains`);
-              }
             } else {
               const { error } = await res.json();
-              toast.error(error.message);
               if (res.status === 422) {
                 setDomainError(error.message);
+              }
+              if (error.message.includes("Upgrade to Pro")) {
+                toast.custom(() => (
+                  <UpgradeRequiredToast
+                    title="You've discovered a Pro feature!"
+                    message={error.message}
+                  />
+                ));
+              } else {
+                toast.error(error.message);
               }
             }
             setSaving(false);
@@ -203,79 +212,6 @@ function AddEditDomainModal({
           )}
         </div>
 
-        <div>
-          <label htmlFor="target" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">
-              Destination URL
-            </h2>
-            <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="The page your users will get redirected to when they visit your domain."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/how-to-redirect-root-domain"
-                />
-              }
-            />
-          </label>
-          {plan === "free" ? (
-            <Tooltip
-              content={
-                <TooltipContent
-                  title="You can't configure a custom landing page on a free plan. Upgrade to a Pro plan to proceed."
-                  cta="Upgrade to Pro"
-                  onClick={() => {
-                    setShowAddEditDomainModal(false);
-                    queryParams({
-                      set: {
-                        upgrade: "pro",
-                      },
-                    });
-                  }}
-                />
-              }
-            >
-              <div className="mt-2 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
-                https://yourdomain.com
-              </div>
-            </Tooltip>
-          ) : (
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                name="target"
-                id="target"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                placeholder="https://example.com"
-                value={target}
-                onChange={(e) => setData({ ...data, target: e.target.value })}
-              />
-            </div>
-          )}
-        </div>
-        {target && (
-          <motion.div key="type" {...FADE_IN_ANIMATION_SETTINGS}>
-            <label
-              htmlFor="type"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Behavior
-            </label>
-            <select
-              value={type}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  type: e.target.value as "redirect" | "rewrite",
-                })
-              }
-              className="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-500 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-            >
-              <option value="redirect">Redirect</option>
-              <option value="rewrite">Rewrite (Link Cloaking)</option>
-            </select>
-          </motion.div>
-        )}
-
         <button
           type="button"
           className="flex items-center"
@@ -301,7 +237,7 @@ function AddEditDomainModal({
                 <h2 className="text-sm font-medium text-gray-900">
                   Default Expiration URL
                 </h2>
-                <InfoTooltip
+                <ProBadgeTooltip
                   content={
                     <SimpleTooltipContent
                       title="Redirect users to a specific URL when any link under this domain has expired."
@@ -312,42 +248,16 @@ function AddEditDomainModal({
                 />
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
-                {plan === "free" ? (
-                  <Tooltip
-                    content={
-                      <TooltipContent
-                        title="You can't configure a custom expired URL on a free plan. Upgrade to a Pro plan to proceed."
-                        cta="Upgrade to Pro"
-                        onClick={() => {
-                          setShowAddEditDomainModal(false);
-                          queryParams({
-                            set: {
-                              upgrade: "pro",
-                            },
-                          });
-                        }}
-                      />
-                    }
-                  >
-                    <div className="mt-2 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
-                      https://yourwebsite.com
-                    </div>
-                  </Tooltip>
-                ) : (
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <input
-                      type="url"
-                      name="expiredUrl"
-                      id="expiredUrl"
-                      className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                      placeholder="https://yourwebsite.com"
-                      value={expiredUrl}
-                      onChange={(e) =>
-                        setData({ ...data, expiredUrl: e.target.value })
-                      }
-                    />
-                  </div>
-                )}
+                <input
+                  name="expiredUrl"
+                  id="expiredUrl"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  placeholder="https://yourwebsite.com"
+                  value={expiredUrl}
+                  onChange={(e) =>
+                    setData({ ...data, expiredUrl: e.target.value })
+                  }
+                />
               </div>
             </div>
 
@@ -359,11 +269,30 @@ function AddEditDomainModal({
                 <h2 className="text-sm font-medium text-gray-900">
                   Input Placeholder URL
                 </h2>
-                <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
+                <InfoTooltip
+                  content={
+                    <div className="flex max-w-sm flex-col items-center justify-center">
+                      <div className="border-b border-gray-200">
+                        <BlurImage
+                          src="https://assets.dub.co/help/domain-input-placeholder-url.png"
+                          alt="Input Placeholder URL"
+                          className="aspect-[782/506]"
+                          width={782}
+                          height={506}
+                        />
+                      </div>
+                      <p className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+                        Provide context to your teammates in the link creation
+                        modal by showing them an example of a link to be
+                        shortened.
+                      </p>
+                    </div>
+                  }
+                  side="right"
+                />
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
-                  type="url"
                   name="placeholder"
                   id="placeholder"
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
@@ -374,43 +303,6 @@ function AddEditDomainModal({
                   }
                 />
               </div>
-            </div>
-
-            <div className="flex w-full items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">
-                  Disable Search Engine Indexing
-                </h2>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Prevent search engines from indexing your root domain."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-noindex-works"
-                    />
-                  }
-                />
-              </div>
-              <Switch
-                checked={data.noindex}
-                fn={(checked) => setData({ ...data, noindex: checked })}
-                {...(plan === "free" && {
-                  disabledTooltip: (
-                    <TooltipContent
-                      title="You can only disable search engine indexing on a Pro plan and above. Upgrade to proceed."
-                      cta="Upgrade to Pro"
-                      onClick={() => {
-                        setShowAddEditDomainModal(false);
-                        queryParams({
-                          set: {
-                            upgrade: "pro",
-                          },
-                        });
-                      }}
-                    />
-                  ),
-                })}
-              />
             </div>
           </motion.div>
         )}
