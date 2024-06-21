@@ -31,8 +31,12 @@ export default async function LinkMiddleware(
 ) {
   let { domain, fullKey: key } = parse(req);
 
-  if (!domain || !key) {
+  if (!domain) {
     return NextResponse.next();
+  }
+
+  if (!key) {
+    key = "_root";
   }
 
   // encode the key to ascii
@@ -178,7 +182,12 @@ export default async function LinkMiddleware(
     )
   ) {
     ev.waitUntil(
-      recordClick({ req, linkId, clickId, url: getFinalUrl(url, { req }) }),
+      recordClick({
+        req,
+        linkId,
+        clickId,
+        ...(url && { url: getFinalUrl(url, { req }) }),
+      }),
     );
   }
 
