@@ -111,15 +111,17 @@ export const withWorkspace = (
       let workspaceSlug: string | undefined;
       let scopes: Scope[] = [];
       let token: any | null = null;
+      const isRestrictedToken = apiKey?.startsWith("dub_");
 
-      const idOrSlug =
+      let idOrSlug =
         params?.idOrSlug ||
         searchParams.workspaceId ||
         params?.slug ||
         searchParams.projectSlug;
 
-      // if there's no workspace ID or slug
-      if (!idOrSlug) {
+      // if there's no workspace ID or slug and it's not a restricted token
+      // For restricted tokens, we find the workspaceId from the token
+      if (!idOrSlug && !isRestrictedToken) {
         // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
         if (allowAnonymous && !apiKey) {
           // @ts-expect-error
@@ -139,7 +141,6 @@ export const withWorkspace = (
       }
 
       if (apiKey) {
-        const isRestrictedToken = apiKey.startsWith("dub_");
         const hashedKey = await hashToken(apiKey);
         const prismaArgs = {
           where: {
@@ -194,6 +195,11 @@ export const withWorkspace = (
             code: "rate_limit_exceeded",
             message: "Too many requests.",
           });
+        }
+
+        // Find workspaceId if it's a restricted token
+        if (isRestrictedToken) {
+          idOrSlug = `ws_${token.projectId}`;
         }
 
         waitUntil(
@@ -296,7 +302,7 @@ export const withWorkspace = (
       ])) as [WorkspaceProps, LinkProps | undefined];
 
       // workspace doesn't exist
-      if (!workspace || !workspace.users) {
+      if (!workspace || !workspace.users.length) {
         throw new DubApiError({
           code: "not_found",
           message: "Workspace not found.",

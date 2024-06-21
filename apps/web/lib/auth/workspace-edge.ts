@@ -90,15 +90,17 @@ export const withWorkspaceEdge = (
       let workspaceSlug: string | undefined;
       let scopes: Scope[] = [];
       let token: any | null = null;
+      const isRestrictedToken = apiKey?.startsWith("dub_");
 
-      const idOrSlug =
+      let idOrSlug =
         params?.idOrSlug ||
         searchParams.workspaceId ||
         params?.slug ||
         searchParams.projectSlug;
 
-      // if there's no workspace ID or slug
-      if (!idOrSlug) {
+      // if there's no workspace ID or slug and it's not a restricted token
+      // For restricted tokens, we find the workspaceId from the token
+      if (!idOrSlug && !isRestrictedToken) {
         throw new DubApiError({
           code: "not_found",
           message:
@@ -107,7 +109,6 @@ export const withWorkspaceEdge = (
       }
 
       if (apiKey) {
-        const isRestrictedToken = apiKey.startsWith("dub_");
         const hashedKey = await hashToken(apiKey);
         const prismaArgs = {
           where: {
@@ -162,6 +163,11 @@ export const withWorkspaceEdge = (
             code: "rate_limit_exceeded",
             message: "Too many requests.",
           });
+        }
+
+        // Find workspaceId if it's a restricted token
+        if (isRestrictedToken) {
+          idOrSlug = `ws_${token.projectId}`;
         }
 
         waitUntil(
@@ -235,7 +241,7 @@ export const withWorkspaceEdge = (
         },
       })) as WorkspaceProps;
 
-      if (!workspace || !workspace.users) {
+      if (!workspace || !workspace.users.length) {
         // workspace doesn't exist
         throw new DubApiError({
           code: "not_found",
