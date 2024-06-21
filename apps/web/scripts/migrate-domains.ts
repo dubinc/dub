@@ -4,9 +4,6 @@ import "dotenv-flow/config";
 // Standardize domains into links
 async function main() {
   const domains = await prisma.domain.findMany({
-    where: {
-      projectId: "cl7wsy2836920mjrb352g5wfx",
-    },
     include: {
       project: {
         select: {
@@ -21,7 +18,8 @@ async function main() {
         },
       },
     },
-    // take: 5000, // TODO: Adjust this based on the number of domains
+    skip: 0,
+    take: 1000, // TODO: Adjust this based on the number of domains
   });
 
   // Create links for each domain

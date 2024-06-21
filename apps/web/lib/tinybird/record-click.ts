@@ -93,9 +93,9 @@ export async function recordClick({
       },
     ).then((res) => res.json()),
 
-    // increment the click count for the link or domain (based on their ID)
+    // increment the click count for the link (based on their ID)
     conn.execute(
-      "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
+      "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
       [linkId],
     ),
     // if the link has a destination URL, increment the usage count for the workspace
