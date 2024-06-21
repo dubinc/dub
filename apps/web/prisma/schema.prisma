@@ -106,7 +106,7 @@ model RestrictedToken {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([projectId])
 }
 
 model Project {

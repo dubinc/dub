@@ -108,10 +108,12 @@ export const withWorkspaceEdge = (
         });
       }
 
-      if (idOrSlug.startsWith("ws_")) {
-        workspaceId = idOrSlug.replace("ws_", "");
-      } else {
-        workspaceSlug = idOrSlug;
+      if (idOrSlug) {
+        if (idOrSlug.startsWith("ws_")) {
+          workspaceId = idOrSlug.replace("ws_", "");
+        } else {
+          workspaceSlug = idOrSlug;
+        }
       }
 
       if (apiKey) {
