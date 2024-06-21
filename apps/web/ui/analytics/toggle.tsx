@@ -511,8 +511,10 @@ export default function Toggle({
                       set:
                         key === "link"
                           ? {
-                              domain: new URL(value).hostname,
-                              key: new URL(value).pathname.slice(1) || "_root",
+                              domain: new URL(`https://${value}`).hostname,
+                              key:
+                                new URL(`https://${value}`).pathname.slice(1) ||
+                                "_root",
                             }
                           : {
                               [key]: value,
