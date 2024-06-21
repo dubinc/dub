@@ -282,6 +282,7 @@ function AddEditLinkModal({
     /* 
       Disable save if:
       - modal is not open
+      - generating metatags is in progress
       - saving is in progress
       - key is invalid
       - url is invalid
@@ -289,6 +290,7 @@ function AddEditLinkModal({
     */
     if (
       !showAddEditLinkModal ||
+      generatingMetatags ||
       saving ||
       keyError ||
       urlError ||
