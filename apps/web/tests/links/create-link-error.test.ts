@@ -30,12 +30,13 @@ const cases = [
       url: "invalid",
     },
     expected: {
-      status: 400,
+      status: 422,
       data: {
         error: {
-          code: "bad_request",
-          message: "Missing destination URL",
-          doc_url: "https://dub.co/docs/api-reference/errors#bad-request",
+          code: "unprocessable_entity",
+          message: "Invalid destination URL",
+          doc_url:
+            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
         },
       },
     },
