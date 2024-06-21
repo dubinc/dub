@@ -1,5 +1,4 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { setRootDomain } from "@/lib/api/domains";
 import { getDomain } from "@/lib/api/domains/get-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
@@ -103,12 +102,6 @@ export const POST = withWorkspace(
           projectId: newWorkspaceId,
           primary: newWorkspace.domains.length === 0,
         },
-      }),
-      setRootDomain({
-        id: domainRecord.id,
-        domain,
-        domainCreatedAt: domainRecord.createdAt,
-        projectId: newWorkspaceId,
       }),
       prisma.project.update({
         where: { id: workspace.id },
