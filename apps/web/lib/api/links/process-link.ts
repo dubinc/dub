@@ -72,7 +72,7 @@ export async function processLink<T extends Record<string, any>>({
     if (!isValidUrl(url)) {
       return {
         link: payload,
-        error: "Invalid destination url.",
+        error: "Invalid destination URL",
         code: "unprocessable_entity",
       };
     }
@@ -80,7 +80,7 @@ export async function processLink<T extends Record<string, any>>({
   } else if (key !== "_root") {
     return {
       link: payload,
-      error: "Missing destination url.",
+      error: "Missing destination URL",
       code: "bad_request",
     };
   }
