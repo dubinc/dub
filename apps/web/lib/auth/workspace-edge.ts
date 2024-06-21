@@ -92,7 +92,7 @@ export const withWorkspaceEdge = (
       let token: any | null = null;
       const isRestrictedToken = apiKey?.startsWith("dub_");
 
-      let idOrSlug =
+      const idOrSlug =
         params?.idOrSlug ||
         searchParams.workspaceId ||
         params?.slug ||
@@ -106,6 +106,12 @@ export const withWorkspaceEdge = (
           message:
             "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
         });
+      }
+
+      if (idOrSlug.startsWith("ws_")) {
+        workspaceId = idOrSlug.replace("ws_", "");
+      } else {
+        workspaceSlug = idOrSlug;
       }
 
       if (apiKey) {
@@ -167,7 +173,7 @@ export const withWorkspaceEdge = (
 
         // Find workspaceId if it's a restricted token
         if (isRestrictedToken) {
-          idOrSlug = `ws_${token.projectId}`;
+          workspaceId = token.projectId;
         }
 
         waitUntil(
@@ -210,12 +216,6 @@ export const withWorkspaceEdge = (
             message: "Unauthorized: Login required.",
           });
         }
-      }
-
-      if (idOrSlug.startsWith("ws_")) {
-        workspaceId = idOrSlug.replace("ws_", "");
-      } else {
-        workspaceSlug = idOrSlug;
       }
 
       const workspace = (await prismaEdge.project.findUnique({

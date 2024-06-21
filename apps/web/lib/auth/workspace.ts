@@ -113,7 +113,7 @@ export const withWorkspace = (
       let token: any | null = null;
       const isRestrictedToken = apiKey?.startsWith("dub_");
 
-      let idOrSlug =
+      const idOrSlug =
         params?.idOrSlug ||
         searchParams.workspaceId ||
         params?.slug ||
@@ -138,6 +138,12 @@ export const withWorkspace = (
               "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
           });
         }
+      }
+
+      if (idOrSlug.startsWith("ws_")) {
+        workspaceId = idOrSlug.replace("ws_", "");
+      } else {
+        workspaceSlug = idOrSlug;
       }
 
       if (apiKey) {
@@ -199,7 +205,7 @@ export const withWorkspace = (
 
         // Find workspaceId if it's a restricted token
         if (isRestrictedToken) {
-          idOrSlug = `ws_${token.projectId}`;
+          workspaceId = token.projectId;
         }
 
         waitUntil(
@@ -239,12 +245,6 @@ export const withWorkspace = (
             message: "Unauthorized: Login required.",
           });
         }
-      }
-
-      if (idOrSlug.startsWith("ws_")) {
-        workspaceId = idOrSlug.replace("ws_", "");
-      } else {
-        workspaceSlug = idOrSlug;
       }
 
       let [workspace, link] = (await Promise.all([
@@ -315,6 +315,8 @@ export const withWorkspace = (
       } else {
         scopes = roleScopesMapping[workspace.users[0].role];
       }
+
+      console.log(workspace);
 
       // Check user has permission to make the action
       if (!skipScopeChecks) {
