@@ -604,17 +604,19 @@ export default function LinkCard({
                       ),
                     })}
                   />
-                  <Button
-                    text="Delete"
-                    variant="danger-outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDeleteLinkModal(true);
-                    }}
-                    icon={<Delete className="h-4 w-4" />}
-                    shortcut="X"
-                    className="h-9 px-2 font-medium"
-                  />
+                  {key !== "_root" && (
+                    <Button
+                      text="Delete"
+                      variant="danger-outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowDeleteLinkModal(true);
+                      }}
+                      icon={<Delete className="h-4 w-4" />}
+                      shortcut="X"
+                      className="h-9 px-2 font-medium"
+                    />
+                  )}
                   {!slug && ( // this is only shown in admin mode (where there's no slug)
                     <button
                       onClick={() => {
