@@ -239,8 +239,10 @@ export const createLinkBodySchema = z.object({
   noindex: z
     .boolean()
     .optional()
-    .default(false)
-    .describe("Whether to noindex the short link."),
+    .default(true)
+    .describe(
+      "Prevent search engines from indexing the short link. Defaults to `true` if not provided. Learn more: https://d.to/noindex",
+    ),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial().optional();

@@ -59,6 +59,7 @@ export async function processLink<T extends Record<string, any>>({
     ios,
     android,
     geo,
+    noindex,
     tagNames,
     createdAt,
   } = payload;
@@ -99,7 +100,16 @@ export async function processLink<T extends Record<string, any>>({
       };
     }
 
-    if (proxy || password || rewrite || expiresAt || ios || android || geo) {
+    if (
+      proxy ||
+      password ||
+      rewrite ||
+      expiresAt ||
+      ios ||
+      android ||
+      geo ||
+      (noindex && key === "_root")
+    ) {
       const proFeaturesString = [
         proxy && "custom social media cards",
         password && "password protection",
@@ -108,6 +118,7 @@ export async function processLink<T extends Record<string, any>>({
         ios && "iOS targeting",
         android && "Android targeting",
         geo && "geo targeting",
+        noindex && "search engine indexing",
       ]
         .filter(Boolean)
         .join(", ")

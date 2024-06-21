@@ -142,12 +142,18 @@ function AddEditDomainModal({
                     domain: data.slug,
                     key: "_root",
                     url: "",
+                    noindex: false,
                   }),
                 });
               }
               await Promise.all([
                 mutate(`/api/domains?workspaceId=${workspaceId}`),
-                mutate(`/api/links?workspaceId=${workspaceId}`),
+                mutate(
+                  (key) =>
+                    typeof key === "string" && key.startsWith("/api/links"),
+                  undefined,
+                  { revalidate: true },
+                ),
               ]);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
