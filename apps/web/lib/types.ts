@@ -200,7 +200,3 @@ export const tagColors = [
 export type MetaTag = z.infer<typeof metaTagsSchema>;
 
 export type TokenProps = z.infer<typeof tokenSchema>;
-
-export type TokenFound =
-  | (RestrictedToken & { user: User })
-  | (Token & { user: User });
