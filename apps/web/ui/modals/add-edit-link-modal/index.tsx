@@ -4,11 +4,11 @@ import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
   ButtonTooltip,
-  InfoTooltip,
   LinkLogo,
   LinkedIn,
   LoadingCircle,
@@ -21,6 +21,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
+import { InfoTooltip } from "@dub/ui/src/tooltip";
 import {
   DEFAULT_LINK_PROPS,
   cn,
@@ -440,7 +441,7 @@ function AddEditLinkModal({
                     }
                     const message = error.message.toLowerCase();
 
-                    if (message.includes("key") || message.includes("domain")) {
+                    if (message.includes("key")) {
                       setKeyError(error.message);
                     } else if (message.includes("url")) {
                       setUrlError(error.message);
@@ -462,13 +463,23 @@ function AddEditLinkModal({
                     >
                       Destination URL
                     </label>
-                    {key === "_root" && (
+                    {key === "_root" ? (
+                      <ProBadgeTooltip
+                        content={
+                          <SimpleTooltipContent
+                            title="The URL your users will get redirected to when they visit your root domain link."
+                            cta="Learn more."
+                            href="https://dub.co/help/article/how-to-redirect-root-domain"
+                          />
+                        }
+                      />
+                    ) : (
                       <InfoTooltip
                         content={
                           <SimpleTooltipContent
-                            title="The page your users will get redirected to when they visit your domain."
+                            title="The URL your users will get redirected to when they visit your short link."
                             cta="Learn more."
-                            href="https://dub.co/help/article/how-to-redirect-root-domain"
+                            href="https://dub.co/help/article/how-to-create-link"
                           />
                         }
                       />
@@ -484,51 +495,39 @@ function AddEditLinkModal({
                     </div>
                   ) : null}
                 </div>
-                {plan === "free" && key === "_root" ? (
-                  <Tooltip
-                    content={
-                      <TooltipContent title="You can't configure a custom landing page on a free plan." />
+                <div className="relative mt-2 flex rounded-md shadow-sm">
+                  <input
+                    name="url"
+                    id={`url-${randomIdx}`}
+                    required={key !== "_root"}
+                    placeholder={
+                      domains?.find(({ slug }) => slug === domain)
+                        ?.placeholder ||
+                      "https://dub.co/help/article/what-is-dub"
                     }
-                  >
-                    <div className="mt-2 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
-                      https://yourdomain.com
+                    value={url}
+                    autoFocus={!key && !isMobile}
+                    autoComplete="off"
+                    onChange={(e) => {
+                      setUrlError(null);
+                      setData({ ...data, url: e.target.value });
+                    }}
+                    className={`${
+                      urlError
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                    } block w-full rounded-md focus:outline-none sm:text-sm`}
+                    aria-invalid="true"
+                  />
+                  {urlError && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircleFill
+                        className="h-5 w-5 text-red-500"
+                        aria-hidden="true"
+                      />
                     </div>
-                  </Tooltip>
-                ) : (
-                  <div className="relative mt-1 flex rounded-md shadow-sm">
-                    <input
-                      name="url"
-                      id={`url-${randomIdx}`}
-                      required
-                      placeholder={
-                        domains?.find(({ slug }) => slug === domain)
-                          ?.placeholder ||
-                        "https://dub.co/help/article/what-is-dub"
-                      }
-                      value={url}
-                      autoFocus={!key && !isMobile}
-                      autoComplete="off"
-                      onChange={(e) => {
-                        setUrlError(null);
-                        setData({ ...data, url: e.target.value });
-                      }}
-                      className={`${
-                        urlError
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                      } block w-full rounded-md focus:outline-none sm:text-sm`}
-                      aria-invalid="true"
-                    />
-                    {urlError && (
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                        <AlertCircleFill
-                          className="h-5 w-5 text-red-500"
-                          aria-hidden="true"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {key !== "_root" && (

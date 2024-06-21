@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { COUNTRY_CODES, validDomainRegex } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
-import { parseUrlSchema } from "./utils";
+import { parseUrlSchema, parseUrlSchemaAllowEmpty } from "./utils";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
@@ -108,7 +108,7 @@ export const domainKeySchema = z.object({
 });
 
 export const createLinkBodySchema = z.object({
-  url: parseUrlSchema
+  url: parseUrlSchemaAllowEmpty
     .describe("The destination URL of the short link.")
     .openapi({
       example: "https://google/com",

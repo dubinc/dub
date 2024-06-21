@@ -66,15 +66,7 @@ export async function processLink<T extends Record<string, any>>({
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
   const tagIds = combineTagIds(payload);
 
-  // url checks
-  if (!url && key !== "_root") {
-    return {
-      link: payload,
-      error: "Missing destination url.",
-      code: "bad_request",
-    };
-  }
-
+  // if URL is defined, perform URL checks
   if (url) {
     url = getUrlFromString(url);
     if (!isValidUrl(url)) {
@@ -84,6 +76,13 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
+    // only root domain links can have empty desintation URL
+  } else if (key !== "_root") {
+    return {
+      link: payload,
+      error: "Missing destination url.",
+      code: "bad_request",
+    };
   }
 
   // free plan restrictions (after Jan 19, 2024)

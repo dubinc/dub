@@ -14,7 +14,7 @@ export const getUrlFromString = (str: string) => {
       return new URL(`https://${str}`).toString();
     }
   } catch (_) {}
-  return "";
+  return str;
 };
 
 export const getSearchParams = (url: string) => {
