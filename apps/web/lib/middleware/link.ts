@@ -191,6 +191,15 @@ export default async function LinkMiddleware(
     );
   }
 
+  if (!url) {
+    // rewrite to placeholder page unless the user defines a site to redirect to
+    return NextResponse.rewrite(new URL(`/${domain}`, req.url), {
+      headers: {
+        ...DUB_HEADERS,
+      },
+    });
+  }
+
   const isBot = detectBot(req);
 
   const { country } =
