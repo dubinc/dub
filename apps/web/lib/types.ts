@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, RestrictedToken, Token, User } from "@prisma/client";
+import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { tokenSchema } from "./zod/schemas/token";
 
