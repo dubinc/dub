@@ -1,7 +1,7 @@
 import { PlanProps } from "@/lib/types";
 
-// Get rate limit for a given plan in requests per minute
-export const getRateLimitForPlan = (plan: PlanProps) => {
+// Get API rate limit for a given plan in requests per minute
+export const getAPIRateLimitForPlan = (plan: PlanProps) => {
   switch (plan) {
     case "free":
       return 600;

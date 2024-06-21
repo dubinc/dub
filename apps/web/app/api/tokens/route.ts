@@ -1,4 +1,4 @@
-import { getRateLimitForPlan } from "@/lib/api/tokens/ratelimit";
+import { getAPIRateLimitForPlan } from "@/lib/api/tokens/ratelimit";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -51,7 +51,7 @@ export const POST = withWorkspace(
         partialKey,
         userId: isMachine ? machineUser?.id! : session.user.id,
         projectId: workspace.id,
-        rateLimit: getRateLimitForPlan(workspace.plan),
+        rateLimit: getAPIRateLimitForPlan(workspace.plan),
         scopes:
           scopes && scopes.length > 0 ? [...new Set(scopes)].join(" ") : null,
       },

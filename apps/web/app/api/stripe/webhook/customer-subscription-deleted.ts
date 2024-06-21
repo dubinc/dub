@@ -1,3 +1,4 @@
+import { getAPIRateLimitForPlan } from "@/lib/api/tokens/ratelimit";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { FREE_PLAN, log } from "@dub/utils";
@@ -73,6 +74,16 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         usersLimit: FREE_PLAN.limits.users!,
       },
     }),
+
+    prisma.restrictedToken.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        rateLimit: getAPIRateLimitForPlan("free"),
+      },
+    }),
+
     pipeline.exec(),
     log({
       message:

@@ -1,6 +1,8 @@
+import { getAPIRateLimitForPlan } from "@/lib/api/tokens/ratelimit";
 import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { PlanProps } from "@/lib/types";
 import { getPlanFromPriceId, log } from "@dub/utils";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
@@ -36,6 +38,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   }
 
   const stripeId = checkoutSession.customer.toString();
+  const workspaceId = checkoutSession.client_reference_id;
+  const planName = plan.name.toLowerCase();
 
   // when the workspace subscribes to a plan, set their stripe customer ID
   // in the database for easy identification in future webhook events
@@ -43,12 +47,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   const workspace = await prisma.project.update({
     where: {
-      id: checkoutSession.client_reference_id,
+      id: workspaceId,
     },
     data: {
       stripeId,
       billingCycleStart: new Date().getDate(),
-      plan: plan.name.toLowerCase(),
+      plan: planName,
       usageLimit: plan.limits.clicks!,
       linksLimit: plan.limits.links!,
       domainsLimit: plan.limits.domains!,
@@ -67,6 +71,15 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           },
         },
       },
+    },
+  });
+
+  await prisma.restrictedToken.updateMany({
+    where: {
+      projectId: workspaceId,
+    },
+    data: {
+      rateLimit: getAPIRateLimitForPlan(planName as PlanProps),
     },
   });
 
