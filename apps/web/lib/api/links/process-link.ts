@@ -91,12 +91,12 @@ export async function processLink<T extends Record<string, any>>({
     (!workspace || workspace.plan === "free") &&
     (!createdAt || new Date(createdAt) > new Date("2024-01-19"))
   ) {
-    if (key === "_root") {
+    if (key === "_root" && url) {
       return {
         link: payload,
         error:
-          "You can only create root links on a Pro plan and above. Upgrade to Pro to use this feature.",
-        code: "unprocessable_entity",
+          "You can only set a redirect for a root domain link on a Pro plan and above. Upgrade to Pro to use this feature.",
+        code: "forbidden",
       };
     }
 
@@ -316,16 +316,9 @@ export async function processLink<T extends Record<string, any>>({
   delete payload["qrCode"];
   delete payload["prefix"];
 
-  // Use domain ID for root links
-  let linkId =
-    key === "_root"
-      ? workspace?.domains.find((d) => d.slug === domain)?.id
-      : null;
-
   return {
     link: {
       ...payload,
-      ...(linkId && { id: linkId }),
       domain,
       key,
       // we're redefining these fields because they're processed in the function

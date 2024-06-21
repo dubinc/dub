@@ -283,12 +283,10 @@ function AddEditLinkModal({
       - saving is in progress
       - key is invalid
       - url is invalid
-      - metatags is being generated
       - for an existing link, there's no changes
     */
     if (
       !showAddEditLinkModal ||
-      generatingMetatags ||
       saving ||
       keyError ||
       urlError ||

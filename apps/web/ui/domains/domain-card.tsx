@@ -340,7 +340,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   ? linkProps.url
                     ? `Redirects to`
                     : `No redirect configured`
-                  : `Checking link status`}
+                  : `Checking Link Status`}
               </p>
               {linkProps && (
                 <a

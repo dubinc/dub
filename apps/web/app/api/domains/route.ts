@@ -37,6 +37,14 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     );
   }
 
+  if (workspace.plan === "free" && expiredUrl) {
+    throw new DubApiError({
+      code: "forbidden",
+      message:
+        "You can only use Default Expiration URLs on a Pro plan and above. Upgrade to Pro to use these features.",
+    });
+  }
+
   const validDomain = await validateDomain(slug);
 
   if (validDomain.error && validDomain.code) {

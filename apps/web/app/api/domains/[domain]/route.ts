@@ -42,6 +42,14 @@ export const PATCH = withWorkspace(
 
     const { slug: newDomain, placeholder, expiredUrl, archived } = payload;
 
+    if (workspace.plan === "free" && expiredUrl) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You can only use Default Expiration URLs on a Pro plan and above. Upgrade to Pro to use these features.",
+      });
+    }
+
     const domainUpdated =
       newDomain && newDomain.toLowerCase() !== domain.toLowerCase();
 

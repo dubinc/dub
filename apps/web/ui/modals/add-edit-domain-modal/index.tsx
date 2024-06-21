@@ -2,6 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   BlurImage,
   Button,
@@ -150,15 +151,20 @@ function AddEditDomainModal({
               ]);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
-              // TODO: Remove after links dashboard is refactored to use new filter UX
-              if (!props) {
-                router.push(`/${slug}/domains`);
-              }
             } else {
               const { error } = await res.json();
-              toast.error(error.message);
               if (res.status === 422) {
                 setDomainError(error.message);
+              }
+              if (error.message.includes("Upgrade to Pro")) {
+                toast.custom(() => (
+                  <UpgradeRequiredToast
+                    title="You've discovered a Pro feature!"
+                    message={error.message}
+                  />
+                ));
+              } else {
+                toast.error(error.message);
               }
             }
             setSaving(false);
@@ -238,7 +244,6 @@ function AddEditDomainModal({
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
-                  type="url"
                   name="expiredUrl"
                   id="expiredUrl"
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
@@ -283,7 +288,6 @@ function AddEditDomainModal({
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
-                  type="url"
                   name="placeholder"
                   id="placeholder"
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"

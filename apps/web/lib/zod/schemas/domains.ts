@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { getUrlFromString } from "@dub/utils";
 import { parseUrlSchema } from "./utils";
 
 export const DomainSchema = z.object({
@@ -21,6 +22,7 @@ export const DomainSchema = z.object({
     .default(false),
   placeholder: z
     .string()
+    .transform((v) => getUrlFromString(v))
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
@@ -28,6 +30,7 @@ export const DomainSchema = z.object({
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
   expiredUrl: z
     .string()
+    .transform((v) => getUrlFromString(v))
     .nullish()
     .describe(
       "The URL to redirect to when a link under this domain has expired.",
