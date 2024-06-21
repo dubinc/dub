@@ -204,7 +204,6 @@ export default async function LinkMiddleware(
         // we only index root domain links if they're not subdomains
         ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
       },
-      status: 302,
     });
   }
 

@@ -9,6 +9,7 @@ async function main() {
         select: {
           id: true,
           plan: true,
+          slug: true,
           users: {
             select: {
               userId: true,
@@ -18,12 +19,15 @@ async function main() {
         },
       },
     },
-    skip: 0,
+    skip: 4000,
     take: 1000, // TODO: Adjust this based on the number of domains
   });
 
   // Create links for each domain
   const newLinks = domains.map((domain) => {
+    if (domain.project?.users.length === 0) {
+      console.log(`project ${domain.project.slug} has no users`);
+    }
     return {
       id: domain.id,
       domain: domain.slug,
@@ -32,7 +36,7 @@ async function main() {
       description: domain.description,
       publicStats: domain.publicStats,
       projectId: domain.projectId,
-      userId: domain.project?.users[0].userId,
+      userId: domain.project?.users[0]?.userId || null,
       createdAt: domain.createdAt,
       lastClicked: domain.lastClicked,
       clicks: domain.clicks,
