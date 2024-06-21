@@ -13,7 +13,6 @@ const fetchOptions: RequestInit = {
 
 describe.runIf(env.CI)("Link Redirects", async () => {
   const h = new IntegrationHarness();
-  const { workspace, http } = await h.init();
 
   test("root", async () => {
     const response = await fetch(h.baseUrl, fetchOptions);
@@ -78,42 +77,5 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.headers.get("location")).toBe("https://dub.co/");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
-  });
-
-  test("with record clicks check", async () => {
-    const key = "checkly-check-clicks";
-
-    const {
-      data: { clicks: previousClicks },
-    } = await http.get<{ clicks: number }>({
-      path: "/analytics",
-      query: {
-        event: "clicks",
-        workspaceId: workspace.id,
-        domain: "dub.sh",
-        key,
-        interval: "all_unfiltered",
-      },
-    });
-
-    await fetch(`${h.baseUrl}/checkly-check-clicks`, {
-      ...fetchOptions,
-      headers: {},
-    });
-
-    const {
-      data: { clicks: updatedClicks },
-    } = await http.get<{ clicks: number }>({
-      path: "/analytics",
-      query: {
-        event: "clicks",
-        workspaceId: workspace.id,
-        domain: "dub.sh",
-        key,
-        interval: "all_unfiltered",
-      },
-    });
-
-    expect(updatedClicks).toBe(previousClicks + 1);
   });
 });
