@@ -36,7 +36,6 @@ export default function BarList({
   const [search, setSearch] = useState("");
 
   // TODO: mock pagination for better perf in React
-  // TODO: fix for top links since it's technically link IDs
   const filteredData = useMemo(() => {
     if (limit) {
       return data.slice(0, limit);
