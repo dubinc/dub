@@ -107,8 +107,6 @@ export const DELETE = withWorkspace(
       },
     });
 
-    // If the user is a service account, delete the user as well
-    // It is one-to-one relationship between service account and token
     if (token.user.isMachine) {
       await prisma.user.delete({
         where: {
