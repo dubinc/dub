@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   BlurImage,
   Button,
@@ -9,7 +10,6 @@ import {
   Logo,
   Modal,
   SimpleTooltipContent,
-  Tooltip,
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
@@ -226,7 +226,7 @@ function AddEditDomainModal({
                 <h2 className="text-sm font-medium text-gray-900">
                   Default Expiration URL
                 </h2>
-                <InfoTooltip
+                <ProBadgeTooltip
                   content={
                     <SimpleTooltipContent
                       title="Redirect users to a specific URL when any link under this domain has expired."
@@ -237,42 +237,17 @@ function AddEditDomainModal({
                 />
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
-                {plan === "free" ? (
-                  <Tooltip
-                    content={
-                      <TooltipContent
-                        title="You can't configure a custom expired URL on a free plan. Upgrade to a Pro plan to proceed."
-                        cta="Upgrade to Pro"
-                        onClick={() => {
-                          setShowAddEditDomainModal(false);
-                          queryParams({
-                            set: {
-                              upgrade: "pro",
-                            },
-                          });
-                        }}
-                      />
-                    }
-                  >
-                    <div className="mt-2 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
-                      https://yourwebsite.com
-                    </div>
-                  </Tooltip>
-                ) : (
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <input
-                      type="url"
-                      name="expiredUrl"
-                      id="expiredUrl"
-                      className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                      placeholder="https://yourwebsite.com"
-                      value={expiredUrl}
-                      onChange={(e) =>
-                        setData({ ...data, expiredUrl: e.target.value })
-                      }
-                    />
-                  </div>
-                )}
+                <input
+                  type="url"
+                  name="expiredUrl"
+                  id="expiredUrl"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  placeholder="https://yourwebsite.com"
+                  value={expiredUrl}
+                  onChange={(e) =>
+                    setData({ ...data, expiredUrl: e.target.value })
+                  }
+                />
               </div>
             </div>
 
@@ -284,7 +259,27 @@ function AddEditDomainModal({
                 <h2 className="text-sm font-medium text-gray-900">
                   Input Placeholder URL
                 </h2>
-                <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
+                <InfoTooltip
+                  content={
+                    <div className="flex max-w-sm flex-col items-center justify-center">
+                      <div className="border-b border-gray-200">
+                        <BlurImage
+                          src="https://assets.dub.co/help/domain-input-placeholder-url.png"
+                          alt="Input Placeholder URL"
+                          className="aspect-[782/506]"
+                          width={782}
+                          height={506}
+                        />
+                      </div>
+                      <p className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+                        Provide context to your teammates in the link creation
+                        modal by showing them an example of a link to be
+                        shortened.
+                      </p>
+                    </div>
+                  }
+                  side="right"
+                />
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
