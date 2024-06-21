@@ -1,5 +1,4 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getDomain } from "@/lib/api/domains/get-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
@@ -55,11 +54,6 @@ export const POST = withWorkspace(
       });
     }
 
-    const domainRecord = await getDomain({
-      slug: domain,
-      workspaceId: workspace.id,
-    });
-
     if (newWorkspace.domains.length >= newWorkspace.domainsLimit) {
       throw new DubApiError({
         code: "exceeded_limit",
@@ -91,7 +85,6 @@ export const POST = withWorkspace(
       groupBy: "count",
       workspaceId: workspace.id,
       interval: "30d",
-      root: false,
     });
 
     // Update the domain to use the new workspace

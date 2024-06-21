@@ -24,7 +24,7 @@ export interface QRLinkProps {
 
 export interface RedisLinkProps {
   id: string;
-  url: string;
+  url?: string;
   trackConversion?: boolean;
   password?: boolean;
   proxy?: boolean;
@@ -35,6 +35,7 @@ export interface RedisLinkProps {
   ios?: string;
   android?: string;
   geo?: object;
+  doIndex?: boolean;
   projectId?: string;
 }
 
@@ -129,15 +130,6 @@ export interface DomainProps {
   placeholder?: string;
   expiredUrl?: string;
   projectId: string;
-}
-
-export interface RedisDomainProps {
-  id: string;
-  url?: string;
-  rewrite?: boolean;
-  iframeable?: boolean;
-  projectId: string;
-  noindex?: boolean;
 }
 
 export interface BitlyGroupProps {

@@ -91,7 +91,7 @@ export const PATCH = withWorkspace(
             // remove old domain from Vercel
             removeDomainFromVercel(domain),
             // rename redis key
-            redis.rename(domain, newDomain),
+            redis.rename(domain.toLowerCase(), newDomain.toLowerCase()),
           ]);
 
           const allLinks = await prisma.link.findMany({
@@ -104,8 +104,8 @@ export const PATCH = withWorkspace(
           });
 
           // update all links in Tinybird
-          recordLink([
-            ...allLinks.map((link) => ({
+          recordLink(
+            allLinks.map((link) => ({
               link_id: link.id,
               domain: link.domain,
               key: link.key,
@@ -114,7 +114,7 @@ export const PATCH = withWorkspace(
               workspace_id: link.projectId,
               created_at: link.createdAt,
             })),
-          ]);
+          );
         }
       })(),
     );

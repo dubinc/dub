@@ -59,7 +59,7 @@ export async function processLink<T extends Record<string, any>>({
     ios,
     android,
     geo,
-    noindex,
+    doIndex,
     tagNames,
     createdAt,
   } = payload;
@@ -108,7 +108,7 @@ export async function processLink<T extends Record<string, any>>({
       ios ||
       android ||
       geo ||
-      (noindex && key === "_root")
+      doIndex
     ) {
       const proFeaturesString = [
         proxy && "custom social media cards",
@@ -118,7 +118,7 @@ export async function processLink<T extends Record<string, any>>({
         ios && "iOS targeting",
         android && "Android targeting",
         geo && "geo targeting",
-        noindex && "search engine indexing",
+        doIndex && "search engine indexing",
       ]
         .filter(Boolean)
         .join(", ")

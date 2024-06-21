@@ -15,7 +15,7 @@ export const DEFAULT_LINK_PROPS: any = {
   password: null,
   ios: null,
   android: null,
-  noindex: true,
+  doIndex: false,
 
   clicks: 0,
   userId: "",

@@ -55,10 +55,10 @@ import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
 import ConversionSection from "./conversion-section";
+import DoIndexSection from "./doindex-section";
 import ExpirationSection from "./expiration-section";
 import GeoSection from "./geo-section";
 import IOSSection from "./ios-section";
-import NoindexSection from "./noindex-section";
 import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import Preview from "./preview";
@@ -750,7 +750,7 @@ function AddEditLinkModal({
               <IOSSection {...{ props, data, setData }} />
               <AndroidSection {...{ props, data, setData }} />
               <GeoSection {...{ props, data, setData }} />
-              <NoindexSection {...{ data, setData }} />
+              <DoIndexSection {...{ data, setData }} />
               <CommentsSection {...{ props, data, setData }} />
             </div>
 

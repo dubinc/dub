@@ -142,7 +142,6 @@ function AddEditDomainModal({
                     domain: data.slug,
                     key: "_root",
                     url: "",
-                    noindex: false,
                   }),
                 });
               }

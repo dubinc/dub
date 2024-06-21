@@ -55,7 +55,7 @@ async function main() {
           projectId,
           archived: false,
           publicStats: false,
-          noindex: false,
+          doIndex: false,
           trackConversion: false,
           proxy: false,
           rewrite: false,

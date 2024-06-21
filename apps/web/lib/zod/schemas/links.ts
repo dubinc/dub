@@ -236,12 +236,12 @@ export const createLinkBodySchema = z.object({
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
     )
     .openapi({ ref: "linkGeoTargeting" }),
-  noindex: z
+  doIndex: z
     .boolean()
     .optional()
-    .default(true)
+    .default(false)
     .describe(
-      "Prevent search engines from indexing the short link. Defaults to `true` if not provided. Learn more: https://d.to/noindex",
+      "Allow search engines to index your short link. Defaults to `false` if not provided. Learn more: https://d.to/noindex",
     ),
 });
 
@@ -325,10 +325,10 @@ export const LinkSchema = z
       .boolean()
       .default(false)
       .describe("Whether the short link uses link cloaking."),
-    noindex: z
+    doIndex: z
       .boolean()
       .default(false)
-      .describe("Whether to noindex the short link."),
+      .describe("Whether to allow search engines to index the short link."),
     ios: z
       .string()
       .nullable()

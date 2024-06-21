@@ -1,7 +1,7 @@
 import { getDomainWithoutWWW, isIframeable } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { LinkProps, RedisDomainProps, RedisLinkProps } from "./types";
+import { LinkProps, RedisLinkProps } from "./types";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
@@ -72,47 +72,28 @@ export async function formatRedisLink(
     ios,
     android,
     geo,
+    doIndex,
     projectId,
-    noindex,
   } = link;
   const hasPassword = password && password.length > 0 ? true : false;
 
   return {
     id,
-    url,
+    ...(url && { url }), // on free plans you cannot set a root domain redirect, hence URL is undefined
     ...(trackConversion && { trackConversion: true }),
     ...(hasPassword && { password: true }),
     ...(proxy && { proxy: true }),
-    ...(rewrite && {
-      rewrite: true,
-      iframeable: await isIframeable({ url, requestDomain: domain }),
-    }),
+    ...(url &&
+      rewrite && {
+        rewrite: true,
+        iframeable: await isIframeable({ url, requestDomain: domain }),
+      }),
     ...(expiresAt && { expiresAt: new Date(expiresAt) }),
     ...(expiredUrl && { expiredUrl }),
     ...(ios && { ios }),
     ...(android && { android }),
     ...(geo && { geo: geo as object }),
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
-    ...(noindex && { noindex: true }),
-  };
-}
-
-// TODO:
-// Can we replace this with the formatRedisLink function?
-export async function formatRedisDomain(
-  link: LinkProps,
-): Promise<RedisDomainProps> {
-  const { id, domain, url, rewrite, projectId, noindex } = link;
-
-  return {
-    id,
-    ...(url && { url }), // on free plans you cannot set a root domain redirect, hence URL is undefined
-    ...(url &&
-      rewrite && {
-        rewrite: true,
-        iframeable: await isIframeable({ url, requestDomain: domain }),
-      }),
-    projectId: projectId!,
-    ...(noindex && { noindex: true }),
+    ...(doIndex && { doIndex: true }),
   };
 }

@@ -42,12 +42,10 @@ async function main() {
         ? {
             expiredUrl: null,
             rewrite: false,
-            noindex: false,
           }
         : {
             expiredUrl: domain.expiredUrl || null,
             rewrite: domain.type === "rewrite",
-            noindex: domain.noindex,
           }),
     };
   });

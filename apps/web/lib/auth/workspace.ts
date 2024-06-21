@@ -14,7 +14,6 @@ import {
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { getDomain } from "../api/domains/get-domain";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -400,20 +399,6 @@ export const withWorkspace = (
 
       // link checks (if linkId or domain and key are provided)
       if ((linkId || (domain && key && key !== "_root")) && !skipLinkChecks) {
-        // special case for getting domain by ID
-        // TODO: refactor domains to use the same logic as links
-        if (!link && searchParams.checkDomain === "true") {
-          const domain = await getDomain({ id: linkId! });
-          if (domain) {
-            link = {
-              ...domain,
-              domain: domain.slug,
-              key: "_root",
-              url: domain.target || "",
-            } as unknown as LinkProps;
-          }
-        }
-
         // make sure the link is owned by the workspace
         if (!link || link.projectId !== workspace?.id) {
           throw new DubApiError({

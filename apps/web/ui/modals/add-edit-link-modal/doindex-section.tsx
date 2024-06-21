@@ -3,25 +3,25 @@ import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { SimpleTooltipContent, Switch } from "@dub/ui";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-export default function NoindexSection({
+export default function DoIndexSection({
   data,
   setData,
 }: {
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { noindex } = data;
-  const [enabled, setEnabled] = useState(!noindex);
+  const { doIndex } = data;
+  const [enabled, setEnabled] = useState(doIndex);
   useEffect(() => {
     if (enabled) {
-      // if enabling, set noindex to true
+      // if enabling, set doIndex to true
       setData({
         ...data,
-        noindex: false,
+        doIndex: true,
       });
     } else {
-      // if disabling, set noindex to false
-      setData({ ...data, noindex: true });
+      // if disabling, set doIndex to false
+      setData({ ...data, doIndex: false });
     }
   }, [enabled]);
 
@@ -35,7 +35,7 @@ export default function NoindexSection({
           <ProBadgeTooltip
             content={
               <SimpleTooltipContent
-                title="Prevent search engines from indexing your short link."
+                title="Allow search engines to index your short link. Disabled by default."
                 cta="Learn more."
                 href="https://dub.co/help/article/how-noindex-works"
               />
