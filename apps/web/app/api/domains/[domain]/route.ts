@@ -4,7 +4,7 @@ import {
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
-import { getDomain } from "@/lib/api/domains/get-domain";
+import { throwIfDomainNotOwned } from "@/lib/api/domains/get-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -20,10 +20,23 @@ import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(async ({ workspace, params }) => {
-  const domainRecord = await getDomain({
-    workspace,
-    slug: params.domain,
+  const { domain } = params;
+
+  throwIfDomainNotOwned({ workspace, domain });
+
+  const domainRecord = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+      projectId: workspace.id,
+    },
   });
+
+  if (!domainRecord) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Domain not found",
+    });
+  }
 
   return NextResponse.json(DomainSchema.parse(domainRecord));
 });
@@ -31,10 +44,9 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
-    const { slug: domain } = await getDomain({
-      workspace,
-      slug: params.domain,
-    });
+    const { domain } = params;
+
+    throwIfDomainNotOwned({ workspace, domain });
 
     const payload = updateDomainBodySchema.parse(await parseRequestBody(req));
 
@@ -127,10 +139,9 @@ export const PATCH = withWorkspace(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
-    const { slug: domain } = await getDomain({
-      workspace,
-      slug: params.domain,
-    });
+    const { domain } = params;
+
+    throwIfDomainNotOwned({ workspace, domain });
 
     await deleteDomainAndLinks(domain);
 

@@ -1,5 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
+import { throwIfDomainNotOwned } from "@/lib/api/domains/get-domain";
 import { getLink } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -48,25 +49,15 @@ export const GET = withWorkspace(
         }),
       )
       .parse(searchParams);
-    const {
-      event,
-      domain,
-      key,
-      interval,
-      start,
-      end,
-      columns,
-      linkId,
-      externalId,
-    } = parsedParams;
 
-    const link = await getLink({
-      workspace: workspace,
-      linkId,
-      externalId,
-      domain,
-      key,
-    });
+    const { event, domain, interval, start, end, columns, key } = parsedParams;
+
+    if (domain) {
+      throwIfDomainNotOwned({ workspace, domain });
+    }
+
+    const link =
+      domain && key ? await getLink({ workspace, domain, key }) : null;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -74,6 +65,12 @@ export const GET = withWorkspace(
       start,
       end,
       throwError: true,
+    });
+
+    console.log("EXPORT", {
+      domain,
+      key,
+      linkId: link?.id,
     });
 
     const response = await getEvents({

@@ -12,13 +12,16 @@ export const GET = withWorkspace(
     let { event, interval, start, end, linkId, externalId, domain, key } =
       parsedParams;
 
-    const link = await getLink({
-      workspace: workspace,
-      linkId,
-      externalId,
-      domain,
-      key,
-    });
+    const link =
+      linkId || externalId || domain || key
+        ? await getLink({
+            workspace: workspace,
+            linkId,
+            externalId,
+            domain,
+            key,
+          })
+        : null;
 
     validDateRangeForPlan({
       plan: workspace.plan,

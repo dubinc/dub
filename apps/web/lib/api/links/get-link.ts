@@ -13,15 +13,15 @@ interface GetLinkParams {
 
 // Find link
 export const getLink = async (params: GetLinkParams) => {
-  const { workspace, domain, key, externalId } = params;
-  const linkId = params.linkId || params.externalId || undefined;
-
-  // if (!linkId || !externalId || !domain || !key) {
-  //   return null;
-  // }
-
-  const { id: workspaceId } = workspace;
+  let { workspace, domain, key, externalId } = params;
   let link: Link | null = null;
+
+  const linkId = params.linkId || params.externalId || undefined;
+  const { id: workspaceId } = workspace;
+
+  if (domain && (!key || key === "")) {
+    key = "_root";
+  }
 
   // Get link by linkId or externalId
   if (linkId) {
@@ -68,11 +68,11 @@ export const getLink = async (params: GetLinkParams) => {
   if (link.projectId !== workspaceId) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "You do not have permission to access this link.",
+      message: `Link with id ${link.id} does not belong to workspace ws_${workspace.id}.`,
     });
   }
 
-  console.log("Link found:", link);
+  console.log("Link found:", link.id, link.domain, link.key);
 
   return link;
 };
