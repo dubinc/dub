@@ -118,52 +118,28 @@ export const updateUsage = async () => {
           const topFive = data.slice(0, 5);
           const topFiveLinkIds = topFive.map(({ link }) => link);
 
-          const [links, domains] = await Promise.all([
-            prisma.link.findMany({
-              where: {
-                projectId: workspace.id,
-                id: {
-                  in: topFiveLinkIds,
-                },
+          const links = await prisma.link.findMany({
+            where: {
+              projectId: workspace.id,
+              id: {
+                in: topFiveLinkIds,
               },
-              select: {
-                id: true,
-                domain: true,
-                key: true,
-              },
-            }),
-            prisma.domain.findMany({
-              where: {
-                projectId: workspace.id,
-                id: {
-                  in: topFiveLinkIds,
-                },
-              },
-              select: {
-                id: true,
-                slug: true,
-              },
-            }),
-          ]);
+            },
+            select: {
+              id: true,
+              domain: true,
+              key: true,
+            },
+          });
 
-          const allLinks = [
-            ...links.map((link) => ({
-              id: link.id,
-              shortLink: linkConstructor({
-                domain: link.domain,
-                key: link.key,
-                pretty: true,
-              }),
-            })),
-            ...domains.map((domain) => ({
-              id: domain.id,
-              shortLink: linkConstructor({
-                domain: domain.slug,
-                key: "_root",
-                pretty: true,
-              }),
-            })),
-          ];
+          const allLinks = links.map((link) => ({
+            id: link.id,
+            shortLink: linkConstructor({
+              domain: link.domain,
+              key: link.key,
+              pretty: true,
+            }),
+          }));
 
           return topFive.map((d) => ({
             link: allLinks.find((l) => l.id === d.link)?.shortLink || "",
