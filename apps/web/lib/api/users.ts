@@ -1,6 +1,6 @@
 import { Session, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { WorkspaceProps } from "@/lib/types";
+import { WorkspaceWithUsers } from "@/lib/types";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
@@ -13,7 +13,7 @@ export async function inviteUser({
   session,
 }: {
   email: string;
-  workspace: WorkspaceProps;
+  workspace: WorkspaceWithUsers;
   session?: Session;
 }) {
   // same method of generating a token as next-auth
