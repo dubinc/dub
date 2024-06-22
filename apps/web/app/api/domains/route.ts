@@ -1,19 +1,14 @@
-import {
-  addDomainToVercel,
-  setRootDomain,
-  validateDomain,
-} from "@/lib/api/domains";
+import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import z from "@/lib/zod";
 import {
   DomainSchema,
   createDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(
@@ -35,14 +30,8 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const body = await parseRequestBody(req);
-    const {
-      slug: domain,
-      target,
-      type,
-      expiredUrl,
-      placeholder,
-      noindex,
-    } = createDomainBodySchema.parse(body);
+    const { slug, placeholder, expiredUrl } =
+      createDomainBodySchema.parse(body);
 
     if (workspace.domains.length >= workspace.domainsLimit) {
       return new Response(
@@ -55,7 +44,15 @@ export const POST = withWorkspace(
       );
     }
 
-    const validDomain = await validateDomain(domain);
+    if (workspace.plan === "free" && expiredUrl) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You can only use Default Expiration URLs on a Pro plan and above. Upgrade to Pro to use these features.",
+      });
+    }
+
+    const validDomain = await validateDomain(slug);
 
     if (validDomain.error && validDomain.code) {
       throw new DubApiError({
@@ -63,7 +60,8 @@ export const POST = withWorkspace(
         message: validDomain.error,
       });
     }
-    const vercelResponse = await addDomainToVercel(domain);
+
+    const vercelResponse = await addDomainToVercel(slug);
 
     if (
       vercelResponse.error &&
@@ -71,42 +69,22 @@ export const POST = withWorkspace(
     ) {
       return new Response(vercelResponse.error.message, { status: 422 });
     }
-    /* 
-          If the domain is being added, we need to:
-            1. Add the domain to Vercel
-            2. If there's a landing page set, update the root domain in Redis
-            3. If the workspace has no domains (meaning this is the first domain added), set it as primary
-        */
-    const response = await prisma.domain.create({
+
+    const domainRecord = await prisma.domain.create({
       data: {
-        slug: domain,
-        type,
+        slug: slug,
         projectId: workspace.id,
         primary: workspace.domains.length === 0,
         ...(placeholder && { placeholder }),
         ...(workspace.plan !== "free" && {
-          target,
           expiredUrl,
-          noindex: noindex === undefined ? true : noindex,
         }),
       },
     });
 
-    waitUntil(
-      setRootDomain({
-        id: response.id,
-        domain,
-        domainCreatedAt: response.createdAt,
-        projectId: workspace.id,
-        ...(workspace.plan !== "free" && {
-          url: target || undefined,
-          noindex: noindex === undefined ? true : noindex,
-        }),
-        rewrite: type === "rewrite",
-      }),
-    );
-
-    return NextResponse.json(DomainSchema.parse(response), { status: 201 });
+    return NextResponse.json(DomainSchema.parse(domainRecord), {
+      status: 201,
+    });
   },
   {
     requiredScopes: ["domains.write"],

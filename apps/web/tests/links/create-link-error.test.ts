@@ -24,7 +24,7 @@ const cases = [
     },
   },
   {
-    name: "create link with invalid destination url",
+    name: "create link with invalid destination URL",
     body: {
       domain,
       url: "invalid",
@@ -34,7 +34,7 @@ const cases = [
       data: {
         error: {
           code: "unprocessable_entity",
-          message: "custom: url: Invalid URL",
+          message: "Invalid destination URL",
           doc_url:
             "https://dub.co/docs/api-reference/errors#unprocessable-entity",
         },

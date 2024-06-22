@@ -1,7 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getDomainViaEdge } from "@/lib/planetscale";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
@@ -9,7 +8,7 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
     const parsedParams = eventsQuerySchema.parse(searchParams);
 
-    let { event, domain, key, interval, start, end } = parsedParams;
+    let { event, interval, start, end } = parsedParams;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -19,11 +18,7 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const linkId = link
-      ? link.id
-      : domain && key === "_root"
-        ? await getDomainViaEdge(domain).then((d) => d?.id)
-        : null;
+    const linkId = link ? link.id : null;
 
     const response = await getEvents({
       ...parsedParams,

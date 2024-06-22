@@ -77,7 +77,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       ? {
           duplicateProps: {
             ...DEFAULT_LINK_PROPS,
-            domain: newLinkValues.domain,
+            ...(newLinkValues.domain && { domain: newLinkValues.domain }),
             url: newLinkValues.url,
           },
         }

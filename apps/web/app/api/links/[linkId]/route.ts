@@ -74,6 +74,12 @@ export const PATCH = withWorkspace(
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
       ...body,
+
+      // When root domain
+      ...(link.key === "_root" && {
+        domain: link.domain,
+        key: link.key,
+      }),
     };
 
     // if link and updatedLink are identical, return the link

@@ -3,22 +3,22 @@ export const DEFAULT_LINK_PROPS: any = {
   url: "",
   domain: "",
   archived: false,
-  expiresAt: null,
-  password: null,
+  tags: [],
 
   title: null,
   description: null,
   image: null,
   trackConversion: false,
+  proxy: false,
   rewrite: false,
+  expiresAt: null,
+  password: null,
   ios: null,
   android: null,
+  doIndex: false,
 
   clicks: 0,
   userId: "",
-
-  proxy: false,
-  tags: [],
 };
 
 export const GOOGLE_FAVICON_URL =

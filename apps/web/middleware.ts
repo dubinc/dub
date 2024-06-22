@@ -1,9 +1,4 @@
-import {
-  ApiMiddleware,
-  AppMiddleware,
-  LinkMiddleware,
-  RootMiddleware,
-} from "@/lib/middleware";
+import { ApiMiddleware, AppMiddleware, LinkMiddleware } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
 import {
   ADMIN_HOSTNAMES,
@@ -57,11 +52,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     return AdminMiddleware(req);
-  }
-
-  // for root pages (e.g. dub.sh, chatg.pt, etc.)
-  if (key.length === 0) {
-    return RootMiddleware(req, ev);
   }
 
   if (isValidUrl(fullKey)) {

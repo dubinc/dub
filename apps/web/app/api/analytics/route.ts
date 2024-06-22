@@ -2,7 +2,6 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getDomainViaEdge } from "@/lib/planetscale";
 import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
@@ -23,7 +22,7 @@ export const GET = withWorkspace(
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    let { event, groupBy, domain, key, interval, start, end } = parsedParams;
+    let { event, groupBy, interval, start, end } = parsedParams;
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
@@ -36,11 +35,7 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const linkId = link
-      ? link.id
-      : domain && key === "_root"
-        ? await getDomainViaEdge(domain).then((d) => d?.id)
-        : null;
+    const linkId = link ? link.id : null;
 
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)

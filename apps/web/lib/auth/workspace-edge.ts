@@ -236,6 +236,7 @@ export const withWorkspaceEdge = (
           },
           domains: {
             select: {
+              id: true,
               slug: true,
               primary: true,
             },

@@ -205,22 +205,22 @@ model Domain {
   slug        String   @unique
   verified    Boolean  @default(false)
   placeholder String   @default("https://dub.co/help/article/what-is-dub")
-  description String?
   primary     Boolean  @default(false)
   archived    Boolean  @default(false)
-  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
-  noindex     Boolean  @default(false)
   lastChecked DateTime @default(now())
   links       Link[]
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
 
-  // TODO: migrate these attributes to Link model
+  // TODO: Remove these columns after merging #977
   target      String?
   type        String    @default("redirect")
   clicks      Int       @default(0)
   lastClicked DateTime? // when the link was last clicked
   publicStats Boolean   @default(false)
+  description String?
+  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
+  noindex     Boolean  @default(false)
 
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())
@@ -259,6 +259,8 @@ model Link {
 
   // Link cloaking/masking via rewrite
   rewrite Boolean @default(false) // whether to rewrite the link or not
+
+  doIndex Boolean @default(false) // we don't index short links by default
 
   // Custom device targeting
   ios     String? @db.LongText // custom link for iOS devices
