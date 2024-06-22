@@ -1,6 +1,5 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
-import { throwIfDomainNotOwned } from "@/lib/api/domains/get-domain";
 import { getLink } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -51,10 +50,6 @@ export const GET = withWorkspace(
       .parse(searchParams);
 
     const { event, domain, interval, start, end, columns, key } = parsedParams;
-
-    if (domain) {
-      throwIfDomainNotOwned({ workspace, domain });
-    }
 
     const link =
       domain && key ? await getLink({ workspace, domain, key }) : null;

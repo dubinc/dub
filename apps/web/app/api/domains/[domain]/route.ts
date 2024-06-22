@@ -4,7 +4,6 @@ import {
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
-import { throwIfDomainNotOwned } from "@/lib/api/domains/get-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -21,8 +20,6 @@ import { NextResponse } from "next/server";
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { domain } = params;
-
-  throwIfDomainNotOwned({ workspace, domain });
 
   const domainRecord = await prisma.domain.findUnique({
     where: {
@@ -45,8 +42,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
     const { domain } = params;
-
-    throwIfDomainNotOwned({ workspace, domain });
 
     const payload = updateDomainBodySchema.parse(await parseRequestBody(req));
 
@@ -138,10 +133,8 @@ export const PATCH = withWorkspace(
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
-  async ({ workspace, params }) => {
+  async ({ params }) => {
     const { domain } = params;
-
-    throwIfDomainNotOwned({ workspace, domain });
 
     await deleteDomainAndLinks(domain);
 

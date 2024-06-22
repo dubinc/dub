@@ -6,7 +6,12 @@ import {
 import { prisma } from "@/lib/prisma";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { API_DOMAIN, getSearchParams } from "@dub/utils";
+import {
+  API_DOMAIN,
+  DUB_WORKSPACE_ID,
+  getSearchParams,
+  isDubDomain,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
@@ -47,6 +52,7 @@ export const withWorkspace = (
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     allowSelf, // special case for removing yourself from a workspace
+    domainChecks, // if the action needs to check if the domain belongs to the workspace
     betaFeature, // if the action is a beta feature
   }: {
     requiredPlan?: Array<PlanProps>;
@@ -55,6 +61,7 @@ export const withWorkspace = (
     needNotExceededLinks?: boolean;
     allowAnonymous?: boolean;
     allowSelf?: boolean;
+    domainChecks?: boolean;
     betaFeature?: boolean;
   } = {},
 ) => {
@@ -80,6 +87,7 @@ export const withWorkspace = (
         apiKey = authorizationHeader.replace("Bearer ", "");
       }
 
+      const domain = params?.domain || searchParams.domain;
       let session: Session | undefined;
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
@@ -227,6 +235,25 @@ export const withWorkspace = (
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Beta feature.",
+          });
+        }
+      }
+
+      // if domain is defined:
+      // - it's a dub domain and domainChecks is required, check if the user is part of the dub workspace
+      // - it's a custom domain, check if the domain belongs to the workspace
+      if (domain) {
+        if (isDubDomain(domain)) {
+          if (domainChecks && workspace.id !== DUB_WORKSPACE_ID) {
+            throw new DubApiError({
+              code: "forbidden",
+              message: "Domain does not belong to workspace.",
+            });
+          }
+        } else if (!workspace.domains.find((d) => d.slug === domain)) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "Domain does not belong to workspace.",
           });
         }
       }

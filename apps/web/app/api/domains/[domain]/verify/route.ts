@@ -3,7 +3,6 @@ import {
   getDomainResponse,
   verifyDomain,
 } from "@/lib/api/domains";
-import { throwIfDomainNotOwned } from "@/lib/api/domains/get-domain";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
@@ -12,10 +11,8 @@ import { NextResponse } from "next/server";
 export const maxDuration = 30;
 
 // GET /api/domains/[domain]/verify - get domain verification status
-export const GET = withWorkspace(async ({ workspace, params }) => {
+export const GET = withWorkspace(async ({ params }) => {
   const { domain } = params;
-
-  throwIfDomainNotOwned({ workspace, domain });
 
   let status: DomainVerificationStatusProps = "Valid Configuration";
 

@@ -1,7 +1,6 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
-import { throwIfDomainNotOwned } from "@/lib/api/domains/get-domain";
 import { getLink } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -35,10 +34,6 @@ export const GET = withWorkspace(
       domain,
       key,
     } = parsedParams;
-
-    if (domain) {
-      throwIfDomainNotOwned({ workspace, domain });
-    }
 
     const shouldCheckLink = linkId || externalId || (domain && key);
     const link = shouldCheckLink

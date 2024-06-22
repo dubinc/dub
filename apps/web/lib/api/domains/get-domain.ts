@@ -40,26 +40,26 @@ import { DubApiError } from "../errors";
 // };
 
 // Verify workspace domain ownership
-export const throwIfDomainNotOwned = ({
-  workspace,
-  domain,
-}: {
-  workspace: WorkspaceProps;
-  domain: string;
-}) => {
-  if (isDubDomain(domain)) {
-    if (workspace.id !== DUB_WORKSPACE_ID) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Domain does not belong to workspace.",
-      });
-    }
-  }
+// export const throwIfDomainNotOwned = ({
+//   workspace,
+//   domain,
+// }: {
+//   workspace: WorkspaceProps;
+//   domain: string;
+// }) => {
+//   if (isDubDomain(domain)) {
+//     if (workspace.id !== DUB_WORKSPACE_ID) {
+//       throw new DubApiError({
+//         code: "forbidden",
+//         message: "Domain does not belong to workspace.",
+//       });
+//     }
+//   }
 
-  if (!workspace.domains.find((d) => d.slug === domain)) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "Domain does not belong to workspace.",
-    });
-  }
-};
+//   if (!workspace.domains.find((d) => d.slug === domain)) {
+//     throw new DubApiError({
+//       code: "forbidden",
+//       message: "Domain does not belong to workspace.",
+//     });
+//   }
+// };
