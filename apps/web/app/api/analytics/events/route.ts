@@ -3,6 +3,7 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getLink } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { Link } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(
@@ -11,17 +12,17 @@ export const GET = withWorkspace(
 
     let { event, interval, start, end, linkId, externalId, domain, key } =
       parsedParams;
+    let link: Link | null = null;
 
-    const link =
-      linkId || externalId || domain || key
-        ? await getLink({
-            workspace: workspace,
-            linkId,
-            externalId,
-            domain,
-            key,
-          })
-        : null;
+    if (linkId || externalId || (domain && key)) {
+      link = await getLink({
+        workspace: workspace,
+        linkId,
+        externalId,
+        domain,
+        key,
+      });
+    }
 
     validDateRangeForPlan({
       plan: workspace.plan,

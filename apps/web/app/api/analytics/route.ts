@@ -7,6 +7,7 @@ import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
 } from "@/lib/zod/schemas/analytics";
+import { Link } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
@@ -34,11 +35,17 @@ export const GET = withWorkspace(
       domain,
       key,
     } = parsedParams;
+    let link: Link | null = null;
 
-    const shouldCheckLink = linkId || externalId || (domain && key);
-    const link = shouldCheckLink
-      ? await getLink({ workspace: workspace, linkId, externalId, domain, key })
-      : null;
+    if (linkId || externalId || (domain && key)) {
+      link = await getLink({
+        workspace: workspace,
+        linkId,
+        externalId,
+        domain,
+        key,
+      });
+    }
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;

@@ -62,12 +62,6 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    console.log("EXPORT", {
-      domain,
-      key,
-      linkId: link?.id,
-    });
-
     const response = await getEvents({
       ...parsedParams,
       ...(link && { linkId: link.id }),
