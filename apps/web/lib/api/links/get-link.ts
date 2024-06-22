@@ -72,7 +72,5 @@ export const getLink = async (params: GetLinkParams) => {
     });
   }
 
-  console.log("Link found:", link.id, link.domain, link.key);
-
   return link;
 };

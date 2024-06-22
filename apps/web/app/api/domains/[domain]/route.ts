@@ -48,9 +48,12 @@ export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
     const { domain } = params;
 
-    const payload = updateDomainBodySchema.parse(await parseRequestBody(req));
-
-    const { slug: newDomain, placeholder, expiredUrl, archived } = payload;
+    const {
+      slug: newDomain,
+      placeholder,
+      expiredUrl,
+      archived,
+    } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     if (workspace.plan === "free" && expiredUrl) {
       throw new DubApiError({
