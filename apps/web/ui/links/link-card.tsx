@@ -7,7 +7,7 @@ import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
-import { Chart, CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
+import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
   BadgeTooltip,
@@ -509,9 +509,9 @@ export default function LinkCard({
             >
               <Link
                 href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:bg-gray-200/75"
+                className="flex items-center space-x-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
               >
-                <Chart className="h-4 w-4 text-gray-700" />
+                <CursorRays className="h-4 w-4 text-gray-700" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
                   {nFormatter(totalEvents?.clicks)}
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
