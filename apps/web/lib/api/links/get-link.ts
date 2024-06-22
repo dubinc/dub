@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { WorkspaceProps } from "@/lib/types";
+import { WorkspaceWithUsers } from "@/lib/types";
 import { Link } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 interface GetLinkParams {
-  workspace: WorkspaceProps;
+  workspace: WorkspaceWithUsers;
   linkId?: string;
   externalId?: string;
   domain?: string;
@@ -12,7 +12,7 @@ interface GetLinkParams {
 }
 
 // Find link
-export const getLink = async (params: GetLinkParams) => {
+export const getLinkOrThrow = async (params: GetLinkParams) => {
   let { workspace, domain, key, externalId } = params;
   let link: Link | null = null;
 

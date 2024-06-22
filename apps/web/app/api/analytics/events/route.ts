@@ -1,6 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
-import { getLink } from "@/lib/api/links/get-link";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Link } from "@prisma/client";
@@ -14,8 +15,12 @@ export const GET = withWorkspace(
       parsedParams;
     let link: Link | null = null;
 
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
+
     if (linkId || externalId || (domain && key)) {
-      link = await getLink({
+      link = await getLinkOrThrow({
         workspace: workspace,
         linkId,
         externalId,

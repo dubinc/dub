@@ -1,7 +1,8 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
-import { getLink } from "@/lib/api/links/get-link";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import JSZip from "jszip";
@@ -13,8 +14,12 @@ export const GET = withWorkspace(
 
     const { interval, start, end, linkId, domain, key } = parsedParams;
 
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
+
     const link =
-      domain && key ? await getLink({ workspace, domain, key }) : null;
+      domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
 
     validDateRangeForPlan({
       plan: workspace.plan,

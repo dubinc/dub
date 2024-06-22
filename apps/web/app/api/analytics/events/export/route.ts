@@ -1,6 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
-import { getLink } from "@/lib/api/links/get-link";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
@@ -51,8 +52,12 @@ export const GET = withWorkspace(
 
     const { event, domain, interval, start, end, columns, key } = parsedParams;
 
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
+
     const link =
-      domain && key ? await getLink({ workspace, domain, key }) : null;
+      domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
 
     validDateRangeForPlan({
       plan: workspace.plan,

@@ -1,3 +1,4 @@
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -26,6 +27,10 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
     withTags,
     includeUser,
   } = getLinksQuerySchemaExtended.parse(searchParams);
+
+  if (domain) {
+    await getDomainOrThrow({ domain, workspace });
+  }
 
   const response = await getLinksForWorkspace({
     workspaceId: workspace.id,

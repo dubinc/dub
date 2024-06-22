@@ -1,3 +1,4 @@
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DomainSchema } from "@/lib/zod/schemas/domains";
@@ -6,7 +7,11 @@ import { NextResponse } from "next/server";
 // POST /api/domains/[domain]/primary – set a domain as primary
 export const POST = withWorkspace(
   async ({ headers, workspace, params }) => {
-    const { domain } = params;
+    const { slug: domain } = await getDomainOrThrow({
+      domain: params.domain,
+      workspace,
+      domainChecks: true,
+    });
 
     const [domainRecord] = await Promise.all([
       prisma.domain.update({
@@ -36,7 +41,6 @@ export const POST = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainRecord), { headers });
   },
   {
-    domainChecks: true,
     requiredRole: ["owner"],
   },
 );

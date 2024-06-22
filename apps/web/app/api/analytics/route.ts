@@ -1,7 +1,8 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
-import { getLink } from "@/lib/api/links/get-link";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import {
   analyticsPathParamsSchema,
@@ -37,8 +38,12 @@ export const GET = withWorkspace(
     } = parsedParams;
     let link: Link | null = null;
 
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
+
     if (linkId || externalId || (domain && key)) {
-      link = await getLink({
+      link = await getLinkOrThrow({
         workspace: workspace,
         linkId,
         externalId,

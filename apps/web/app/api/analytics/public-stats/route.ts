@@ -1,3 +1,4 @@
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
 import { withWorkspace } from "@/lib/auth";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -10,16 +11,21 @@ const updatePublicStatsSchema = z.object({
 });
 
 // GET /api/analytics/public-stats – get the publicStats setting for a link
-export const GET = withWorkspace(async ({ searchParams }) => {
+export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);
+
+  await getDomainOrThrow({ domain, workspace });
+
   const response = await getLinkViaEdge(domain, key);
   return NextResponse.json({ publicStats: response?.publicStats });
 });
 
 // PUT /api/analytics/public-stats – update the publicStats setting for a link
-export const PUT = withWorkspace(async ({ req, searchParams }) => {
+export const PUT = withWorkspace(async ({ req, searchParams, workspace }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);
   const { publicStats } = updatePublicStatsSchema.parse(await req.json());
+
+  await getDomainOrThrow({ domain, workspace });
 
   const response = await prisma.link.update({
     where: { domain_key: { domain, key } },

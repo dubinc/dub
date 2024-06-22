@@ -1,6 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
-import { getLink } from "@/lib/api/links/get-link";
+import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
@@ -20,7 +20,7 @@ const transferLinkBodySchema = z.object({
 // POST /api/links/[linkId]/transfer – transfer a link to another workspace
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
-    const link = await getLink({
+    const link = await getLinkOrThrow({
       workspace,
       linkId: params.linkId,
     });
