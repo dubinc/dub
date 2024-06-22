@@ -196,7 +196,7 @@ export const withWorkspace = (
         }
       }
 
-      let workspace = (await prisma.project.findUnique({
+      const workspace = (await prisma.project.findUnique({
         where: {
           id: workspaceId || undefined,
           slug: workspaceSlug || undefined,
