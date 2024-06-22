@@ -28,10 +28,10 @@ export const navItems = [
     name: "Pricing",
     slug: "pricing",
   },
-  {
-    name: "Enterprise",
-    slug: "enterprise",
-  },
+  // {
+  //   name: "Enterprise",
+  //   slug: "enterprise",
+  // },
   {
     name: "Blog",
     slug: "blog",
@@ -39,6 +39,10 @@ export const navItems = [
   {
     name: "Changelog",
     slug: "changelog",
+  },
+  {
+    name: "Help Center",
+    slug: "help",
   },
 ];
 

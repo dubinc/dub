@@ -7,7 +7,7 @@ import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
-import { Chart, CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
+import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
   BadgeTooltip,
@@ -32,6 +32,7 @@ import {
   isDubDomain,
   linkConstructor,
   nFormatter,
+  nanoid,
   punycode,
   timeAgo,
 } from "@dub/utils";
@@ -158,7 +159,7 @@ export default function LinkCard({
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: `${punycode(key)}-copy`,
+      key: key === "_root" ? nanoid(7) : `${punycode(key)}-copy`,
       clicks: 0,
     },
   });
@@ -460,14 +461,18 @@ export default function LinkCard({
                   <Lock className="xs:block hidden h-4 w-4 text-gray-500" />
                 </Tooltip>
               )}
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
-              >
-                {url}
-              </a>
+              {url ? (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
+                >
+                  {url}
+                </a>
+              ) : (
+                <p className="text-sm text-gray-400">No URL configured</p>
+              )}
             </div>
           </div>
         </div>
@@ -504,9 +509,9 @@ export default function LinkCard({
             >
               <Link
                 href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:bg-gray-200/75"
+                className="flex items-center space-x-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
               >
-                <Chart className="h-4 w-4 text-gray-700" />
+                <CursorRays className="h-4 w-4 text-gray-700" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
                   {nFormatter(totalEvents?.clicks)}
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
@@ -599,17 +604,19 @@ export default function LinkCard({
                       ),
                     })}
                   />
-                  <Button
-                    text="Delete"
-                    variant="danger-outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDeleteLinkModal(true);
-                    }}
-                    icon={<Delete className="h-4 w-4" />}
-                    shortcut="X"
-                    className="h-9 px-2 font-medium"
-                  />
+                  {key !== "_root" && (
+                    <Button
+                      text="Delete"
+                      variant="danger-outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowDeleteLinkModal(true);
+                      }}
+                      icon={<Delete className="h-4 w-4" />}
+                      shortcut="X"
+                      className="h-9 px-2 font-medium"
+                    />
+                  )}
                   {!slug && ( // this is only shown in admin mode (where there's no slug)
                     <button
                       onClick={() => {

@@ -1,6 +1,6 @@
 import { nanoid, punyEncode } from "@dub/utils";
 import { connect } from "@planetscale/database";
-import { DomainProps, WorkspaceProps } from "./types";
+import { WorkspaceProps } from "./types";
 
 export const DATABASE_URL =
   process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL;
@@ -10,16 +10,6 @@ export const pscale_config = {
 };
 
 export const conn = connect(pscale_config);
-
-type GetCustomerParams =
-  | {
-      externalId: string;
-      workspaceId: string;
-    }
-  | {
-      externalId: string;
-      projectConnectId: string;
-    };
 
 export const getWorkspaceViaEdge = async (workspaceId: string) => {
   if (!DATABASE_URL) return null;
@@ -31,17 +21,6 @@ export const getWorkspaceViaEdge = async (workspaceId: string) => {
     )) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-};
-
-export const getDomainViaEdge = async (domain: string) => {
-  if (!DATABASE_URL) return null;
-
-  const { rows } =
-    (await conn.execute("SELECT * FROM Domain WHERE slug = ?", [domain])) || {};
-
-  return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as DomainProps)
-    : null;
 };
 
 export const checkIfKeyExists = async (domain: string, key: string) => {
@@ -93,29 +72,10 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
         geo: object | null;
         projectId: string;
         publicStats: number;
+        expiredUrl: string | null;
       })
     : null;
 };
-
-export async function getDomainOrLink({
-  domain,
-  key,
-}: {
-  domain: string;
-  key?: string;
-}) {
-  if (!key || key === "_root") {
-    const data = await getDomainViaEdge(domain);
-    if (!data) return null;
-    return {
-      ...data,
-      key: "_root",
-      url: data?.target,
-    };
-  } else {
-    return await getLinkViaEdge(domain, key);
-  }
-}
 
 export async function getRandomKey({
   domain,

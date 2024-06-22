@@ -1,7 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getDomainViaEdge } from "@/lib/planetscale";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
@@ -58,11 +57,7 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const linkId = link
-      ? link.id
-      : domain && key === "_root"
-        ? await getDomainViaEdge(domain).then((d) => d?.id)
-        : null;
+    const linkId = link ? link.id : null;
 
     const response = await getEvents({
       ...parsedParams,

@@ -2,15 +2,14 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getDomainViaEdge } from "@/lib/planetscale";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import JSZip from "jszip";
 
-// GET /api/analytics/[endpoint]/export – get export data for analytics
+// GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, link }) => {
     const parsedParams = analyticsQuerySchema.parse(searchParams);
-    const { domain, key, interval, start, end } = parsedParams;
+    const { interval, start, end } = parsedParams;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -20,11 +19,7 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const linkId = link
-      ? link.id
-      : domain && key === "_root"
-        ? await getDomainViaEdge(domain).then((d) => d?.id)
-        : null;
+    const linkId = link ? link.id : null;
 
     const zip = new JSZip();
 

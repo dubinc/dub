@@ -1,5 +1,4 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { setRootDomain } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
@@ -55,17 +54,6 @@ export const POST = withWorkspace(
       });
     }
 
-    const domainRecord = await prisma.domain.findUnique({
-      where: { slug: domain, projectId: workspace.id },
-    });
-
-    if (!domainRecord) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Domain not found. Make sure you spelled it correctly.",
-      });
-    }
-
     if (newWorkspace.domains.length >= newWorkspace.domainsLimit) {
       throw new DubApiError({
         code: "exceeded_limit",
@@ -97,7 +85,6 @@ export const POST = withWorkspace(
       groupBy: "count",
       workspaceId: workspace.id,
       interval: "30d",
-      root: false,
     });
 
     // Update the domain to use the new workspace
@@ -108,17 +95,6 @@ export const POST = withWorkspace(
           projectId: newWorkspaceId,
           primary: newWorkspace.domains.length === 0,
         },
-      }),
-      setRootDomain({
-        id: domainRecord.id,
-        domain,
-        domainCreatedAt: domainRecord.createdAt,
-        projectId: newWorkspaceId,
-        ...(newWorkspace.plan !== "free" &&
-          domainRecord.target && {
-            url: domainRecord.target,
-          }),
-        rewrite: domainRecord.type === "rewrite",
       }),
       prisma.project.update({
         where: { id: workspace.id },

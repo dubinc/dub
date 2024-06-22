@@ -1,4 +1,4 @@
-import { getDomainViaEdge } from "@/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/planetscale";
 import { Background, Footer, Nav } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { TimerOff } from "lucide-react";
@@ -18,7 +18,7 @@ export default async function ExpiredPage({
 }: {
   params: { domain: string };
 }) {
-  const domain = await getDomainViaEdge(params.domain);
+  const domain = await getLinkViaEdge(params.domain, "_root");
 
   if (domain?.expiredUrl) {
     redirect(domain.expiredUrl);

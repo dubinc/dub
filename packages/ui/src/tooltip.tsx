@@ -139,9 +139,9 @@ export function LinkifyTooltipContent({ children }: { children: ReactNode }) {
   );
 }
 
-export function InfoTooltip({ content }: { content: ReactNode | string }) {
+export function InfoTooltip(props: Omit<TooltipProps, "children">) {
   return (
-    <Tooltip content={content}>
+    <Tooltip {...props}>
       <HelpCircle className="h-4 w-4 text-gray-500" />
     </Tooltip>
   );

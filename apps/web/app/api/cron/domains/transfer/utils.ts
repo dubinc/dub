@@ -4,7 +4,7 @@ import { Link } from "@prisma/client";
 import { sendEmail } from "emails";
 import DomainTransferred from "emails/domain-transferred";
 
-// Update links in the redis
+// Update links in redis
 export const updateLinksInRedis = async ({
   newWorkspaceId,
   domain,
