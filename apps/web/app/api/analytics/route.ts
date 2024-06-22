@@ -1,6 +1,7 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getLink } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import {
   analyticsPathParamsSchema,
@@ -10,7 +11,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
-  async ({ params, searchParams, workspace, link }) => {
+  async ({ params, searchParams, workspace }) => {
     let { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
 
@@ -22,7 +23,25 @@ export const GET = withWorkspace(
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    let { event, groupBy, interval, start, end } = parsedParams;
+    let {
+      event,
+      groupBy,
+      interval,
+      start,
+      end,
+      linkId,
+      externalId,
+      domain,
+      key,
+    } = parsedParams;
+
+    const link = await getLink({
+      workspace: workspace,
+      linkId,
+      externalId,
+      domain,
+      key,
+    });
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
@@ -34,8 +53,6 @@ export const GET = withWorkspace(
       end,
       throwError: true,
     });
-
-    const linkId = link ? link.id : null;
 
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)
@@ -49,7 +66,7 @@ export const GET = withWorkspace(
       ...parsedParams,
       event,
       groupBy,
-      ...(linkId && { linkId }),
+      ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
     });

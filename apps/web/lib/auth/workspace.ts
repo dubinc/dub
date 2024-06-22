@@ -6,13 +6,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import {
-  API_DOMAIN,
-  DUB_WORKSPACE_ID,
-  getSearchParams,
-  isDubDomain,
-} from "@dub/utils";
-import { Link as LinkProps } from "@prisma/client";
+import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
@@ -26,8 +20,6 @@ interface WithWorkspaceHandler {
     headers,
     session,
     workspace,
-    domain,
-    link,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -35,8 +27,6 @@ interface WithWorkspaceHandler {
     headers?: Record<string, string>;
     session: Session;
     workspace: WorkspaceProps;
-    domain: string;
-    link?: LinkProps;
   }): Promise<Response>;
 }
 
@@ -57,8 +47,6 @@ export const withWorkspace = (
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     allowSelf, // special case for removing yourself from a workspace
-    skipLinkChecks, // special case for /api/links/exists – skip link checks
-    domainChecks, // if the action needs to check if the domain belongs to the workspace
     betaFeature, // if the action is a beta feature
   }: {
     requiredPlan?: Array<PlanProps>;
@@ -67,8 +55,6 @@ export const withWorkspace = (
     needNotExceededLinks?: boolean;
     allowAnonymous?: boolean;
     allowSelf?: boolean;
-    skipLinkChecks?: boolean;
-    domainChecks?: boolean;
     betaFeature?: boolean;
   } = {},
 ) => {
@@ -93,14 +79,6 @@ export const withWorkspace = (
         }
         apiKey = authorizationHeader.replace("Bearer ", "");
       }
-
-      const domain = params?.domain || searchParams.domain;
-      const key = searchParams.key;
-      const linkId =
-        params?.linkId ||
-        searchParams.linkId ||
-        searchParams.externalId ||
-        undefined;
 
       let session: Session | undefined;
       let workspaceId: string | undefined;
@@ -166,6 +144,7 @@ export const withWorkspace = (
           600,
           "1 m",
         ).limit(apiKey);
+
         headers = {
           "Retry-After": reset.toString(),
           "X-RateLimit-Limit": limit.toString(),
@@ -179,6 +158,7 @@ export const withWorkspace = (
             message: "Too many requests.",
           });
         }
+
         waitUntil(
           prisma.token.update({
             where: {
@@ -189,6 +169,7 @@ export const withWorkspace = (
             },
           }),
         );
+
         session = {
           user: {
             id: user.id,
@@ -198,6 +179,7 @@ export const withWorkspace = (
         };
       } else {
         session = await getSession();
+
         if (!session?.user?.id) {
           throw new DubApiError({
             code: "unauthorized",
@@ -206,57 +188,32 @@ export const withWorkspace = (
         }
       }
 
-      let [workspace, link] = (await Promise.all([
-        prisma.project.findUnique({
-          where: {
-            id: workspaceId || undefined,
-            slug: workspaceSlug || undefined,
-          },
-          include: {
-            users: {
-              where: {
-                userId: session.user.id,
-              },
-              select: {
-                role: true,
-              },
+      let workspace = (await prisma.project.findUnique({
+        where: {
+          id: workspaceId || undefined,
+          slug: workspaceSlug || undefined,
+        },
+        include: {
+          users: {
+            where: {
+              userId: session.user.id,
             },
-            domains: {
-              select: {
-                id: true,
-                slug: true,
-                primary: true,
-              },
+            select: {
+              role: true,
             },
           },
-        }),
-        linkId
-          ? prisma.link.findUnique({
-              where: {
-                ...(linkId.startsWith("ext_") && workspaceId
-                  ? {
-                      projectId_externalId: {
-                        projectId: workspaceId,
-                        externalId: linkId.replace("ext_", ""),
-                      },
-                    }
-                  : { id: linkId }),
-              },
-            })
-          : domain && key
-            ? prisma.link.findUnique({
-                where: {
-                  domain_key: {
-                    domain,
-                    key,
-                  },
-                },
-              })
-            : undefined,
-      ])) as [WorkspaceProps, LinkProps | undefined];
+          domains: {
+            select: {
+              id: true,
+              slug: true,
+              primary: true,
+            },
+          },
+        },
+      })) as WorkspaceProps;
 
+      // workspace doesn't exist
       if (!workspace || !workspace.users) {
-        // workspace doesn't exist
         throw new DubApiError({
           code: "not_found",
           message: "Workspace not found.",
@@ -270,38 +227,6 @@ export const withWorkspace = (
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Beta feature.",
-          });
-        }
-      }
-
-      // edge case where linkId is an externalId and workspaceId was not provided (they must've used projectSlug instead)
-      // in this case, we need to try fetching the link again
-      if (linkId && linkId.startsWith("ext_") && !link && !workspaceId) {
-        link = (await prisma.link.findUnique({
-          where: {
-            projectId_externalId: {
-              projectId: workspace.id,
-              externalId: linkId.replace("ext_", ""),
-            },
-          },
-        })) as LinkProps;
-      }
-
-      // if domain is defined:
-      // - it's a dub domain and domainChecks is required, check if the user is part of the dub workspace
-      // - it's a custom domain, check if the domain belongs to the workspace
-      if (domain) {
-        if (isDubDomain(domain)) {
-          if (domainChecks && workspace.id !== DUB_WORKSPACE_ID) {
-            throw new DubApiError({
-              code: "forbidden",
-              message: "Domain does not belong to workspace.",
-            });
-          }
-        } else if (!workspace.domains.find((d) => d.slug === domain)) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: "Domain does not belong to workspace.",
           });
         }
       }
@@ -397,17 +322,6 @@ export const withWorkspace = (
         });
       }
 
-      // link checks (if linkId or domain and key are provided)
-      if ((linkId || (domain && key && key !== "_root")) && !skipLinkChecks) {
-        // make sure the link is owned by the workspace
-        if (!link || link.projectId !== workspace?.id) {
-          throw new DubApiError({
-            code: "not_found",
-            message: "Link not found.",
-          });
-        }
-      }
-
       return await handler({
         req,
         params,
@@ -415,8 +329,6 @@ export const withWorkspace = (
         headers,
         session,
         workspace,
-        domain,
-        link,
       });
     } catch (error) {
       return handleAndReturnErrorResponse(error, headers);

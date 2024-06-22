@@ -1,15 +1,25 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getLink } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import JSZip from "jszip";
 
 // GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace, link }) => {
+  async ({ searchParams, workspace }) => {
     const parsedParams = analyticsQuerySchema.parse(searchParams);
-    const { interval, start, end } = parsedParams;
+    const { interval, start, end, linkId, externalId, domain, key } =
+      parsedParams;
+
+    const link = await getLink({
+      workspace: workspace,
+      linkId,
+      externalId,
+      domain,
+      key,
+    });
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -18,8 +28,6 @@ export const GET = withWorkspace(
       end,
       throwError: true,
     });
-
-    const linkId = link ? link.id : null;
 
     const zip = new JSZip();
 
@@ -36,7 +44,7 @@ export const GET = withWorkspace(
         const response = await getAnalytics({
           ...parsedParams,
           workspaceId: workspace.id,
-          ...(linkId && { linkId }),
+          ...(link && { linkId: link.id }),
           event: "clicks",
           groupBy: endpoint,
         });

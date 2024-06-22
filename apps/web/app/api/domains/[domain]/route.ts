@@ -4,6 +4,7 @@ import {
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
+import { getDomain } from "@/lib/api/domains/get-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -18,27 +19,24 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
-export const GET = withWorkspace(
-  async ({ domain, workspace }) => {
-    const domainRecord = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-        projectId: workspace.id,
-      },
-    });
+export const GET = withWorkspace(async ({ workspace, params }) => {
+  const domainRecord = await getDomain({
+    workspace,
+    slug: params.domain,
+  });
 
-    return NextResponse.json(DomainSchema.parse(domainRecord));
-  },
-  {
-    domainChecks: true,
-  },
-);
+  return NextResponse.json(DomainSchema.parse(domainRecord));
+});
 
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
-  async ({ req, workspace, domain }) => {
-    const body = await parseRequestBody(req);
-    const payload = updateDomainBodySchema.parse(body);
+  async ({ req, workspace, params }) => {
+    const { slug: domain } = await getDomain({
+      workspace,
+      slug: params.domain,
+    });
+
+    const payload = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     const { slug: newDomain, placeholder, expiredUrl, archived } = payload;
 
@@ -122,19 +120,23 @@ export const PATCH = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
-    domainChecks: true,
     requiredRole: ["owner"],
   },
 );
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
-  async ({ domain }) => {
+  async ({ workspace, params }) => {
+    const { slug: domain } = await getDomain({
+      workspace,
+      slug: params.domain,
+    });
+
     await deleteDomainAndLinks(domain);
+
     return NextResponse.json({ slug: domain });
   },
   {
-    domainChecks: true,
     requiredRole: ["owner"],
   },
 );
