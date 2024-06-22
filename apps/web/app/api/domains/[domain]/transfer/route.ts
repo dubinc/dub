@@ -132,5 +132,8 @@ export const POST = withWorkspace(
 
     return NextResponse.json(DomainSchema.parse(domainResponse), { headers });
   },
-  { requiredRole: ["owner"] },
+  {
+    domainChecks: true,
+    requiredRole: ["owner"],
+  },
 );

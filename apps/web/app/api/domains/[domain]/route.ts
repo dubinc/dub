@@ -18,25 +18,30 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
-export const GET = withWorkspace(async ({ workspace, params }) => {
-  const { domain } = params;
+export const GET = withWorkspace(
+  async ({ workspace, params }) => {
+    const { domain } = params;
 
-  const domainRecord = await prisma.domain.findUnique({
-    where: {
-      slug: domain,
-      projectId: workspace.id,
-    },
-  });
-
-  if (!domainRecord) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Domain not found",
+    const domainRecord = await prisma.domain.findUnique({
+      where: {
+        slug: domain,
+        projectId: workspace.id,
+      },
     });
-  }
 
-  return NextResponse.json(DomainSchema.parse(domainRecord));
-});
+    if (!domainRecord) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Domain not found",
+      });
+    }
+
+    return NextResponse.json(DomainSchema.parse(domainRecord));
+  },
+  {
+    domainChecks: true,
+  },
+);
 
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
@@ -127,6 +132,7 @@ export const PATCH = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
+    domainChecks: true,
     requiredRole: ["owner"],
   },
 );
@@ -141,6 +147,7 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ slug: domain });
   },
   {
+    domainChecks: true,
     requiredRole: ["owner"],
   },
 );
