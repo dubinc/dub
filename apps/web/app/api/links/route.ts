@@ -30,7 +30,7 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
   } = getLinksQuerySchemaExtended.parse(searchParams);
 
   if (domain) {
-    await getDomainOrThrow({ domain, workspace });
+    await getDomainOrThrow({ workspace, domain });
   }
 
   const response = await getLinksForWorkspace({

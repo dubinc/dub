@@ -8,8 +8,8 @@ import { NextResponse } from "next/server";
 export const POST = withWorkspace(
   async ({ headers, workspace, params }) => {
     const { slug: domain } = await getDomainOrThrow({
-      domain: params.domain,
       workspace,
+      domain: params.domain,
       domainChecks: true,
     });
 

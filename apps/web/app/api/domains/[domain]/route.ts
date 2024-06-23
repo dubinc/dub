@@ -21,8 +21,8 @@ import { NextResponse } from "next/server";
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const domainRecord = await getDomainOrThrow({
-    domain: params.domain,
     workspace,
+    domain: params.domain,
     domainChecks: true,
   });
 
@@ -33,8 +33,8 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
     const { slug: domain } = await getDomainOrThrow({
-      domain: params.domain,
       workspace,
+      domain: params.domain,
       domainChecks: true,
     });
 
@@ -133,8 +133,8 @@ export const PATCH = withWorkspace(
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { slug: domain } = await getDomainOrThrow({
-      domain: params.domain,
       workspace,
+      domain: params.domain,
       domainChecks: true,
     });
 

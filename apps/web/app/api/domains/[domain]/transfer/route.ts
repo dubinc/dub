@@ -15,8 +15,8 @@ import { NextResponse } from "next/server";
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
     const { slug: domain } = await getDomainOrThrow({
-      domain: params.domain,
       workspace,
+      domain: params.domain,
       domainChecks: true,
     });
 

@@ -14,8 +14,8 @@ export const maxDuration = 30;
 // GET /api/domains/[domain]/verify - get domain verification status
 export const GET = withWorkspace(async ({ params, workspace }) => {
   const { slug: domain } = await getDomainOrThrow({
-    domain: params.domain,
     workspace,
+    domain: params.domain,
     domainChecks: true,
   });
 

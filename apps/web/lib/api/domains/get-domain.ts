@@ -4,12 +4,12 @@ import { DUB_WORKSPACE_ID, isDubDomain } from "@dub/utils";
 import { DubApiError } from "../errors";
 
 export const getDomainOrThrow = async ({
-  domain,
   workspace,
+  domain,
   domainChecks,
 }: {
-  domain: string;
   workspace: WorkspaceWithUsers;
+  domain: string;
   domainChecks?: boolean; // if the action needs to check if the domain belongs to the workspace
 }) => {
   const domainRecord = await prisma.domain.findUnique({

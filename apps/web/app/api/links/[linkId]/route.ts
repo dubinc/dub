@@ -1,4 +1,3 @@
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import {
   deleteLink,
@@ -56,10 +55,6 @@ export const PATCH = withWorkspace(
     });
 
     const body = updateLinkBodySchema.parse(await parseRequestBody(req));
-
-    if (body?.domain) {
-      await getDomainOrThrow({ domain: body.domain, workspace });
-    }
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
