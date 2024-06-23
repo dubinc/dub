@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
-import { PlanProps, WorkspaceWithUsers } from "../types";
+import { PlanProps } from "../types";
 
 export const ErrorCode = z.enum([
   "bad_request",
@@ -220,35 +220,4 @@ export const exceededLimitError = ({
   } limit of ${limit} ${
     limit === 1 ? type.slice(0, -1) : type
   } on the ${capitalize(plan)} plan. Please upgrade to add more ${type}.`;
-};
-
-// Workspace clicks usage overage checks
-export const throwIfClicksUsageExceeded = (workspace: WorkspaceWithUsers) => {
-  if (workspace.usage > workspace.usageLimit) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: exceededLimitError({
-        plan: workspace.plan,
-        limit: workspace.usageLimit,
-        type: "clicks",
-      }),
-    });
-  }
-};
-
-// Workspace links usage overage checks
-export const throwIfLinksUsageExceeded = (workspace: WorkspaceWithUsers) => {
-  if (
-    workspace.linksUsage > workspace.linksLimit &&
-    (workspace.plan === "free" || workspace.plan === "pro")
-  ) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: exceededLimitError({
-        plan: workspace.plan,
-        limit: workspace.linksLimit,
-        type: "links",
-      }),
-    });
-  }
 };

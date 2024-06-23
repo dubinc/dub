@@ -1,8 +1,8 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
-import { throwIfClicksUsageExceeded } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link";
+import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Link } from "@prisma/client";

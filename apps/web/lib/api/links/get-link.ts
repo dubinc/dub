@@ -68,7 +68,7 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
   if (link.projectId !== workspaceId) {
     throw new DubApiError({
       code: "unauthorized",
-      message: `Link with id ${link.id} does not belong to workspace ws_${workspace.id}.`,
+      message: `Link does not belong to workspace ws_${workspace.id}.`,
     });
   }
 

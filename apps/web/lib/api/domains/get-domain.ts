@@ -16,6 +16,8 @@ export const getDomainOrThrow = async ({
     where: { slug: domain },
   });
 
+  // console.log("domainRecord", domainRecord);
+
   if (!domainRecord) {
     throw new DubApiError({
       code: "not_found",

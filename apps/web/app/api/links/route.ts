@@ -1,10 +1,7 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
-import {
-  DubApiError,
-  ErrorCodes,
-  throwIfLinksUsageExceeded,
-} from "@/lib/api/errors";
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
+import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
