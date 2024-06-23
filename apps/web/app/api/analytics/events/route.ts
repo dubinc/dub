@@ -1,6 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { throwIfClicksUsageExceeded } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -9,6 +10,8 @@ import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(
   async ({ searchParams, workspace }) => {
+    throwIfClicksUsageExceeded(workspace);
+
     const parsedParams = eventsQuerySchema.parse(searchParams);
 
     let { event, interval, start, end, linkId, externalId, domain, key } =
@@ -47,7 +50,6 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    needNotExceededClicks: true,
     betaFeature: true,
   },
 );

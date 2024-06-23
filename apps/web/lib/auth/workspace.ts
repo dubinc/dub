@@ -1,8 +1,4 @@
-import {
-  DubApiError,
-  exceededLimitError,
-  handleAndReturnErrorResponse,
-} from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
@@ -43,16 +39,12 @@ export const withWorkspace = (
       "enterprise",
     ], // if the action needs a specific plan
     requiredRole = ["owner", "member"],
-    needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
-    needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     allowSelf, // special case for removing yourself from a workspace
     betaFeature, // if the action is a beta feature
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredRole?: Array<"owner" | "member">;
-    needNotExceededClicks?: boolean;
-    needNotExceededLinks?: boolean;
     allowAnonymous?: boolean;
     allowSelf?: boolean;
     betaFeature?: boolean;
@@ -263,34 +255,6 @@ export const withWorkspace = (
         throw new DubApiError({
           code: "forbidden",
           message: "Unauthorized: Insufficient permissions.",
-        });
-      }
-
-      // clicks usage overage checks
-      if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: exceededLimitError({
-            plan: workspace.plan,
-            limit: workspace.usageLimit,
-            type: "clicks",
-          }),
-        });
-      }
-
-      // links usage overage checks
-      if (
-        needNotExceededLinks &&
-        workspace.linksUsage > workspace.linksLimit &&
-        (workspace.plan === "free" || workspace.plan === "pro")
-      ) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: exceededLimitError({
-            plan: workspace.plan,
-            limit: workspace.linksLimit,
-            type: "links",
-          }),
         });
       }
 

@@ -2,69 +2,67 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { throwIfClicksUsageExceeded } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import JSZip from "jszip";
 
 // GET /api/analytics/export – get export data for analytics
-export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+export const GET = withWorkspace(async ({ searchParams, workspace }) => {
+  throwIfClicksUsageExceeded(workspace);
 
-    const { interval, start, end, linkId, domain, key } = parsedParams;
+  const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
+  const { interval, start, end, linkId, domain, key } = parsedParams;
 
-    const link =
-      domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
+  if (domain) {
+    await getDomainOrThrow({ workspace, domain });
+  }
 
-    validDateRangeForPlan({
-      plan: workspace.plan,
-      interval,
-      start,
-      end,
-      throwError: true,
-    });
+  const link =
+    domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
 
-    const zip = new JSZip();
+  validDateRangeForPlan({
+    plan: workspace.plan,
+    interval,
+    start,
+    end,
+    throwError: true,
+  });
 
-    await Promise.all(
-      VALID_ANALYTICS_ENDPOINTS.map(async (endpoint) => {
-        // no need to fetch top links data if linkId is defined
-        // since this is just a single link
-        if (endpoint === "top_links" && linkId) return;
-        // we're not fetching top URLs data if linkId is not defined
-        if (endpoint === "top_urls" && !linkId) return;
-        // skip clicks count
-        if (endpoint === "count") return;
+  const zip = new JSZip();
 
-        const response = await getAnalytics({
-          ...parsedParams,
-          workspaceId: workspace.id,
-          ...(link && { linkId: link.id }),
-          event: "clicks",
-          groupBy: endpoint,
-        });
-        if (!response || response.length === 0) return;
+  await Promise.all(
+    VALID_ANALYTICS_ENDPOINTS.map(async (endpoint) => {
+      // no need to fetch top links data if linkId is defined
+      // since this is just a single link
+      if (endpoint === "top_links" && linkId) return;
+      // we're not fetching top URLs data if linkId is not defined
+      if (endpoint === "top_urls" && !linkId) return;
+      // skip clicks count
+      if (endpoint === "count") return;
 
-        const csvData = convertToCSV(response);
-        zip.file(`${endpoint}.csv`, csvData);
-      }),
-    );
+      const response = await getAnalytics({
+        ...parsedParams,
+        workspaceId: workspace.id,
+        ...(link && { linkId: link.id }),
+        event: "clicks",
+        groupBy: endpoint,
+      });
+      if (!response || response.length === 0) return;
 
-    const zipData = await zip.generateAsync({ type: "nodebuffer" });
+      const csvData = convertToCSV(response);
+      zip.file(`${endpoint}.csv`, csvData);
+    }),
+  );
 
-    return new Response(zipData, {
-      headers: {
-        "Content-Type": "application/zip",
-        "Content-Disposition": "attachment; filename=analytics_export.zip",
-      },
-    });
-  },
-  {
-    needNotExceededClicks: true,
-  },
-);
+  const zipData = await zip.generateAsync({ type: "nodebuffer" });
+
+  return new Response(zipData, {
+    headers: {
+      "Content-Type": "application/zip",
+      "Content-Disposition": "attachment; filename=analytics_export.zip",
+    },
+  });
+});

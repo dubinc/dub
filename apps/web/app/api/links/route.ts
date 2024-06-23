@@ -1,5 +1,9 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
-import { DubApiError, ErrorCodes } from "@/lib/api/errors";
+import {
+  DubApiError,
+  ErrorCodes,
+  throwIfLinksUsageExceeded,
+} from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -54,8 +58,9 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
 // POST /api/links – create a new link
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
-    const bodyRaw = await parseRequestBody(req);
-    const body = createLinkBodySchema.parse(bodyRaw);
+    throwIfLinksUsageExceeded(workspace);
+
+    const body = createLinkBodySchema.parse(await parseRequestBody(req));
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
@@ -101,7 +106,6 @@ export const POST = withWorkspace(
     }
   },
   {
-    needNotExceededLinks: true,
     allowAnonymous: true,
   },
 );

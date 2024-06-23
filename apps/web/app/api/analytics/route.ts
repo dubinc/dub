@@ -2,6 +2,7 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { throwIfClicksUsageExceeded } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -14,6 +15,8 @@ import { NextResponse } from "next/server";
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace }) => {
+    throwIfClicksUsageExceeded(workspace);
+
     let { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
 
@@ -81,8 +84,5 @@ export const GET = withWorkspace(
     });
 
     return NextResponse.json(response);
-  },
-  {
-    needNotExceededClicks: true,
   },
 );

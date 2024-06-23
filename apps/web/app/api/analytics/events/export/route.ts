@@ -1,6 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { throwIfClicksUsageExceeded } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -37,62 +38,59 @@ const columnAccessors = {
 };
 
 // GET /api/analytics/events/export – get export data for analytics
-export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
-    const parsedParams = eventsQuerySchema
-      .and(
-        z.object({
-          columns: z
-            .string()
-            .transform((c) => c.split(","))
-            .pipe(z.string().array()),
-        }),
-      )
-      .parse(searchParams);
+export const GET = withWorkspace(async ({ searchParams, workspace }) => {
+  throwIfClicksUsageExceeded(workspace);
 
-    const { event, domain, interval, start, end, columns, key } = parsedParams;
+  const parsedParams = eventsQuerySchema
+    .and(
+      z.object({
+        columns: z
+          .string()
+          .transform((c) => c.split(","))
+          .pipe(z.string().array()),
+      }),
+    )
+    .parse(searchParams);
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
+  const { event, domain, interval, start, end, columns, key } = parsedParams;
 
-    const link =
-      domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
+  if (domain) {
+    await getDomainOrThrow({ workspace, domain });
+  }
 
-    validDateRangeForPlan({
-      plan: workspace.plan,
-      interval,
-      start,
-      end,
-      throwError: true,
-    });
+  const link =
+    domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
 
-    const response = await getEvents({
-      ...parsedParams,
-      ...(link && { linkId: link.id }),
-      workspaceId: workspace.id,
-      limit: 100000,
-    });
+  validDateRangeForPlan({
+    plan: workspace.plan,
+    interval,
+    start,
+    end,
+    throwError: true,
+  });
 
-    const data = response.map((row) =>
-      Object.fromEntries(
-        columns.map((c) => [
-          columnNames?.[c] ?? capitalize(c),
-          columnAccessors[c]?.(row) ?? row?.[c],
-        ]),
-      ),
-    );
+  const response = await getEvents({
+    ...parsedParams,
+    ...(link && { linkId: link.id }),
+    workspaceId: workspace.id,
+    limit: 100000,
+  });
 
-    const csvData = convertToCSV(data);
+  const data = response.map((row) =>
+    Object.fromEntries(
+      columns.map((c) => [
+        columnNames?.[c] ?? capitalize(c),
+        columnAccessors[c]?.(row) ?? row?.[c],
+      ]),
+    ),
+  );
 
-    return new Response(csvData, {
-      headers: {
-        "Content-Type": "application/csv",
-        "Content-Disposition": `attachment; filename=${event}_export.csv`,
-      },
-    });
-  },
-  {
-    needNotExceededClicks: true,
-  },
-);
+  const csvData = convertToCSV(data);
+
+  return new Response(csvData, {
+    headers: {
+      "Content-Type": "application/csv",
+      "Content-Disposition": `attachment; filename=${event}_export.csv`,
+    },
+  });
+});
