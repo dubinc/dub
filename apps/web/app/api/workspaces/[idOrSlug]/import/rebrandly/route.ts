@@ -70,6 +70,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
 
   const domains = await prisma.domain.findMany({
     where: { projectId: workspace.id },
+    select: { slug: true },
   });
 
   // check if there are domains that are not in the workspace
