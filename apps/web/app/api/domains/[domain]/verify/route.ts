@@ -16,6 +16,7 @@ export const GET = withWorkspace(async ({ params, workspace }) => {
   const { slug: domain } = await getDomainOrThrow({
     domain: params.domain,
     workspace,
+    domainChecks: true,
   });
 
   let status: DomainVerificationStatusProps = "Valid Configuration";
