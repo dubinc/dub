@@ -14,7 +14,11 @@ const updatePublicStatsSchema = z.object({
 export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);
 
-  await getDomainOrThrow({ workspace, domain });
+  await getDomainOrThrow({
+    workspace,
+    domain,
+    domainChecks: true,
+  });
 
   const response = await getLinkViaEdge(domain, key);
   return NextResponse.json({ publicStats: response?.publicStats });
@@ -25,7 +29,11 @@ export const PUT = withWorkspace(async ({ req, searchParams, workspace }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);
   const { publicStats } = updatePublicStatsSchema.parse(await req.json());
 
-  await getDomainOrThrow({ workspace, domain });
+  await getDomainOrThrow({
+    workspace,
+    domain,
+    domainChecks: true,
+  });
 
   const response = await prisma.link.update({
     where: { domain_key: { domain, key } },
