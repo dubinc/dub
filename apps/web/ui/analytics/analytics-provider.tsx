@@ -115,6 +115,10 @@ export default function AnalyticsProvider({
       : "composite";
   }, [searchParams.get("tab")]);
 
+  const root = searchParams.get("root")
+    ? searchParams.get("root") === "true"
+    : undefined;
+
   const { basePath, domain, baseApiPath } = useMemo(() => {
     if (adminPage) {
       return {
@@ -172,9 +176,7 @@ export default function AnalyticsProvider({
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
       ...(tagId && { tagId }),
-      ...(eventsPage && {
-        root: searchParams.get("root") || "false",
-      }),
+      ...(root && { root: root.toString() }),
       event: selectedTab,
     }).toString();
   }, [workspaceId, domain, key, searchParams, start, end, tagId, selectedTab]);

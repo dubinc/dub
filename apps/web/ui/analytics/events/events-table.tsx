@@ -39,7 +39,6 @@ import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
 import EmptyState from "./empty-state";
-import EventsLinkType from "./events-link-type";
 import ExportButton from "./export-button";
 import usePagination from "./use-pagination";
 
@@ -567,18 +566,6 @@ export default function EventsTable() {
                                   />
                                 )}
                               </button>
-                              {header.id === "link" && (
-                                <EventsLinkType
-                                  scrollContainer={scrollContainer}
-                                />
-                              )}
-                              {/* {columnIdx === headerGroup.headers.length - 1 && (
-                              // Last column
-                              <EventsTableMenu
-                                table={table}
-                                scrollContainer={scrollContainer}
-                              />
-                            )} */}
                             </div>
                             <div
                               className="absolute -right-[4px] top-0 z-[1] h-full w-[7px] cursor-col-resize"
