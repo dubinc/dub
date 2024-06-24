@@ -23,9 +23,13 @@ export const getDomainOrThrow = async ({
     });
   }
 
-  // if domain is defined:
-  // - it's a dub domain and dubDomainChecks is required, check if the user is part of the dub workspace
-  // - it's a custom domain, check if the domain belongs to the workspace
+  /* if domain is defined:
+      - it's a dub domain:
+        - if dubDomainChecks is true, check if the user is part of the dub workspace
+        - if dubDomainChecks is false, do nothing
+      - it's a custom domain:
+        - check if the domain belongs to the workspace
+  */
   if (isDubDomain(domain)) {
     if (dubDomainChecks && workspace.id !== DUB_WORKSPACE_ID) {
       throw new DubApiError({
