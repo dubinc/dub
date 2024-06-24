@@ -1,8 +1,8 @@
+import ChangelogPopup from "@/ui/layout/changelog-popup";
 import HelpPortal from "@/ui/layout/help";
 import NavTabs from "@/ui/layout/nav-tabs";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 import UserDropdown from "@/ui/layout/user-dropdown";
-import UserSurveyPopup from "@/ui/layout/user-survey";
 import WorkspaceSwitcher from "@/ui/layout/workspace-switcher";
 import { Divider } from "@/ui/shared/icons";
 import { MaxWidthWrapper, NavLogo } from "@dub/ui";
@@ -54,7 +54,8 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         {children}
       </div>
-      <UserSurveyPopup />
+      {/* <UserSurveyPopup /> */}
+      <ChangelogPopup />
       <HelpPortal />
     </Providers>
   );

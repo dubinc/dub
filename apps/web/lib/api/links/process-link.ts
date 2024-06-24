@@ -28,7 +28,7 @@ export async function processLink<T extends Record<string, any>>({
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  workspace?: WorkspaceProps;
+  workspace?: Pick<WorkspaceProps, "id" | "plan">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -59,28 +59,30 @@ export async function processLink<T extends Record<string, any>>({
     ios,
     android,
     geo,
+    doIndex,
     tagNames,
     createdAt,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
-
   const tagIds = combineTagIds(payload);
 
-  // url checks
-  if (!url) {
+  // if URL is defined, perform URL checks
+  if (url) {
+    url = getUrlFromString(url);
+    if (!isValidUrl(url)) {
+      return {
+        link: payload,
+        error: "Invalid destination URL",
+        code: "unprocessable_entity",
+      };
+    }
+    // only root domain links can have empty desintation URL
+  } else if (key !== "_root") {
     return {
       link: payload,
-      error: "Missing destination url.",
+      error: "Missing destination URL",
       code: "bad_request",
-    };
-  }
-  url = getUrlFromString(url);
-  if (!isValidUrl(url)) {
-    return {
-      link: payload,
-      error: "Invalid destination url.",
-      code: "unprocessable_entity",
     };
   }
 
@@ -89,7 +91,25 @@ export async function processLink<T extends Record<string, any>>({
     (!workspace || workspace.plan === "free") &&
     (!createdAt || new Date(createdAt) > new Date("2024-01-19"))
   ) {
-    if (proxy || password || rewrite || expiresAt || ios || android || geo) {
+    if (key === "_root" && url) {
+      return {
+        link: payload,
+        error:
+          "You can only set a redirect for a root domain link on a Pro plan and above. Upgrade to Pro to use this feature.",
+        code: "forbidden",
+      };
+    }
+
+    if (
+      proxy ||
+      password ||
+      rewrite ||
+      expiresAt ||
+      ios ||
+      android ||
+      geo ||
+      doIndex
+    ) {
       const proFeaturesString = [
         proxy && "custom social media cards",
         password && "password protection",
@@ -98,6 +118,7 @@ export async function processLink<T extends Record<string, any>>({
         ios && "iOS targeting",
         android && "Android targeting",
         geo && "geo targeting",
+        doIndex && "search engine indexing",
       ]
         .filter(Boolean)
         .join(", ")
@@ -112,9 +133,15 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
+  const domains = workspace
+    ? await prisma.domain.findMany({
+        where: { projectId: workspace.id },
+      })
+    : [];
+
   // if domain is not defined, set it to the workspace's primary domain
   if (!domain) {
-    domain = workspace?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+    domain = domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
   }
 
   // checks for dub.sh links
@@ -156,7 +183,7 @@ export async function processLink<T extends Record<string, any>>({
     }
 
     // else, check if the domain belongs to the workspace
-  } else if (!workspace?.domains?.find((d) => d.slug === domain)) {
+  } else if (!domains?.find((d) => d.slug === domain)) {
     return {
       link: payload,
       error: "Domain does not belong to workspace.",
@@ -182,10 +209,11 @@ export async function processLink<T extends Record<string, any>>({
     key = processedKey;
 
     const response = await keyChecks({ domain, key, workspace });
-    if (response.error) {
+    if (response.error && response.code) {
       return {
         link: payload,
-        ...response,
+        error: response.error,
+        code: response.code,
       };
     }
   }

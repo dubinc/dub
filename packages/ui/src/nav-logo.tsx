@@ -107,7 +107,12 @@ export function NavLogo({
               <ContextMenuButton
                 text="Home Page"
                 variant="outline"
-                onClick={() => window.open("https://dub.co", "_blank")}
+                onClick={() =>
+                  window.open(
+                    `https://dub.co${isInApp ? "/home" : ""}`,
+                    "_blank",
+                  )
+                }
                 icon={<Home strokeWidth={2} className="h-4 w-4" />}
               />
             ) : (

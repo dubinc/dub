@@ -10,6 +10,7 @@ import {
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useSWR from "swr";
+import { useDebounce } from "use-debounce";
 
 export default function CloakingSection({
   data,
@@ -71,8 +72,9 @@ export default function CloakingSection({
 }
 
 function IframeIndicator({ url, domain }: { url: string; domain: string }) {
+  const [debouncedUrl] = useDebounce(url, 500);
   const { data, isLoading } = useSWR<{ iframeable: boolean }>(
-    `/api/links/iframeable?url=${url}&domain=${domain}`,
+    `/api/links/iframeable?url=${debouncedUrl}&domain=${domain}`,
     fetcher,
   );
 

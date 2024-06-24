@@ -16,6 +16,7 @@ import {
   ExpandingArrow,
   Filter,
   LinkLogo,
+  Sliders,
   TooltipContent,
   useRouterStuff,
   useScroll,
@@ -105,6 +106,7 @@ export default function Toggle({
       browser,
       os,
       referer,
+      root,
     } = searchParamsObj;
     return [
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
@@ -124,6 +126,7 @@ export default function Toggle({
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
       ...(referer ? [{ key: "referer", value: referer }] : []),
+      ...(root ? [{ key: "root", value: root === "true" }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -248,6 +251,23 @@ export default function Toggle({
                     data: { url },
                   }),
                 ) ?? null,
+            },
+            {
+              key: "root",
+              icon: Sliders,
+              label: "Link type",
+              options: [
+                {
+                  value: true,
+                  icon: Globe,
+                  label: "Root domain link",
+                },
+                {
+                  value: false,
+                  icon: Hyperlink,
+                  label: "Regular short link",
+                },
+              ],
             },
             {
               key: "tagId",
@@ -511,8 +531,10 @@ export default function Toggle({
                       set:
                         key === "link"
                           ? {
-                              domain: new URL(value).hostname,
-                              key: new URL(value).pathname.slice(1) || "_root",
+                              domain: new URL(`https://${value}`).hostname,
+                              key:
+                                new URL(`https://${value}`).pathname.slice(1) ||
+                                "_root",
                             }
                           : {
                               [key]: value,

@@ -1,17 +1,22 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { getDomainViaEdge } from "@/lib/planetscale";
 import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
 } from "@/lib/zod/schemas/analytics";
+import { Link } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
-  async ({ params, searchParams, workspace, link }) => {
+  async ({ params, searchParams, workspace }) => {
+    throwIfClicksUsageExceeded(workspace);
+
     let { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
 
@@ -23,7 +28,32 @@ export const GET = withWorkspace(
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    let { event, groupBy, domain, key, interval, start, end } = parsedParams;
+    let {
+      event,
+      groupBy,
+      interval,
+      start,
+      end,
+      linkId,
+      externalId,
+      domain,
+      key,
+    } = parsedParams;
+    let link: Link | null = null;
+
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
+
+    if (linkId || externalId || (domain && key)) {
+      link = await getLinkOrThrow({
+        workspace: workspace,
+        linkId,
+        externalId,
+        domain,
+        key,
+      });
+    }
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
@@ -35,12 +65,6 @@ export const GET = withWorkspace(
       end,
       throwError: true,
     });
-
-    const linkId = link
-      ? link.id
-      : domain && key === "_root"
-        ? await getDomainViaEdge(domain).then((d) => d?.id)
-        : null;
 
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)
@@ -54,14 +78,11 @@ export const GET = withWorkspace(
       ...parsedParams,
       event,
       groupBy,
-      ...(linkId && { linkId }),
+      ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
     });
 
     return NextResponse.json(response);
-  },
-  {
-    needNotExceededClicks: true,
   },
 );

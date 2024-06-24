@@ -1,26 +1,29 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { DomainSchema, addDomainBodySchema } from "@/lib/zod/schemas/domains";
+import {
+  DomainSchema,
+  createDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
-export const addDomain: ZodOpenApiOperationObject = {
-  operationId: "addDomain",
-  "x-speakeasy-name-override": "add",
-  summary: "Add a domain",
-  description: "Add a domain to the authenticated workspace.",
+export const createDomain: ZodOpenApiOperationObject = {
+  operationId: "createDomain",
+  "x-speakeasy-name-override": "create",
+  summary: "Create a domain",
+  description: "Create a domain for the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema,
   },
   requestBody: {
     content: {
       "application/json": {
-        schema: addDomainBodySchema,
+        schema: createDomainBodySchema,
       },
     },
   },
   responses: {
     "201": {
-      description: "The domain was added.",
+      description: "The domain was created.",
       content: {
         "application/json": {
           schema: DomainSchema,

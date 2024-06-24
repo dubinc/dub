@@ -1,3 +1,8 @@
+// @ts-nocheck
+
+// TODO:
+// Fix the script
+
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { isIframeable } from "@dub/utils";

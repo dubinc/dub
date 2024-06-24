@@ -7,11 +7,8 @@ const slug = `${randomId()}.dub-internal-test.com`;
 
 const domainRecord = {
   slug: slug,
-  target: `https://${slug}/landing`,
   expiredUrl: `https://${slug}/expired`,
   placeholder: `https://${slug}/placeholder`,
-  type: ["redirect", "rewrite"][Math.floor(Math.random() * 2)],
-  noindex: true,
 };
 
 const expectedDomain = {
@@ -20,12 +17,10 @@ const expectedDomain = {
   verified: expect.any(Boolean),
   primary: expect.any(Boolean),
   archived: false,
-  noindex: domainRecord.noindex,
   placeholder: domainRecord.placeholder,
   expiredUrl: domainRecord.expiredUrl,
-  target: domainRecord.target,
-  type: domainRecord.type,
-  clicks: 0,
+  createdAt: expect.any(String),
+  updatedAt: expect.any(String),
 };
 
 describe.sequential("/domains/**", async () => {
@@ -74,10 +69,7 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domain).toStrictEqual({
-      ...expectedDomain,
-      url: domainRecord.target,
-    });
+    expect(domain).toStrictEqual(expectedDomain);
   });
 
   test("GET /domains", async () => {
@@ -105,11 +97,8 @@ describe.sequential("/domains/**", async () => {
 
   test("PATCH /domains/{slug}", { retry: 3 }, async () => {
     const toUpdate = {
-      target: `https://${slug}/landing-new`,
       expiredUrl: `https://${slug}/expired-new`,
       placeholder: `https://${slug}/placeholder-new`,
-      type: "rewrite",
-      noindex: false,
       archived: true,
     };
 
@@ -123,7 +112,6 @@ describe.sequential("/domains/**", async () => {
     expect(domain).toStrictEqual({
       ...expectedDomain,
       ...toUpdate,
-      primary: true,
     });
   });
 });

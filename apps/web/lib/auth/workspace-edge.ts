@@ -196,6 +196,7 @@ export const withWorkspaceEdge = (
           },
           domains: {
             select: {
+              id: true,
               slug: true,
               primary: true,
             },
@@ -203,8 +204,8 @@ export const withWorkspaceEdge = (
         },
       })) as WorkspaceProps;
 
+      // workspace doesn't exist
       if (!workspace || !workspace.users) {
-        // workspace doesn't exist
         throw new DubApiError({
           code: "not_found",
           message: "Workspace not found.",
