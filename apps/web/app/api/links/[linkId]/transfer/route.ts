@@ -1,5 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
+import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
@@ -19,6 +20,11 @@ const transferLinkBodySchema = z.object({
 // POST /api/links/[linkId]/transfer – transfer a link to another workspace
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
+    const link = await getLinkOrThrow({
+      workspace,
+      linkId: params.linkId,
+    });
+
     const { newWorkspaceId } = transferLinkBodySchema.parse(await req.json());
 
     const newWorkspace = await prisma.project.findUnique({
@@ -36,22 +42,6 @@ export const POST = withWorkspace(
         },
       },
     });
-
-    const link = await prisma.link.findUnique({
-      where: {
-        id: params.linkId,
-      },
-      include: {
-        tags: true,
-      },
-    });
-    // technically this is not needed since the link is already checked in withWorkspace
-    if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Link not found.",
-      });
-    }
 
     if (!newWorkspace || newWorkspace.users.length === 0) {
       throw new DubApiError({
