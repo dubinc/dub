@@ -299,17 +299,49 @@ export const withWorkspace = (
       ])) as [WorkspaceProps, LinkProps | undefined];
 
       // workspace doesn't exist
-      if (!workspace || !workspace.users.length) {
+      if (!workspace || !workspace.users) {
         throw new DubApiError({
           code: "not_found",
           message: "Workspace not found.",
         });
       }
 
+      // workspace exists but user is not part of it
+      if (workspace.users.length === 0) {
+        const pendingInvites = await prisma.projectInvite.findUnique({
+          where: {
+            email_projectId: {
+              email: session.user.email,
+              projectId: workspace.id,
+            },
+          },
+          select: {
+            expires: true,
+          },
+        });
+
+        if (!pendingInvites) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Workspace not found.",
+          });
+        } else if (pendingInvites.expires < new Date()) {
+          throw new DubApiError({
+            code: "invite_expired",
+            message: "Workspace invite expired.",
+          });
+        } else {
+          throw new DubApiError({
+            code: "invite_pending",
+            message: "Workspace invite pending.",
+          });
+        }
+      }
+
       // Find scopes based on the token or user's role
       if (token && "scopes" in token) {
         scopes = (token.scopes?.split(" ") as Scope[]) || [];
-      } else {
+      } else if (workspace.users.length > 0) {
         scopes = roleScopesMapping[workspace.users[0].role];
       }
 
@@ -361,37 +393,6 @@ export const withWorkspace = (
           throw new DubApiError({
             code: "forbidden",
             message: "Domain does not belong to workspace.",
-          });
-        }
-      }
-
-      // workspace exists but user is not part of it
-      if (workspace.users.length === 0) {
-        const pendingInvites = await prisma.projectInvite.findUnique({
-          where: {
-            email_projectId: {
-              email: session.user.email,
-              projectId: workspace.id,
-            },
-          },
-          select: {
-            expires: true,
-          },
-        });
-        if (!pendingInvites) {
-          throw new DubApiError({
-            code: "not_found",
-            message: "Workspace not found.",
-          });
-        } else if (pendingInvites.expires < new Date()) {
-          throw new DubApiError({
-            code: "invite_expired",
-            message: "Workspace invite expired.",
-          });
-        } else {
-          throw new DubApiError({
-            code: "invite_pending",
-            message: "Workspace invite pending.",
           });
         }
       }
