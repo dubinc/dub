@@ -408,16 +408,8 @@ export default function EventsTable() {
         limit: pagination.pageSize.toString(),
         sortBy,
         order,
-        root: searchParams.get("root") || "false",
       }).toString(),
-    [
-      originalQueryString,
-      tab,
-      pagination,
-      sortBy,
-      order,
-      searchParams.get("root"),
-    ],
+    [originalQueryString, tab, pagination, sortBy, order],
   );
 
   const { data, isLoading, error } = useSWR<Datum[]>(

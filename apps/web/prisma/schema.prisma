@@ -182,6 +182,7 @@ model Domain {
   slug        String   @unique
   verified    Boolean  @default(false)
   placeholder String   @default("https://dub.co/help/article/what-is-dub")
+  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
   primary     Boolean  @default(false)
   archived    Boolean  @default(false)
   lastChecked DateTime @default(now())
@@ -196,7 +197,6 @@ model Domain {
   lastClicked DateTime? // when the link was last clicked
   publicStats Boolean   @default(false)
   description String?
-  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
   noindex     Boolean  @default(false)
 
   // these attributes will exist on both Link and Domain models
