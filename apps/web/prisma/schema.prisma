@@ -19,15 +19,17 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  accounts         Account[]
-  sessions         Session[]
-  projects         ProjectUsers[]
-  links            Link[]
-  tokens           Token[]
-  createdAt        DateTime       @default(now())
-  subscribed       Boolean        @default(true)
-  source           String?
-  defaultWorkspace String?
+  accounts          Account[]
+  sessions          Session[]
+  projects          ProjectUsers[]
+  links             Link[]
+  tokens            Token[]
+  createdAt         DateTime           @default(now())
+  subscribed        Boolean            @default(true)
+  source            String?
+  defaultWorkspace  String?
+  oAuthCodes        OAuthCode[]
+  oAuthAccessTokens OAuthAccessToken[]
 
   @@index(source)
   @@index(defaultWorkspace)
@@ -93,25 +95,25 @@ model Project {
   slug String  @unique
   logo String?
 
-  plan              String   @default("free")
-  stripeId          String?  @unique // Stripe subscription ID
+  plan              String  @default("free")
+  stripeId          String? @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
-  stripeConnectId   String?  @unique // for Stripe Connect
-  inviteCode        String?  @unique
+  stripeConnectId   String? @unique // for Stripe Connect
+  inviteCode        String? @unique
 
-  usage             Int      @default(0)
-  usageLimit        Int      @default(1000)
-  aiUsage           Int      @default(0)
-  aiLimit           Int      @default(10)
-  linksUsage        Int      @default(0)
-  linksLimit        Int      @default(25)
-  domainsLimit      Int      @default(3)
-  tagsLimit         Int      @default(5)
-  usersLimit        Int      @default(1)
+  usage        Int @default(0)
+  usageLimit   Int @default(1000)
+  aiUsage      Int @default(0)
+  aiLimit      Int @default(10)
+  linksUsage   Int @default(0)
+  linksLimit   Int @default(25)
+  domainsLimit Int @default(3)
+  tagsLimit    Int @default(5)
+  usersLimit   Int @default(1)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  usageLastChecked  DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  usageLastChecked DateTime @default(now())
 
   users          ProjectUsers[]
   invites        ProjectInvite[]
@@ -121,6 +123,8 @@ model Project {
   tags           Tag[]
   customers      Customer[]
   defaultDomains DefaultDomains[]
+  oAuthClients   OAuthClient[]
+  oAuthCodes     OAuthCode[]
 
   @@index(usageLastChecked(sort: Asc))
 }
@@ -196,8 +200,8 @@ model Domain {
   lastClicked DateTime? // when the link was last clicked
   publicStats Boolean   @default(false)
   description String?
-  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
-  noindex     Boolean  @default(false)
+  expiredUrl  String?   @db.LongText // URL to redirect to for expired links
+  noindex     Boolean   @default(false)
 
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())
@@ -359,4 +363,69 @@ model jackson_ttl {
   expiresAt BigInt
 
   @@index([expiresAt], map: "_jackson_ttl_expires_at")
+}
+
+model OAuthClient {
+  id                 String   @id @default(cuid())
+  projectId          String
+  name               String
+  website            String
+  clientId           String   @unique
+  clientSecretHashed String
+  clientSecretAlias  String
+  redirectUris       Json
+  scopes             String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  project      Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  codes        OAuthCode[]
+  accessTokens OAuthAccessToken[]
+
+  @@index(projectId)
+}
+
+model OAuthCode {
+  id          String   @id @default(cuid())
+  clientId    String
+  userId      String
+  projectId   String // Workspace user granted access to
+  code        String   @unique
+  redirectUri String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  project Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client  OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+
+  @@index([clientId, code])
+}
+
+model OAuthAccessToken {
+  id          String   @id @default(cuid())
+  clientId    String
+  userId      String
+  accessToken String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client        OAuthClient         @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  refreshTokens OAuthRefreshToken[]
+
+  @@index(clientId)
+  @@index(userId)
+}
+
+model OAuthRefreshToken {
+  id            String   @id @default(cuid())
+  accessTokenId String
+  refreshToken  String   @unique
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  accessToken OAuthAccessToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
+
+  @@index(accessTokenId)
 }
