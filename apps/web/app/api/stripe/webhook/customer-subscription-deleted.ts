@@ -1,5 +1,5 @@
-import { deleteLink } from "@/lib/api/links";
 import { prisma } from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { FREE_PLAN, log } from "@dub/utils";
 import { sendEmail } from "emails";
@@ -12,7 +12,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const stripeId = subscriptionDeleted.customer.toString();
 
   // If a workspace deletes their subscription, reset their usage limit in the database to 1000.
-  // Also remove the root domain redirect for all their domains from Redis.
+  // Also remove the root domain link for all their domains from MySQL, Redis, and Tinybird
   const workspace = await prisma.project.findUnique({
     where: {
       stripeId,
@@ -21,6 +21,14 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       id: true,
       slug: true,
       domains: true,
+      links: {
+        where: {
+          key: "_root",
+        },
+        include: {
+          tags: true,
+        },
+      },
       users: {
         select: {
           user: {
@@ -44,16 +52,18 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
+  const workspaceLinks = workspace.links;
+
   const workspaceUsers = workspace.users.map(
     ({ user }) => user.email as string,
   );
 
   const pipeline = redis.pipeline();
-  // remove root domain redirect for all domains
-  workspace.domains.forEach((domain) => {
-    pipeline.hset(domain.slug.toLowerCase(), {
+  // remove root domain redirect for all domains from Redis
+  workspaceLinks.forEach(({ id, domain }) => {
+    pipeline.hset(domain.toLowerCase(), {
       _root: {
-        id: domain.id,
+        id,
         projectId: workspace.id,
       },
     });
@@ -74,7 +84,30 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         usersLimit: FREE_PLAN.limits.users!,
       },
     }),
+    // remove root domain link for all domains from MySQL
+    prisma.link.updateMany({
+      where: {
+        id: {
+          in: workspaceLinks.map(({ id }) => id),
+        },
+      },
+      data: {
+        url: "",
+      },
+    }),
     pipeline.exec(),
+    // record root domain link for all domains from Tinybird
+    recordLink(
+      workspaceLinks.map((link) => ({
+        link_id: link.id,
+        domain: link.domain,
+        key: link.key,
+        url: link.url,
+        tag_ids: link.tags.map((tag) => tag.tagId),
+        workspace_id: link.projectId,
+        created_at: link.createdAt,
+      })),
+    ),
     log({
       message:
         ":cry: Workspace *`" + workspace.slug + "`* deleted their subscription",
@@ -89,6 +122,5 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         text: "Hey!\n\nI noticed you recently cancelled your Dub.co subscription – we're sorry to see you go!\n\nI'd love to hear your feedback on your experience with Dub – what could we have done better?\n\nThanks!\n\nSteven Tey\nFounder, Dub.co",
       }),
     ),
-    workspace.domains.forEach((domain) => deleteLink(domain.id)),
   ]);
 }
