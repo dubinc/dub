@@ -26,7 +26,13 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
   const body = await parseRequestBody(req);
   const { slug, placeholder, expiredUrl } = createDomainBodySchema.parse(body);
 
-  if (workspace.domains.length >= workspace.domainsLimit) {
+  const totalDomains = await prisma.domain.count({
+    where: {
+      projectId: workspace.id,
+    },
+  });
+
+  if (totalDomains >= workspace.domainsLimit) {
     return new Response(
       exceededLimitError({
         plan: workspace.plan,
@@ -67,7 +73,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     data: {
       slug: slug,
       projectId: workspace.id,
-      primary: workspace.domains.length === 0,
+      primary: totalDomains === 0,
       ...(placeholder && { placeholder }),
       ...(workspace.plan !== "free" && {
         expiredUrl,

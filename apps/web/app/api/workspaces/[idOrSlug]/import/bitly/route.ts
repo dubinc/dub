@@ -52,10 +52,15 @@ export const GET = withWorkspace(async ({ workspace }) => {
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const { selectedDomains, selectedGroupTags } = await req.json();
 
+  const domains = await prisma.domain.findMany({
+    where: { projectId: workspace.id },
+    select: { slug: true },
+  });
+
   // check if there are domains that are not in the workspace
   // if yes, add them to the workspace
   const doaminsNotInWorkspace = selectedDomains.filter(
-    ({ domain }) => !workspace.domains?.find((d) => d.slug === domain),
+    ({ domain }) => !domains?.find((d) => d.slug === domain),
   );
 
   if (doaminsNotInWorkspace.length > 0) {
