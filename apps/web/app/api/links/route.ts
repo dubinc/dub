@@ -55,7 +55,9 @@ export const GET = withWorkspace(async ({ req, headers, workspace }) => {
 // POST /api/links – create a new link
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
-    throwIfLinksUsageExceeded(workspace);
+    if (workspace) {
+      throwIfLinksUsageExceeded(workspace);
+    }
 
     const body = createLinkBodySchema.parse(await parseRequestBody(req));
 
