@@ -83,7 +83,7 @@ export function NavLogo({
             setIsPopoverOpen(false);
           }}
         >
-          <div className="grid gap-1 rounded-lg border border-gray-200 bg-white p-2 drop-shadow-sm dark:border-white/[0.15] dark:bg-black sm:min-w-[240px]">
+          <div className="grid gap-1 rounded-lg border border-gray-200 bg-white p-2 drop-shadow-sm sm:min-w-[240px] dark:border-white/[0.15] dark:bg-black">
             <ContextMenuButton
               text="Copy Logo as SVG"
               variant="outline"
@@ -107,7 +107,12 @@ export function NavLogo({
               <ContextMenuButton
                 text="Home Page"
                 variant="outline"
-                onClick={() => window.open("https://dub.co", "_blank")}
+                onClick={() =>
+                  window.open(
+                    `https://dub.co${isInApp ? "/home" : ""}`,
+                    "_blank",
+                  )
+                }
                 icon={<Home strokeWidth={2} className="h-4 w-4" />}
               />
             ) : (
