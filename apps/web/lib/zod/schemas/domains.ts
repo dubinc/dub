@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { parseUrlSchema } from "./utils";
+import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const DomainSchema = z.object({
   id: z.string().describe("The unique identifier of the domain."),
@@ -43,7 +43,7 @@ export const createDomainBodySchema = z.object({
     .min(1, "slug cannot be empty.")
     .describe("Name of the domain.")
     .openapi({ example: "acme.com" }),
-  expiredUrl: parseUrlSchema
+  expiredUrl: parseUrlSchemaAllowEmpty
     .nullish()
     .describe(
       "Redirect users to a specific URL when any link under this domain has expired.",
@@ -57,7 +57,7 @@ export const createDomainBodySchema = z.object({
       "Whether to archive this domain. `false` will unarchive a previously archived domain.",
     )
     .openapi({ example: false }),
-  placeholder: parseUrlSchema
+  placeholder: parseUrlSchemaAllowEmpty
     .nullish()
     .default("https://dub.co/help/article/what-is-dub")
     .describe(
