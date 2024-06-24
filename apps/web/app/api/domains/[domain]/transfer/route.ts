@@ -1,5 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";

@@ -3,7 +3,7 @@ import {
   getDomainResponse,
   verifyDomain,
 } from "@/lib/api/domains";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";

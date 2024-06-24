@@ -1,4 +1,4 @@
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";

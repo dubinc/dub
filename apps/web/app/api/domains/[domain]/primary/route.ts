@@ -1,4 +1,4 @@
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DomainSchema } from "@/lib/zod/schemas/domains";

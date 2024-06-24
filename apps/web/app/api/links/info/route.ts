@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { transformLink } from "@/lib/api/links";
-import { getLinkOrThrow } from "@/lib/api/links/get-link";
+import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
