@@ -3,7 +3,7 @@ import { DubApiError, exceededLimitError } from "../errors";
 
 // Workspace clicks usage overage checks
 export const throwIfClicksUsageExceeded = (workspace: WorkspaceWithUsers) => {
-  if (workspace.usage >= workspace.usageLimit) {
+  if (workspace.usage > workspace.usageLimit) {
     throw new DubApiError({
       code: "forbidden",
       message: exceededLimitError({
