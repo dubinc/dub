@@ -46,6 +46,9 @@ export const POST = withWorkspace(
         prisma.projectUsers.count({
           where: {
             projectId: workspace.id,
+            user: {
+              isMachine: false,
+            },
           },
         }),
         prisma.projectInvite.count({
