@@ -253,6 +253,23 @@ export default function Toggle({
                 ) ?? null,
             },
             {
+              key: "root",
+              icon: Sliders,
+              label: "Link type",
+              options: [
+                {
+                  value: true,
+                  icon: Globe,
+                  label: "Root domain link",
+                },
+                {
+                  value: false,
+                  icon: Hyperlink,
+                  label: "Regular short link",
+                },
+              ],
+            },
+            {
               key: "tagId",
               icon: Tag,
               label: "Tag",
@@ -304,23 +321,6 @@ export default function Toggle({
             value: true,
             label: "QR Scan",
             icon: QRCode,
-          },
-        ],
-      },
-      {
-        key: "root",
-        icon: Sliders,
-        label: "Link type",
-        options: [
-          {
-            value: true,
-            icon: Globe,
-            label: "Root domain link",
-          },
-          {
-            value: false,
-            icon: Hyperlink,
-            label: "Short link",
           },
         ],
         separatorAfter: !isPublicStatsPage,
