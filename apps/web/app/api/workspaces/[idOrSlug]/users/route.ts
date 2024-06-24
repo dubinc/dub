@@ -135,14 +135,25 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const response = await prisma.projectUsers.delete({
-      where: {
-        userId_projectId: {
+    const [response] = await Promise.allSettled([
+      // Remove the user from the workspace
+      prisma.projectUsers.delete({
+        where: {
+          userId_projectId: {
+            projectId: workspace.id,
+            userId,
+          },
+        },
+      }),
+
+      // Remove tokens associated with the user from the workspace
+      prisma.restrictedToken.deleteMany({
+        where: {
           projectId: workspace.id,
           userId,
         },
-      },
-    });
+      }),
+    ]);
 
     if (projectUser.user.isMachine) {
       await prisma.user.delete({
