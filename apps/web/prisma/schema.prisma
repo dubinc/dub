@@ -370,11 +370,11 @@ model OAuthClient {
   projectId          String
   name               String
   website            String
+  description        String?
   clientId           String   @unique
   clientSecretHashed String
-  clientSecretAlias  String
-  redirectUris       Json
-  scopes             String
+  redirectUri        String
+  scopes             String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
