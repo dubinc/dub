@@ -26,15 +26,13 @@ export const getDomainOrThrow = async ({
   // if domain is defined:
   // - it's a dub domain and dubDomainChecks is required, check if the user is part of the dub workspace
   // - it's a custom domain, check if the domain belongs to the workspace
-  if (
-    isDubDomain(domain) &&
-    dubDomainChecks &&
-    workspace.id !== DUB_WORKSPACE_ID
-  ) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: `Domain ${domain} does not belong to workspace ws_${workspace.id}.`,
-    });
+  if (isDubDomain(domain)) {
+    if (dubDomainChecks && workspace.id !== DUB_WORKSPACE_ID) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: `Domain ${domain} does not belong to workspace ws_${workspace.id}.`,
+      });
+    }
   } else if (domainRecord.projectId !== workspace.id) {
     throw new DubApiError({
       code: "forbidden",
