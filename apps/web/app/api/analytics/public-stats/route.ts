@@ -17,7 +17,7 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   await getDomainOrThrow({
     workspace,
     domain,
-    domainChecks: true,
+    dubDomainChecks: true,
   });
 
   const response = await getLinkViaEdge(domain, key);
@@ -32,7 +32,7 @@ export const PUT = withWorkspace(async ({ req, searchParams, workspace }) => {
   await getDomainOrThrow({
     workspace,
     domain,
-    domainChecks: true,
+    dubDomainChecks: true,
   });
 
   const response = await prisma.link.update({

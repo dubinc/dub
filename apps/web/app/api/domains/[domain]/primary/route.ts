@@ -10,7 +10,7 @@ export const POST = withWorkspace(
     const { slug: domain } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
-      domainChecks: true,
+      dubDomainChecks: true,
     });
 
     const [domainRecord] = await Promise.all([

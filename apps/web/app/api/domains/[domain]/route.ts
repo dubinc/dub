@@ -23,7 +23,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const domainRecord = await getDomainOrThrow({
     workspace,
     domain: params.domain,
-    domainChecks: true,
+    dubDomainChecks: true,
   });
 
   return NextResponse.json(DomainSchema.parse(domainRecord));
@@ -35,7 +35,7 @@ export const PATCH = withWorkspace(
     const { slug: domain } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
-      domainChecks: true,
+      dubDomainChecks: true,
     });
 
     const {
@@ -135,7 +135,7 @@ export const DELETE = withWorkspace(
     const { slug: domain } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
-      domainChecks: true,
+      dubDomainChecks: true,
     });
 
     await deleteDomainAndLinks(domain);
