@@ -14,6 +14,7 @@ export * from "./mobile-phone";
 export * from "./office-building";
 export * from "./qrcode";
 export * from "./referred-via";
+export * from "./sliders";
 export * from "./tablet";
 export * from "./tag";
 export * from "./tv";
