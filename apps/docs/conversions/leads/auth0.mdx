@@ -27,6 +27,7 @@ Next, configure Auth0 to track a lead conversion event.
 
 ```typescript app/api/auth/[auth0]/route.js
 import { handleAuth, handleCallback, type Session } from "@auth0/nextjs-auth0";
+import { cookies } from "next/headers";
 import { dub } from "@/lib/dub";
 
 const afterCallback = async (req: Request, session: Session) => {
