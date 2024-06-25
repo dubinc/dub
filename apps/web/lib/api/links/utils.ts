@@ -150,6 +150,6 @@ export const transformLink = (link: LinkWithTags) => {
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
     qrCode: `https://api.dub.co/qr?url=${qrLink}`,
-    workspaceId: `ws_${link.projectId}`,
+    workspaceId: link.projectId ? `ws_${link.projectId}` : null,
   };
 };
