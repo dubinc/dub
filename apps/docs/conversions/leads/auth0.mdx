@@ -26,14 +26,32 @@ Then add the [`@dub/analytics` package](/sdks/js-client/overview) to your fronte
 Next, configure Auth0 to track a lead conversion event.
 
 ```typescript app/api/auth/[auth0]/route.js
-import { handleAuth, handleCallback } from "@auth0/nextjs-auth0";
-import { redirect } from "next/navigation";
+import { handleAuth, handleCallback, type Session } from "@auth0/nextjs-auth0";
+import { dub } from "@/lib/dub";
 
-const afterCallback = (req, session, state) => {
-  if (session.user.isAdmin) {
+const afterCallback = async (req: Request, session: Session) => {
+  const userExists = await getUser(session.user.email);
+
+  if (!userExists) {
+    createUser(session.user);
+    // check if dclid cookie is present
+    const clickId = cookies().get("dclid")?.value;
+    if (clickId) {
+      // send lead event to Dub
+      await dub.track.lead({
+        clickId,
+        eventName: "Sign Up",
+        customerId: session.user.id,
+        customerName: session.user.name,
+        customerEmail: session.user.email,
+        customerAvatar: session.user.image,
+      });
+      // delete the dclid cookie
+      cookies().set("dclid", "", {
+        expires: new Date(0),
+      });
+    }
     return session;
-  } else {
-    redirect("/unauthorized");
   }
 };
 
@@ -41,3 +59,10 @@ export default handleAuth({
   callback: handleCallback({ afterCallback }),
 });
 ```
+
+Here's how it works in a nutshell:
+
+1. In the sign in `afterCallback` function, check if the user is a new sign up.
+2. If the user is a new sign up, check if the `dclid` cookie is present.
+3. If the `dclid` cookie is present, send a lead event to Dub using `dub.track.lead`
+4. Delete the `dclid` cookie.
