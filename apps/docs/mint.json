@@ -112,7 +112,7 @@
           "group": "Sales",
           "icon": "money-bill",
           "pages": [
-            "conversions/sales/overview",
+            "conversions/sales/introduction",
             "conversions/sales/stripe",
             "conversions/sales/shopify"
           ]
