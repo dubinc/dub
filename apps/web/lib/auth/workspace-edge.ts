@@ -244,8 +244,8 @@ export const withWorkspaceEdge = (
         },
       })) as WorkspaceProps;
 
-      if (!workspace || !workspace.users.length) {
-        // workspace doesn't exist
+      // workspace doesn't exist
+      if (!workspace || !workspace.users) {
         throw new DubApiError({
           code: "not_found",
           message: "Workspace not found.",

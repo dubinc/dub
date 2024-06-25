@@ -1,15 +1,28 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import JSZip from "jszip";
 
 // GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace, link }) => {
+  async ({ searchParams, workspace }) => {
+    throwIfClicksUsageExceeded(workspace);
+
     const parsedParams = analyticsQuerySchema.parse(searchParams);
-    const { interval, start, end } = parsedParams;
+
+    const { interval, start, end, linkId, domain, key } = parsedParams;
+
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
+
+    const link =
+      domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -18,8 +31,6 @@ export const GET = withWorkspace(
       end,
       throwError: true,
     });
-
-    const linkId = link ? link.id : null;
 
     const zip = new JSZip();
 
@@ -36,7 +47,7 @@ export const GET = withWorkspace(
         const response = await getAnalytics({
           ...parsedParams,
           workspaceId: workspace.id,
-          ...(linkId && { linkId }),
+          ...(link && { linkId: link.id }),
           event: "clicks",
           groupBy: endpoint,
         });
@@ -57,7 +68,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    needNotExceededClicks: true,
     requiredScopes: ["analytics.read"],
   },
 );

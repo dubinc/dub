@@ -9,18 +9,20 @@ import {
 } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// DELETE /api/admin/links/[linkId]/ban – ban a link
-export const DELETE = withAdmin(async ({ params }) => {
-  const { linkId } = params as { linkId: string };
+// DELETE /api/admin/links/ban – ban a dub.sh link by key
+export const DELETE = withAdmin(async ({ searchParams }) => {
+  const { key } = searchParams as { linkId?: string; key?: string };
+
+  if (!key) {
+    return NextResponse.json({ error: "No key provided" }, { status: 400 });
+  }
 
   const link = await prisma.link.findUnique({
-    where: {
-      id: linkId,
-    },
+    where: { domain_key: { domain: "dub.sh", key } },
   });
 
   if (!link) {
-    return NextResponse.next();
+    return NextResponse.json({ error: "Link not found" }, { status: 404 });
   }
 
   const domain = getDomainWithoutWWW(link.url);
@@ -28,7 +30,7 @@ export const DELETE = withAdmin(async ({ params }) => {
   const response = await Promise.all([
     prisma.link.update({
       where: {
-        id: linkId,
+        id: link.id,
       },
       data: {
         userId: LEGAL_USER_ID,

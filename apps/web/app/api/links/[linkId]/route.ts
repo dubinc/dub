@@ -5,6 +5,7 @@ import {
   transformLink,
   updateLink,
 } from "@/lib/api/links";
+import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -15,13 +16,11 @@ import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withWorkspace(
-  async ({ headers, link }) => {
-    if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Link not found.",
-      });
-    }
+  async ({ headers, workspace, params }) => {
+    const link = await getLinkOrThrow({
+      workspace,
+      linkId: params.linkId,
+    });
 
     const tags = await prisma.tag.findMany({
       where: {
@@ -54,16 +53,13 @@ export const GET = withWorkspace(
 
 // PATCH /api/links/[linkId] – update a link
 export const PATCH = withWorkspace(
-  async ({ req, headers, workspace, link }) => {
-    if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Link not found.",
-      });
-    }
+  async ({ req, headers, workspace, params }) => {
+    const link = await getLinkOrThrow({
+      workspace,
+      linkId: params.linkId,
+    });
 
-    const bodyRaw = await parseRequestBody(req);
-    const body = updateLinkBodySchema.parse(bodyRaw);
+    const body = updateLinkBodySchema.parse(await parseRequestBody(req));
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
@@ -149,15 +145,15 @@ export const PUT = PATCH;
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withWorkspace(
-  async ({ headers, link }) => {
-    await deleteLink(link!.id);
+  async ({ headers, params, workspace }) => {
+    const link = await getLinkOrThrow({
+      workspace,
+      linkId: params.linkId,
+    });
 
-    return NextResponse.json(
-      { id: link!.id },
-      {
-        headers,
-      },
-    );
+    await deleteLink(link.id);
+
+    return NextResponse.json({ id: link.id }, { headers });
   },
   {
     requiredScopes: ["links.write"],

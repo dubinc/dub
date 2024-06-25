@@ -36,11 +36,21 @@ const updateWorkspaceSchema = z.object({
 export const GET = withWorkspace(
   async ({ workspace, headers }) => {
     const betaTester = await isBetaTester(workspace.id);
+    const domains = await prisma.domain.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        slug: true,
+        primary: true,
+      },
+    });
 
     return NextResponse.json(
       WorkspaceSchema.parse({
         ...workspace,
         id: `ws_${workspace.id}`,
+        domains,
         betaTester,
       }),
       { headers },

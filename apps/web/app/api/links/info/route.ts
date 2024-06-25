@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { transformLink } from "@/lib/api/links";
+import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
@@ -7,7 +8,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link
 export const GET = withWorkspace(
-  async ({ headers, searchParams, link }) => {
+  async ({ headers, searchParams, workspace }) => {
     const { domain, key, linkId, externalId } =
       getLinkInfoQuerySchema.parse(searchParams);
 
@@ -20,19 +21,13 @@ export const GET = withWorkspace(
       });
     }
 
-    if (!link) {
-      if (externalId && !externalId.startsWith("ext_")) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "Invalid externalId. Did you forget to prefix it with `ext_`?",
-        });
-      }
-      throw new DubApiError({
-        code: "not_found",
-        message: "Link not found.",
-      });
-    }
+    const link = await getLinkOrThrow({
+      workspace,
+      linkId,
+      externalId,
+      domain,
+      key,
+    });
 
     const tags = await prisma.tag.findMany({
       where: {

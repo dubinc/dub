@@ -235,9 +235,6 @@ importers:
       postmark:
         specifier: ^4.0.2
         version: 4.0.2
-      prisma:
-        specifier: ^5.15.1
-        version: 5.15.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -365,6 +362,9 @@ importers:
       postcss-import:
         specifier: ^15.1.0
         version: 15.1.0(postcss@8.4.31)
+      prisma:
+        specifier: ^5.15.1
+        version: 5.15.1
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -4772,7 +4772,6 @@ packages:
 
   /@prisma/debug@5.15.1:
     resolution: {integrity: sha512-NQjdEplhXEcPvf84ghxExC+LD+iTimbg3sZvA3BhybVQIocBEBxFf9GTHhmRVPmjrWoBaYJBVgEEBXZT27JTbQ==}
-    dev: false
 
   /@prisma/driver-adapter-utils@5.13.0:
     resolution: {integrity: sha512-SaimwvGuvXJTsWH+FOfl7PlkZZlPiRGeMEchC0kvB08Xw9B3CLYo/Q7zaY5Fp+u5D8asrpcFQmCjXEgDvOmPkg==}
@@ -4782,7 +4781,6 @@ packages:
 
   /@prisma/engines-version@5.15.1-1.5675a3182f972f1a8f31d16eee6abf4fd54910e3:
     resolution: {integrity: sha512-7csphKGCG6n/cN1MkT1mJvQ78Ir18IknlYZ8eyEoLKdQBb0HscR/6TyPmzqrMA7Rz01K1KeXqctwAqxtA/lKQg==}
-    dev: false
 
   /@prisma/engines@5.15.1:
     resolution: {integrity: sha512-1iTRxJEFvpBpEWf2bYiMG6LBBQhX7X+GA5piH+tmPWgc/v+/ElxQf2kjQxby8AErmZqtZkdoKJ7FSRjNjBPE9Q==}
@@ -4792,7 +4790,6 @@ packages:
       '@prisma/engines-version': 5.15.1-1.5675a3182f972f1a8f31d16eee6abf4fd54910e3
       '@prisma/fetch-engine': 5.15.1
       '@prisma/get-platform': 5.15.1
-    dev: false
 
   /@prisma/fetch-engine@5.15.1:
     resolution: {integrity: sha512-mj0wfsJ+mAdDp1ynT2JKxAXa+CoYMT267qF7g2Uv+oaVTI2CMfGWouMARht8T2QLTgl+gpXSFTwIYbcR+oWEtw==}
@@ -4800,13 +4797,11 @@ packages:
       '@prisma/debug': 5.15.1
       '@prisma/engines-version': 5.15.1-1.5675a3182f972f1a8f31d16eee6abf4fd54910e3
       '@prisma/get-platform': 5.15.1
-    dev: false
 
   /@prisma/get-platform@5.15.1:
     resolution: {integrity: sha512-oFccp7bYys+ZYkmtYzjR+0cRrGKvSuF+h5QhSkyEsYQ9kzJzQRvuWt2SiHRPt8xOQ4MTmujM+bP5uOexnnAHdQ==}
     dependencies:
       '@prisma/debug': 5.15.1
-    dev: false
 
   /@protobufjs/aspromise@1.1.2:
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -16297,7 +16292,6 @@ packages:
     requiresBuild: true
     dependencies:
       '@prisma/engines': 5.15.1
-    dev: false
 
   /prismjs@1.29.0:
     resolution: {integrity: sha512-Kx/1w86q/epKcmte75LNrEoT+lX8pBpavuAbvJWRXar7Hz8jrtF+e3vY751p0R8H9HdArwaCTNDDzHg/ScJK1Q==}

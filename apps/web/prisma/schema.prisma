@@ -205,6 +205,7 @@ model Domain {
   slug        String   @unique
   verified    Boolean  @default(false)
   placeholder String   @default("https://dub.co/help/article/what-is-dub")
+  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
   primary     Boolean  @default(false)
   archived    Boolean  @default(false)
   lastChecked DateTime @default(now())
@@ -219,7 +220,6 @@ model Domain {
   lastClicked DateTime? // when the link was last clicked
   publicStats Boolean   @default(false)
   description String?
-  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
   noindex     Boolean  @default(false)
 
   // these attributes will exist on both Link and Domain models
@@ -245,7 +245,7 @@ model Link {
 
   trackConversion Boolean @default(false) // whether to track conversions or not
 
-  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
+  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
@@ -290,8 +290,6 @@ model Link {
 
   // Comments on the particular shortlink
   comments String? @db.LongText
-
-  // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 
   @@unique([domain, key])
   @@unique([projectId, externalId])

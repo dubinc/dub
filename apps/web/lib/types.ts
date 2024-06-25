@@ -99,6 +99,8 @@ export interface WorkspaceProps {
   betaTester?: boolean;
 }
 
+export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
+
 export interface UserProps {
   id: string;
   name: string;
