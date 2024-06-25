@@ -2,14 +2,10 @@
 
 import { LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { UserInfoProps } from "./user-info";
 
 export default function RefreshDomain() {
-  const [data, setData] = useState<UserInfoProps | null>(null);
-
   return (
     <div className="flex flex-col space-y-5">
       <form

@@ -625,13 +625,13 @@ export default function LinkCard({
                         ) &&
                           (setOpenPopover(false),
                           toast.promise(
-                            fetch(`/api/admin/links/${id}/ban`, {
+                            fetch(`/api/admin/links/ban?key=${key}`, {
                               method: "DELETE",
                             }).then(async () => {
                               await mutate(
                                 (key) =>
                                   typeof key === "string" &&
-                                  key.startsWith("/api/admin/links"),
+                                  key.startsWith("/api/admin/links/ban"),
                                 undefined,
                                 { revalidate: true },
                               );
