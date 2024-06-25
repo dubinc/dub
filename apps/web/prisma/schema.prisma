@@ -268,6 +268,10 @@ model Link {
   // Comments on the particular shortlink
   comments String? @db.LongText
 
+  parentLink Link? @relation("LinkAliases", fields: [parentLinkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parentLinkId String?
+  childLinks Link[] @relation("LinkAliases")
+
   @@unique([domain, key])
   @@unique([projectId, externalId])
   @@index(projectId)
@@ -280,6 +284,7 @@ model Link {
   @@index(lastClicked)
   @@index(userId)
   @@fulltext([key, url])
+  @@index([parentLinkId])
 }
 
 model Tag {
