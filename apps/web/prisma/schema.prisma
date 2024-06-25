@@ -93,25 +93,27 @@ model Project {
   slug String  @unique
   logo String?
 
-  plan              String   @default("free")
-  stripeId          String?  @unique // Stripe subscription ID
-  billingCycleStart Int // day of the month when the billing cycle starts
-  stripeConnectId   String?  @unique // for Stripe Connect
-  inviteCode        String?  @unique
+  plan                     String  @default("free")
+  stripeId                 String? @unique // Stripe subscription ID
+  billingCycleStart        Int // day of the month when the billing cycle starts
+  stripeConnectId          String? @unique // for Stripe Connect
+  inviteCode               String? @unique
+  stripeConnectedAccountId String? // Connected account
+  stripeFinancialAccountId String? // Treasury financial account
 
-  usage             Int      @default(0)
-  usageLimit        Int      @default(1000)
-  aiUsage           Int      @default(0)
-  aiLimit           Int      @default(10)
-  linksUsage        Int      @default(0)
-  linksLimit        Int      @default(25)
-  domainsLimit      Int      @default(3)
-  tagsLimit         Int      @default(5)
-  usersLimit        Int      @default(1)
+  usage        Int @default(0)
+  usageLimit   Int @default(1000)
+  aiUsage      Int @default(0)
+  aiLimit      Int @default(10)
+  linksUsage   Int @default(0)
+  linksLimit   Int @default(25)
+  domainsLimit Int @default(3)
+  tagsLimit    Int @default(5)
+  usersLimit   Int @default(1)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  usageLastChecked  DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  usageLastChecked DateTime @default(now())
 
   users          ProjectUsers[]
   invites        ProjectInvite[]
@@ -197,7 +199,7 @@ model Domain {
   lastClicked DateTime? // when the link was last clicked
   publicStats Boolean   @default(false)
   description String?
-  noindex     Boolean  @default(false)
+  noindex     Boolean   @default(false)
 
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())
