@@ -1,0 +1,43 @@
+---
+title: "Auth0"
+"og:title": "Dub Conversions - Leads – Auth0"
+description: "Learn how to track a lead conversion event with Auth0"
+---
+
+import InstallTypescript from "/snippets/sdk-install-ts.mdx";
+import InstallDubAnalytics from "/snippets/dub-analytics-install.mdx";
+
+## Prerequisites
+
+First, install the [Dub TypeScript SDK](/sdks/typescript/overview).
+
+<Accordion title="Install the Dub TypeScript SDK">
+  <InstallTypescript />
+</Accordion>
+
+Then add the [`@dub/analytics` package](/sdks/js-client/overview) to your frontend code.
+
+<Accordion title="Install the Dub Analytics package">
+  <InstallDubAnalytics />
+</Accordion>
+
+## Configure Auth0
+
+Next, configure Auth0 to track a lead conversion event.
+
+```typescript app/api/auth/[auth0]/route.js
+import { handleAuth, handleCallback } from "@auth0/nextjs-auth0";
+import { redirect } from "next/navigation";
+
+const afterCallback = (req, session, state) => {
+  if (session.user.isAdmin) {
+    return session;
+  } else {
+    redirect("/unauthorized");
+  }
+};
+
+export default handleAuth({
+  callback: handleCallback({ afterCallback }),
+});
+```

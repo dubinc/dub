@@ -4,71 +4,15 @@ description: Client-side JavaScript SDK for for Dub Conversions
 icon: node-js
 ---
 
+import InstallDubAnalytics from "/snippets/dub-analytics-install.mdx";
+
 With Dub Analytics, you can track leads and sales conversions on your website, enabling you to measure the effectiveness of your marketing campaigns.
 
 ## Quickstart
 
 This quick start guide will show you how to get started with Dub Analytics on your website.
 
-<Steps>
-
-  <Step title="Install `@dub/analytics` to your project">
-    Using the package manager of your choice, add the `@dub/analytics` to your project.
-
-    <CodeGroup>
-
-      ```bash npm
-      npm install @dub/analytics
-      ```
-
-      ```bash pnpm
-      pnpm add @dub/analytics
-      ```
-
-      ```bash yarn
-      yarn add @dub/analytics
-      ```
-
-      ```bash bun
-      bun add @dub/analytics
-      ```
-
-    </CodeGroup>
-
-  </Step>
-  
-  <Step title="Use `<Analytics />` in your project">
-    If you are using a React framework, you can use the `<Analytics />` component to track conversions on your website.
-
-    E.g. if you're using Next.js, you can add the `<Analytics />` component to your root layout component or any other pages where you want to track conversions.
-
-    ```jsx app/layout.tsx
-    import { Analytics as DubAnalytics } from '@dub/analytics/react';
-
-    export default function RootLayout({
-      children,
-    }: Readonly<{
-      children: React.ReactNode;
-    }>) {
-      return (
-        <html lang="en">
-          <body>{children}</body>
-          <DubAnalytics />
-        </html>
-      );
-    }
-    ```
-
-    You can use the `inject()` function to add the tracking script to other frameworks.
-
-    ```jsx index.js
-    import { inject } from '@dub/analytics';
-
-    inject();
-    ```
-
-  </Step>
-</Steps>
+<InstallDubAnalytics />
 
 ## Concepts
 

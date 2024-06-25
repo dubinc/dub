@@ -94,6 +94,32 @@
       "pages": ["integrations", "examples"]
     },
     {
+      "group": "Conversions (BETA)",
+      "pages": [
+        "conversions/quickstart",
+        {
+          "group": "Leads",
+          "icon": "crosshairs",
+          "pages": [
+            "conversions/leads/introduction",
+            "conversions/leads/next-auth",
+            "conversions/leads/clerk",
+            "conversions/leads/supabase-auth",
+            "conversions/leads/auth0"
+          ]
+        },
+        {
+          "group": "Sales",
+          "icon": "money-bill",
+          "pages": [
+            "conversions/sales/overview",
+            "conversions/sales/stripe",
+            "conversions/sales/shopify"
+          ]
+        }
+      ]
+    },
+    {
       "group": "Open source",
       "pages": ["local-development", "self-hosting"]
     },
@@ -157,7 +183,7 @@
       "pages": ["api-reference/endpoint/retrieve-metatags"]
     },
     {
-      "group": "Conversions [BETA]",
+      "group": "Conversions (BETA)",
       "pages": [
         "api-reference/endpoint/track-lead",
         "api-reference/endpoint/track-sale",
@@ -229,7 +255,9 @@
     "maintainOrder": true
   },
   "feedback": {
-    "thumbsRating": true
+    "thumbsRating": true,
+    "suggestEdit": true,
+    "raiseIssue": true
   },
   "footerSocials": {
     "twitter": "https://twitter.com/dubdotco",

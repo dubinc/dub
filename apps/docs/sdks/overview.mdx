@@ -1,10 +1,30 @@
 ---
 title: "Overview"
-description: "Open-source client libraries for the Dub.co API"
+description: "Libraries and tools for building your Dub integration."
 icon: code
 ---
 
-## Official SDKs
+## Server-side SDKs
+
+Dub offers a variety of server-side helper libraries to reduce the amount of work required to use Dub's REST APIs. Below are the installation instructions for these libraries in a variety of popular server-side programming languages:
+
+<CodeGroup>
+
+```bash TypeScript
+npm install dub
+```
+
+```bash Go
+go get github.com/dubinc/dub-go
+```
+
+```bash Python
+pip install dub
+```
+
+</CodeGroup>
+
+You can also reference the official documentation for each language to see how to leverage Dub's server-side SDKs in your applications:
 
 <CardGroup cols={2}>
   <Card title="TypeScript" icon="npm" href="/sdks/typescript/overview">
@@ -18,7 +38,9 @@ icon: code
   </Card>
 </CardGroup>
 
-## Client-side SDKs
+## Web SDKs
+
+Dub provides the following web client SDKs to enable integrations with [Dub Conversions](/conversions/overview).
 
 <CardGroup cols={2}>
   <Card title="@dub/analytics" icon="node-js" href="/sdks/js-client/overview">
@@ -26,7 +48,9 @@ icon: code
   </Card>
 </CardGroup>
 
-## Community SDKs
+## Community libraries
+
+The following is a list of community-supported libraries. These libraries are not officially supported by Dub, and we cannot guarantee their accuracy or completeness. However, they are open source, so feel free to fork and modify them as you see fit.
 
 <CardGroup cols={2}>
   <Card title="Flutter (Dart)" icon="github" href="https://d.to/dart">
