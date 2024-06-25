@@ -14,6 +14,34 @@ describe.sequential("POST /links", async () => {
   const { workspaceId } = workspace;
   const projectId = workspaceId.replace("ws_", "");
 
+  test("public link", async () => {
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain: "dub.sh",
+        publicStats: true,
+      },
+      headers: {
+        Authorization: "",
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      publicStats: true,
+      rewrite: false,
+      userId: null,
+      projectId: null,
+      workspaceId: null,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
+    });
+  });
+
   test("default domain", async () => {
     const externalId = randomId();
 
