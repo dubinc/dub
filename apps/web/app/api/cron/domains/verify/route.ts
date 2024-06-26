@@ -114,8 +114,6 @@ export async function GET(req: Request) {
           verified: newVerified,
           primary,
           changed,
-          clicks: domain.clicks,
-          linksCount: _count.links - 1 || 0,
         });
 
         return {
