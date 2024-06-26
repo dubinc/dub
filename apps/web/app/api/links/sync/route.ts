@@ -1,5 +1,6 @@
 import { exceededLimitError } from "@/lib/api/errors";
-import { propagateBulkLinkChanges } from "@/lib/api/links";
+import { propagateBulkLinkChanges } from "@/lib/api/links/propagate-bulk-link-changes";
+import { updateLinksUsage } from "@/lib/api/links/update-links-usage";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SimpleLinkProps } from "@/lib/types";
@@ -70,6 +71,10 @@ export const POST = withWorkspace(async ({ req, session, workspace }) => {
         publicStats: false,
       })),
     ),
+    updateLinksUsage({
+      workspaceId: workspace.id,
+      increment: unclaimedLinks.length,
+    }),
   ]);
 
   return NextResponse.json(response);
