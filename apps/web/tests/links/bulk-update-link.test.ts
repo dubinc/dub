@@ -55,6 +55,7 @@ test("PATCH /links/bulk", async (ctx) => {
     userId: user.id,
     projectId,
     workspaceId,
+    tagId: "clvkopm8b0009nf98azsp9epk",
     tags: [
       {
         id: "clvkopm8b0009nf98azsp9epk",
