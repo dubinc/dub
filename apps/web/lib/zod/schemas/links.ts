@@ -262,7 +262,6 @@ export const bulkUpdateLinksBodySchema = z.object({
       id: true,
       domain: true,
       key: true,
-      url: true,
       externalId: true,
       prefix: true,
     })

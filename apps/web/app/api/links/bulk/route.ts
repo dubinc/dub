@@ -5,12 +5,11 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ProcessedLinkProps } from "@/lib/types";
+import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   bulkCreateLinksBodySchema,
   bulkUpdateLinksBodySchema,
 } from "@/lib/zod/schemas/links";
-import { parseDateTime } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links
@@ -106,9 +105,9 @@ export const POST = withWorkspace(
         // remove link from validLinks and add error to errorLinks
         validLinks = validLinks.filter((_, i) => i !== index);
         errorLinks.push({
-          link,
           error: `Invalid tagIds detected: ${invalidTagIds.join(", ")}`,
           code: "unprocessable_entity",
+          link,
         });
       }
 
@@ -118,9 +117,9 @@ export const POST = withWorkspace(
       if (invalidTagNames?.length) {
         validLinks = validLinks.filter((_, i) => i !== index);
         errorLinks.push({
-          link,
           error: `Invalid tagNames detected: ${invalidTagNames.join(", ")}`,
           code: "unprocessable_entity",
+          link,
         });
       }
     });
@@ -140,29 +139,29 @@ export const PATCH = withWorkspace(
     const { linkIds, data } = bulkUpdateLinksBodySchema.parse(
       await parseRequestBody(req),
     );
-    const validLinkIds = await prisma.link
-      .findMany({
-        where: {
-          id: { in: linkIds },
-          projectId: workspace.id,
-        },
-      })
-      .then((links) => links.map(({ id }) => id));
 
-    if (validLinkIds.length !== linkIds.length) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Invalid link IDs: ${linkIds.filter((id) => !validLinkIds.includes(id)).join(", ")}`,
-      });
-    }
-
-    if (validLinkIds.length === 0) {
+    if (linkIds.length === 0) {
       return NextResponse.json("No links to update", { headers });
     }
 
+    const links = await prisma.link.findMany({
+      where: {
+        id: { in: linkIds },
+        projectId: workspace.id,
+      },
+    });
+
+    // linkIds that don't exist
+    let errorLinks = linkIds
+      .filter((id) => links.find((link) => link.id === id) === undefined)
+      .map((id) => ({
+        error: "Link not found",
+        code: "not_found",
+        link: { id },
+      }));
+
     let { tagNames, expiresAt } = data;
     const tagIds = combineTagIds(data);
-
     // tag checks
     if (tagIds && tagIds.length > 0) {
       const tags = await prisma.tag.findMany({
@@ -197,29 +196,54 @@ export const PATCH = withWorkspace(
       }
     }
 
-    // expiration date checks
-    if (expiresAt) {
-      const datetime = parseDateTime(expiresAt);
-      if (!datetime) {
-        throw new DubApiError({
-          code: "unprocessable_entity",
-          message: "Invalid expiration date.",
-        });
-      }
-      expiresAt = datetime.toISOString();
-    }
+    const processedLinks = await Promise.all(
+      links.map(async (link) =>
+        processLink({
+          payload: {
+            ...link,
+            expiresAt:
+              link.expiresAt instanceof Date
+                ? link.expiresAt.toISOString()
+                : link.expiresAt,
+            geo: link.geo as NewLinkProps["geo"],
+            ...data,
+          },
+          workspace,
+          userId: link.userId ?? undefined,
+          bulk: true,
+          skipKeyChecks: true,
+        }),
+      ),
+    );
 
-    const response = await bulkUpdateLinks({
-      linkIds: validLinkIds,
-      data: {
-        ...data,
-        tagIds,
-        expiresAt,
-      },
-      workspaceId: workspace.id,
-    });
+    const validLinkIds = processedLinks
+      .filter(({ error }) => error == null)
+      .map(({ link }) => link.id) as string[];
 
-    return NextResponse.json(response, { headers });
+    errorLinks = errorLinks.concat(
+      processedLinks
+        .filter(({ error }) => error != null)
+        .map(({ link, error, code }) => ({
+          error: error as string,
+          code: code as string,
+          link,
+        })),
+    );
+
+    const response =
+      validLinkIds.length > 0
+        ? await bulkUpdateLinks({
+            linkIds: validLinkIds,
+            data: {
+              ...data,
+              tagIds,
+              expiresAt,
+            },
+            workspaceId: workspace.id,
+          })
+        : [];
+
+    return NextResponse.json([...response, ...errorLinks], { headers });
   },
   {
     requiredPlan: [
