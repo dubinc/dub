@@ -98,6 +98,7 @@ model Project {
   billingCycleStart Int // day of the month when the billing cycle starts
   stripeConnectId   String? @unique // for Stripe Connect
   stripeFinancialId String? // Treasury financial account
+  connectOnboardingFinished Boolean @default(false)
   inviteCode        String? @unique
 
   usage        Int @default(0)

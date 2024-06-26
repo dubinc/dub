@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/[idOrSlug]/referrals/stripe/account-links  - create a link for the user to onboard to a connected account
@@ -21,12 +22,10 @@ export const POST = withWorkspace(async ({ workspace }) => {
 
   const accountLink = await stripe.accountLinks.create({
     account: workspace.stripeConnectId,
-    refresh_url: "https://example.com/reauth",
-    return_url: "https://example.com/return",
     type: "account_onboarding",
+    refresh_url: `${APP_DOMAIN_WITH_NGROK}/${workspace.slug}/settings/referrals?refresh=true`,
+    return_url: `${APP_DOMAIN_WITH_NGROK}/${workspace.slug}/settings/referrals?return=true`,
   });
-
-  console.log(accountLink);
 
   console.info(
     `[Stripe Treasury] Account link created for the workspace ${workspace.id}`,

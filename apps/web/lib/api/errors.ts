@@ -140,6 +140,17 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
     };
   }
 
+  if (error?.type === "StripeInvalidRequestError") {
+    return {
+      error: {
+        code: "bad_request",
+        message: error.message,
+        doc_url: `${docErrorUrl}#bad-request`,
+      },
+      status: 400,
+    };
+  }
+
   // Fallback
   // Unhandled errors are not user-facing, so we don't expose the actual error
   return {

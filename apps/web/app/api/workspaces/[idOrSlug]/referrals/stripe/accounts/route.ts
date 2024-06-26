@@ -1,12 +1,10 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
-// TODO:
-// Restrict only for US users
-
-// POST /api/[idOrSlug]/referrals/stripe/accounts - create a connected account & Treasury financial account for the workspace
+// POST /api/workspaces/[idOrSlug]/referrals/stripe/accounts - create a connect & financial account for the workspace
 export const POST = withWorkspace(async ({ workspace, session }) => {
   let stripeConnectId = workspace?.stripeConnectId;
   let stripeFinancialId = workspace?.stripeFinancialId;
@@ -20,7 +18,8 @@ export const POST = withWorkspace(async ({ workspace, session }) => {
     const account = await stripe.accounts.create({
       country: "US",
       email: session.user.email,
-      business_type: "company",
+      // business_type: "company",
+      business_type: "individual",
       controller: {
         stripe_dashboard: { type: "none" },
         fees: { payer: "application" },
@@ -47,14 +46,13 @@ export const POST = withWorkspace(async ({ workspace, session }) => {
       {
         supported_currencies: ["usd"],
         features: {
-          // Adding funds to a FinancialAccount from another Account with the same owner.
           inbound_transfers: { ach: { requested: true } },
-
-          // Initiating money movement out of the FinancialAccount to someone else's bucket of money.
           outbound_payments: {
             ach: { requested: true },
             us_domestic_wire: { requested: true },
           },
+          financial_addresses: { aba: { requested: true } },
+          intra_stripe_flows: { requested: true },
         },
       },
       { stripeAccount: stripeConnectId },
@@ -76,4 +74,27 @@ export const POST = withWorkspace(async ({ workspace, session }) => {
   });
 
   return NextResponse.json(workspaceUpdated);
+});
+
+// GET /api/workspaces/[idOrSlug]/referrals/stripe/accounts - get the financial account for the workspace
+export const GET = withWorkspace(async ({ workspace }) => {
+  const stripeConnectId = workspace.stripeConnectId;
+  const stripeFinancialId = workspace.stripeFinancialId;
+
+  if (!stripeConnectId || !stripeFinancialId) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `[Stripe Treasury] Connect or Financial account not found for workspace ${workspace.id}`,
+    });
+  }
+
+  const financialAccount = await stripe.treasury.financialAccounts.retrieve(
+    stripeFinancialId,
+    { stripeAccount: stripeConnectId },
+  );
+
+  // TODO:
+  // We may not want to expose the full financial account details to the client
+
+  return NextResponse.json(financialAccount);
 });
