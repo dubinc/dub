@@ -105,9 +105,9 @@ export const POST = withWorkspace(
         // remove link from validLinks and add error to errorLinks
         validLinks = validLinks.filter((_, i) => i !== index);
         errorLinks.push({
-          link,
           error: `Invalid tagIds detected: ${invalidTagIds.join(", ")}`,
           code: "unprocessable_entity",
+          link,
         });
       }
 
@@ -117,9 +117,9 @@ export const POST = withWorkspace(
       if (invalidTagNames?.length) {
         validLinks = validLinks.filter((_, i) => i !== index);
         errorLinks.push({
-          link,
           error: `Invalid tagNames detected: ${invalidTagNames.join(", ")}`,
           code: "unprocessable_entity",
+          link,
         });
       }
     });
@@ -155,9 +155,9 @@ export const PATCH = withWorkspace(
     let errorLinks = linkIds
       .filter((id) => links.find((link) => link.id === id) === undefined)
       .map((id) => ({
-        link: { id },
         error: "Link not found",
         code: "not_found",
+        link: { id },
       }));
 
     let { tagNames, expiresAt } = data;
@@ -224,21 +224,24 @@ export const PATCH = withWorkspace(
       processedLinks
         .filter(({ error }) => error != null)
         .map(({ link, error, code }) => ({
-          link,
           error: error as string,
           code: code as string,
+          link,
         })),
     );
 
-    const response = await bulkUpdateLinks({
-      linkIds: validLinkIds,
-      data: {
-        ...data,
-        tagIds,
-        expiresAt,
-      },
-      workspaceId: workspace.id,
-    });
+    const response =
+      validLinkIds.length > 0
+        ? await bulkUpdateLinks({
+            linkIds: validLinkIds,
+            data: {
+              ...data,
+              tagIds,
+              expiresAt,
+            },
+            workspaceId: workspace.id,
+          })
+        : [];
 
     return NextResponse.json([...response, ...errorLinks], { headers });
   },
