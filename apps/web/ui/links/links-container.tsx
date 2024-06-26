@@ -2,15 +2,16 @@
 
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
-import { MaxWidthWrapper } from "@dub/ui";
+import { Filter, MaxWidthWrapper } from "@dub/ui";
 import { Suspense, useRef } from "react";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
-import LinkFilters, { SearchBox } from "./link-filters";
+import { SearchBox } from "./link-filters";
 import LinkPagination from "./link-pagination";
 import LinkSort from "./link-sort";
 import NoLinksPlaceholder from "./no-links-placeholder";
+import { useLinkFilters } from "./use-link-filters";
 
 export default function LinksContainer({
   AddEditLinkButton,
@@ -22,25 +23,39 @@ export default function LinksContainer({
   const { LinkFiltersButton, LinkFiltersModal } = useLinkFiltersModal();
   const searchInputRef = useRef();
 
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    useLinkFilters();
+
   return (
     <>
       <LinkFiltersModal />
-      <MaxWidthWrapper className="flex flex-col space-y-3 py-3">
-        <div className="flex h-10 w-full justify-center lg:justify-end">
-          <LinkFiltersButton />
-          <Suspense>
-            <LinkSort />
-          </Suspense>
-        </div>
-        <div className="block lg:hidden">
-          <SearchBox searchInputRef={searchInputRef} />
-        </div>
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
-          <div className="scrollbar-hide sticky top-32 col-span-2 hidden max-h-[calc(100vh-150px)] self-start overflow-auto rounded-lg border border-gray-100 bg-white shadow lg:block">
+      <MaxWidthWrapper className="flex flex-col space-y-3 pb-3">
+        <div className="flex grow items-center justify-start gap-2">
+          <div className="w-72 max-w-full">
+            <SearchBox searchInputRef={searchInputRef} />
+          </div>
+          <div className="shrink-0">
+            <Filter.Select
+              filters={filters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+          </div>
+          <div className="grow-0">
             <Suspense>
-              <LinkFilters />
+              <LinkSort />
             </Suspense>
           </div>
+        </div>
+        <div>
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFilters}
+            onRemove={onRemove}
+            onRemoveAll={onRemoveAll}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
           <div className="col-span-1 auto-rows-min grid-cols-1 lg:col-span-5">
             <ul className="grid min-h-[66.5vh] auto-rows-min gap-3">
               {links && !isValidating ? (

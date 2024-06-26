@@ -17,6 +17,8 @@ export * from "./referred-via";
 export * from "./sliders";
 export * from "./tablet";
 export * from "./tag";
+export * from "./trash";
 export * from "./tv";
+export * from "./user";
 export * from "./watch";
 export * from "./window";

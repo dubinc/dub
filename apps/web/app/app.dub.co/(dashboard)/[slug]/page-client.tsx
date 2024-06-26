@@ -21,9 +21,9 @@ export default function WorkspaceLinksClient() {
   return (
     <>
       <AddEditLinkModal />
-      <div className="flex h-36 items-center border-b border-gray-200 bg-white">
+      <div className="mt-10 flex items-center">
         <MaxWidthWrapper>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between py-3">
             <h1 className="text-2xl font-semibold tracking-tight text-black">
               Links
             </h1>
