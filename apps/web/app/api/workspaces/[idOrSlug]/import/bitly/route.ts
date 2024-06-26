@@ -1,4 +1,5 @@
 import { addDomainToVercel } from "@/lib/api/domains";
+import { bulkCreateLinks } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -59,22 +60,31 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
 
   // check if there are domains that are not in the workspace
   // if yes, add them to the workspace
-  const doaminsNotInWorkspace = selectedDomains.filter(
+  const domainsNotInWorkspace = selectedDomains.filter(
     ({ domain }) => !domains?.find((d) => d.slug === domain),
   );
 
-  if (doaminsNotInWorkspace.length > 0) {
+  if (domainsNotInWorkspace.length > 0) {
     await Promise.allSettled([
       prisma.domain.createMany({
-        data: doaminsNotInWorkspace.map(({ domain }) => ({
+        data: domainsNotInWorkspace.map(({ domain }) => ({
           slug: domain,
           projectId: workspace.id,
           primary: false,
         })),
         skipDuplicates: true,
       }),
-      doaminsNotInWorkspace.map(({ domain }) => addDomainToVercel(domain)),
+      domainsNotInWorkspace.flatMap(({ domain }) => addDomainToVercel(domain)),
     ]);
+    await bulkCreateLinks({
+      links: domainsNotInWorkspace.map(({ domain }) => ({
+        domain,
+        key: "_root",
+        url: "",
+        userId: session?.user?.id,
+        projectId: workspace.id,
+      })),
+    });
   }
 
   // convert data to array of groups with their respective domains

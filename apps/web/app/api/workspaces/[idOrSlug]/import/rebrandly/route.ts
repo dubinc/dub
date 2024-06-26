@@ -1,4 +1,5 @@
 import { addDomainToVercel } from "@/lib/api/domains";
+import { bulkCreateLinks } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -90,6 +91,15 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       }),
       domainsNotInWorkspace.map(({ domain }) => addDomainToVercel(domain)),
     ]);
+    await bulkCreateLinks({
+      links: domainsNotInWorkspace.map(({ domain }) => ({
+        domain,
+        key: "_root",
+        url: "",
+        userId: session?.user?.id,
+        projectId: workspace.id,
+      })),
+    });
   }
 
   const response = await Promise.all(

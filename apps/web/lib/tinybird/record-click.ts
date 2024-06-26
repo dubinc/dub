@@ -72,7 +72,7 @@ export async function recordClick({
           region: geo?.region || "Unknown",
           latitude: geo?.latitude || "Unknown",
           longitude: geo?.longitude || "Unknown",
-          device: capitalize(ua.device.type) || "Unknown",
+          device: capitalize(ua.device.type) || "Desktop",
           device_vendor: ua.device.vendor || "Unknown",
           device_model: ua.device.model || "Unknown",
           browser: ua.browser.name || "Unknown",
