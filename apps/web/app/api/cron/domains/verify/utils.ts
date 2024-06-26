@@ -75,8 +75,8 @@ export const handleDomainUpdates = async ({
 
   // if domain is invalid for more than 30 days, check if we can delete it
   if (invalidDays >= 30) {
-    // Don't delete the domain (manual inspection required) if:
-    // - there are still links associated with the domain and those links have clicks
+    // Don't delete the domain (manual inspection required)
+    // if the links for the domain have clicks recorded
     const linksClicks = await prisma.link.aggregate({
       _sum: {
         clicks: true,
