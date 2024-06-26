@@ -265,9 +265,6 @@ export const bulkUpdateLinksBodySchema = z.object({
       url: true,
       externalId: true,
       prefix: true,
-      clicks: true,
-      lastClicked: true,
-      createdAt: true,
     })
     .merge(
       z.object({
