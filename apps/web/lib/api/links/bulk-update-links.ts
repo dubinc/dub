@@ -9,14 +9,12 @@ import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function bulkUpdateLinks(
-  params: z.infer<typeof bulkUpdateLinksBodySchema> & {
-    workspaceId: string;
-    url?: string;
-  },
+  params: z.infer<typeof bulkUpdateLinksBodySchema> & { workspaceId: string },
 ) {
-  const { linkIds, data, workspaceId, url } = params;
+  const { linkIds, data, workspaceId } = params;
 
   const {
+    url,
     title,
     description,
     image,
