@@ -85,7 +85,7 @@ export const handleDomainUpdates = async ({
         domain,
       },
     });
-    if (linksClicks._sum?.clicks) {
+    if (linksClicks._sum.clicks && linksClicks._sum.clicks > 0) {
       return await log({
         message: `Domain *${domain}* has been invalid for > 30 days but has links with clicks, skipping.`,
         type: "cron",
