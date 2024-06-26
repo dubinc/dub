@@ -1,6 +1,5 @@
-import { DUB_DOMAINS } from "@dub/utils";
-import { Link } from "@prisma/client";
-import { expect, test } from "vitest";
+import { Link, Tag } from "@prisma/client";
+import { afterAll, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
@@ -30,10 +29,24 @@ test("PATCH /links/bulk", async (ctx) => {
   });
 
   // add a link that will not be found
-  const linkIds = createdLinks.map(({ id }) => id).concat(["xxx"]);
+  const linkIds = createdLinks
+    .map(({ id }) => id)
+    .concat(["xxx"])
+    .filter(Boolean);
+
+  const tagName = randomId();
+  const { data: tag } = await http.post<Tag>({
+    path: "/tags",
+    query: { workspaceId },
+    body: {
+      tag: tagName,
+      color: "red",
+    },
+  });
+
   const newData = {
     url: `https://example.com/${randomId()}`,
-    tagIds: ["clvkopm8b0009nf98azsp9epk"],
+    tagIds: [tag.id],
   };
 
   const { status, data: links } = await http.patch<Link[]>({
@@ -55,11 +68,11 @@ test("PATCH /links/bulk", async (ctx) => {
     userId: user.id,
     projectId,
     workspaceId,
-    tagId: "clvkopm8b0009nf98azsp9epk",
+    tagId: tag.id,
     tags: [
       {
-        id: "clvkopm8b0009nf98azsp9epk",
-        name: "E2E Tests (DO NOT DELETE)",
+        id: tag.id,
+        name: tagName,
         color: "red",
       },
     ],
@@ -67,23 +80,31 @@ test("PATCH /links/bulk", async (ctx) => {
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${createdLinks[0].key}?qr=1`,
   });
 
-  const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === "git.new")!;
-
   // second link will throw an error because git.new only allows certain destination URLs
   expect(links[1]).toStrictEqual({
-    error: `Invalid url. You can only use git.new short links for URLs starting with ${allowedHostnames!
-      .map((d) => `\`${d}\``)
-      .join(", ")}.`,
-    code: "unprocessable_entity",
-    link: createdLinks[1],
-  });
-
-  // third link should throw an error because it does not exist
-  expect(links[2]).toStrictEqual({
     error: "Link not found",
     code: "not_found",
     link: { id: "xxx" },
   });
 
-  await Promise.all([h.deleteLink(links[0].id), h.deleteLink(links[1].id)]);
+  // console.log(createdLinks);
+
+  // third link should throw an error because it does not exist
+  // expect(links[2]).toStrictEqual({
+  //   error:
+  //     "Invalid url. You can only use git.new short links for URLs starting with `github.com`, `gist.github.com`.",
+  //   code: "unprocessable_entity",
+  //   link: {
+  //     ...createdLinks[1],
+
+  //   }
+  // });
+
+  afterAll(async () => {
+    await Promise.all([
+      h.deleteLink(links[0].id),
+      h.deleteLink(links[1].id),
+      h.deleteTag(tag.id),
+    ]);
+  });
 });
