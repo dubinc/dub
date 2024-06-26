@@ -97,7 +97,7 @@ model RestrictedToken {
   scopes     String? // space separated (Eg: "read:links write:links")
   expires    DateTime?
   lastUsed   DateTime?
-  rateLimit  Int // rate limit for the token
+  rateLimit  Int       @default(600) // rate limit per minute
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   userId     String
@@ -106,6 +106,7 @@ model RestrictedToken {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@index([projectId])
 }
 

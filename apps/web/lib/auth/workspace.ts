@@ -155,7 +155,7 @@ export const withWorkspace = (
         }
 
         // Rate limit checks for API keys
-        const rateLimit = token?.rateLimit || 600;
+        const rateLimit = token.rateLimit || 600;
 
         const { success, limit, reset, remaining } = await ratelimit(
           rateLimit,
