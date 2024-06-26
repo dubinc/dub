@@ -44,6 +44,10 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("[BETA]: The Stripe Connect ID of the workspace."),
+    stripeFinancialId: z
+      .string()
+      .nullable()
+      .describe("[BETA]: The Stripe Financial ID of the workspace."),
     createdAt: z
       .date()
       .describe("The date and time when the workspace was created."),

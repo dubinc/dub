@@ -85,7 +85,7 @@ export interface WorkspaceProps {
   stripeId: string | null;
   billingCycleStart: number;
   stripeConnectId: string | null;
-  stripeConnectedAccountId: string | null;
+  stripeFinancialId: string | null;
   createdAt: Date;
   domains: {
     id: string;
