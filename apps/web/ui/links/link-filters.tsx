@@ -82,7 +82,7 @@ export default function LinkFilters() {
           {showClearButton && <ClearButton searchInputRef={searchInputRef} />}
         </div>
         <div className="hidden lg:block">
-          <SearchBox searchInputRef={searchInputRef} />
+          {/* <SearchBox searchInputRef={searchInputRef} /> */}
         </div>
       </div>
       <DomainsFilter />
@@ -120,7 +120,8 @@ const ClearButton = ({ searchInputRef }) => {
   );
 };
 
-export const SearchBox = ({ searchInputRef }) => {
+export const SearchBox = () => {
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const debounced = useDebouncedCallback((value) => {
@@ -153,10 +154,12 @@ export const SearchBox = ({ searchInputRef }) => {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onKeyDown]);
 
+  const searchValue = searchInputRef.current?.value ?? "";
+
   return (
     <div className="relative">
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-        {isValidating && searchInputRef.current?.value.length > 0 ? (
+        {isValidating && searchValue.length > 0 ? (
           <LoadingSpinner className="h-4 w-4" />
         ) : (
           <Search className="h-4 w-4 text-gray-400" />
@@ -165,17 +168,17 @@ export const SearchBox = ({ searchInputRef }) => {
       <input
         ref={searchInputRef}
         type="text"
-        className="peer w-full rounded-md border border-gray-200 px-10 text-black outline-none transition-all placeholder:text-gray-400 focus:border-gray-500 focus:ring-4 focus:ring-gray-200 sm:text-sm"
+        className="peer h-10 w-full rounded-md border border-gray-200 px-10 text-black outline-none transition-all placeholder:text-gray-400 focus:border-gray-500 focus:ring-4 focus:ring-gray-200 sm:text-sm"
         placeholder="Search..."
         defaultValue={searchParams?.get("search") || ""}
         onChange={(e) => {
           debounced(e.target.value);
         }}
       />
-      {searchInputRef.current?.value.length > 0 && (
+      {searchValue.length > 0 && (
         <button
           onClick={() => {
-            searchInputRef.current.value = "";
+            if (searchInputRef.current) searchInputRef.current.value = "";
             queryParams({ del: "search" });
           }}
           className="pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 lg:hidden"
