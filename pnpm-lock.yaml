@@ -85,9 +85,12 @@ importers:
       '@splinetool/runtime':
         specifier: ^1.2.8
         version: 1.2.8
+      '@stripe/react-stripe-js':
+        specifier: 2.7.1
+        version: 2.7.1(@stripe/stripe-js@4.0.0)(react-dom@18.2.0)(react@18.2.0)
       '@stripe/stripe-js':
-        specifier: ^1.44.1
-        version: 1.44.1
+        specifier: 4.0.0
+        version: 4.0.0
       '@tanstack/react-table':
         specifier: ^8.17.3
         version: 8.17.3(react-dom@18.2.0)(react@18.2.0)
@@ -7630,8 +7633,22 @@ packages:
     resolution: {integrity: sha512-Uy0+khmZqUrUGm5dmMqVlnvufZRSK0FbYzVgp0UMstm+F5+W2/jnEEQyc9vo1ZR/E5ZI/B1WjjoTqBqwJL6Krw==}
     dev: false
 
-  /@stripe/stripe-js@1.44.1:
-    resolution: {integrity: sha512-DKj3U6tS+sCNsSXsoZbOl5gDrAVD3cAZ9QCiVSykLC3iJo085kkmw/3BAACRH54Bq2bN34yySuH6G1SLh2xHXA==}
+  /@stripe/react-stripe-js@2.7.1(@stripe/stripe-js@4.0.0)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-/i13alp27HaSBbMM6kW0jhy8KqdtOL1T/EcRjFjfhvt+CBtMEg8TD7y28W3oZG0+OBDdCyGGnXgNgrKPYQH40g==}
+    peerDependencies:
+      '@stripe/stripe-js': ^1.44.1 || ^2.0.0 || ^3.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@stripe/stripe-js': 4.0.0
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /@stripe/stripe-js@4.0.0:
+    resolution: {integrity: sha512-R5zewuzTVPGn4dXkavbgDk8vSILkT5hRlzga10p6JzngR17qKi1fgc27kl58TmaVvgBZGngTRNH2j9kYdvfPGA==}
+    engines: {node: '>=12.16'}
     dev: false
 
   /@stripe/ui-extension-sdk@8.8.1(@remote-ui/rpc@1.4.5)(stripe@13.11.0):
