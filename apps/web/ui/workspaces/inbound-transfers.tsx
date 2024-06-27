@@ -14,6 +14,7 @@ interface InboundTransfer {
   description: string;
   hosted_regulatory_receipt_url: string;
   status: string;
+  returned: boolean;
 }
 
 export const InboundTransfers = () => {
@@ -23,8 +24,6 @@ export const InboundTransfers = () => {
     `/api/workspaces/${workspaceId}/referrals/stripe/inbound-transfers`,
     fetcher,
   );
-
-  console.log(inboundTransfers);
 
   return (
     <>
@@ -76,9 +75,15 @@ const InboundTransferRow = ({
         <div className="col-span-3 flex items-center space-x-3">
           <Landmark className="h-6 w-6 text-gray-500" />
           <div className="flex flex-col space-y-px">
-            <p className="font-semibold text-green-500">
-              + ${inboundTransfer.amount / 100}
-            </p>
+            {inboundTransfer.returned ? (
+              <p className="font-semibold text-gray-500">
+                - ${inboundTransfer.amount / 100} USD
+              </p>
+            ) : (
+              <p className="font-semibold text-green-500">
+                + ${inboundTransfer.amount / 100} USD
+              </p>
+            )}
             <p className="text-sm text-gray-500" suppressHydrationWarning>
               Added {inboundTransfer.created}
             </p>

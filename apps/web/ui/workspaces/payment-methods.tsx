@@ -21,7 +21,7 @@ interface PaymentMethod {
   created: string;
 }
 
-export const StripePaymentMethods = () => {
+export const PaymentMethods = () => {
   const {
     id: workspaceId,
     stripeConnectId,
@@ -53,11 +53,10 @@ export const StripePaymentMethods = () => {
 
     if (!response.ok) {
       toast.error(data.error.message);
-      return;
+    } else {
+      setClientSecret(data.client_secret);
+      setShowAddBankAccountModal(true);
     }
-
-    setClientSecret(data.client_secret);
-    setShowAddBankAccountModal(true);
   };
 
   if (!stripeConnectId || !stripeFinancialId) {

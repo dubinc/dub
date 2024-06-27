@@ -5,8 +5,8 @@ import { Button } from "@dub/ui/src/button";
 import { fetcher } from "@dub/utils";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { InboundTransfers } from "../referrals/inbound-transfers";
-import { StripePaymentMethods } from "../referrals/stripe-payment-methods";
+import { InboundTransfers } from "./inbound-transfers";
+import { PaymentMethods } from "./payment-methods";
 
 type FinancialAccount = {
   id: string;
@@ -34,6 +34,10 @@ export default function Referrals() {
       `/api/workspaces/${workspaceId}/referrals/stripe/accounts`,
       fetcher,
     );
+
+  const { data: paymentMethods, isLoading: isPaymentMethodsLoading } = useSWR<
+    any[]
+  >(`/api/workspaces/${workspaceId}/referrals/stripe/payment-methods`, fetcher);
 
   // Create Treasury Stripe Connect + Financial account
   const createConnectAccount = async () => {
@@ -76,8 +80,13 @@ export default function Referrals() {
     }
   };
 
-  // Move fund to Financial Account
+  // Move fund to Financial Account (DEMO)
   const moveFund = async () => {
+    if (!paymentMethods || paymentMethods.length === 0) {
+      toast.error("No payment method found. Please add a payment method.");
+      return;
+    }
+
     const response = await fetch(
       `/api/workspaces/${workspaceId}/referrals/stripe/inbound-transfers`,
       {
@@ -85,10 +94,19 @@ export default function Referrals() {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          origin_payment_method: paymentMethods[0].id,
+          amount: 40,
+          description: "Inbound transfer DEMO",
+        }),
       },
     );
 
-    if (response.ok) {
+    const data = await response.json();
+
+    if (!response.ok) {
+      toast.error(data.error.message);
+    } else {
       mutate(
         `/api/workspaces/${workspaceId}/referrals/stripe/inbound-transfers`,
       );
@@ -165,7 +183,7 @@ export default function Referrals() {
       </div>
 
       <InboundTransfers />
-      <StripePaymentMethods />
+      <PaymentMethods />
     </>
   );
 }
