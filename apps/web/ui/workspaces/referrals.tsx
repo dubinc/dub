@@ -5,6 +5,7 @@ import { Button } from "@dub/ui/src/button";
 import { fetcher } from "@dub/utils";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
+import { InboundTransfers } from "../referrals/inbound-transfers";
 import { StripePaymentMethods } from "../referrals/stripe-payment-methods";
 
 type FinancialAccount = {
@@ -75,6 +76,26 @@ export default function Referrals() {
     }
   };
 
+  // Move fund to Financial Account
+  const moveFund = async () => {
+    const response = await fetch(
+      `/api/workspaces/${workspaceId}/referrals/stripe/inbound-transfers`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (response.ok) {
+      mutate(
+        `/api/workspaces/${workspaceId}/referrals/stripe/inbound-transfers`,
+      );
+      toast.success("Fund has been sent to your Financial Account.");
+    }
+  };
+
   const hasStripeAccount = stripeConnectId && stripeFinancialId;
 
   return (
@@ -88,6 +109,7 @@ export default function Referrals() {
               your affiliates.
             </p>
           </div>
+
           {hasStripeAccount && !connectOnboardingFinished ? (
             <div className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white p-2">
               <p className="text-sm text-gray-500">
@@ -114,6 +136,10 @@ export default function Referrals() {
               </pre>
             </>
           )}
+
+          <div className="flex w-1/4">
+            <Button onClick={moveFund} text="Send Fund"></Button>
+          </div>
         </div>
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
           <a
@@ -137,6 +163,8 @@ export default function Referrals() {
           </div>
         </div>
       </div>
+
+      <InboundTransfers />
       <StripePaymentMethods />
     </>
   );
