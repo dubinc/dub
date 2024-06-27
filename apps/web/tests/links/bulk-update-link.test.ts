@@ -87,18 +87,13 @@ test("PATCH /links/bulk", async (ctx) => {
     link: { id: "xxx" },
   });
 
-  // console.log(createdLinks);
-
   // third link should throw an error because it does not exist
-  // expect(links[2]).toStrictEqual({
-  //   error:
-  //     "Invalid url. You can only use git.new short links for URLs starting with `github.com`, `gist.github.com`.",
-  //   code: "unprocessable_entity",
-  //   link: {
-  //     ...createdLinks[1],
-
-  //   }
-  // });
+  expect(links[2]).toStrictEqual({
+    error:
+      "Invalid url. You can only use git.new short links for URLs starting with `github.com`, `gist.github.com`.",
+    code: "unprocessable_entity",
+    link: expect.any(Object),
+  });
 
   afterAll(async () => {
     await Promise.all([
