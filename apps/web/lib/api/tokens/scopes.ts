@@ -22,6 +22,7 @@ export const resourcePermissions = [
     name: "Workspaces",
     key: "workspaces",
     description: "Read, update, and delete workspaces",
+    betaFeature: false,
     permissions: [
       {
         permission: "Read",
@@ -41,6 +42,7 @@ export const resourcePermissions = [
     name: "Links",
     key: "links",
     description: "Create, read, update, and delete links",
+    betaFeature: false,
     permissions: [
       {
         permission: "Read",
@@ -60,6 +62,7 @@ export const resourcePermissions = [
     name: "Tags",
     key: "tags",
     description: "Create, read, update, and delete tags",
+    betaFeature: false,
     permissions: [
       {
         permission: "Read",
@@ -79,6 +82,7 @@ export const resourcePermissions = [
     name: "Domains",
     key: "domains",
     description: "Create, read, update, and delete domains",
+    betaFeature: false,
     permissions: [
       {
         permission: "Read",
@@ -98,6 +102,7 @@ export const resourcePermissions = [
     name: "API Keys",
     key: "tokens",
     description: "Create, read, update, and delete API keys",
+    betaFeature: false,
     permissions: [
       {
         permission: "Read",
@@ -117,6 +122,7 @@ export const resourcePermissions = [
     name: "Analytics",
     key: "analytics",
     description: "Read analytics",
+    betaFeature: false,
     permissions: [
       {
         permission: "Read",
@@ -130,6 +136,7 @@ export const resourcePermissions = [
     name: "Conversions",
     key: "conversions",
     description: "Track conversions (customer, lead, sales)",
+    betaFeature: true,
     permissions: [
       {
         permission: "Write",

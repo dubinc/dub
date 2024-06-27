@@ -47,7 +47,7 @@ function AddEditTokenModal({
   onTokenCreated?: (token: string) => void;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, logo, slug } = useWorkspace();
+  const { id: workspaceId, logo, slug, betaTester } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
 
   // Determine the endpoint
@@ -177,6 +177,7 @@ function AddEditTokenModal({
                 value={name}
                 onChange={(e) => setData({ ...data, name: e.target.value })}
                 autoFocus
+                autoComplete="off"
               />
             </div>
           </div>
@@ -187,46 +188,51 @@ function AddEditTokenModal({
           </span>
 
           <div className="flex flex-col divide-y text-sm">
-            {resourcePermissions.map((resource) => (
-              <div
-                className="flex items-center justify-between py-4"
-                key={resource.key}
-              >
-                <div className="flex gap-1 text-gray-500">
-                  <p>{resource.name}</p>
-                  <InfoTooltip content={resource.description} />
-                </div>
-                <div>
-                  <RadioGroup
-                    defaultValue={scopes[resource.key] || ""}
-                    className="flex gap-4"
-                    onValueChange={(v) => {
-                      setData({
-                        ...data,
-                        scopes: {
-                          ...scopes,
-                          [resource.key]: v,
-                        },
-                      });
-                    }}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="" />
-                      <div>None</div>
-                    </div>
-                    {resource.permissions.map((permission) => (
-                      <div
-                        className="flex items-center space-x-2"
-                        key={permission.scope}
-                      >
-                        <RadioGroupItem value={permission.scope} />
-                        <div>{permission.permission}</div>
+            {resourcePermissions
+              .filter(
+                // filter out beta features
+                (resource) => !resource.betaFeature || betaTester,
+              )
+              .map((resource) => (
+                <div
+                  className="flex items-center justify-between py-4"
+                  key={resource.key}
+                >
+                  <div className="flex items-center gap-1.5 text-gray-500">
+                    <p>{resource.name}</p>
+                    <InfoTooltip content={resource.description} />
+                  </div>
+                  <div>
+                    <RadioGroup
+                      defaultValue={scopes[resource.key] || ""}
+                      className="flex gap-4"
+                      onValueChange={(v) => {
+                        setData({
+                          ...data,
+                          scopes: {
+                            ...scopes,
+                            [resource.key]: v,
+                          },
+                        });
+                      }}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="" />
+                        <div>None</div>
                       </div>
-                    ))}
-                  </RadioGroup>
+                      {resource.permissions.map((permission) => (
+                        <div
+                          className="flex items-center space-x-2"
+                          key={permission.scope}
+                        >
+                          <RadioGroupItem value={permission.scope} />
+                          <div>{permission.permission}</div>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
 
           <Button
