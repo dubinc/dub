@@ -462,6 +462,9 @@ importers:
       '@react-stately/datepicker':
         specifier: ^3.9.3
         version: 3.9.4(react@18.2.0)
+      '@tanstack/react-table':
+        specifier: ^8.17.3
+        version: 8.17.3(react-dom@18.2.0)(react@18.2.0)
       '@vercel/analytics':
         specifier: ^1.0.0
         version: 1.0.0(react@18.2.0)
