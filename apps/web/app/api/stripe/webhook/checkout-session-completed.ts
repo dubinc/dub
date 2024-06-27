@@ -1,8 +1,6 @@
-import { getAPIRateLimitForPlan } from "@/lib/api/tokens/ratelimit";
 import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { PlanProps } from "@/lib/types";
 import { getPlanFromPriceId, log } from "@dub/utils";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
@@ -79,7 +77,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       projectId: workspaceId,
     },
     data: {
-      rateLimit: getAPIRateLimitForPlan(planName as PlanProps),
+      rateLimit: plan.limits.api,
     },
   });
 

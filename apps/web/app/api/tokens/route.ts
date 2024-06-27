@@ -1,9 +1,8 @@
-import { getAPIRateLimitForPlan } from "@/lib/api/tokens/ratelimit";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
-import { nanoid } from "@dub/utils";
+import { getCurrentPlan, nanoid } from "@dub/utils";
 import { User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
@@ -51,7 +50,7 @@ export const POST = withWorkspace(
         partialKey,
         userId: isMachine ? machineUser?.id! : session.user.id,
         projectId: workspace.id,
-        rateLimit: getAPIRateLimitForPlan(workspace.plan),
+        rateLimit: getCurrentPlan(workspace.plan).limits.api,
         scopes:
           scopes && scopes.length > 0 ? [...new Set(scopes)].join(" ") : null,
       },

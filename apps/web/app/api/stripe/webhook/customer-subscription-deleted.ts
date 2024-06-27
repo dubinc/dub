@@ -1,4 +1,3 @@
-import { getAPIRateLimitForPlan } from "@/lib/api/tokens/ratelimit";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -92,7 +91,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         projectId: workspace.id,
       },
       data: {
-        rateLimit: getAPIRateLimitForPlan("free"),
+        rateLimit: FREE_PLAN.limits.api,
       },
     }),
 
