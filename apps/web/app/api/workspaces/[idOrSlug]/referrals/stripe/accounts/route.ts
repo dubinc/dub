@@ -93,8 +93,5 @@ export const GET = withWorkspace(async ({ workspace }) => {
     { stripeAccount: stripeConnectId },
   );
 
-  // TODO:
-  // We may not want to expose the full financial account details to the client
-
   return NextResponse.json(financialAccount);
 });
