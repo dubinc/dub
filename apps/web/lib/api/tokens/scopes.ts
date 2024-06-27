@@ -13,6 +13,8 @@ export const availableScopes = [
   "tokens.read",
   "tokens.write",
   "conversions.write",
+  "apis.all", // All API scopes
+  "apis.read", // All read scopes
 ] as const;
 
 export type Scope = (typeof availableScopes)[number];
@@ -170,6 +172,8 @@ export const roleScopesMapping = resourcePermissions.reduce<
 );
 
 export const scopeMapping = {
+  "apis.all": availableScopes,
+  "apis.read": availableScopes.filter((scope) => scope.endsWith(".read")),
   "workspaces.write": ["workspaces.write", "workspaces.read"],
   "links.write": ["links.write", "links.read"],
   "tags.write": ["tags.write", "tags.read"],

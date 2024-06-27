@@ -1,4 +1,4 @@
-import { resourcePermissions } from "@/lib/api/tokens/scopes";
+import { Scope, resourcePermissions } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BlurImage,
@@ -11,11 +11,13 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@dub/ui";
+import { ToggleGroup, ToggleGroupItem } from "@dub/ui/src/toggle-group";
 import {
   Dispatch,
   FormEvent,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -25,13 +27,15 @@ import { mutate } from "swr";
 type APIKeyProps = {
   id?: string;
   name: string;
-  scopes: { [key: string]: string };
+  scopes: { [key: string]: Scope };
   isMachine: boolean;
 };
 
+type ScopePreset = "all_access" | "read_only" | "restricted";
+
 const newToken: APIKeyProps = {
   name: "",
-  scopes: {},
+  scopes: { api: "apis.all" },
   isMachine: false,
 };
 
@@ -49,6 +53,21 @@ function AddEditTokenModal({
   const [saving, setSaving] = useState(false);
   const { id: workspaceId, logo, slug, betaTester } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
+  const [preset, setPreset] = useState<ScopePreset>("all_access");
+
+  useEffect(() => {
+    if (!token) return;
+
+    const scopes = Object.values(token.scopes);
+
+    if (scopes.includes("apis.all")) {
+      setPreset("all_access");
+    } else if (scopes.includes("apis.read")) {
+      setPreset("read_only");
+    } else {
+      setPreset("restricted");
+    }
+  }, [token]);
 
   // Determine the endpoint
   const endpoint = useMemo(() => {
@@ -182,58 +201,99 @@ function AddEditTokenModal({
             </div>
           </div>
 
-          <span className="text-sm text-gray-500">
-            These permissions apply when the API key is used to make requests to
-            Dub APIs.
-          </span>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-sm font-medium text-gray-900">Permissions</h2>
+            <span className="text-sm text-gray-500">
+              These permissions apply when the API key is used to make requests
+              to Dub APIs.
+            </span>
+            <div className="flex">
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                value={preset}
+                defaultChecked
+                onValueChange={(value: ScopePreset) => {
+                  setPreset(value);
 
-          <div className="flex flex-col divide-y text-sm">
-            {resourcePermissions
-              .filter(
-                // filter out beta features
-                (resource) => !resource.betaFeature || betaTester,
-              )
-              .map((resource) => (
-                <div
-                  className="flex items-center justify-between py-4"
-                  key={resource.key}
+                  if (value === "all_access") {
+                    setData({ ...data, scopes: { api: "apis.all" } });
+                  } else if (value === "read_only") {
+                    setData({ ...data, scopes: { api: "apis.read" } });
+                  } else {
+                    setData({ ...data, scopes: {} });
+                  }
+                }}
+                className="gap-2"
+              >
+                <ToggleGroupItem value="all_access" aria-label="All scopes">
+                  All
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="read_only"
+                  aria-label="Read only scopes"
                 >
-                  <div className="flex items-center gap-1.5 text-gray-500">
-                    <p>{resource.name}</p>
-                    <InfoTooltip content={resource.description} />
-                  </div>
-                  <div>
-                    <RadioGroup
-                      defaultValue={scopes[resource.key] || ""}
-                      className="flex gap-4"
-                      onValueChange={(v) => {
-                        setData({
-                          ...data,
-                          scopes: {
-                            ...scopes,
-                            [resource.key]: v,
-                          },
-                        });
-                      }}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="" />
-                        <div>None</div>
-                      </div>
-                      {resource.permissions.map((permission) => (
-                        <div
-                          className="flex items-center space-x-2"
-                          key={permission.scope}
-                        >
-                          <RadioGroupItem value={permission.scope} />
-                          <div>{permission.permission}</div>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                </div>
-              ))}
+                  Read Only
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="restricted"
+                  aria-label="Restricted scopes"
+                >
+                  Restricted
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
           </div>
+
+          {preset === "restricted" && (
+            <div className="flex flex-col divide-y text-sm">
+              {resourcePermissions
+                .filter(
+                  // filter out beta features
+                  (resource) => !resource.betaFeature || betaTester,
+                )
+                .map((resource) => (
+                  <div
+                    className="flex items-center justify-between py-4"
+                    key={resource.key}
+                  >
+                    <div className="flex items-center gap-1.5 text-gray-500">
+                      <p>{resource.name}</p>
+                      <InfoTooltip content={resource.description} />
+                    </div>
+                    <div>
+                      <RadioGroup
+                        defaultValue={scopes[resource.key] || ""}
+                        className="flex gap-4"
+                        onValueChange={(v: Scope) => {
+                          setData({
+                            ...data,
+                            scopes: {
+                              ...scopes,
+                              [resource.key]: v,
+                            },
+                          });
+                        }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="" />
+                          <div>None</div>
+                        </div>
+                        {resource.permissions.map((permission) => (
+                          <div
+                            className="flex items-center space-x-2"
+                            key={permission.scope}
+                          >
+                            <RadioGroupItem value={permission.scope} />
+                            <div>{permission.permission}</div>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
 
           <Button
             text={token ? "Save changes" : "Create API key"}
