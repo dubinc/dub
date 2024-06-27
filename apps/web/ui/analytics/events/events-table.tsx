@@ -464,7 +464,9 @@ export default function EventsTable() {
           <EditColumnsButton table={table} />
         </div>
       </div>
-      <Table {...tableProps} table={table} />
+      <div className="mt-3">
+        <Table {...tableProps} table={table} />
+      </div>
     </div>
   );
 }

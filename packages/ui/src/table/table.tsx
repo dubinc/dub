@@ -65,7 +65,7 @@ export function useTable<T extends any>(
     rowCount,
     columns,
     defaultColumn,
-    resizeColumns,
+    resizeColumns = true,
     pagination,
     onPaginationChange,
   } = props;
@@ -105,6 +105,7 @@ export function useTable<T extends any>(
   return {
     ...props,
     columnVisibility,
+    resizeColumns,
     table,
   };
 }
@@ -120,6 +121,7 @@ export function Table<T>({
   sortOrder,
   onSortChange,
   sortableColumns = [],
+  resizeColumns,
   columnVisibility = {},
   thClassName,
   tdClassName,
@@ -144,7 +146,7 @@ export function Table<T>({
   ]);
 
   return (
-    <div className="mt-3 border border-gray-200 bg-white sm:rounded-xl">
+    <div className="border border-gray-200 bg-white sm:rounded-xl">
       <div className="relative rounded-[inherit]">
         {(!error && !!data?.length) || loading ? (
           <div className="min-h-[400px] overflow-x-auto rounded-[inherit]">
@@ -215,14 +217,16 @@ export function Table<T>({
                               )}
                             </button>
                           </div>
-                          <div
-                            className="absolute -right-[4px] top-0 z-[1] h-full w-[7px] cursor-col-resize"
-                            {...{
-                              onDoubleClick: () => header.column.resetSize(),
-                              onMouseDown: header.getResizeHandler(),
-                              onTouchStart: header.getResizeHandler(),
-                            }}
-                          />
+                          {resizeColumns && (
+                            <div
+                              className="absolute -right-[4px] top-0 z-[1] h-full w-[7px] cursor-col-resize"
+                              {...{
+                                onDoubleClick: () => header.column.resetSize(),
+                                onMouseDown: header.getResizeHandler(),
+                                onTouchStart: header.getResizeHandler(),
+                              }}
+                            />
+                          )}
                         </th>
                       );
                     })}
