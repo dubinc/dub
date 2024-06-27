@@ -11,7 +11,9 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@dub/ui";
-import { ToggleGroup, ToggleGroupItem } from "@dub/ui/src/toggle-group";
+import { ToggleGroup } from "@dub/ui/src/toggle-group";
+import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
+import { motion } from "framer-motion";
 import {
   Dispatch,
   FormEvent,
@@ -209,11 +211,13 @@ function AddEditTokenModal({
             </span>
             <div className="flex">
               <ToggleGroup
-                type="single"
-                variant="outline"
-                value={preset}
-                defaultChecked
-                onValueChange={(value: ScopePreset) => {
+                options={[
+                  { value: "all_access", label: "All" },
+                  { value: "read_only", label: "Read Only" },
+                  { value: "restricted", label: "Restricted" },
+                ]}
+                selected={preset}
+                selectAction={(value: ScopePreset) => {
                   setPreset(value);
 
                   if (value === "all_access") {
@@ -224,29 +228,15 @@ function AddEditTokenModal({
                     setData({ ...data, scopes: {} });
                   }
                 }}
-                className="gap-2"
-              >
-                <ToggleGroupItem value="all_access" aria-label="All scopes">
-                  All
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="read_only"
-                  aria-label="Read only scopes"
-                >
-                  Read Only
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="restricted"
-                  aria-label="Restricted scopes"
-                >
-                  Restricted
-                </ToggleGroupItem>
-              </ToggleGroup>
+              />
             </div>
           </div>
 
           {preset === "restricted" && (
-            <div className="flex flex-col divide-y text-sm">
+            <motion.div
+              className="flex flex-col divide-y text-sm"
+              {...SWIPE_REVEAL_ANIMATION_SETTINGS}
+            >
               {resourcePermissions
                 .filter(
                   // filter out beta features
@@ -292,7 +282,7 @@ function AddEditTokenModal({
                     </div>
                   </div>
                 ))}
-            </div>
+            </motion.div>
           )}
 
           <Button
