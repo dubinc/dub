@@ -27,7 +27,7 @@ export const throwIfNoAccess = ({
     if (!userScopes.includes(requiredScope)) {
       throw new DubApiError({
         code: "forbidden",
-        message: `The provided key does not have the required permissions for this endpoint on the workspace 'w_${workspaceId}'. Having the '${missingScopes}' permission would allow this request to continue.`,
+        message: `The provided key does not have the required permissions for this endpoint on the workspace 'ws_${workspaceId}'. Having the '${missingScopes}' permission would allow this request to continue.`,
       });
     }
   }
