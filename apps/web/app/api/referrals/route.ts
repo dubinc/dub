@@ -25,5 +25,5 @@ export const GET = withWorkspace(async ({ workspace }) => {
   return NextResponse.json(payouts);
 });
 
-// Payouts include multiple Sales events (A Sale event can be disputed, refunded, etc.) 
+// Payouts include multiple Sales events (A Sale event can be disputed, refunded, etc.)
 // Calculate payouts based on the sales events for an affiliate (Workspace + Affiliate + Period)
