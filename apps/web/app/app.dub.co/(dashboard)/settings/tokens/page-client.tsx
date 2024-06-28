@@ -29,10 +29,17 @@ export default function TokensPageClient() {
         <AlertTitle>
           User API Keys have been replaced by Workspace API Keys.
         </AlertTitle>
-        <AlertDescription>
-          We recommend creating a new Workspace API Key for more granular
-          control over your resources such as Links, Tags, Domains, Analytics,
-          etc.
+        <AlertDescription className="text-gray-500">
+          We recommend creating a new{" "}
+          <a
+            href="https://dub.co/docs/api-reference/tokens"
+            target="_blank"
+            className="font-medium underline underline-offset-4 hover:text-black"
+          >
+            Workspace API Key
+          </a>{" "}
+          for more granular control over your resources such as Links, Tags,
+          Domains, Analytics, etc.
         </AlertDescription>
       </Alert>
 

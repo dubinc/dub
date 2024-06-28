@@ -5,10 +5,12 @@ import { TokenProps } from "@/lib/types";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
+import EmptyState from "@/ui/shared/empty-state";
 import { Delete } from "@/ui/shared/icons";
 import { Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
+import { Key } from "@dub/ui/src/icons";
 import { fetcher, timeAgo } from "@dub/utils";
-import { Edit3, FolderOpen, MoreVertical } from "lucide-react";
+import { Edit3, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -38,18 +40,23 @@ export default function TokensPageClient() {
       <TokenCreatedModal />
       <AddEditTokenModal />
       <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="flex flex-col items-center justify-between gap-2 space-y-3 p-5 sm:flex-row sm:space-y-0 sm:p-10">
-          <div className="flex flex-col space-y-3">
-            <h2 className="text-xl font-medium">API Keys</h2>
+        <div className="flex flex-col items-center justify-between gap-4 space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
+          <div className="flex max-w-screen-sm flex-col space-y-3">
+            <h2 className="text-xl font-medium">Workspace API Keys</h2>
             <p className="text-sm text-gray-500">
               These API keys allow other apps to access your workspace. Use it
-              with caution – do not share your API key with others, or expose it
-              in the browser or other client-side code
+              with caution – do not share your API key with others, or expose it
+              in the browser or other client-side code.{" "}
+              <a
+                href="https://dub.co/docs/api-reference/tokens"
+                target="_blank"
+                className="font-medium underline underline-offset-4 hover:text-black"
+              >
+                Learn more.
+              </a>
             </p>
           </div>
-          <div className="flex">
-            <AddTokenButton />
-          </div>
+          <AddTokenButton />
         </div>
         {isLoading || !tokens ? (
           <div className="flex flex-col items-center justify-center space-y-4 pb-20 pt-10">
@@ -70,11 +77,12 @@ export default function TokensPageClient() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center space-y-4 pb-20 pt-10">
-            <FolderOpen className="h-6 w-6 text-gray-500" />
-            <p className="text-sm text-gray-500">
-              No API keys found for this workspace.
-            </p>
+          <div className="flex flex-col items-center justify-center gap-y-4 py-20">
+            <EmptyState
+              icon={Key}
+              title="No API keys found for this workspace"
+            />
+            <AddTokenButton />
           </div>
         )}
       </div>

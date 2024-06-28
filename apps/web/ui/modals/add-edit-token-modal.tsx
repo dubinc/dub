@@ -306,9 +306,8 @@ function AddTokenButton({
   return (
     <div>
       <Button
-        text="New API Key"
+        text="Create"
         onClick={() => setShowAddEditTokenModal(true)}
-        className="w-36"
         {...buttonProps}
       />
     </div>
