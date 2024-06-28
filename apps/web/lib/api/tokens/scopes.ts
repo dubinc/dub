@@ -184,16 +184,35 @@ export const scopePresets = [
   {
     value: "all_access",
     label: "All",
-    description: "This API key will have full access to all resources",
+    description: "full access to all resources",
   },
   {
     value: "read_only",
     label: "Read Only",
-    description: "This API key will have read-only access to all resources",
+    description: "read-only access to all resources",
   },
   {
     value: "restricted",
     label: "Restricted",
-    description: "This API key will have restricted access to some resources",
+    description: "restricted access to some resources",
   },
 ];
+
+export const scopesToName = (scopes: string[]) => {
+  if (scopes.includes("apis.all")) {
+    return {
+      name: "All access",
+      description: "full access to all resources",
+    };
+  }
+  if (scopes.includes("apis.read")) {
+    return {
+      name: "Read-only",
+      description: "read-only access to all resources",
+    };
+  }
+  return {
+    name: "Restricted",
+    description: "restricted access to some resources",
+  };
+};

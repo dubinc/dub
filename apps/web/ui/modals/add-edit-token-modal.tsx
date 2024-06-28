@@ -229,6 +229,7 @@ function AddEditTokenModal({
 
           <AnimatedSizeContainer height>
             <div className="p-1 pt-0 text-sm text-gray-500">
+              This API key will have{" "}
               {scopePresets.find((p) => p.value === preset)?.description}
             </div>
             {preset === "restricted" && (
