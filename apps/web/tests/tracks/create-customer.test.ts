@@ -6,8 +6,7 @@ import { IntegrationHarness } from "../utils/integration";
 
 describe.skip("POST /track/customer", async () => {
   const h = new IntegrationHarness();
-  const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const { http } = await h.init();
 
   test("with required params", async () => {
     const customer = {
@@ -16,7 +15,6 @@ describe.skip("POST /track/customer", async () => {
 
     const response = await http.post<Tag>({
       path: "/track/customer",
-      query: { workspaceId },
       body: {
         customerId: customer.customerId,
       },
@@ -44,7 +42,6 @@ describe.skip("POST /track/customer", async () => {
 
     const response = await http.post<Tag>({
       path: "/track/customer",
-      query: { workspaceId },
       body: customer,
     });
 

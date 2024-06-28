@@ -1,16 +1,16 @@
 import { Project, User } from "@prisma/client";
 import { type TaskContext } from "vitest";
 import { z } from "zod";
-import { HttpClient } from "../utils/http";
 import { env, integrationTestEnv } from "./env";
+import { HttpClient } from "./http";
 
 interface Resources {
   user: Pick<User, "id">;
-  workspace: Pick<Project, "id" | "slug" | "name">;
+  workspace: Pick<Project, "id" | "slug" | "name"> & { workspaceId: string };
   apiKey: { token: string };
 }
 
-export class IntegrationHarness {
+export class IntegrationHarnessOld {
   private readonly ctx?: TaskContext;
   private env: z.infer<typeof integrationTestEnv>;
   public resources: Resources;
@@ -35,7 +35,7 @@ export class IntegrationHarness {
     };
 
     const apiKey = {
-      token: this.env.E2E_TOKEN,
+      token: this.env.E2E_TOKEN_OLD,
     };
 
     const workspace = {
@@ -47,7 +47,10 @@ export class IntegrationHarness {
     this.resources = {
       user,
       apiKey,
-      workspace,
+      workspace: {
+        ...workspace,
+        workspaceId: workspace.id,
+      },
     };
 
     return { ...this.resources, http: this.http };
@@ -55,22 +58,11 @@ export class IntegrationHarness {
 
   // Delete link
   public async deleteLink(id: string) {
+    const { workspaceId } = this.resources.workspace;
+
     await this.http.delete({
       path: `/links/${id}`,
-    });
-  }
-
-  // Delete tag
-  public async deleteTag(id: string) {
-    await this.http.delete({
-      path: `/tags/${id}`,
-    });
-  }
-
-  // Delete domain
-  public async deleteDomain(slug: string) {
-    await this.http.delete({
-      path: `/domains/${slug}`,
+      query: { workspaceId },
     });
   }
 }

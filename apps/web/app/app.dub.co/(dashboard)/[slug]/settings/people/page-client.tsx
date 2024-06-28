@@ -7,12 +7,17 @@ import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
 import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
 import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
-import { Link as LinkIcon, ThreeDots } from "@/ui/shared/icons";
-import { Avatar, Badge, Button, IconMenu, Popover } from "@dub/ui";
+import {
+  CheckCircleFill,
+  Link as LinkIcon,
+  ThreeDots,
+} from "@/ui/shared/icons";
+import { Avatar, Badge, Button, Copy, IconMenu, Popover } from "@dub/ui";
 import { cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
@@ -139,6 +144,15 @@ const UserCard = ({
     createdAt &&
     Date.now() - new Date(createdAt).getTime() > 14 * 24 * 60 * 60 * 1000;
 
+  const [copiedUserId, setCopiedUserId] = useState(false);
+
+  const copyUserId = () => {
+    navigator.clipboard.writeText(id);
+    setCopiedUserId(true);
+    toast.success("User ID copied!");
+    setTimeout(() => setCopiedUserId(false), 3000);
+  };
+
   return (
     <>
       <EditRoleModal />
@@ -193,6 +207,19 @@ const UserCard = ({
           <Popover
             content={
               <div className="grid w-full gap-1 p-2 sm:w-48">
+                <Button
+                  text="Copy User ID"
+                  variant="outline"
+                  onClick={() => copyUserId()}
+                  icon={
+                    copiedUserId ? (
+                      <CheckCircleFill className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  className="h-9 justify-start px-2 font-medium"
+                />
                 <button
                   onClick={() => {
                     setOpenPopover(false);

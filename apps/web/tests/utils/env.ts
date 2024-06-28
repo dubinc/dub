@@ -3,7 +3,9 @@ import { z } from "zod";
 export const integrationTestEnv = z.object({
   E2E_BASE_URL: z.string().url().min(1),
   E2E_TOKEN: z.string().min(1),
+  E2E_TOKEN_OLD: z.string().min(1),
   E2E_USER_ID: z.string().min(1),
+  E2E_USER_ID_OLD: z.string().min(1),
   E2E_WORKSPACE_ID: z.string().min(1),
   E2E_WORKSPACE_SLUG: z.string().min(1),
   E2E_WORKSPACE_NAME: z.string().min(1),

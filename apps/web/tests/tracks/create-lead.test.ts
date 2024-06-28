@@ -13,14 +13,12 @@ const customer = {
 
 describe.skip("POST /track/lead", async () => {
   const h = new IntegrationHarness();
-  const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const { http } = await h.init();
   const clickId = "uxdcuMfBa5Nqnbwk";
 
   test("with required params", async () => {
     const response = await http.post<Tag>({
       path: "/track/lead",
-      query: { workspaceId },
       body: {
         clickId,
         eventName: "Signup",
@@ -46,7 +44,6 @@ describe.skip("POST /track/lead", async () => {
   test("with all params", async () => {
     const response = await http.post<Tag>({
       path: "/track/lead",
-      query: { workspaceId },
       body: {
         clickId,
         eventName: "Signup",
