@@ -53,5 +53,54 @@ These machine users will show up on your workspace's **People** tab, but will no
 You can create an API key by following these steps:
 
 <Steps>
-  <Step title="Create an API key">sad</Step>
+  <Step title="Go to your workspace">
+    Go to **Settings** > **API Keys** in your workspace.
+
+    <Frame>
+      <img
+        src="/images/workspace-api-keys.png"
+        alt="Workspace API keys on Dub"
+        width="1468"
+        height="249"
+      />
+    </Frame>
+
+  </Step>
+  <Step title="Create an API Key">
+    Click on the "Create" button and select permissions you want to grant to
+    the API key.
+
+    Select between "You" and "Machine" to associate the API key with a user or a [machine user](#machine-users).
+
+    - **You** – This API key is tied to your user and can make requests against the selected workspace.
+    - **Machine** – A machine user will be added to your workspace, and an API key will be created.
+
+    <Frame>
+      <img
+        src="/images/add-new-api-key.png"
+        alt="Add new API key on Dub"
+        width="1468"
+        height="249"
+      />
+    </Frame>
+
+    When making API calls, if your API Key have insufficient permissions, the error should tell you which permissions you need.
+
+    Make sure to copy your API key and store it in a safe place. You won't be able to see it again.
+
+  </Step>
+  <Step title="Use your API Key">
+    Now that you have your API key, you can use it to access your workspace's resources programmatically via SDKs or within any API request as a bearer token.
+
+    ```
+    Authorization: Bearer dub_xxxx
+    ```
+
+  </Step>
 </Steps>
+
+<Tip>
+  We recommend creating API keys with the least privilege necessary to perform
+  the required tasks. This helps to reduce the risk of unauthorized access to
+  your workspace.
+</Tip>
