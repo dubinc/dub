@@ -1,3 +1,4 @@
+import { scopesToName } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -62,7 +63,15 @@ export const POST = withWorkspace(
         subject: `A new API key has been created for your workspace ${workspace.name} on Dub`,
         react: APIKeyCreated({
           email: session.user.email,
-          apiKeyName: name,
+          token: {
+            name,
+            type: scopesToName(scopes || []).name,
+            permissions: scopesToName(scopes || []).description,
+          },
+          workspace: {
+            name: workspace.name,
+            slug: workspace.slug,
+          },
         }),
       }),
     );

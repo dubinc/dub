@@ -1,5 +1,6 @@
 "use client";
 
+import { scopesToName } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
@@ -7,7 +8,7 @@ import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { Delete } from "@/ui/shared/icons";
-import { Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
+import { Badge, Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
 import { Key } from "@dub/ui/src/icons";
 import { fetcher, timeAgo } from "@dub/utils";
 import { Edit3, MoreVertical } from "lucide-react";
@@ -59,7 +60,7 @@ export default function TokensPageClient() {
           <AddTokenButton />
         </div>
         {isLoading || !tokens ? (
-          <div className="flex flex-col items-center justify-center space-y-4 pb-20 pt-10">
+          <div className="flex flex-col items-center justify-center space-y-4 py-20">
             <LoadingSpinner className="h-6 w-6 text-gray-500" />
             <p className="text-sm text-gray-500">Fetching API keys...</p>
           </div>
@@ -115,9 +116,12 @@ const TokenRow = (token: TokenProps) => {
           <TokenAvatar id={token.id} />
           <div className="flex flex-col space-y-px">
             <p className="font-semibold text-gray-700">{token.name}</p>
-            <p className="text-sm text-gray-500" suppressHydrationWarning>
-              Created {timeAgo(token.createdAt, { withAgo: true })}
-            </p>
+            <div className="flex items-center gap-x-2">
+              <p className="text-sm text-gray-500" suppressHydrationWarning>
+                Created {timeAgo(token.createdAt, { withAgo: true })}
+              </p>
+              <Badge variant="neutral">{scopesToName(token.scopes).name}</Badge>
+            </div>
           </div>
         </div>
         <div className="font-mono text-sm">{token.partialKey}</div>
