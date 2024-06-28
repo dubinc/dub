@@ -1,28 +1,35 @@
-import { Airplay, BarChart, Link2, QrCode, Users, Webhook } from "lucide-react";
+import {
+  ChartLine,
+  Hyperlink,
+  Paintbrush,
+  QRCode,
+  Users,
+  WindowSettings,
+} from "./icons";
 
 export const FEATURES_LIST = [
   {
     title: "Powerful Analytics For The Modern Marketer",
     shortTitle: "Advanced Analytics",
-    icon: BarChart,
+    icon: ChartLine,
     slug: "features/analytics",
   },
   {
     title: "Branded Links That Stand Out",
     shortTitle: "Branded Links",
-    icon: Airplay,
+    icon: Hyperlink,
     slug: "features/branded-links",
   },
   {
     title: "Gorgeous QR codes for your links",
     shortTitle: "QR Codes",
-    icon: QrCode,
+    icon: QRCode,
     slug: "features/qr-codes",
   },
   {
     title: "Personalize Your Short Links",
     shortTitle: "Personalization",
-    icon: Link2,
+    icon: Paintbrush,
     slug: "features/personalization",
   },
   {
@@ -34,7 +41,7 @@ export const FEATURES_LIST = [
   {
     title: "Programmatic Link Creation",
     shortTitle: "API",
-    icon: Webhook,
+    icon: WindowSettings,
     slug: "docs/api-reference/introduction",
   },
 ];

@@ -6,8 +6,19 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { FEATURES_LIST } from "./content";
-import { navItems, type NavTheme } from "./nav";
+import { FEATURES_LIST } from "../content";
+import { type NavTheme } from "./nav";
+
+export const navItems = [
+  {
+    name: "Product",
+    href: "/",
+  },
+  {
+    name: "Pricing",
+    href: "/pricing",
+  },
+];
 
 export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
@@ -35,7 +46,7 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 dark:hover:bg-white/20 dark:active:bg-white/30 lg:hidden",
+          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden dark:hover:bg-white/20 dark:active:bg-white/30",
           open && "hover:bg-gray-100 active:bg-gray-200",
         )}
       >
@@ -47,7 +58,7 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
       </button>
       <nav
         className={cn(
-          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 dark:bg-black dark:text-white/70 lg:hidden",
+          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/70",
           open && "block",
         )}
       >
@@ -85,12 +96,10 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
               </div>
             )}
           </li>
-          {navItems.map(({ name, slug }) => (
-            <li key={slug} className="py-3">
+          {navItems.map(({ name, href }) => (
+            <li key={href} className="py-3">
               <Link
-                href={
-                  domain === "dub.co" ? `/${slug}` : `https://dub.co/${slug}`
-                }
+                href={domain === "dub.co" ? href : `https://dub.co${href}`}
                 onClick={() => setOpen(false)}
                 className="flex w-full font-semibold capitalize"
               >
