@@ -17,6 +17,7 @@ import {
   RadioGroupItem,
 } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
+import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
 import {
   Dispatch,
   FormEvent,
@@ -169,7 +170,15 @@ function AddEditTokenModal({
                     className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
                   >
                     <p className="text-gray-600">You</p>
-                    <InfoTooltip content="This API key is tied to your user and can make requests against the selected workspace. If you are removed from the workspace, this key will be disabled." />
+                    <InfoTooltip
+                      content={
+                        <SimpleTooltipContent
+                          title="This API key will be tied to your user account – if you are removed from the workspace, it will be deleted."
+                          cta="Learn more"
+                          href="https://dub.co/docs/api-reference/tokens"
+                        />
+                      }
+                    />
                   </Label>
                 </div>
                 <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
@@ -183,7 +192,15 @@ function AddEditTokenModal({
                     className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
                   >
                     <p className="text-gray-600">Machine</p>
-                    <InfoTooltip content="A new bot member will be added to your workspace, and an API key will be created. Since this are not tied to a user, you can enusre that API key remains active even if you leave the workspace." />
+                    <InfoTooltip
+                      content={
+                        <SimpleTooltipContent
+                          title="A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
+                          cta="Learn more"
+                          href="https://dub.co/docs/api-reference/tokens#machine-users"
+                        />
+                      }
+                    />
                   </Label>
                 </div>
               </RadioGroup>
