@@ -155,6 +155,7 @@ export const DELETE = withWorkspace(
       }),
     ]);
 
+    // delete the user if it's a machine user
     if (projectUser.user.isMachine) {
       await prisma.user.delete({
         where: {

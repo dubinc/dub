@@ -21,26 +21,6 @@ export type Scope = (typeof availableScopes)[number];
 
 export const resourcePermissions = [
   {
-    name: "Workspaces",
-    key: "workspaces",
-    description: "Read, update, and delete workspaces",
-    betaFeature: false,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "workspaces.read",
-        description: "Read workspaces",
-        roles: ["owner", "member"],
-      },
-      {
-        permission: "Write",
-        scope: "workspaces.write",
-        description: "Update and delete workspaces",
-        roles: ["owner"],
-      },
-    ],
-  },
-  {
     name: "Links",
     key: "links",
     description: "Create, read, update, and delete links",
@@ -61,22 +41,36 @@ export const resourcePermissions = [
     ],
   },
   {
-    name: "Tags",
-    key: "tags",
-    description: "Create, read, update, and delete tags",
+    name: "Analytics",
+    key: "analytics",
+    description: "Read analytics",
     betaFeature: false,
     permissions: [
       {
         permission: "Read",
-        scope: "tags.read",
-        description: "Read tags",
+        scope: "analytics.read",
+        description: "Read analytics and events",
+        roles: ["owner", "member"],
+      },
+    ],
+  },
+  {
+    name: "Workspaces",
+    key: "workspaces",
+    description: "Read, update, and delete workspaces",
+    betaFeature: false,
+    permissions: [
+      {
+        permission: "Read",
+        scope: "workspaces.read",
+        description: "Read workspaces",
         roles: ["owner", "member"],
       },
       {
         permission: "Write",
-        scope: "tags.write",
-        description: "Update and delete tags",
-        roles: ["owner", "member"],
+        scope: "workspaces.write",
+        description: "Update and delete workspaces",
+        roles: ["owner"],
       },
     ],
   },
@@ -101,6 +95,26 @@ export const resourcePermissions = [
     ],
   },
   {
+    name: "Tags",
+    key: "tags",
+    description: "Create, read, update, and delete tags",
+    betaFeature: false,
+    permissions: [
+      {
+        permission: "Read",
+        scope: "tags.read",
+        description: "Read tags",
+        roles: ["owner", "member"],
+      },
+      {
+        permission: "Write",
+        scope: "tags.write",
+        description: "Update and delete tags",
+        roles: ["owner", "member"],
+      },
+    ],
+  },
+  {
     name: "API Keys",
     key: "tokens",
     description: "Create, read, update, and delete API keys",
@@ -116,20 +130,6 @@ export const resourcePermissions = [
         permission: "Write",
         scope: "tokens.write",
         description: "Update and delete tokens",
-        roles: ["owner", "member"],
-      },
-    ],
-  },
-  {
-    name: "Analytics",
-    key: "analytics",
-    description: "Read analytics",
-    betaFeature: false,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "analytics.read",
-        description: "Read analytics and events",
         roles: ["owner", "member"],
       },
     ],
