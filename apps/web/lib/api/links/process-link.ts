@@ -28,7 +28,7 @@ export async function processLink<T extends Record<string, any>>({
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<WorkspaceProps, "id" | "plan" | "domains">;
+  workspace?: Pick<WorkspaceProps, "id" | "plan">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -133,9 +133,15 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
+  const domains = workspace
+    ? await prisma.domain.findMany({
+        where: { projectId: workspace.id },
+      })
+    : [];
+
   // if domain is not defined, set it to the workspace's primary domain
   if (!domain) {
-    domain = workspace?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+    domain = domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
   }
 
   // checks for dub.sh links
@@ -177,7 +183,7 @@ export async function processLink<T extends Record<string, any>>({
     }
 
     // else, check if the domain belongs to the workspace
-  } else if (!workspace?.domains?.find((d) => d.slug === domain)) {
+  } else if (!domains?.find((d) => d.slug === domain)) {
     return {
       link: payload,
       error: "Domain does not belong to workspace.",

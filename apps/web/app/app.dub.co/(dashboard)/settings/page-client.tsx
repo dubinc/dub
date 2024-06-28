@@ -3,6 +3,7 @@
 import DeleteAccountSection from "@/ui/account/delete-account";
 import UpdateDefaultWorkspace from "@/ui/account/update-default-workspace";
 import UploadAvatar from "@/ui/account/upload-avatar";
+import UserId from "@/ui/account/user-id";
 import { Form } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -72,6 +73,7 @@ export default function SettingsPageClient() {
         }
       />
       <UploadAvatar />
+      <UserId />
       <UpdateDefaultWorkspace />
       <DeleteAccountSection />
     </>

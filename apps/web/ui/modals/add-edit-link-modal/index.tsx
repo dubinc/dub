@@ -282,7 +282,6 @@ function AddEditLinkModal({
     /* 
       Disable save if:
       - modal is not open
-      - generating metatags is in progress
       - saving is in progress
       - key is invalid
       - url is invalid
@@ -290,13 +289,18 @@ function AddEditLinkModal({
     */
     if (
       !showAddEditLinkModal ||
-      generatingMetatags ||
       saving ||
       keyError ||
       urlError ||
       (props &&
         Object.entries(props).every(([key, value]) => {
-          if (key === "geo") {
+          // If the key is "title" or "description" and proxy is not enabled, return true (skip the check)
+          if (
+            (key === "title" || key === "description" || key === "image") &&
+            !proxy
+          ) {
+            return true;
+          } else if (key === "geo") {
             const equalGeo = deepEqual(props.geo as object, data.geo as object);
             return equalGeo;
           }
@@ -308,15 +312,7 @@ function AddEditLinkModal({
     } else {
       return false;
     }
-  }, [
-    showAddEditLinkModal,
-    generatingMetatags,
-    saving,
-    keyError,
-    urlError,
-    props,
-    data,
-  ]);
+  }, [showAddEditLinkModal, saving, keyError, urlError, props, data]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 

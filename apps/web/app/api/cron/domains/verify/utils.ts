@@ -12,16 +12,12 @@ export const handleDomainUpdates = async ({
   verified,
   primary,
   changed,
-  clicks,
-  linksCount,
 }: {
   domain: string;
   createdAt: Date;
   verified: boolean;
   primary: boolean;
   changed: boolean;
-  clicks: number;
-  linksCount: number;
 }) => {
   if (changed) {
     await log({
@@ -79,29 +75,21 @@ export const handleDomainUpdates = async ({
 
   // if domain is invalid for more than 30 days, check if we can delete it
   if (invalidDays >= 30) {
-    // Don't delete the domain (manual inspection required) if:
-    // - the domain has clicks
-    // - there are still links associated with the domain and those links have clicks
-    if (clicks > 0) {
+    // Don't delete the domain (manual inspection required)
+    // if the links for the domain have clicks recorded
+    const linksClicks = await prisma.link.aggregate({
+      _sum: {
+        clicks: true,
+      },
+      where: {
+        domain,
+      },
+    });
+    if (linksClicks._sum.clicks && linksClicks._sum.clicks > 0) {
       return await log({
-        message: `Domain *${domain}* has been invalid for > 30 days but has clicks, skipping.`,
+        message: `Domain *${domain}* has been invalid for > 30 days but has links with clicks, skipping.`,
         type: "cron",
       });
-    } else if (linksCount > 0) {
-      const linksClicks = await prisma.link.aggregate({
-        _sum: {
-          clicks: true,
-        },
-        where: {
-          domain,
-        },
-      });
-      if (linksClicks._sum?.clicks) {
-        return await log({
-          message: `Domain *${domain}* has been invalid for > 30 days but has links with clicks, skipping.`,
-          type: "cron",
-        });
-      }
     }
     // else, delete the domain
     return await Promise.allSettled([
@@ -125,9 +113,7 @@ export const handleDomainUpdates = async ({
         }
       }),
       log({
-        message: `Domain *${domain}* has been invalid for > 30 days and ${
-          linksCount > 0 ? "has links but no link clicks" : "has no links"
-        }, deleting.`,
+        message: `Domain *${domain}* has been invalid for > 30 days andhas links but no link clicks, deleting.`,
         type: "cron",
       }),
       emails.map((email) =>

@@ -366,13 +366,7 @@ export const authOptions: NextAuthOptions = {
             customerAvatar: user.image,
           });
           // delete the clickId cookie
-          cookies().set("dclid", "", {
-            expires: new Date(0),
-            path: "/",
-            domain: VERCEL_DEPLOYMENT
-              ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-              : undefined,
-          });
+          cookies().delete("dclid");
         }
       }
       // lazily backup user avatar to R2
