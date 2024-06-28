@@ -41,7 +41,7 @@ export class IntegrationHarnessOld {
     const workspace = {
       id: this.env.E2E_WORKSPACE_ID,
       slug: "acme",
-      name: "Acme, Inc",
+      name: "Acme, Inc.",
     };
 
     this.resources = {
