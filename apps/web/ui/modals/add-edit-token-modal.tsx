@@ -1,6 +1,11 @@
-import { Scope, resourcePermissions } from "@/lib/api/tokens/scopes";
+import {
+  Scope,
+  resourcePermissions,
+  scopePresets,
+} from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  AnimatedSizeContainer,
   BlurImage,
   Button,
   ButtonProps,
@@ -12,8 +17,6 @@ import {
   RadioGroupItem,
 } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
-import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
 import {
   Dispatch,
   FormEvent,
@@ -205,17 +208,9 @@ function AddEditTokenModal({
 
           <div className="flex flex-col gap-2">
             <h2 className="text-sm font-medium text-gray-900">Permissions</h2>
-            <span className="text-sm text-gray-500">
-              These permissions apply when the API key is used to make requests
-              to Dub APIs.
-            </span>
             <div className="flex">
               <ToggleGroup
-                options={[
-                  { value: "all_access", label: "All" },
-                  { value: "read_only", label: "Read Only" },
-                  { value: "restricted", label: "Restricted" },
-                ]}
+                options={scopePresets}
                 selected={preset}
                 selectAction={(value: ScopePreset) => {
                   setPreset(value);
@@ -232,58 +227,60 @@ function AddEditTokenModal({
             </div>
           </div>
 
-          {preset === "restricted" && (
-            <motion.div
-              className="flex flex-col divide-y text-sm"
-              {...SWIPE_REVEAL_ANIMATION_SETTINGS}
-            >
-              {resourcePermissions
-                .filter(
-                  // filter out beta features
-                  (resource) => !resource.betaFeature || betaTester,
-                )
-                .map((resource) => (
-                  <div
-                    className="flex items-center justify-between py-4"
-                    key={resource.key}
-                  >
-                    <div className="flex items-center gap-1.5 text-gray-500">
-                      <p>{resource.name}</p>
-                      <InfoTooltip content={resource.description} />
-                    </div>
-                    <div>
-                      <RadioGroup
-                        defaultValue={scopes[resource.key] || ""}
-                        className="flex gap-4"
-                        onValueChange={(v: Scope) => {
-                          setData({
-                            ...data,
-                            scopes: {
-                              ...scopes,
-                              [resource.key]: v,
-                            },
-                          });
-                        }}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="" />
-                          <div>None</div>
-                        </div>
-                        {resource.permissions.map((permission) => (
-                          <div
-                            className="flex items-center space-x-2"
-                            key={permission.scope}
-                          >
-                            <RadioGroupItem value={permission.scope} />
-                            <div>{permission.permission}</div>
+          <AnimatedSizeContainer height>
+            <div className="p-1 pt-0 text-sm text-gray-500">
+              {scopePresets.find((p) => p.value === preset)?.description}
+            </div>
+            {preset === "restricted" && (
+              <div className="flex flex-col divide-y text-sm">
+                {resourcePermissions
+                  .filter(
+                    // filter out beta features
+                    (resource) => !resource.betaFeature || betaTester,
+                  )
+                  .map((resource) => (
+                    <div
+                      className="flex items-center justify-between py-4"
+                      key={resource.key}
+                    >
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <p>{resource.name}</p>
+                        <InfoTooltip content={resource.description} />
+                      </div>
+                      <div>
+                        <RadioGroup
+                          defaultValue={scopes[resource.key] || ""}
+                          className="flex gap-4"
+                          onValueChange={(v: Scope) => {
+                            setData({
+                              ...data,
+                              scopes: {
+                                ...scopes,
+                                [resource.key]: v,
+                              },
+                            });
+                          }}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="" />
+                            <div>None</div>
                           </div>
-                        ))}
-                      </RadioGroup>
+                          {resource.permissions.map((permission) => (
+                            <div
+                              className="flex items-center space-x-2"
+                              key={permission.scope}
+                            >
+                              <RadioGroupItem value={permission.scope} />
+                              <div>{permission.permission}</div>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </div>
                     </div>
-                  </div>
-                ))}
-            </motion.div>
-          )}
+                  ))}
+              </div>
+            )}
+          </AnimatedSizeContainer>
 
           <Button
             text={token ? "Save changes" : "Create API key"}
