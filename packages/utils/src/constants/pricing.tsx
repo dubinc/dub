@@ -284,9 +284,13 @@ export const PLANS = [
       yearly: null,
     },
     limits: {
-      links: null,
-      clicks: null,
-      domains: null,
+      links: 250000,
+      clicks: 5000000,
+      domains: 1000,
+      tags: 1000,
+      users: 500,
+      ai: 10000,
+      api: 10000,
     },
     colors: {
       bg: "bg-violet-600",
