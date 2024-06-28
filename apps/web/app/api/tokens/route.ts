@@ -1,6 +1,7 @@
 import { scopesToName } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
+import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { getCurrentPlan, nanoid } from "@dub/utils";
@@ -21,10 +22,10 @@ export const POST = withWorkspace(
 
     // Create machine user if needed
     if (isMachine) {
+      const randomName = generateRandomName();
       machineUser = await prisma.user.create({
         data: {
-          name: "Machine",
-          image: "https://api.dicebear.com/9.x/bottts/svg",
+          name: `${randomName} (Machine User)`,
           isMachine: true,
         },
       });
