@@ -33,28 +33,33 @@ const updateWorkspaceSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
-export const GET = withWorkspace(async ({ workspace, headers }) => {
-  const betaTester = await isBetaTester(workspace.id);
-  const domains = await prisma.domain.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      slug: true,
-      primary: true,
-    },
-  });
+export const GET = withWorkspace(
+  async ({ workspace, headers }) => {
+    const betaTester = await isBetaTester(workspace.id);
+    const domains = await prisma.domain.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        slug: true,
+        primary: true,
+      },
+    });
 
-  return NextResponse.json(
-    WorkspaceSchema.parse({
-      ...workspace,
-      id: `ws_${workspace.id}`,
-      domains,
-      betaTester,
-    }),
-    { headers },
-  );
-});
+    return NextResponse.json(
+      WorkspaceSchema.parse({
+        ...workspace,
+        id: `ws_${workspace.id}`,
+        domains,
+        betaTester,
+      }),
+      { headers },
+    );
+  },
+  {
+    requiredScopes: ["workspaces.read"],
+  },
+);
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
@@ -98,7 +103,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );
 
@@ -112,6 +117,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(workspace);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );

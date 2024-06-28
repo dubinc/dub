@@ -13,44 +13,49 @@ import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
-export const GET = withWorkspace(async ({ req, headers, workspace }) => {
-  const searchParams = getSearchParamsWithArray(req.url);
+export const GET = withWorkspace(
+  async ({ req, headers, workspace }) => {
+    const searchParams = getSearchParamsWithArray(req.url);
 
-  const {
-    domain,
-    tagId,
-    tagIds,
-    search,
-    sort,
-    page,
-    userId,
-    showArchived,
-    withTags,
-    includeUser,
-  } = getLinksQuerySchemaExtended.parse(searchParams);
+    const {
+      domain,
+      tagId,
+      tagIds,
+      search,
+      sort,
+      page,
+      userId,
+      showArchived,
+      withTags,
+      includeUser,
+    } = getLinksQuerySchemaExtended.parse(searchParams);
 
-  if (domain) {
-    await getDomainOrThrow({ workspace, domain });
-  }
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
 
-  const response = await getLinksForWorkspace({
-    workspaceId: workspace.id,
-    domain,
-    tagId,
-    tagIds,
-    search,
-    sort,
-    page,
-    userId,
-    showArchived,
-    withTags,
-    includeUser,
-  });
+    const response = await getLinksForWorkspace({
+      workspaceId: workspace.id,
+      domain,
+      tagId,
+      tagIds,
+      search,
+      sort,
+      page,
+      userId,
+      showArchived,
+      withTags,
+      includeUser,
+    });
 
-  return NextResponse.json(response, {
-    headers,
-  });
-});
+    return NextResponse.json(response, {
+      headers,
+    });
+  },
+  {
+    requiredScopes: ["links.read"],
+  },
+);
 
 // POST /api/links – create a new link
 export const POST = withWorkspace(
@@ -106,5 +111,6 @@ export const POST = withWorkspace(
   },
   {
     allowAnonymous: true,
+    requiredScopes: ["links.write"],
   },
 );

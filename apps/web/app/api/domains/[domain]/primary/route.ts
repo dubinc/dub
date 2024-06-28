@@ -41,6 +41,6 @@ export const POST = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainRecord), { headers });
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["domains.write"],
   },
 );

@@ -65,12 +65,10 @@ const cases = [
 cases.forEach(({ name, body, expected }) => {
   test(name, async (ctx) => {
     const h = new IntegrationHarness(ctx);
-    const { workspace, http } = await h.init();
-    const { workspaceId } = workspace;
+    const { http } = await h.init();
 
     const response = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body,
     });
 

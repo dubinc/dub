@@ -12,7 +12,7 @@ og:title: 'Bulk create links with the Dub.co API - API Reference'
 <RequestExample>
 ```bash cURL
 curl --request POST \
-  --url https://api.dub.co/links/bulk?workspaceId={WORKSPACE_ID} \
+  --url https://api.dub.co/links/bulk \
   --header 'Authorization: Bearer {YOUR_TOKEN}' \
   --header 'Content-Type: application/json' \
   --data '[
@@ -44,7 +44,7 @@ const options = {
   ])
 };
 
-fetch('https://api.dub.co/links/bulk?workspaceId={WORKSPACE_ID}', options)
+fetch('https://api.dub.co/links/bulk', options)
   .then(response => response.json())
   .then(response => console.log(response))
   .catch(err => console.error(err));

@@ -10,14 +10,13 @@ const { domain, url } = link;
 describe.sequential("GET /links/{linkId}", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
   const externalId = randomId();
   const key = randomId();
 
   const { data: newLink } = await http.post<Link>({
     path: "/links",
-    query: { workspaceId },
     body: {
       url,
       domain,
@@ -33,7 +32,6 @@ describe.sequential("GET /links/{linkId}", async () => {
   test("by linkId", async () => {
     const { status, data: link } = await http.get<Link>({
       path: `/links/${newLink.id}`,
-      query: { workspaceId },
     });
 
     expect(status).toEqual(200);
@@ -49,7 +47,6 @@ describe.sequential("GET /links/{linkId}", async () => {
   test("by externalId", async () => {
     const { status, data: link } = await http.get<Link>({
       path: `/links/ext_${externalId}`,
-      query: { workspaceId },
     });
 
     expect(status).toEqual(200);
@@ -66,14 +63,13 @@ describe.sequential("GET /links/{linkId}", async () => {
 describe.sequential("GET /links/info", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
   const externalId = randomId();
   const key = randomId();
 
   const { data: newLink } = await http.post<Link>({
     path: "/links",
-    query: { workspaceId },
     body: {
       url,
       domain,
