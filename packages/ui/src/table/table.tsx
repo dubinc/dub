@@ -41,6 +41,7 @@ type UseTableProps<T> = {
   sortableColumns?: string[];
   columnVisibility?: VisibilityState;
   resizeColumns?: boolean;
+  resourceName?: (plural: boolean) => string;
 
   thClassName?: string;
   tdClassName?: string;
@@ -127,6 +128,7 @@ export function Table<T>({
   tdClassName,
   table,
   pagination,
+  resourceName,
 }: TableProps<T>) {
   // Memoize column sizes to pass to table as CSS variables
   const columnSizeVars = useMemo(() => {
@@ -285,7 +287,7 @@ export function Table<T>({
               <span className="font-medium">
                 {table.getRowCount().toLocaleString()}
               </span>{" "}
-              events
+              {resourceName?.(table.getRowCount() !== 1) || "items"}
             </div>
             <div className="flex items-center gap-2">
               <Button

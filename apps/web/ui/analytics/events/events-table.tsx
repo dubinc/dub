@@ -436,6 +436,7 @@ export default function EventsTable() {
       );
     },
     emptyState: <EmptyState />,
+    resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
   const exportQueryString = useMemo(
