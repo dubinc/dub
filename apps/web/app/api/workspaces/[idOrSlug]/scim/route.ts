@@ -14,25 +14,30 @@ const deleteDirectorySchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/scim – get all SCIM directories
-export const GET = withWorkspace(async ({ workspace }) => {
-  const { directorySyncController } = await jackson();
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const { directorySyncController } = await jackson();
 
-  const { data, error } =
-    await directorySyncController.directories.getByTenantAndProduct(
-      workspace.id,
-      "Dub",
-    );
-  if (error) {
-    throw new DubApiError({
-      code: "internal_server_error",
-      message: error.message,
+    const { data, error } =
+      await directorySyncController.directories.getByTenantAndProduct(
+        workspace.id,
+        "Dub",
+      );
+    if (error) {
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: error.message,
+      });
+    }
+
+    return NextResponse.json({
+      directories: data,
     });
-  }
-
-  return NextResponse.json({
-    directories: data,
-  });
-});
+  },
+  {
+    requiredScopes: ["workspaces.read"],
+  },
+);
 
 // POST /api/workspaces/[idOrSlug]/scim – create a new SCIM directory
 export const POST = withWorkspace(
@@ -56,13 +61,12 @@ export const POST = withWorkspace(
     return NextResponse.json(data);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
     requiredPlan: ["enterprise"],
   },
 );
 
 // DELETE /api/workspaces/[idOrSlug]/scim – delete a SCIM directory
-
 export const DELETE = withWorkspace(
   async ({ searchParams }) => {
     const { directoryId } = deleteDirectorySchema.parse(searchParams);
@@ -82,6 +86,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(data);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );

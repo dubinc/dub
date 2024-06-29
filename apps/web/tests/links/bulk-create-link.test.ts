@@ -12,7 +12,7 @@ const { domain } = link;
 test("POST /links/bulk", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http, user } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
 
   const bulkLinks = Array.from({ length: 2 }, () => ({
@@ -22,7 +22,6 @@ test("POST /links/bulk", async (ctx) => {
 
   const { status, data: links } = await http.post<Link[]>({
     path: "/links/bulk",
-    query: { workspaceId },
     body: bulkLinks,
   });
 

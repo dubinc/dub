@@ -3,6 +3,7 @@ import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
+import { tokenSchema } from "./zod/schemas/token";
 
 export type LinkProps = Link;
 
@@ -111,6 +112,7 @@ export interface UserProps {
   source: string | null;
   migratedWorkspace: string | null;
   defaultWorkspace?: string;
+  isMachine: boolean;
 }
 
 export interface WorkspaceUserProps extends UserProps {
@@ -192,3 +194,5 @@ export const tagColors = [
 ] as const;
 
 export type MetaTag = z.infer<typeof metaTagsSchema>;
+
+export type TokenProps = z.infer<typeof tokenSchema>;

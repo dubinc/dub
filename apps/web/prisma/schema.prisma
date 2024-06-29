@@ -18,14 +18,16 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  isMachine     Boolean   @default(false)
 
   accounts         Account[]
   sessions         Session[]
   projects         ProjectUsers[]
   links            Link[]
   tokens           Token[]
-  createdAt        DateTime       @default(now())
-  subscribed       Boolean        @default(true)
+  restrictedTokens RestrictedToken[]
+  createdAt        DateTime          @default(now())
+  subscribed       Boolean           @default(true)
   source           String?
   defaultWorkspace String?
 
@@ -87,6 +89,27 @@ model Token {
   @@index([userId])
 }
 
+model RestrictedToken {
+  id         String    @id @default(cuid())
+  name       String
+  hashedKey  String    @unique
+  partialKey String
+  scopes     String? // space separated (Eg: "read:links write:links")
+  expires    DateTime?
+  lastUsed   DateTime?
+  rateLimit  Int       @default(600) // rate limit per minute
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  userId     String
+  projectId  String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectId])
+}
+
 model Project {
   id   String  @id @default(cuid())
   name String
@@ -115,14 +138,15 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
 
-  users          ProjectUsers[]
-  invites        ProjectInvite[]
-  sentEmails     SentEmail[]
-  links          Link[]
-  domains        Domain[]
-  tags           Tag[]
-  customers      Customer[]
-  defaultDomains DefaultDomains[]
+  users            ProjectUsers[]
+  invites          ProjectInvite[]
+  sentEmails       SentEmail[]
+  links            Link[]
+  domains          Domain[]
+  tags             Tag[]
+  customers        Customer[]
+  defaultDomains   DefaultDomains[]
+  restrictedTokens RestrictedToken[]
 
   @@index(usageLastChecked(sort: Asc))
 }

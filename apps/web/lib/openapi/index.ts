@@ -72,7 +72,7 @@ export const document = createDocument({
         "x-speakeasy-globals-hidden": true,
         name: "workspaceId",
         in: "query",
-        required: true,
+        deprecated: true,
         schema: {
           type: "string",
         },

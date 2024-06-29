@@ -20,6 +20,10 @@ export default function WorkspaceSettingsLayout({
       segment: "people",
     },
     {
+      name: "API Keys",
+      segment: "tokens",
+    },
+    {
       name: "Security",
       segment: "security",
     },
