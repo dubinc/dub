@@ -49,7 +49,7 @@ export default function RevenueClient({
   ).toFixed(0);
 
   return (
-    <div className="mx-auto my-10 w-full max-w-screen-lg overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
+    <div className="mx-auto my-24 w-full max-w-screen-lg overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
       <div className="w-fit border-b-2 border-black px-8 py-6">
         <div className="flex items-center gap-2.5 text-sm text-gray-600">
           <div className="h-2 w-2 rounded-sm bg-green-200 shadow-[inset_0_0_0_1px_#00000019]" />
