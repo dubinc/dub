@@ -39,7 +39,14 @@ export default function TokensPageClient() {
             Workspace API Key
           </a>{" "}
           for more granular control over your resources such as Links, Tags,
-          Domains, Analytics, etc.
+          Domains, Analytics, etc.{" "}
+          {/* <a
+            href="https://dub.co/blog/workspace-api-keys"
+            target="_blank"
+            className="font-medium underline underline-offset-4 hover:text-black"
+          >
+            Read the announcement.
+          </a> */}
         </AlertDescription>
       </Alert>
 
