@@ -1,7 +1,7 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createTagBodySchema } from "@/lib/zod/schemas/tags";
+import { TagSchema, createTagBodySchema } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
@@ -16,11 +16,13 @@ export const GET = withWorkspace(
         id: true,
         name: true,
         color: true,
+        createdAt: true,
       },
       orderBy: {
         name: "asc",
       },
     });
+
     return NextResponse.json(tags, { headers });
   },
   {
@@ -48,12 +50,12 @@ export const POST = withWorkspace(
       });
     }
 
-    const { tag, color } = createTagBodySchema.parse(await req.json());
+    const { tag, color, name } = createTagBodySchema.parse(await req.json());
 
     const existingTag = await prisma.tag.findFirst({
       where: {
         projectId: workspace.id,
-        name: tag,
+        name: name || tag,
       },
     });
 
@@ -66,7 +68,7 @@ export const POST = withWorkspace(
 
     const response = await prisma.tag.create({
       data: {
-        name: tag,
+        name: tag || name!,
         color:
           color && COLORS_LIST.map(({ color }) => color).includes(color)
             ? color
@@ -75,7 +77,10 @@ export const POST = withWorkspace(
       },
     });
 
-    return NextResponse.json(response, { headers, status: 201 });
+    return NextResponse.json(TagSchema.parse(response), {
+      headers,
+      status: 201,
+    });
   },
   {
     requiredScopes: ["tags.write"],
