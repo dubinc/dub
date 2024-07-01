@@ -141,9 +141,7 @@
         "api-reference/endpoint/create-a-domain",
         "api-reference/endpoint/update-a-domain",
         "api-reference/endpoint/delete-a-domain",
-        "api-reference/endpoint/retrieve-a-list-of-domains",
-        "api-reference/endpoint/set-a-primary-domain",
-        "api-reference/endpoint/transfer-a-domain"
+        "api-reference/endpoint/retrieve-a-list-of-domains"
       ]
     },
     {
@@ -208,9 +206,7 @@
             "sdks/typescript/domains/create",
             "sdks/typescript/domains/update",
             "sdks/typescript/domains/delete",
-            "sdks/typescript/domains/list",
-            "sdks/typescript/domains/set-primary",
-            "sdks/typescript/domains/transfer"
+            "sdks/typescript/domains/list"
           ]
         },
         {
