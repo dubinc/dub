@@ -4,12 +4,18 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas/links";
-import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  LOCALHOST_IP,
+  getSearchParamsWithArray,
+} from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
@@ -94,6 +100,21 @@ export const POST = withWorkspace(
 
     try {
       const response = await createLink(link);
+
+      waitUntil(
+        (async () => {
+          // Publish to Zapier if the project has a Zapier hook enabled
+          if (response.projectId && workspace.zapierHookEnabled) {
+            await qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/zapier/send-webhook`,
+              body: {
+                linkId: response.id,
+              },
+            });
+          }
+        })(),
+      );
+
       return NextResponse.json(response, { headers });
     } catch (error) {
       if (error.code === "P2002") {

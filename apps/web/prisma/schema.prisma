@@ -146,6 +146,10 @@ model Project {
   defaultDomains   DefaultDomains[]
   restrictedTokens RestrictedToken[]
 
+  // for Zapier integration
+  zapierHookEnabled Boolean      @default(false)
+  zapierHooks       ZapierHook[]
+
   @@index(usageLastChecked(sort: Asc))
 }
 
@@ -353,6 +357,18 @@ model Customer {
   @@index(projectId)
   @@index(projectConnectId)
   @@index(externalId)
+}
+
+model ZapierHook {
+  id        String   @id @default(cuid())
+  projectId String
+  url       String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index(projectId)
 }
 
 model jackson_index {

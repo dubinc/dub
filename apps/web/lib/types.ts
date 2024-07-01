@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link } from "@prisma/client";
+import { Link, Project } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { tokenSchema } from "./zod/schemas/token";
 
@@ -68,20 +68,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export interface WorkspaceProps {
-  id: string;
-  name: string;
-  slug: string;
-  logo: string | null;
-  usage: number;
-  usageLimit: number;
-  aiUsage: number;
-  aiLimit: number;
-  linksUsage: number;
-  linksLimit: number;
-  domainsLimit: number;
-  tagsLimit: number;
-  usersLimit: number;
+export interface WorkspaceProps extends Project {
   plan: PlanProps;
   stripeId: string | null;
   billingCycleStart: number;
