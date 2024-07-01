@@ -131,6 +131,9 @@ export const POST = withWorkspace(
       headers,
     });
   },
+  {
+    requiredScopes: ["links.write"],
+  },
 );
 
 // PATCH /api/links/bulk – bulk update up to 100 links with the same data

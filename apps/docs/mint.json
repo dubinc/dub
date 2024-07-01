@@ -100,6 +100,7 @@
       "group": "API Reference",
       "pages": [
         "api-reference/introduction",
+        "api-reference/tokens",
         "api-reference/rate-limits",
         "api-reference/errors"
       ]

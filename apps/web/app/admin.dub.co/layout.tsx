@@ -15,6 +15,10 @@ const tabs = [
     href: "/analytics",
     label: "Analytics",
   },
+  {
+    href: "/revenue",
+    label: "Revenue",
+  },
 ];
 
 export default async function AdminLayout({

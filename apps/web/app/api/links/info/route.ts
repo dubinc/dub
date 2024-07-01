@@ -55,4 +55,7 @@ export const GET = withWorkspace(
       headers,
     });
   },
+  {
+    requiredScopes: ["links.read"],
+  },
 );

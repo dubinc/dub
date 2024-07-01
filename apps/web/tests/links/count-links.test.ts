@@ -7,20 +7,17 @@ const { domain, url } = link;
 
 test("GET /links/count", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const { http } = await h.init();
 
   const [{ data: firstLink }] = await Promise.all([
     http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: { url, domain },
     }),
   ]);
 
   const { status, data: count } = await http.get<Link[]>({
     path: "/links/count",
-    query: { workspaceId },
   });
 
   expect(status).toEqual(200);

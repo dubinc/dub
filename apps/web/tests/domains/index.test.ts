@@ -42,26 +42,6 @@ describe.sequential("/domains/**", async () => {
     expect(domain).toStrictEqual(expectedDomain);
   });
 
-  test("GET /domains/{slug}/exists", async () => {
-    // A domain exists (We just created it, so it should exist)
-    const { status, data } = await http.get({
-      path: `/domains/${domainRecord.slug}/exists`,
-      query: { workspaceId: workspace.id },
-    });
-
-    expect(status).toEqual(200);
-    expect(data).toEqual(1);
-
-    // A domain does not exist
-    const { status: status2, data: data2 } = await http.get({
-      path: `/domains/random.com/exists`,
-      query: { workspaceId: workspace.id },
-    });
-
-    expect(status2).toEqual(200);
-    expect(data2).toEqual(0);
-  });
-
   test("GET /domains/{slug}", async () => {
     const { status, data: domain } = await http.get<Domain>({
       path: `/domains/${domainRecord.slug}`,

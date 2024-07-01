@@ -9,7 +9,7 @@ import { filter } from "./utils";
 describe.runIf(env.CI).sequential("GET /analytics?event=sales", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
 
   VALID_ANALYTICS_ENDPOINTS.map((groupBy) => {
     test(`by ${groupBy}`, async () => {
