@@ -8,10 +8,12 @@ import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import { PropsWithChildren, createContext } from "react";
 import useSWR from "swr";
-import { FEATURES_LIST } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavLogo } from "../nav-logo";
+import { ProductContent } from "./content/product-content";
+import { SolutionsContent } from "./content/solutions-content";
+import { createHref } from "./shared";
 
 export type NavTheme = "light" | "dark";
 
@@ -19,7 +21,7 @@ export const NavContext = createContext<{ theme: NavTheme }>({
   theme: "light",
 });
 
-export const navItems = [
+const navItems = [
   {
     name: "Product",
     href: "/",
@@ -27,6 +29,7 @@ export const navItems = [
   },
   {
     name: "Solutions",
+    content: SolutionsContent,
   },
   {
     name: "Pricing",
@@ -52,9 +55,6 @@ const navItemStyles = cva(
   },
 );
 
-const createHref = (href: string, domain: string) =>
-  domain === "dub.co" ? href : `https://dub.co${href}`;
-
 export function Nav({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
 
@@ -79,12 +79,6 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
         <div
           className={cn(
             "-z-1 absolute inset-0 border-transparent transition-all",
-            {
-              // "bg-white/75 backdrop-blur-lg dark:bg-black/75": scrolled,
-              // "bg-white dark:bg-black":
-              //   selectedLayout &&
-              //   HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout),
-            },
           )}
         />
         <MaxWidthWrapper className="relative">
@@ -111,19 +105,19 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                 <div className="absolute inset-0 -z-[1]">
                   <div
                     className={cn(
-                      "absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 bg-white drop-shadow-sm transition-all dark:border-white/10 dark:bg-black",
-                      scrolled && [
-                        "h-14 w-screen rounded-none drop-shadow-none",
-                        (!selectedLayout ||
-                          !HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout)) &&
-                          "bg-white/75 backdrop-blur-lg dark:bg-black/75",
-                      ],
+                      "absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 drop-shadow-sm transition-all dark:border-white/10",
+                      selectedLayout &&
+                        HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout)
+                        ? "bg-white dark:bg-black"
+                        : "bg-white/75 backdrop-blur-lg dark:bg-black/75",
+                      scrolled && "h-14 w-screen rounded-none drop-shadow-none",
                     )}
                   />
                 </div>
                 {navItems.map(({ name, href, content: Content }) => {
-                  const isActive = href === `/${selectedLayout}`;
-                  console.log(href);
+                  const isActive =
+                    href === `/${selectedLayout}` ||
+                    (href === "/" && selectedLayout === null);
                   return (
                     <NavigationMenuPrimitive.Item key={href}>
                       <WithTrigger trigger={!!Content}>
@@ -145,7 +139,12 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                             {name}
                           </Link>
                         ) : (
-                          <span className={navItemStyles({ isActive })}>
+                          <span
+                            className={cn(
+                              navItemStyles({ isActive }),
+                              "cursor-default",
+                            )}
+                          >
                             {name}
                           </span>
                         )}
@@ -161,7 +160,14 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                 })}
               </NavigationMenuPrimitive.List>
 
-              <NavigationMenuPrimitive.Viewport className="data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content absolute left-0 top-full mt-3 flex w-[var(--radix-navigation-menu-viewport-width)] origin-[top_center] justify-start rounded-[20px] border border-gray-200 bg-white/80 shadow-md backdrop-blur-md dark:border-white/[0.15] dark:bg-black/40" />
+              <NavigationMenuPrimitive.Viewport
+                className={cn(
+                  "absolute left-0 top-full mt-3 flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-gray-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
+                  "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
+                  "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
+                  "[&>*]:absolute",
+                )}
+              />
             </NavigationMenuPrimitive.Root>
 
             <div className="hidden grow basis-0 justify-end lg:flex">
@@ -222,41 +228,5 @@ function WithTrigger({
     </NavigationMenuPrimitive.Trigger>
   ) : (
     children
-  );
-}
-
-function ProductContent({ domain }: { domain: string }) {
-  return (
-    <div className="grid w-[32rem] grid-cols-2 gap-1 p-3">
-      {FEATURES_LIST.map(({ slug, icon: Icon, title, shortTitle }) => (
-        <Link
-          key={slug}
-          href={createHref(`/${slug}`, domain)}
-          {...(domain !== "dub.co" && {
-            onClick: () => {
-              va.track("Referred from custom domain", {
-                domain,
-                medium: `navbar item (/${slug})`,
-              });
-            },
-          })}
-          className="group rounded-[8px] p-2 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:hover:bg-white/[0.15] dark:active:bg-white/20"
-        >
-          <div className="flex items-center gap-2">
-            <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-3">
-              <Icon className="h-4 w-4 text-black transition-transform group-hover:scale-110 dark:text-white/80" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-white">
-                {shortTitle}
-              </p>
-              <p className="line-clamp-1 text-xs text-gray-500/80 dark:text-white/60">
-                {title}
-              </p>
-            </div>
-          </div>
-        </Link>
-      ))}
-    </div>
   );
 }

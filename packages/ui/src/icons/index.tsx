@@ -15,10 +15,16 @@ export { default as LoadingSpinner } from "./loading-spinner";
 // brand logos
 export { default as Facebook } from "./facebook";
 export { default as Github } from "./github";
+export * from "./go";
 export { default as Google } from "./google";
 export { default as LinkedIn } from "./linkedin";
+export * from "./prisma";
 export { default as ProductHunt } from "./product-hunt";
+export * from "./python";
+export * from "./raycast";
+export * from "./tinybird";
 export { default as Twitter } from "./twitter";
+export * from "./typescript";
 export { default as Unsplash } from "./unsplash";
 export { default as YouTube } from "./youtube";
 

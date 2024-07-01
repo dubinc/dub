@@ -9,7 +9,7 @@ import useSWR from "swr";
 import { FEATURES_LIST } from "../content";
 import { type NavTheme } from "./nav";
 
-export const navItems = [
+const navItems = [
   {
     name: "Product",
     href: "/",

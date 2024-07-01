@@ -1,4 +1,5 @@
 export * from "./chart-line";
+export * from "./code";
 export * from "./crosshairs";
 export * from "./cube";
 export * from "./cursor-rays";
