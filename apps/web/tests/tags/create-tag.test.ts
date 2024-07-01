@@ -1,13 +1,10 @@
 import { Tag } from "@prisma/client";
 import { afterAll, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { expectedTag } from "../utils/schema";
 
 test("POST /tags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, http } = await h.init();
-  const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const { http } = await h.init();
 
   const { status, data: tag } = await http.post<Tag>({
     path: "/tags",
@@ -19,10 +16,9 @@ test("POST /tags", async (ctx) => {
 
   expect(status).toEqual(201);
   expect(tag).toStrictEqual({
-    ...expectedTag,
+    id: expect.any(String),
     name: "social",
     color: "red",
-    projectId,
   });
 
   afterAll(async () => {
