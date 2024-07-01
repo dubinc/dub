@@ -1,5 +1,5 @@
 import { Tag } from "@prisma/client";
-import { expect, test } from "vitest";
+import { afterAll, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { expectedTag } from "../utils/schema";
 
@@ -25,5 +25,7 @@ test("POST /tags", async (ctx) => {
     projectId,
   });
 
-  await h.deleteTag(tag.id);
+  afterAll(async () => {
+    await h.deleteTag(tag.id);
+  });
 });
