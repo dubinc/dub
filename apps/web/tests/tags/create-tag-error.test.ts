@@ -32,7 +32,7 @@ const cases = [
       data: {
         error: {
           code: "unprocessable_entity",
-          message: "invalid_type: tag: Required",
+          message: "custom: name: Name is required.",
           doc_url:
             "https://dub.co/docs/api-reference/errors#unprocessable-entity",
         },
