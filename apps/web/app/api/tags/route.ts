@@ -16,7 +16,6 @@ export const GET = withWorkspace(
         id: true,
         name: true,
         color: true,
-        createdAt: true,
       },
       orderBy: {
         name: "asc",

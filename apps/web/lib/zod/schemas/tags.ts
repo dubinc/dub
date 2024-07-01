@@ -42,7 +42,6 @@ export const TagSchema = z
     id: z.string().describe("The unique ID of the tag."),
     name: z.string().describe("The name of the tag."),
     color: tagColorSchema.describe("The color of the tag."),
-    createdAt: z.date().describe("The date the tag was created."),
   })
   .openapi({
     title: "Tag",
