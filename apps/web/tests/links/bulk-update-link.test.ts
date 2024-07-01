@@ -10,7 +10,7 @@ const { domain, url } = link;
 test("PATCH /links/bulk", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http, user } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
 
   const { data: createdLinks } = await http.post<Link[]>({
