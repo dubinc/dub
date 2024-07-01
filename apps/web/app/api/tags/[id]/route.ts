@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { updateTagBodySchema } from "@/lib/zod/schemas/tags";
+import { TagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
 
 // PATCH /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace
@@ -35,7 +35,8 @@ export const PATCH = withWorkspace(
           color,
         },
       });
-      return NextResponse.json(response);
+
+      return NextResponse.json(TagSchema.parse(response));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -101,7 +102,7 @@ export const DELETE = withWorkspace(
         })),
       );
 
-      return NextResponse.json(response);
+      return NextResponse.json({ id });
     } catch (error) {
       if (error.code === "P2025") {
         throw new DubApiError({
