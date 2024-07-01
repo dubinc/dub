@@ -1,0 +1,82 @@
+---
+title: "NextAuth.js"
+"og:title": "Dub Conversions - Leads – NextAuth.js"
+description: "Learn how to track a lead conversion event with NextAuth.js and the Dub SDK"
+---
+
+import InstallTypescript from "/snippets/sdk-install-ts.mdx";
+import InstallDubAnalytics from "/snippets/dub-analytics-install.mdx";
+
+## Prerequisites
+
+First, install the [Dub TypeScript SDK](/sdks/typescript/overview) to your backend code.
+
+<Accordion title="Install the Dub TypeScript SDK">
+  <InstallTypescript />
+</Accordion>
+
+Then add the [`@dub/analytics` package](/sdks/js-client/overview) to your frontend code.
+
+<Accordion title="Install the Dub Analytics package">
+  <InstallDubAnalytics />
+</Accordion>
+
+## Configure NextAuth.js Options
+
+Then, set up your NextAuth.js configuration options to track a lead conversion event using the `dub` TypeScript SDK.
+
+```typescript app/api/auth/[...nextauth]/options.ts
+import { NextAuthOptions } from "next-auth";
+import { cookies } from "next/headers";
+import { dub } from "@/lib/dub";
+
+export const authOptions: NextAuthOptions = {
+  ...otherAuthOptions, // your other NextAuth options
+  events: {
+    async signIn(message) {
+      // if it's a new sign up
+      if (message.isNewUser) {
+        // check if dclid cookie is present
+        const clickId = cookies().get("dclid")?.value;
+        if (clickId) {
+          // send lead event to Dub
+          await dub.track.lead({
+            clickId,
+            eventName: "Sign Up",
+            customerId: user.id,
+            customerName: user.name,
+            customerEmail: user.email,
+            customerAvatar: user.image,
+          });
+          // delete the dclid cookie
+          cookies().set("dclid", "", {
+            expires: new Date(0),
+          });
+        }
+      }
+    },
+  },
+};
+```
+
+Here's how it works in a nutshell:
+
+1. Check if the user is a new sign up.
+2. If the user is a new sign up, check if the `dclid` cookie is present.
+3. If the `dclid` cookie is present, send a lead event to Dub using `dub.track.lead`
+4. Delete the `dclid` cookie.
+
+Here's the full list of attributes you can pass
+
+## Create a NextAuth.js Route Handler
+
+Finally, import the `authOptions` variable you created earlier and use `NextAuth` to create a handler for your NextAuth.js routes.
+
+```typescript app/api/auth/[...nextauth]/index.ts
+import { authOptions } from "./options";
+import NextAuth from "next-auth";
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
+```

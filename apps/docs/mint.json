@@ -44,7 +44,8 @@
   "anchors": [
     {
       "name": "Help Center",
-      "icon": "question",
+      "icon": "circle-info",
+      "iconType": "sharp-solid",
       "url": "https://dub.co/help"
     },
     {
@@ -91,6 +92,32 @@
     {
       "group": "Resources",
       "pages": ["integrations", "examples"]
+    },
+    {
+      "group": "Conversions (BETA)",
+      "pages": [
+        "conversions/quickstart",
+        {
+          "group": "Leads",
+          "icon": "crosshairs",
+          "pages": [
+            "conversions/leads/introduction",
+            "conversions/leads/next-auth",
+            "conversions/leads/clerk",
+            "conversions/leads/supabase-auth",
+            "conversions/leads/auth0"
+          ]
+        },
+        {
+          "group": "Sales",
+          "icon": "money-bill",
+          "pages": [
+            "conversions/sales/introduction",
+            "conversions/sales/stripe",
+            "conversions/sales/shopify"
+          ]
+        }
+      ]
     },
     {
       "group": "Open source",
@@ -155,7 +182,7 @@
       "pages": ["api-reference/endpoint/retrieve-metatags"]
     },
     {
-      "group": "Conversions [BETA]",
+      "group": "Conversions (BETA)",
       "pages": [
         "api-reference/endpoint/track-lead",
         "api-reference/endpoint/track-sale",
@@ -164,7 +191,7 @@
     },
     {
       "group": "SDKs",
-      "pages": ["sdks/overview"]
+      "pages": ["sdks/overview", "sdks/js-client/overview"]
     },
     {
       "group": "TypeScript",
@@ -225,7 +252,9 @@
     "maintainOrder": true
   },
   "feedback": {
-    "thumbsRating": true
+    "thumbsRating": true,
+    "suggestEdit": true,
+    "raiseIssue": true
   },
   "footerSocials": {
     "twitter": "https://twitter.com/dubdotco",

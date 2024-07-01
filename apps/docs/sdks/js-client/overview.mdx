@@ -1,0 +1,107 @@
+---
+title: "@dub/analytics"
+description: Client-side JavaScript SDK for for Dub Conversions
+icon: node-js
+---
+
+import InstallDubAnalytics from "/snippets/dub-analytics-install.mdx";
+
+With Dub Analytics, you can track leads and sales conversions on your website, enabling you to measure the effectiveness of your marketing campaigns.
+
+## Quickstart
+
+This quick start guide will show you how to get started with Dub Analytics on your website.
+
+<InstallDubAnalytics />
+
+## Concepts
+
+You can pass the following props to the `<Analytics />` component to customize the tracking script:
+
+<ParamField body="cookieOptions" type="CookieOption Object">
+  <Expandable title="properties">
+    <ParamField body="domain" type="string">
+      Specifies the value for the `Domain` Set-Cookie attribute. This is useful
+      for cross-domain tracking. Example: `.example.com`
+    </ParamField>
+    <ParamField body="expires" type="integer" default="90">
+      Specifies the `Date` object to be the value for the `Expires` Set-Cookie
+      attribute. Example: `new Date('2024-12-31')`
+    </ParamField>
+    <ParamField body="expiresInDays" type="integer" default="90">
+      Specifies the number (in days) to be the value for the `Expires`
+      Set-Cookie attribute. Example: `90`
+    </ParamField>
+    <ParamField body="httpOnly" type="boolean" default="false">
+      Specifies the boolean value for the `HttpOnly` Set-Cookie attribute. Be
+      careful when setting this to true, as compliant clients will not allow
+      client-side JavaScript to see the cookie in `document.cookie`.
+    </ParamField>
+    <ParamField body="maxAge" type="integer">
+      Specifies the number (in seconds) to be the value for the `Max-Age`
+      Set-Cookie attribute. Example: `3600`
+    </ParamField>
+    <ParamField body="path" type="string" default="/">
+      Specifies the value for the `Path` Set-Cookie attribute. By default, the
+      path is considered the "default path". Example: `/`
+    </ParamField>
+    <ParamField body="sameSite" type="string" default="Lax">
+      Specifies the boolean or string to be the value for the `SameSite`
+      Set-Cookie attribute. Example: `strict`
+    </ParamField>
+    <ParamField body="secure" type="boolean" default="false">
+      Specifies the boolean value for the `Secure` Set-Cookie attribute.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField
+  body="attributionModel"
+  type="first-click | last-click"
+  default="first-click"
+>
+  The attribution model to use for the analytics event. The following
+  attribution models are available:
+
+- `first-click`: The first click model
+  gives all the credit to the first touchpoint in the customer journey.
+- `last-click`: The last click model gives all the credit to the last
+  touchpoint in the customer journey.
+
+</ParamField>
+
+For example, to set a cross domain cookie that works on the apex domain (`domain.com`) as well as subdomains (`app.domain.com`):
+
+```jsx app/layout.tsx
+import { Analytics as DubAnalytics } from "@dub/analytics";
+
+<DubAnalytics
+  cookieOptions={{
+    domain: process.env.IS_PRODUCTION_ENV
+      ? ".yourdomain.com" // for cross-domain tracking
+      : undefined,
+  }}
+/>;
+```
+
+Alternatively, to set a last-click attribution model:
+
+```jsx app/layout.tsx
+import { Analytics as DubAnalytics } from "@dub/analytics";
+
+<DubAnalytics attributionModel="last-click" />;
+```
+
+## Examples
+
+We also have some advanced examples on GitHub:
+
+<CardGroup cols={2}>
+  <Card
+    title="Dub Analytics with Geolocation"
+    icon="github"
+    href="https://github.com/dubinc/analytics/tree/main/apps/nextjs-geolocation-script"
+  >
+    See the full example on GitHub.
+  </Card>
+</CardGroup>
