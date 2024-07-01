@@ -23,7 +23,7 @@ export const updateTag: ZodOpenApiOperationObject = {
     },
   },
   responses: {
-    "201": {
+    "200": {
       description: "The updated tag.",
       content: {
         "application/json": {
