@@ -118,7 +118,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
-  console.error("API error occurred", error.message);
+  console.error("[API Error]", error.message);
 
   // Zod errors
   if (error instanceof ZodError) {
@@ -152,14 +152,21 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
     };
   }
 
-  // Fallback
+  let code: ErrorCodes = "internal_server_error";
+  let message =
+    "An internal server error occurred. Please contact our support if the problem persists.";
+
+  if (error?.type === "StripeInvalidRequestError") {
+    code = "bad_request";
+    message = error.message;
+  }
+
   // Unhandled errors are not user-facing, so we don't expose the actual error
   return {
     error: {
-      code: "internal_server_error",
-      message:
-        "An internal server error occurred. Please contact our support if the problem persists.",
-      doc_url: `${docErrorUrl}#internal-server-error`,
+      code,
+      message,
+      doc_url: `${docErrorUrl}#${code.replace("_", "-")}`,
     },
     status: 500,
   };
