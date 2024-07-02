@@ -1,3 +1,4 @@
+import { availableScopes } from "@/lib/api/tokens/scopes";
 import { z } from "zod";
 
 export const oAuthAppSchema = z.object({
@@ -6,7 +7,10 @@ export const oAuthAppSchema = z.object({
   description: z.string().nullable(),
   website: z.string(),
   redirectUri: z.string(),
-  scopes: z.array(z.string()).nullable(),
+  scopes: z
+    .string()
+    .nullable()
+    .transform((val) => val?.split(" ") ?? []),
   clientId: z.string(),
 });
 
@@ -15,13 +19,13 @@ export const createOAuthAppSchema = z.object({
   description: z.string().max(255).nullable(),
   website: z.string().url().max(255),
   redirectUri: z.string().url().max(255),
-  scopes: z.array(z.string()).nullable(), // TODO: validate scopes and should be array
+  scopes: z.array(z.enum(availableScopes)).default([]).optional(),
 });
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 
-// Schema for OAuth2.0 Authorization code request
-export const authRequestSchema = z.object({
+// Schema for OAuth2.0 Authorization request
+export const authorizeSchema = z.object({
   client_id: z.string().min(1, "Missing client_id"),
   redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
   response_type: z.string().refine((responseType) => responseType === "code", {

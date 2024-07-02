@@ -397,7 +397,8 @@ model OAuthApp {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Codes   OAuthCode[]
 
   @@index(projectId)
 }
@@ -412,4 +413,6 @@ model OAuthCode {
   redirectUri String
   expiresAt   DateTime
   createdAt   DateTime @default(now())
+
+  app OAuthApp @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }

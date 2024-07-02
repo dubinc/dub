@@ -2,10 +2,7 @@ import { TOKEN_LENGTHS } from "@/lib/api/oauth";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  createOAuthAppSchema,
-  oAuthAppSchema,
-} from "@/lib/zod/schemas/oauth-app";
+import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";

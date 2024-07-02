@@ -2,10 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  oAuthAppSchema,
-  updateOAuthAppSchema,
-} from "@/lib/zod/schemas/oauth-app";
+import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";
 
 // GET /api/oauth-apps/[appId] – get an OAuth app

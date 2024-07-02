@@ -1,6 +1,7 @@
 export const TOKEN_LENGTHS = {
   clientId: 32,
   clientSecret: 40,
+  code: 64,
   accessToken: 64,
   refreshToken: 64,
 };
