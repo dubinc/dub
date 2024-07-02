@@ -1,5 +1,8 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
@@ -36,7 +39,9 @@ const columnAccessors = {
 
 // GET /api/analytics/events/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace, link }) => {
+  async ({ searchParams, workspace }) => {
+    throwIfClicksUsageExceeded(workspace);
+
     const parsedParams = eventsQuerySchema
       .and(
         z.object({
@@ -47,7 +52,15 @@ export const GET = withWorkspace(
         }),
       )
       .parse(searchParams);
-    const { event, domain, key, interval, start, end, columns } = parsedParams;
+
+    const { event, domain, interval, start, end, columns, key } = parsedParams;
+
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
+
+    const link =
+      domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -57,11 +70,9 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const linkId = link ? link.id : null;
-
     const response = await getEvents({
       ...parsedParams,
-      ...(linkId && { linkId }),
+      ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       limit: 100000,
     });
@@ -85,6 +96,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    needNotExceededClicks: true,
+    requiredScopes: ["analytics.read"],
   },
 );

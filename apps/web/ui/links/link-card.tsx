@@ -234,6 +234,7 @@ export default function LinkCard({
     ) {
       setSelected(false);
       e.preventDefault();
+      setOpenPopover(false);
       switch (key) {
         case "e":
           setShowAddEditLinkModal(true);
@@ -625,13 +626,13 @@ export default function LinkCard({
                         ) &&
                           (setOpenPopover(false),
                           toast.promise(
-                            fetch(`/api/admin/links/${id}/ban`, {
+                            fetch(`/api/admin/links/ban?key=${key}`, {
                               method: "DELETE",
                             }).then(async () => {
                               await mutate(
                                 (key) =>
                                   typeof key === "string" &&
-                                  key.startsWith("/api/admin/links"),
+                                  key.startsWith("/api/admin/links/ban"),
                                 undefined,
                                 { revalidate: true },
                               );

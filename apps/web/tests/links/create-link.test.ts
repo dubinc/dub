@@ -1,5 +1,6 @@
 import { LinkSchema } from "@/lib/zod/schemas/links";
 import { Link, Tag } from "@prisma/client";
+import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
@@ -11,15 +12,42 @@ const { domain, url } = link;
 describe.sequential("POST /links", async () => {
   const h = new IntegrationHarness();
   const { workspace, user, http } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
+
+  test("public link", async () => {
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain: "dub.sh",
+        publicStats: true,
+      },
+      headers: {
+        Authorization: "",
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      publicStats: true,
+      rewrite: false,
+      userId: null,
+      projectId: null,
+      workspaceId: null,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
+    });
+  });
 
   test("default domain", async () => {
     const externalId = randomId();
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         publicStats: true,
@@ -55,7 +83,6 @@ describe.sequential("POST /links", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         key,
@@ -87,7 +114,6 @@ describe.sequential("POST /links", async () => {
       Link & { shortLink: string }
     >({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         domain,
@@ -129,7 +155,6 @@ describe.sequential("POST /links", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url: longUrl.href,
         domain,
@@ -158,7 +183,6 @@ describe.sequential("POST /links", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         domain,
@@ -189,7 +213,6 @@ describe.sequential("POST /links", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         domain,
@@ -223,7 +246,6 @@ describe.sequential("POST /links", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         domain,
@@ -259,7 +281,6 @@ describe.sequential("POST /links", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         domain,
@@ -294,7 +315,6 @@ describe.sequential("POST /links", async () => {
       tagsToCreate.map(({ tag, color }) =>
         http.post<Tag>({
           path: "/tags",
-          query: { workspaceId },
           body: { tag, color },
         }),
       ),
@@ -311,7 +331,6 @@ describe.sequential("POST /links", async () => {
 
     const { status, data: link } = await http.post<Link & { tags: [] }>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         domain,
@@ -346,7 +365,6 @@ describe.sequential("POST /links", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body: {
         url,
         domain,
@@ -361,6 +379,38 @@ describe.sequential("POST /links", async () => {
       url,
       title,
       description,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+      tags: [],
+    });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+
+    await h.deleteLink(link.id);
+  });
+});
+
+describe.sequential("POST /links?workspaceId=xxx", async () => {
+  const h = new IntegrationHarnessOld();
+  const { workspace, user, http } = await h.init();
+  const workspaceId = workspace.id;
+  const projectId = workspaceId.replace("ws_", "");
+
+  test("create link with old personal API keys approach", async () => {
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
       userId: user.id,
       projectId,
       workspaceId,

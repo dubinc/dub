@@ -3,8 +3,9 @@ import z from "../zod";
 export const workspaceParamsSchema = z.object({
   workspaceId: z
     .string()
+    .optional()
     .describe("The ID of the workspace.")
-    .openapi({ example: "ws_cluuwcv0r..." }),
+    .openapi({ deprecated: true }),
   projectSlug: z
     .string()
     .optional()

@@ -1,4 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
@@ -13,7 +14,12 @@ import { NextResponse } from "next/server";
 // POST /api/domains/[domain]/transfer – transfer a domain to another workspace
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
-    const { domain } = params;
+    const { slug: domain } = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
+    });
+
     const { newWorkspaceId } = transferDomainBodySchema.parse(await req.json());
 
     if (newWorkspaceId === workspace.id) {
@@ -132,5 +138,7 @@ export const POST = withWorkspace(
 
     return NextResponse.json(DomainSchema.parse(domainResponse), { headers });
   },
-  { requiredRole: ["owner"] },
+  {
+    requiredScopes: ["domains.write"],
+  },
 );

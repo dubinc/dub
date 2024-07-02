@@ -73,6 +73,8 @@ export const getLinksQuerySchema = LinksQuerySchema.merge(
       ),
     page: z.coerce
       .number()
+      .int()
+      .nonnegative()
       .optional()
       .describe(
         "The page number for pagination (each page contains 100 links).",

@@ -23,31 +23,13 @@ https://api.dub.co
 
 ## Authentication
 
-Authentication to Dub.co's API is performed via the Authorization header with a Bearer token. To authenticate, you need to include the Authorization header with the word `Bearer` followed by your token in your API requests like so:
+Authentication to Dub.co's API is performed via the Authorization header with a Bearer token. To authenticate, you need to include the Authorization header with the word `Bearer` followed by your API key in your requests like so:
 
 ```bash Terminal
 Authorization: Bearer <Your-Token>
 ```
 
-You can create a new token/API key under your [Dub.co Account Settings](https://app.dub.co/settings/tokens).
-
-<Frame>
-  <img src="/images/dub-api-key.png" alt="Dub API Key" />
-</Frame>
-
-## Workspace ID
-
-Dub.co's API is organized around workspaces. Each workspace has its own set of resources and permissions. To access a workspace's resources, you need to include the `workspaceId` query parameter in your API requests like so:
-
-```bash Terminal
-https://api.dub.co/links?workspaceId=<Your-Workspace-ID>
-```
-
-You can get your workspace ID under your Dub.co Workspace Settings.
-
-<Frame>
-  <img src="/images/dub-workspace-id.png" alt="Workspace ID" />
-</Frame>
+Learn more about [how to get your API key](/api-reference/tokens).
 
 ## Response Codes
 

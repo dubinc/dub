@@ -118,7 +118,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
-  console.error("API error occurred", error);
+  console.error("API error occurred", error.message);
 
   // Zod errors
   if (error instanceof ZodError) {
@@ -137,6 +137,18 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
         doc_url: error.docUrl,
       },
       status: errorCodeToHttpStatus[error.code],
+    };
+  }
+
+  // Prisma record not found error
+  if (error.code === "P2025") {
+    return {
+      error: {
+        code: "not_found",
+        message: `${error.meta.cause} Please check the provided identifier.`,
+        doc_url: `${docErrorUrl}#not-found`,
+      },
+      status: 404,
     };
   }
 

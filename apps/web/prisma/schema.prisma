@@ -18,18 +18,18 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  isMachine     Boolean   @default(false)
 
-  accounts          Account[]
-  sessions          Session[]
-  projects          ProjectUsers[]
-  links             Link[]
-  tokens            Token[]
-  createdAt         DateTime           @default(now())
-  subscribed        Boolean            @default(true)
-  source            String?
-  defaultWorkspace  String?
-  oAuthCodes        OAuthCode[]
-  oAuthAccessTokens OAuthAccessToken[]
+  accounts         Account[]
+  sessions         Session[]
+  projects         ProjectUsers[]
+  links            Link[]
+  tokens           Token[]
+  restrictedTokens RestrictedToken[]
+  createdAt        DateTime          @default(now())
+  subscribed       Boolean           @default(true)
+  source           String?
+  defaultWorkspace String?
 
   @@index(source)
   @@index(defaultWorkspace)
@@ -89,6 +89,27 @@ model Token {
   @@index([userId])
 }
 
+model RestrictedToken {
+  id         String    @id @default(cuid())
+  name       String
+  hashedKey  String    @unique
+  partialKey String
+  scopes     String? // space separated (Eg: "read:links write:links")
+  expires    DateTime?
+  lastUsed   DateTime?
+  rateLimit  Int       @default(600) // rate limit per minute
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  userId     String
+  projectId  String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectId])
+}
+
 model Project {
   id   String  @id @default(cuid())
   name String
@@ -115,16 +136,15 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
 
-  users          ProjectUsers[]
-  invites        ProjectInvite[]
-  sentEmails     SentEmail[]
-  links          Link[]
-  domains        Domain[]
-  tags           Tag[]
-  customers      Customer[]
-  defaultDomains DefaultDomains[]
-  oAuthClients   OAuthClient[]
-  oAuthCodes     OAuthCode[]
+  users            ProjectUsers[]
+  invites          ProjectInvite[]
+  sentEmails       SentEmail[]
+  links            Link[]
+  domains          Domain[]
+  tags             Tag[]
+  customers        Customer[]
+  defaultDomains   DefaultDomains[]
+  restrictedTokens RestrictedToken[]
 
   @@index(usageLastChecked(sort: Asc))
 }
@@ -186,6 +206,7 @@ model Domain {
   slug        String   @unique
   verified    Boolean  @default(false)
   placeholder String   @default("https://dub.co/help/article/what-is-dub")
+  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
   primary     Boolean  @default(false)
   archived    Boolean  @default(false)
   lastChecked DateTime @default(now())
@@ -200,8 +221,7 @@ model Domain {
   lastClicked DateTime? // when the link was last clicked
   publicStats Boolean   @default(false)
   description String?
-  expiredUrl  String?   @db.LongText // URL to redirect to for expired links
-  noindex     Boolean   @default(false)
+  noindex     Boolean  @default(false)
 
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())
@@ -226,7 +246,7 @@ model Link {
 
   trackConversion Boolean @default(false) // whether to track conversions or not
 
-  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
+  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
@@ -271,8 +291,6 @@ model Link {
 
   // Comments on the particular shortlink
   comments String? @db.LongText
-
-  // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 
   @@unique([domain, key])
   @@unique([projectId, externalId])
@@ -365,7 +383,7 @@ model jackson_ttl {
   @@index([expiresAt], map: "_jackson_ttl_expires_at")
 }
 
-model OAuthClient {
+model OAuthApp {
   id                 String   @id @default(cuid())
   projectId          String
   name               String

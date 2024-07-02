@@ -4,6 +4,7 @@ import {
   removeDomainFromVercel,
   validateDomain,
 } from "@/lib/api/domains";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -19,28 +20,35 @@ import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
-  async ({ domain, workspace }) => {
-    const domainRecord = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-        projectId: workspace.id,
-      },
+  async ({ workspace, params }) => {
+    const domainRecord = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
     });
 
     return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
-    domainChecks: true,
+    requiredScopes: ["domains.read"],
   },
 );
 
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
-  async ({ req, workspace, domain }) => {
-    const body = await parseRequestBody(req);
-    const payload = updateDomainBodySchema.parse(body);
+  async ({ req, workspace, params }) => {
+    const { slug: domain } = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
+    });
 
-    const { slug: newDomain, placeholder, expiredUrl, archived } = payload;
+    const {
+      slug: newDomain,
+      placeholder,
+      expiredUrl,
+      archived,
+    } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     if (workspace.plan === "free" && expiredUrl) {
       throw new DubApiError({
@@ -122,19 +130,24 @@ export const PATCH = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
-    domainChecks: true,
-    requiredRole: ["owner"],
+    requiredScopes: ["domains.write"],
   },
 );
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
-  async ({ domain }) => {
+  async ({ params, workspace }) => {
+    const { slug: domain } = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
+    });
+
     await deleteDomainAndLinks(domain);
+
     return NextResponse.json({ slug: domain });
   },
   {
-    domainChecks: true,
-    requiredRole: ["owner"],
+    requiredScopes: ["domains.write"],
   },
 );
