@@ -35,12 +35,12 @@ export function ProductContent({ domain }: ContentProps) {
           ))}
         </div>
       </div>
-      <div className="border-l border-gray-200 p-5">
+      <div className="border-l border-gray-200 p-5 dark:border-white/20">
         <Link
           href={createHref("/blog/category/customers", domain)}
           className={cn(
             contentHeadingClassName,
-            "group mb-2 flex items-center transition-colors hover:text-black",
+            "group mb-2 flex items-center transition-colors hover:text-black dark:hover:text-white",
           )}
         >
           Customer Stories
@@ -56,7 +56,7 @@ export function ProductContent({ domain }: ContentProps) {
                 icon={
                   <Icon
                     className={cn(
-                      "h-7 w-7 shrink-0 text-gray-600 transition-colors",
+                      "h-7 w-7 shrink-0 text-gray-600 transition-colors dark:text-white/60",
                       iconClassName,
                     )}
                   />
@@ -75,7 +75,7 @@ export function ProductContent({ domain }: ContentProps) {
             <Link
               key={slug}
               href={createHref(`/compare/${slug}`, domain)}
-              className="block text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
+              className="block text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 dark:text-white/60 dark:hover:text-white/80"
             >
               Dub vs. {name}
             </Link>

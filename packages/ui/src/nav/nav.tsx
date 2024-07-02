@@ -153,7 +153,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                       </WithTrigger>
 
                       {Content && (
-                        <NavigationMenuPrimitive.Content>
+                        <NavigationMenuPrimitive.Content className="data-[motion=from-start]:animate-enter-from-left data-[motion=from-end]:animate-enter-from-right data-[motion=to-start]:animate-exit-to-left data-[motion=to-end]:animate-exit-to-right absolute left-0 top-0">
                           <Content domain={domain} />
                         </NavigationMenuPrimitive.Content>
                       )}
@@ -168,7 +168,6 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                     "relative flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-gray-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                     "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
                     "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
-                    "[&>*]:absolute [&>*]:left-0 [&>*]:top-0",
                   )}
                 />
               </div>

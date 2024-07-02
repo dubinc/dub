@@ -38,10 +38,10 @@ const config: Config = {
         "slide-down-fade": "slide-down-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-left-fade": "slide-left-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         // Navigation menu
-        "enter-from-right": "enter-from-right 0.25s ease",
-        "enter-from-left": "enter-from-left 0.25s ease",
-        "exit-to-right": "exit-to-right 0.25s ease",
-        "exit-to-left": "exit-to-left 0.25s ease",
+        "enter-from-right": "enter-from-right 0.15s ease",
+        "enter-from-left": "enter-from-left 0.15s ease",
+        "exit-to-right": "exit-to-right 0.15s ease",
+        "exit-to-left": "exit-to-left 0.15s ease",
         "scale-in-content": "scale-in-content 0.2s ease",
         "scale-out-content": "scale-out-content 0.2s ease",
         // Accordion
