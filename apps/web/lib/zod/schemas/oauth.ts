@@ -36,8 +36,8 @@ export const authorizeSchema = z.object({
 
 // Schema for OAuth2.0 code exchange request
 export const codeExchangeSchema = z.object({
-  client_id: z.string().min(1, "Missing client_id"),
-  client_secret: z.string().min(1, "Missing client_secret"),
+  client_id: z.string().optional(),
+  client_secret: z.string().optional(),
   code: z.string().min(1, "Missing code"),
   redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
   grant_type: z

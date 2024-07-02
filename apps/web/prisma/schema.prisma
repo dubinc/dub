@@ -414,5 +414,5 @@ model OAuthCode {
   expiresAt   DateTime
   createdAt   DateTime @default(now())
 
-  app OAuthApp @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  app OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
 }
