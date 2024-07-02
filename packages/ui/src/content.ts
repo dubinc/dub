@@ -14,6 +14,7 @@ import {
   Python,
   QRCode,
   Raycast,
+  Ruby,
   Stars2,
   Tinybird,
   Typescript,
@@ -120,6 +121,13 @@ export const SDKS = [
     iconClassName: "group-hover:text-[#00ACD7]",
     name: "Go",
     href: "/solutions/go",
+  },
+  {
+    icon: Ruby,
+    iconClassName:
+      "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
+    name: "Ruby",
+    href: "/solutions/ruby",
   },
 ];
 

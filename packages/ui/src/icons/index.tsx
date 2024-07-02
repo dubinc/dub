@@ -22,6 +22,7 @@ export * from "./prisma";
 export { default as ProductHunt } from "./product-hunt";
 export * from "./python";
 export * from "./raycast";
+export * from "./ruby";
 export * from "./tinybird";
 export { default as Twitter } from "./twitter";
 export * from "./typescript";
