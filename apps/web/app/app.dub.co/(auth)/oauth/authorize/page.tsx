@@ -1,12 +1,13 @@
-import { TOKEN_LENGTHS } from "@/lib/api/oauth";
 import { getSession } from "@/lib/auth";
+import { handleAuthorize, vaidateAuthorizeRequest } from "@/lib/oauth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { authorizeSchema } from "@/lib/zod/schemas/oauth";
 import { Background, Button, Footer, Nav } from "@dub/ui";
-import { nanoid } from "@dub/utils";
 import { TimerOff } from "lucide-react";
 import { redirect } from "next/navigation";
+
+export const runtime = "nodejs";
 
 // export const metadata = constructMetadata({
 //   title: "Expired Link – Dub.co",
@@ -14,8 +15,6 @@ import { redirect } from "next/navigation";
 //     "This link has expired. Please contact the owner of this link to get a new one.",
 //   noIndex: true,
 // });
-
-export const runtime = "nodejs";
 
 export default async function Authorize({
   searchParams,
@@ -28,28 +27,7 @@ export default async function Authorize({
     redirect("/login");
   }
 
-  const result = authorizeSchema.safeParse(searchParams);
-
-  if (!result.success) {
-    return result.error.message;
-  }
-
-  const { client_id, redirect_uri, response_type, state } = result.data;
-
-  const app = await prisma.oAuthApp.findFirst({
-    where: {
-      clientId: client_id,
-    },
-  });
-
-  if (!app) {
-    return `Could not find OAuth client with clientId ${client_id}`;
-  }
-
-  // Validate
-  if (app.redirectUri !== redirect_uri) {
-    return "Invalid redirect_uri parameter for the application.";
-  }
+  const { app, request } = await vaidateAuthorizeRequest(searchParams);
 
   const workspaces = await prisma.project.findMany({
     where: {
@@ -76,12 +54,19 @@ export default async function Authorize({
         <h1 className="font-display text-5xl font-bold">{app.name}</h1>
         <p className="text-lg text-gray-600">{}</p>
         <form action={handleAuthorize}>
-          <input type="hidden" name="client_id" value={client_id} />
-          <input type="hidden" name="redirect_uri" value={redirect_uri} />
-          <input type="hidden" name="response_type" value={response_type} />
-          <input type="hidden" name="state" value={state} />
-
-          <select name="workspace_id">
+          <input type="hidden" name="client_id" value={request.client_id} />
+          <input
+            type="hidden"
+            name="redirect_uri"
+            value={request.redirect_uri}
+          />
+          <input
+            type="hidden"
+            name="response_type"
+            value={request.response_type}
+          />
+          <input type="hidden" name="state" value={request.state} />
+          <select name="workspaceId">
             {workspaces.map((workspace) => (
               <option key={workspace.id} value={workspace.id}>
                 <div>
@@ -108,42 +93,3 @@ export default async function Authorize({
     </main>
   );
 }
-
-// Server action to create OAuth app
-const handleAuthorize = async (formData: FormData) => {
-  "use server";
-
-  const session = await getSession();
-
-  if (!session) {
-    return redirect("/login");
-  }
-
-  const { client_id, redirect_uri, response_type, state, workspace_id } =
-    authorizeSchema
-      .merge(
-        z.object({
-          workspace_id: z.string(),
-        }),
-      )
-      .parse(Object.fromEntries(formData));
-
-  const { code } = await prisma.oAuthCode.create({
-    data: {
-      clientId: client_id,
-      projectId: workspace_id,
-      redirectUri: redirect_uri,
-      userId: session.user.id,
-      scopes: "",
-      code: nanoid(TOKEN_LENGTHS.code),
-      expiresAt: new Date(),
-    },
-  });
-
-  const searchParams = new URLSearchParams({
-    code,
-    ...(state && { state }),
-  });
-
-  return redirect(`${redirect_uri}?${searchParams.toString()}`);
-};

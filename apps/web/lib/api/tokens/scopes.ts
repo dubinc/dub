@@ -13,6 +13,8 @@ export const availableScopes = [
   "tokens.read",
   "tokens.write",
   "conversions.write",
+  "oauth_apps.write",
+  "oauth_apps.read",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -148,6 +150,26 @@ export const resourcePermissions = [
       },
     ],
   },
+  {
+    name: "OAuth Apps",
+    key: "oauth_apps",
+    description: "OAuth apps (create, read, update, delete)",
+    betaFeature: true,
+    permissions: [
+      {
+        permission: "Read",
+        scope: "oauth_apps.read",
+        description: "Read OAuth apps",
+        roles: ["owner", "member"],
+      },
+      {
+        permission: "Write",
+        scope: "oauth_apps.write",
+        description: "Create, update, and delete OAuth apps",
+        roles: ["owner"],
+      },
+    ],
+  },
 ] as const;
 
 // Map roles to scopes
@@ -178,6 +200,8 @@ export const scopeMapping = {
   "links.write": ["links.write", "links.read"],
   "tags.write": ["tags.write", "tags.read"],
   "domains.write": ["domains.write", "domains.read"],
+  "tokens.write": ["tokens.write", "tokens.read"],
+  "oauth_apps.write": ["oauth_apps.write", "oauth_apps.read"],
 };
 
 export const scopePresets = [
@@ -205,12 +229,14 @@ export const scopesToName = (scopes: string[]) => {
       description: "full access to all resources",
     };
   }
+
   if (scopes.includes("apis.read")) {
     return {
       name: "Read-only",
       description: "read-only access to all resources",
     };
   }
+
   return {
     name: "Restricted",
     description: "restricted access to some resources",
