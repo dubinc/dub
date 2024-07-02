@@ -80,14 +80,14 @@ test("PATCH /links/bulk", async (ctx) => {
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${createdLinks[0].key}?qr=1`,
   });
 
-  // second link will throw an error because git.new only allows certain destination URLs
+  // second link should throw an error because it does not exist
   expect(links[1]).toStrictEqual({
     error: "Link not found",
     code: "not_found",
     link: { id: "xxx" },
   });
 
-  // third link should throw an error because it does not exist
+  // third link will throw an error because git.new only allows certain destination URLs
   expect(links[2]).toStrictEqual({
     error:
       "Invalid url. You can only use git.new short links for URLs starting with `github.com`, `gist.github.com`.",
