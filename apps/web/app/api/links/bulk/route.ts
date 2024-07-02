@@ -137,125 +137,113 @@ export const POST = withWorkspace(
 );
 
 // PATCH /api/links/bulk – bulk update up to 100 links with the same data
-export const PATCH = withWorkspace(
-  async ({ req, workspace, headers }) => {
-    const { linkIds, data } = bulkUpdateLinksBodySchema.parse(
-      await parseRequestBody(req),
-    );
+export const PATCH = withWorkspace(async ({ req, workspace, headers }) => {
+  const { linkIds, data } = bulkUpdateLinksBodySchema.parse(
+    await parseRequestBody(req),
+  );
 
-    if (linkIds.length === 0) {
-      return NextResponse.json("No links to update", { headers });
+  if (linkIds.length === 0) {
+    return NextResponse.json("No links to update", { headers });
+  }
+
+  const links = await prisma.link.findMany({
+    where: {
+      id: { in: linkIds },
+      projectId: workspace.id,
+    },
+  });
+
+  // linkIds that don't exist
+  let errorLinks = linkIds
+    .filter((id) => links.find((link) => link.id === id) === undefined)
+    .map((id) => ({
+      error: "Link not found",
+      code: "not_found",
+      link: { id },
+    }));
+
+  let { tagNames, expiresAt } = data;
+  const tagIds = combineTagIds(data);
+  // tag checks
+  if (tagIds && tagIds.length > 0) {
+    const tags = await prisma.tag.findMany({
+      select: {
+        id: true,
+      },
+      where: { projectId: workspace?.id, id: { in: tagIds } },
+    });
+
+    if (tags.length !== tagIds.length) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `Invalid tagIds detected: ${tagIds.filter((tagId) => tags.find(({ id }) => tagId === id) === undefined).join(", ")}`,
+      });
     }
-
-    const links = await prisma.link.findMany({
+  } else if (tagNames && tagNames.length > 0) {
+    const tags = await prisma.tag.findMany({
+      select: {
+        name: true,
+      },
       where: {
-        id: { in: linkIds },
-        projectId: workspace.id,
+        projectId: workspace?.id,
+        name: { in: tagNames },
       },
     });
 
-    // linkIds that don't exist
-    let errorLinks = linkIds
-      .filter((id) => links.find((link) => link.id === id) === undefined)
-      .map((id) => ({
-        error: "Link not found",
-        code: "not_found",
-        link: { id },
-      }));
-
-    let { tagNames, expiresAt } = data;
-    const tagIds = combineTagIds(data);
-    // tag checks
-    if (tagIds && tagIds.length > 0) {
-      const tags = await prisma.tag.findMany({
-        select: {
-          id: true,
-        },
-        where: { projectId: workspace?.id, id: { in: tagIds } },
+    if (tags.length !== tagNames.length) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `Invalid tagNames detected: ${tagNames.filter((tagName) => tags.find(({ name }) => tagName === name) === undefined).join(", ")}`,
       });
-
-      if (tags.length !== tagIds.length) {
-        throw new DubApiError({
-          code: "unprocessable_entity",
-          message: `Invalid tagIds detected: ${tagIds.filter((tagId) => tags.find(({ id }) => tagId === id) === undefined).join(", ")}`,
-        });
-      }
-    } else if (tagNames && tagNames.length > 0) {
-      const tags = await prisma.tag.findMany({
-        select: {
-          name: true,
-        },
-        where: {
-          projectId: workspace?.id,
-          name: { in: tagNames },
-        },
-      });
-
-      if (tags.length !== tagNames.length) {
-        throw new DubApiError({
-          code: "unprocessable_entity",
-          message: `Invalid tagNames detected: ${tagNames.filter((tagName) => tags.find(({ name }) => tagName === name) === undefined).join(", ")}`,
-        });
-      }
     }
+  }
 
-    const processedLinks = await Promise.all(
-      links.map(async (link) =>
-        processLink({
-          payload: {
-            ...link,
-            expiresAt:
-              link.expiresAt instanceof Date
-                ? link.expiresAt.toISOString()
-                : link.expiresAt,
-            geo: link.geo as NewLinkProps["geo"],
+  const processedLinks = await Promise.all(
+    links.map(async (link) =>
+      processLink({
+        payload: {
+          ...link,
+          expiresAt:
+            link.expiresAt instanceof Date
+              ? link.expiresAt.toISOString()
+              : link.expiresAt,
+          geo: link.geo as NewLinkProps["geo"],
+          ...data,
+        },
+        workspace,
+        userId: link.userId ?? undefined,
+        bulk: true,
+        skipKeyChecks: true,
+      }),
+    ),
+  );
+
+  const validLinkIds = processedLinks
+    .filter(({ error }) => error == null)
+    .map(({ link }) => link.id) as string[];
+
+  errorLinks = errorLinks.concat(
+    processedLinks
+      .filter(({ error }) => error != null)
+      .map(({ link, error, code }) => ({
+        error: error as string,
+        code: code as string,
+        link,
+      })),
+  );
+
+  const response =
+    validLinkIds.length > 0
+      ? await bulkUpdateLinks({
+          linkIds: validLinkIds,
+          data: {
             ...data,
+            tagIds,
+            expiresAt,
           },
-          workspace,
-          userId: link.userId ?? undefined,
-          bulk: true,
-          skipKeyChecks: true,
-        }),
-      ),
-    );
+          workspaceId: workspace.id,
+        })
+      : [];
 
-    const validLinkIds = processedLinks
-      .filter(({ error }) => error == null)
-      .map(({ link }) => link.id) as string[];
-
-    errorLinks = errorLinks.concat(
-      processedLinks
-        .filter(({ error }) => error != null)
-        .map(({ link, error, code }) => ({
-          error: error as string,
-          code: code as string,
-          link,
-        })),
-    );
-
-    const response =
-      validLinkIds.length > 0
-        ? await bulkUpdateLinks({
-            linkIds: validLinkIds,
-            data: {
-              ...data,
-              tagIds,
-              expiresAt,
-            },
-            workspaceId: workspace.id,
-          })
-        : [];
-
-    return NextResponse.json([...response, ...errorLinks], { headers });
-  },
-  {
-    requiredPlan: [
-      "pro",
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "enterprise",
-    ],
-  },
-);
+  return NextResponse.json([...response, ...errorLinks], { headers });
+});
