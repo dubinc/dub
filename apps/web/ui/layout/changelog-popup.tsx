@@ -6,10 +6,12 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://dub.co/changelog/root-domain-links";
-const CHANGELOG_IMAGE_URL =
-  "https://assets.dub.co/changelog/root-domain-links-min.png";
-const CHANGELOG_ID = "hideChangelogPopup06222024";
+const CHANGELOG_URL = "https://dub.co/blog/workspace-api-keys";
+const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/workspace-api-keys.jpg";
+const CHANGELOG_TITLE = "Introducing Workspace API Keys";
+const CHANGELOG_DESCRIPTION =
+  "A new and improved way for you to build integrations with the Dub API.";
+const CHANGELOG_ID = "hideChangelogPopup07022024";
 
 export default function ChangelogPopup() {
   return (
@@ -30,7 +32,7 @@ export function ChangelogPopupInner() {
         translateY: 0,
       }}
       exit={{ opacity: 0, y: "100%" }}
-      className="fixed bottom-4 z-40 mx-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md sm:left-4 sm:mx-auto sm:max-w-sm"
+      className="group fixed bottom-4 z-40 mx-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md sm:left-4 sm:mx-auto sm:max-w-sm"
     >
       <button
         className="absolute right-2.5 top-2.5 z-10 rounded-full p-1 transition-colors hover:bg-gray-100 active:scale-90"
@@ -53,14 +55,12 @@ export function ChangelogPopupInner() {
             height={900}
           />
         </div>
-        <p className="max-w-xs p-4 text-center text-sm text-gray-600">
-          Your root domain links now have the same advanced features as regular
-          short links.{" "}
-          <span className="font-medium underline underline-offset-2 transition-all hover:text-black">
-            Read the announcement
-          </span>{" "}
-          to learn more.
-        </p>
+        <div className="grid max-w-xs gap-1.5 p-4 text-center">
+          <p className="text-center text-sm font-semibold text-gray-800 underline-offset-4 group-hover:underline">
+            {CHANGELOG_TITLE}
+          </p>
+          <p className="text-sm text-gray-500">{CHANGELOG_DESCRIPTION}</p>
+        </div>
       </Link>
     </motion.div>
   );
