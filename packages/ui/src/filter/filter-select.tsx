@@ -20,7 +20,7 @@ import { Filter, FilterOption } from "./types";
 
 type FilterSelectProps = {
   filters: Filter[];
-  onSelect: (key: string, value: string) => void;
+  onSelect: (key: string, value: FilterOption["value"]) => void;
   onRemove: (key: string) => void;
   onOpenFilter?: (key: string) => void;
   activeFilters?: {
