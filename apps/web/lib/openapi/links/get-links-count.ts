@@ -7,9 +7,8 @@ import { workspaceParamsSchema } from "../request";
 export const getLinksCount: ZodOpenApiOperationObject = {
   operationId: "getLinksCount",
   "x-speakeasy-name-override": "count",
-  summary: "Retrieve the number of links",
-  description:
-    "Retrieve the number of links for the authenticated workspace. The provided query parameters allow filtering the returned links.",
+  summary: "Retrieve links count",
+  description: "Retrieve the number of links for the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(getLinksCountQuerySchema),
   },
