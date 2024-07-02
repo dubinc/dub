@@ -3,47 +3,14 @@ openapi: patch /links/bulk
 og:title: "Bulk update links with the Dub.co API - API Reference"
 ---
 
+This endpoint lets you update up to 100 links **with the same data**.
+
+Some potential use cases:
+
+- Tagging multiple links at once
+- Setting the same expiration date for multiple links
+- Updating UTM parameters for multiple links
+
 <Warning>
-  Bulk link update does not support the following features: [Link
-  cloaking](https://dub.co/help/article/link-cloaking), [Custom social media
-  cards](https://dub.co/help/article/custom-social-media-cards)
+  Caveat: You cannot update the domain or key of a link with this endpoint.
 </Warning>
-
-<RequestExample>
-```bash cURL
-curl --request PATCH \
-  --url https://api.dub.co/links/bulk \
-  --header 'Authorization: Bearer {YOUR_TOKEN}' \
-  --header 'Content-Type: application/json' \
-  --data '
-    {
-      linkIds: ["clvtf4l4i0001wlr3c64kh2nk", "clvtf4l4i0001wlr3c64kh2nk"],
-      data: {
-        "domain": "newdomain.com",
-        "tagIds": ["1wlr3c64kh2nkclvtf4l4i000"],
-      }
-    }
-    ...
-  '
-```
-```javascript JavaScript
-const options = {
-  method: 'PATCH',
-  headers: {Authorization: 'Bearer {YOUR_TOKEN}', 'Content-Type': 'application/json'},
-  body: JSON.stringify({
-    linkIds: ["clvtf4l4i0001wlr3c64kh2nk", "clvtf4l4i0001wlr3c64kh2nk"],
-    data: {
-      "domain": "newdomain.com",
-      "tagIds": ["1wlr3c64kh2nkclvtf4l4i000"],
-    }
-  })
-};
-
-fetch('https://api.dub.co/links/bulk', options)
-.then(response => response.json())
-.then(response => console.log(response))
-.catch(err => console.error(err));
-
-```
-</RequestExample>
-```
