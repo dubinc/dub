@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const oauthCode = await prisma.oAuthCode.findFirst({
+    const oauthGrant = await prisma.oAuthCode.findFirst({
       where: {
         code,
         clientId,
@@ -60,14 +60,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!oauthCode) {
+    if (!oauthGrant) {
       throw new DubApiError({
         code: "unauthorized",
         message: "Invalid code",
       });
     }
 
-    if (oauthCode.expiresAt < new Date()) {
+    if (oauthGrant.expiresAt < new Date()) {
       await prisma.oAuthCode.delete({
         where: {
           code,
@@ -82,29 +82,37 @@ export async function POST(req: NextRequest) {
 
     const workspace = await prisma.project.findUnique({
       where: {
-        id: oauthCode.projectId,
+        id: oauthGrant.projectId,
       },
       select: {
         plan: true,
       },
     });
 
+    const { userId, projectId, scopes, app } = oauthGrant;
+
     const accessToken = `dub_${nanoid(TOKEN_LENGTH.accessToken)}`;
-    const expires = new Date(Date.now() + TOKEN_EXPIRY.accessToken);
-    const expiresInSeconds = Math.floor(expires.getTime() / 1000);
+    const refreshToken = `dub_${nanoid(TOKEN_LENGTH.refreshToken)}`;
+    const accessTokenExpires = new Date(Date.now() + TOKEN_EXPIRY.accessToken);
 
     await Promise.all([
-      // Create the access token
+      // Create the access token and refresh token
       prisma.restrictedToken.create({
         data: {
-          name: `Access token for ${oauthCode.app.name}`,
+          userId,
+          projectId,
+          scopes,
+          name: `Access token for ${app.name}`,
           hashedKey: await hashToken(accessToken),
           partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
-          userId: oauthCode.userId,
-          projectId: oauthCode.projectId,
-          scopes: oauthCode.scopes,
           rateLimit: getCurrentPlan(workspace?.plan as string).limits.api,
-          expires: new Date(Date.now() + TOKEN_EXPIRY.accessToken),
+          expires: accessTokenExpires,
+          refreshTokens: {
+            create: {
+              refreshToken,
+              expiresAt: new Date(Date.now() + TOKEN_EXPIRY.refreshToken),
+            },
+          },
         },
       }),
 
@@ -116,19 +124,16 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
-    console.log("Token exchange", {
+    const response = {
       access_token: accessToken,
-      refresh_token: accessToken,
+      refresh_token: refreshToken,
       token_type: "Bearer",
-      expires_in: expiresInSeconds,
-    });
+      expires_in: Math.floor(accessTokenExpires.getTime() / 1000),
+    };
 
-    return NextResponse.json({
-      access_token: accessToken,
-      refresh_token: accessToken,
-      token_type: "Bearer",
-      expires_in: expiresInSeconds,
-    });
+    console.log("Token exchanged", response);
+
+    return NextResponse.json(response);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
