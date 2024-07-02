@@ -1,7 +1,12 @@
 import {
+  Blog,
+  Book2,
+  BulletList,
   ChartLine,
   Code,
   Go,
+  Headset,
+  HexadecagonStar,
   Hyperlink,
   OfficeBuilding,
   Paintbrush,
@@ -9,6 +14,7 @@ import {
   Python,
   QRCode,
   Raycast,
+  Stars2,
   Tinybird,
   Typescript,
   Users,
@@ -114,5 +120,38 @@ export const SDKS = [
     iconClassName: "group-hover:text-[#00ACD7]",
     name: "Go",
     href: "/solutions/go",
+  },
+];
+
+export const RESOURCES = [
+  {
+    icon: Headset,
+    name: "Help Center",
+    href: "/help",
+  },
+  {
+    icon: Book2,
+    name: "Docs",
+    href: "/docs",
+  },
+  {
+    icon: Blog,
+    name: "Blog",
+    href: "/blog",
+  },
+  {
+    icon: BulletList,
+    name: "Changelog",
+    href: "/changelog",
+  },
+  {
+    icon: Stars2,
+    name: "Customers",
+    href: "/customers",
+  },
+  {
+    icon: HexadecagonStar,
+    name: "Brand",
+    href: "/brand",
   },
 ];

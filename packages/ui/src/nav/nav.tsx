@@ -12,6 +12,7 @@ import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavLogo } from "../nav-logo";
 import { ProductContent } from "./content/product-content";
+import { ResourcesContent } from "./content/resources-content";
 import { SolutionsContent } from "./content/solutions-content";
 import { createHref } from "./shared";
 
@@ -37,6 +38,7 @@ const navItems = [
   },
   {
     name: "Resources",
+    content: ResourcesContent,
   },
 ];
 
