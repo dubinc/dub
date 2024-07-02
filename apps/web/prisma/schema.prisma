@@ -145,6 +145,7 @@ model Project {
   customers        Customer[]
   defaultDomains   DefaultDomains[]
   restrictedTokens RestrictedToken[]
+  apps             OAuthApp[]
 
   @@index(usageLastChecked(sort: Asc))
 }
@@ -221,7 +222,7 @@ model Domain {
   lastClicked DateTime? // when the link was last clicked
   publicStats Boolean   @default(false)
   description String?
-  noindex     Boolean  @default(false)
+  noindex     Boolean   @default(false)
 
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())
@@ -396,9 +397,7 @@ model OAuthApp {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  project      Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  codes        OAuthCode[]
-  accessTokens OAuthAccessToken[]
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index(projectId)
 }
@@ -406,44 +405,11 @@ model OAuthApp {
 model OAuthCode {
   id          String   @id @default(cuid())
   clientId    String
-  userId      String
-  projectId   String // Workspace user granted access to
+  userId      String // User who granted access
+  projectId   String // Workspace that user granted access to
   code        String   @unique
+  scopes      String?
   redirectUri String
   expiresAt   DateTime
   createdAt   DateTime @default(now())
-
-  project Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  client  OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-
-  @@index([clientId, code])
-}
-
-model OAuthAccessToken {
-  id          String   @id @default(cuid())
-  clientId    String
-  userId      String
-  accessToken String   @unique
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  client        OAuthClient         @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  refreshTokens OAuthRefreshToken[]
-
-  @@index(clientId)
-  @@index(userId)
-}
-
-model OAuthRefreshToken {
-  id            String   @id @default(cuid())
-  accessTokenId String
-  refreshToken  String   @unique
-  expiresAt     DateTime
-  createdAt     DateTime @default(now())
-
-  accessToken OAuthAccessToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
-
-  @@index(accessTokenId)
 }

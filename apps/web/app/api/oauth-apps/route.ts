@@ -10,14 +10,14 @@ import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// POST /api/oauth-apps - create a new oauth app
+// POST /api/oauth-apps - create a new OAuth app
 export const POST = withWorkspace(async ({ req, workspace }) => {
   const { name, description, website, redirectUri, scopes } =
     createOAuthAppSchema.parse(await parseRequestBody(req));
 
   const clientSecret = `dub_${nanoid(TOKEN_LENGTHS.clientSecret)}`;
 
-  const app = await prisma.oAuthClient.create({
+  const app = await prisma.oAuthApp.create({
     data: {
       projectId: workspace.id,
       name,
@@ -39,9 +39,9 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
   );
 });
 
-// GET /api/oauth-apps - get all oauth apps for a specific workspace
-export const GET = withWorkspace(async ({ req, workspace }) => {
-  const apps = await prisma.oAuthClient.findMany({
+// GET /api/oauth-apps - get all OAuth apps for a specific workspace
+export const GET = withWorkspace(async ({ workspace }) => {
+  const apps = await prisma.oAuthApp.findMany({
     where: {
       projectId: workspace.id,
     },
