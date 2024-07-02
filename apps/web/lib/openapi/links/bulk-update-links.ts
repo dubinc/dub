@@ -6,7 +6,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const bulkUpdateLinks: ZodOpenApiOperationObject = {
   operationId: "bulkUpdateLinks",
   "x-speakeasy-name-override": "updateMany",
-  summary: "Bulk update links with the same data",
+  summary: "Bulk update links",
   description:
     "Bulk update up to 100 links with the same data for the authenticated workspace.",
   requestBody: {
