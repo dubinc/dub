@@ -115,7 +115,8 @@
         "api-reference/endpoint/delete-a-link",
         "api-reference/endpoint/retrieve-a-list-of-links",
         "api-reference/endpoint/retrieve-number-of-links",
-        "api-reference/endpoint/bulk-create-links"
+        "api-reference/endpoint/bulk-create-links",
+        "api-reference/endpoint/bulk-update-links"
       ]
     },
     {

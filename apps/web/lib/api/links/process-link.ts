@@ -6,6 +6,7 @@ import {
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
+import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
@@ -229,7 +230,7 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (bulk) {
-    if (image) {
+    if (proxy && image && !isStored(image)) {
       return {
         link: payload,
         error: "You cannot set custom social cards with bulk link creation.",
