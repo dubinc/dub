@@ -75,7 +75,7 @@ export function ProductContent({ domain }: ContentProps) {
             <Link
               key={slug}
               href={createHref(`/compare/${slug}`, domain)}
-              className="block text-sm text-gray-600 transition-colors hover:text-black"
+              className="block text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
             >
               Dub vs. {name}
             </Link>
