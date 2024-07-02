@@ -99,12 +99,28 @@ const config: Config = {
           "100%": { transform: "translateX(-200px)", opacity: "0" },
         },
         "scale-in-content": {
-          "0%": { transform: "rotateX(-30deg) scale(0.9)", opacity: "0" },
-          "100%": { transform: "rotateX(0deg) scale(1)", opacity: "1" },
+          "0%": {
+            transform:
+              "translate(var(--tw-translate-x), var(--tw-translate-y)) rotateX(-30deg) scale(0.9)",
+            opacity: "0",
+          },
+          "100%": {
+            transform:
+              "translate(var(--tw-translate-x), var(--tw-translate-y)) rotateX(0deg) scale(1)",
+            opacity: "1",
+          },
         },
         "scale-out-content": {
-          "0%": { transform: "rotateX(0deg) scale(1)", opacity: "1" },
-          "100%": { transform: "rotateX(-10deg) scale(0.95)", opacity: "0" },
+          "0%": {
+            transform:
+              "translate(var(--tw-translate-x), var(--tw-translate-y)) rotateX(0deg) scale(1)",
+            opacity: "1",
+          },
+          "100%": {
+            transform:
+              "translate(var(--tw-translate-x), var(--tw-translate-y)) rotateX(-10deg) scale(0.95)",
+            opacity: "0",
+          },
         },
         // Accordion
         "accordion-down": {

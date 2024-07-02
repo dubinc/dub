@@ -162,7 +162,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
 
               <NavigationMenuPrimitive.Viewport
                 className={cn(
-                  "absolute left-0 top-full mt-3 flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-gray-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
+                  "absolute left-1/2 top-full mt-3 flex origin-[top_center] -translate-x-1/2 justify-start overflow-hidden rounded-[20px] border border-gray-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                   "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
                   "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
                   "[&>*]:absolute",
