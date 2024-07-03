@@ -9,8 +9,8 @@ import {
 
 export function ResourcesContent({ domain }: ContentProps) {
   return (
-    <div className="grid w-[32rem] grid-cols-12">
-      <div className="col-span-7 p-5">
+    <div className="grid w-[32rem] grid-cols-[7fr_5fr]">
+      <div className="p-5">
         <p className={cn(contentHeadingClassName, "mb-2")}>Tools</p>
         <div className="flex flex-col gap-2">
           <ToolLinkCard
@@ -148,7 +148,7 @@ export function ResourcesContent({ domain }: ContentProps) {
           />
         </div>
       </div>
-      <div className="col-span-5 border-l border-gray-200 p-5 dark:border-white/20">
+      <div className="border-l border-gray-200 p-5 dark:border-white/20">
         <p className={cn(contentHeadingClassName, "mb-2")}>Resources</p>
         <div className="-mx-2 flex flex-col gap-0.5">
           {RESOURCES.map(({ icon: Icon, title, href }) => (

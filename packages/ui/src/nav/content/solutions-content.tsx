@@ -9,7 +9,7 @@ import {
 
 export function SolutionsContent({ domain }: ContentProps) {
   return (
-    <div className="grid w-[32rem] grid-cols-[5fr_3fr]">
+    <div className="grid w-[32rem] grid-cols-[5fr_3.5fr]">
       <div className="p-5">
         <p className={cn(contentHeadingClassName, "mb-2")}>Profiles</p>
         <div className="-mx-2 flex flex-col gap-0.5">

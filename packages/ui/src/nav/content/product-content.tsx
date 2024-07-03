@@ -3,6 +3,7 @@ import va from "@vercel/analytics";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { CUSTOMER_STORIES, FEATURES_LIST } from "../../content";
+import { ExpandingArrow } from "../../icons";
 import { ContentProps, createHref } from "../shared";
 import {
   ContentIcon,
@@ -75,9 +76,10 @@ export function ProductContent({ domain }: ContentProps) {
             <Link
               key={slug}
               href={createHref(`/compare/${slug}`, domain)}
-              className="block text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 dark:text-white/60 dark:hover:text-white/80"
+              className="group flex items-center gap-0.5 text-gray-500 transition-colors hover:text-gray-700 dark:text-white/60 dark:hover:text-white/80"
             >
-              Dub vs. {name}
+              <p className="text-sm font-medium">Dub vs. {name}</p>{" "}
+              <ExpandingArrow className="h-3 w-3" />
             </Link>
           ))}
         </div>
