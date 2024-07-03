@@ -61,7 +61,7 @@
     "concurrently": "^8.0.1",
     "d3-array": "^3.2.4",
     "date-fns": "^3.6.0",
-    "dub": "^0.29.14",
+    "dub": "^0.30.3",
     "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",
     "github-slugger": "^2.0.0",

@@ -1,35 +1,38 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { TagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { workspaceParamsSchema } from "../request";
 
-export const createBulkLink: ZodOpenApiOperationObject = {
-  operationId: "bulkCreateLinks",
-  "x-speakeasy-name-override": "createMany",
-  summary: "Bulk create links",
-  description: "Bulk create up to 100 links for the authenticated workspace.",
+export const updateTag: ZodOpenApiOperationObject = {
+  operationId: "updateTag",
+  "x-speakeasy-name-override": "update",
+  summary: "Update a tag",
+  description: "Update a tag in the workspace.",
   requestParams: {
     query: workspaceParamsSchema,
+    path: z.object({
+      id: z.string().describe("The ID of the tag"),
+    }),
   },
   requestBody: {
     content: {
       "application/json": {
-        schema: z.array(createLinkBodySchema),
+        schema: updateTagBodySchema,
       },
     },
   },
   responses: {
     "200": {
-      description: "The created links",
+      description: "The updated tag.",
       content: {
         "application/json": {
-          schema: z.array(LinkSchema),
+          schema: TagSchema,
         },
       },
     },
     ...openApiErrorResponses,
   },
-  tags: ["Links"],
+  tags: ["Tags"],
   security: [{ token: [] }],
 };

@@ -19,15 +19,20 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
-export const GET = withWorkspace(async ({ workspace, params }) => {
-  const domainRecord = await getDomainOrThrow({
-    workspace,
-    domain: params.domain,
-    dubDomainChecks: true,
-  });
+export const GET = withWorkspace(
+  async ({ workspace, params }) => {
+    const domainRecord = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
+    });
 
-  return NextResponse.json(DomainSchema.parse(domainRecord));
-});
+    return NextResponse.json(DomainSchema.parse(domainRecord));
+  },
+  {
+    requiredScopes: ["domains.read"],
+  },
+);
 
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
@@ -125,7 +130,7 @@ export const PATCH = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["domains.write"],
   },
 );
 
@@ -143,6 +148,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ slug: domain });
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["domains.write"],
   },
 );

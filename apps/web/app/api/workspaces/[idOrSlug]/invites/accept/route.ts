@@ -24,7 +24,13 @@ export const POST = withSession(async ({ session, params }) => {
           usersLimit: true,
           _count: {
             select: {
-              users: true,
+              users: {
+                where: {
+                  user: {
+                    isMachine: false,
+                  },
+                },
+              },
             },
           },
         },

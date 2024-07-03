@@ -17,6 +17,7 @@ export * from "./headset";
 export * from "./hexadecagon-star";
 export * from "./hyperlink";
 export * from "./invoice-dollar";
+export * from "./key";
 export * from "./mobile-phone";
 export * from "./office-building";
 export * from "./paintbrush";

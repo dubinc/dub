@@ -5,8 +5,7 @@ import { IntegrationHarness } from "../utils/integration";
 
 test("GET /tags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const { http } = await h.init();
 
   const newTag = {
     tag: randomId(),
@@ -15,13 +14,11 @@ test("GET /tags", async (ctx) => {
 
   const { data: tagCreated } = await http.post<Tag>({
     path: "/tags",
-    query: { workspaceId },
     body: newTag,
   });
 
   const { status, data: tags } = await http.get<Tag[]>({
     path: "/tags",
-    query: { workspaceId },
   });
 
   expect(status).toEqual(200);

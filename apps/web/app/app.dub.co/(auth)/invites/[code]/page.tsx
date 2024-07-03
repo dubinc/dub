@@ -70,7 +70,13 @@ async function VerifyInvite({ code }: { code: string }) {
       },
       _count: {
         select: {
-          users: true,
+          users: {
+            where: {
+              user: {
+                isMachine: false,
+              },
+            },
+          },
         },
       },
     },

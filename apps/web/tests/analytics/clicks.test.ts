@@ -13,7 +13,7 @@ import { filter } from "./utils";
 describe.runIf(env.CI).sequential("GET /analytics?event=clicks", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
 
   VALID_ANALYTICS_ENDPOINTS.map((groupBy) => {
     test(`by ${groupBy}`, async () => {
@@ -39,7 +39,7 @@ describe.runIf(env.CI).sequential("GET /analytics?event=clicks", async () => {
 describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
 
   OLD_ANALYTICS_ENDPOINTS.slice(0, 5).map((endpoint) => {
     test(`deprecated: by ${endpoint}`, async () => {
@@ -73,7 +73,7 @@ describe.runIf(env.CI).sequential("GET /analytics/clicks", async () => {
 describe.runIf(env.CI).sequential("GET /analytics/{endpoint}", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
 
   OLD_ANALYTICS_ENDPOINTS.slice(0, 5).map((endpoint) => {
     test(`/analytics/${endpoint}`, async () => {

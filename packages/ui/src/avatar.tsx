@@ -5,6 +5,7 @@ export function Avatar({
   className,
 }: {
   user?: {
+    id?: string | null | undefined;
     name?: string | null | undefined;
     email?: string | null | undefined;
     image?: string | null | undefined;
@@ -24,11 +25,11 @@ export function Avatar({
 
   return (
     <img
-      alt={`Avatar for ${user?.name || user?.email}`}
+      alt={`Avatar for ${user.name || user.email}`}
       referrerPolicy="no-referrer"
       src={
-        user?.image ||
-        `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`
+        user.image ||
+        `https://api.dicebear.com/7.x/micah/svg?seed=${user.id || user.email}`
       }
       className={cn("h-10 w-10 rounded-full border border-gray-300", className)}
       draggable={false}

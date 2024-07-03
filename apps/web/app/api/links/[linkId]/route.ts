@@ -15,36 +15,41 @@ import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
-export const GET = withWorkspace(async ({ headers, workspace, params }) => {
-  const link = await getLinkOrThrow({
-    workspace,
-    linkId: params.linkId,
-  });
+export const GET = withWorkspace(
+  async ({ headers, workspace, params }) => {
+    const link = await getLinkOrThrow({
+      workspace,
+      linkId: params.linkId,
+    });
 
-  const tags = await prisma.tag.findMany({
-    where: {
-      links: {
-        some: {
-          linkId: link.id,
+    const tags = await prisma.tag.findMany({
+      where: {
+        links: {
+          some: {
+            linkId: link.id,
+          },
         },
       },
-    },
-    select: {
-      id: true,
-      name: true,
-      color: true,
-    },
-  });
+      select: {
+        id: true,
+        name: true,
+        color: true,
+      },
+    });
 
-  const response = transformLink({
-    ...link,
-    tags: tags.map((tag) => {
-      return { tag };
-    }),
-  });
+    const response = transformLink({
+      ...link,
+      tags: tags.map((tag) => {
+        return { tag };
+      }),
+    });
 
-  return NextResponse.json(response, { headers });
-});
+    return NextResponse.json(response, { headers });
+  },
+  {
+    requiredScopes: ["links.read"],
+  },
+);
 
 // PATCH /api/links/[linkId] – update a link
 export const PATCH = withWorkspace(
@@ -130,24 +135,27 @@ export const PATCH = withWorkspace(
       });
     }
   },
+  {
+    requiredScopes: ["links.write"],
+  },
 );
 
 // backwards compatibility
 export const PUT = PATCH;
 
 // DELETE /api/links/[linkId] – delete a link
-export const DELETE = withWorkspace(async ({ headers, workspace, params }) => {
-  const link = await getLinkOrThrow({
-    workspace,
-    linkId: params.linkId,
-  });
+export const DELETE = withWorkspace(
+  async ({ headers, params, workspace }) => {
+    const link = await getLinkOrThrow({
+      workspace,
+      linkId: params.linkId,
+    });
 
-  await deleteLink(link.id);
+    await deleteLink(link.id);
 
-  return NextResponse.json(
-    { id: link.id },
-    {
-      headers,
-    },
-  );
-});
+    return NextResponse.json({ id: link.id }, { headers });
+  },
+  {
+    requiredScopes: ["links.write"],
+  },
+);

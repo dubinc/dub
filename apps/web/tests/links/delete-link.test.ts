@@ -7,12 +7,10 @@ const { domain, url } = link;
 
 test("DELETE /links/{linkId}", async (ctx) => {
   const h = new IntegrationHarness(ctx);
-  const { workspace, http } = await h.init();
-  const { workspaceId } = workspace;
+  const { http } = await h.init();
 
   const { data: link } = await http.post<Link>({
     path: "/links",
-    query: { workspaceId },
     body: {
       url,
       domain,
@@ -21,7 +19,6 @@ test("DELETE /links/{linkId}", async (ctx) => {
 
   const { status, data } = await http.delete({
     path: `/links/${link.id}`,
-    query: { workspaceId },
   });
 
   expect(status).toBe(200);
@@ -32,7 +29,6 @@ test("DELETE /links/{linkId}", async (ctx) => {
   // Re-fetch the link
   const { status: status2 } = await http.get({
     path: `/links/${link.id}`,
-    query: { workspaceId },
   });
 
   expect(status2).toBe(404);

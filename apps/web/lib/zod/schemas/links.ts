@@ -73,6 +73,8 @@ export const getLinksQuerySchema = LinksQuerySchema.merge(
       ),
     page: z.coerce
       .number()
+      .int()
+      .nonnegative()
       .optional()
       .describe(
         "The page number for pagination (each page contains 100 links).",
@@ -251,6 +253,31 @@ export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
   .min(1, "No links created – you must provide at least one link.")
   .max(100, "You can only create up to 100 links at a time.");
+
+export const bulkUpdateLinksBodySchema = z.object({
+  linkIds: z
+    .array(z.string())
+    .min(1, "No links updated – you must provide at least one link.")
+    .max(100, "You can only update up to 100 links at a time."),
+  data: createLinkBodySchema
+    .omit({
+      id: true,
+      domain: true,
+      key: true,
+      externalId: true,
+      prefix: true,
+    })
+    .merge(
+      z.object({
+        url: parseUrlSchema
+          .describe("The destination URL of the short link.")
+          .openapi({
+            example: "https://google/com",
+          })
+          .optional(),
+      }),
+    ),
+});
 
 export const LinkSchema = z
   .object({
