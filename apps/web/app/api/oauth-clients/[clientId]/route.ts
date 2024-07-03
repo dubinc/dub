@@ -8,12 +8,12 @@ import {
 } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";
 
-// GET /api/oauth-clients/[id] – get an OAuth client
+// GET /api/oauth-clients/[clientId] – get an OAuth client
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
     const app = await prisma.oAuthClient.findFirst({
       where: {
-        id: params.id,
+        clientId: params.clientId,
         projectId: workspace.id,
       },
     });
@@ -21,7 +21,7 @@ export const GET = withWorkspace(
     if (!app) {
       throw new DubApiError({
         code: "not_found",
-        message: `OAuth app with id ${params.id} not found.`,
+        message: `OAuth app with id ${params.clientId} not found.`,
       });
     }
 
@@ -32,7 +32,7 @@ export const GET = withWorkspace(
   },
 );
 
-// PATCH /api/oauth-clients/[id] – update an OAuth client
+// PATCH /api/oauth-clients/[clientId] – update an OAuth client
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
     const { name, description, website, redirectUri, scopes } =
@@ -40,7 +40,7 @@ export const PATCH = withWorkspace(
 
     const app = await prisma.oAuthClient.update({
       where: {
-        id: params.id,
+        clientId: params.clientId,
         projectId: workspace.id,
       },
       data: {
@@ -61,12 +61,12 @@ export const PATCH = withWorkspace(
   },
 );
 
-// DELETE /api/oauth-clients/[id] - delete an OAuth client
+// DELETE /api/oauth-clients/[clientId] - delete an OAuth client
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const app = await prisma.oAuthClient.findFirst({
       where: {
-        id: params.id,
+        clientId: params.clientId,
         projectId: workspace.id,
       },
     });
@@ -74,17 +74,17 @@ export const DELETE = withWorkspace(
     if (!app) {
       throw new DubApiError({
         code: "not_found",
-        message: `OAuth app with id ${params.id} not found.`,
+        message: `OAuth app with id ${params.clientId} not found.`,
       });
     }
 
     await prisma.oAuthClient.delete({
       where: {
-        id: params.id,
+        clientId: params.clientId,
       },
     });
 
-    return NextResponse.json({ id: params.id });
+    return NextResponse.json({ id: params.clientId });
   },
   {
     requiredScopes: ["oauth_apps.write"],

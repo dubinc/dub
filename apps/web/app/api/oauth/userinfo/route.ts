@@ -11,9 +11,14 @@ export async function GET(req: NextRequest) {
     const tokenRecord = await prisma.restrictedToken.findFirst({
       where: {
         hashedKey: await hashToken(accessToken),
+        expires: {
+          gte: new Date(),
+        },
+        clientId: {
+          not: null,
+        },
       },
       select: {
-        id: true,
         user: {
           select: {
             id: true,
@@ -24,6 +29,8 @@ export async function GET(req: NextRequest) {
         },
       },
     });
+
+    console.log("/api/oauth/userinfo", tokenRecord);
 
     if (!tokenRecord) {
       throw new DubApiError({

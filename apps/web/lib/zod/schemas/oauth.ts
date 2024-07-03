@@ -2,7 +2,7 @@ import { availableScopes } from "@/lib/api/tokens/scopes";
 import { z } from "zod";
 
 export const oAuthClientSchema = z.object({
-  id: z.string(),
+  clientId: z.string(),
   name: z.string(),
   description: z.string().nullable(),
   website: z.string(),
@@ -11,7 +11,6 @@ export const oAuthClientSchema = z.object({
     .string()
     .nullable()
     .transform((val) => val?.split(" ") ?? []),
-  clientId: z.string(),
 });
 
 export const createOAuthClientSchema = z.object({

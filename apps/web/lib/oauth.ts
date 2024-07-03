@@ -9,22 +9,22 @@ export const vaidateAuthorizeRequest = async (params: any) => {
   const request = authorizeSchema.parse(params);
   const { client_id: clientId, redirect_uri: redirectUri } = request;
 
-  const app = await prisma.oAuthApp.findFirst({
+  const oAuthClient = await prisma.oAuthClient.findFirst({
     where: {
       clientId,
     },
   });
 
-  if (!app) {
+  if (!oAuthClient) {
     throw new Error(`Could not find OAuth client with clientId ${clientId}`);
   }
 
-  if (app.redirectUri !== redirectUri) {
+  if (oAuthClient.redirectUri !== redirectUri) {
     throw new Error("Invalid redirect_uri parameter for the application.");
   }
 
   return {
-    app,
+    oAuthClient,
     request,
   };
 };
@@ -45,7 +45,7 @@ export const handleAuthorize = async (formData: FormData) => {
     throw new Error("Please select a workspace to authorize the app");
   }
 
-  const { app, request } = await vaidateAuthorizeRequest(
+  const { oAuthClient, request } = await vaidateAuthorizeRequest(
     Object.fromEntries(formData),
   );
 
@@ -57,7 +57,7 @@ export const handleAuthorize = async (formData: FormData) => {
       redirectUri: request.redirect_uri,
       projectId: workspaceId as string,
       userId: session.user.id,
-      scopes: app.scopes,
+      scopes: oAuthClient.scopes,
       code: nanoid(TOKEN_LENGTH.code),
       expiresAt: new Date(Date.now() + TOKEN_EXPIRY.code),
     },
