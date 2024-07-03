@@ -1,7 +1,7 @@
 import { availableScopes } from "@/lib/api/tokens/scopes";
 import { z } from "zod";
 
-export const oAuthAppSchema = z.object({
+export const oAuthClientSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
@@ -14,7 +14,7 @@ export const oAuthAppSchema = z.object({
   clientId: z.string(),
 });
 
-export const createOAuthAppSchema = z.object({
+export const createOAuthClientSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().max(255).nullable(),
   website: z.string().url().max(255),
@@ -22,7 +22,7 @@ export const createOAuthAppSchema = z.object({
   scopes: z.array(z.enum(availableScopes)).default([]).optional(),
 });
 
-export const updateOAuthAppSchema = createOAuthAppSchema.partial();
+export const updateOAuthClientSchema = createOAuthClientSchema.partial();
 
 // Schema for OAuth2.0 Authorization request
 export const authorizeSchema = z.object({

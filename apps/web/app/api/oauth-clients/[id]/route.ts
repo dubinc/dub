@@ -2,15 +2,18 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
+import {
+  oAuthClientSchema,
+  updateOAuthClientSchema,
+} from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";
 
-// GET /api/oauth-apps/[appId] – get an OAuth app
+// GET /api/oauth-clients/[id] – get an OAuth client
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
-    const app = await prisma.oAuthApp.findFirst({
+    const app = await prisma.oAuthClient.findFirst({
       where: {
-        id: params.appId,
+        id: params.id,
         projectId: workspace.id,
       },
     });
@@ -18,26 +21,26 @@ export const GET = withWorkspace(
     if (!app) {
       throw new DubApiError({
         code: "not_found",
-        message: `OAuth app with id ${params.appId} not found.`,
+        message: `OAuth app with id ${params.id} not found.`,
       });
     }
 
-    return NextResponse.json(oAuthAppSchema.parse(app));
+    return NextResponse.json(oAuthClientSchema.parse(app));
   },
   {
     requiredScopes: ["oauth_apps.read"],
   },
 );
 
-// PATCH /api/oauth-apps/[appId] – update an OAuth app
+// PATCH /api/oauth-clients/[id] – update an OAuth client
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
     const { name, description, website, redirectUri, scopes } =
-      updateOAuthAppSchema.parse(await parseRequestBody(req));
+      updateOAuthClientSchema.parse(await parseRequestBody(req));
 
-    const app = await prisma.oAuthApp.update({
+    const app = await prisma.oAuthClient.update({
       where: {
-        id: params.appId,
+        id: params.id,
         projectId: workspace.id,
       },
       data: {
@@ -51,19 +54,19 @@ export const PATCH = withWorkspace(
       },
     });
 
-    return NextResponse.json(oAuthAppSchema.parse(app));
+    return NextResponse.json(oAuthClientSchema.parse(app));
   },
   {
     requiredScopes: ["oauth_apps.write"],
   },
 );
 
-// DELETE /api/oauth-apps/[appId] - delete an OAuth app
+// DELETE /api/oauth-clients/[id] - delete an OAuth client
 export const DELETE = withWorkspace(
-  async ({ req, params, workspace }) => {
-    const app = await prisma.oAuthApp.findFirst({
+  async ({ params, workspace }) => {
+    const app = await prisma.oAuthClient.findFirst({
       where: {
-        id: params.appId,
+        id: params.id,
         projectId: workspace.id,
       },
     });
@@ -71,17 +74,17 @@ export const DELETE = withWorkspace(
     if (!app) {
       throw new DubApiError({
         code: "not_found",
-        message: `OAuth app with id ${params.appId} not found.`,
+        message: `OAuth app with id ${params.id} not found.`,
       });
     }
 
-    await prisma.oAuthApp.delete({
+    await prisma.oAuthClient.delete({
       where: {
-        id: params.appId,
+        id: params.id,
       },
     });
 
-    return NextResponse.json({ id: params.appId });
+    return NextResponse.json({ id: params.id });
   },
   {
     requiredScopes: ["oauth_apps.write"],
