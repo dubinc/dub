@@ -212,7 +212,7 @@ function ImportBitlyModal({
                   </div>
                 ))
               ) : (
-                <div className="flex flex-col items-center justify-center space-y-2 pb-2">
+                <div className="flex flex-col items-center justify-center gap-2 pb-2">
                   <ServerOff className="h-6 w-6 text-gray-500" />
                   <p className="text-center text-sm text-gray-500">
                     It looks like you don't have any Bitly groups with custom
