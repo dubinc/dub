@@ -11,34 +11,44 @@ const updatePublicStatsSchema = z.object({
 });
 
 // GET /api/analytics/public-stats – get the publicStats setting for a link
-export const GET = withWorkspace(async ({ searchParams, workspace }) => {
-  const { domain, key } = domainKeySchema.parse(searchParams);
+export const GET = withWorkspace(
+  async ({ searchParams, workspace }) => {
+    const { domain, key } = domainKeySchema.parse(searchParams);
 
-  await getDomainOrThrow({
-    workspace,
-    domain,
-    dubDomainChecks: true,
-  });
+    await getDomainOrThrow({
+      workspace,
+      domain,
+      dubDomainChecks: true,
+    });
 
-  const response = await getLinkViaEdge(domain, key);
-  return NextResponse.json({ publicStats: response?.publicStats });
-});
+    const response = await getLinkViaEdge(domain, key);
+    return NextResponse.json({ publicStats: response?.publicStats });
+  },
+  {
+    requiredScopes: ["links.read"],
+  },
+);
 
 // PUT /api/analytics/public-stats – update the publicStats setting for a link
-export const PUT = withWorkspace(async ({ req, searchParams, workspace }) => {
-  const { domain, key } = domainKeySchema.parse(searchParams);
-  const { publicStats } = updatePublicStatsSchema.parse(await req.json());
+export const PUT = withWorkspace(
+  async ({ req, searchParams, workspace }) => {
+    const { domain, key } = domainKeySchema.parse(searchParams);
+    const { publicStats } = updatePublicStatsSchema.parse(await req.json());
 
-  await getDomainOrThrow({
-    workspace,
-    domain,
-    dubDomainChecks: true,
-  });
+    await getDomainOrThrow({
+      workspace,
+      domain,
+      dubDomainChecks: true,
+    });
 
-  const response = await prisma.link.update({
-    where: { domain_key: { domain, key } },
-    data: { publicStats },
-  });
+    const response = await prisma.link.update({
+      where: { domain_key: { domain, key } },
+      data: { publicStats },
+    });
 
-  return NextResponse.json(response);
-});
+    return NextResponse.json(response);
+  },
+  {
+    requiredScopes: ["links.write"],
+  },
+);

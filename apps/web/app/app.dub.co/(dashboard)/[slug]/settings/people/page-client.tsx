@@ -7,12 +7,17 @@ import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
 import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
 import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
-import { Link as LinkIcon, ThreeDots } from "@/ui/shared/icons";
-import { Avatar, Badge, Button, IconMenu, Popover } from "@dub/ui";
+import {
+  CheckCircleFill,
+  Link as LinkIcon,
+  ThreeDots,
+} from "@/ui/shared/icons";
+import { Avatar, Badge, Button, Copy, IconMenu, Popover } from "@dub/ui";
 import { cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
@@ -85,11 +90,7 @@ export default function WorkspacePeopleClient() {
           {users ? (
             users.length > 0 ? (
               users.map((user) => (
-                <UserCard
-                  key={user.email}
-                  user={user}
-                  currentTab={currentTab}
-                />
+                <UserCard key={user.id} user={user} currentTab={currentTab} />
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-10">
@@ -123,7 +124,7 @@ const UserCard = ({
 
   const { isOwner } = useWorkspace();
 
-  const { name, email, createdAt, role: currentRole } = user;
+  const { id, name, email, createdAt, role: currentRole, isMachine } = user;
 
   const [role, setRole] = useState<"owner" | "member">(currentRole);
 
@@ -143,12 +144,21 @@ const UserCard = ({
     createdAt &&
     Date.now() - new Date(createdAt).getTime() > 14 * 24 * 60 * 60 * 1000;
 
+  const [copiedUserId, setCopiedUserId] = useState(false);
+
+  const copyUserId = () => {
+    navigator.clipboard.writeText(id);
+    setCopiedUserId(true);
+    toast.success("User ID copied!");
+    setTimeout(() => setCopiedUserId(false), 3000);
+  };
+
   return (
     <>
       <EditRoleModal />
       <RemoveTeammateModal />
       <div
-        key={email}
+        key={id}
         className="flex items-center justify-between space-x-3 px-4 py-3 sm:pl-8"
       >
         <div className="flex items-start space-x-3">
@@ -167,24 +177,26 @@ const UserCard = ({
             session?.user?.email === email ? (
               <p className="text-xs capitalize text-gray-500">{role}</p>
             ) : (
-              <select
-                className={cn(
-                  "rounded-md border border-gray-200 text-xs text-gray-500 focus:border-gray-600 focus:ring-gray-600",
-                  {
-                    "cursor-not-allowed bg-gray-100": !isOwner,
-                  },
-                )}
-                value={role}
-                disabled={!isOwner}
-                onChange={(e) => {
-                  setRole(e.target.value as "owner" | "member");
-                  setOpenPopover(false);
-                  setShowEditRoleModal(true);
-                }}
-              >
-                <option value="owner">Owner</option>
-                <option value="member">Member</option>
-              </select>
+              !isMachine && (
+                <select
+                  className={cn(
+                    "rounded-md border border-gray-200 text-xs text-gray-500 focus:border-gray-600 focus:ring-gray-600",
+                    {
+                      "cursor-not-allowed bg-gray-100": !isOwner,
+                    },
+                  )}
+                  value={role}
+                  disabled={!isOwner}
+                  onChange={(e) => {
+                    setRole(e.target.value as "owner" | "member");
+                    setOpenPopover(false);
+                    setShowEditRoleModal(true);
+                  }}
+                >
+                  <option value="owner">Owner</option>
+                  <option value="member">Member</option>
+                </select>
+              )
             )
           ) : (
             <p className="text-xs text-gray-500" suppressHydrationWarning>
@@ -195,6 +207,19 @@ const UserCard = ({
           <Popover
             content={
               <div className="grid w-full gap-1 p-2 sm:w-48">
+                <Button
+                  text="Copy User ID"
+                  variant="outline"
+                  onClick={() => copyUserId()}
+                  icon={
+                    copiedUserId ? (
+                      <CheckCircleFill className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  className="h-9 justify-start px-2 font-medium"
+                />
                 <button
                   onClick={() => {
                     setOpenPopover(false);

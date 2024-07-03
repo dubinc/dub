@@ -100,6 +100,7 @@ const eventColumns: Record<
   sales: {
     all: [
       "event",
+      "customer",
       "invoiceId",
       "link",
       "country",
@@ -107,10 +108,17 @@ const eventColumns: Record<
       "device",
       "browser",
       "os",
+      "timestamp",
+      "amount",
+    ],
+    defaultVisible: [
+      "event",
+      "link",
+      "customer",
+      "country",
       "amount",
       "timestamp",
     ],
-    defaultVisible: ["event", "link", "country", "amount", "timestamp"],
   },
 };
 

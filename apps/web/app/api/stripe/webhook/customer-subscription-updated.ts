@@ -54,5 +54,14 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         usersLimit: plan.limits.users!,
       },
     });
+
+    prisma.restrictedToken.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        rateLimit: plan.limits.api,
+      },
+    });
   }
 }

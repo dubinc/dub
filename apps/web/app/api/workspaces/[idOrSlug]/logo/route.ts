@@ -23,6 +23,6 @@ export const POST = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );
