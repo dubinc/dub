@@ -85,6 +85,11 @@
             "quickstart/flask",
             "quickstart/django"
           ]
+        },
+        {
+          "group": "Ruby",
+          "icon": "ruby",
+          "pages": ["quickstart/ruby"]
         }
       ]
     },
