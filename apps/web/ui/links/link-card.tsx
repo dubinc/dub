@@ -234,6 +234,7 @@ export default function LinkCard({
     ) {
       setSelected(false);
       e.preventDefault();
+      setOpenPopover(false);
       switch (key) {
         case "e":
           setShowAddEditLinkModal(true);

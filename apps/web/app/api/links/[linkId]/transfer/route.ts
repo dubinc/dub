@@ -129,4 +129,7 @@ export const POST = withWorkspace(
       headers,
     });
   },
+  {
+    requiredScopes: ["links.write"],
+  },
 );

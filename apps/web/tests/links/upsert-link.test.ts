@@ -11,9 +11,8 @@ const url = `https://example.com/${randomId()}`;
 describe.sequential("PUT /links/upsert", async () => {
   const h = new IntegrationHarness();
   const { workspace, user, http } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
-
   let createdLink: Link;
 
   afterAll(async () => {
@@ -23,7 +22,6 @@ describe.sequential("PUT /links/upsert", async () => {
   test("New link", async () => {
     const { data } = await http.put<Link>({
       path: "/links/upsert",
-      query: { workspaceId },
       body: { domain, url },
     });
 
@@ -45,7 +43,6 @@ describe.sequential("PUT /links/upsert", async () => {
   test("Existing link", async () => {
     const { data: updatedLink } = await http.put<Link>({
       path: "/links/upsert",
-      query: { workspaceId },
       body: { domain, url, comments: "Updated comment" },
     });
 

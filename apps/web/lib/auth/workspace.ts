@@ -4,6 +4,8 @@ import { PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { throwIfNoAccess } from "../api/tokens/permissions";
+import { Scope, roleScopesMapping } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -16,12 +18,14 @@ interface WithWorkspaceHandler {
     headers,
     session,
     workspace,
+    scopes,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
     headers?: Record<string, string>;
     session: Session;
+    scopes: Scope[];
     workspace: WorkspaceWithUsers;
   }): Promise<Response>;
 }
@@ -38,16 +42,16 @@ export const withWorkspace = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
-    requiredRole = ["owner", "member"],
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
-    allowSelf, // special case for removing yourself from a workspace
     betaFeature, // if the action is a beta feature
+    requiredScopes = [],
+    skipScopeChecks, // if the action doesn't need to check for required scopes
   }: {
     requiredPlan?: Array<PlanProps>;
-    requiredRole?: Array<"owner" | "member">;
     allowAnonymous?: boolean;
-    allowSelf?: boolean;
     betaFeature?: boolean;
+    requiredScopes?: Scope[];
+    skipScopeChecks?: boolean;
   } = {},
 ) => {
   return async (
@@ -75,6 +79,9 @@ export const withWorkspace = (
       let session: Session | undefined;
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
+      let scopes: Scope[] = [];
+      let token: any | null = null;
+      const isRestrictedToken = apiKey?.startsWith("dub_");
 
       const idOrSlug =
         params?.idOrSlug ||
@@ -82,8 +89,9 @@ export const withWorkspace = (
         params?.slug ||
         searchParams.projectSlug;
 
-      // if there's no workspace ID or slug
-      if (!idOrSlug) {
+      // if there's no workspace ID or slug and it's not a restricted token
+      // For restricted tokens, we find the workspaceId from the token
+      if (!idOrSlug && !isRestrictedToken) {
         // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
         if (allowAnonymous && !apiKey) {
           // @ts-expect-error
@@ -102,38 +110,55 @@ export const withWorkspace = (
         }
       }
 
-      if (idOrSlug.startsWith("ws_")) {
-        workspaceId = idOrSlug.replace("ws_", "");
-      } else {
-        workspaceSlug = idOrSlug;
+      if (idOrSlug) {
+        if (idOrSlug.startsWith("ws_")) {
+          workspaceId = idOrSlug.replace("ws_", "");
+        } else {
+          workspaceSlug = idOrSlug;
+        }
       }
 
       if (apiKey) {
         const hashedKey = await hashToken(apiKey);
-
-        const user = await prisma.user.findFirst({
+        const prismaArgs = {
           where: {
-            tokens: {
-              some: {
-                hashedKey,
+            hashedKey,
+          },
+          select: {
+            ...(isRestrictedToken && {
+              scopes: true,
+              rateLimit: true,
+              projectId: true,
+            }),
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                isMachine: true,
               },
             },
           },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        });
-        if (!user) {
+        };
+
+        if (isRestrictedToken) {
+          token = await prisma.restrictedToken.findUnique(prismaArgs);
+        } else {
+          token = await prisma.token.findUnique(prismaArgs);
+        }
+
+        if (!token || !token.user) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Unauthorized: Invalid API key.",
           });
         }
 
+        // Rate limit checks for API keys
+        const rateLimit = token.rateLimit || 600;
+
         const { success, limit, reset, remaining } = await ratelimit(
-          600,
+          rateLimit,
           "1 m",
         ).limit(apiKey);
 
@@ -151,22 +176,37 @@ export const withWorkspace = (
           });
         }
 
+        // Find workspaceId if it's a restricted token
+        if (isRestrictedToken) {
+          workspaceId = token.projectId;
+        }
+
         waitUntil(
-          prisma.token.update({
-            where: {
-              hashedKey,
-            },
-            data: {
-              lastUsed: new Date(),
-            },
-          }),
+          // update last used time for the token
+          (async () => {
+            const prismaArgs = {
+              where: {
+                hashedKey,
+              },
+              data: {
+                lastUsed: new Date(),
+              },
+            };
+
+            if (isRestrictedToken) {
+              await prisma.restrictedToken.update(prismaArgs);
+            } else {
+              await prisma.token.update(prismaArgs);
+            }
+          })(),
         );
 
         session = {
           user: {
-            id: user.id,
-            name: user.name || "",
-            email: user.email || "",
+            id: token.user.id,
+            name: token.user.name || "",
+            email: token.user.email || "",
+            isMachine: token.user.isMachine,
           },
         };
       } else {
@@ -205,17 +245,6 @@ export const withWorkspace = (
         });
       }
 
-      // beta feature checks
-      if (betaFeature) {
-        const betaTester = await isBetaTester(workspace.id);
-        if (!betaTester) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: "Unauthorized: Beta feature.",
-          });
-        }
-      }
-
       // workspace exists but user is not part of it
       if (workspace.users.length === 0) {
         const pendingInvites = await prisma.projectInvite.findUnique({
@@ -229,6 +258,7 @@ export const withWorkspace = (
             expires: true,
           },
         });
+
         if (!pendingInvites) {
           throw new DubApiError({
             code: "not_found",
@@ -247,15 +277,31 @@ export const withWorkspace = (
         }
       }
 
-      // workspace role checks
-      if (
-        !requiredRole.includes(workspace.users[0].role) &&
-        !(allowSelf && searchParams.userId === session.user.id)
-      ) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "Unauthorized: Insufficient permissions.",
+      // Find scopes based on the token or user's role
+      if (token && "scopes" in token) {
+        scopes = (token.scopes?.split(" ") as Scope[]) || [];
+      } else if (workspace.users.length > 0) {
+        scopes = roleScopesMapping[workspace.users[0].role];
+      }
+
+      // Check user has permission to make the action
+      if (!skipScopeChecks) {
+        throwIfNoAccess({
+          scopes,
+          requiredScopes,
+          workspaceId: workspace.id,
         });
+      }
+
+      // beta feature checks
+      if (betaFeature) {
+        const betaTester = await isBetaTester(workspace.id);
+        if (!betaTester) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "Unauthorized: Beta feature.",
+          });
+        }
       }
 
       // plan checks
@@ -286,6 +332,7 @@ export const withWorkspace = (
         headers,
         session,
         workspace,
+        scopes,
       });
     } catch (error) {
       return handleAndReturnErrorResponse(error, headers);

@@ -6,7 +6,7 @@ import { env, integrationTestEnv } from "./env";
 
 interface Resources {
   user: Pick<User, "id">;
-  workspace: Pick<Project, "id" | "slug" | "name"> & { workspaceId: string };
+  workspace: Pick<Project, "id" | "slug" | "name">;
   apiKey: { token: string };
 }
 
@@ -40,17 +40,14 @@ export class IntegrationHarness {
 
     const workspace = {
       id: this.env.E2E_WORKSPACE_ID,
-      slug: this.env.E2E_WORKSPACE_SLUG,
-      name: this.env.E2E_WORKSPACE_NAME,
+      slug: "acme",
+      name: "Acme, Inc.",
     };
 
     this.resources = {
       user,
       apiKey,
-      workspace: {
-        ...workspace,
-        workspaceId: workspace.id,
-      },
+      workspace,
     };
 
     return { ...this.resources, http: this.http };
@@ -58,31 +55,22 @@ export class IntegrationHarness {
 
   // Delete link
   public async deleteLink(id: string) {
-    const { workspaceId } = this.resources.workspace;
-
     await this.http.delete({
       path: `/links/${id}`,
-      query: { workspaceId },
     });
   }
 
   // Delete tag
   public async deleteTag(id: string) {
-    const { workspaceId } = this.resources.workspace;
-
     await this.http.delete({
       path: `/tags/${id}`,
-      query: { workspaceId },
     });
   }
 
   // Delete domain
   public async deleteDomain(slug: string) {
-    const { workspaceId } = this.resources.workspace;
-
     await this.http.delete({
       path: `/domains/${slug}`,
-      query: { workspaceId },
     });
   }
 }

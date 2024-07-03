@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { roles } from "@/lib/types";
@@ -19,31 +20,37 @@ const removeUserSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
-export const GET = withWorkspace(async ({ workspace }) => {
-  const users = await prisma.projectUsers.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      role: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-        },
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const users = await prisma.projectUsers.findMany({
+      where: {
+        projectId: workspace.id,
       },
-      createdAt: true,
-    },
-  });
-  return NextResponse.json(
-    users.map((u) => ({
-      ...u.user,
-      role: u.role,
-    })),
-  );
-});
+      select: {
+        role: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            isMachine: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+    return NextResponse.json(
+      users.map((u) => ({
+        ...u.user,
+        role: u.role,
+      })),
+    );
+  },
+  {
+    requiredScopes: ["workspaces.read"],
+  },
+);
 
 // PUT /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PUT = withWorkspace(
@@ -55,6 +62,9 @@ export const PUT = withWorkspace(
           projectId: workspace.id,
           userId,
         },
+        user: {
+          isMachine: false,
+        },
       },
       data: {
         role,
@@ -63,15 +73,23 @@ export const PUT = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );
 
-// DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace
-
+// DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace or leave a workspace
 export const DELETE = withWorkspace(
-  async ({ searchParams, workspace, session }) => {
+  async ({ searchParams, workspace, session, scopes }) => {
     const { userId } = removeUserSchema.parse(searchParams);
+
+    if (userId !== session.user.id) {
+      throwIfNoAccess({
+        scopes,
+        requiredScopes: ["workspaces.write"],
+        workspaceId: workspace.id,
+      });
+    }
+
     const [projectUser, totalOwners] = await Promise.all([
       prisma.projectUsers.findUnique({
         where: {
@@ -82,6 +100,11 @@ export const DELETE = withWorkspace(
         },
         select: {
           role: true,
+          user: {
+            select: {
+              isMachine: true,
+            },
+          },
         },
       }),
       prisma.projectUsers.count({
@@ -91,12 +114,14 @@ export const DELETE = withWorkspace(
         },
       }),
     ]);
+
     if (!projectUser) {
       throw new DubApiError({
         code: "not_found",
         message: "User not found",
       });
     }
+
     // If there is only one owner and the user is an owner and the user is trying to remove themselves
     if (
       totalOwners === 1 &&
@@ -109,18 +134,39 @@ export const DELETE = withWorkspace(
           "Cannot remove owner from workspace. Please transfer ownership to another user first.",
       });
     }
-    const response = await prisma.projectUsers.delete({
-      where: {
-        userId_projectId: {
+
+    const [response] = await Promise.allSettled([
+      // Remove the user from the workspace
+      prisma.projectUsers.delete({
+        where: {
+          userId_projectId: {
+            projectId: workspace.id,
+            userId,
+          },
+        },
+      }),
+
+      // Remove tokens associated with the user from the workspace
+      prisma.restrictedToken.deleteMany({
+        where: {
           projectId: workspace.id,
           userId,
         },
-      },
-    });
+      }),
+    ]);
+
+    // delete the user if it's a machine user
+    if (projectUser.user.isMachine) {
+      await prisma.user.delete({
+        where: {
+          id: userId,
+        },
+      });
+    }
+
     return NextResponse.json(response);
   },
   {
-    requiredRole: ["owner"],
-    allowSelf: true,
+    skipScopeChecks: true,
   },
 );

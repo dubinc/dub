@@ -95,3 +95,10 @@ export const createWorkspaceSchema = z.object({
     })
     .optional(),
 });
+
+export const updateWorkspaceSchema = createWorkspaceSchema
+  .pick({
+    name: true,
+    slug: true,
+  })
+  .partial();

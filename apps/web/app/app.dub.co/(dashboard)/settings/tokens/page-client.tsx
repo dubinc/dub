@@ -1,61 +1,55 @@
 "use client";
 
+import { TokenProps } from "@/lib/types";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
-import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
-import { Form, IconMenu, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  IconMenu,
+  LoadingSpinner,
+  Popover,
+  TokenAvatar,
+} from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
-import { Token } from "@prisma/client";
-import { FolderOpen, MoreVertical, Trash } from "lucide-react";
+import { FolderOpen, Info, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
-  const {
-    data: tokens,
-    mutate,
-    isLoading,
-  } = useSWR<Token[]>("/api/user/tokens", fetcher);
+  const { data: tokens, isLoading } = useSWR<TokenProps[]>(
+    "/api/user/tokens",
+    fetcher,
+  );
 
-  const [createdToken, setCreatedToken] = useState<string | null>(null);
-  const { TokenCreatedModal, setShowTokenCreatedModal } = useTokenCreatedModal({
-    token: createdToken || "",
-  });
   return (
     <>
-      <TokenCreatedModal />
-      <Form
-        title="Create New API Key"
-        description="Enter a unique name for your API key to differentiate it from other keys."
-        inputAttrs={{
-          name: "name",
-          defaultValue: "",
-          placeholder: "Jetpack API Key",
-          maxLength: 140,
-        }}
-        helpText="<a href='https://d.to/api' target='_blank'>Learn more about Dub's API</a>"
-        buttonText="Submit"
-        handleSubmit={(data) =>
-          fetch("/api/user/tokens", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          }).then(async (res) => {
-            if (res.status === 200) {
-              const { token } = await res.json();
-              setCreatedToken(token);
-              setShowTokenCreatedModal(true);
-              mutate();
-              toast.success("Successfully created a new token!");
-            } else {
-              const errorMessage = await res.text();
-              toast.error(errorMessage || "Something went wrong");
-            }
-          })
-        }
-      />
+      <Alert>
+        <Info className="mt-2 h-5 w-5 text-yellow-500" />
+        <AlertTitle>
+          User API Keys have been replaced by Workspace API Keys.
+        </AlertTitle>
+        <AlertDescription className="text-gray-500">
+          We recommend creating a new{" "}
+          <a
+            href="https://dub.co/docs/api-reference/tokens"
+            target="_blank"
+            className="font-medium underline underline-offset-4 hover:text-black"
+          >
+            Workspace API Key
+          </a>{" "}
+          for more granular control over your resources such as Links, Tags,
+          Domains, Analytics, etc.{" "}
+          {/* <a
+            href="https://dub.co/blog/workspace-api-keys"
+            target="_blank"
+            className="font-medium underline underline-offset-4 hover:text-black"
+          >
+            Read the announcement.
+          </a> */}
+        </AlertDescription>
+      </Alert>
+
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col space-y-3 p-5 sm:p-10">
           <h2 className="text-xl font-medium">Your API Keys</h2>
@@ -96,11 +90,13 @@ export default function TokensPageClient() {
   );
 }
 
-const TokenRow = (token: Token) => {
+const TokenRow = (token: TokenProps) => {
   const [openPopover, setOpenPopover] = useState(false);
+
   const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
     token,
   });
+
   return (
     <>
       <DeleteTokenModal />

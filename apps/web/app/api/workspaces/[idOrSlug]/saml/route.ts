@@ -24,25 +24,30 @@ const deleteSAMLConnectionSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/saml – get SAML connections for a specific workspace
-export const GET = withWorkspace(async ({ workspace }) => {
-  const { apiController } = await jackson();
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const { apiController } = await jackson();
 
-  const connections = await apiController.getConnections({
-    tenant: workspace.id,
-    product: "Dub",
-  });
+    const connections = await apiController.getConnections({
+      tenant: workspace.id,
+      product: "Dub",
+    });
 
-  const response = {
-    connections,
-    issuer: samlAudience,
-    acs:
-      process.env.NODE_ENV === "production"
-        ? "https://api.dub.co/auth/saml/callback"
-        : `${APP_DOMAIN_WITH_NGROK}/api/auth/saml/callback`,
-  };
+    const response = {
+      connections,
+      issuer: samlAudience,
+      acs:
+        process.env.NODE_ENV === "production"
+          ? "https://api.dub.co/auth/saml/callback"
+          : `${APP_DOMAIN_WITH_NGROK}/api/auth/saml/callback`,
+    };
 
-  return NextResponse.json(response);
-});
+    return NextResponse.json(response);
+  },
+  {
+    requiredScopes: ["workspaces.read"],
+  },
+);
 
 // POST /api/workspaces/[idOrSlug]/saml – create a new SAML connection
 export const POST = withWorkspace(
@@ -64,13 +69,12 @@ export const POST = withWorkspace(
     return NextResponse.json(data);
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
     requiredPlan: ["enterprise"],
   },
 );
 
 // DELETE /api/workspaces/[idOrSlug]/saml – delete all SAML connections
-
 export const DELETE = withWorkspace(
   async ({ searchParams }) => {
     const { clientID, clientSecret } =
@@ -86,6 +90,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ response: "removed SAML connection" });
   },
   {
-    requiredRole: ["owner"],
+    requiredScopes: ["workspaces.write"],
   },
 );
