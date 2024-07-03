@@ -1,12 +1,11 @@
 "use client";
 
 import { APP_DOMAIN, cn, fetcher } from "@dub/utils";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { FEATURES_LIST } from "../content";
 import { type NavTheme } from "./nav";
 
 const navItems = [
@@ -18,12 +17,36 @@ const navItems = [
     name: "Pricing",
     href: "/pricing",
   },
+  {
+    name: "Help Center",
+    href: "/help",
+  },
+  {
+    name: "Docs",
+    href: "/docs",
+  },
+  {
+    name: "Blog",
+    href: "/blog",
+  },
+  {
+    name: "Changelog",
+    href: "/changelog",
+  },
+  {
+    name: "Customers",
+    href: "/customers",
+  },
+  {
+    name: "Brand",
+    href: "/brand",
+  },
 ];
 
 export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
   const [open, setOpen] = useState(false);
-  const [openFeatures, setOpenFeatures] = useState(false);
+
   // prevent body scroll when modal is open
   useEffect(() => {
     if (open) {
@@ -59,49 +82,16 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
       <nav
         className={cn(
           "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/70",
-          open && "block",
+          open && "animate-fade-in block",
         )}
       >
-        <ul className="grid divide-y divide-gray-200 dark:divide-white/[0.15]">
-          <li className="py-3">
-            <button
-              className="flex w-full justify-between"
-              onClick={() => setOpenFeatures(!openFeatures)}
-            >
-              <p className="font-semibold">Features</p>
-              <ChevronDown
-                className={cn(
-                  "h-5 w-5 text-gray-500 transition-all dark:text-white/50",
-                  openFeatures && "rotate-180",
-                )}
-              />
-            </button>
-            {openFeatures && (
-              <div className="grid gap-4 overflow-hidden py-4">
-                {FEATURES_LIST.map(({ slug, icon: Icon, shortTitle }) => (
-                  <Link
-                    key={slug}
-                    href={
-                      domain === "dub.co"
-                        ? `/${slug}`
-                        : `https://dub.co/${slug}`
-                    }
-                    onClick={() => setOpen(false)}
-                    className="flex w-full space-x-2"
-                  >
-                    <Icon className="h-5 w-5 text-gray-500 dark:text-white/80" />
-                    <span className="text-sm">{shortTitle}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </li>
-          {navItems.map(({ name, href }) => (
+        <ul className="grid grid-cols-2">
+          {navItems.map(({ name, href }, idx) => (
             <li key={href} className="py-3">
               <Link
                 href={domain === "dub.co" ? href : `https://dub.co${href}`}
                 onClick={() => setOpen(false)}
-                className="flex w-full font-semibold capitalize"
+                className="flex w-full text-lg font-medium capitalize"
               >
                 {name}
               </Link>
