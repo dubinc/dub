@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -31,8 +33,6 @@ export const vaidateAuthorizeRequest = async (params: any) => {
 
 // Handle the authorize request and create a new OAuth code
 export const handleAuthorize = async (formData: FormData) => {
-  "use server";
-
   const session = await getSession();
 
   if (!session) {
