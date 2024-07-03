@@ -84,6 +84,17 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         usersLimit: FREE_PLAN.limits.users!,
       },
     }),
+
+    // update rate limit for all restricted tokens for the workspace
+    prisma.restrictedToken.updateMany({
+      where: {
+        projectId: workspace.id,
+      },
+      data: {
+        rateLimit: FREE_PLAN.limits.api,
+      },
+    }),
+
     // remove root domain link for all domains from MySQL
     prisma.link.updateMany({
       where: {
@@ -95,7 +106,9 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         url: "",
       },
     }),
+
     pipeline.exec(),
+
     // record root domain link for all domains from Tinybird
     recordLink(
       workspaceLinks.map((link) => ({

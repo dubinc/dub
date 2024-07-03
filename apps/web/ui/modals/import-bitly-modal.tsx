@@ -190,7 +190,7 @@ function ImportBitlyModal({
                         />
                       </div>
                     ))}
-                    {tags.length > 0 && (
+                    {tags?.length > 0 && (
                       <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
                         <p className="text-xs text-gray-500">
                           {tags.length} tags found. Import all?

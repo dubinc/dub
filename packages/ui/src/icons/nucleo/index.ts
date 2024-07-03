@@ -10,6 +10,7 @@ export * from "./gear";
 export * from "./globe";
 export * from "./hyperlink";
 export * from "./invoice-dollar";
+export * from "./key";
 export * from "./mobile-phone";
 export * from "./office-building";
 export * from "./qrcode";

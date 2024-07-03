@@ -14,15 +14,8 @@ export default function AnalyticsAreaChart({
 }: {
   show: ("clicks" | "leads" | "sales")[];
 }) {
-  const {
-    selectedTab,
-    baseApiPath,
-    queryString,
-    start,
-    end,
-    interval,
-    requiresUpgrade,
-  } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, start, end, interval, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<
     { start: Date; clicks: number; leads: number; sales: number }[]

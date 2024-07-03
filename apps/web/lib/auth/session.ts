@@ -55,6 +55,7 @@ export const withSession =
             id: true,
             name: true,
             email: true,
+            isMachine: true,
           },
         });
         if (!user) {
@@ -97,6 +98,7 @@ export const withSession =
             id: user.id,
             name: user.name || "",
             email: user.email || "",
+            isMachine: user.isMachine,
           },
         };
       } else {

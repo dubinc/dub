@@ -51,5 +51,6 @@ export const GET = withWorkspace(
   },
   {
     betaFeature: true,
+    requiredScopes: ["analytics.read"],
   },
 );

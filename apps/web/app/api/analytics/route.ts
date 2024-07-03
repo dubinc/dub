@@ -85,4 +85,7 @@ export const GET = withWorkspace(
 
     return NextResponse.json(response);
   },
+  {
+    requiredScopes: ["analytics.read"],
+  },
 );
