@@ -1,0 +1,146 @@
+---
+title: "Introduction"
+description: "Learn how to create a short link using the Dub Ruby SDK."
+---
+
+import Prerequisites from "/snippets/sdk-prerequisites.mdx";
+import LinkArguments from "/snippets/link-arguments.mdx";
+
+<Prerequisites />
+
+## 2. Install and initialize the Dub Ruby SDK
+
+<Steps titleSize="h3">
+
+<Step title="Install">
+
+To install the [Dub Ruby SDK](https://d.to/ruby), run the following command:
+
+```bash bash
+gem install dub
+```
+
+</Step>
+
+<Step title="Initialize">
+
+Initialize the Dub Ruby SDK by creating a new instance of the `Dub` struct.
+
+```go
+require 'dub'
+
+s = ::OpenApiSDK::Dub.new
+
+s.config_security(
+  ::OpenApiSDK::Shared::Security.new(
+    token: "<DUB_API_KEY>",
+  )
+)
+```
+
+</Step>
+
+</Steps>
+
+## 3. Create link
+
+Let's create a short link using the [Dub Ruby SDK](https://d.to/ruby).
+
+```ruby index.rb
+req = ::OpenApiSDK::Operations::CreateLinkRequest.new(
+  request_body: ::OpenApiSDK::Operations::CreateLinkRequestBody.new(
+    url: "https://google.com"
+  )
+)
+
+res = s.links.create(req)
+
+puts res.raw_response.body
+```
+
+<Accordion title="Full list of available attributes for the Link model">
+  <LinkArguments />
+</Accordion>
+
+## 3a. Create link with `externalId`
+
+Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
+
+```ruby index.rb
+req = ::OpenApiSDK::Operations::CreateLinkRequest.new(
+  request_body: ::OpenApiSDK::Operations::CreateLinkRequestBody.new(
+    url: "https://google.com",
+    external_id: "12345"
+  )
+)
+
+res = s.links.create(req)
+
+puts res.raw_response.body
+```
+
+## 4. Upsert link
+
+Dub Ruby SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
+
+```ruby index.rb
+req = ::OpenApiSDK::Operations::UpsertLinkRequest.new(
+  request_body: ::OpenApiSDK::Operations::UpsertLinkRequestBody.new(
+    url: "https://google.com",
+  ),
+)
+
+res = s.links.upsert(req)
+
+puts res.raw_response.body
+```
+
+## 5. Update link
+
+Let's update an existing link using the Dub Ruby SDK.
+
+You can do that in two ways:
+
+- Using the link's `linkId` in Dub's system.
+- Using the link's `externalId` in your own database (prefixed with `ext_`).
+
+```ruby index.rb
+req = ::OpenApiSDK::Operations::UpdateLinkRequest.new(
+  link_id: "cly2p8onm000cym8200nfay7l",
+  request_body: ::OpenApiSDK::Operations::UpdateLinkRequestBody.new(
+    url: "https://google.us",
+  ),
+)
+
+res = s.links.update(req)
+
+puts res.raw_response.body
+```
+
+## 6. Retrieve analytics for link
+
+Let's retrieve analytics for a link using the Dub Ruby SDK.
+
+```ruby index.rb
+req = ::OpenApiSDK::Operations::RetrieveAnalyticsRequest.new(
+  link_id: "clmnr6jcc0005l308q9v56uz1",
+  interval: ::OpenApiSDK::Operations::Interval::SEVEND,
+  group_by: ::OpenApiSDK::Operations::GroupBy::TIMESERIES
+)
+
+res = s.analytics.retrieve(req)
+
+puts res.raw_response.body
+```
+
+## 7. Examples
+
+<CardGroup cols={2}>
+  <Card
+    title="Ruby Example"
+    icon="arrow-up-right-from-square"
+    href="https://github.com/dubinc/examples/tree/main/ruby"
+  >
+    See the full example on GitHub.
+  </Card>
+</CardGroup>
