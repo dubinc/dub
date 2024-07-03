@@ -4,7 +4,7 @@ import { ReactNode, forwardRef } from "react";
 import { LoadingSpinner } from "./icons";
 import { Tooltip } from "./tooltip";
 
-export const buttonVariants = cva("", {
+export const buttonVariants = cva("transition-all", {
   variants: {
     variant: {
       primary:
@@ -88,7 +88,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
         type={props.onClick ? "button" : "submit"}
         className={cn(
-          "group flex h-10 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm transition-all",
+          "group flex h-10 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm",
           props.disabled || loading
             ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
             : buttonVariants({ variant }),
