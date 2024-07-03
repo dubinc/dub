@@ -69,7 +69,7 @@ export function ToolLinkCard({
   return (
     <Link
       href={href}
-      className="group relative isolate overflow-hidden rounded-[8px] border border-gray-100 p-3 text-xs font-medium text-gray-800 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/[0.15] dark:active:bg-white/20"
+      className="group relative isolate overflow-hidden rounded-[8px] border border-gray-100 p-3 text-sm font-medium text-gray-800 transition-colors hover:border-gray-200 hover:bg-gray-100 active:bg-gray-200 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/[0.15] dark:active:bg-white/20"
     >
       <div className="absolute -bottom-5 -right-3 -z-[1] w-14">{icon}</div>
       {name}
