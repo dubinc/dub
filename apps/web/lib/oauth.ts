@@ -9,7 +9,7 @@ export const vaidateAuthorizeRequest = async (params: any) => {
   const request = authorizeSchema.parse(params);
   const { client_id: clientId, redirect_uri: redirectUri } = request;
 
-  const app = await prisma.oAuthApp.findUnique({
+  const app = await prisma.oAuthApp.findFirst({
     where: {
       clientId,
     },

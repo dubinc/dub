@@ -35,26 +35,31 @@ export const authorizeSchema = z.object({
 });
 
 // Schema for OAuth2.0 code exchange request
-export const codeExchangeSchema = z.object({
-  client_id: z.string().optional(),
-  client_secret: z.string().optional(),
-  code: z.string().min(1, "Missing code"),
-  redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
+export const authCodeExchangeSchema = z.object({
   grant_type: z
     .literal("authorization_code")
     .refine((grantType) => grantType === "authorization_code", {
       message: "grant_type must be 'authorization_code'",
     }),
+  client_id: z.string().optional(),
+  client_secret: z.string().optional(),
+  code: z.string().min(1, "Missing code"),
+  redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
 });
 
 // Schema for OAuth2.0 token refresh request
-export const tokenRefreshSchema = z.object({
-  client_id: z.string().min(1, "Missing client_id"),
-  client_secret: z.string().min(1, "Missing client_secret"),
-  refresh_token: z.string().min(1, "Missing refresh_token"),
+export const refreshTokenSchema = z.object({
   grant_type: z
     .literal("refresh_token")
     .refine((grantType) => grantType === "refresh_token", {
       message: "grant_type must be 'refresh_token'",
     }),
+  client_id: z.string().optional(),
+  client_secret: z.string().optional(),
+  refresh_token: z.string().min(1, "Missing refresh_token"),
 });
+
+export const tokenGrantSchema = z.discriminatedUnion("grant_type", [
+  authCodeExchangeSchema,
+  refreshTokenSchema,
+]);

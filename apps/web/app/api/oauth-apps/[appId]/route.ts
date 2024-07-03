@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 // GET /api/oauth-apps/[appId] – get an OAuth app
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
-    const app = await prisma.oAuthApp.findUnique({
+    const app = await prisma.oAuthApp.findFirst({
       where: {
         id: params.appId,
         projectId: workspace.id,
@@ -61,7 +61,7 @@ export const PATCH = withWorkspace(
 // DELETE /api/oauth-apps/[appId] - delete an OAuth app
 export const DELETE = withWorkspace(
   async ({ req, params, workspace }) => {
-    const app = await prisma.oAuthApp.findUnique({
+    const app = await prisma.oAuthApp.findFirst({
       where: {
         id: params.appId,
         projectId: workspace.id,

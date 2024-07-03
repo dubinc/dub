@@ -398,8 +398,9 @@ model OAuthApp {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  project Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  Codes   OAuthCode[]
+  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  codes         OAuthCode[]
+  refreshTokens OAuthRefreshToken[]
 
   @@index(projectId)
 }
@@ -419,13 +420,15 @@ model OAuthCode {
 }
 
 model OAuthRefreshToken {
-  id            String   @id @default(cuid())
-  accessTokenId String
-  refreshToken  String   @unique
-  expiresAt     DateTime
-  createdAt     DateTime @default(now())
+  id                 String   @id @default(cuid())
+  clientId           String
+  accessTokenId      String
+  refreshTokenHashed String   @unique
+  expiresAt          DateTime
+  createdAt          DateTime @default(now())
 
   accessToken RestrictedToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
+  app         OAuthApp        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
 
   @@index(accessTokenId)
 }
