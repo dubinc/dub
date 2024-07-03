@@ -34,7 +34,7 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden dark:hover:bg-white/20 dark:active:bg-white/30",
+          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 dark:hover:bg-white/20 dark:active:bg-white/30 lg:hidden",
           open && "hover:bg-gray-100 active:bg-gray-200",
         )}
       >
@@ -46,7 +46,7 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
       </button>
       <nav
         className={cn(
-          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/70",
+          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 dark:bg-black dark:text-white/70 lg:hidden",
           open && "block",
         )}
       >
