@@ -24,40 +24,40 @@ import {
 
 export const FEATURES_LIST = [
   {
-    title: "Powerful Analytics For The Modern Marketer",
-    shortTitle: "Advanced Analytics",
+    title: "Advanced Analytics",
+    description: "Powerful Analytics For The Modern Marketer",
     icon: ChartLine,
-    slug: "features/analytics",
+    href: "/features/analytics",
   },
   {
-    title: "Branded Links That Stand Out",
-    shortTitle: "Branded Links",
+    title: "Branded Links",
+    description: "Branded Links That Stand Out",
     icon: Hyperlink,
-    slug: "features/branded-links",
+    href: "/features/branded-links",
   },
   {
-    title: "Gorgeous QR codes for your links",
-    shortTitle: "QR Codes",
+    title: "QR Codes",
+    description: "Gorgeous QR codes for your links",
     icon: QRCode,
-    slug: "features/qr-codes",
+    href: "/features/qr-codes",
   },
   {
-    title: "Personalize Your Short Links",
-    shortTitle: "Personalization",
+    title: "Personalization",
+    description: "Personalize Your Short Links",
     icon: Paintbrush,
-    slug: "features/personalization",
+    href: "/features/personalization",
   },
   {
-    title: "Collaborate With Your Team",
-    shortTitle: "Team Collaboration",
+    title: "Collaboration",
+    description: "Collaborate With Your Team",
     icon: Users,
-    slug: "features/collaboration",
+    href: "/features/collaboration",
   },
   {
-    title: "Programmatic Link Creation",
-    shortTitle: "API",
+    title: "API",
+    description: "Programmatic Link Creation",
     icon: WindowSettings,
-    slug: "docs/api-reference/introduction",
+    href: "/docs/api-reference/introduction",
   },
 ];
 
@@ -106,27 +106,27 @@ export const SDKS = [
   {
     icon: Typescript,
     iconClassName: "py-0.5 group-hover:text-[#3178C6]",
-    name: "Typescript",
+    title: "Typescript",
     href: "/solutions/typescript",
   },
   {
     icon: Python,
     iconClassName:
       "py-0.5 [&_.snake]:transition-colors group-hover:[&_.snake1]:text-[#3776ab] group-hover:[&_.snake2]:text-[#ffd343]",
-    name: "Python",
+    title: "Python",
     href: "/solutions/python",
   },
   {
     icon: Go,
     iconClassName: "group-hover:text-[#00ACD7]",
-    name: "Go",
+    title: "Go",
     href: "/solutions/go",
   },
   {
     icon: Ruby,
     iconClassName:
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
-    name: "Ruby",
+    title: "Ruby",
     href: "/solutions/ruby",
   },
 ];
@@ -134,32 +134,32 @@ export const SDKS = [
 export const RESOURCES = [
   {
     icon: Headset,
-    name: "Help Center",
+    title: "Help Center",
     href: "/help",
   },
   {
     icon: Book2,
-    name: "Docs",
+    title: "Docs",
     href: "/docs",
   },
   {
     icon: Blog,
-    name: "Blog",
+    title: "Blog",
     href: "/blog",
   },
   {
     icon: BulletList,
-    name: "Changelog",
+    title: "Changelog",
     href: "/changelog",
   },
   {
     icon: Stars2,
-    name: "Customers",
+    title: "Customers",
     href: "/customers",
   },
   {
     icon: HexadecagonStar,
-    name: "Brand",
+    title: "Brand",
     href: "/brand",
   },
 ];

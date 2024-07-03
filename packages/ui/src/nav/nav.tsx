@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import { PropsWithChildren, createContext } from "react";
 import useSWR from "swr";
+import { FEATURES_LIST, RESOURCES, SDKS } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavLogo } from "../nav-logo";
@@ -22,15 +23,17 @@ export const NavContext = createContext<{ theme: NavTheme }>({
   theme: "light",
 });
 
-const navItems = [
+export const navItems = [
   {
     name: "Product",
     href: "/",
     content: ProductContent,
+    childItems: FEATURES_LIST,
   },
   {
     name: "Solutions",
     content: SolutionsContent,
+    childItems: SDKS,
   },
   {
     name: "Pricing",
@@ -39,6 +42,7 @@ const navItems = [
   {
     name: "Resources",
     content: ResourcesContent,
+    childItems: RESOURCES,
   },
 ];
 

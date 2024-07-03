@@ -16,21 +16,21 @@ export function ProductContent({ domain }: ContentProps) {
       <div className="p-5">
         <p className={cn(contentHeadingClassName, "mb-2")}>Features</p>
         <div className="-mx-2 -mb-2 grid grid-cols-1 gap-0.5">
-          {FEATURES_LIST.map(({ slug, icon, title, shortTitle }) => (
+          {FEATURES_LIST.map(({ icon, title, description, href }) => (
             <ContentLinkCard
-              key={slug}
-              href={createHref(`/${slug}`, domain)}
+              key={href}
+              href={createHref(href, domain)}
               {...(domain !== "dub.co" && {
                 onClick: () => {
                   va.track("Referred from custom domain", {
                     domain,
-                    medium: `navbar item (/${slug})`,
+                    medium: `navbar item (${href})`,
                   });
                 },
               })}
               icon={<ContentIcon icon={icon} />}
-              title={shortTitle}
-              description={title}
+              title={title}
+              description={description}
             />
           ))}
         </div>

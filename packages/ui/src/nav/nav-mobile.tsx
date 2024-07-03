@@ -1,52 +1,17 @@
 "use client";
 
 import { APP_DOMAIN, cn, fetcher } from "@dub/utils";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { ElementType, useEffect, useState } from "react";
 import useSWR from "swr";
-import { type NavTheme } from "./nav";
-
-const navItems = [
-  {
-    name: "Product",
-    href: "/",
-  },
-  {
-    name: "Pricing",
-    href: "/pricing",
-  },
-  {
-    name: "Help Center",
-    href: "/help",
-  },
-  {
-    name: "Docs",
-    href: "/docs",
-  },
-  {
-    name: "Blog",
-    href: "/blog",
-  },
-  {
-    name: "Changelog",
-    href: "/changelog",
-  },
-  {
-    name: "Customers",
-    href: "/customers",
-  },
-  {
-    name: "Brand",
-    href: "/brand",
-  },
-];
+import { AnimatedSizeContainer } from "../animated-size-container";
+import { navItems, type NavTheme } from "./nav";
 
 export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
   const [open, setOpen] = useState(false);
-
   // prevent body scroll when modal is open
   useEffect(() => {
     if (open) {
@@ -69,7 +34,7 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 dark:hover:bg-white/20 dark:active:bg-white/30 lg:hidden",
+          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden dark:hover:bg-white/20 dark:active:bg-white/30",
           open && "hover:bg-gray-100 active:bg-gray-200",
         )}
       >
@@ -81,21 +46,19 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
       </button>
       <nav
         className={cn(
-          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 dark:bg-black dark:text-white/70 lg:hidden",
-          open && "animate-fade-in block",
+          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/70",
+          open && "block",
         )}
       >
-        <ul className="grid grid-cols-2">
-          {navItems.map(({ name, href }, idx) => (
-            <li key={href} className="py-3">
-              <Link
-                href={domain === "dub.co" ? href : `https://dub.co${href}`}
-                onClick={() => setOpen(false)}
-                className="flex w-full text-lg font-medium capitalize"
-              >
-                {name}
-              </Link>
-            </li>
+        <ul className="grid divide-y divide-gray-200 dark:divide-white/[0.15]">
+          {navItems.map(({ name, href, childItems }, idx) => (
+            <MobileNavItem
+              key={idx}
+              name={name}
+              href={href}
+              childItems={childItems}
+              setOpen={setOpen}
+            />
           ))}
 
           {session && Object.keys(session).length > 0 ? (
@@ -133,3 +96,78 @@ export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
     </div>
   );
 }
+
+const MobileNavItem = ({
+  name,
+  href,
+  childItems,
+  setOpen,
+}: {
+  name: string;
+  href?: string;
+  childItems?: {
+    title: string;
+    href: string;
+    icon: ElementType;
+    iconClassName?: string;
+  }[];
+  setOpen: (open: boolean) => void;
+}) => {
+  const { domain = "dub.co" } = useParams() as { domain: string };
+  const [expanded, setExpanded] = useState(false);
+
+  if (childItems) {
+    return (
+      <li className="py-3">
+        <AnimatedSizeContainer height>
+          <button
+            className="flex w-full justify-between"
+            onClick={() => setExpanded(!expanded)}
+          >
+            <p className="font-semibold">{name}</p>
+            <ChevronDown
+              className={cn(
+                "h-5 w-5 text-gray-500 transition-all dark:text-white/50",
+                expanded && "rotate-180",
+              )}
+            />
+          </button>
+          {expanded && (
+            <div className="grid gap-4 overflow-hidden py-4">
+              {childItems.map(({ title, href, icon: Icon, iconClassName }) => (
+                <Link
+                  key={href}
+                  href={
+                    domain === "dub.co" ? `/${href}` : `https://dub.co/${href}`
+                  }
+                  onClick={() => setOpen(false)}
+                  className="flex w-full space-x-2"
+                >
+                  <Icon
+                    className={cn(
+                      "h-5 w-5 text-gray-500 dark:text-white/80",
+                      iconClassName,
+                    )}
+                  />
+                  <span className="text-sm">{title}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </AnimatedSizeContainer>
+      </li>
+    );
+  }
+
+  return (
+    <li className="py-3">
+      <Link
+        href={domain === "dub.co" ? `/${href}` : `https://dub.co/${href}`}
+        onClick={() => setOpen(false)}
+        className="flex w-full font-semibold capitalize"
+      >
+        {name}
+      </Link>
+    </li>
+  );
+};

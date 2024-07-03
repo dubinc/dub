@@ -26,7 +26,7 @@ export function SolutionsContent({ domain }: ContentProps) {
       <div className="border-l border-gray-200 p-5 dark:border-white/20">
         <p className={cn(contentHeadingClassName, "mb-2")}>SDKs</p>
         <div className="-mx-2 flex flex-col gap-0.5">
-          {SDKS.map(({ icon: Icon, iconClassName, name, href }) => (
+          {SDKS.map(({ icon: Icon, iconClassName, title, href }) => (
             <ContentLinkCard
               key={href}
               href={createHref(href, domain)}
@@ -38,7 +38,7 @@ export function SolutionsContent({ domain }: ContentProps) {
                   )}
                 />
               }
-              title={name}
+              title={title}
             />
           ))}
         </div>
