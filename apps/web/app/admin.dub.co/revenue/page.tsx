@@ -18,7 +18,11 @@ async function RevenueRSC() {
         Authorization: process.env.PROFITWELL_API_KEY as string,
       },
     },
-  ).then((res) => res.json());
+  )
+    .then((res) => res.json())
+    .catch(() => {
+      return { data: { recurring_revenue: [] } };
+    });
 
   return <RevenueClient data={res.data.recurring_revenue} />;
 }
