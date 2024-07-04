@@ -11,6 +11,8 @@ export const oAuthClientSchema = z.object({
     .string()
     .nullable()
     .transform((val) => val?.split(" ") ?? []),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const createOAuthClientSchema = z.object({

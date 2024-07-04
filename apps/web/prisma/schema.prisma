@@ -368,7 +368,7 @@ model OAuthClient {
   description        String?
   clientSecretHashed String
   redirectUri        String
-  scopes             String?
+  scopes             String
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   projectId          String

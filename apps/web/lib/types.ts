@@ -4,6 +4,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { tokenSchema } from "./zod/schemas/token";
+import { oAuthClientSchema } from "./zod/schemas/oauth";
 
 export type LinkProps = Link;
 
@@ -194,3 +195,5 @@ export const tagColors = [
 export type MetaTag = z.infer<typeof metaTagsSchema>;
 
 export type TokenProps = z.infer<typeof tokenSchema>;
+
+export type OAuthClientProps = z.infer<typeof oAuthClientSchema>;

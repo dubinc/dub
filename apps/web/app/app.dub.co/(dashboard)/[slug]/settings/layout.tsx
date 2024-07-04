@@ -24,6 +24,10 @@ export default function WorkspaceSettingsLayout({
       segment: "tokens",
     },
     {
+      name: "OAuth Apps",
+      segment: "oauth-apps",
+    },
+    {
       name: "Security",
       segment: "security",
     },
