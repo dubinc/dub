@@ -3,6 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useAddEditAppModal } from "@/ui/modals/add-edit-oauth-app-modal";
+import { useDeleteAppModal } from "@/ui/modals/delete-oauth-app-modal";
 import { useAppCreatedModal } from "@/ui/modals/oauth-app-created-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { CheckCircleFill, Delete } from "@/ui/shared/icons";
@@ -92,13 +93,14 @@ export default function OAuthAppPageClient() {
 const AppRow = (app: OAuthAppProps) => {
   const [copiedClientId, setCopiedClientId] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
+
   const { AddEditAppModal, setShowAddEditAppModal } = useAddEditAppModal({
     app,
   });
 
-  // const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
-  //   token,
-  // });
+  const { DeleteAppModal, setShowDeleteAppModal } = useDeleteAppModal({
+    app,
+  });
 
   const copyClientId = () => {
     navigator.clipboard.writeText(app.clientId);
@@ -110,7 +112,7 @@ const AppRow = (app: OAuthAppProps) => {
   return (
     <>
       <AddEditAppModal />
-      {/* <DeleteTokenModal /> */}
+      <DeleteAppModal />
       <div className="relative grid grid-cols-5 items-center px-5 py-3 sm:px-10">
         <div className="col-span-3 flex items-center space-x-3">
           <TokenAvatar id={app.clientId} />
@@ -157,7 +159,7 @@ const AppRow = (app: OAuthAppProps) => {
                   className="h-9 justify-start px-2 font-medium"
                   onClick={() => {
                     setOpenPopover(false);
-                    // setShowDeleteTokenModal(true);
+                    setShowDeleteAppModal(true);
                   }}
                 />
               </div>
