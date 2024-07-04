@@ -24,13 +24,20 @@ export const createOAuthClientSchema = z.object({
 export const updateOAuthClientSchema = createOAuthClientSchema.partial();
 
 // Schema for OAuth2.0 Authorization request
-export const authorizeSchema = z.object({
+export const authorizeRequestSchema = z.object({
   client_id: z.string().min(1, "Missing client_id"),
   redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
   response_type: z.string().refine((responseType) => responseType === "code", {
     message: "response_type must be 'code'",
   }),
   state: z.string().max(255).optional(),
+});
+
+// Aprove OAuth2.0 Authorization request
+export const approveAuthorizeRequestSchema = authorizeRequestSchema.extend({
+  workspaceId: z
+    .string()
+    .min(1, "Please select a workspace to authorize the app"),
 });
 
 // Schema for OAuth2.0 code exchange request

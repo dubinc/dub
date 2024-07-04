@@ -1,9 +1,9 @@
 import { getSession } from "@/lib/auth";
 import { vaidateAuthorizeRequest } from "@/lib/oauth";
 import z from "@/lib/zod";
-import { authorizeSchema } from "@/lib/zod/schemas/oauth";
+import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { Logo } from "@dub/ui";
-import { HOME_DOMAIN } from "@dub/utils";
+import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -12,17 +12,15 @@ import { ScopesRequested } from "./scopes-requested";
 
 export const runtime = "nodejs";
 
-// export const metadata = constructMetadata({
-//   title: "Expired Link – Dub.co",
-//   description:
-//     "This link has expired. Please contact the owner of this link to get a new one.",
-//   noIndex: true,
-// });
+export const metadata = constructMetadata({
+  title: "Authorize API access | Dub",
+  noIndex: true,
+});
 
 export default async function Authorize({
   searchParams,
 }: {
-  searchParams?: z.infer<typeof authorizeSchema>;
+  searchParams?: z.infer<typeof authorizeRequestSchema>;
 }) {
   const session = await getSession();
 
