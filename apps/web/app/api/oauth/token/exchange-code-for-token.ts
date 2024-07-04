@@ -57,12 +57,12 @@ export const exchangeAuthCodeForToken = async (
     where: {
       code,
       clientId,
-      redirectUri,
     },
     select: {
       userId: true,
       projectId: true,
       scopes: true,
+      redirectUri: true,
       expiresAt: true,
     },
   });
@@ -83,11 +83,16 @@ export const exchangeAuthCodeForToken = async (
 
     throw new DubApiError({
       code: "bad_request",
-      message: "Authorization code has expired.",
+      message: "Authorization code has expired",
     });
   }
 
-  console.log("Found OAuth grant", accessCode);
+  if (redirectUri !== accessCode.redirectUri) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "redirect_uri does not match",
+    });
+  }
 
   const workspace = await prisma.project.findUniqueOrThrow({
     where: {

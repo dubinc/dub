@@ -139,7 +139,7 @@ export const refreshAccessToken = async (
     access_token: newAccessToken,
     refresh_token: newRefreshToken,
     token_type: "Bearer",
-    expires_in: Math.floor(accessTokenExpires.getTime() / 1000),
+    expires_in: Math.floor(accessTokenExpires.getTime() / 1000), // TODO: Fix this
   };
 
   console.log("Access token refreshed", response);

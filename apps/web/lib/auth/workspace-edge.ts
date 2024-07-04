@@ -127,6 +127,7 @@ export const withWorkspaceEdge = (
               scopes: true,
               rateLimit: true,
               projectId: true,
+              expires: true,
             }),
             user: {
               select: {
@@ -149,6 +150,13 @@ export const withWorkspaceEdge = (
           throw new DubApiError({
             code: "unauthorized",
             message: "Unauthorized: Invalid API key.",
+          });
+        }
+
+        if (token.expires && token.expires < new Date()) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "Unauthorized: Access token expired.",
           });
         }
 
