@@ -17,8 +17,29 @@ export const oAuthClientSchema = z.object({
 export const createOAuthClientSchema = z.object({
   name: z.string().min(1).max(255),
   developer: z.string().min(1).max(255),
-  website: z.string().url().max(255),
-  redirectUri: z.string().url().max(255),
+  website: z
+    .string()
+    .url({
+      message: "website must be a valid URL",
+    })
+    .max(255),
+  redirectUri: z
+    .string()
+    .url({ message: "redirect_uri must be a valid URL" })
+    .max(255)
+    .refine(
+      (url) => {
+        if (url.startsWith("http://localhost")) {
+          return true;
+        }
+
+        return url.startsWith("https://");
+      },
+      {
+        message:
+          "redirect_uri must be a valid URL starting with 'https://' except for 'http://localhost'",
+      },
+    ),
   scopes: z
     .array(z.enum(availableScopes))
     .min(1, "An OAuth app must have at least one scope"),

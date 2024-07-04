@@ -1,6 +1,6 @@
 "use client";
 
-import { mapScopeToResource, scopesToName } from "@/lib/api/tokens/scopes";
+import { scopesToName } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
@@ -99,7 +99,7 @@ const TokenRow = (token: TokenProps) => {
       id: token.id,
       name: token.name,
       isMachine: token.user.isMachine,
-      scopes: mapScopeToResource(token.scopes),
+      scopes: token.scopes,
     },
   });
 

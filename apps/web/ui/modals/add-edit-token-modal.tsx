@@ -1,5 +1,7 @@
 import {
+  ResourceScopeMapping,
   Scope,
+  mapScopeToResource,
   permissionsByResource,
   resources,
   scopePresets,
@@ -34,7 +36,7 @@ import { mutate } from "swr";
 type APIKeyProps = {
   id?: string;
   name: string;
-  scopes: { [key: string]: Scope };
+  scopes: string[];
   isMachine: boolean;
 };
 
@@ -42,7 +44,7 @@ type ScopePreset = "all_access" | "read_only" | "restricted";
 
 const newToken: APIKeyProps = {
   name: "",
-  scopes: { api: "apis.all" },
+  scopes: [],
   isMachine: false,
 };
 
@@ -61,6 +63,9 @@ function AddEditTokenModal({
   const { id: workspaceId, logo, slug, betaTester } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
   const [preset, setPreset] = useState<ScopePreset>("all_access");
+  const [selectedScopes, setSelectedScopes] = useState<
+    ResourceScopeMapping | {}
+  >(mapScopeToResource(token?.scopes || []));
 
   useEffect(() => {
     if (!token) return;
@@ -105,7 +110,7 @@ function AddEditTokenModal({
       },
       body: JSON.stringify({
         ...data,
-        scopes: Object.values(scopes).filter((v) => v),
+        scopes: Object.values(selectedScopes).filter((v) => v),
       }),
     });
 
@@ -123,7 +128,7 @@ function AddEditTokenModal({
 
   const { name, scopes } = data;
   const buttonDisabled =
-    (!name || token?.name === name) && token?.scopes === scopes;
+    (!name || token?.name === name) && selectedScopes === token?.scopes;
 
   return (
     <>
@@ -234,11 +239,11 @@ function AddEditTokenModal({
                   setPreset(value);
 
                   if (value === "all_access") {
-                    setData({ ...data, scopes: { api: "apis.all" } });
+                    setSelectedScopes(["apis.all"]);
                   } else if (value === "read_only") {
-                    setData({ ...data, scopes: { api: "apis.read" } });
+                    setSelectedScopes(["apis.read"]);
                   } else {
-                    setData({ ...data, scopes: {} });
+                    setSelectedScopes([]);
                   }
                 }}
               />
@@ -265,15 +270,12 @@ function AddEditTokenModal({
                       </div>
                       <div>
                         <RadioGroup
-                          defaultValue={scopes[resource.key] || ""}
+                          defaultValue={selectedScopes[resource.key] || ""}
                           className="flex gap-4"
                           onValueChange={(v: Scope) => {
-                            setData({
-                              ...data,
-                              scopes: {
-                                ...scopes,
-                                [resource.key]: v,
-                              },
+                            setSelectedScopes({
+                              ...selectedScopes,
+                              [resource.key]: v,
                             });
                           }}
                         >
