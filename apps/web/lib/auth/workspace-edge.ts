@@ -11,7 +11,7 @@ import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, roleScopesMapping } from "../api/tokens/scopes";
+import { Scope, scopesByRole } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
@@ -256,7 +256,7 @@ export const withWorkspaceEdge = (
       if (token && "scopes" in token) {
         scopes = (token.scopes?.split(" ") as Scope[]) || [];
       } else {
-        scopes = roleScopesMapping[workspace.users[0].role];
+        scopes = scopesByRole[workspace.users[0].role];
       }
 
       // Check user has permission to make the action

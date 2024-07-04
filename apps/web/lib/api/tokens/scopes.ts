@@ -13,203 +13,178 @@ export const availableScopes = [
   "tokens.read",
   "tokens.write",
   "conversions.write",
-  "oauth_clients.write",
-  "oauth_clients.read",
+  "oauth_apps.read",
+  "oauth_apps.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
 
-export type Scope = (typeof availableScopes)[number];
-
-type Resource =
-  | "links"
-  | "analytics"
-  | "workspaces"
-  | "domains"
-  | "tags"
-  | "tokens"
-  | "conversions"
-  | "oauth_clients";
-
-type Permission = {
-  permission: string;
-  scope: Scope;
-  description: string;
-  roles: Role[];
-  resource: Resource;
-};
-
-export const resourcePermissions = [
+export const resources = [
   {
     name: "Links",
     key: "links",
     description: "Create, read, update, and delete links",
     betaFeature: false,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "links.read",
-        description: "Read links",
-        roles: ["owner", "member"],
-      },
-      {
-        permission: "Write",
-        scope: "links.write",
-        description: "Update and delete links",
-        roles: ["owner", "member"],
-      },
-    ],
   },
   {
     name: "Analytics",
     key: "analytics",
     description: "Read analytics",
     betaFeature: false,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "analytics.read",
-        description: "Read analytics and events",
-        roles: ["owner", "member"],
-      },
-    ],
   },
   {
     name: "Workspaces",
     key: "workspaces",
     description: "Read, update, and delete workspaces",
     betaFeature: false,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "workspaces.read",
-        description: "Read workspaces",
-        roles: ["owner", "member"],
-      },
-      {
-        permission: "Write",
-        scope: "workspaces.write",
-        description: "Update and delete workspaces",
-        roles: ["owner"],
-      },
-    ],
   },
   {
     name: "Domains",
     key: "domains",
     description: "Create, read, update, and delete domains",
     betaFeature: false,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "domains.read",
-        description: "Read domains",
-        roles: ["owner", "member"],
-      },
-      {
-        permission: "Write",
-        scope: "domains.write",
-        description: "Update and delete domains",
-        roles: ["owner"],
-      },
-    ],
   },
   {
     name: "Tags",
     key: "tags",
     description: "Create, read, update, and delete tags",
     betaFeature: false,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "tags.read",
-        description: "Read tags",
-        roles: ["owner", "member"],
-      },
-      {
-        permission: "Write",
-        scope: "tags.write",
-        description: "Update and delete tags",
-        roles: ["owner", "member"],
-      },
-    ],
   },
   {
     name: "API Keys",
     key: "tokens",
     description: "Create, read, update, and delete API keys",
     betaFeature: false,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "tokens.read",
-        description: "Read tokens",
-        roles: ["owner", "member"],
-      },
-      {
-        permission: "Write",
-        scope: "tokens.write",
-        description: "Update and delete tokens",
-        roles: ["owner", "member"],
-      },
-    ],
   },
   {
     name: "Conversions",
     key: "conversions",
     description: "Track conversions (customer, lead, sales)",
     betaFeature: true,
-    permissions: [
-      {
-        permission: "Write",
-        scope: "conversions.write",
-        description: "Track customer, lead, and sales events",
-        roles: ["owner"],
-      },
-    ],
   },
   {
     name: "OAuth Apps",
-    key: "oauth_clients",
-    description: "OAuth apps (create, read, update, delete)",
-    betaFeature: true,
-    permissions: [
-      {
-        permission: "Read",
-        scope: "oauth_clients.read",
-        description: "Read OAuth apps",
-        roles: ["owner", "member"],
-      },
-      {
-        permission: "Write",
-        scope: "oauth_clients.write",
-        description: "Create, update, and delete OAuth apps",
-        roles: ["owner"],
-      },
-    ],
+    key: "oauth_apps",
+    description: "Create, read, update, and delete OAuth apps",
+    betaFeature: false,
   },
 ] as const;
 
-// Map roles to scopes
-// { owner: ["workspace.write"], member: ["workspace.read"] }
-export const roleScopesMapping = resourcePermissions.reduce<
-  Record<Role, Scope[]>
->(
-  (acc, { permissions }) => {
-    permissions.forEach(({ scope, roles }) => {
-      roles.forEach((role) => {
-        if (!acc[role]) {
-          acc[role] = [];
-        }
-
-        acc[role].push(scope);
-      });
-    });
-
-    return acc;
+export const permissions: Permission[] = [
+  {
+    permission: "Read",
+    scope: "links.read",
+    description: "Read access to links",
+    roles: ["owner", "member"],
+    resource: "links",
+    betaFeature: false,
   },
-  {} as Record<Role, Scope[]>,
-);
+  {
+    permission: "Write",
+    scope: "links.write",
+    description: "Read and Write access to links",
+    roles: ["owner", "member"],
+    resource: "links",
+    betaFeature: false,
+  },
+  {
+    permission: "Read",
+    scope: "analytics.read",
+    description: "Read access to analytics and events",
+    roles: ["owner", "member"],
+    resource: "analytics",
+    betaFeature: false,
+  },
+  {
+    permission: "Read",
+    scope: "workspaces.read",
+    description: "Read access to workspace",
+    roles: ["owner", "member"],
+    resource: "workspaces",
+    betaFeature: false,
+  },
+  {
+    permission: "Write",
+    scope: "workspaces.write",
+    description: "Read and Write access to workspace",
+    roles: ["owner"],
+    resource: "workspaces",
+    betaFeature: false,
+  },
+  {
+    permission: "Read",
+    scope: "domains.read",
+    description: "Read access to domains",
+    roles: ["owner", "member"],
+    resource: "domains",
+    betaFeature: false,
+  },
+  {
+    permission: "Write",
+    scope: "domains.write",
+    description: "Read and Write access to domains",
+    roles: ["owner"],
+    resource: "domains",
+    betaFeature: false,
+  },
+  {
+    permission: "Read",
+    scope: "tags.read",
+    description: "Read access to tags",
+    roles: ["owner", "member"],
+    resource: "tags",
+    betaFeature: false,
+  },
+  {
+    permission: "Write",
+    scope: "tags.write",
+    description: "Read and Write access to tags",
+    roles: ["owner", "member"],
+    resource: "tags",
+    betaFeature: false,
+  },
+  {
+    permission: "Read",
+    scope: "tokens.read",
+    description: "Read access to Workspace API keys",
+    roles: ["owner", "member"],
+    resource: "tokens",
+    betaFeature: false,
+  },
+  {
+    permission: "Write",
+    scope: "tokens.write",
+    description: "Read and Write access to Workspace API keys",
+    roles: ["owner", "member"],
+    resource: "tokens",
+    betaFeature: false,
+  },
+  {
+    permission: "Write",
+    scope: "conversions.write",
+    description:
+      "Read and Write access to conversions. Able to track customer, lead, and sales events",
+    roles: ["owner"],
+    resource: "conversions",
+    betaFeature: true,
+  },
+  {
+    permission: "Read",
+    scope: "oauth_apps.read",
+    description: "Read access to OAuth apps.",
+    roles: ["owner", "member"],
+    resource: "oauth_apps",
+    betaFeature: false,
+  },
+  {
+    permission: "Write",
+    scope: "oauth_apps.write",
+    description: "Read and Write access to OAuth apps.",
+    roles: ["owner"],
+    resource: "oauth_apps",
+    betaFeature: false,
+  },
+] as const;
 
 export const scopeMapping = {
   "apis.all": availableScopes,
@@ -261,109 +236,7 @@ export const scopesToName = (scopes: string[]) => {
   };
 };
 
-export const permissions: Permission[] = [
-  {
-    permission: "Read",
-    scope: "links.read",
-    description: "Read access to links",
-    roles: ["owner", "member"],
-    resource: "links",
-  },
-  {
-    permission: "Write",
-    scope: "links.write",
-    description: "Read and Write access to links",
-    roles: ["owner", "member"],
-    resource: "links",
-  },
-  {
-    permission: "Read",
-    scope: "analytics.read",
-    description: "Read access to analytics and events",
-    roles: ["owner", "member"],
-    resource: "analytics",
-  },
-  {
-    permission: "Read",
-    scope: "workspaces.read",
-    description: "Read access to workspace",
-    roles: ["owner", "member"],
-    resource: "workspaces",
-  },
-  {
-    permission: "Write",
-    scope: "workspaces.write",
-    description: "Read and Write access to workspace",
-    roles: ["owner"],
-    resource: "workspaces",
-  },
-  {
-    permission: "Read",
-    scope: "domains.read",
-    description: "Read access to domains",
-    roles: ["owner", "member"],
-    resource: "domains",
-  },
-  {
-    permission: "Write",
-    scope: "domains.write",
-    description: "Read and Write access to domains",
-    roles: ["owner"],
-    resource: "domains",
-  },
-  {
-    permission: "Read",
-    scope: "tags.read",
-    description: "Read access to tags",
-    roles: ["owner", "member"],
-    resource: "tags",
-  },
-  {
-    permission: "Write",
-    scope: "tags.write",
-    description: "Read and Write access to tags",
-    roles: ["owner", "member"],
-    resource: "tags",
-  },
-  {
-    permission: "Read",
-    scope: "tokens.read",
-    description: "Read access to Workspace API keys",
-    roles: ["owner", "member"],
-    resource: "tokens",
-  },
-  {
-    permission: "Write",
-    scope: "tokens.write",
-    description: "Read and Write access to Workspace API keys",
-    roles: ["owner", "member"],
-    resource: "tokens",
-  },
-  {
-    permission: "Write",
-    scope: "conversions.write",
-    description:
-      "Read and Write access to conversions. Able to track customer, lead, and sales events",
-    roles: ["owner"],
-    resource: "conversions",
-  },
-  {
-    permission: "Read",
-    scope: "oauth_clients.read",
-    description: "Read access to OAuth clients",
-    roles: ["owner", "member"],
-    resource: "oauth_clients",
-  },
-  {
-    permission: "Write",
-    scope: "oauth_clients.write",
-    description: "Read and Write access to OAuth clients",
-    roles: ["owner"],
-    resource: "oauth_clients",
-  },
-];
-
-export const scopesByResource = permissions.reduce<
+export const permissionsByResource = permissions.reduce<
   Record<Resource, Permission[]>
 >(
   (acc, permission) => {
@@ -379,3 +252,48 @@ export const scopesByResource = permissions.reduce<
   },
   {} as Record<Resource, Permission[]>,
 );
+
+export const scopesByRole = permissions.reduce<Record<Role, Scope[]>>(
+  (acc, permission) => {
+    const { roles } = permission;
+
+    roles.forEach((role) => {
+      if (!acc[role]) {
+        acc[role] = [];
+      }
+
+      acc[role].push(permission.scope);
+    });
+
+    return acc;
+  },
+  {} as Record<Role, Scope[]>,
+);
+
+// { links: 'links.read', tags: 'tags.read', ... }
+export const mapScopeToResource = (scopes: string[]) => {
+  const result = scopes.map((scope) => {
+    const [resource] = scope.split(".");
+
+    return {
+      [resource]: scope,
+    };
+  });
+
+  return Object.assign({}, ...result) as Record<Resource, Scope>;
+};
+
+export type Scope = (typeof availableScopes)[number];
+
+type Resource = (typeof resources)[number]["key"];
+
+type Permission = {
+  permission: string;
+  scope: Scope;
+  description: string;
+  roles: Role[];
+  resource: Resource;
+  betaFeature: boolean;
+};
+
+export type ResourceScopeMapping = Record<Resource, Scope>;

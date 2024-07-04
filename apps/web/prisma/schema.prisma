@@ -364,8 +364,9 @@ model Customer {
 model OAuthClient {
   clientId           String   @id @unique
   name               String
+  developer          String
   website            String
-  description        String?
+  description        String? // not used
   clientSecretHashed String
   redirectUri        String
   scopes             String

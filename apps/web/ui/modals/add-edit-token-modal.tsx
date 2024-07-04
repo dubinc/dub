@@ -1,6 +1,7 @@
 import {
   Scope,
-  resourcePermissions,
+  permissionsByResource,
+  resources,
   scopePresets,
 } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -251,11 +252,8 @@ function AddEditTokenModal({
             </div>
             {preset === "restricted" && (
               <div className="flex flex-col divide-y text-sm">
-                {resourcePermissions
-                  .filter(
-                    // filter out beta features
-                    (resource) => !resource.betaFeature || betaTester,
-                  )
+                {resources
+                  .filter((resource) => resource.betaFeature === betaTester)
                   .map((resource) => (
                     <div
                       className="flex items-center justify-between py-4"
@@ -283,15 +281,17 @@ function AddEditTokenModal({
                             <RadioGroupItem value="" />
                             <div>None</div>
                           </div>
-                          {resource.permissions.map((permission) => (
-                            <div
-                              className="flex items-center space-x-2"
-                              key={permission.scope}
-                            >
-                              <RadioGroupItem value={permission.scope} />
-                              <div>{permission.permission}</div>
-                            </div>
-                          ))}
+                          {permissionsByResource[resource.key]?.map(
+                            (permission) => (
+                              <div
+                                className="flex items-center space-x-2"
+                                key={permission.scope}
+                              >
+                                <RadioGroupItem value={permission.scope} />
+                                <div>{permission.permission}</div>
+                              </div>
+                            ),
+                          )}
                         </RadioGroup>
                       </div>
                     </div>

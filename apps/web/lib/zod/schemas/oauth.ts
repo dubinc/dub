@@ -4,23 +4,23 @@ import { z } from "zod";
 export const oAuthClientSchema = z.object({
   clientId: z.string(),
   name: z.string(),
-  description: z.string().nullable(),
+  developer: z.string(),
   website: z.string(),
   redirectUri: z.string(),
   scopes: z
     .string()
     .nullable()
     .transform((val) => val?.split(" ") ?? []),
-  createdAt: z.date(),
-  updatedAt: z.date(),
 });
 
 export const createOAuthClientSchema = z.object({
   name: z.string().min(1).max(255),
-  description: z.string().max(255).nullable(),
+  developer: z.string().min(1).max(255),
   website: z.string().url().max(255),
   redirectUri: z.string().url().max(255),
-  scopes: z.array(z.enum(availableScopes)).default([]).optional(),
+  scopes: z
+    .array(z.enum(availableScopes))
+    .min(1, "An OAuth app must have at least one scope"),
 });
 
 export const updateOAuthClientSchema = createOAuthClientSchema.partial();

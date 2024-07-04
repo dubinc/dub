@@ -5,7 +5,7 @@ import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, roleScopesMapping } from "../api/tokens/scopes";
+import { Scope, scopesByRole } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -281,7 +281,7 @@ export const withWorkspace = (
       if (token && "scopes" in token) {
         scopes = (token.scopes?.split(" ") as Scope[]) || [];
       } else if (workspace.users.length > 0) {
-        scopes = roleScopesMapping[workspace.users[0].role];
+        scopes = scopesByRole[workspace.users[0].role];
       }
 
       // Check user has permission to make the action

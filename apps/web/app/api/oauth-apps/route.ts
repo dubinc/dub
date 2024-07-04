@@ -13,7 +13,7 @@ import { z } from "zod";
 // POST /api/oauth-clients - create a new OAuth client
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const { name, description, website, redirectUri, scopes } =
+    const { name, developer, website, redirectUri, scopes } =
       createOAuthClientSchema.parse(await parseRequestBody(req));
 
     const clientSecret = `dub_${nanoid(TOKEN_LENGTH.clientSecret)}`;
@@ -22,11 +22,10 @@ export const POST = withWorkspace(
       data: {
         projectId: workspace.id,
         name,
-        description,
+        developer,
         website,
         redirectUri,
-        scopes:
-          scopes && scopes.length > 0 ? [...new Set(scopes)].join(" ") : null,
+        scopes: [...new Set(scopes)].join(" "),
         clientId: nanoid(TOKEN_LENGTH.clientId),
         clientSecretHashed: await hashToken(clientSecret),
       },
@@ -41,7 +40,7 @@ export const POST = withWorkspace(
     );
   },
   {
-    requiredScopes: ["oauth_clients.write"],
+    requiredScopes: ["oauth_apps.write"],
   },
 );
 
@@ -57,6 +56,6 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(oAuthClientSchema).parse(clients));
   },
   {
-    requiredScopes: ["oauth_clients.read"],
+    requiredScopes: ["oauth_apps.read"],
   },
 );

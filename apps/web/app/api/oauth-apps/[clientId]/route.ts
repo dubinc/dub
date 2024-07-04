@@ -28,14 +28,14 @@ export const GET = withWorkspace(
     return NextResponse.json(oAuthClientSchema.parse(app));
   },
   {
-    requiredScopes: ["oauth_clients.read"],
+    requiredScopes: ["oauth_apps.read"],
   },
 );
 
 // PATCH /api/oauth-clients/[clientId] – update an OAuth client
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
-    const { name, description, website, redirectUri, scopes } =
+    const { name, developer, website, redirectUri, scopes } =
       updateOAuthClientSchema.parse(await parseRequestBody(req));
 
     const app = await prisma.oAuthClient.update({
@@ -45,19 +45,17 @@ export const PATCH = withWorkspace(
       },
       data: {
         ...(name && { name }),
-        ...(description && { description }),
+        ...(developer && { developer }),
         ...(website && { website }),
         ...(redirectUri && { redirectUri }),
-        ...(scopes && {
-          scopes: scopes.length > 0 ? [...new Set(scopes)].join(" ") : null,
-        }),
+        ...(scopes && { scopes: [...new Set(scopes)].join(" ") }),
       },
     });
 
     return NextResponse.json(oAuthClientSchema.parse(app));
   },
   {
-    requiredScopes: ["oauth_clients.write"],
+    requiredScopes: ["oauth_apps.write"],
   },
 );
 
@@ -87,6 +85,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ id: params.clientId });
   },
   {
-    requiredScopes: ["oauth_clients.write"],
+    requiredScopes: ["oauth_apps.write"],
   },
 );
