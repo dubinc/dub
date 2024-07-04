@@ -125,12 +125,11 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                     href === `/${selectedLayout}` ||
                     (href === "/" && selectedLayout === null);
                   return (
-                    <NavigationMenuPrimitive.Item key={href}>
+                    <NavigationMenuPrimitive.Item key={name}>
                       <WithTrigger trigger={!!Content}>
                         {href !== undefined ? (
                           <Link
                             id={`nav-${href}`}
-                            key={href}
                             href={createHref(href, domain) ?? "/test"}
                             className={navItemStyles({ isActive })}
                             {...(domain !== "dub.co" && {
