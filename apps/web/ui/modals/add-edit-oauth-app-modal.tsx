@@ -30,11 +30,11 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 const newApp: OAuthAppProps = {
-  name: "",
-  developer: "",
-  website: "",
+  name: "Supa",
+  developer: "Kiran",
+  website: "https://app.dub.co/acme/settings/tokens",
   clientId: "",
-  redirectUri: "",
+  redirectUri: "https://app.dub.co/acme/settings/tokens",
   scopes: [],
 };
 
@@ -47,7 +47,7 @@ function AddEditAppModal({
   showAddEditAppModal: boolean;
   setShowAddEditAppModal: Dispatch<SetStateAction<boolean>>;
   app?: OAuthAppProps;
-  onAppCreated?: (App: string) => void;
+  onAppCreated?: (App: OAuthAppProps) => void;
 }) {
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OAuthAppProps>(app || newApp);
@@ -94,7 +94,7 @@ function AddEditAppModal({
     if (response.ok) {
       mutate(`/api/oauth-apps?workspaceId=${workspaceId}`);
       toast.success(endpoint.successMessage);
-      onAppCreated?.(result.App);
+      onAppCreated?.(result);
       setShowAddEditAppModal(false);
     } else {
       toast.error(result.error.message);
@@ -102,13 +102,13 @@ function AddEditAppModal({
     }
   };
 
-  const { name, developer, website, redirectUri, scopes } = data;
+  const { name, developer, website, redirectUri } = data;
   const buttonDisabled =
     !name ||
     !developer ||
     !website ||
     !redirectUri ||
-    Object.values(scopes).filter((v) => v).length === 0;
+    Object.values(selectedScopes).filter((v) => v).length === 0;
 
   return (
     <>
@@ -130,7 +130,7 @@ function AddEditAppModal({
             <Logo />
           )}
           <h1 className="text-lg font-medium">
-            {app ? "Edit" : "Add New"} OAuth Application
+            {app ? "Update" : "Add New"} OAuth Application
           </h1>
         </div>
 
@@ -310,7 +310,7 @@ export function useAddEditAppModal(
     onAppCreated,
   }: {
     app?: OAuthAppProps;
-    onAppCreated?: (App: string) => void;
+    onAppCreated?: (App: OAuthAppProps) => void;
   } = { onAppCreated: () => {} },
 ) {
   const [showAddEditAppModal, setShowAddEditAppModal] = useState(false);

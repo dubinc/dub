@@ -3,14 +3,15 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useAddEditAppModal } from "@/ui/modals/add-edit-oauth-app-modal";
-import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
+import { useAppCreatedModal } from "@/ui/modals/oauth-app-created-modal";
 import EmptyState from "@/ui/shared/empty-state";
-import { Delete } from "@/ui/shared/icons";
+import { CheckCircleFill, Delete } from "@/ui/shared/icons";
 import { Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
 import { Key } from "@dub/ui/src/icons";
 import { fetcher } from "@dub/utils";
-import { Edit3, MoreVertical } from "lucide-react";
+import { Copy, Edit3, MoreVertical } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 
 export default function OAuthAppPageClient() {
@@ -20,15 +21,16 @@ export default function OAuthAppPageClient() {
     fetcher,
   );
 
-  const [createdToken, setCreatedToken] = useState<string | null>(null);
-
-  const { TokenCreatedModal, setShowTokenCreatedModal } = useTokenCreatedModal({
-    token: createdToken || "",
+  const [app, setApp] = useState<OAuthAppProps | null>(null);
+  const { AppCreatedModal, setShowAppCreatedModal } = useAppCreatedModal({
+    app,
   });
 
-  const onAppCreated = (token: string) => {
-    setCreatedToken(token);
-    setShowTokenCreatedModal(true);
+  const onAppCreated = (app: OAuthAppProps) => {
+    if (!app) return;
+
+    setApp(app);
+    setShowAppCreatedModal(true);
   };
 
   const { AddEditAppModal, AddAppButton } = useAddEditAppModal({
@@ -37,7 +39,7 @@ export default function OAuthAppPageClient() {
 
   return (
     <>
-      <TokenCreatedModal />
+      <AppCreatedModal />
       <AddEditAppModal />
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-center justify-between gap-4 space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
@@ -88,8 +90,8 @@ export default function OAuthAppPageClient() {
 }
 
 const AppRow = (app: OAuthAppProps) => {
+  const [copiedClientId, setCopiedClientId] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
-
   const { AddEditAppModal, setShowAddEditAppModal } = useAddEditAppModal({
     app,
   });
@@ -97,6 +99,13 @@ const AppRow = (app: OAuthAppProps) => {
   // const { DeleteTokenModal, setShowDeleteTokenModal } = useDeleteTokenModal({
   //   token,
   // });
+
+  const copyClientId = () => {
+    navigator.clipboard.writeText(app.clientId);
+    setCopiedClientId(true);
+    toast.success("Client ID copied!");
+    setTimeout(() => setCopiedClientId(false), 3000);
+  };
 
   return (
     <>
@@ -127,6 +136,19 @@ const AppRow = (app: OAuthAppProps) => {
                     setOpenPopover(false);
                     setShowAddEditAppModal(true);
                   }}
+                />
+                <Button
+                  text="Copy Client ID"
+                  variant="outline"
+                  icon={
+                    copiedClientId ? (
+                      <CheckCircleFill className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  className="h-9 justify-start px-2 font-medium"
+                  onClick={() => copyClientId()}
                 />
                 <Button
                   text="Delete App"

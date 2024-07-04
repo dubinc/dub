@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const oAuthClientSchema = z.object({
   clientId: z.string(),
+  clientSecret: z.string().optional(),
   name: z.string(),
   developer: z.string(),
   website: z.string(),

@@ -16,7 +16,7 @@ export const POST = withWorkspace(
     const { name, developer, website, redirectUri, scopes } =
       createOAuthClientSchema.parse(await parseRequestBody(req));
 
-    const clientSecret = `dub_${nanoid(TOKEN_LENGTH.clientSecret)}`;
+    const clientSecret = `dub_secret_${nanoid(TOKEN_LENGTH.clientSecret)}`;
 
     const client = await prisma.oAuthClient.create({
       data: {
