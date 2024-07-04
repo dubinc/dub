@@ -28,13 +28,24 @@ export default async function Authorize({
     redirect("/login");
   }
 
-  const { oAuthClient, request } = await vaidateAuthorizeRequest(searchParams);
+  const { error, oAuthApp, requestParams } =
+    await vaidateAuthorizeRequest(searchParams);
+
+  if (error || !oAuthApp) {
+    return (
+      <div className="relative z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden border-y sm:rounded-2xl sm:border sm:shadow-xl">
+        <div className="flex flex-col items-center justify-center space-y-6 bg-white px-4 py-6 pt-8 text-center sm:px-16">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
       <div className="flex flex-col items-center justify-center space-y-6 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
         <div className="flex items-center gap-3">
-          <a href={oAuthClient.website} target="_blank" rel="noreferrer">
+          <a href={oAuthApp.website} target="_blank" rel="noreferrer">
             <Logo className="h-14 w-14" />
           </a>
           <ArrowLeftRight className="h-6 w-6 text-gray-500" />
@@ -45,21 +56,21 @@ export default async function Authorize({
         <p className="text-md">
           <a
             className="font-bold text-blue-500"
-            href={oAuthClient.website}
+            href={oAuthApp.website}
             target="_blank"
             rel="noreferrer"
           >
-            {oAuthClient.name}
+            {oAuthApp.name}
           </a>{" "}
           is requesting API access to a workspace.
         </p>
       </div>
       <div className="flex flex-col space-y-3 bg-white px-2 py-6 sm:px-10">
-        <ScopesRequested scopes={oAuthClient.scopes} />
+        <ScopesRequested scopesRequested={oAuthApp.scopes.split(" ")} />
       </div>
       <div className="flex flex-col space-y-2 border-t border-gray-200 bg-white px-2 py-6 sm:px-10">
         <Suspense fallback={<></>}>
-          <AuthorizeForm oAuthClient={oAuthClient} {...request} />
+          <AuthorizeForm oAuthApp={oAuthApp} {...requestParams} />
         </Suspense>
       </div>
     </div>

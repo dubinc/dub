@@ -1,28 +1,43 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { fromZodError } from "./api/errors";
 import { authorizeRequestSchema } from "./zod/schemas/oauth";
 
 export const vaidateAuthorizeRequest = async (params: any) => {
-  const request = authorizeRequestSchema.parse(params);
-  const { client_id: clientId, redirect_uri: redirectUri } = request;
+  const request = authorizeRequestSchema.safeParse(params);
 
-  const oAuthClient = await prisma.oAuthClient.findFirst({
+  if (!request.success) {
+    const formattedError = fromZodError(request.error);
+
+    return {
+      error: formattedError.error.message,
+    };
+  }
+
+  const requestParams = request.data;
+  const { client_id: clientId, redirect_uri: redirectUri } = requestParams;
+
+  const oAuthApp = await prisma.oAuthClient.findFirst({
     where: {
       clientId,
     },
   });
 
-  if (!oAuthClient) {
-    throw new Error(`Could not find OAuth client with clientId ${clientId}`);
+  if (!oAuthApp) {
+    return {
+      error: "Could not find OAuth application.",
+    };
   }
 
-  if (oAuthClient.redirectUri !== redirectUri) {
-    throw new Error("Invalid redirect_uri parameter for the application.");
+  if (oAuthApp.redirectUri !== redirectUri) {
+    return {
+      error: "Invalid redirect_uri parameter for the application.",
+    };
   }
 
   return {
-    oAuthClient,
-    request,
+    oAuthApp,
+    requestParams,
   };
 };

@@ -52,7 +52,7 @@ function AppCreatedModal({
             Client Secret
           </label>
           <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-3">
-            <p className="font-mono text-sm text-gray-500 text-nowrap">
+            <p className="text-nowrap font-mono text-sm text-gray-500">
               {app.clientSecret}
             </p>
             <div className="flex flex-col gap-2">

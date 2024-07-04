@@ -10,11 +10,11 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
-  oAuthClient: Pick<OAuthClient, "name">;
+  oAuthApp: Pick<OAuthClient, "name">;
 }
 
 export const AuthorizeForm = (props: AuthorizeFormProps) => {
-  const { oAuthClient, client_id, redirect_uri, response_type, state } = props;
+  const { oAuthApp, client_id, redirect_uri, response_type, state } = props;
 
   const { workspaces } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);
@@ -90,7 +90,7 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
           disabled={submitting}
         />
         <Button
-          text={`Authorize ${oAuthClient.name}`}
+          text={`Authorize ${oAuthApp.name}`}
           type="submit"
           loading={submitting}
           disabled={!selectedWorkspace}

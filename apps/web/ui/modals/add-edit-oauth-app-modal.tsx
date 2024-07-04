@@ -30,11 +30,11 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 const newApp: OAuthAppProps = {
-  name: "Supa",
-  developer: "Kiran",
-  website: "https://app.dub.co/acme/settings/tokens",
+  name: "",
+  developer: "",
+  website: "",
   clientId: "",
-  redirectUri: "https://app.dub.co/acme/settings/tokens",
+  redirectUri: "",
   scopes: [],
 };
 
