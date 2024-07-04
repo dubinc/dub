@@ -54,16 +54,20 @@ export default async function Authorize({
           </a>
         </div>
         <p className="text-md">
+          <span className="font-bold">{oAuthApp.name}</span> is requesting API
+          access to a workspace on Dub.
+        </p>
+        <span className="text-xs text-gray-500">
+          Built by{" "}
           <a
-            className="font-bold text-blue-500"
             href={oAuthApp.website}
             target="_blank"
             rel="noreferrer"
+            className="underline"
           >
-            {oAuthApp.name}
-          </a>{" "}
-          is requesting API access to a workspace.
-        </p>
+            {oAuthApp.developer}
+          </a>
+        </span>
       </div>
       <div className="flex flex-col space-y-3 bg-white px-2 py-6 sm:px-10">
         <ScopesRequested scopesRequested={oAuthApp.scopes.split(" ")} />

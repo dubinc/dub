@@ -90,7 +90,7 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
           disabled={submitting}
         />
         <Button
-          text={`Authorize ${oAuthApp.name}`}
+          text="Authorize"
           type="submit"
           loading={submitting}
           disabled={!selectedWorkspace}
