@@ -85,6 +85,11 @@
             "quickstart/flask",
             "quickstart/django"
           ]
+        },
+        {
+          "group": "Ruby",
+          "icon": "gem",
+          "pages": ["quickstart/ruby"]
         }
       ]
     },
@@ -115,7 +120,8 @@
         "api-reference/endpoint/delete-a-link",
         "api-reference/endpoint/retrieve-a-list-of-links",
         "api-reference/endpoint/retrieve-number-of-links",
-        "api-reference/endpoint/bulk-create-links"
+        "api-reference/endpoint/bulk-create-links",
+        "api-reference/endpoint/bulk-update-links"
       ]
     },
     {
@@ -128,11 +134,7 @@
     },
     {
       "group": "Workspaces",
-      "pages": [
-        "api-reference/endpoint/create-a-new-workspace",
-        "api-reference/endpoint/retrieve-a-workspace",
-        "api-reference/endpoint/retrieve-a-list-of-workspaces"
-      ]
+      "pages": ["api-reference/endpoint/retrieve-a-workspace"]
     },
     {
       "group": "Domains",

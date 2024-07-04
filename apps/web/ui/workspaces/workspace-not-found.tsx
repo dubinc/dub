@@ -23,7 +23,7 @@ export default function WorkspaceNotFound() {
           height={400}
         />
         <Link
-          href="/"
+          href="/workspaces"
           className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
         >
           Back to my workspaces
