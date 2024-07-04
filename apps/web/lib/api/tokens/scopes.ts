@@ -13,13 +13,31 @@ export const availableScopes = [
   "tokens.read",
   "tokens.write",
   "conversions.write",
-  "oauth_apps.write",
-  "oauth_apps.read",
+  "oauth_clients.write",
+  "oauth_clients.read",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
 
 export type Scope = (typeof availableScopes)[number];
+
+type Resource =
+  | "links"
+  | "analytics"
+  | "workspaces"
+  | "domains"
+  | "tags"
+  | "tokens"
+  | "conversions"
+  | "oauth_clients";
+
+type Permission = {
+  permission: string;
+  scope: Scope;
+  description: string;
+  roles: Role[];
+  resource: Resource;
+};
 
 export const resourcePermissions = [
   {
@@ -152,19 +170,19 @@ export const resourcePermissions = [
   },
   {
     name: "OAuth Apps",
-    key: "oauth_apps",
+    key: "oauth_clients",
     description: "OAuth apps (create, read, update, delete)",
     betaFeature: true,
     permissions: [
       {
         permission: "Read",
-        scope: "oauth_apps.read",
+        scope: "oauth_clients.read",
         description: "Read OAuth apps",
         roles: ["owner", "member"],
       },
       {
         permission: "Write",
-        scope: "oauth_apps.write",
+        scope: "oauth_clients.write",
         description: "Create, update, and delete OAuth apps",
         roles: ["owner"],
       },
@@ -242,3 +260,122 @@ export const scopesToName = (scopes: string[]) => {
     description: "restricted access to some resources",
   };
 };
+
+export const permissions: Permission[] = [
+  {
+    permission: "Read",
+    scope: "links.read",
+    description: "Read access to links",
+    roles: ["owner", "member"],
+    resource: "links",
+  },
+  {
+    permission: "Write",
+    scope: "links.write",
+    description: "Read and Write access to links",
+    roles: ["owner", "member"],
+    resource: "links",
+  },
+  {
+    permission: "Read",
+    scope: "analytics.read",
+    description: "Read access to analytics and events",
+    roles: ["owner", "member"],
+    resource: "analytics",
+  },
+  {
+    permission: "Read",
+    scope: "workspaces.read",
+    description: "Read access to workspace",
+    roles: ["owner", "member"],
+    resource: "workspaces",
+  },
+  {
+    permission: "Write",
+    scope: "workspaces.write",
+    description: "Read and Write access to workspace",
+    roles: ["owner"],
+    resource: "workspaces",
+  },
+  {
+    permission: "Read",
+    scope: "domains.read",
+    description: "Read access to domains",
+    roles: ["owner", "member"],
+    resource: "domains",
+  },
+  {
+    permission: "Write",
+    scope: "domains.write",
+    description: "Read and Write access to domains",
+    roles: ["owner"],
+    resource: "domains",
+  },
+  {
+    permission: "Read",
+    scope: "tags.read",
+    description: "Read access to tags",
+    roles: ["owner", "member"],
+    resource: "tags",
+  },
+  {
+    permission: "Write",
+    scope: "tags.write",
+    description: "Read and Write access to tags",
+    roles: ["owner", "member"],
+    resource: "tags",
+  },
+  {
+    permission: "Read",
+    scope: "tokens.read",
+    description: "Read access to Workspace API keys",
+    roles: ["owner", "member"],
+    resource: "tokens",
+  },
+  {
+    permission: "Write",
+    scope: "tokens.write",
+    description: "Read and Write access to Workspace API keys",
+    roles: ["owner", "member"],
+    resource: "tokens",
+  },
+  {
+    permission: "Write",
+    scope: "conversions.write",
+    description:
+      "Read and Write access to conversions. Able to track customer, lead, and sales events",
+    roles: ["owner"],
+    resource: "conversions",
+  },
+  {
+    permission: "Read",
+    scope: "oauth_clients.read",
+    description: "Read access to OAuth clients",
+    roles: ["owner", "member"],
+    resource: "oauth_clients",
+  },
+  {
+    permission: "Write",
+    scope: "oauth_clients.write",
+    description: "Read and Write access to OAuth clients",
+    roles: ["owner"],
+    resource: "oauth_clients",
+  },
+];
+
+export const scopesByResource = permissions.reduce<
+  Record<Resource, Permission[]>
+>(
+  (acc, permission) => {
+    const { resource } = permission;
+
+    if (!acc[resource]) {
+      acc[resource] = [];
+    }
+
+    acc[resource].push(permission);
+
+    return acc;
+  },
+  {} as Record<Resource, Permission[]>,
+);

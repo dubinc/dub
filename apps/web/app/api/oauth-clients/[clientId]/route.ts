@@ -28,7 +28,7 @@ export const GET = withWorkspace(
     return NextResponse.json(oAuthClientSchema.parse(app));
   },
   {
-    requiredScopes: ["oauth_apps.read"],
+    requiredScopes: ["oauth_clients.read"],
   },
 );
 
@@ -57,7 +57,7 @@ export const PATCH = withWorkspace(
     return NextResponse.json(oAuthClientSchema.parse(app));
   },
   {
-    requiredScopes: ["oauth_apps.write"],
+    requiredScopes: ["oauth_clients.write"],
   },
 );
 
@@ -87,6 +87,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ id: params.clientId });
   },
   {
-    requiredScopes: ["oauth_apps.write"],
+    requiredScopes: ["oauth_clients.write"],
   },
 );

@@ -7,8 +7,7 @@ import { authorizeSchema } from "@/lib/zod/schemas/oauth";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { OAuthClient } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 interface AuthorizeFormProps extends z.infer<typeof authorizeSchema> {
   oAuthClient: Pick<OAuthClient, "name">;
@@ -18,7 +17,6 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
   const { oAuthClient, client_id, redirect_uri, response_type, state } = props;
 
   const { workspaces } = useWorkspaces();
-  const { data: session } = useSession();
   const [selectedWorkspace, setSelectedWorkspace] =
     useState<InputSelectItemProps | null>(null);
 
@@ -32,13 +30,15 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
       : [];
   }, [workspaces]);
 
-  useEffect(() => {
-    setSelectedWorkspace(
-      selectOptions.find(
-        (option) => option.id === session?.user?.["defaultWorkspace"],
-      ) || selectOptions[0],
-    );
-  }, [selectOptions, session]);
+  // Decline
+  const handleDecline = () => {
+    const searchParams = new URLSearchParams({
+      error: "access_denied",
+      ...(state && { state }),
+    });
+
+    window.location.href = `${redirect_uri}?${searchParams.toString()}`;
+  };
 
   return (
     <form action={handleAuthorize}>
@@ -62,13 +62,16 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
         <Button
           text="Decline"
           type="button"
-          onClick={() => {}}
+          onClick={handleDecline}
           variant="secondary"
         />
         <Button
           text={`Authorize ${oAuthClient.name}`}
           type="submit"
-          // loading={clickedGithub}
+          disabled={!selectedWorkspace}
+          disabledTooltip={
+            !selectedWorkspace ? "Please select a workspace to continue" : ""
+          }
         />
       </div>
     </form>

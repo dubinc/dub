@@ -41,7 +41,7 @@ export const POST = withWorkspace(
     );
   },
   {
-    requiredScopes: ["oauth_apps.write"],
+    requiredScopes: ["oauth_clients.write"],
   },
 );
 
@@ -57,6 +57,6 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(oAuthClientSchema).parse(clients));
   },
   {
-    requiredScopes: ["oauth_apps.read"],
+    requiredScopes: ["oauth_clients.read"],
   },
 );
