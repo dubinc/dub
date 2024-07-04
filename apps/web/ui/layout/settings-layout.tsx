@@ -1,5 +1,5 @@
 import NavLink from "@/ui/layout/settings-nav-link";
-import { MaxWidthWrapper } from "@dub/ui";
+import { Icon, MaxWidthWrapper } from "@dub/ui";
 import { ReactNode } from "react";
 
 export default function SettingsLayout({
@@ -8,6 +8,7 @@ export default function SettingsLayout({
 }: {
   tabs: {
     name: string;
+    icon: Icon;
     segment: string | null;
   }[];
   children: ReactNode;
@@ -25,8 +26,10 @@ export default function SettingsLayout({
       </div>
       <MaxWidthWrapper className="grid items-start gap-5 py-10 lg:grid-cols-5">
         <div className="top-36 flex gap-1 lg:sticky lg:grid">
-          {tabs.map(({ name, segment }) => (
-            <NavLink segment={segment}>{name}</NavLink>
+          {tabs.map(({ name, segment, icon }) => (
+            <NavLink segment={segment} icon={icon}>
+              {name}
+            </NavLink>
           ))}
         </div>
         <div className="grid gap-5 lg:col-span-4">{children}</div>
