@@ -53,7 +53,7 @@ export const exchangeAuthCodeForToken = async (
     });
   }
 
-  const oauthGrant = await prisma.oAuthCode.findFirst({
+  const accessCode = await prisma.oAuthCode.findUnique({
     where: {
       code,
       clientId,
@@ -67,14 +67,14 @@ export const exchangeAuthCodeForToken = async (
     },
   });
 
-  if (!oauthGrant) {
+  if (!accessCode) {
     throw new DubApiError({
       code: "unauthorized",
       message: "Invalid code",
     });
   }
 
-  if (oauthGrant.expiresAt < new Date()) {
+  if (accessCode.expiresAt < new Date()) {
     await prisma.oAuthCode.delete({
       where: {
         code,
@@ -87,16 +87,18 @@ export const exchangeAuthCodeForToken = async (
     });
   }
 
+  console.log("Found OAuth grant", accessCode);
+
   const workspace = await prisma.project.findUniqueOrThrow({
     where: {
-      id: oauthGrant.projectId,
+      id: accessCode.projectId,
     },
     select: {
       plan: true,
     },
   });
 
-  const { userId, projectId, scopes } = oauthGrant;
+  const { userId, projectId, scopes } = accessCode;
 
   const accessToken = `dub_${nanoid(TOKEN_LENGTH.accessToken)}`;
   const refreshToken = `dub_${nanoid(TOKEN_LENGTH.refreshToken)}`;
@@ -106,6 +108,7 @@ export const exchangeAuthCodeForToken = async (
     // Create the access token and refresh token
     prisma.restrictedToken.create({
       data: {
+        clientId,
         userId,
         projectId,
         scopes,
@@ -139,7 +142,7 @@ export const exchangeAuthCodeForToken = async (
     expires_in: Math.floor(accessTokenExpires.getTime() / 1000),
   };
 
-  console.log("Token exchanged", response);
+  console.log("Access token created", response);
 
   return response;
 };

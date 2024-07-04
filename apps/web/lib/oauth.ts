@@ -49,7 +49,7 @@ export const handleAuthorize = async (formData: FormData) => {
     Object.fromEntries(formData),
   );
 
-  console.info("Authorize request", request);
+  console.info("Authorize request", { ...request, workspaceId });
 
   const { code } = await prisma.oAuthCode.create({
     data: {

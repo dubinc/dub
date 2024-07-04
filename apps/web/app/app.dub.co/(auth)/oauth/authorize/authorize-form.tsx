@@ -46,7 +46,11 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
       <input type="hidden" name="redirect_uri" value={redirect_uri} />
       <input type="hidden" name="response_type" value={response_type} />
       <input type="hidden" name="state" value={state} />
-      <input type="hidden" name="workspaceId" value={selectedWorkspace?.id} />
+      <input
+        type="hidden"
+        name="workspaceId"
+        value={selectedWorkspace?.id.replace("ws_", "")}
+      />
       <p className="text-sm text-gray-500">
         Select a workspace to grant API access to
       </p>

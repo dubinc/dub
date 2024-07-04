@@ -9,14 +9,13 @@ export async function POST(req: NextRequest) {
   try {
     const formData = Object.fromEntries(await req.formData());
     const validatedData = tokenGrantSchema.parse(formData);
-    const { grant_type } = validatedData;
 
-    if (grant_type === "authorization_code") {
-      const response = await exchangeAuthCodeForToken(req, validatedData);
-      return NextResponse.json(response);
-    } else if (grant_type === "refresh_token") {
-      const response = await refreshAccessToken(req, validatedData);
-      return NextResponse.json(response);
+    if (validatedData.grant_type === "authorization_code") {
+      return NextResponse.json(
+        await exchangeAuthCodeForToken(req, validatedData),
+      );
+    } else if (validatedData.grant_type === "refresh_token") {
+      return NextResponse.json(await refreshAccessToken(req, validatedData));
     }
   } catch (error) {
     return handleAndReturnErrorResponse(error);

@@ -30,6 +30,7 @@ model User {
   subscribed       Boolean           @default(true)
   source           String?
   defaultWorkspace String?
+  oAuthCodes       OAuthCode[]
 
   @@index(source)
   @@index(defaultWorkspace)
@@ -149,6 +150,7 @@ model Project {
   defaultDomains   DefaultDomains[]
   restrictedTokens RestrictedToken[]
   oAuthClients     OAuthClient[]
+  oAuthCodes       OAuthCode[]
 
   @@index(usageLastChecked(sort: Asc))
 }
@@ -372,7 +374,7 @@ model OAuthClient {
   projectId          String
 
   project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  accessCodes   OAuthCode[]
+  oAuthCodes    OAuthCode[]
   accessTokens  RestrictedToken[]
   refreshTokens OAuthRefreshToken[]
 
@@ -391,6 +393,8 @@ model OAuthCode {
   createdAt   DateTime @default(now())
 
   oAuthClient OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model OAuthRefreshToken {

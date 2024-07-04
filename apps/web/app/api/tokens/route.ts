@@ -90,6 +90,7 @@ export const GET = withWorkspace(
     const tokens = await prisma.restrictedToken.findMany({
       where: {
         projectId: workspace.id,
+        clientId: null, // Hide OAuth tokens from workspace tokens
       },
       select: {
         id: true,

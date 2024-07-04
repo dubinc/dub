@@ -9,6 +9,7 @@ interface ScopesProps {
 
 export const ScopesRequested = (props: ScopesProps) => {
   const { scopes } = props;
+
   const scopesArray = scopes?.split(" ") ?? [];
 
   const requestedScopes = permissions.filter((p) =>
