@@ -198,4 +198,6 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthClientSchema>;
 
-export type OAuthAuthorizedAppProps = z.infer<typeof authorizedAppSchema>;
+export type OAuthAuthorizedAppProps = z.infer<typeof authorizedAppSchema> & {
+  createdAt: string;
+};

@@ -71,7 +71,7 @@ const AppRow = (app: OAuthAuthorizedAppProps) => {
             <p className="font-semibold text-gray-700">{app.name}</p>
             <div className="flex items-center gap-x-2">
               <p className="text-sm text-gray-500" suppressHydrationWarning>
-                {app.scopes.length} access scopes
+                {app.createdAt!}
               </p>
             </div>
           </div>

@@ -46,10 +46,13 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
     e.preventDefault();
     setSubmitting(true);
 
-    const response = await fetch("/api/oauth/authorize", {
-      method: "POST",
-      body: JSON.stringify(Object.fromEntries(new FormData(e.currentTarget))),
-    });
+    const response = await fetch(
+      `/api/oauth/authorize?workspaceId=${selectedWorkspace?.id}`,
+      {
+        method: "POST",
+        body: JSON.stringify(Object.fromEntries(new FormData(e.currentTarget))),
+      },
+    );
 
     const data = await response.json();
 
@@ -68,7 +71,6 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
       <input type="hidden" name="redirect_uri" value={redirect_uri} />
       <input type="hidden" name="response_type" value={response_type} />
       <input type="hidden" name="state" value={state} />
-      <input type="hidden" name="workspaceId" value={selectedWorkspace?.id} />
       <p className="text-sm text-gray-500">
         Select a workspace to grant API access to
       </p>

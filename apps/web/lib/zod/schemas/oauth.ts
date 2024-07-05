@@ -57,13 +57,6 @@ export const authorizeRequestSchema = z.object({
   state: z.string().max(255).optional(),
 });
 
-// Aprove OAuth2.0 Authorization request
-export const approveAuthorizeRequestSchema = authorizeRequestSchema.extend({
-  workspaceId: z
-    .string()
-    .min(1, "Please select a workspace to authorize the app"),
-});
-
 // Schema for OAuth2.0 code exchange request
 export const authCodeExchangeSchema = z.object({
   grant_type: z.literal("authorization_code"),
@@ -91,11 +84,16 @@ export const tokenGrantSchema = z.discriminatedUnion(
   },
 );
 
-export const authorizedAppSchema = oAuthClientSchema.pick({
-  clientId: true,
-  name: true,
-  developer: true,
-  website: true,
-  scopes: true,
-  createdAt: true,
-});
+export const authorizedAppSchema = oAuthClientSchema
+  .pick({
+    clientId: true,
+    name: true,
+    developer: true,
+    website: true,
+    scopes: true,
+  })
+  .merge(
+    z.object({
+      createdAt: z.date(),
+    }),
+  );

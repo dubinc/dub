@@ -1,18 +1,15 @@
 import { TOKEN_EXPIRY, TOKEN_LENGTH } from "@/lib/api/oauth";
 import { parseRequestBody } from "@/lib/api/utils";
-import { withSession } from "@/lib/auth";
+import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { approveAuthorizeRequestSchema } from "@/lib/zod/schemas/oauth";
+import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/oauth/authorize - approve OAuth authorization request
-export const POST = withSession(async ({ session, req }) => {
-  const body = approveAuthorizeRequestSchema.parse(await parseRequestBody(req));
+export const POST = withWorkspace(async ({ session, req, workspace }) => {
+  const body = authorizeRequestSchema.parse(await parseRequestBody(req));
   const { state, client_id: clientId, redirect_uri: redirectUri } = body;
-  let { workspaceId } = body;
-
-  workspaceId = workspaceId.replace("ws_", "");
 
   const oAuthClient = await prisma.oAuthClient.findUniqueOrThrow({
     where: {
@@ -20,14 +17,8 @@ export const POST = withSession(async ({ session, req }) => {
     },
   });
 
-  await prisma.project.findUniqueOrThrow({
-    where: {
-      id: workspaceId,
-    },
-  });
-
   console.info("Authorize request", {
-    workspaceId,
+    workspaceId: workspace.id,
     state,
     clientId,
     redirectUri,
@@ -37,7 +28,7 @@ export const POST = withSession(async ({ session, req }) => {
     data: {
       clientId,
       redirectUri,
-      projectId: workspaceId,
+      projectId: workspace.id,
       userId: session.user.id,
       scopes: oAuthClient.scopes,
       code: nanoid(TOKEN_LENGTH.code),
