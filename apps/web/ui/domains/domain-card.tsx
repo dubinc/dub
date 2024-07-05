@@ -13,7 +13,6 @@ import {
   CircleWarning,
   Copy,
   Gear,
-  LinesY,
   LoadingCircle,
   NumberTooltip,
   PenWriting,
@@ -25,6 +24,7 @@ import {
   useIntersectionObserver,
   useMediaQuery,
 } from "@dub/ui";
+import { CursorRays } from "@dub/ui/src/icons";
 import { DEFAULT_LINK_PROPS, cn, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import {
@@ -114,12 +114,12 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               <NumberTooltip value={totalEvents?.clicks}>
                 <Link
                   href={`/${slug}/analytics?domain=${domain}&key=_root`}
-                  className="flex items-center gap-1.5 whitespace-nowrap rounded-md bg-gray-100 px-3 py-1 transition-all duration-75 hover:scale-105 active:scale-100"
+                  className="flex items-center space-x-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
                 >
-                  <LinesY className="h-3 w-3 text-gray-500" />
+                  <CursorRays className="h-4 w-4 text-gray-700" />
                   <p className="text-xs font-medium text-gray-900">
-                    {nFormatter(totalEvents.clicks)}
-                    <span className="ml-1">clicks</span>
+                    {nFormatter(totalEvents?.clicks)}
+                    <span className="ml-1 hidden sm:inline-block">clicks</span>
                   </p>
                 </Link>
               </NumberTooltip>
