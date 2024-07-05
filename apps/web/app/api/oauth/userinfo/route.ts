@@ -30,8 +30,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    console.log("/api/oauth/userinfo", tokenRecord);
-
     if (!tokenRecord) {
       throw new DubApiError({
         code: "unauthorized",
@@ -41,12 +39,14 @@ export async function GET(req: NextRequest) {
 
     const { user } = tokenRecord;
 
-    return NextResponse.json({
+    const userInfo = {
       id: user.id,
       email: user.email,
       name: user.name,
       avatar_url: user.image,
-    });
+    };
+
+    return NextResponse.json(userInfo);
   } catch (e) {
     return handleAndReturnErrorResponse(e);
   }

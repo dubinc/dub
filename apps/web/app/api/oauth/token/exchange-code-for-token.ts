@@ -109,6 +109,30 @@ export const exchangeAuthCodeForToken = async (
   const refreshToken = `dub_${nanoid(TOKEN_LENGTH.refreshToken)}`;
   const accessTokenExpires = new Date(Date.now() + TOKEN_EXPIRY.accessToken);
 
+  // Delete the existing token issued to the client for the user for the selected workspace before creating a new one
+  // We only support one token per client per user per workspace at a time
+  await Promise.all([
+    prisma.restrictedToken.delete({
+      where: {
+        userId_projectId_clientId: {
+          userId,
+          projectId,
+          clientId,
+        },
+      },
+    }),
+
+    prisma.oAuthAuthorizedApp.delete({
+      where: {
+        userId_projectId_clientId: {
+          userId,
+          projectId,
+          clientId,
+        },
+      },
+    }),
+  ]);
+
   await Promise.all([
     // Create the access token and refresh token
     prisma.restrictedToken.create({
@@ -155,8 +179,6 @@ export const exchangeAuthCodeForToken = async (
     token_type: "Bearer",
     expires_in: Math.floor(accessTokenExpires.getTime() / 1000),
   };
-
-  console.log("Access token created", response);
 
   return response;
 };

@@ -142,7 +142,5 @@ export const refreshAccessToken = async (
     expires_in: Math.floor(accessTokenExpires.getTime() / 1000), // TODO: Fix this
   };
 
-  console.log("Access token refreshed", response);
-
   return response;
 };

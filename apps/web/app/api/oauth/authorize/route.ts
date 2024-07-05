@@ -17,13 +17,6 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
     },
   });
 
-  console.info("Authorize request", {
-    workspaceId: workspace.id,
-    state,
-    clientId,
-    redirectUri,
-  });
-
   const { code } = await prisma.oAuthCode.create({
     data: {
       clientId,
