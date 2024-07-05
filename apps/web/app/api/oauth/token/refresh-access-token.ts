@@ -107,10 +107,18 @@ export const refreshAccessToken = async (
     Date.now() + OAUTH_ACCESS_TOKEN_LIFETIME * 1000,
   );
 
-  await Promise.all([
+  await prisma.$transaction([
+    // Delete the old access token
+    prisma.restrictedToken.delete({
+      where: {
+        id: accessTokenId,
+      },
+    }),
+
     // Create the access token and refresh token
     prisma.restrictedToken.create({
       data: {
+        clientId,
         userId,
         projectId,
         scopes,
@@ -128,21 +136,6 @@ export const refreshAccessToken = async (
             ),
           },
         },
-      },
-    }),
-
-    // Delete the old access token
-    prisma.restrictedToken.delete({
-      where: {
-        id: accessTokenId,
-      },
-    }),
-
-    // Delete the old refresh token
-    // TODO: We we may not do this, cascade delete should take care of this
-    prisma.oAuthRefreshToken.delete({
-      where: {
-        id: refreshTokenId,
       },
     }),
   ]);
