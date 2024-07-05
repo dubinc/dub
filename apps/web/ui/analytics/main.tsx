@@ -81,7 +81,7 @@ export default function Main() {
               )}
               <Link
                 className={cn(
-                  "border-box relative block h-full min-w-[140px] flex-none px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
+                  "border-box relative block h-full min-w-[110px] flex-none px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
                   "transition-colors hover:bg-gray-50 focus:outline-none active:bg-gray-100",
                   "ring-inset ring-gray-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
                 )}
@@ -125,7 +125,7 @@ export default function Main() {
                     >
                       <CountingNumbers
                         as="h1"
-                        className="text-3xl font-medium"
+                        className="text-2xl font-medium sm:text-3xl"
                         prefix={id === "sales" && "$"}
                         {...(id === "sales" && { fullNumber: true })}
                       >
@@ -137,7 +137,7 @@ export default function Main() {
                       <Lock className="h-4 w-4 text-gray-500" />
                     </div>
                   ) : (
-                    <div className="h-9 w-12 animate-pulse rounded-md bg-gray-200" />
+                    <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200 sm:h-9" />
                   )}
                 </div>
               </Link>

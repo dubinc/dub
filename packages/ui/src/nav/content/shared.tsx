@@ -1,6 +1,7 @@
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { ComponentProps, ReactNode, SVGProps } from "react";
+import { ExpandingArrow } from "../../icons";
 
 export const contentHeadingClassName =
   "text-xs uppercase text-gray-500 dark:text-white/60";
@@ -14,18 +15,20 @@ export function ContentLinkCard({
   description,
   descriptionLines = 1,
   className,
+  showArrow,
   ...rest
 }: {
   icon: ReactNode;
   title: string;
   description?: string;
   descriptionLines?: 1 | 2;
+  showArrow?: boolean;
 } & ComponentProps<typeof Link>) {
   return (
     <Link className={cn(contentLinkCardClassName, className)} {...rest}>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
         {icon}
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-medium text-gray-700 dark:text-white">
             {title}
           </p>
@@ -40,6 +43,9 @@ export function ContentLinkCard({
             </p>
           )}
         </div>
+        {showArrow && (
+          <ExpandingArrow className="invisible -ml-6 h-4 w-4 text-gray-700 group-aria-selected:visible sm:group-hover:visible" />
+        )}
       </div>
     </Link>
   );

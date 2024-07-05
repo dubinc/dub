@@ -39,6 +39,7 @@ export function SolutionsContent({ domain }: ContentProps) {
                 />
               }
               title={title}
+              showArrow
             />
           ))}
         </div>
