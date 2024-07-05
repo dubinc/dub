@@ -1,5 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import { TOKEN_EXPIRY, TOKEN_LENGTH, TOKEN_PREFIX } from "@/lib/api/oauth";
+import {
+  OAUTH_ACCESS_TOKEN_LENGTH,
+  OAUTH_ACCESS_TOKEN_LIFETIME,
+  OAUTH_ACCESS_TOKEN_PREFIX,
+  OAUTH_REFRESH_TOKEN_LENGTH,
+  OAUTH_REFRESH_TOKEN_LIFETIME,
+  OAUTH_REFRESH_TOKEN_PREFIX,
+} from "@/lib/api/oauth";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
@@ -105,9 +112,11 @@ export const exchangeAuthCodeForToken = async (
 
   const { userId, projectId, scopes } = accessCode;
 
-  const accessToken = `${TOKEN_PREFIX.accessToken}${nanoid(TOKEN_LENGTH.accessToken)}`;
-  const refreshToken = `${TOKEN_PREFIX.refreshToken}${nanoid(TOKEN_LENGTH.refreshToken)}`;
-  const accessTokenExpires = new Date(Date.now() + TOKEN_EXPIRY.accessToken);
+  const accessToken = `${OAUTH_ACCESS_TOKEN_PREFIX}${nanoid(OAUTH_ACCESS_TOKEN_LENGTH)}`;
+  const refreshToken = `${OAUTH_REFRESH_TOKEN_PREFIX}${nanoid(OAUTH_REFRESH_TOKEN_LENGTH)}`;
+  const accessTokenExpires = new Date(
+    Date.now() + OAUTH_ACCESS_TOKEN_LIFETIME * 1000,
+  );
 
   // Delete the existing token issued to the client for the user for the selected workspace before creating a new one
   // We only support one token per client per user per workspace at a time
@@ -146,7 +155,9 @@ export const exchangeAuthCodeForToken = async (
           create: {
             clientId,
             refreshTokenHashed: await hashToken(refreshToken),
-            expiresAt: new Date(Date.now() + TOKEN_EXPIRY.refreshToken),
+            expiresAt: new Date(
+              Date.now() + OAUTH_REFRESH_TOKEN_LIFETIME * 1000,
+            ),
           },
         },
       },
@@ -173,7 +184,7 @@ export const exchangeAuthCodeForToken = async (
     access_token: accessToken,
     refresh_token: refreshToken,
     token_type: "Bearer",
-    expires_in: Math.floor(accessTokenExpires.getTime() / 1000), // TODO: Fix this
+    expires_in: OAUTH_ACCESS_TOKEN_LIFETIME,
   };
 
   return response;

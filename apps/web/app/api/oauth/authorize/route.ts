@@ -1,4 +1,4 @@
-import { TOKEN_EXPIRY, TOKEN_LENGTH } from "@/lib/api/oauth";
+import { OAUTH_CODE_LENGTH, OAUTH_CODE_LIFETIME } from "@/lib/api/oauth";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -24,8 +24,8 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
       projectId: workspace.id,
       userId: session.user.id,
       scopes: oAuthClient.scopes,
-      code: nanoid(TOKEN_LENGTH.code),
-      expiresAt: new Date(Date.now() + TOKEN_EXPIRY.code),
+      code: nanoid(OAUTH_CODE_LENGTH),
+      expiresAt: new Date(Date.now() + OAUTH_CODE_LIFETIME * 1000),
     },
   });
 

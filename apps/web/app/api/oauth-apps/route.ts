@@ -1,4 +1,8 @@
-import { TOKEN_LENGTH, TOKEN_PREFIX } from "@/lib/api/oauth";
+import {
+  OAUTH_CLIENT_ID_LENGTH,
+  OAUTH_CLIENT_SECRET_LENGTH,
+  OAUTH_CLIENT_SECRET_PREFIX,
+} from "@/lib/api/oauth";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -16,7 +20,7 @@ export const POST = withWorkspace(
     const { name, developer, website, redirectUri, scopes } =
       createOAuthClientSchema.parse(await parseRequestBody(req));
 
-    const clientSecret = `${TOKEN_PREFIX.clientSecret}${nanoid(TOKEN_LENGTH.clientSecret)}`;
+    const clientSecret = `${OAUTH_CLIENT_SECRET_PREFIX}${nanoid(OAUTH_CLIENT_SECRET_LENGTH)}`;
 
     const client = await prisma.oAuthClient.create({
       data: {
@@ -26,7 +30,7 @@ export const POST = withWorkspace(
         website,
         redirectUri,
         scopes: [...new Set(scopes)].join(" "),
-        clientId: nanoid(TOKEN_LENGTH.clientId),
+        clientId: nanoid(OAUTH_CLIENT_ID_LENGTH),
         clientSecretHashed: await hashToken(clientSecret),
       },
     });

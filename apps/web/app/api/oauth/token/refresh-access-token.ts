@@ -1,5 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import { TOKEN_EXPIRY, TOKEN_LENGTH, TOKEN_PREFIX } from "@/lib/api/oauth";
+import {
+  OAUTH_ACCESS_TOKEN_LENGTH,
+  OAUTH_ACCESS_TOKEN_LIFETIME,
+  OAUTH_ACCESS_TOKEN_PREFIX,
+  OAUTH_REFRESH_TOKEN_LENGTH,
+  OAUTH_REFRESH_TOKEN_LIFETIME,
+  OAUTH_REFRESH_TOKEN_PREFIX,
+} from "@/lib/api/oauth";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
@@ -94,9 +101,11 @@ export const refreshAccessToken = async (
     id: accessTokenId,
   } = accessToken;
 
-  const newAccessToken = `${TOKEN_PREFIX.accessToken}${nanoid(TOKEN_LENGTH.accessToken)}`;
-  const newRefreshToken = `${TOKEN_PREFIX.refreshToken}${nanoid(TOKEN_LENGTH.refreshToken)}`;
-  const accessTokenExpires = new Date(Date.now() + TOKEN_EXPIRY.accessToken);
+  const newAccessToken = `${OAUTH_ACCESS_TOKEN_PREFIX}${nanoid(OAUTH_ACCESS_TOKEN_LENGTH)}`;
+  const newRefreshToken = `${OAUTH_REFRESH_TOKEN_PREFIX}${nanoid(OAUTH_REFRESH_TOKEN_LENGTH)}`;
+  const accessTokenExpires = new Date(
+    Date.now() + OAUTH_ACCESS_TOKEN_LIFETIME * 1000,
+  );
 
   await Promise.all([
     // Create the access token and refresh token
@@ -114,7 +123,9 @@ export const refreshAccessToken = async (
           create: {
             clientId,
             refreshTokenHashed: await hashToken(newRefreshToken),
-            expiresAt: new Date(Date.now() + TOKEN_EXPIRY.refreshToken),
+            expiresAt: new Date(
+              Date.now() + OAUTH_REFRESH_TOKEN_LIFETIME * 1000,
+            ),
           },
         },
       },
@@ -128,6 +139,7 @@ export const refreshAccessToken = async (
     }),
 
     // Delete the old refresh token
+    // TODO: We we may not do this, cascade delete should take care of this
     prisma.oAuthRefreshToken.delete({
       where: {
         id: refreshTokenId,
@@ -139,7 +151,7 @@ export const refreshAccessToken = async (
     access_token: newAccessToken,
     refresh_token: newRefreshToken,
     token_type: "Bearer",
-    expires_in: Math.floor(accessTokenExpires.getTime() / 1000), // TODO: Fix this
+    expires_in: OAUTH_ACCESS_TOKEN_LIFETIME,
   };
 
   return response;
