@@ -2,27 +2,20 @@ import { editQueryString } from "@/lib/analytics/utils";
 import { cn, fetcher, getDaysDifference, nFormatter } from "@dub/utils";
 import { Fragment, useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
-import { AnalyticsContext } from ".";
 import Areas from "../charts/areas";
 import TimeSeriesChart from "../charts/time-series-chart";
 import XAxis from "../charts/x-axis";
 import YAxis from "../charts/y-axis";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
+import { AnalyticsContext } from "./analytics-provider";
 
 export default function AnalyticsAreaChart({
   show,
 }: {
   show: ("clicks" | "leads" | "sales")[];
 }) {
-  const {
-    selectedTab,
-    baseApiPath,
-    queryString,
-    start,
-    end,
-    interval,
-    requiresUpgrade,
-  } = useContext(AnalyticsContext);
+  const { baseApiPath, queryString, start, end, interval, requiresUpgrade } =
+    useContext(AnalyticsContext);
 
   const { data } = useSWR<
     { start: Date; clicks: number; leads: number; sales: number }[]

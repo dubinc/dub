@@ -62,7 +62,7 @@ export default function Intro() {
           <motion.button
             variants={STAGGER_CHILD_VARIANTS}
             className="rounded-full bg-gray-800 px-10 py-2 font-medium text-white transition-colors hover:bg-black"
-            onClick={() => router.push("/welcome?type=interim")}
+            onClick={() => router.push("/welcome?step=workspace")}
           >
             Get Started
           </motion.button>

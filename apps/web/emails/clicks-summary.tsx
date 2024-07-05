@@ -1,4 +1,4 @@
-import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
+import { DUB_WORDMARK, nFormatter, truncate } from "@dub/utils";
 import {
   Body,
   Column,
@@ -72,8 +72,7 @@ export default function ClicksSummary({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
-                width="40"
+                src={DUB_WORDMARK}
                 height="40"
                 alt={appName}
                 className="mx-auto my-0"

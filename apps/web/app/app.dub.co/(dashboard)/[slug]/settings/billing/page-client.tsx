@@ -171,7 +171,7 @@ export default function WorkspaceBillingClient() {
               title="Teammates"
               unit="users"
               tooltip="Number of users added to your workspace."
-              usage={users?.length}
+              usage={users?.filter((user) => !user.isMachine).length}
               usageLimit={usersLimit}
               numberOnly
             />

@@ -63,5 +63,8 @@ export const POST = withWorkspaceEdge(
 
     return NextResponse.json(response);
   },
-  { betaFeature: true },
+  {
+    betaFeature: true,
+    requiredScopes: ["conversions.write"],
+  },
 );

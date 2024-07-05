@@ -11,14 +11,13 @@ export const GET = withSession(async ({ session }) => {
 });
 
 const supportRequestQuerySchema = z.object({
-  title: z.string().min(1),
   message: z.string().min(1),
   attachmentIds: z.array(z.string()),
 });
 
 // POST /api/support – file a support request
 export const POST = withSession(async ({ req, session }) => {
-  const { title, message, attachmentIds } = supportRequestQuerySchema.parse(
+  const { message, attachmentIds } = supportRequestQuerySchema.parse(
     await req.json(),
   );
 
@@ -26,7 +25,6 @@ export const POST = withSession(async ({ req, session }) => {
     customerIdentifier: {
       externalId: session.user.id,
     },
-    title,
     components: [
       {
         componentText: {

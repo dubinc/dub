@@ -71,3 +71,28 @@ export const saleEventSchemaTB = clickEventSchemaTB
       metadata: z.string().default(""),
     }),
   );
+
+export const saleEventEnrichedSchema = z.object({
+  timestamp: z.string(),
+  event_id: z.string(),
+  event_name: z.string(),
+  customer_name: z.string(),
+  customer_email: z.string(),
+  customer_avatar: z.string(),
+  payment_processor: z.string(),
+  invoice_id: z.string(),
+  amount: z.number(),
+  click_id: z.string(),
+  link_id: z.string(),
+  domain: z.string(),
+  key: z.string(),
+  url: z.string(),
+  country: z.string().nullable(),
+  city: z.string().nullable(),
+  device: z.string().nullable(),
+  browser: z.string().nullable(),
+  os: z.string().nullable(),
+  referer: z.string().nullable(),
+  qr: z.number().nullable(),
+  ip: z.string().nullable(),
+});

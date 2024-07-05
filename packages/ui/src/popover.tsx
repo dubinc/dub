@@ -13,6 +13,8 @@ export type PopoverProps = PropsWithChildren<{
   setOpenPopover: (open: boolean) => void;
   mobileOnly?: boolean;
   popoverContentClassName?: string;
+  collisionBoundary?: Element | Element[];
+  sticky?: "partial" | "always";
   onEscapeKeyDown?: (event: KeyboardEvent) => void;
 }>;
 
@@ -24,6 +26,8 @@ export function Popover({
   setOpenPopover,
   mobileOnly,
   popoverContentClassName,
+  collisionBoundary,
+  sticky,
   onEscapeKeyDown,
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
@@ -66,6 +70,8 @@ export function Popover({
             "animate-slide-up-fade z-50 items-center rounded-lg border border-gray-200 bg-white drop-shadow-lg sm:block",
             popoverContentClassName,
           )}
+          sticky={sticky}
+          collisionBoundary={collisionBoundary}
           onEscapeKeyDown={onEscapeKeyDown}
         >
           {content}

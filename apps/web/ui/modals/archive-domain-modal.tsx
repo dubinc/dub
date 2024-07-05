@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
-import { Button, Modal, useToastWithUndo } from "@dub/ui";
+import { Button, LinkLogo, Modal, useToastWithUndo } from "@dub/ui";
 import {
   Dispatch,
   MouseEvent,
@@ -11,7 +11,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import LinkLogo from "../links/link-logo";
 
 const sendArchiveRequest = ({
   domain,

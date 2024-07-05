@@ -1,25 +1,20 @@
-import { useRouterStuff } from "@dub/ui";
+import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { getApexDomain } from "@dub/utils";
-import { useContext, useState } from "react";
-import { AnalyticsContext } from ".";
-import LinkLogo from "../links/link-logo";
+import { useContext } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
+import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function TopLinks() {
   const { queryParams } = useRouterStuff();
 
-  const [selectedTabId, setSelectedTabId] = useState<"links" | "domains">(
-    "links",
-  );
   const { domain, key } = useContext(AnalyticsContext);
   const showUrls = domain && key;
 
   const data = useAnalyticsFilterOption({
     groupBy: `top_${showUrls ? "urls" : "links"}`,
-    root: selectedTabId === "domains" ? "true" : "false",
   });
 
   return (
@@ -27,17 +22,11 @@ export default function TopLinks() {
       tabs={
         showUrls
           ? [{ id: "urls", label: "URLs" }]
-          : [
-              { id: "links", label: "Links" },
-              { id: "domains", label: "Domains" },
-            ]
+          : [{ id: "links", label: "Links" }]
       }
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 8}
-      selectedTabId={showUrls ? "urls" : selectedTabId}
-      onSelectTab={(tabId: "links" | "domains") =>
-        showUrls ? null : setSelectedTabId(tabId)
-      }
+      selectedTabId={showUrls ? "urls" : "links"}
     >
       {({ limit, setShowModal }) =>
         data ? (

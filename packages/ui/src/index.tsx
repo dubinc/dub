@@ -3,6 +3,7 @@ import "./styles.css";
 
 // components
 export * from "./accordion";
+export * from "./alert";
 export * from "./avatar";
 export * from "./badge";
 export * from "./button";
@@ -30,7 +31,6 @@ export * from "./background";
 export * from "./footer";
 export * from "./max-width-wrapper";
 export * from "./nav";
-export * from "./nav-mobile";
 
 // content
 export * from "./content";

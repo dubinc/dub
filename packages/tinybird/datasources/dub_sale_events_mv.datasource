@@ -6,6 +6,7 @@ SCHEMA >
     `link_id` String,
     `customer_id` String,
     `payment_processor` LowCardinality(String),
+    `invoice_id` String,
     `amount` UInt32,
     `url` String,
     `country` LowCardinality(String),

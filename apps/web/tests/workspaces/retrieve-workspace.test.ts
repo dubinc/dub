@@ -10,7 +10,7 @@ describe("GET /workspaces/{idOrSlug}", async () => {
 
   test("by id", async () => {
     const { status, data: workspaceFetched } = await http.get<Project>({
-      path: `/workspaces/${workspace.workspaceId}`,
+      path: `/workspaces/${workspace.id}`,
     });
 
     const { id, name, slug } = workspaceFetched;

@@ -1,6 +1,10 @@
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps, DomainVerificationStatusProps } from "@/lib/types";
+import {
+  DomainProps,
+  DomainVerificationStatusProps,
+  LinkProps,
+} from "@/lib/types";
 import {
   AlertCircleFill,
   Chart,
@@ -19,8 +23,9 @@ import {
   SimpleTooltipContent,
   useIntersectionObserver,
 } from "@dub/ui";
+import { Copy, Gear } from "@dub/ui/src/icons";
 import {
-  capitalize,
+  DEFAULT_LINK_PROPS,
   fetcher,
   nFormatter,
   punycode,
@@ -29,9 +34,11 @@ import {
 import { Archive, Edit3, FileCog, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
+import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useLinkQRModal } from "../modals/link-qr-modal";
@@ -40,17 +47,44 @@ import { useTransferDomainModal } from "../modals/transfer-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
+  const { slug: domain, primary, archived } = props || {};
+
   const { id: workspaceId, slug } = useWorkspace();
   const { activeWorkspaceDomains } = useDomains();
 
-  const { slug: domain, primary, target, type, archived } = props || {};
+  const { data: linkProps } = useSWRImmutable<LinkProps>(
+    workspaceId
+      ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key: "_root" }).toString()}`
+      : null,
+    fetcher,
+  );
+
+  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
+    props: linkProps || { ...DEFAULT_LINK_PROPS, key: "_root", domain },
+  });
 
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
-    props: {
-      domain,
-      url: target,
-    },
+    props: linkProps || DEFAULT_LINK_PROPS,
   });
+
+  const [copiedLinkId, setCopiedLinkId] = useState(false);
+
+  const copyLinkId = () => {
+    navigator.clipboard.writeText(props.id);
+    setCopiedLinkId(true);
+    toast.success("Link ID copied!");
+    setTimeout(() => setCopiedLinkId(false), 3000);
+  };
+
+  const { data: totalEvents } = useSWR<{ clicks: number }>(
+    workspaceId &&
+      linkProps &&
+      `/api/analytics?event=clicks&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
+    fetcher,
+    {
+      dedupingInterval: 15000,
+    },
+  );
 
   const domainRef = useRef<any>();
   const entry = useIntersectionObserver(domainRef, {});
@@ -64,18 +98,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       isVisible &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
-  );
-
-  const { data: totalEvents } = useSWR<{ clicks: number }>(
-    workspaceId &&
-      `/api/analytics?event=clicks&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
-    fetcher,
-    {
-      fallbackData: {
-        clicks: props.clicks,
-      },
-      dedupingInterval: 15000,
-    },
   );
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -108,8 +130,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
   return (
     <>
-      <AddEditDomainModal />
+      <AddEditLinkModal />
       <LinkQRModal />
+      <AddEditDomainModal />
       <PrimaryDomainModal />
       <ArchiveDomainModal />
       <DeleteDomainModal />
@@ -131,6 +154,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </p>
               <ExternalLink className="h-5 w-5" />
             </a>
+
             <NumberTooltip value={totalEvents?.clicks}>
               <Link
                 href={`/${slug}/analytics?domain=${domain}&key=_root`}
@@ -147,6 +171,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                 </p>
               </Link>
             </NumberTooltip>
+
             {primary && (
               <span className="rounded-full bg-blue-500 px-3 py-0.5 text-xs text-white">
                 Primary Domain
@@ -164,95 +189,121 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             />
             <Popover
               content={
-                <div className="grid w-full gap-px p-2 sm:w-44">
-                  <Button
-                    text="Edit"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowAddEditDomainModal(true);
-                    }}
-                    icon={<Edit3 className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
-                  <Button
-                    text="QR Code"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowLinkQRModal(true);
-                    }}
-                    icon={<QrCode className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
-                  <Button
-                    text="Transfer"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowTransferDomainModal(true);
-                    }}
-                    icon={<FolderInput className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                    {...(primary &&
-                      activeDomainsCount > 1 && {
-                        disabledTooltip: (
-                          <SimpleTooltipContent
-                            title="You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
-                            cta="Learn more."
-                            href="https://dub.co/help/article/how-to-set-primary-domain"
-                          />
-                        ),
-                      })}
-                  />
-                  {!primary && (
+                <div className="w-full sm:w-48">
+                  <div className="grid gap-px p-2">
                     <Button
-                      text="Set as Primary"
+                      text="Edit Link"
                       variant="outline"
                       onClick={() => {
                         setOpenPopover(false);
-                        setShowPrimaryDomainModal(true);
+                        setShowAddEditLinkModal(true);
                       }}
-                      icon={<FileCog className="h-4 w-4" />}
+                      icon={<Edit3 className="h-4 w-4" />}
                       className="h-9 justify-start px-2 font-medium"
                     />
-                  )}
-                  <Button
-                    text={archived ? "Unarchive" : "Archive"}
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowArchiveDomainModal(true);
-                    }}
-                    icon={<Archive className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
-                  <Button
-                    text="Delete"
-                    variant="danger-outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDeleteDomainModal(true);
-                    }}
-                    icon={<Delete className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
+                    <Button
+                      text="QR Code"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowLinkQRModal(true);
+                      }}
+                      icon={<QrCode className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                    <Button
+                      text="Copy Link ID"
+                      variant="outline"
+                      onClick={() => copyLinkId()}
+                      icon={
+                        copiedLinkId ? (
+                          <CheckCircleFill className="h-4 w-4" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )
+                      }
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                  </div>
+                  <div className="border-t border-gray-200" />
+                  <div className="grid gap-px p-2">
+                    <Button
+                      text="Settings"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowAddEditDomainModal(true);
+                      }}
+                      icon={<Gear className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                    {!primary && (
+                      <Button
+                        text="Set as Primary"
+                        variant="outline"
+                        onClick={() => {
+                          setOpenPopover(false);
+                          setShowPrimaryDomainModal(true);
+                        }}
+                        icon={<FileCog className="h-4 w-4" />}
+                        className="h-9 justify-start px-2 font-medium"
+                      />
+                    )}
+                    <Button
+                      text="Transfer"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowTransferDomainModal(true);
+                      }}
+                      icon={<FolderInput className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                      {...(primary &&
+                        activeDomainsCount > 1 && {
+                          disabledTooltip: (
+                            <SimpleTooltipContent
+                              title="You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
+                              cta="Learn more."
+                              href="https://dub.co/help/article/how-to-set-primary-domain"
+                            />
+                          ),
+                        })}
+                    />
+                    <Button
+                      text={archived ? "Unarchive" : "Archive"}
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowArchiveDomainModal(true);
+                      }}
+                      icon={<Archive className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                    <Button
+                      text="Delete"
+                      variant="danger-outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowDeleteDomainModal(true);
+                      }}
+                      icon={<Delete className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                  </div>
                 </div>
               }
               align="end"
               openPopover={openPopover}
               setOpenPopover={setOpenPopover}
             >
-              <div>
-                <Button
-                  variant="secondary"
-                  className="px-2"
-                  icon={<ThreeDots className="h-5 w-5" />}
-                  onClick={() => {
-                    setOpenPopover(!openPopover);
-                  }}
-                />
-              </div>
+              <Button
+                variant="secondary"
+                className="px-2"
+                icon={<ThreeDots className="h-5 w-5" />}
+                onClick={() => {
+                  setOpenPopover(!openPopover);
+                }}
+              />
             </Popover>
           </div>
         </div>
@@ -274,24 +325,32 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            {target ? (
-              <CheckCircleFill className="h-6 w-6 text-blue-500" />
+            {linkProps ? (
+              linkProps.url ? (
+                <CheckCircleFill className="h-6 w-6 text-blue-500" />
+              ) : (
+                <XCircleFill className="h-6 w-6 text-gray-400" />
+              )
             ) : (
-              <XCircleFill className="h-6 w-6 text-gray-400" />
+              <LoadingCircle className="mr-1 h-5 w-5" />
             )}
             <div className="flex space-x-1">
               <p className="text-sm text-gray-500">
-                {target ? `${capitalize(type)}s to` : `No ${type} configured`}
+                {linkProps
+                  ? linkProps.url
+                    ? `Redirects to`
+                    : `No redirect configured`
+                  : `Checking Link Status`}
               </p>
-              {target && (
+              {linkProps && (
                 <a
-                  href={target}
+                  href={linkProps.url}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm font-medium text-gray-600 underline-offset-4 hover:underline"
                 >
                   {truncate(
-                    target.replace(/^(?:https?:\/\/)?(?:www\.)?/i, ""),
+                    linkProps.url.replace(/^(?:https?:\/\/)?(?:www\.)?/i, ""),
                     24,
                   )}
                 </a>

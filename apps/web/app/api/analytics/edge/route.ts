@@ -5,7 +5,7 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { getDomainOrLink, getWorkspaceViaEdge } from "@/lib/planetscale";
+import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
@@ -56,7 +56,8 @@ export const GET = async (req: NextRequest) => {
         projectId: DUB_WORKSPACE_ID,
       };
     } else if (domain) {
-      link = await getDomainOrLink({ domain, key });
+      link = await getLinkViaEdge(domain, key);
+
       // if the link is explicitly private (publicStats === false)
       if (!link?.publicStats) {
         throw new DubApiError({

@@ -2,7 +2,7 @@ import { Button } from "@dub/ui/src/button";
 import { Download } from "@dub/ui/src/icons";
 import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { toast } from "sonner";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 
 export default function ExportButton({
   setOpenPopover,

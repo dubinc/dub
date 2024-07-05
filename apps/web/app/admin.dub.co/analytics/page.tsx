@@ -6,7 +6,7 @@ export default function AdminAnalytics() {
   return (
     <Suspense fallback={<LayoutLoader />}>
       <div className="w-full">
-        <Analytics admin />
+        <Analytics adminPage />
       </div>
     </Suspense>
   );

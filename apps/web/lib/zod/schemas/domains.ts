@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { parseUrlSchema } from "./utils";
+import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const DomainSchema = z.object({
   id: z.string().describe("The unique identifier of the domain."),
@@ -19,10 +19,6 @@ export const DomainSchema = z.object({
     .boolean()
     .describe("Whether the domain is archived.")
     .default(false),
-  noindex: z
-    .boolean()
-    .describe("Prevent search engines from indexing the domain.")
-    .default(false),
   placeholder: z
     .string()
     .describe(
@@ -37,39 +33,17 @@ export const DomainSchema = z.object({
       "The URL to redirect to when a link under this domain has expired.",
     )
     .openapi({ example: "https://acme.com/expired" }),
-  target: z
-    .string()
-    .nullable()
-    .describe(
-      "The page your users will get redirected to when they visit your domain.",
-    )
-    .openapi({ example: "https://acme.com/landing" }),
-  type: z
-    .string()
-    .describe("The type of redirect to use for this domain.")
-    .openapi({ enum: ["redirect", "rewrite"] }),
-  clicks: z.number().describe("The number of clicks on the domain.").default(0),
+  createdAt: z.date().describe("The date the domain was created."),
+  updatedAt: z.date().describe("The date the domain was last updated."),
 });
 
-export const addDomainBodySchema = z.object({
+export const createDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "slug is required" })
     .min(1, "slug cannot be empty.")
     .describe("Name of the domain.")
     .openapi({ example: "acme.com" }),
-  type: z
-    .enum(["redirect", "rewrite"])
-    .optional()
-    .default("redirect")
-    .describe("The type of redirect to use for this domain.")
-    .openapi({ example: "redirect" }),
-  target: parseUrlSchema
-    .nullish()
-    .describe(
-      "The page your users will get redirected to when they visit your domain.",
-    )
-    .openapi({ example: "https://acme.com/landing" }),
-  expiredUrl: parseUrlSchema
+  expiredUrl: parseUrlSchemaAllowEmpty
     .nullish()
     .describe(
       "Redirect users to a specific URL when any link under this domain has expired.",
@@ -83,13 +57,7 @@ export const addDomainBodySchema = z.object({
       "Whether to archive this domain. `false` will unarchive a previously archived domain.",
     )
     .openapi({ example: false }),
-  noindex: z
-    .boolean()
-    .optional()
-    .describe(
-      "Prevent search engines from indexing the domain. Defaults to `false`.",
-    ),
-  placeholder: parseUrlSchema
+  placeholder: parseUrlSchemaAllowEmpty
     .nullish()
     .default("https://dub.co/help/article/what-is-dub")
     .describe(
@@ -98,7 +66,7 @@ export const addDomainBodySchema = z.object({
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
 });
 
-export const updateDomainBodySchema = addDomainBodySchema.partial();
+export const updateDomainBodySchema = createDomainBodySchema.partial();
 
 export const transferDomainBodySchema = z.object({
   newWorkspaceId: z

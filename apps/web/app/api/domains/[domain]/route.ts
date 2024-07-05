@@ -2,13 +2,15 @@ import {
   addDomainToVercel,
   deleteDomainAndLinks,
   removeDomainFromVercel,
-  setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import {
   DomainSchema,
   updateDomainBodySchema,
@@ -16,63 +18,55 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// GET /api/domains/[domain] – get a workspace's domain
+// GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
-  async ({ domain }) => {
-    const data = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-      },
-      select: {
-        id: true,
-        slug: true,
-        archived: true,
-        verified: true,
-        primary: true,
-        target: true,
-        type: true,
-        noindex: true,
-        placeholder: true,
-        clicks: true,
-        expiredUrl: true,
-      },
+  async ({ workspace, params }) => {
+    const domainRecord = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
     });
-    if (!data) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Domain not found",
-      });
-    }
-    return NextResponse.json({
-      ...data,
-      url: data.target,
-    });
+
+    return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
-    domainChecks: true,
+    requiredScopes: ["domains.read"],
   },
 );
 
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
-  async ({ req, workspace, domain }) => {
-    const body = await parseRequestBody(req);
+  async ({ req, workspace, params }) => {
+    const { slug: domain } = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
+    });
+
     const {
       slug: newDomain,
-      target,
-      type,
       placeholder,
       expiredUrl,
       archived,
-      noindex,
-    } = updateDomainBodySchema.parse(body);
+    } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
-    if (newDomain && newDomain !== domain) {
+    if (workspace.plan === "free" && expiredUrl) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You can only use Default Expiration URLs on a Pro plan and above. Upgrade to Pro to use these features.",
+      });
+    }
+
+    const domainUpdated =
+      newDomain && newDomain.toLowerCase() !== domain.toLowerCase();
+
+    if (domainUpdated) {
       const validDomain = await validateDomain(newDomain);
-      if (validDomain !== true) {
+      if (validDomain.error && validDomain.code) {
         throw new DubApiError({
-          code: "unprocessable_entity",
-          message: validDomain,
+          code: validDomain.code,
+          message: validDomain.error,
         });
       }
       const vercelResponse = await addDomainToVercel(newDomain);
@@ -84,60 +78,76 @@ export const PATCH = withWorkspace(
       }
     }
 
-    const response = await prisma.domain.update({
+    const domainRecord = await prisma.domain.update({
       where: {
         slug: domain,
       },
       data: {
-        slug: newDomain,
-        type,
         archived,
+        ...(domainUpdated && { slug: newDomain }),
         ...(placeholder && { placeholder }),
-        ...(workspace.plan !== "free" && {
-          target,
+        ...(workspace.plan != "free" && {
           expiredUrl,
-          noindex: noindex === undefined ? true : noindex,
         }),
       },
     });
 
     waitUntil(
-      Promise.all([
-        setRootDomain({
-          id: response.id,
-          domain,
-          domainCreatedAt: response.createdAt,
-          ...(workspace.plan !== "free" && {
-            url: target || undefined,
-            noindex: noindex === undefined ? true : noindex,
-          }),
-          rewrite: type === "rewrite",
-          ...(newDomain !== domain && {
-            newDomain,
-          }),
-          projectId: workspace.id,
-        }),
-        // remove old domain from Vercel
-        newDomain !== domain && removeDomainFromVercel(domain),
-      ]),
+      (async () => {
+        if (domainUpdated) {
+          await Promise.all([
+            // remove old domain from Vercel
+            removeDomainFromVercel(domain),
+            // rename redis key
+            redis.rename(domain.toLowerCase(), newDomain.toLowerCase()),
+          ]);
+
+          const allLinks = await prisma.link.findMany({
+            where: {
+              domain: newDomain,
+            },
+            include: {
+              tags: true,
+            },
+          });
+
+          // update all links in Tinybird
+          recordLink(
+            allLinks.map((link) => ({
+              link_id: link.id,
+              domain: link.domain,
+              key: link.key,
+              url: link.url,
+              tag_ids: link.tags.map((tag) => tag.tagId),
+              workspace_id: link.projectId,
+              created_at: link.createdAt,
+            })),
+          );
+        }
+      })(),
     );
 
-    return NextResponse.json(DomainSchema.parse(response));
+    return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
-    domainChecks: true,
-    requiredRole: ["owner"],
+    requiredScopes: ["domains.write"],
   },
 );
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
-  async ({ domain }) => {
+  async ({ params, workspace }) => {
+    const { slug: domain } = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
+    });
+
     await deleteDomainAndLinks(domain);
+
     return NextResponse.json({ slug: domain });
   },
   {
-    domainChecks: true,
-    requiredRole: ["owner"],
+    requiredScopes: ["domains.write"],
   },
 );

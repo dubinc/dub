@@ -18,14 +18,16 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  isMachine     Boolean   @default(false)
 
   accounts         Account[]
   sessions         Session[]
   projects         ProjectUsers[]
   links            Link[]
   tokens           Token[]
-  createdAt        DateTime       @default(now())
-  subscribed       Boolean        @default(true)
+  restrictedTokens RestrictedToken[]
+  createdAt        DateTime          @default(now())
+  subscribed       Boolean           @default(true)
   source           String?
   defaultWorkspace String?
 
@@ -87,40 +89,62 @@ model Token {
   @@index([userId])
 }
 
+model RestrictedToken {
+  id         String    @id @default(cuid())
+  name       String
+  hashedKey  String    @unique
+  partialKey String
+  scopes     String? // space separated (Eg: "read:links write:links")
+  expires    DateTime?
+  lastUsed   DateTime?
+  rateLimit  Int       @default(600) // rate limit per minute
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  userId     String
+  projectId  String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectId])
+}
+
 model Project {
   id   String  @id @default(cuid())
   name String
   slug String  @unique
   logo String?
 
-  plan              String   @default("free")
-  stripeId          String?  @unique // Stripe subscription ID
+  plan              String  @default("free")
+  stripeId          String? @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
-  stripeConnectId   String?  @unique // for Stripe Connect
-  inviteCode        String?  @unique
+  stripeConnectId   String? @unique // for Stripe Connect
+  inviteCode        String? @unique
 
-  usage             Int      @default(0)
-  usageLimit        Int      @default(1000)
-  aiUsage           Int      @default(0)
-  aiLimit           Int      @default(10)
-  linksUsage        Int      @default(0)
-  linksLimit        Int      @default(25)
-  domainsLimit      Int      @default(3)
-  tagsLimit         Int      @default(5)
-  usersLimit        Int      @default(1)
+  usage        Int @default(0)
+  usageLimit   Int @default(1000)
+  aiUsage      Int @default(0)
+  aiLimit      Int @default(10)
+  linksUsage   Int @default(0)
+  linksLimit   Int @default(25)
+  domainsLimit Int @default(3)
+  tagsLimit    Int @default(5)
+  usersLimit   Int @default(1)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  usageLastChecked  DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  usageLastChecked DateTime @default(now())
 
-  users          ProjectUsers[]
-  invites        ProjectInvite[]
-  sentEmails     SentEmail[]
-  links          Link[]
-  domains        Domain[]
-  tags           Tag[]
-  customers      Customer[]
-  defaultDomains DefaultDomains[]
+  users            ProjectUsers[]
+  invites          ProjectInvite[]
+  sentEmails       SentEmail[]
+  links            Link[]
+  domains          Domain[]
+  tags             Tag[]
+  customers        Customer[]
+  defaultDomains   DefaultDomains[]
+  restrictedTokens RestrictedToken[]
 
   // for Zapier integration
   zapierHookEnabled Boolean      @default(false)
@@ -186,22 +210,22 @@ model Domain {
   slug        String   @unique
   verified    Boolean  @default(false)
   placeholder String   @default("https://dub.co/help/article/what-is-dub")
-  description String?
+  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
   primary     Boolean  @default(false)
   archived    Boolean  @default(false)
-  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
-  noindex     Boolean  @default(false)
   lastChecked DateTime @default(now())
   links       Link[]
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
 
-  // TODO: migrate these attributes to Link model
+  // TODO: Remove these columns after merging #977
   target      String?
   type        String    @default("redirect")
   clicks      Int       @default(0)
   lastClicked DateTime? // when the link was last clicked
   publicStats Boolean   @default(false)
+  description String?
+  noindex     Boolean  @default(false)
 
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())
@@ -226,7 +250,7 @@ model Link {
 
   trackConversion Boolean @default(false) // whether to track conversions or not
 
-  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
+  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
@@ -240,6 +264,8 @@ model Link {
 
   // Link cloaking/masking via rewrite
   rewrite Boolean @default(false) // whether to rewrite the link or not
+
+  doIndex Boolean @default(false) // we don't index short links by default
 
   // Custom device targeting
   ios     String? @db.LongText // custom link for iOS devices
@@ -269,8 +295,6 @@ model Link {
 
   // Comments on the particular shortlink
   comments String? @db.LongText
-
-  // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 
   @@unique([domain, key])
   @@unique([projectId, externalId])

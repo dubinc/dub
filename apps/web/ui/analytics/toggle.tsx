@@ -6,7 +6,6 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
-import useLinks from "@/lib/swr/use-links";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
@@ -16,6 +15,8 @@ import {
   DateRangePicker,
   ExpandingArrow,
   Filter,
+  LinkLogo,
+  Sliders,
   TooltipContent,
   useRouterStuff,
   useScroll,
@@ -42,6 +43,7 @@ import {
   GOOGLE_FAVICON_URL,
   capitalize,
   cn,
+  fetcher,
   getApexDomain,
   getNextPlan,
   linkConstructor,
@@ -56,19 +58,32 @@ import {
   useMemo,
   useState,
 } from "react";
-import { AnalyticsContext } from ".";
-import LinkLogo from "../links/link-logo";
+import useSWR from "swr";
 import { COLORS_LIST } from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
+import { AnalyticsContext } from "./analytics-provider";
 import DeviceIcon from "./device-icon";
 import RefererIcon from "./referer-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
-export default function Toggle() {
+export default function Toggle({
+  page = "analytics",
+}: {
+  page?: "analytics" | "events";
+}) {
   const { plan } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
-  const { basePath, domain, key, url, admin, demo, start, end, interval } =
-    useContext(AnalyticsContext);
+  const {
+    basePath,
+    domain,
+    key,
+    url,
+    adminPage,
+    demoPage,
+    start,
+    end,
+    interval,
+  } = useContext(AnalyticsContext);
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -76,7 +91,6 @@ export default function Toggle() {
 
   const { tags } = useTags();
   const { allDomains: domains, primaryDomain } = useDomains();
-  const { links: allLinks } = useLinks();
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -92,11 +106,17 @@ export default function Toggle() {
       browser,
       os,
       referer,
+      root,
     } = searchParamsObj;
     return [
       ...(domain && !key ? [{ key: "domain", value: domain }] : []),
       ...(domain && key
-        ? [{ key: "link", value: linkConstructor({ domain, key }) }]
+        ? [
+            {
+              key: "link",
+              value: linkConstructor({ domain, key, pretty: true }),
+            },
+          ]
         : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
       ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
@@ -106,6 +126,7 @@ export default function Toggle() {
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
       ...(referer ? [{ key: "referer", value: referer }] : []),
+      ...(root ? [{ key: "root", value: root === "true" }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -211,20 +232,10 @@ export default function Toggle() {
               icon: Hyperlink,
               label: "Link",
               getOptionIcon: (value, props) => {
-                const url =
-                  props.option?.data?.url ??
-                  allLinks?.find(
-                    ({ domain, key }) =>
-                      value.includes(key) &&
-                      linkConstructor({ domain, key }) === value,
-                  )?.url;
+                const url = props.option?.data?.url;
+                const [domain, key] = value.split("/");
 
-                return url ? (
-                  <LinkLogo
-                    apexDomain={getApexDomain(url)}
-                    className="h-4 w-4 sm:h-4 sm:w-4"
-                  />
-                ) : null;
+                return <LinkIcon url={url} domain={domain} linkKey={key} />;
               },
               options:
                 links?.map(
@@ -234,12 +245,29 @@ export default function Toggle() {
                     url,
                     count,
                   }: LinkProps & { count?: number }) => ({
-                    value: linkConstructor({ domain, key }),
+                    value: linkConstructor({ domain, key, pretty: true }),
                     label: linkConstructor({ domain, key, pretty: true }),
                     right: nFormatter(count, { full: true }),
                     data: { url },
                   }),
                 ) ?? null,
+            },
+            {
+              key: "root",
+              icon: Sliders,
+              label: "Link type",
+              options: [
+                {
+                  value: true,
+                  icon: Globe,
+                  label: "Root domain link",
+                },
+                {
+                  value: false,
+                  icon: Hyperlink,
+                  label: "Regular short link",
+                },
+              ],
             },
             {
               key: "tagId",
@@ -398,7 +426,6 @@ export default function Toggle() {
     [
       isPublicStatsPage,
       domains,
-      allLinks,
       links,
       tags,
       countries,
@@ -413,15 +440,12 @@ export default function Toggle() {
   return (
     <>
       <div
-        className={cn(
-          "sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-3",
-          {
-            "top-14": isPublicStatsPage,
-            "top-0": admin,
-            "top-16": demo,
-            "shadow-md": scrolled,
-          },
-        )}
+        className={cn("sticky top-[6.85rem] z-10 bg-gray-50 py-3 md:py-3", {
+          "top-14": isPublicStatsPage,
+          "top-0": adminPage,
+          "top-16": demoPage,
+          "shadow-md": scrolled,
+        })}
       >
         <div
           className={cn(
@@ -469,7 +493,7 @@ export default function Toggle() {
               </a>
             ) : (
               <h1 className="text-2xl font-semibold tracking-tight text-black">
-                Analytics
+                {page === "analytics" ? "Analytics" : "Events"}
               </h1>
             )}
             <div
@@ -507,8 +531,10 @@ export default function Toggle() {
                       set:
                         key === "link"
                           ? {
-                              domain: new URL(value).hostname,
-                              key: new URL(value).pathname.slice(1) || "_root",
+                              domain: new URL(`https://${value}`).hostname,
+                              key:
+                                new URL(`https://${value}`).pathname.slice(1) ||
+                                "_root",
                             }
                           : {
                               [key]: value,
@@ -574,8 +600,8 @@ export default function Toggle() {
                     const end = new Date();
 
                     const requiresUpgrade =
-                      admin ||
-                      demo ||
+                      adminPage ||
+                      demoPage ||
                       DUB_DEMO_LINKS.find(
                         (l) => l.domain === domain && l.key === key,
                       )
@@ -604,7 +630,9 @@ export default function Toggle() {
                     };
                   })}
                 />
-                {!isPublicStatsPage && <AnalyticsOptions />}
+                {!isPublicStatsPage && page === "analytics" && (
+                  <AnalyticsOptions />
+                )}
               </div>
             </div>
           </div>
@@ -684,5 +712,33 @@ function UpgradeTooltip({
             },
           })}
     />
+  );
+}
+
+function LinkIcon({
+  url: urlProp,
+  domain,
+  linkKey,
+}: {
+  url?: string;
+  domain?: string;
+  linkKey?: string;
+}) {
+  const { id: workspaceId } = useWorkspace();
+  const { data } = useSWR<{ url: string }>(
+    !urlProp && workspaceId && domain && linkKey
+      ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key: linkKey }).toString()}`
+      : null,
+    fetcher,
+  );
+
+  const url = urlProp || data?.url;
+  return url ? (
+    <LinkLogo
+      apexDomain={getApexDomain(url)}
+      className="h-4 w-4 sm:h-4 sm:w-4"
+    />
+  ) : (
+    <Hyperlink className="h-4 w-4" />
   );
 }

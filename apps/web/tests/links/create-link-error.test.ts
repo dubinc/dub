@@ -24,7 +24,7 @@ const cases = [
     },
   },
   {
-    name: "create link with invalid destination url",
+    name: "create link with invalid destination URL",
     body: {
       domain,
       url: "invalid",
@@ -34,7 +34,7 @@ const cases = [
       data: {
         error: {
           code: "unprocessable_entity",
-          message: "custom: url: Invalid URL",
+          message: "Invalid destination URL",
           doc_url:
             "https://dub.co/docs/api-reference/errors#unprocessable-entity",
         },
@@ -65,12 +65,10 @@ const cases = [
 cases.forEach(({ name, body, expected }) => {
   test(name, async (ctx) => {
     const h = new IntegrationHarness(ctx);
-    const { workspace, http } = await h.init();
-    const { workspaceId } = workspace;
+    const { http } = await h.init();
 
     const response = await http.post<Link>({
       path: "/links",
-      query: { workspaceId },
       body,
     });
 
