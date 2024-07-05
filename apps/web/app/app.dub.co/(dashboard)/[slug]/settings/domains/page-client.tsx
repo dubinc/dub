@@ -88,8 +88,6 @@ function DefaultDomains() {
   }, [initialDefaultDomains]);
   const [submitting, setSubmitting] = useState(false);
 
-  console.log(defaultDomains);
-
   return (
     <div className="mt-2 grid grid-cols-1 gap-3">
       {DUB_DOMAINS.map(({ slug }) => (
