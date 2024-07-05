@@ -7,15 +7,12 @@ import {
 } from "@/lib/types";
 import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
-  ArrowTurnRight2,
   Button,
   CircleCheck,
   CircleHalfDottedClock,
   CircleWarning,
   Copy,
-  Flag2,
   Gear,
-  Globe,
   LinesY,
   LoadingCircle,
   NumberTooltip,
@@ -28,13 +25,7 @@ import {
   useIntersectionObserver,
   useMediaQuery,
 } from "@dub/ui";
-import {
-  DEFAULT_LINK_PROPS,
-  cn,
-  fetcher,
-  nFormatter,
-  punycode,
-} from "@dub/utils";
+import { DEFAULT_LINK_PROPS, cn, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import {
   Archive,
@@ -56,6 +47,7 @@ import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
 import { useTransferDomainModal } from "../modals/transfer-domain-modal";
+import { DomainCardTitleColumn } from "./domain-card-title-column";
 import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
@@ -110,52 +102,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         onPointerLeave={() => setGroupHover(false)}
       >
         <div className="grid grid-cols-[60%_1fr] items-center gap-4 sm:grid-cols-[2fr_1fr_1.5fr] md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
-          <div className="flex items-center gap-4">
-            <div className="rounded-full border border-gray-200">
-              <div className="rounded-full border border-white bg-gradient-to-t from-gray-100 p-1 md:p-3">
-                <Globe className="h-5 w-5" />
-              </div>
-            </div>
-            <div className="overflow-hidden">
-              <div className="flex items-center gap-2.5">
-                <a
-                  href={`http://${domain}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="truncate text-sm font-medium"
-                  title={punycode(domain)}
-                >
-                  {punycode(domain)}
-                </a>
-
-                {primary && (
-                  <span className="flex items-center gap-1 rounded-full bg-sky-400/[.15] px-3 py-1 text-xs font-medium text-sky-600">
-                    <Flag2 className="h-3 w-3" />
-                    Primary
-                  </span>
-                )}
-              </div>
-              <div className="mt-1 flex items-center gap-1 text-xs">
-                <ArrowTurnRight2 className="h-3 w-3 text-gray-400" />
-                {linkProps ? (
-                  linkProps.url ? (
-                    <span
-                      className="truncate text-gray-500"
-                      title={linkProps.url}
-                    >
-                      {linkProps.url}
-                    </span>
-                  ) : (
-                    <span className="truncate text-gray-400">
-                      No redirect configured
-                    </span>
-                  )
-                ) : (
-                  <div className="h-4 w-16 animate-pulse rounded-md bg-gray-200" />
-                )}
-              </div>
-            </div>
-          </div>
+          <DomainCardTitleColumn
+            domain={domain}
+            url={linkProps?.url}
+            primary={primary}
+          />
 
           {/* Clicks */}
           <div className="hidden md:flex">
