@@ -5,7 +5,7 @@ import { ComponentProps, forwardRef } from "react";
 
 const triggerStyles = cva(
   [
-    "group peer flex cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 h-10 outline-none transition-all sm:text-sm",
+    "group peer flex cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 h-10 outline-none transition-all text-sm",
     "bg-white border-gray-200 text-gray-900 placeholder-gray-400 transition-all",
     "disabled:pointer-events-none disabled:bg-gray-100 disabled:text-gray-400",
     "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",

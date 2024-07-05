@@ -95,8 +95,7 @@ function Calendar({
         month: "space-y-4 p-3 w-full",
         nav: "gap-1 flex items-center rounded-full w-full h-full justify-between p-4",
         table: "w-full border-separate border-spacing-y-1",
-        head_cell:
-          "w-9 font-medium text-sm sm:text-xs text-center text-gray-400 pb-2",
+        head_cell: "w-9 font-medium text-xs text-center text-gray-400 pb-2",
         row: "w-full",
         cell: "relative p-0 text-center focus-within:relative text-gray-900",
         day: cn(
