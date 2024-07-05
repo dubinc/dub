@@ -84,16 +84,17 @@ export const tokenGrantSchema = z.discriminatedUnion(
   },
 );
 
-export const authorizedAppSchema = oAuthClientSchema
-  .pick({
+export const oAuthAuthorizedAppSchema = z.object({
+  id: z.string(),
+  createdAt: z.date(),
+  oAuthClient: oAuthClientSchema.pick({
     clientId: true,
     name: true,
     developer: true,
     website: true,
-    scopes: true,
-  })
-  .merge(
-    z.object({
-      createdAt: z.date(),
-    }),
-  );
+  }),
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+});

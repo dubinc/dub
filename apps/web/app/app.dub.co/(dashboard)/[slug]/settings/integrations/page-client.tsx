@@ -3,10 +3,11 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAuthorizedAppProps } from "@/lib/types";
 import EmptyState from "@/ui/shared/empty-state";
+import { Delete } from "@/ui/shared/icons";
 import { Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
 import { Key } from "@dub/ui/src/icons";
-import { fetcher } from "@dub/utils";
-import { Edit3, MoreVertical } from "lucide-react";
+import { fetcher, formatDate } from "@dub/utils";
+import { MoreVertical } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -41,8 +42,8 @@ export default function AuthorizedAppsPageClient() {
               <div className="col-span-3">Name</div>
             </div>
             <div className="divide-y divide-gray-200">
-              {apps.map((token) => (
-                <AppRow key={token.clientId} {...token} />
+              {apps.map((app) => (
+                <AppRow key={app.id} {...app} />
               ))}
             </div>
           </div>
@@ -66,12 +67,14 @@ const AppRow = (app: OAuthAuthorizedAppProps) => {
     <>
       <div className="relative grid grid-cols-5 items-center px-5 py-3 sm:px-10">
         <div className="col-span-3 flex items-center space-x-3">
-          <TokenAvatar id={app.clientId} />
+          <TokenAvatar id={app.oAuthClient.name} />
           <div className="flex flex-col space-y-px">
-            <p className="font-semibold text-gray-700">{app.name}</p>
+            <p className="font-semibold text-gray-700">
+              {app.oAuthClient.name}
+            </p>
             <div className="flex items-center gap-x-2">
               <p className="text-sm text-gray-500" suppressHydrationWarning>
-                {app.createdAt!}
+                Authorized by {app.user.name} on {formatDate(app.createdAt)}
               </p>
             </div>
           </div>
@@ -83,10 +86,11 @@ const AppRow = (app: OAuthAuthorizedAppProps) => {
                 <Button
                   text="Disconnect"
                   variant="danger-outline"
-                  icon={<Edit3 className="h-4 w-4" />}
+                  icon={<Delete className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                   onClick={() => {
                     setOpenPopover(false);
+                    alert("Not implemented yet");
                   }}
                 />
               </div>

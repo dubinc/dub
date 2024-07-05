@@ -369,7 +369,6 @@ model OAuthClient {
   name               String
   developer          String
   website            String
-  description        String? // not used
   clientSecretHashed String
   redirectUri        String
   scopes             String

@@ -138,6 +138,15 @@ export const exchangeAuthCodeForToken = async (
         code,
       },
     }),
+
+    // Add to authorized apps
+    prisma.oAuthAuthorizedApp.create({
+      data: {
+        clientId,
+        userId,
+        projectId,
+      },
+    }),
   ]);
 
   const response = {
