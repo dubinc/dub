@@ -90,3 +90,12 @@ export const tokenGrantSchema = z.discriminatedUnion(
     }),
   },
 );
+
+export const authorizedAppSchema = oAuthClientSchema.pick({
+  clientId: true,
+  name: true,
+  developer: true,
+  website: true,
+  scopes: true,
+  createdAt: true,
+});

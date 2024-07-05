@@ -1,9 +1,9 @@
 export const TOKEN_LENGTH = {
   clientId: 32,
   clientSecret: 32,
-  accessToken: 32,
+  accessToken: 40,
   refreshToken: 40,
-  code: 64,
+  code: 40,
 };
 
 export const TOKEN_EXPIRY = {

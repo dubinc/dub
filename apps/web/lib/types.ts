@@ -3,7 +3,7 @@ import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
-import { oAuthClientSchema } from "./zod/schemas/oauth";
+import { authorizedAppSchema, oAuthClientSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
 
 export type LinkProps = Link;
@@ -197,3 +197,5 @@ export type MetaTag = z.infer<typeof metaTagsSchema>;
 export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthClientSchema>;
+
+export type OAuthAuthorizedAppProps = z.infer<typeof authorizedAppSchema>;
