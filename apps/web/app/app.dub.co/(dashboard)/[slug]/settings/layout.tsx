@@ -13,11 +13,6 @@ export default function WorkspaceSettingsLayout({
       icon: Gear2,
       segment: null,
     },
-    // {
-    //   name: "Domains",
-    //   icon: Globe,
-    //   segment: "domains",
-    // },
     {
       name: "Billing",
       icon: Receipt2,
