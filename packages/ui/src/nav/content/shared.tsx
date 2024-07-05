@@ -44,7 +44,7 @@ export function ContentLinkCard({
           )}
         </div>
         {showArrow && (
-          <ExpandingArrow className="invisible -ml-6 h-4 w-4 text-gray-700 group-aria-selected:visible sm:group-hover:visible" />
+          <ExpandingArrow className="invisible -ml-6 h-4 w-4 text-gray-700 group-aria-selected:visible sm:group-hover:visible dark:text-white/80" />
         )}
       </div>
     </Link>
