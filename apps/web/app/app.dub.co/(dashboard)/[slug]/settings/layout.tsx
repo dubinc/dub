@@ -30,10 +30,12 @@ export default function WorkspaceSettingsLayout({
     },
     {
       name: "Integrations",
+      icon: Gear2,
       segment: "integrations",
     },
     {
       name: "OAuth Apps",
+      icon: Key,
       segment: "oauth-apps",
     },
     {

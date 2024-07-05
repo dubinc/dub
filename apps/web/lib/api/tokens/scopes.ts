@@ -184,7 +184,7 @@ export const permissions: Permission[] = [
     resource: "oauth_apps",
     betaFeature: false,
   },
-] as const;
+];
 
 export const scopeMapping = {
   "apis.all": availableScopes,
