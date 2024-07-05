@@ -9,7 +9,7 @@ export const getLinks: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "list",
   summary: "Retrieve a list of links",
   description:
-    "Retrieve a list of links for the authenticated workspace. The list will be paginated and the provided query parameters allow filtering the returned links.",
+    "Retrieve a paginated list of links for the authenticated workspace.",
   requestParams: {
     query: workspaceParamsSchema.merge(getLinksQuerySchema),
   },
