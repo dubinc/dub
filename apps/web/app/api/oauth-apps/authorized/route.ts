@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 // GET /api/oauth-apps/authorized - applications authorized to access workspace resources
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    const appsAuthorized = await prisma.oAuthAuthorizedApp.findMany({
+    const result = await prisma.oAuthAuthorizedApp.findMany({
       where: {
         projectId: workspace.id,
       },
@@ -28,6 +28,19 @@ export const GET = withWorkspace(
         },
       },
     });
+
+    const appsAuthorized = result.map((app) => ({
+      id: app.id,
+      createdAt: app.createdAt,
+      clientId: app.oAuthClient.clientId,
+      name: app.oAuthClient.name,
+      developer: app.oAuthClient.developer,
+      website: app.oAuthClient.website,
+      user: {
+        id: app.user.id,
+        name: app.user.name,
+      },
+    }));
 
     return NextResponse.json(appsAuthorized);
   },

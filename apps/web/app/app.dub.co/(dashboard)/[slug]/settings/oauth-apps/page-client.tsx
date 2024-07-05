@@ -99,7 +99,11 @@ const AppRow = (app: OAuthAppProps) => {
   });
 
   const { DeleteAppModal, setShowDeleteAppModal } = useDeleteAppModal({
-    app,
+    app: {
+      clientId: app.clientId,
+      name: app.name,
+    },
+    appType: "published",
   });
 
   const copyClientId = () => {

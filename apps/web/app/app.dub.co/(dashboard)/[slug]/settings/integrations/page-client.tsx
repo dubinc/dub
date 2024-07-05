@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAuthorizedAppProps } from "@/lib/types";
+import { useDeleteAppModal } from "@/ui/modals/delete-oauth-app-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { Delete } from "@/ui/shared/icons";
 import { Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
@@ -63,15 +64,22 @@ export default function AuthorizedAppsPageClient() {
 const AppRow = (app: OAuthAuthorizedAppProps) => {
   const [openPopover, setOpenPopover] = useState(false);
 
+  const { DeleteAppModal, setShowDeleteAppModal } = useDeleteAppModal({
+    app: {
+      clientId: app.clientId,
+      name: app.name,
+    },
+    appType: "authorized",
+  });
+
   return (
     <>
+      <DeleteAppModal />
       <div className="relative grid grid-cols-5 items-center px-5 py-3 sm:px-10">
         <div className="col-span-3 flex items-center space-x-3">
-          <TokenAvatar id={app.oAuthClient.name} />
+          <TokenAvatar id={app.name} />
           <div className="flex flex-col space-y-px">
-            <p className="font-semibold text-gray-700">
-              {app.oAuthClient.name}
-            </p>
+            <p className="font-semibold text-gray-700">{app.name}</p>
             <div className="flex items-center gap-x-2">
               <p className="text-sm text-gray-500" suppressHydrationWarning>
                 Authorized by {app.user.name} on {formatDate(app.createdAt)}
@@ -90,7 +98,7 @@ const AppRow = (app: OAuthAuthorizedAppProps) => {
                   className="h-9 justify-start px-2 font-medium"
                   onClick={() => {
                     setOpenPopover(false);
-                    alert("Not implemented yet");
+                    setShowDeleteAppModal(true);
                   }}
                 />
               </div>

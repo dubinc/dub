@@ -11,34 +11,51 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-function DeleteAppModal({
-  showDeleteAppModal,
-  setShowDeleteAppModal,
-  app,
-}: {
+interface DeleteAppModalProps {
   showDeleteAppModal: boolean;
   setShowDeleteAppModal: Dispatch<SetStateAction<boolean>>;
-  app: OAuthAppProps;
-}) {
-  const { id: workspaceId } = useWorkspace();
+  app: Pick<OAuthAppProps, "name" | "clientId">;
+  appType: "published" | "authorized";
+}
+
+function DeleteAppModal(props: DeleteAppModalProps) {
+  const { showDeleteAppModal, setShowDeleteAppModal, app, appType } = props;
+
   const { isMobile } = useMediaQuery();
+  const { id: workspaceId } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
+
+  const action = useMemo(() => {
+    if (appType === "authorized") {
+      return {
+        url: `/api/oauth-apps/${app.clientId}/disconnect?workspaceId=${workspaceId}`,
+        mutate: `/api/oauth-apps/authorized?workspaceId=${workspaceId}`,
+        message: "Successfully disconnected the application!",
+        title: `Disconnect ${app.name}`,
+        description: `This will disconnect the application from your workspace. Are you sure you want to continue?`,
+      };
+    } else {
+      return {
+        url: `/api/oauth-apps/${app.clientId}?workspaceId=${workspaceId}`,
+        mutate: `/api/oauth-apps?workspaceId=${workspaceId}`,
+        message: "Successfully deleted the application!",
+        title: `Delete ${app.name}`,
+        description: `This will permanently delete the application and revoke all the access tokens associated with it. Are you sure you want to continue?`,
+      };
+    }
+  }, [app.clientId, appType, workspaceId]);
 
   const deleteApp = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setDeleting(true);
 
-      const response = await fetch(
-        `/api/oauth-apps/${app.clientId}?workspaceId=${workspaceId}`,
-        { method: "DELETE" },
-      );
-
+      const response = await fetch(action.url, { method: "DELETE" });
       const result = await response.json();
 
       if (response.ok) {
-        mutate(`/api/oauth-apps?workspaceId=${workspaceId}`);
-        toast.success("Successfully deleted the application!");
+        mutate(action.mutate);
+        toast.success(action.message);
         setShowDeleteAppModal(false);
       } else {
         toast.error(result.error.message);
@@ -53,11 +70,8 @@ function DeleteAppModal({
     <Modal showModal={showDeleteAppModal} setShowModal={setShowDeleteAppModal}>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
         <Logo />
-        <h3 className="text-lg font-medium">Delete {app.name}</h3>
-        <p className="text-sm text-gray-500">
-          This will permanently the application and revoke all the access tokens
-          associated with it. Are you sure you want to continue?
-        </p>
+        <h3 className="text-lg font-medium">{action.title}</h3>
+        <p className="text-sm text-gray-500">{action.description}</p>
       </div>
       <form
         onSubmit={deleteApp}
@@ -87,7 +101,13 @@ function DeleteAppModal({
   );
 }
 
-export function useDeleteAppModal({ app }: { app: OAuthAppProps }) {
+export function useDeleteAppModal({
+  app,
+  appType,
+}: {
+  app: Pick<OAuthAppProps, "name" | "clientId">;
+  appType: "published" | "authorized";
+}) {
   const [showDeleteAppModal, setShowDeleteAppModal] = useState(false);
 
   const DeleteAppModalCallback = useCallback(() => {
@@ -96,6 +116,7 @@ export function useDeleteAppModal({ app }: { app: OAuthAppProps }) {
         showDeleteAppModal={showDeleteAppModal}
         setShowDeleteAppModal={setShowDeleteAppModal}
         app={app}
+        appType={appType}
       />
     ) : null;
   }, [showDeleteAppModal, setShowDeleteAppModal]);
