@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export function Globe(props: SVGProps<SVGSVGElement>) {
+export function LinesY(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       height="18"
@@ -10,37 +10,49 @@ export function Globe(props: SVGProps<SVGSVGElement>) {
       {...props}
     >
       <g fill="currentColor">
-        <ellipse
-          cx="9"
-          cy="9"
+        <line
           fill="none"
-          rx="7.25"
-          ry="3"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
+          x1="2.75"
+          x2="2.75"
+          y1="2.75"
+          y2="15.25"
         />
-        <ellipse
-          cx="9"
-          cy="9"
+        <line
           fill="none"
-          rx="3"
-          ry="7.25"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
+          x1="15.25"
+          x2="15.25"
+          y1="4.75"
+          y2="15.25"
         />
-        <circle
-          cx="9"
-          cy="9"
+        <line
           fill="none"
-          r="7.25"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
+          x1="7"
+          x2="7"
+          y1="7.75"
+          y2="15.25"
+        />
+        <line
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+          x1="11"
+          x2="11"
+          y1="11.75"
+          y2="15.25"
         />
       </g>
     </svg>

@@ -1,5 +1,5 @@
 import { LinkProps } from "@/lib/types";
-import { BlurImage, CopyButton } from "@dub/ui";
+import { BlurImage, CopyButton, Globe2 } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
   getApexDomain,
@@ -7,7 +7,6 @@ import {
   timeAgo,
   truncate,
 } from "@dub/utils";
-import { Globe } from "lucide-react";
 
 export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {
   const { domain, key, url, createdAt } = data;
@@ -26,7 +25,7 @@ export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {
           />
         ) : (
           <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 px-0 sm:h-10 sm:w-10">
-            <Globe className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+            <Globe2 className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
           </div>
         )}
         {/* 
