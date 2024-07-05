@@ -65,9 +65,6 @@ const SAMLSection = () => {
   return (
     <>
       {configured ? <RemoveSAMLModal /> : <SAMLModal />}
-      <h1 className="mb-5 text-2xl font-semibold tracking-tight text-black">
-        Security
-      </h1>
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
           <div className="flex flex-col space-y-3">

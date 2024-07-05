@@ -19,9 +19,6 @@ export default function WorkspaceSettingsClient() {
 
   return (
     <>
-      <h1 className="mb-5 text-2xl font-semibold tracking-tight text-black">
-        Workspace Settings
-      </h1>
       <Form
         title="Workspace Name"
         description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
