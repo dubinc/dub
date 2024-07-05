@@ -20,17 +20,18 @@ model User {
   image         String?
   isMachine     Boolean   @default(false)
 
-  accounts         Account[]
-  sessions         Session[]
-  projects         ProjectUsers[]
-  links            Link[]
-  tokens           Token[]
-  restrictedTokens RestrictedToken[]
-  createdAt        DateTime          @default(now())
-  subscribed       Boolean           @default(true)
-  source           String?
-  defaultWorkspace String?
-  oAuthCodes       OAuthCode[]
+  accounts            Account[]
+  sessions            Session[]
+  projects            ProjectUsers[]
+  links               Link[]
+  tokens              Token[]
+  restrictedTokens    RestrictedToken[]
+  createdAt           DateTime             @default(now())
+  subscribed          Boolean              @default(true)
+  source              String?
+  defaultWorkspace    String?
+  oAuthCodes          OAuthCode[]
+  oAuthAuthorizedApps OAuthAuthorizedApp[] // OAuth clients user authorized for their workspace
 
   @@index(source)
   @@index(defaultWorkspace)
@@ -140,17 +141,18 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
 
-  users            ProjectUsers[]
-  invites          ProjectInvite[]
-  sentEmails       SentEmail[]
-  links            Link[]
-  domains          Domain[]
-  tags             Tag[]
-  customers        Customer[]
-  defaultDomains   DefaultDomains[]
-  restrictedTokens RestrictedToken[]
-  oAuthClients     OAuthClient[]
-  oAuthCodes       OAuthCode[]
+  users               ProjectUsers[]
+  invites             ProjectInvite[]
+  sentEmails          SentEmail[]
+  links               Link[]
+  domains             Domain[]
+  tags                Tag[]
+  customers           Customer[]
+  defaultDomains      DefaultDomains[]
+  restrictedTokens    RestrictedToken[]
+  oAuthCodes          OAuthCode[]
+  oAuthClients        OAuthClient[] // OAuth clients workspace published
+  oAuthAuthorizedApps OAuthAuthorizedApp[] // OAuth clients workspace authorized
 
   @@index(usageLastChecked(sort: Asc))
 }
@@ -362,7 +364,8 @@ model Customer {
 }
 
 model OAuthClient {
-  clientId           String   @id @unique
+  id                 String   @id @default(cuid())
+  clientId           String   @unique
   name               String
   developer          String
   website            String
@@ -374,10 +377,11 @@ model OAuthClient {
   updatedAt          DateTime @updatedAt
   projectId          String
 
-  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  oAuthCodes    OAuthCode[]
-  accessTokens  RestrictedToken[]
-  refreshTokens OAuthRefreshToken[]
+  project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  oAuthCodes     OAuthCode[]
+  accessTokens   RestrictedToken[]
+  refreshTokens  OAuthRefreshToken[]
+  authorizedApps OAuthAuthorizedApp[]
 
   @@index(projectId)
 }
@@ -410,6 +414,20 @@ model OAuthRefreshToken {
   accessToken RestrictedToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
 
   @@index(accessTokenId)
+}
+
+model OAuthAuthorizedApp {
+  id        String   @id @default(cuid())
+  clientId  String
+  projectId String // workspace that user granted access to
+  userId    String // user who granted access
+  createdAt DateTime @default(now())
+
+  oAuthClient OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, userId, projectId])
 }
 
 model jackson_index {
