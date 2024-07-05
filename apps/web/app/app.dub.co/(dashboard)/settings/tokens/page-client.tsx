@@ -24,6 +24,9 @@ export default function TokensPageClient() {
 
   return (
     <>
+      <h1 className="mb-5 text-2xl font-semibold tracking-tight text-black">
+        API Keys
+      </h1>
       <Alert>
         <Info className="mt-2 h-5 w-5 text-yellow-500" />
         <AlertTitle>

@@ -14,6 +14,9 @@ export default function SettingsPageClient() {
 
   return (
     <>
+      <h1 className="mb-5 text-2xl font-semibold tracking-tight text-black">
+        User Settings
+      </h1>
       <Form
         title="Your Name"
         description={`This will be your display name on ${APP_NAME}.`}

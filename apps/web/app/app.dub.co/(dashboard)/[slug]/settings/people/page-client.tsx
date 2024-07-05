@@ -39,6 +39,9 @@ export default function WorkspacePeopleClient() {
     <>
       <InviteTeammateModal />
       <InviteCodeModal />
+      <h1 className="mb-5 text-2xl font-semibold tracking-tight text-black">
+        People
+      </h1>
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-center justify-between space-y-3 p-5 sm:flex-row sm:space-y-0 sm:p-10">
           <div className="flex flex-col space-y-3">

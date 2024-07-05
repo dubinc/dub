@@ -20,5 +20,9 @@ export default function PersonalSettingsLayout({
     },
   ];
 
-  return <SettingsLayout tabs={tabs}>{children}</SettingsLayout>;
+  return (
+    <SettingsLayout tabs={tabs} tabContainerClassName="top-[105px]">
+      {children}
+    </SettingsLayout>
+  );
 }
