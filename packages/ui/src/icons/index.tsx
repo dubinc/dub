@@ -1,3 +1,6 @@
+import { LucideIcon } from "lucide-react";
+import { ComponentType, SVGProps } from "react";
+
 // custom icons
 export { default as Copy } from "./copy";
 export { default as ExpandingArrow } from "./expanding-arrow";
@@ -31,3 +34,5 @@ export { default as YouTube } from "./youtube";
 
 // Nucleo icons
 export * from "./nucleo";
+
+export type Icon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;

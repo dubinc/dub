@@ -82,7 +82,7 @@ export default function WorkspaceBillingClient() {
   return (
     <>
       <Confetti active={confetti} config={{ elementCount: 200, spread: 90 }} />
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="-mt-5 rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-start justify-between space-y-4 p-10 xl:flex-row xl:space-y-0">
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
