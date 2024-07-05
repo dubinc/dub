@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { TOKEN_EXPIRY, TOKEN_LENGTH } from "@/lib/api/oauth";
+import { TOKEN_EXPIRY, TOKEN_LENGTH, TOKEN_PREFIX } from "@/lib/api/oauth";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
@@ -105,35 +105,31 @@ export const exchangeAuthCodeForToken = async (
 
   const { userId, projectId, scopes } = accessCode;
 
-  const accessToken = `dub_${nanoid(TOKEN_LENGTH.accessToken)}`;
-  const refreshToken = `dub_${nanoid(TOKEN_LENGTH.refreshToken)}`;
+  const accessToken = `${TOKEN_PREFIX.accessToken}${nanoid(TOKEN_LENGTH.accessToken)}`;
+  const refreshToken = `${TOKEN_PREFIX.refreshToken}${nanoid(TOKEN_LENGTH.refreshToken)}`;
   const accessTokenExpires = new Date(Date.now() + TOKEN_EXPIRY.accessToken);
 
   // Delete the existing token issued to the client for the user for the selected workspace before creating a new one
   // We only support one token per client per user per workspace at a time
-  await Promise.all([
-    prisma.restrictedToken.delete({
+  await prisma.$transaction([
+    prisma.restrictedToken.deleteMany({
       where: {
-        userId_projectId_clientId: {
-          userId,
-          projectId,
-          clientId,
-        },
+        userId,
+        projectId,
+        clientId,
       },
     }),
 
-    prisma.oAuthAuthorizedApp.delete({
+    prisma.oAuthAuthorizedApp.deleteMany({
       where: {
-        userId_projectId_clientId: {
-          userId,
-          projectId,
-          clientId,
-        },
+        userId,
+        projectId,
+        clientId,
       },
     }),
   ]);
 
-  await Promise.all([
+  await prisma.$transaction([
     // Create the access token and refresh token
     prisma.restrictedToken.create({
       data: {
@@ -177,7 +173,7 @@ export const exchangeAuthCodeForToken = async (
     access_token: accessToken,
     refresh_token: refreshToken,
     token_type: "Bearer",
-    expires_in: Math.floor(accessTokenExpires.getTime() / 1000),
+    expires_in: Math.floor(accessTokenExpires.getTime() / 1000), // TODO: Fix this
   };
 
   return response;

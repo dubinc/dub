@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { TOKEN_EXPIRY, TOKEN_LENGTH } from "@/lib/api/oauth";
+import { TOKEN_EXPIRY, TOKEN_LENGTH, TOKEN_PREFIX } from "@/lib/api/oauth";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
@@ -94,8 +94,8 @@ export const refreshAccessToken = async (
     id: accessTokenId,
   } = accessToken;
 
-  const newAccessToken = `dub_${nanoid(TOKEN_LENGTH.accessToken)}`;
-  const newRefreshToken = `dub_${nanoid(TOKEN_LENGTH.refreshToken)}`;
+  const newAccessToken = `${TOKEN_PREFIX.accessToken}${nanoid(TOKEN_LENGTH.accessToken)}`;
+  const newRefreshToken = `${TOKEN_PREFIX.refreshToken}${nanoid(TOKEN_LENGTH.refreshToken)}`;
   const accessTokenExpires = new Date(Date.now() + TOKEN_EXPIRY.accessToken);
 
   await Promise.all([

@@ -11,3 +11,11 @@ export const TOKEN_EXPIRY = {
   accessToken: 2 * 60 * 60 * 1000, // 2 hours
   refreshToken: 60 * 24 * 60 * 60 * 1000, // 60 days
 };
+
+// TODO:
+// Keep it short and simple (Discuss with Steven)
+export const TOKEN_PREFIX = {
+  clientSecret: "dub_app_secret_",
+  accessToken: "dub_access_token_",
+  refreshToken: "dub_refresh_token_",
+};
