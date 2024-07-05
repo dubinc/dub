@@ -26,7 +26,6 @@ export const NavContext = createContext<{ theme: NavTheme }>({
 export const navItems = [
   {
     name: "Product",
-    href: "/",
     content: ProductContent,
     childItems: FEATURES_LIST,
   },

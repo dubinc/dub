@@ -162,6 +162,7 @@ export function ResourcesContent({ domain }: ContentProps) {
                 />
               }
               title={title}
+              showArrow
             />
           ))}
         </div>
