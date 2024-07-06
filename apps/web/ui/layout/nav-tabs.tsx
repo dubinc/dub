@@ -5,7 +5,8 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ModalContext } from "@/ui/modals/provider";
-import { Badge } from "@dub/ui";
+import { Badge, useScroll } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
@@ -31,13 +32,20 @@ export default function NavTabs() {
   const { loading: loadingDomains } = useDomains();
   const { data: linksCount } = useLinksCount();
 
+  const scrolled = useScroll(80);
+
   if (!slug || error) return null;
 
   return (
-    <div className="scrollbar-hide mb-[-3px] flex h-12 items-center justify-start space-x-2 overflow-x-auto">
+    <div
+      className={cn(
+        "scrollbar-hide relative flex gap-x-2 overflow-x-auto transition-all",
+        scrolled && "sm:translate-x-9",
+      )}
+    >
       {tabs.map(({ name, href }) => (
         <Link key={href} href={href} className="relative">
-          <div className="m-1 rounded-md px-3 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200">
+          <div className="mx-1 my-1.5 rounded-md px-3 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200">
             <p className="text-sm text-gray-600 hover:text-black">{name}</p>
           </div>
           {(pathname === href ||
