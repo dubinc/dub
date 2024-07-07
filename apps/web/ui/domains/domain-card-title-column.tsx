@@ -1,14 +1,16 @@
-import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui";
+import { ArrowTurnRight2, CircleInfo, Flag2, Globe } from "@dub/ui";
 import { punycode } from "@dub/utils";
 
 export function DomainCardTitleColumn({
   domain,
   url,
+  description,
   primary = false,
   defaultDomain = false,
 }: {
   domain: string;
   url?: string | null;
+  description?: string;
   primary?: boolean;
   defaultDomain?: boolean;
 }) {
@@ -38,21 +40,32 @@ export function DomainCardTitleColumn({
             </span>
           )}
         </div>
-        {!defaultDomain && (
+        {(!defaultDomain || description) && (
           <div className="mt-1 flex items-center gap-1 text-xs">
-            <ArrowTurnRight2 className="h-3 w-3 text-gray-400" />
-            {url !== undefined ? (
-              url ? (
-                <span className="truncate text-gray-500" title={url}>
-                  {url}
+            {description ? (
+              <>
+                <CircleInfo className="h-3 w-3 text-gray-400" />
+                <span className="truncate text-gray-500" title={description}>
+                  {description}
                 </span>
-              ) : (
-                <span className="truncate text-gray-400">
-                  No redirect configured
-                </span>
-              )
+              </>
             ) : (
-              <div className="h-4 w-16 animate-pulse rounded-md bg-gray-200" />
+              <>
+                <ArrowTurnRight2 className="h-3 w-3 text-gray-400" />
+                {url !== undefined ? (
+                  url ? (
+                    <span className="truncate text-gray-500" title={url}>
+                      {url}
+                    </span>
+                  ) : (
+                    <span className="truncate text-gray-400">
+                      No redirect configured
+                    </span>
+                  )
+                ) : (
+                  <div className="h-4 w-16 animate-pulse rounded-md bg-gray-200" />
+                )}
+              </>
             )}
           </div>
         )}

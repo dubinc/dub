@@ -10,6 +10,7 @@ import NoDomainsPlaceholder from "@/ui/domains/no-domains-placeholder";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { Button, Switch } from "@dub/ui";
 import { DUB_DOMAINS } from "@dub/utils";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -22,10 +23,22 @@ export default function WorkspaceDomainsClient() {
 
   return (
     <>
-      <div className="flex justify-between">
-        <h1 className="mb-5 text-2xl font-semibold tracking-tight text-black">
-          Domains
-        </h1>
+      <div className="mb-5 flex justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-black">
+            Domains
+          </h1>
+          <p className="mt-3 text-sm text-gray-500">
+            Use your own domains to create branded links that stand out.{" "}
+            <Link
+              href="https://dub.co/help/article/how-to-add-custom-domain"
+              target="_blank"
+              className="underline transition-colors hover:text-gray-800"
+            >
+              Learn more.
+            </Link>
+          </p>
+        </div>
         <AddDomainButton />
       </div>
       {workspaceId && <AddEditDomainModal />}
@@ -69,7 +82,14 @@ export default function WorkspaceDomainsClient() {
         </h2>
         <p className="mt-3 text-sm text-gray-500">
           Choose which default domains appear when creating a link in this
-          workspace.
+          workspace.{" "}
+          <Link
+            href="https://dub.co/help/article/default-dub-domains"
+            target="_blank"
+            className="underline transition-colors hover:text-gray-800"
+          >
+            Learn more.
+          </Link>
         </p>
       </div>
       <DefaultDomains />
@@ -90,12 +110,16 @@ function DefaultDomains() {
 
   return (
     <div className="mt-2 grid grid-cols-1 gap-3">
-      {DUB_DOMAINS.map(({ slug }) => (
+      {DUB_DOMAINS.map(({ slug, description }) => (
         <div
           key={slug}
           className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5"
         >
-          <DomainCardTitleColumn domain={slug} defaultDomain />
+          <DomainCardTitleColumn
+            domain={slug}
+            description={description}
+            defaultDomain
+          />
           <Switch
             disabled={submitting}
             checked={defaultDomains?.includes(slug)}
