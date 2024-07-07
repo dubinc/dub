@@ -165,7 +165,7 @@ export const SearchBox = ({ searchInputRef }) => {
       <input
         ref={searchInputRef}
         type="text"
-        className="peer w-full rounded-md border border-gray-300 px-10 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 sm:text-sm"
+        className="peer w-full rounded-md border border-gray-200 px-10 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 sm:text-sm"
         placeholder="Search..."
         defaultValue={searchParams?.get("search") || ""}
         onChange={(e) => {

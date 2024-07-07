@@ -41,7 +41,7 @@ export default function WorkspaceSettingsLayout({
   ];
 
   return (
-    <SettingsLayout tabs={tabs} tabContainerClassName="top-[150px]">
+    <SettingsLayout tabs={tabs} tabContainerClassName="top-16">
       {children}
     </SettingsLayout>
   );
