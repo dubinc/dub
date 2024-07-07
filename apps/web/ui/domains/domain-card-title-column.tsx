@@ -1,4 +1,4 @@
-import { ArrowTurnRight2, CircleInfo, Flag2, Globe } from "@dub/ui";
+import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui";
 import { punycode } from "@dub/utils";
 
 export function DomainCardTitleColumn({
@@ -45,12 +45,12 @@ export function DomainCardTitleColumn({
         {(!defaultDomain || description) && (
           <div className="mt-1 flex items-center gap-1 text-xs">
             {description ? (
-              <>
-                <CircleInfo className="h-3 w-3 text-gray-400" />
-                <span className="truncate text-gray-500" title={description}>
-                  {description}
-                </span>
-              </>
+              <span
+                className="whitespace-pre-wrap text-gray-500"
+                title={description}
+              >
+                {description}
+              </span>
             ) : (
               <>
                 <ArrowTurnRight2 className="h-3 w-3 text-gray-400" />

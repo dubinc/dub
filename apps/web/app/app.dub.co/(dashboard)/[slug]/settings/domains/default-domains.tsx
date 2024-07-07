@@ -40,7 +40,7 @@ export function DefaultDomains() {
       {DUB_DOMAINS.map(({ slug, description }) => (
         <div
           key={slug}
-          className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5"
+          className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-5"
         >
           <DomainCardTitleColumn
             domain={slug}
