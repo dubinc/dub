@@ -8,6 +8,7 @@ import {
 import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
+  CircleCheck,
   Copy,
   Gear,
   NumberTooltip,
@@ -21,7 +22,13 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { CursorRays } from "@dub/ui/src/icons";
-import { DEFAULT_LINK_PROPS, cn, fetcher, nFormatter } from "@dub/utils";
+import {
+  DEFAULT_LINK_PROPS,
+  cn,
+  fetcher,
+  formatDateTime,
+  nFormatter,
+} from "@dub/utils";
 import { motion } from "framer-motion";
 import {
   Archive,
@@ -82,6 +89,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     fetcher,
   );
 
+  const lastChecked = data?.response?.prismaResponse?.lastChecked;
+
   const [showDetails, setShowDetails] = useState(false);
   const [groupHover, setGroupHover] = useState(false);
 
@@ -110,7 +119,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               <NumberTooltip value={totalEvents?.clicks}>
                 <Link
                   href={`/${slug}/analytics?domain=${domain}&key=_root`}
-                  className="flex items-center space-x-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
+                  className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
                 >
                   <CursorRays className="h-4 w-4 text-gray-700" />
                   <p className="text-xs font-medium text-gray-900">
@@ -196,7 +205,20 @@ export default function DomainCard({ props }: { props: DomainProps }) {
           animate={{ height: showDetails ? "auto" : 0 }}
           className="overflow-hidden"
         >
-          {data && <DomainConfiguration data={data} />}
+          {data ? (
+            data.status === "Valid Configuration" ? (
+              <p className="mt-6 flex items-center gap-2 text-sm text-gray-500">
+                <CircleCheck className="h-4 w-4" />
+                Valid configuration detected.{" "}
+                {lastChecked &&
+                  `Last checked: ${formatDateTime(new Date(lastChecked))}`}
+              </p>
+            ) : (
+              <DomainConfiguration data={data} />
+            )
+          ) : (
+            <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
+          )}
         </motion.div>
       </div>
     </>
