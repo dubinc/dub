@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { booleanQuerySchema } from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const DomainSchema = z.object({
@@ -35,6 +36,18 @@ export const DomainSchema = z.object({
     .openapi({ example: "https://acme.com/expired" }),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
+});
+
+export const getDomainsQuerySchema = z.object({
+  archived: booleanQuerySchema
+    .optional()
+    .describe(
+      "Whether to return only archived domains or only unarchived domains in the response. Both are returned if not provided.",
+    ),
+  search: z
+    .string()
+    .optional()
+    .describe("The search term to filter the domains by."),
 });
 
 export const createDomainBodySchema = z.object({

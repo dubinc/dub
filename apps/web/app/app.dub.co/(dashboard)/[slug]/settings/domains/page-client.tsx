@@ -8,8 +8,8 @@ import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import EmptyState from "@/ui/shared/empty-state";
-import { Button, Globe, Switch } from "@dub/ui";
-import { DUB_DOMAINS } from "@dub/utils";
+import { Globe, Switch, useRouterStuff } from "@dub/ui";
+import { DUB_DOMAINS, cn } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -18,12 +18,15 @@ export default function WorkspaceDomainsClient() {
   const { id: workspaceId } = useWorkspace();
 
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
-  const { activeWorkspaceDomains, archivedWorkspaceDomains } = useDomains();
-  const [showArchivedDomains, setShowArchivedDomains] = useState(false);
+
+  const { searchParams, queryParams } = useRouterStuff();
+  const { allWorkspaceDomains, loading } = useDomains({
+    archived: searchParams.get("tab") === "archived" ? true : false,
+  });
 
   return (
     <>
-      <div className="mb-5 flex justify-between">
+      <div className="mb-5 flex flex-wrap justify-between gap-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-black">
             Domains
@@ -39,14 +42,22 @@ export default function WorkspaceDomainsClient() {
             </Link>
           </p>
         </div>
-        <AddDomainButton />
+        <div className="flex items-center gap-3">
+          <DomainTabs
+            selected={
+              searchParams.get("tab") === "archived" ? "archived" : "active"
+            }
+            onSelect={(id) => queryParams({ set: { tab: id } })}
+          />
+          <AddDomainButton />
+        </div>
       </div>
       {workspaceId && <AddEditDomainModal />}
       <div>
-        {activeWorkspaceDomains ? (
-          activeWorkspaceDomains.length > 0 ? (
+        {!loading ? (
+          allWorkspaceDomains.length > 0 ? (
             <ul className="grid grid-cols-1 gap-3">
-              {activeWorkspaceDomains.map((domain) => (
+              {allWorkspaceDomains.map((domain) => (
                 <li key={domain.slug}>
                   <DomainCard props={domain} />
                 </li>
@@ -56,30 +67,17 @@ export default function WorkspaceDomainsClient() {
             <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
               <EmptyState
                 icon={Globe}
-                title="No custom domains found for this workspace"
+                title={
+                  searchParams.get("tab") === "archived"
+                    ? "No archived domains found for this workspace"
+                    : "No custom domains found for this workspace"
+                }
               />
               <AddDomainButton />
             </div>
           )
         ) : (
           <DomainCardPlaceholder />
-        )}
-        {archivedWorkspaceDomains && archivedWorkspaceDomains.length > 0 && (
-          <ul className="mt-3 grid grid-cols-1 gap-3">
-            {showArchivedDomains &&
-              archivedWorkspaceDomains?.map((domain) => (
-                <li key={domain.slug}>
-                  <DomainCard props={domain} />
-                </li>
-              ))}
-            <Button
-              text={`${showArchivedDomains ? "Hide" : "Show"} ${
-                archivedWorkspaceDomains.length
-              } archived domains`}
-              variant="secondary"
-              onClick={() => setShowArchivedDomains(!showArchivedDomains)}
-            />
-          </ul>
         )}
       </div>
       <div className="mt-10">
@@ -155,6 +153,46 @@ function DefaultDomains() {
                 .finally(() => setSubmitting(false));
             }}
           />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const domainTabOptions = [
+  { id: "active", label: "Active" },
+  { id: "archived", label: "Archived" },
+];
+export function DomainTabs({
+  selected,
+  onSelect,
+}: {
+  selected: string | null;
+  onSelect?: (id: string) => void;
+}) {
+  return (
+    <div className="flex text-sm">
+      {domainTabOptions.map(({ id, label }, idx) => (
+        <div key={id} className="relative">
+          <button
+            type="button"
+            onClick={() => onSelect?.(id)}
+            className={cn(
+              "border border-gray-200 px-5 py-2.5 transition-colors duration-75",
+              id === selected
+                ? "border-gray-300 bg-gray-100 text-black"
+                : [
+                    "text-gray-600 hover:bg-gray-50 hover:text-gray-800",
+                    idx > 0 && "border-l-transparent",
+                    idx < domainTabOptions.length - 1 && "border-r-transparent",
+                  ],
+              idx === 0 && "rounded-l-md",
+              idx === domainTabOptions.length - 1 && "rounded-r-md",
+            )}
+            aria-selected={id === selected}
+          >
+            {label}
+          </button>
         </div>
       ))}
     </div>
