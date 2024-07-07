@@ -20,8 +20,9 @@ export default function WorkspaceDomainsClient() {
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
 
   const { searchParams, queryParams } = useRouterStuff();
+  const tab = searchParams.get("tab") === "archived" ? "archived" : "active";
   const { allWorkspaceDomains, loading } = useDomains({
-    archived: searchParams.get("tab") === "archived" ? true : false,
+    archived: tab === "archived" ? true : false,
   });
 
   return (
@@ -44,16 +45,14 @@ export default function WorkspaceDomainsClient() {
         </div>
         <div className="flex items-center gap-3">
           <DomainTabs
-            selected={
-              searchParams.get("tab") === "archived" ? "archived" : "active"
-            }
+            selected={tab}
             onSelect={(id) => queryParams({ set: { tab: id } })}
           />
           <AddDomainButton />
         </div>
       </div>
       {workspaceId && <AddEditDomainModal />}
-      <div>
+      <div key={tab} className="animate-fade-in">
         {!loading ? (
           allWorkspaceDomains.length > 0 ? (
             <ul className="grid grid-cols-1 gap-3">
@@ -68,7 +67,7 @@ export default function WorkspaceDomainsClient() {
               <EmptyState
                 icon={Globe}
                 title={
-                  searchParams.get("tab") === "archived"
+                  tab === "archived"
                     ? "No archived domains found for this workspace"
                     : "No custom domains found for this workspace"
                 }

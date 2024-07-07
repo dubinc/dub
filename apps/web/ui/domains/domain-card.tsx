@@ -304,6 +304,7 @@ function Menu({
         animate={{
           width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 38,
         }}
+        initial={false}
         className="flex items-center justify-end divide-x divide-gray-200 overflow-hidden rounded-md border border-gray-200 sm:divide-transparent sm:group-hover:divide-gray-200"
       >
         <Tooltip content="Domain settings">
