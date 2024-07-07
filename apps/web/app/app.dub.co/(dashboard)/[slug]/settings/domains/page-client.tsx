@@ -177,7 +177,7 @@ export function DomainTabs({
             type="button"
             onClick={() => onSelect?.(id)}
             className={cn(
-              "border border-gray-200 px-5 py-2.5 transition-colors duration-75",
+              "border border-gray-200 px-5 py-[9px] transition-colors duration-75",
               id === selected
                 ? "border-gray-300 bg-gray-100 text-black"
                 : [
