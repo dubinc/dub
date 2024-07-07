@@ -77,6 +77,7 @@ export const DUB_DOMAINS = [
     placeholder: "https://dub.co/help/article/what-is-dub",
     clicks: 0,
     allowedHostnames: [],
+    description: "The default domain for all new accounts.",
     projectId: DUB_WORKSPACE_ID,
   },
   ...(process.env.NEXT_PUBLIC_IS_DUB
@@ -93,6 +94,8 @@ export const DUB_DOMAINS = [
           placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
           clicks: 0,
           allowedHostnames: ["chat.openai.com", "chatgpt.com"],
+          description:
+            "Branded domain for ChatGPT links (convos, custom GPTs).",
           projectId: DUB_WORKSPACE_ID,
         },
         {
@@ -107,6 +110,8 @@ export const DUB_DOMAINS = [
           placeholder: "https://open.spotify.com/album/1SCyi9a5pOasikidToUY5y",
           clicks: 0,
           allowedHostnames: ["open.spotify.com"],
+          description:
+            "Branded domain for Spotify links (songs, playlists, etc.).",
           projectId: DUB_WORKSPACE_ID,
         },
         {
@@ -121,6 +126,8 @@ export const DUB_DOMAINS = [
           placeholder: "https://github.com/dubinc/dub",
           clicks: 0,
           allowedHostnames: ["github.com", "gist.github.com"],
+          description:
+            "Branded domain for GitHub links (repositories, gists, etc.).",
           projectId: DUB_WORKSPACE_ID,
         },
         {
@@ -141,6 +148,8 @@ export const DUB_DOMAINS = [
             "amazon.es",
             "amazon.fr",
           ],
+          description:
+            "Branded domain for Amazon links (products, wishlists, etc.).",
           projectId: DUB_WORKSPACE_ID,
         },
         {
@@ -154,6 +163,8 @@ export const DUB_DOMAINS = [
           type: "redirect",
           placeholder: "https://d.to/long",
           clicks: 0,
+          description:
+            "Branded domain for lengthening links instead of shortening them.",
           projectId: DUB_WORKSPACE_ID,
         },
       ]
