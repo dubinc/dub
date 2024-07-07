@@ -22,13 +22,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { CursorRays } from "@dub/ui/src/icons";
-import {
-  DEFAULT_LINK_PROPS,
-  cn,
-  fetcher,
-  formatDateTime,
-  nFormatter,
-} from "@dub/utils";
+import { DEFAULT_LINK_PROPS, cn, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import {
   Archive,
@@ -88,8 +82,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
   );
-
-  const lastChecked = data?.response?.prismaResponse?.lastChecked;
 
   const [showDetails, setShowDetails] = useState(false);
   const [groupHover, setGroupHover] = useState(false);
@@ -207,11 +199,19 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         >
           {data ? (
             data.status === "Valid Configuration" ? (
-              <p className="mt-6 flex items-center gap-2 text-sm text-gray-500">
-                <CircleCheck className="h-4 w-4" />
-                Valid configuration detected.{" "}
-                {lastChecked &&
-                  `Last checked: ${formatDateTime(new Date(lastChecked))}`}
+              <p className="mt-6 flex items-center gap-2 rounded-lg bg-green-100/80 p-3 text-sm text-green-600 [text-wrap:pretty]">
+                <CircleCheck className="h-5 w-5 shrink-0" />
+                <p>
+                  Good news! Your DNS records are set up correctly, but it can
+                  take some time for them to propagate globally.{" "}
+                  <Link
+                    href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
+                    target="_blank"
+                    className="underline transition-colors hover:text-green-800"
+                  >
+                    Learn more.
+                  </Link>
+                </p>
               </p>
             ) : (
               <DomainConfiguration data={data} />
