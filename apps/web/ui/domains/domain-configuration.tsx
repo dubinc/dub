@@ -155,7 +155,7 @@ const DnsRecord = ({
             : "grid-cols-[repeat(3,min-content)]",
         )}
       >
-        {["Type", "Name", "Value", "TTL"].map((s) => (
+        {["Type", "Name", "Value"].concat(hasTtl ? "TTL" : []).map((s) => (
           <p key={s} className="font-medium text-gray-950">
             {s}
           </p>
