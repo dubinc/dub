@@ -8,12 +8,8 @@ import {
 import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
-  CircleCheck,
-  CircleHalfDottedClock,
-  CircleWarning,
   Copy,
   Gear,
-  LoadingCircle,
   NumberTooltip,
   PenWriting,
   Popover,
@@ -200,24 +196,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
           animate={{ height: showDetails ? "auto" : 0 }}
           className="overflow-hidden"
         >
-          {(!data || data.status !== "Valid Configuration") && (
-            <div className="mt-6 flex items-center gap-2">
-              {data ? (
-                data.status === "Valid Configuration" ? (
-                  <CircleCheck className="h-4 w-4 text-blue-500" />
-                ) : data.status === "Pending Verification" ? (
-                  <CircleHalfDottedClock className="h-4 w-4 text-yellow-500" />
-                ) : (
-                  <CircleWarning className="h-4 w-4 text-red-500" />
-                )
-              ) : (
-                <LoadingCircle className="mr-1 h-4 w-4" />
-              )}
-              <p className="text-xs text-gray-500">
-                {data ? data.status : "Checking Domain Status"}
-              </p>
-            </div>
-          )}
           {data && <DomainConfiguration data={data} />}
         </motion.div>
       </div>
