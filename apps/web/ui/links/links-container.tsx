@@ -36,7 +36,7 @@ export default function LinksContainer({
           <SearchBox searchInputRef={searchInputRef} />
         </div>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
-          <div className="scrollbar-hide sticky top-32 col-span-2 hidden max-h-[calc(100vh-150px)] self-start overflow-auto rounded-lg border border-gray-100 bg-white shadow lg:block">
+          <div className="scrollbar-hide sticky top-14 col-span-2 hidden max-h-[calc(100vh-80px)] self-start overflow-auto rounded-lg border border-gray-200 bg-white lg:block">
             <Suspense>
               <LinkFilters />
             </Suspense>

@@ -1,5 +1,6 @@
 import LinkFilters from "@/ui/links/link-filters";
-import { IconMenu, Modal } from "@dub/ui";
+import { Modal } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { ChevronDown, Filter } from "lucide-react";
 import {
   Dispatch,
@@ -39,13 +40,20 @@ function LinkFiltersButton({
   return (
     <button
       onClick={() => setShowLinkFiltersModal(true)}
-      className="mr-5 flex flex-1 items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 lg:hidden"
+      className={cn(
+        "group mr-2 flex h-10 w-full cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all",
+        "border-gray-200 bg-white text-gray-900 placeholder-gray-400 lg:hidden",
+      )}
     >
-      <IconMenu text="Filters" icon={<Filter className="h-4 w-4 shrink-0" />} />
+      <Filter className="h-4 w-4 shrink-0" />
+      <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
+        Filters
+      </span>
       <ChevronDown
-        className={`h-5 w-5 text-gray-400 ${
-          showLinkFiltersModal ? "rotate-180 transform" : ""
-        } transition-all duration-75`}
+        className={cn(
+          "h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75",
+          showLinkFiltersModal && "rotate-180",
+        )}
       />
     </button>
   );
