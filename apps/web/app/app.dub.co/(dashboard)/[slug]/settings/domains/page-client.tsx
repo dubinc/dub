@@ -6,9 +6,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
-import NoDomainsPlaceholder from "@/ui/domains/no-domains-placeholder";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
-import { Button, Switch } from "@dub/ui";
+import EmptyState from "@/ui/shared/empty-state";
+import { Button, Globe, Switch } from "@dub/ui";
 import { DUB_DOMAINS } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -53,7 +53,13 @@ export default function WorkspaceDomainsClient() {
               ))}
             </ul>
           ) : (
-            <NoDomainsPlaceholder AddDomainButton={AddDomainButton} />
+            <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
+              <EmptyState
+                icon={Globe}
+                title="No custom domains found for this workspace"
+              />
+              <AddDomainButton />
+            </div>
           )
         ) : (
           <DomainCardPlaceholder />
