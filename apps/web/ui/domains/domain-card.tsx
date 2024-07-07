@@ -11,6 +11,7 @@ import {
   CircleCheck,
   Copy,
   Gear,
+  Hyperlink,
   NumberTooltip,
   PenWriting,
   Popover,
@@ -27,7 +28,6 @@ import { motion } from "framer-motion";
 import {
   Archive,
   ChevronDown,
-  Edit3,
   FileCog,
   FolderInput,
   QrCode,
@@ -333,16 +333,9 @@ function Menu({
           content={
             <div className="w-full sm:w-48">
               <div className="grid gap-px p-2">
-                <Button
-                  text="Refresh"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    refreshProps.mutate();
-                  }}
-                  icon={<Refresh2 className="h-4 w-4" />}
-                  className="h-9 justify-start px-2 font-medium sm:hidden"
-                />
+                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-sm font-medium text-gray-600">
+                  Link
+                </p>
                 <Button
                   text="Edit Link"
                   variant="outline"
@@ -350,7 +343,7 @@ function Menu({
                     setOpenPopover(false);
                     setShowAddEditLinkModal(true);
                   }}
-                  icon={<Edit3 className="h-4 w-4" />}
+                  icon={<Hyperlink className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                 />
                 <Button
@@ -379,6 +372,9 @@ function Menu({
               </div>
               <div className="border-t border-gray-200" />
               <div className="grid gap-px p-2">
+                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-sm font-medium text-gray-600">
+                  Domain
+                </p>
                 <Button
                   text="Settings"
                   variant="outline"
