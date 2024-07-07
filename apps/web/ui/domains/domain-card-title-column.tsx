@@ -3,12 +3,14 @@ import { punycode } from "@dub/utils";
 
 export function DomainCardTitleColumn({
   domain,
+  icon: Icon = Globe,
   url,
   description,
   primary = false,
   defaultDomain = false,
 }: {
   domain: string;
+  icon?: React.ElementType;
   url?: string | null;
   description?: string;
   primary?: boolean;
@@ -18,7 +20,7 @@ export function DomainCardTitleColumn({
     <div className="flex items-center gap-4">
       <div className="rounded-full border border-gray-200">
         <div className="rounded-full border border-white bg-gradient-to-t from-gray-100 p-1 md:p-3">
-          <Globe className="h-5 w-5" />
+          <Icon className="h-5 w-5" />
         </div>
       </div>
       <div className="overflow-hidden">

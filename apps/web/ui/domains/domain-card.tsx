@@ -22,7 +22,7 @@ import {
   useIntersectionObserver,
   useMediaQuery,
 } from "@dub/ui";
-import { CursorRays } from "@dub/ui/src/icons";
+import { CursorRays, Globe } from "@dub/ui/src/icons";
 import { DEFAULT_LINK_PROPS, cn, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import {
@@ -33,6 +33,7 @@ import {
   QrCode,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -90,6 +91,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     data &&
     !["Valid Configuration", "Pending Verification"].includes(data.status);
 
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab") || "active";
+
   return (
     <>
       <div
@@ -101,6 +105,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         <div className="grid grid-cols-[60%_1fr] items-center gap-4 sm:grid-cols-[2fr_1fr_1.5fr] md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
           <DomainCardTitleColumn
             domain={domain}
+            icon={tab === "active" ? Globe : Archive}
             url={linkProps?.url}
             primary={primary}
           />

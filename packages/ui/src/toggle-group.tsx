@@ -36,7 +36,7 @@ export function ToggleGroup({
             <p>{option.label}</p>
             {option.value === selected && (
               <motion.div
-                layoutId={options.join("-")}
+                layoutId={layoutGroupId}
                 className="absolute left-0 top-0 h-full w-full rounded-lg border border-gray-200 bg-gray-50"
                 style={{ zIndex: -1 }}
                 transition={{ duration: 0.25 }}

@@ -40,7 +40,6 @@ export default function useDomains({
 
   const allWorkspaceDomains = data || [];
   const activeWorkspaceDomains = data?.filter((domain) => !domain.archived);
-  const archivedWorkspaceDomains = data?.filter((domain) => domain.archived);
 
   const activeDefaultDomains =
     (workspaceDefaultDomains &&
@@ -70,7 +69,6 @@ export default function useDomains({
 
   return {
     activeWorkspaceDomains, // active workspace domains
-    archivedWorkspaceDomains, // archived workspace domains
     activeDefaultDomains, // active default Dub domains
     allWorkspaceDomains, // all workspace domains (active + archived)
     allActiveDomains, // all active domains (active workspace domains + active default Dub domains)
