@@ -186,7 +186,14 @@ const DnsRecord = ({
         ))}
       </div>
       {(warning || hasTtl) && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg bg-indigo-50 p-3 text-indigo-600">
+        <div
+          className={cn(
+            "mt-4 flex items-center gap-2 rounded-lg p-3",
+            warning
+              ? "bg-orange-50 text-orange-600"
+              : "bg-indigo-50 text-indigo-600",
+          )}
+        >
           <CircleInfo className="h-5 w-5 shrink-0" />
           <MarkdownText
             text={
