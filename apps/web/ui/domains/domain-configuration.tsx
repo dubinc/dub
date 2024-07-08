@@ -17,7 +17,7 @@ export default function DomainConfiguration({
       (x: any) => x.type === "TXT",
     );
     return (
-      <div className="border-t border-gray-200">
+      <div>
         <DnsRecord
           instructions={`Please set the following TXT record on <code>${domainJson.apexName}</code> to prove ownership of <code>${domainJson.name}</code>:`}
           records={[
@@ -38,7 +38,7 @@ export default function DomainConfiguration({
 
   if (data.status === "Conflicting DNS Records") {
     return (
-      <div className="border-t border-gray-200 pt-5">
+      <div className="pt-5">
         <div className="flex justify-start space-x-4">
           <div className="ease border-b-2 border-black pb-1 text-sm text-black transition-all duration-150">
             {configJson?.conflicts.some((x) => x.type === "A")
@@ -81,7 +81,7 @@ export default function DomainConfiguration({
 
   if (data.status === "Unknown Error") {
     return (
-      <div className="border-t border-gray-200 pt-5">
+      <div className="pt-5">
         <p className="mb-5 text-sm">{data.response.domainJson.error.message}</p>
       </div>
     );
