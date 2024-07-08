@@ -155,7 +155,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
           <div className="flex justify-end gap-3">
             <Button
-              text={
+              icon={
                 <div className="flex items-center gap-1">
                   <div className="relative">
                     <Gear
@@ -204,9 +204,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         >
           {data ? (
             data.status === "Valid Configuration" ? (
-              <p className="mt-6 flex items-center gap-2 rounded-lg bg-green-100/80 p-3 text-sm text-green-600 [text-wrap:pretty]">
+              <div className="mt-6 flex items-center gap-2 rounded-lg bg-green-100/80 p-3 text-sm text-green-600 [text-wrap:pretty]">
                 <CircleCheck className="h-5 w-5 shrink-0" />
-                <p>
+                <div>
                   Good news! Your DNS records are set up correctly, but it can
                   take some time for them to propagate globally.{" "}
                   <Link
@@ -216,8 +216,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   >
                     Learn more.
                   </Link>
-                </p>
-              </p>
+                </div>
+              </div>
             ) : (
               <DomainConfiguration data={data} />
             )
@@ -314,7 +314,7 @@ function Menu({
       >
         <Tooltip content="Domain settings">
           <Button
-            text={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
+            icon={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
             variant="outline"
             className="h-8 rounded-none border-0 px-3 text-gray-600"
             onClick={() => setShowAddEditDomainModal(true)}
@@ -322,7 +322,7 @@ function Menu({
         </Tooltip>
         <Tooltip content="Refresh">
           <Button
-            text={
+            icon={
               <Refresh2
                 className={cn(
                   "h-4 w-4 shrink-0 -scale-100 transition-colors [animation-duration:0.25s]",
