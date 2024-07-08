@@ -19,14 +19,17 @@ export function ToggleGroup({
   const layoutGroupId = useId();
 
   return (
-    <div className="relative inline-flex items-center space-x-1 rounded-xl border border-gray-200 bg-white p-1">
-      <LayoutGroup id={layoutGroupId}>
+    <LayoutGroup id={layoutGroupId}>
+      <motion.div
+        layout
+        className="relative inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1"
+      >
         {options.map((option) => (
           <button
             key={option.value}
             type="button"
             className={cn(
-              "relative z-10 px-3 py-1 text-sm font-medium capitalize",
+              "relative z-10 block px-3 py-1 text-sm font-medium capitalize",
               {
                 "transition-all hover:text-gray-500": option.value !== selected,
               },
@@ -44,7 +47,7 @@ export function ToggleGroup({
             )}
           </button>
         ))}
-      </LayoutGroup>
-    </div>
+      </motion.div>
+    </LayoutGroup>
   );
 }
