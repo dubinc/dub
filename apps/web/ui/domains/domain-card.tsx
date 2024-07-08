@@ -10,10 +10,7 @@ import {
   Button,
   CircleCheck,
   Copy,
-  Gear,
-  Hyperlink,
   NumberTooltip,
-  PenWriting,
   Popover,
   Refresh2,
   SimpleTooltipContent,
@@ -22,16 +19,17 @@ import {
   useIntersectionObserver,
   useMediaQuery,
 } from "@dub/ui";
-import { CursorRays, Globe } from "@dub/ui/src/icons";
+import {
+  CursorRays,
+  Flag2,
+  Gear,
+  Globe,
+  Hyperlink,
+  PenWriting,
+} from "@dub/ui/src/icons";
 import { DEFAULT_LINK_PROPS, cn, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
-import {
-  Archive,
-  ChevronDown,
-  FileCog,
-  FolderInput,
-  QrCode,
-} from "lucide-react";
+import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
@@ -382,14 +380,14 @@ function Menu({
                   Domain Settings
                 </p>
                 <Button
-                  text="Settings"
+                  text="Edit Domain"
                   variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowAddEditDomainModal(true);
                   }}
-                  icon={<Gear className="h-4 w-4" />}
-                  className="h-9 justify-start px-2 font-medium sm:hidden"
+                  icon={<PenWriting className="h-4 w-4" />}
+                  className="h-9 justify-start px-2 font-medium"
                 />
                 {!primary && (
                   <Button
@@ -399,7 +397,7 @@ function Menu({
                       setOpenPopover(false);
                       setShowPrimaryDomainModal(true);
                     }}
-                    icon={<FileCog className="h-4 w-4" />}
+                    icon={<Flag2 className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
                   />
                 )}

@@ -1,4 +1,4 @@
-import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui";
+import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/src/icons";
 import { punycode } from "@dub/utils";
 
 export function DomainCardTitleColumn({
