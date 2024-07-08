@@ -86,8 +86,12 @@ export const DELETE = withSession(async ({ session }) => {
     where: {
       userId: session.user.id,
       role: "owner",
+      user: {
+        isMachine: false,
+      },
     },
   });
+
   if (userIsOwnerOfWorkspaces.length > 0) {
     return new Response(
       "You must transfer ownership of your workspaces or delete them before you can delete your account.",

@@ -65,6 +65,9 @@ export const POST = withSession(async ({ req, session }) => {
         some: {
           userId: session.user.id,
           role: "owner",
+          user: {
+            isMachine: false,
+          },
         },
       },
     },

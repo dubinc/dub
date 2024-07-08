@@ -111,6 +111,9 @@ export const DELETE = withWorkspace(
         where: {
           projectId: workspace.id,
           role: "owner",
+          user: {
+            isMachine: false,
+          },
         },
       }),
     ]);
