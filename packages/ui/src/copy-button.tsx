@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Copy, Tick } from "./icons";
 
 const copyButtonVariants = cva(
-  "group rounded-full p-1.5 transition-all duration-75",
+  "relative group rounded-full p-1.5 transition-all duration-75",
   {
     variants: {
       variant: {
