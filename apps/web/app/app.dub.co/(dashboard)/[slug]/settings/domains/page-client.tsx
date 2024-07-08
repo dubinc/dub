@@ -48,8 +48,10 @@ export default function WorkspaceDomainsClient() {
               }
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchBoxPersisted loading={loading} />
+          <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+            <div className="w-full sm:w-auto">
+              <SearchBoxPersisted loading={loading} />
+            </div>
             <ToggleGroup
               options={[
                 { value: "active", label: "Active" },

@@ -96,11 +96,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     <>
       <div
         ref={domainRef}
-        className="group rounded-xl border border-gray-200 bg-white p-5 transition-[filter] hover:[filter:drop-shadow(0_8px_12px_#222A350d)_drop-shadow(0_32px_80px_#2f30370f)]"
+        className="group rounded-xl border border-gray-200 bg-white p-4 transition-[filter] hover:[filter:drop-shadow(0_8px_12px_#222A350d)_drop-shadow(0_32px_80px_#2f30370f)] sm:p-5"
         onPointerEnter={() => setGroupHover(true)}
         onPointerLeave={() => setGroupHover(false)}
       >
-        <div className="grid grid-cols-[60%_1fr] items-center gap-4 sm:grid-cols-[2fr_1fr_1.5fr] md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
+        <div className="grid grid-cols-[1.5fr_1fr] items-center gap-3 sm:grid-cols-[2fr_1fr_1.5fr] sm:gap-4 md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
           <DomainCardTitleColumn
             domain={domain}
             icon={tab === "active" ? Globe : Archive}
@@ -151,7 +151,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             )}
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2 sm:gap-3">
             <Button
               icon={
                 <div className="flex items-center gap-1">
