@@ -89,7 +89,7 @@
         {
           "group": "Ruby",
           "icon": "gem",
-          "pages": ["quickstart/ruby"]
+          "pages": ["quickstart/ruby", "quickstart/rails", "quickstart/sinatra"]
         }
       ]
     },
