@@ -34,7 +34,7 @@ function CompleteSetupModal({
     return [
       {
         display: "Configure your custom domain",
-        cta: `/${slug}/domains`,
+        cta: `/${slug}/settings/domains`,
         checked: verified,
       },
       {

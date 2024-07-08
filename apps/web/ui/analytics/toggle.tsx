@@ -25,7 +25,7 @@ import {
   Cube,
   CursorRays,
   FlagWavy,
-  Globe,
+  Globe2,
   Hyperlink,
   Magic,
   MobilePhone,
@@ -167,7 +167,7 @@ export default function Toggle({
         : [
             {
               value: `Clicks on ${primaryDomain} domain this year`,
-              icon: Globe,
+              icon: Globe2,
             },
           ]),
       {
@@ -211,7 +211,7 @@ export default function Toggle({
         : [
             {
               key: "domain",
-              icon: Globe,
+              icon: Globe2,
               label: "Domain",
               getOptionIcon: (value) => (
                 <BlurImage
@@ -259,7 +259,7 @@ export default function Toggle({
               options: [
                 {
                   value: true,
-                  icon: Globe,
+                  icon: Globe2,
                   label: "Root domain link",
                 },
                 {

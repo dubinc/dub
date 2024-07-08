@@ -1,5 +1,6 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
@@ -9,8 +10,10 @@ export default function useLinksCount({
 }: {
   groupBy?: "domain" | "tagId";
 } = {}) {
-  const { id } = useWorkspace();
+  const { id, slug } = useWorkspace();
   const { getQueryString } = useRouterStuff();
+  const pathname = usePathname();
+  const isLinksPage = pathname === `/${slug}`;
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -27,7 +30,12 @@ export default function useLinksCount({
             ...(groupBy && { groupBy }),
           },
           {
-            ignore: ["import", "upgrade", "newLink"],
+            ignore: [
+              "import",
+              "upgrade",
+              "newLink",
+              ...(!isLinksPage ? ["search"] : []),
+            ],
           },
         )}`
       : admin

@@ -1,4 +1,4 @@
-export default function Facebook({
+export function Facebook({
   className,
   fill = "#1977f3",
 }: {

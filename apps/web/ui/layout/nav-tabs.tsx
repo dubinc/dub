@@ -23,7 +23,6 @@ export default function NavTabs() {
       { name: "Links", href: `/${slug}` },
       { name: "Analytics", href: `/${slug}/analytics` },
       ...(betaTester ? [{ name: "Events", href: `/${slug}/events` }] : []),
-      { name: "Domains", href: `/${slug}/domains` },
       { name: "Settings", href: `/${slug}/settings` },
     ],
     [betaTester],

@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 
-export default function Twitter({ className }: { className?: string }) {
+export function Twitter({ className }: { className?: string }) {
   return (
     <svg
       width="300"

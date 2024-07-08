@@ -7,7 +7,7 @@ import { Suspense, useRef } from "react";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
-import LinkFilters, { SearchBox } from "./link-filters";
+import LinkFilters, { InputSearchBox } from "./link-filters";
 import LinkPagination from "./link-pagination";
 import LinkSort from "./link-sort";
 import NoLinksPlaceholder from "./no-links-placeholder";
@@ -33,7 +33,7 @@ export default function LinksContainer({
           </Suspense>
         </div>
         <div className="block lg:hidden">
-          <SearchBox searchInputRef={searchInputRef} />
+          <InputSearchBox />
         </div>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
           <div className="scrollbar-hide sticky top-14 col-span-2 hidden max-h-[calc(100vh-80px)] self-start overflow-auto rounded-lg border border-gray-200 bg-white lg:block">
