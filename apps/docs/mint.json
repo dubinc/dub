@@ -30,7 +30,7 @@
     "name": "Dashboard",
     "url": "https://app.dub.co"
   },
-  "openapi": "http://api.dub.co",
+  "openapi": "/dub-openapi.yaml",
   "tabs": [
     {
       "name": "API Reference",

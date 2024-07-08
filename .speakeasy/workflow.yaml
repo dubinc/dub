@@ -1,0 +1,14 @@
+workflowVersion: 1.0.0
+speakeasyVersion: latest
+sources:
+  merge-code-samples-into-spec:
+    inputs:
+      - location: http://api.dub.co
+    overlays:
+      - location: registry.speakeasyapi.dev/dub/dub/code-samples-typescript-my-first-target:main
+      - location: registry.speakeasyapi.dev/dub/dub/code-samples-go-my-first-target:main
+      - location: registry.speakeasyapi.dev/dub/dub/code-samples-python-my-first-target:main
+      - location: registry.speakeasyapi.dev/dub/dub/code-samples-php-my-first-target:main
+      - location: registry.speakeasyapi.dev/dub/dub/code-samples-ruby-my-first-target:main
+    output: ./apps/docs/dub-openapi.yaml
+targets: { }
