@@ -40,8 +40,7 @@ export function ToggleGroup({
             {option.value === selected && (
               <motion.div
                 layoutId={layoutGroupId}
-                className="absolute left-0 top-0 h-full w-full rounded-lg border border-gray-200 bg-gray-50"
-                style={{ zIndex: -1 }}
+                className="absolute left-0 top-0 -z-[1] h-full w-full rounded-lg border border-gray-200 bg-gray-50"
                 transition={{ duration: 0.25 }}
               />
             )}
