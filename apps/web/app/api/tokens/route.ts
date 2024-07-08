@@ -30,10 +30,23 @@ export const POST = withWorkspace(
         },
       });
 
+      // Find the role of the current user in the workspace
+      const { role } = await prisma.projectUsers.findUniqueOrThrow({
+        where: {
+          userId_projectId: {
+            userId: session.user.id,
+            projectId: workspace.id,
+          },
+        },
+        select: {
+          role: true,
+        },
+      });
+
       // Add machine user to workspace
       await prisma.projectUsers.create({
         data: {
-          role: "member",
+          role,
           userId: machineUser.id,
           projectId: workspace.id,
         },

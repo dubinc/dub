@@ -1,5 +1,5 @@
 import { DubApiError } from "../errors";
-import { Scope, scopeMapping } from "./scopes";
+import { Scope, normalizeScopes } from "./scopes";
 
 // Check if the required scope is in the list of user scopes
 export const throwIfNoAccess = ({
@@ -15,9 +15,7 @@ export const throwIfNoAccess = ({
     return;
   }
 
-  const userScopes: Scope[] = scopes
-    .map((scope) => scopeMapping[scope] || scope)
-    .flat();
+  const userScopes = normalizeScopes(scopes);
 
   const missingScopes = requiredScopes
     .filter((requiredScope) => !userScopes.includes(requiredScope))

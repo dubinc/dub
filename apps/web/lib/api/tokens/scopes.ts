@@ -178,7 +178,7 @@ export const scopeMapping = {
   "links.write": ["links.write", "links.read"],
   "tags.write": ["tags.write", "tags.read"],
   "domains.write": ["domains.write", "domains.read"],
-};
+} as const;
 
 export const scopePresets = [
   {
@@ -215,4 +215,11 @@ export const scopesToName = (scopes: string[]) => {
     name: "Restricted",
     description: "restricted access to some resources",
   };
+};
+
+// Expand the scopes to include all the required scopes
+export const normalizeScopes = (scopes: string[]): Scope[] => {
+  return (scopes || [])
+    .map((scope: Scope) => scopeMapping[scope] || scope)
+    .flat();
 };

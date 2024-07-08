@@ -11,7 +11,11 @@ import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, roleScopesMapping } from "../api/tokens/scopes";
+import {
+  Scope,
+  normalizeScopes,
+  roleScopesMapping,
+} from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
@@ -252,11 +256,15 @@ export const withWorkspaceEdge = (
         });
       }
 
-      // Find scopes based on the token or user's role
-      if (token && "scopes" in token) {
-        scopes = (token.scopes?.split(" ") as Scope[]) || [];
+      const userScopes = roleScopesMapping[workspace.users[0].role];
+
+      if (isRestrictedToken) {
+        // Find the subset of permissions that the user has access to based on their role
+        scopes = normalizeScopes(token.scopes.split(" ") || []).filter(
+          (scope) => userScopes.includes(scope),
+        );
       } else {
-        scopes = roleScopesMapping[workspace.users[0].role];
+        scopes = userScopes;
       }
 
       // Check user has permission to make the action
