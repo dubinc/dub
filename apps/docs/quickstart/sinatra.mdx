@@ -26,17 +26,16 @@ gem install dub
 
 Initialize the Dub Ruby SDK by creating a new instance of the `Dub` struct.
 
-```ruby
-require 'dub'
+```ruby index.rb
+require "sinatra"
+require "dub"
 
-before do
-  dub = ::OpenApiSDK::Dub.new
-  dub.config_security(
-    ::OpenApiSDK::Shared::Security.new(
-      token: ENV['DUB_API_KEY'] # Use your Dub API key
-    )
+dub = ::OpenApiSDK::Dub.new
+dub.config_security(
+  ::OpenApiSDK::Shared::Security.new(
+    token: ENV['DUB_API_KEY'],
   )
-end
+)
 ```
 
 </Step>
