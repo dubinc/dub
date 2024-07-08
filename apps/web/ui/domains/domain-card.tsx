@@ -100,7 +100,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         onPointerEnter={() => setGroupHover(true)}
         onPointerLeave={() => setGroupHover(false)}
       >
-        <div className="grid grid-cols-[1.5fr_1fr] items-center gap-3 sm:grid-cols-[2fr_1fr_1.5fr] sm:gap-4 md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
+        <div className="grid grid-cols-[1.5fr_1fr] items-center gap-3 sm:grid-cols-[3fr_1fr_1.5fr] sm:gap-4 md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
           <DomainCardTitleColumn
             domain={domain}
             icon={tab === "active" ? Globe : Archive}

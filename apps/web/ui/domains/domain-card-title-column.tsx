@@ -17,7 +17,7 @@ export function DomainCardTitleColumn({
   defaultDomain?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex min-w-0 items-center gap-4">
       <div className="hidden rounded-full border border-gray-200 sm:block">
         <div className="rounded-full border border-white bg-gradient-to-t from-gray-100 p-1 md:p-3">
           <Icon className="h-5 w-5" />
@@ -36,7 +36,7 @@ export function DomainCardTitleColumn({
           </a>
 
           {primary && (
-            <span className="flex items-center gap-1 rounded-full bg-sky-400/[.15] px-3 py-1 text-xs font-medium text-sky-600">
+            <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-sky-400/[.15] px-1.5 py-0.5 text-xs font-medium text-sky-600">
               <Flag2 className="hidden h-3 w-3 sm:block" />
               Primary
             </span>
