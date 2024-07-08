@@ -1,6 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import {
+  WorkspaceSchema,
+  updateWorkspaceSchema,
+} from "@/lib/zod/schemas/workspaces";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const updateWorkspace: ZodOpenApiOperationObject = {
@@ -12,6 +15,13 @@ export const updateWorkspace: ZodOpenApiOperationObject = {
     path: z.object({
       idOrSlug: z.string().describe("The ID or slug of the workspace."),
     }),
+  },
+  requestBody: {
+    content: {
+      "application/json": {
+        schema: updateWorkspaceSchema,
+      },
+    },
   },
   responses: {
     "200": {
