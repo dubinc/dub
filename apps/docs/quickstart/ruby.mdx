@@ -29,9 +29,9 @@ Initialize the Dub Ruby SDK by creating a new instance of the `Dub` struct.
 ```ruby
 require 'dub'
 
-s = ::OpenApiSDK::Dub.new
+dub = ::OpenApiSDK::Dub.new
 
-s.config_security(
+dub.config_security(
   ::OpenApiSDK::Shared::Security.new(
     token: ENV['DUB_API_KEY'], # Use your Dub API key
   )
@@ -53,7 +53,7 @@ req = ::OpenApiSDK::Operations::CreateLinkRequest.new(
   )
 )
 
-res = s.links.create(req)
+res = dub.links.create(req)
 
 puts res.raw_response.body
 ```
@@ -74,7 +74,7 @@ req = ::OpenApiSDK::Operations::CreateLinkRequest.new(
   )
 )
 
-res = s.links.create(req)
+res = dub.links.create(req)
 
 puts res.raw_response.body
 ```
@@ -90,7 +90,7 @@ req = ::OpenApiSDK::Operations::UpsertLinkRequest.new(
   ),
 )
 
-res = s.links.upsert(req)
+res = dub.links.upsert(req)
 
 puts res.raw_response.body
 ```
@@ -112,7 +112,7 @@ req = ::OpenApiSDK::Operations::UpdateLinkRequest.new(
   ),
 )
 
-res = s.links.update(req)
+res = dub.links.update(req)
 
 puts res.raw_response.body
 ```
@@ -128,7 +128,7 @@ req = ::OpenApiSDK::Operations::RetrieveAnalyticsRequest.new(
   group_by: ::OpenApiSDK::Operations::GroupBy::TIMESERIES
 )
 
-res = s.analytics.retrieve(req)
+res = dub.analytics.retrieve(req)
 
 puts res.raw_response.body
 ```
