@@ -146,7 +146,11 @@ function AddEditDomainModal({
                 });
               }
               await Promise.all([
-                mutate(`/api/domains?workspaceId=${workspaceId}`),
+                mutate(
+                  (key) =>
+                    typeof key === "string" &&
+                    key.startsWith(`/api/domains?workspaceId=${workspaceId}`),
+                ),
                 mutate(
                   (key) =>
                     typeof key === "string" && key.startsWith("/api/links"),
