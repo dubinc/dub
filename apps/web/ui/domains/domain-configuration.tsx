@@ -149,7 +149,7 @@ const DnsRecord = ({
       </div>
       <div
         className={cn(
-          "grid items-end gap-x-10 gap-y-1 rounded-lg bg-gray-100/80 p-4 text-sm",
+          "scrollbar-hide grid items-end gap-x-10 gap-y-1 overflow-x-auto rounded-lg bg-gray-100/80 p-4 text-sm",
           hasTtl
             ? "grid-cols-[repeat(4,min-content)]"
             : "grid-cols-[repeat(3,min-content)]",
