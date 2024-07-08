@@ -1,10 +1,9 @@
-import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useDomains from "@/lib/swr/use-domains";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps, TagProps } from "@/lib/types";
+import { TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
@@ -16,18 +15,17 @@ import {
   Switch,
   Tick,
   useRouterStuff,
-  useToastWithUndo,
 } from "@dub/ui";
 import {
+  DUB_DOMAINS,
   DUB_WORKSPACE_ID,
   SWIPE_REVEAL_ANIMATION_SETTINGS,
-  isDubDomain,
   nFormatter,
   punycode,
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Archive, ChevronRight, Edit3, Search, XCircle } from "lucide-react";
+import { ChevronRight, Edit3, Search, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   useParams,
@@ -134,7 +132,7 @@ const DomainsFilter = () => {
   const { queryParams } = useRouterStuff();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
   const { id: workspaceId } = useWorkspace();
-  const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
+  const { allWorkspaceDomains } = useDomains();
 
   const [collapsed, setCollapsed] = useState(true);
   const [showMore, setShowMore] = useState(false);
@@ -150,7 +148,7 @@ const DomainsFilter = () => {
   const options = useMemo(() => {
     if (domains?.length === 0) return [];
 
-    const workspaceDomains = activeWorkspaceDomains?.map((domain) => ({
+    const workspaceDomains = allWorkspaceDomains?.map((domain) => ({
       ...domain,
       count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
     }));
@@ -158,14 +156,11 @@ const DomainsFilter = () => {
     const defaultDomains =
       workspaceId === `ws_${DUB_WORKSPACE_ID}`
         ? []
-        : activeDefaultDomains
-            ?.map((domain) => ({
-              ...domain,
-              count:
-                domains?.find(({ domain: d }) => d === domain.slug)?._count ||
-                0,
-            }))
-            .filter((d) => d.count > 0);
+        : DUB_DOMAINS?.map((domain) => ({
+            ...domain,
+            count:
+              domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
+          })).filter((d) => d.count > 0);
 
     const finalOptions = [
       ...(workspaceDomains || []),
@@ -173,7 +168,7 @@ const DomainsFilter = () => {
     ].sort((a, b) => b.count - a.count);
 
     return finalOptions;
-  }, [activeWorkspaceDomains, activeDefaultDomains, domains, workspaceId]);
+  }, [allWorkspaceDomains, domains, workspaceId]);
 
   useEffect(() => {
     if (options.length > 0) {
@@ -234,7 +229,7 @@ const DomainsFilter = () => {
                     className="flex w-full cursor-pointer items-center justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                   >
                     <p>{truncate(punycode(domain.slug), 24)}</p>
-                    <DomainPopover domain={domain} count={domain.count} />
+                    <p className="text-gray-500">{nFormatter(domain.count)}</p>
                   </label>
                 </div>
               ))
@@ -251,167 +246,6 @@ const DomainsFilter = () => {
         )}
       </AnimatePresence>
     </fieldset>
-  );
-};
-
-const DomainPopover = ({
-  domain,
-  count,
-}: {
-  domain: DomainProps;
-  count: number;
-}) => {
-  const { id, slug } = useWorkspace();
-  const [openPopover, setOpenPopover] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const { mutate: mutateDomains } = useDomains();
-  const { defaultDomains, mutate: mutateDefaultDomains } = useDefaultDomains();
-
-  const { AddEditDomainModal, setShowAddEditDomainModal } =
-    useAddEditDomainModal({
-      props: domain,
-    });
-
-  const toastWithUndo = useToastWithUndo();
-
-  const archiveDomain = (archive: boolean) => {
-    return fetch(`/api/domains/${domain.slug}?workspaceId=${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ archived: archive }),
-    });
-  };
-
-  const archiveDefaultDomain = (archive: boolean) => {
-    const newDefaultDomains = archive
-      ? defaultDomains?.filter((d) => d !== domain.slug)
-      : [...(defaultDomains || []), domain.slug];
-    return fetch(`/api/domains/default?workspaceId=${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        defaultDomains: newDefaultDomains,
-      }),
-    });
-  };
-
-  const handleArchiveRequest = async () => {
-    setProcessing(true);
-    if (isDubDomain(domain.slug)) {
-      const res = await archiveDefaultDomain(true);
-      if (res.ok) {
-        await mutateDefaultDomains();
-        toastWithUndo({
-          id: "domain-archive-undo-toast",
-          message: "Successfully archived domain!",
-          undo: () =>
-            toast.promise(archiveDefaultDomain(false), {
-              loading: "Undo in progress...",
-              success: () => {
-                mutateDefaultDomains();
-                return "Undo successful! Changes reverted.";
-              },
-              error: "Failed to roll back changes. An error occurred.",
-            }),
-          duration: 5000,
-        });
-      } else {
-        const { error } = await res.json();
-        setProcessing(false);
-        toast.error(error.message);
-      }
-    } else {
-      const res = await archiveDomain(true);
-      if (res.ok) {
-        await mutateDomains();
-        toastWithUndo({
-          id: "domain-archive-undo-toast",
-          message: `Successfully archived domain!`,
-          undo: () =>
-            toast.promise(archiveDomain(false), {
-              loading: "Undo in progress...",
-              success: () => {
-                mutateDomains();
-                return "Undo successful! Changes reverted.";
-              },
-              error: "Failed to roll back changes. An error occurred.",
-            }),
-          duration: 5000,
-        });
-      } else {
-        const { error } = await res.json();
-        setProcessing(false);
-        toast.error(error.message);
-      }
-    }
-  };
-
-  return processing ? (
-    <div className="flex h-6 items-center justify-center">
-      <LoadingCircle />
-    </div>
-  ) : (
-    <>
-      <Popover
-        content={
-          <div className="grid w-full gap-px p-2 sm:w-48">
-            {(!isDubDomain(domain.slug) || slug === "dub") && (
-              <Button
-                type="button"
-                text="Edit"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowAddEditDomainModal(true);
-                }}
-                icon={<Edit3 className="h-4 w-4" />}
-                className="h-9 w-full justify-start px-2 font-medium"
-              />
-            )}
-            <Button
-              type="button"
-              text="Archive"
-              variant="outline"
-              onClick={() => {
-                setOpenPopover(false);
-                handleArchiveRequest();
-              }}
-              icon={<Archive className="h-4 w-4" />}
-              className="h-9 w-full justify-start px-2 font-medium"
-            />
-          </div>
-        }
-        align="end"
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-      >
-        <button
-          type="button"
-          onClick={() => setOpenPopover(!openPopover)}
-          className={`${
-            openPopover ? "bg-gray-200" : "hover:bg-gray-200"
-          } flex h-6 items-center justify-center rounded-md transition-colors`}
-        >
-          <ThreeDots
-            className={`h-4 w-4 text-gray-500 ${
-              openPopover ? "" : "hidden group-hover:block"
-            }`}
-          />
-          <p
-            className={`text-gray-500 ${
-              openPopover ? "hidden" : "group-hover:hidden"
-            }`}
-          >
-            {nFormatter(count)}
-          </p>
-        </button>
-      </Popover>
-      <AddEditDomainModal />
-    </>
   );
 };
 
