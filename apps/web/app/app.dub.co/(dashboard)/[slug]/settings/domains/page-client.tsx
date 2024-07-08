@@ -6,6 +6,7 @@ import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import EmptyState from "@/ui/shared/empty-state";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Globe, useRouterStuff } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
@@ -22,8 +23,10 @@ export default function WorkspaceDomainsClient() {
 
   const { searchParams, queryParams } = useRouterStuff();
   const tab = searchParams.get("tab") || "active";
+  const search = searchParams.get("search");
   const { allWorkspaceDomains, loading } = useDomains({
     archived: tab === "archived" ? true : false,
+    search: search || undefined,
   });
 
   return (
@@ -45,7 +48,8 @@ export default function WorkspaceDomainsClient() {
               }
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <SearchBoxPersisted loading={loading} />
             <ToggleGroup
               options={[
                 { value: "active", label: "Active" },
@@ -75,7 +79,9 @@ export default function WorkspaceDomainsClient() {
                   title={
                     tab === "archived"
                       ? "No archived domains found for this workspace"
-                      : "No custom domains found for this workspace"
+                      : search
+                        ? "No custom domains found"
+                        : "No custom domains found for this workspace"
                   }
                 />
                 <AddDomainButton />
