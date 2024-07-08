@@ -32,8 +32,6 @@ class LinksController < ApplicationController
 
   before_action :initialize_dub
 
-  # Make sure to set the DUB_API_KEY in your environment
-
   def initialize_dub
     @dub = ::OpenApiSDK::Dub.new
     @dub.config_security(
