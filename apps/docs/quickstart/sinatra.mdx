@@ -1,6 +1,6 @@
 ---
-title: "Introduction"
-description: "Learn how to create a short link using the Dub Ruby SDK."
+title: "Sinatra"
+description: "Learn how to create a short link using Sinatra and the Dub Ruby SDK."
 ---
 
 import Prerequisites from "/snippets/sdk-prerequisites.mdx";
@@ -26,8 +26,9 @@ gem install dub
 
 Initialize the Dub Ruby SDK by creating a new instance of the `Dub` struct.
 
-```ruby
-require 'dub'
+```ruby index.rb
+require "sinatra"
+require "dub"
 
 dub = ::OpenApiSDK::Dub.new
 dub.config_security(
@@ -46,15 +47,18 @@ dub.config_security(
 Let's create a short link using the [Dub Ruby SDK](https://d.to/ruby).
 
 ```ruby index.rb
-req = ::OpenApiSDK::Operations::CreateLinkRequest.new(
-  request_body: ::OpenApiSDK::Operations::CreateLinkRequestBody.new(
-    url: "https://google.com"
+post "/links" do
+  req = ::OpenApiSDK::Operations::CreateLinkRequest.new(
+    request_body: ::OpenApiSDK::Operations::CreateLinkRequestBody.new(
+      url: 'https://google.com'
+    )
   )
-)
 
-res = dub.links.create(req)
+  res = dub.links.create(req)
 
-puts res.raw_response.body
+  content_type :json
+  res.raw_response.body
+end
 ```
 
 <Accordion title="Full list of available attributes for the Link model">
@@ -66,16 +70,19 @@ puts res.raw_response.body
 Optionally, you can also pass an `externalId` field which is a unique identifier for the link in your own database to associate it with the link in Dub's system.
 
 ```ruby index.rb
-req = ::OpenApiSDK::Operations::CreateLinkRequest.new(
-  request_body: ::OpenApiSDK::Operations::CreateLinkRequestBody.new(
-    url: "https://google.com",
-    external_id: "12345"
+post "/links" do
+  req = ::OpenApiSDK::Operations::CreateLinkRequest.new(
+    request_body: ::OpenApiSDK::Operations::CreateLinkRequestBody.new(
+      url: 'https://google.com',
+      external_id: '12345'
+    )
   )
-)
 
-res = dub.links.create(req)
+  res = dub.links.create(req)
 
-puts res.raw_response.body
+  content_type :json
+  res.raw_response.body
+end
 ```
 
 ## 4. Upsert link
@@ -83,15 +90,18 @@ puts res.raw_response.body
 Dub Ruby SDK provides a method to create or update a link so you don't have to worry about checking if the link already exists.
 
 ```ruby index.rb
-req = ::OpenApiSDK::Operations::UpsertLinkRequest.new(
-  request_body: ::OpenApiSDK::Operations::UpsertLinkRequestBody.new(
-    url: "https://google.com",
-  ),
-)
+put "/links" do
+  req = ::OpenApiSDK::Operations::UpsertLinkRequest.new(
+    request_body: ::OpenApiSDK::Operations::UpsertLinkRequestBody.new(
+      url: "https://google.com",
+    ),
+  )
 
-res = dub.links.upsert(req)
+  res = dub.links.upsert(req)
 
-puts res.raw_response.body
+  content_type :json
+  res.raw_response.body
+end
 ```
 
 ## 5. Update link
@@ -104,16 +114,19 @@ You can do that in two ways:
 - Using the link's `externalId` in your own database (prefixed with `ext_`).
 
 ```ruby index.rb
-req = ::OpenApiSDK::Operations::UpdateLinkRequest.new(
-  link_id: "cly2p8onm000cym8200nfay7l",
-  request_body: ::OpenApiSDK::Operations::UpdateLinkRequestBody.new(
-    url: "https://google.us",
-  ),
-)
+patch "/links" do
+  req = ::OpenApiSDK::Operations::UpdateLinkRequest.new(
+    link_id: "clyci5h0w000511sjmu0tyjv9",
+    request_body: ::OpenApiSDK::Operations::UpdateLinkRequestBody.new(
+      url: 'https://google.uk'
+    )
+  )
 
-res = dub.links.update(req)
+  res = dub.links.update(req)
 
-puts res.raw_response.body
+  content_type :json
+  res.raw_response.body
+end
 ```
 
 ## 6. Retrieve analytics for link
@@ -121,24 +134,27 @@ puts res.raw_response.body
 Let's retrieve analytics for a link using the Dub Ruby SDK.
 
 ```ruby index.rb
-req = ::OpenApiSDK::Operations::RetrieveAnalyticsRequest.new(
-  link_id: "clmnr6jcc0005l308q9v56uz1",
-  interval: ::OpenApiSDK::Operations::Interval::SEVEND,
-  group_by: ::OpenApiSDK::Operations::GroupBy::TIMESERIES
-)
+get "/analytics" do
+  req = ::OpenApiSDK::Operations::RetrieveAnalyticsRequest.new(
+    link_id: "clx1gvi9o0005hf5momm6f7hj",
+    interval: ::OpenApiSDK::Operations::Interval::SEVEND,
+    group_by: ::OpenApiSDK::Operations::GroupBy::TIMESERIES
+  )
 
-res = dub.analytics.retrieve(req)
+  res = dub.analytics.retrieve(req)
 
-puts res.raw_response.body
+  content_type :json
+  res.raw_response.body
+end
 ```
 
 ## 7. Examples
 
 <CardGroup cols={2}>
   <Card
-    title="Ruby Example"
+    title="Sinatra Example"
     icon="arrow-up-right-from-square"
-    href="https://github.com/dubinc/examples/tree/main/ruby"
+    href="https://github.com/dubinc/examples/tree/main/ruby/sinatra"
   >
     See the full example on GitHub.
   </Card>

@@ -1,0 +1,68 @@
+---
+title: "dub.workspaces.update"
+sidebarTitle: "Update"
+"og:title": "dub.workspaces.update - Update a workspace - TypeScript SDK"
+description: "Update a workspace for the authenticated user."
+---
+
+import WorkspaceResponse from "/snippets/workspace-response.mdx";
+
+## Arguments
+
+<ParamField body="idOrSlug" type="string" required>
+  The unique ID or slug of the workspace.
+</ParamField>
+
+<ParamField body="name" type="string">
+  The name of the workspace.
+</ParamField>
+
+<ParamField body="slug" type="string">
+  The slug of the workspace.
+</ParamField>
+
+## Response
+
+<WorkspaceResponse />
+
+<RequestExample>
+
+```ts
+// Update a workspace by its slug
+await dub.workspaces.update("acme", {
+  name: "Acme Inc",
+});
+
+// Update a workspace by its ID
+await dub.workspaces.update("ws_clv3mw4qb00008tvuw86c53db", {
+  name: "Acme Inc",
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```ts
+{
+  id: 'clv3mw4qb00008tvuw86c53db',
+  name: 'Acme',
+  slug: 'acme',
+  logo: null,
+  usage: 0,
+  usageLimit: 1000,
+  linksUsage: 0,
+  linksLimit: 25,
+  domainsLimit: 3,
+  tagsLimit: 5,
+  usersLimit: 1,
+  plan: 'free',
+  stripeId: null,
+  billingCycleStart: 17,
+  createdAt: '2024-04-17T09:52:27.635Z',
+  users: [ { role: 'owner' } ],
+  domains: []
+}
+````
+
+</ResponseExample>
