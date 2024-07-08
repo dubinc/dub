@@ -119,7 +119,7 @@ export default function WorkspaceCard({
                               ? "Verify Domain"
                               : `Manage Domain${domains.length > 1 ? "s" : ""}`
                         }
-                        href={`/${slug}/domains`}
+                        href={`/${slug}/settings/domains`}
                       />
                     }
                   >
