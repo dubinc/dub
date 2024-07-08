@@ -3,4 +3,3 @@ pnpm-lock.yaml
 .next
 .turbo
 dist
-apps/docs/api-reference/endpoint/bulk-create-links.mdx
