@@ -440,7 +440,7 @@ export default function Toggle({
   return (
     <>
       <div
-        className={cn("sticky top-[6.85rem] z-10 bg-gray-50 py-3 md:py-3", {
+        className={cn("sticky top-10 z-10 bg-gray-50 py-3 md:py-3", {
           "top-14": isPublicStatsPage,
           "top-0": adminPage,
           "top-16": demoPage,
