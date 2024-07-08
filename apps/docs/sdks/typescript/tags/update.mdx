@@ -1,0 +1,45 @@
+---
+title: "dub.tags.update"
+sidebarTitle: "Update"
+"og:title": "dub.tags.update - Update a tag - TypeScript SDK"
+description: "Update a tag for the authenticated user."
+---
+
+import TagResponse from "/snippets/tag-response.mdx";
+
+## Arguments
+
+<ParamField body="name" type="string">
+  The name of the tag to update.
+</ParamField>
+
+<ParamField body="color" type="string">
+  The color of the tag.
+</ParamField>
+
+## Response
+
+<TagResponse />
+
+<RequestExample>
+
+```ts
+await dub.tags.update("cluibmjj5000975qol4hnx0t7", {
+  name: "Jobs",
+  color: "red",
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```ts
+{
+  id: "clv3j1h7o00032u1ngo8luv84",
+  name: "news",
+  color: "blue"
+}
+````
+
+</ResponseExample>

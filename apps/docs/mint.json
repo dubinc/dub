@@ -89,7 +89,7 @@
         {
           "group": "Ruby",
           "icon": "gem",
-          "pages": ["quickstart/ruby"]
+          "pages": ["quickstart/ruby", "quickstart/rails", "quickstart/sinatra"]
         }
       ]
     },
@@ -134,7 +134,10 @@
     },
     {
       "group": "Workspaces",
-      "pages": ["api-reference/endpoint/retrieve-a-workspace"]
+      "pages": [
+        "api-reference/endpoint/retrieve-a-workspace",
+        "api-reference/endpoint/update-a-workspace"
+      ]
     },
     {
       "group": "Domains",
@@ -149,7 +152,8 @@
       "group": "Tags",
       "pages": [
         "api-reference/endpoint/create-a-new-tag",
-        "api-reference/endpoint/retrieve-a-list-of-tags"
+        "api-reference/endpoint/retrieve-a-list-of-tags",
+        "api-reference/endpoint/update-a-tag"
       ]
     },
     {
@@ -195,9 +199,8 @@
           "group": "Workspaces",
           "icon": "folder",
           "pages": [
-            "sdks/typescript/workspaces/create",
             "sdks/typescript/workspaces/get",
-            "sdks/typescript/workspaces/list"
+            "sdks/typescript/workspaces/update"
           ]
         },
         {
@@ -213,7 +216,11 @@
         {
           "group": "Tags",
           "icon": "tag",
-          "pages": ["sdks/typescript/tags/create", "sdks/typescript/tags/list"]
+          "pages": [
+            "sdks/typescript/tags/create",
+            "sdks/typescript/tags/list",
+            "sdks/typescript/tags/update"
+          ]
         },
         {
           "group": "Metatags",
