@@ -339,8 +339,8 @@ function Menu({
           content={
             <div className="w-full sm:w-48">
               <div className="grid gap-px p-2">
-                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-sm font-medium text-gray-600">
-                  Link
+                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+                  Link Settings
                 </p>
                 <Button
                   text="Edit Link"
@@ -378,8 +378,8 @@ function Menu({
               </div>
               <div className="border-t border-gray-200" />
               <div className="grid gap-px p-2">
-                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-sm font-medium text-gray-600">
-                  Domain
+                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+                  Domain Settings
                 </p>
                 <Button
                   text="Settings"

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function OldDomainsPage({
+export default function OldWorkspaceDomains({
   params,
 }: {
   params: {

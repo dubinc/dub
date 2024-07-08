@@ -1,5 +1,12 @@
 import SettingsLayout from "@/ui/layout/settings-layout";
-import { Gear2, Globe, Key, Receipt2, ShieldCheck, Users6 } from "@dub/ui";
+import {
+  Gear2,
+  Globe,
+  Key,
+  Receipt2,
+  ShieldCheck,
+  Users6,
+} from "@dub/ui/src/icons";
 import { ReactNode } from "react";
 
 export default function WorkspaceSettingsLayout({
