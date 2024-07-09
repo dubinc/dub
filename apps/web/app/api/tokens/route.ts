@@ -1,4 +1,5 @@
-import { scopesToName } from "@/lib/api/tokens/scopes";
+import { DubApiError } from "@/lib/api/errors";
+import { getScopesByRole, scopesToName } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -19,6 +20,35 @@ export const POST = withWorkspace(
     );
 
     let machineUser: User | null = null;
+
+    const { role } = await prisma.projectUsers.findUniqueOrThrow({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId: workspace.id,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    // Only workspace owners can create machine users
+    if (isMachine && role !== "owner") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Only workspace owners can create machine users.",
+      });
+    }
+
+    // Check given scopes are valid based on user's role
+    const userScopes = getScopesByRole(role);
+    if (scopes && scopes.every((scope) => !userScopes.includes(scope))) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Some of the given scopes are not available for your role.",
+      });
+    }
 
     // Create machine user if needed
     if (isMachine) {

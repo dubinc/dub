@@ -148,27 +148,64 @@ export const resourcePermissions = [
       },
     ],
   },
-] as const;
+];
 
-// Map roles to scopes
-// { owner: ["workspace.write"], member: ["workspace.read"] }
-export const roleScopesMapping = resourcePermissions.reduce<
-  Record<Role, Scope[]>
+// Get scopes by role
+export const getScopesByRole = (role: Role) => {
+  const scopes: string[] = ["apis.read", "apis.all"];
+
+  resourcePermissions.forEach((resource) => {
+    resource.permissions.forEach((permission) => {
+      if (permission.roles.includes(role)) {
+        scopes.push(permission.scope);
+      }
+    });
+  });
+
+  return scopes as Scope[];
+};
+
+// Get resource permissions by role
+export const getResourcePermissionsByRole = (role: Role) => {
+  return resourcePermissions
+    .map((resource) => {
+      const filteredPermissions = resource.permissions.filter((permission) =>
+        permission.roles.includes(role),
+      );
+
+      return {
+        ...resource,
+        permissions: filteredPermissions,
+      };
+    })
+    .filter((resource) => resource.permissions.length > 0);
+};
+
+// Expand the scopes to include all the required scopes
+export const normalizeScopes = (scopes: string[]): Scope[] => {
+  return (scopes || [])
+    .map((scope: Scope) => scopeMapping[scope] || scope)
+    .flat();
+};
+
+// Role permissions for each resource
+export const rolePermissionsMapping = resourcePermissions.reduce<
+  Record<Role, Record<string, boolean>>
 >(
   (acc, { permissions }) => {
-    permissions.forEach(({ scope, roles }) => {
+    permissions.forEach(({ permission, roles }) => {
       roles.forEach((role) => {
         if (!acc[role]) {
-          acc[role] = [];
+          acc[role] = {};
         }
 
-        acc[role].push(scope);
+        acc[role][permission] = true;
       });
     });
 
     return acc;
   },
-  {} as Record<Role, Scope[]>,
+  {} as Record<Role, Record<string, boolean>>,
 );
 
 export const scopeMapping = {

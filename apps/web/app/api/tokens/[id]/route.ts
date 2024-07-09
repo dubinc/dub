@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { getScopesByRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -48,10 +49,31 @@ export const GET = withWorkspace(
 
 // PATCH /api/tokens/:id - update a specific token
 export const PATCH = withWorkspace(
-  async ({ workspace, params, req }) => {
+  async ({ workspace, params, req, session }) => {
     const { name, scopes } = updateTokenSchema.parse(
       await parseRequestBody(req),
     );
+
+    const { role } = await prisma.projectUsers.findUniqueOrThrow({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId: workspace.id,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    // Check given scopes are valid based on user's role
+    const userScopes = getScopesByRole(role);
+    if (scopes && scopes.every((scope) => !userScopes.includes(scope))) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Some of the given scopes are not available for your role.",
+      });
+    }
 
     const token = await prisma.restrictedToken.update({
       where: {
