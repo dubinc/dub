@@ -292,11 +292,6 @@ export const withWorkspace = (
         scopes = userScopes;
       }
 
-      if (isRestrictedToken) {
-        console.log("session", session);
-        console.log("scopes", scopes || []);
-      }
-
       // Check user has permission to make the action
       if (!skipScopeChecks) {
         throwIfNoAccess({
