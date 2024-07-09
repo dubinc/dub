@@ -4,7 +4,6 @@ import {
   updateDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
 
 export const updateDomain: ZodOpenApiOperationObject = {
   operationId: "updateDomain",
@@ -13,7 +12,6 @@ export const updateDomain: ZodOpenApiOperationObject = {
   summary: "Update a domain",
   description: "Update a domain for the authenticated workspace.",
   requestParams: {
-    query: workspaceParamsSchema,
     path: DomainSchema.pick({ slug: true }),
   },
   requestBody: {

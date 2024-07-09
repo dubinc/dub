@@ -66,26 +66,4 @@ export const document = createDocument({
       ...openApiErrorResponses,
     },
   },
-  "x-speakeasy-globals": {
-    parameters: [
-      {
-        "x-speakeasy-globals-hidden": true,
-        name: "workspaceId",
-        in: "query",
-        deprecated: true,
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        "x-speakeasy-globals-hidden": true,
-        name: "projectSlug",
-        in: "query",
-        deprecated: true,
-        schema: {
-          type: "string",
-        },
-      },
-    ],
-  },
 });
