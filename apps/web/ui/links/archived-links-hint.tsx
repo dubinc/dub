@@ -8,6 +8,7 @@ export default function ArchivedLinksHint() {
   const showArchived = searchParams.get("showArchived") === "true";
 
   // only show the hint if there filters but showArchived is false
+  // @ts-ignore – until https://github.com/microsoft/TypeScript/issues/54466 is fixed
   return searchParams.size > 0 && !showArchived && <ArchivedLinksHintHelper />;
 }
 
