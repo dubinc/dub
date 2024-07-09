@@ -30,8 +30,6 @@ importers:
         specifier: ^1.12.5
         version: 1.12.5
 
-  apps/docs: {}
-
   apps/web:
     dependencies:
       '@ai-sdk/anthropic':

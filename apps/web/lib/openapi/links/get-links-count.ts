@@ -2,7 +2,6 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
 
 export const getLinksCount: ZodOpenApiOperationObject = {
   operationId: "getLinksCount",
@@ -10,7 +9,7 @@ export const getLinksCount: ZodOpenApiOperationObject = {
   summary: "Retrieve links count",
   description: "Retrieve the number of links for the authenticated workspace.",
   requestParams: {
-    query: workspaceParamsSchema.merge(getLinksCountQuerySchema),
+    query: getLinksCountQuerySchema,
   },
   responses: {
     "200": {
