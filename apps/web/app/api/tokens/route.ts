@@ -83,6 +83,7 @@ export const POST = withWorkspace(
         userId: isMachine ? machineUser?.id! : session.user.id,
         projectId: workspace.id,
         rateLimit: getCurrentPlan(workspace.plan).limits.api,
+        createdBy: session.user.id,
         scopes:
           scopes && scopes.length > 0 ? [...new Set(scopes)].join(" ") : null,
       },
