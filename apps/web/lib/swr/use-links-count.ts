@@ -3,13 +3,15 @@ import { fetcher } from "@dub/utils";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import z from "../zod";
+import { getLinksCountQuerySchema } from "../zod/schemas/links";
 import useWorkspace from "./use-workspace";
 
-export default function useLinksCount({
-  groupBy,
-}: {
-  groupBy?: "domain" | "tagId";
-} = {}) {
+const partialQuerySchema = getLinksCountQuerySchema.partial();
+
+export default function useLinksCount(
+  opts: z.infer<typeof partialQuerySchema> = {},
+) {
   const { id, slug } = useWorkspace();
   const { getQueryString } = useRouterStuff();
   const pathname = usePathname();
@@ -27,7 +29,7 @@ export default function useLinksCount({
       ? `/api/links/count${getQueryString(
           {
             workspaceId: id,
-            ...(groupBy && { groupBy }),
+            ...opts,
           },
           {
             ignore: [
@@ -40,7 +42,7 @@ export default function useLinksCount({
         )}`
       : admin
         ? `/api/admin/links/count${getQueryString({
-            ...(groupBy && { groupBy }),
+            ...opts,
           })}`
         : null,
     fetcher,

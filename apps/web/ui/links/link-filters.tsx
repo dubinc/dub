@@ -27,12 +27,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Edit3, Search, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -45,17 +40,7 @@ export default function LinkFilters() {
   const { tags } = useTags();
   const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
 
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
-
-  useEffect(() => {
-    if (searchParams?.has("search")) {
-      queryParams({
-        set: { showArchived: "true" },
-      });
-    }
-  }, [pathname, searchParams]);
 
   const showClearButton = useMemo(() => {
     return [
