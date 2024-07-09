@@ -3,8 +3,9 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { MaxWidthWrapper } from "@dub/ui";
-import { Suspense, useRef } from "react";
+import { Suspense } from "react";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
+import ArchivedLinksHint from "./archived-links-hint";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkFilters, { InputSearchBox } from "./link-filters";
@@ -20,7 +21,6 @@ export default function LinksContainer({
   const { links, isValidating } = useLinks();
   const { data: count } = useLinksCount();
   const { LinkFiltersButton, LinkFiltersModal } = useLinkFiltersModal();
-  const searchInputRef = useRef();
 
   return (
     <>
@@ -58,6 +58,9 @@ export default function LinksContainer({
                   <LinkCardPlaceholder key={i} />
                 ))
               )}
+              <Suspense>
+                <ArchivedLinksHint />
+              </Suspense>
             </ul>
             {count && count > 0 ? (
               <Suspense>
