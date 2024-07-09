@@ -5,7 +5,7 @@ import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, roleScopesMapping } from "../api/tokens/scopes";
+import { Scope, getScopesByRole, normalizeScopes } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -277,11 +277,24 @@ export const withWorkspace = (
         }
       }
 
-      // Find scopes based on the token or user's role
-      if (token && "scopes" in token) {
-        scopes = (token.scopes?.split(" ") as Scope[]) || [];
-      } else if (workspace.users.length > 0) {
-        scopes = roleScopesMapping[workspace.users[0].role];
+      // Find the subset of permissions that the user has access to based on their role
+      // Only owner can create machine users now
+      const userScopes = getScopesByRole(
+        session.user.isMachine ? "owner" : workspace.users[0].role,
+      );
+
+      if (isRestrictedToken) {
+        const tokenScopes = (token.scopes.split(" ") || []) as Scope[];
+        scopes = normalizeScopes(tokenScopes).filter((scope) =>
+          userScopes.includes(scope),
+        );
+      } else {
+        scopes = userScopes;
+      }
+
+      if (isRestrictedToken) {
+        console.log("session", session);
+        console.log("scopes", scopes || []);
       }
 
       // Check user has permission to make the action
