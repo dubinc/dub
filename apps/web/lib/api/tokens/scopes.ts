@@ -188,26 +188,6 @@ export const normalizeScopes = (scopes: string[]): Scope[] => {
     .flat();
 };
 
-// Role permissions for each resource
-export const rolePermissionsMapping = resourcePermissions.reduce<
-  Record<Role, Record<string, boolean>>
->(
-  (acc, { permissions }) => {
-    permissions.forEach(({ permission, roles }) => {
-      roles.forEach((role) => {
-        if (!acc[role]) {
-          acc[role] = {};
-        }
-
-        acc[role][permission] = true;
-      });
-    });
-
-    return acc;
-  },
-  {} as Record<Role, Record<string, boolean>>,
-);
-
 export const scopeMapping = {
   "apis.all": availableScopes,
   "apis.read": availableScopes.filter((scope) => scope.endsWith(".read")),
