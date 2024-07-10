@@ -368,7 +368,7 @@ export type Scope = (typeof SCOPES)[number];
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
 
-type ResourceKeys =
+export type ResourceKeys =
   | "links"
   | "workspaces"
   | "analytics"

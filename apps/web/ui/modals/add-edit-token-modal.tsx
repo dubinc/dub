@@ -1,5 +1,6 @@
 import {
   RESOURCES,
+  ResourceKeys,
   Scope,
   ScopeByResource,
   getScopesByResourceForRole,
@@ -129,7 +130,7 @@ function AddEditTokenModal({
 
   const scopesByResources = transformScopesForUI(
     getScopesByResourceForRole(isOwner ? "owner" : "member"),
-  );
+  ).filter((resource) => resource.betaFeature === betaTester);
 
   return (
     <>
@@ -300,7 +301,7 @@ function AddEditTokenModal({
                         {resource.scopes.map((scope) => (
                           <div
                             className="flex items-center space-x-2"
-                            key={scope}
+                            key={scope.scope}
                           >
                             <RadioGroupItem value={scope.scope} />
                             <div className="capitalize">{scope.type}</div>
@@ -386,18 +387,10 @@ export function useAddEditTokenModal(
 }
 
 const transformScopesForUI = (scopedResources: ScopeByResource) => {
-  return Object.keys(scopedResources).map((resourceKey) => {
-    const resource = RESOURCES.find((r) => r.key === resourceKey);
-
+  return Object.keys(scopedResources).map((resourceKey: ResourceKeys) => {
     return {
-      key: resource?.key || resourceKey,
-      name: resource?.name || resourceKey,
-      description: resource?.description,
-      scopes: scopedResources[resourceKey].map((scope) => ({
-        scope: scope.scope,
-        type: scope.type,
-        description: scope.description,
-      })),
+      ...RESOURCES.find((r) => r.key === resourceKey)!,
+      scopes: scopedResources[resourceKey],
     };
   });
 };

@@ -68,7 +68,11 @@ export const PATCH = withWorkspace(
 
     // Check given scopes are valid based on user's role
     const userScopes = getScopesByRole(role);
-    if (scopes && scopes.every((scope) => !userScopes.includes(scope))) {
+
+    if (
+      scopes?.length &&
+      scopes.every((scope) => !userScopes.includes(scope))
+    ) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: "Some of the given scopes are not available for your role.",

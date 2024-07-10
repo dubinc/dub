@@ -293,8 +293,6 @@ export const withWorkspace = (
         );
       }
 
-      console.log(permissions);
-
       // Check user has permission to make the action
       if (!skipPermissionChecks) {
         throwIfNoAccess({
