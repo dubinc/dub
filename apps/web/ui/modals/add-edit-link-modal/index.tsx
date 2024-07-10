@@ -393,7 +393,7 @@ function AddEditLinkModal({
           onScroll={handleScroll}
         >
           <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
-            <LinkLogo apexDomain={getApexDomain(url)} />
+            <LinkLogo apexDomain={getApexDomain(debouncedUrl)} />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
               {props ? `Edit ${shortLink}` : "Create a new link"}
             </h3>

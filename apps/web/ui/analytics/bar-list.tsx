@@ -117,7 +117,7 @@ export function LineItem({
       <div className="z-10 flex items-center space-x-4 px-3">
         {icon}
         <div className="truncate text-sm text-gray-800">
-          {truncate(title, 36)}
+          {truncate(title, 56)}
         </div>
       </div>
     );

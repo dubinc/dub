@@ -12,23 +12,28 @@ async function main() {
       projectId,
     },
     select: {
-      key: true,
       domain: true,
+      key: true,
       url: true,
+      clicks: true,
+      createdAt: true,
     },
     orderBy: {
       createdAt: "asc",
     },
-    skip: 99999,
   });
 
-  const processedLinks = links.map(({ key, domain, url }) => ({
-    link: linkConstructor({
-      domain,
-      key,
+  const processedLinks = links.map(
+    ({ key, domain, url, clicks, createdAt }) => ({
+      link: linkConstructor({
+        domain,
+        key,
+      }),
+      url,
+      clicks,
+      createdAt: createdAt.toISOString(),
     }),
-    url,
-  }));
+  );
 
   fs.writeFileSync("xxx.csv", Papa.unparse(processedLinks));
 }
