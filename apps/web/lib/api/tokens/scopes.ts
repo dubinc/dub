@@ -10,8 +10,6 @@ export const SCOPES_NAMES = [
   "analytics.read",
   "domains.read",
   "domains.write",
-  "tokens.read",
-  "tokens.write",
   "conversions.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
@@ -61,12 +59,6 @@ export const RESOURCES: Resource[] = [
     name: "Tags",
     key: "tags",
     description: "Create, read, update, and delete tags",
-    betaFeature: false,
-  },
-  {
-    name: "API Keys",
-    key: "tokens",
-    description: "Create, read, update, and delete API keys",
     betaFeature: false,
   },
   {
@@ -133,20 +125,6 @@ export const SCOPES: MasterScope[] = [
     permissions: ["workspaces.write", "workspaces.read"],
     type: "write",
     resource: "workspaces",
-  },
-  {
-    scope: "tokens.read",
-    roles: ["owner", "member"],
-    permissions: ["tokens.read"],
-    type: "read",
-    resource: "tokens",
-  },
-  {
-    scope: "tokens.write",
-    roles: ["owner", "member"],
-    permissions: ["tokens.write", "tokens.read"],
-    type: "write",
-    resource: "tokens",
   },
   {
     scope: "analytics.read",
@@ -375,6 +353,15 @@ export const scopesToName = (scopes: string[]) => {
     name: "Restricted",
     description: "restricted access to some resources",
   };
+};
+
+export const validateScopesForRole = (scopes: Scope[], role: Role) => {
+  const allowedScopes = ROLE_SCOPES_MAP[role];
+  const invalidScopes = scopes.filter(
+    (scope) => !allowedScopes.includes(scope),
+  );
+
+  return !(invalidScopes.length > 0);
 };
 
 export type Scope = (typeof SCOPES_NAMES)[number];

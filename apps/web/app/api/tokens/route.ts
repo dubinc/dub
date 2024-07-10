@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { ROLE_SCOPES_MAP, scopesToName } from "@/lib/api/tokens/scopes";
+import { scopesToName, validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -41,11 +41,7 @@ export const POST = withWorkspace(
       });
     }
 
-    // Check given scopes are valid based on user's role
-    if (
-      scopes?.length &&
-      scopes.every((scope) => !ROLE_SCOPES_MAP[role].includes(scope))
-    ) {
+    if (!validateScopesForRole(scopes || [], role)) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: "Some of the given scopes are not available for your role.",
