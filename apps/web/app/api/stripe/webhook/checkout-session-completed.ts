@@ -68,6 +68,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             },
           },
         },
+        where: {
+          user: {
+            isMachine: false,
+          },
+        },
       },
     },
   });
