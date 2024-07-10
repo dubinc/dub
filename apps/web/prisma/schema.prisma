@@ -32,6 +32,7 @@ model User {
   defaultWorkspace    String?
   oAuthCodes          OAuthCode[]
   oAuthAuthorizedApps OAuthAuthorizedApp[] // OAuth apps user authorized for their workspace
+  oAuthApps           OAuthApp[] // OAuth apps user created in their workspace
 
   @@index(source)
   @@index(defaultWorkspace)
@@ -377,8 +378,10 @@ model OAuthApp {
   logo               String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  createdBy          String?
   projectId          String
 
+  user           User?                @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
   oAuthCodes     OAuthCode[]
   accessTokens   RestrictedToken[]
