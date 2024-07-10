@@ -1,7 +1,7 @@
 import { availableScopes } from "@/lib/api/tokens/scopes";
 import { z } from "zod";
 
-export const oAuthClientSchema = z.object({
+export const oAuthAppSchema = z.object({
   clientId: z.string(),
   clientSecret: z.string().optional(),
   name: z.string(),
@@ -94,7 +94,7 @@ export const oAuthAuthorizedAppSchema = z
     }),
   })
   .merge(
-    oAuthClientSchema.pick({
+    oAuthAppSchema.pick({
       clientId: true,
       name: true,
       developer: true,

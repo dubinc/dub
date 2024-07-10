@@ -12,7 +12,7 @@ export const GET = withWorkspace(
       select: {
         id: true,
         createdAt: true,
-        oAuthClient: {
+        oAuthApp: {
           select: {
             clientId: true,
             name: true,
@@ -32,10 +32,10 @@ export const GET = withWorkspace(
     const appsAuthorized = result.map((app) => ({
       id: app.id,
       createdAt: app.createdAt,
-      clientId: app.oAuthClient.clientId,
-      name: app.oAuthClient.name,
-      developer: app.oAuthClient.developer,
-      website: app.oAuthClient.website,
+      clientId: app.oAuthApp.clientId,
+      name: app.oAuthApp.name,
+      developer: app.oAuthApp.developer,
+      website: app.oAuthApp.website,
       user: {
         id: app.user.id,
         name: app.user.name,

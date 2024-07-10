@@ -11,7 +11,7 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
   const body = authorizeRequestSchema.parse(await parseRequestBody(req));
   const { state, client_id: clientId, redirect_uri: redirectUri } = body;
 
-  const oAuthClient = await prisma.oAuthClient.findUniqueOrThrow({
+  const oAuthApp = await prisma.oAuthApp.findUniqueOrThrow({
     where: {
       clientId,
     },
@@ -23,7 +23,7 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
       redirectUri,
       projectId: workspace.id,
       userId: session.user.id,
-      scopes: oAuthClient.scopes,
+      scopes: oAuthApp.scopes,
       code: nanoid(OAUTH_CODE_LENGTH),
       expiresAt: new Date(Date.now() + OAUTH_CODE_LIFETIME * 1000),
     },

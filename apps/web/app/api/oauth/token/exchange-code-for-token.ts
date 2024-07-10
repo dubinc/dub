@@ -43,7 +43,7 @@ export const exchangeAuthCodeForToken = async (
     });
   }
 
-  const app = await prisma.oAuthClient.findFirst({
+  const app = await prisma.oAuthApp.findFirst({
     where: {
       clientId,
       clientSecretHashed: await hashToken(clientSecret),

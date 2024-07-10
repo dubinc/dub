@@ -8,13 +8,13 @@ import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   createOAuthClientSchema,
-  oAuthClientSchema,
+  oAuthAppSchema,
 } from "@/lib/zod/schemas/oauth";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// POST /api/oauth-clients - create a new OAuth client
+// POST /api/oauth-apps - create a new OAuth apps
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const { name, developer, website, redirectUri, scopes } =
@@ -22,7 +22,7 @@ export const POST = withWorkspace(
 
     const clientSecret = `${OAUTH_CLIENT_SECRET_PREFIX}${nanoid(OAUTH_CLIENT_SECRET_LENGTH)}`;
 
-    const client = await prisma.oAuthClient.create({
+    const client = await prisma.oAuthApp.create({
       data: {
         projectId: workspace.id,
         name,
@@ -37,7 +37,7 @@ export const POST = withWorkspace(
 
     return NextResponse.json(
       {
-        ...oAuthClientSchema.parse(client),
+        ...oAuthAppSchema.parse(client),
         clientSecret,
       },
       { status: 201 },
@@ -48,16 +48,16 @@ export const POST = withWorkspace(
   },
 );
 
-// GET /api/oauth-clients - get all OAuth clients for a specific workspace
+// GET /api/oauth-apps - get all OAuth apps for a specific workspace
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    const clients = await prisma.oAuthClient.findMany({
+    const apps = await prisma.oAuthApp.findMany({
       where: {
         projectId: workspace.id,
       },
     });
 
-    return NextResponse.json(z.array(oAuthClientSchema).parse(clients));
+    return NextResponse.json(z.array(oAuthAppSchema).parse(apps));
   },
   {
     requiredScopes: ["oauth_apps.read"],

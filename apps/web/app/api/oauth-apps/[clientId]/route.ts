@@ -3,15 +3,15 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
-  oAuthClientSchema,
+  oAuthAppSchema,
   updateOAuthClientSchema,
 } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";
 
-// GET /api/oauth-clients/[clientId] – get an OAuth client
+// GET /api/oauth-apps/[clientId] – get an OAuth app
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
-    const app = await prisma.oAuthClient.findFirst({
+    const app = await prisma.oAuthApp.findFirst({
       where: {
         clientId: params.clientId,
         projectId: workspace.id,
@@ -25,20 +25,20 @@ export const GET = withWorkspace(
       });
     }
 
-    return NextResponse.json(oAuthClientSchema.parse(app));
+    return NextResponse.json(oAuthAppSchema.parse(app));
   },
   {
     requiredScopes: ["oauth_apps.read"],
   },
 );
 
-// PATCH /api/oauth-clients/[clientId] – update an OAuth client
+// PATCH /api/oauth-apps/[clientId] – update an OAuth app
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
     const { name, developer, website, redirectUri, scopes } =
       updateOAuthClientSchema.parse(await parseRequestBody(req));
 
-    const app = await prisma.oAuthClient.update({
+    const app = await prisma.oAuthApp.update({
       where: {
         clientId: params.clientId,
         projectId: workspace.id,
@@ -52,17 +52,17 @@ export const PATCH = withWorkspace(
       },
     });
 
-    return NextResponse.json(oAuthClientSchema.parse(app));
+    return NextResponse.json(oAuthAppSchema.parse(app));
   },
   {
     requiredScopes: ["oauth_apps.write"],
   },
 );
 
-// DELETE /api/oauth-clients/[clientId] - delete an OAuth client
+// DELETE /api/oauth-apps/[clientId] - delete an OAuth app
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const app = await prisma.oAuthClient.findFirst({
+    const app = await prisma.oAuthApp.findFirst({
       where: {
         clientId: params.clientId,
         projectId: workspace.id,
@@ -76,7 +76,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await prisma.oAuthClient.delete({
+    await prisma.oAuthApp.delete({
       where: {
         clientId: params.clientId,
       },

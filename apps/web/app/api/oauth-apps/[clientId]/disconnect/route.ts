@@ -2,7 +2,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// DELETE /api/oauth-clients/[clientId]/disconnect - Disconnect an authorized OAuth app from the workspace
+// DELETE /api/oauth-apps/[clientId]/disconnect - Disconnect an authorized OAuth app from the workspace
 export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const { clientId } = params;
