@@ -295,8 +295,6 @@ export const withWorkspace = (
         permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
           permissions.includes(p),
         );
-
-        console.log("permissions", permissions);
       }
 
       // Check user has permission to make the action
