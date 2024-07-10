@@ -13,6 +13,7 @@ import { NextRequest } from "next/server";
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import {
   PermissionAction,
+  Scope,
   getPermissionsByRole,
   mapScopesToPermissions,
 } from "../api/tokens/scopes";
@@ -257,14 +258,17 @@ export const withWorkspaceEdge = (
       }
 
       // By default, the user has access to all permissions based on their role
-      permissions = getPermissionsByRole(workspace.users[0].role);
+      // Machine users have owner role by default
+      permissions = getPermissionsByRole(
+        session.user.isMachine ? "owner" : workspace.users[0].role,
+      );
 
       // Find the subset of permissions that the user has access to based on the token scopes
       if (isRestrictedToken) {
-        const tokenScopes = token.scopes.split(" ") || [];
+        const tokenScopes: Scope[] = token.scopes.split(" ") || [];
 
-        mapScopesToPermissions(tokenScopes).filter((permission) =>
-          permissions.includes(permission),
+        permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
+          permissions.includes(p),
         );
       }
 

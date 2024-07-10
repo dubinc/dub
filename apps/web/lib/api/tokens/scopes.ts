@@ -242,32 +242,31 @@ export const PERMISSIONS: Permission[] = [
   },
 ];
 
-// For each scope, get the permissions it grants access to and return array of permissions
+// Scope to permission mapping
+export const SCOPE_PERMISSIONS_MAP: Record<Scope, PermissionAction[]> = {
+  "links.read": ["links.read"],
+  "links.write": ["links.write", "links.read"],
+  "tags.read": ["tags.read"],
+  "tags.write": ["tags.write", "tags.read"],
+  "analytics.read": ["analytics.read"],
+  "workspaces.read": ["workspaces.read"],
+  "workspaces.write": ["workspaces.write", "workspaces.read"],
+  "domains.read": ["domains.read"],
+  "domains.write": ["domains.write", "domains.read"],
+  "tokens.read": ["tokens.read"],
+  "tokens.write": ["tokens.write", "tokens.read"],
+  "conversions.write": ["conversions.write"],
+  "apis.all": PERMISSION_ACTIONS.map((action) => action),
+  "apis.read": PERMISSION_ACTIONS.filter((action) => action.endsWith(".read")),
+};
+
+// // For each scope, get the permissions it grants access to and return array of permissions
 export const mapScopesToPermissions = (scopes: Scope[]) => {
   const permissions: PermissionAction[] = [];
 
   scopes.forEach((scope) => {
-    if (scope === "apis.all") {
-      // Add all individual scopes to permissions
-      permissions.push(
-        ...SCOPES.filter((s) => s !== "apis.all" && s !== "apis.read").flatMap(
-          (s) => PERMISSIONS.filter((p) => p.scope === s).map((p) => p.action),
-        ),
-      );
-    } else if (scope === "apis.read") {
-      // Add all read scopes to permissions
-      permissions.push(
-        ...SCOPES.filter((s) => s.endsWith(".read")).flatMap((s) =>
-          PERMISSIONS.filter((p) => p.scope === s).map((p) => p.action),
-        ),
-      );
-    } else {
-      // Add the scope as is
-      permissions.push(
-        ...PERMISSIONS.filter((permission) => permission.scope === scope).map(
-          (permission) => permission.action,
-        ),
-      );
+    if (SCOPE_PERMISSIONS_MAP[scope]) {
+      permissions.push(...SCOPE_PERMISSIONS_MAP[scope]);
     }
   });
 
