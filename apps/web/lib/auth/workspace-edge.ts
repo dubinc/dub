@@ -258,10 +258,7 @@ export const withWorkspaceEdge = (
       }
 
       // By default, the user has access to all permissions based on their role
-      // Machine users have owner role by default
-      permissions = getPermissionsByRole(
-        session.user.isMachine ? "owner" : workspace.users[0].role,
-      );
+      permissions = getPermissionsByRole(workspace.users[0].role);
 
       // Find the subset of permissions that the user has access to based on the token scopes
       if (isRestrictedToken) {
