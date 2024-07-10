@@ -193,7 +193,7 @@ function AddEditTokenModal({
                   className={cn(
                     "flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100",
                     {
-                      "opacity-50": !isOwner,
+                      "cursor-not-allowed opacity-75": !isOwner,
                     },
                   )}
                 >
@@ -205,7 +205,12 @@ function AddEditTokenModal({
                   />
                   <Label
                     htmlFor="machine"
-                    className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                    className={cn(
+                      "flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0",
+                      {
+                        "cursor-not-allowed": !isOwner,
+                      },
+                    )}
                   >
                     <p className="text-gray-600">Machine</p>
                     <InfoTooltip
