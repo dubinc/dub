@@ -154,7 +154,7 @@ const TokenRow = (token: TokenProps) => {
               </Tooltip>
               <p>•</p>
               <p className="text-sm text-gray-500" suppressHydrationWarning>
-                {timeAgo(token.createdAt)}
+                Created {timeAgo(token.createdAt)}
               </p>
             </div>
           </div>
