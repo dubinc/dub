@@ -58,6 +58,11 @@ export const handleDomainUpdates = async ({
             },
           },
         },
+        where: {
+          user: {
+            isMachine: false,
+          },
+        },
       },
     },
   });
