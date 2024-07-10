@@ -1,6 +1,6 @@
 import { Role } from "@prisma/client";
 
-export const SCOPES = [
+export const SCOPES_NAMES = [
   "workspaces.read",
   "workspaces.write",
   "links.read",
@@ -77,70 +77,104 @@ export const RESOURCES: Resource[] = [
   },
 ];
 
-export const SCOPES_BY_RESOURCE: ScopeByResource = {
-  links: [
-    {
-      type: "read",
-      scope: "links.read",
-    },
-    {
-      type: "write",
-      scope: "links.write",
-    },
-  ],
-  analytics: [
-    {
-      type: "read",
-      scope: "analytics.read",
-    },
-  ],
-  workspaces: [
-    {
-      type: "read",
-      scope: "workspaces.read",
-    },
-    {
-      type: "write",
-      scope: "workspaces.write",
-    },
-  ],
-  domains: [
-    {
-      type: "read",
-      scope: "domains.read",
-    },
-    {
-      type: "write",
-      scope: "domains.write",
-    },
-  ],
-  tags: [
-    {
-      type: "read",
-      scope: "tags.read",
-    },
-    {
-      type: "write",
-      scope: "tags.write",
-    },
-  ],
-  tokens: [
-    {
-      type: "read",
-      scope: "tokens.read",
-    },
-    {
-      type: "write",
-      scope: "tokens.write",
-    },
-  ],
-  conversions: [
-    {
-      type: "write",
-      scope: "conversions.write",
-    },
-  ],
-};
+export const SCOPES: MasterScope[] = [
+  {
+    scope: "links.read",
+    roles: ["owner", "member"],
+    permissions: ["links.read"],
+    type: "read",
+    resource: "links",
+  },
+  {
+    scope: "links.write",
+    roles: ["owner", "member"],
+    permissions: ["links.write", "links.read"],
+    type: "write",
+    resource: "links",
+  },
+  {
+    scope: "tags.read",
+    roles: ["owner", "member"],
+    permissions: ["tags.read"],
+    type: "read",
+    resource: "tags",
+  },
+  {
+    scope: "tags.write",
+    roles: ["owner", "member"],
+    permissions: ["tags.write", "tags.read"],
+    type: "write",
+    resource: "tags",
+  },
+  {
+    scope: "domains.read",
+    roles: ["owner", "member"],
+    permissions: ["domains.read"],
+    type: "read",
+    resource: "domains",
+  },
+  {
+    scope: "domains.write",
+    roles: ["owner"],
+    permissions: ["domains.write", "domains.read"],
+    type: "write",
+    resource: "domains",
+  },
+  {
+    scope: "workspaces.read",
+    roles: ["owner", "member"],
+    permissions: ["workspaces.read"],
+    type: "read",
+    resource: "workspaces",
+  },
+  {
+    scope: "workspaces.write",
+    roles: ["owner"],
+    permissions: ["workspaces.write", "workspaces.read"],
+    type: "write",
+    resource: "workspaces",
+  },
+  {
+    scope: "tokens.read",
+    roles: ["owner", "member"],
+    permissions: ["tokens.read"],
+    type: "read",
+    resource: "tokens",
+  },
+  {
+    scope: "tokens.write",
+    roles: ["owner", "member"],
+    permissions: ["tokens.write", "tokens.read"],
+    type: "write",
+    resource: "tokens",
+  },
+  {
+    scope: "analytics.read",
+    roles: ["owner", "member"],
+    permissions: ["analytics.read"],
+    type: "read",
+    resource: "analytics",
+  },
+  {
+    scope: "conversions.write",
+    roles: ["owner"],
+    permissions: ["conversions.write"],
+    type: "write",
+    resource: "conversions",
+  },
+  {
+    scope: "apis.read",
+    roles: ["owner", "member"],
+    permissions: PERMISSION_ACTIONS.filter((action) =>
+      action.endsWith(".read"),
+    ),
+  },
+  {
+    scope: "apis.all",
+    roles: ["owner", "member"],
+    permissions: PERMISSION_ACTIONS.map((action) => action),
+  },
+] as const;
 
 export const PERMISSIONS: Permission[] = [
   {
@@ -217,56 +251,51 @@ export const PERMISSIONS: Permission[] = [
   },
 ];
 
-// Scope to permission mapping
-export const SCOPE_PERMISSIONS_MAP: Record<Scope, PermissionAction[]> = {
-  "links.read": ["links.read"],
-  "links.write": ["links.write", "links.read"],
-  "tags.read": ["tags.read"],
-  "tags.write": ["tags.write", "tags.read"],
-  "analytics.read": ["analytics.read"],
-  "workspaces.read": ["workspaces.read"],
-  "workspaces.write": ["workspaces.write", "workspaces.read"],
-  "domains.read": ["domains.read"],
-  "domains.write": ["domains.write", "domains.read"],
-  "tokens.read": ["tokens.read"],
-  "tokens.write": ["tokens.write", "tokens.read"],
-  "conversions.write": ["conversions.write"],
-  "apis.all": PERMISSION_ACTIONS.map((action) => action),
-  "apis.read": PERMISSION_ACTIONS.filter((action) => action.endsWith(".read")),
-};
+export const SCOPES_BY_RESOURCE: ScopeByResource = SCOPES.reduce(
+  (acc, scope) => {
+    if (!scope.resource || !scope.type) {
+      return acc;
+    }
+
+    if (!acc[scope.resource]) {
+      acc[scope.resource] = [];
+    }
+
+    acc[scope.resource].push({
+      scope: scope.scope,
+      type: scope.type,
+    });
+
+    return acc;
+  },
+  {} as ScopeByResource,
+);
+
+// Scope to permissions mapping
+export const SCOPE_PERMISSIONS_MAP: Record<Scope, PermissionAction[]> =
+  SCOPES.reduce(
+    (acc, scope) => {
+      acc[scope.scope] = scope.permissions;
+      return acc;
+    },
+    {} as Record<Scope, PermissionAction[]>,
+  );
 
 // Role to scopes mapping
-export const ROLE_SCOPES_MAP: Record<Role, Scope[]> = {
-  owner: [
-    "workspaces.read",
-    "workspaces.write",
-    "links.read",
-    "links.write",
-    "tags.read",
-    "tags.write",
-    "analytics.read",
-    "domains.read",
-    "domains.write",
-    "tokens.read",
-    "tokens.write",
-    "conversions.write",
-    "apis.all",
-    "apis.read",
-  ],
-  member: [
-    "workspaces.read",
-    "links.read",
-    "links.write",
-    "tags.read",
-    "tags.write",
-    "analytics.read",
-    "domains.read",
-    "tokens.read",
-    "tokens.write",
-    "apis.read",
-    "apis.all",
-  ],
-};
+export const ROLE_SCOPES_MAP: Record<Role, Scope[]> = SCOPES.reduce(
+  (acc, scope) => {
+    scope.roles.forEach((role) => {
+      if (!acc[role]) {
+        acc[role] = [];
+      }
+
+      acc[role].push(scope.scope);
+    });
+
+    return acc;
+  },
+  {} as Record<Role, Scope[]>,
+);
 
 // // For each scope, get the permissions it grants access to and return array of permissions
 export const mapScopesToPermissions = (scopes: Scope[]) => {
@@ -348,7 +377,7 @@ export const scopesToName = (scopes: string[]) => {
   };
 };
 
-export type Scope = (typeof SCOPES)[number];
+export type Scope = (typeof SCOPES_NAMES)[number];
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
 
@@ -373,6 +402,14 @@ type Permission = {
   roles: Role[];
   resource: ResourceKeys;
   betaFeature: boolean;
+};
+
+type MasterScope = {
+  scope: Scope;
+  roles: Role[];
+  permissions: PermissionAction[];
+  type?: "read" | "write";
+  resource?: ResourceKeys;
 };
 
 export type ScopeByResource = {

@@ -1,4 +1,4 @@
-import { SCOPES } from "@/lib/api/tokens/scopes";
+import { SCOPES_NAMES } from "@/lib/api/tokens/scopes";
 import z from "@/lib/zod";
 
 // Schema to validate the request body when creating a new token
@@ -10,7 +10,7 @@ export const createTokenSchema = z.object({
     .min(1)
     .max(50),
   isMachine: z.boolean().optional().default(false),
-  scopes: z.array(z.enum(SCOPES)).default([]).optional(),
+  scopes: z.array(z.enum(SCOPES_NAMES)).default([]).optional(),
 });
 
 // Schema to validate the request body when updating a token
