@@ -11,7 +11,11 @@ import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, getScopesByRole, normalizeScopes } from "../api/tokens/scopes";
+import {
+  PermissionAction,
+  getPermissionsByRole,
+  mapScopesToPermissions,
+} from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
@@ -25,7 +29,7 @@ interface WithWorkspaceEdgeHandler {
     headers,
     session,
     workspace,
-    scopes,
+    permissions,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -33,7 +37,7 @@ interface WithWorkspaceEdgeHandler {
     headers?: Record<string, string>;
     session: Session;
     workspace: WorkspaceProps;
-    scopes: Scope[];
+    permissions: PermissionAction[];
   }): Promise<Response | StreamingTextResponse>;
 }
 
@@ -53,14 +57,14 @@ export const withWorkspaceEdge = (
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
     betaFeature, // if the action is a beta feature
-    requiredScopes = [],
+    requiredPermissions = [],
   }: {
     requiredPlan?: Array<PlanProps>;
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     needNotExceededAI?: boolean;
     betaFeature?: boolean;
-    requiredScopes?: Scope[];
+    requiredPermissions?: PermissionAction[];
   } = {},
 ) => {
   return async (
@@ -88,7 +92,7 @@ export const withWorkspaceEdge = (
       let session: Session | undefined;
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
-      let scopes: Scope[] = [];
+      let permissions: PermissionAction[] = [];
       let token: any | null = null;
       const isRestrictedToken = apiKey?.startsWith("dub_");
 
@@ -252,25 +256,22 @@ export const withWorkspaceEdge = (
         });
       }
 
-      // Find the subset of permissions that the user has access to based on their role
-      // Only owner can create machine users now
-      const userScopes = getScopesByRole(
-        session.user.isMachine ? "owner" : workspace.users[0].role,
-      );
+      // By default, the user has access to all permissions based on their role
+      permissions = getPermissionsByRole(workspace.users[0].role);
 
+      // Find the subset of permissions that the user has access to based on the token scopes
       if (isRestrictedToken) {
-        const tokenScopes = (token.scopes.split(" ") || []) as Scope[];
-        scopes = normalizeScopes(tokenScopes).filter((scope) =>
-          userScopes.includes(scope),
+        const tokenScopes = token.scopes.split(" ") || [];
+
+        mapScopesToPermissions(tokenScopes).filter((permission) =>
+          permissions.includes(permission),
         );
-      } else {
-        scopes = userScopes;
       }
 
       // Check user has permission to make the action
       throwIfNoAccess({
-        scopes,
-        requiredScopes,
+        permissions,
+        requiredPermissions,
         workspaceId: workspace.id,
       });
 
@@ -384,7 +385,7 @@ export const withWorkspaceEdge = (
         headers,
         session,
         workspace,
-        scopes,
+        permissions,
       });
     } catch (error) {
       return handleAndReturnErrorResponse(error, headers);

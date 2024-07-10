@@ -24,7 +24,7 @@ export const GET = withWorkspace(
     return NextResponse.json(invites);
   },
   {
-    requiredScopes: ["workspaces.read"],
+    requiredPermissions: ["workspaces.read"],
   },
 );
 
@@ -85,7 +85,7 @@ export const POST = withWorkspace(
     return NextResponse.json({ message: "Invite sent" });
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );
 
@@ -104,6 +104,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );

@@ -96,6 +96,6 @@ export const POST = withWorkspaceEdge(
   },
   {
     betaFeature: true,
-    requiredScopes: ["conversions.write"],
+    requiredPermissions: ["conversions.write"],
   },
 );

@@ -43,6 +43,7 @@ export const POST = withWorkspace(
 
     // Check given scopes are valid based on user's role
     const userScopes = getScopesByRole(role);
+
     if (scopes && scopes.every((scope) => !userScopes.includes(scope))) {
       throw new DubApiError({
         code: "unprocessable_entity",
@@ -111,7 +112,7 @@ export const POST = withWorkspace(
     return NextResponse.json({ token });
   },
   {
-    requiredScopes: ["tokens.write"],
+    requiredPermissions: ["tokens.write"],
   },
 );
 
@@ -145,6 +146,6 @@ export const GET = withWorkspace(
     return NextResponse.json(tokenSchema.array().parse(tokens));
   },
   {
-    requiredScopes: ["tokens.read"],
+    requiredPermissions: ["tokens.read"],
   },
 );

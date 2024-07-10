@@ -1,6 +1,8 @@
 import {
+  RESOURCES,
   Scope,
-  getResourcePermissionsByRole,
+  ScopeByResource,
+  getScopesByResourceForRole,
   scopePresets,
 } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -124,8 +126,9 @@ function AddEditTokenModal({
   const { name, scopes } = data;
   const buttonDisabled =
     (!name || token?.name === name) && token?.scopes === scopes;
-  const resourcePermissions = getResourcePermissionsByRole(
-    isOwner ? "owner" : "member",
+
+  const scopesByResources = transformScopesForUI(
+    getScopesByResourceForRole(isOwner ? "owner" : "member"),
   );
 
   return (
@@ -267,51 +270,46 @@ function AddEditTokenModal({
             </div>
             {preset === "restricted" && (
               <div className="flex flex-col divide-y text-sm">
-                {resourcePermissions
-                  .filter(
-                    // filter out beta features
-                    (resource) => !resource.betaFeature || betaTester,
-                  )
-                  .map((resource) => (
-                    <div
-                      className="flex items-center justify-between py-4"
-                      key={resource.key}
-                    >
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <p>{resource.name}</p>
-                        <InfoTooltip content={resource.description} />
-                      </div>
-                      <div>
-                        <RadioGroup
-                          defaultValue={scopes[resource.key] || ""}
-                          className="flex gap-4"
-                          onValueChange={(v: Scope) => {
-                            setData({
-                              ...data,
-                              scopes: {
-                                ...scopes,
-                                [resource.key]: v,
-                              },
-                            });
-                          }}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="" />
-                            <div>None</div>
-                          </div>
-                          {resource.permissions.map((permission) => (
-                            <div
-                              className="flex items-center space-x-2"
-                              key={permission.scope}
-                            >
-                              <RadioGroupItem value={permission.scope} />
-                              <div>{permission.permission}</div>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </div>
+                {scopesByResources.map((resource) => (
+                  <div
+                    className="flex items-center justify-between py-4"
+                    key={resource.key}
+                  >
+                    <div className="flex items-center gap-1.5 text-gray-500">
+                      <p>{resource.name}</p>
+                      <InfoTooltip content={resource.description} />
                     </div>
-                  ))}
+                    <div>
+                      <RadioGroup
+                        defaultValue={scopes[resource.key] || ""}
+                        className="flex gap-4"
+                        onValueChange={(v: Scope) => {
+                          setData({
+                            ...data,
+                            scopes: {
+                              ...scopes,
+                              [resource.key]: v,
+                            },
+                          });
+                        }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="" />
+                          <div>None</div>
+                        </div>
+                        {resource.scopes.map((scope) => (
+                          <div
+                            className="flex items-center space-x-2"
+                            key={scope}
+                          >
+                            <RadioGroupItem value={scope.scope} />
+                            <div className="capitalize">{scope.type}</div>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </AnimatedSizeContainer>
@@ -386,3 +384,20 @@ export function useAddEditTokenModal(
     ],
   );
 }
+
+const transformScopesForUI = (scopedResources: ScopeByResource) => {
+  return Object.keys(scopedResources).map((resourceKey) => {
+    const resource = RESOURCES.find((r) => r.key === resourceKey);
+
+    return {
+      key: resource?.key || resourceKey,
+      name: resource?.name || resourceKey,
+      description: resource?.description,
+      scopes: scopedResources[resourceKey].map((scope) => ({
+        scope: scope.scope,
+        type: scope.type,
+        description: scope.description,
+      })),
+    };
+  });
+};

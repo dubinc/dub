@@ -30,7 +30,7 @@ export const GET = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
-    requiredScopes: ["domains.read"],
+    requiredPermissions: ["domains.read"],
   },
 );
 
@@ -130,7 +130,7 @@ export const PATCH = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainRecord));
   },
   {
-    requiredScopes: ["domains.write"],
+    requiredPermissions: ["domains.write"],
   },
 );
 
@@ -148,6 +148,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ slug: domain });
   },
   {
-    requiredScopes: ["domains.write"],
+    requiredPermissions: ["domains.write"],
   },
 );

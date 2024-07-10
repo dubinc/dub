@@ -5,7 +5,11 @@ import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, getScopesByRole, normalizeScopes } from "../api/tokens/scopes";
+import {
+  PermissionAction,
+  getPermissionsByRole,
+  mapScopesToPermissions,
+} from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -18,14 +22,14 @@ interface WithWorkspaceHandler {
     headers,
     session,
     workspace,
-    scopes,
+    permissions,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
     headers?: Record<string, string>;
     session: Session;
-    scopes: Scope[];
+    permissions: PermissionAction[];
     workspace: WorkspaceWithUsers;
   }): Promise<Response>;
 }
@@ -44,14 +48,14 @@ export const withWorkspace = (
     ], // if the action needs a specific plan
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     betaFeature, // if the action is a beta feature
-    requiredScopes = [],
-    skipScopeChecks, // if the action doesn't need to check for required scopes
+    requiredPermissions = [],
+    skipPermissionChecks, // if the action doesn't need to check for required permission(s)
   }: {
     requiredPlan?: Array<PlanProps>;
     allowAnonymous?: boolean;
     betaFeature?: boolean;
-    requiredScopes?: Scope[];
-    skipScopeChecks?: boolean;
+    requiredPermissions?: PermissionAction[];
+    skipPermissionChecks?: boolean;
   } = {},
 ) => {
   return async (
@@ -79,7 +83,7 @@ export const withWorkspace = (
       let session: Session | undefined;
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
-      let scopes: Scope[] = [];
+      let permissions: PermissionAction[] = [];
       let token: any | null = null;
       const isRestrictedToken = apiKey?.startsWith("dub_");
 
@@ -277,26 +281,25 @@ export const withWorkspace = (
         }
       }
 
-      // Find the subset of permissions that the user has access to based on their role
-      // Only owner can create machine users now
-      const userScopes = getScopesByRole(
-        session.user.isMachine ? "owner" : workspace.users[0].role,
-      );
+      // By default, the user has access to all permissions based on their role
+      permissions = getPermissionsByRole(workspace.users[0].role);
 
+      // Find the subset of permissions that the user has access to based on the token scopes
       if (isRestrictedToken) {
-        const tokenScopes = (token.scopes.split(" ") || []) as Scope[];
-        scopes = normalizeScopes(tokenScopes).filter((scope) =>
-          userScopes.includes(scope),
+        const tokenScopes = token.scopes.split(" ") || [];
+
+        mapScopesToPermissions(tokenScopes).filter((permission) =>
+          permissions.includes(permission),
         );
-      } else {
-        scopes = userScopes;
       }
 
+      console.log(permissions);
+
       // Check user has permission to make the action
-      if (!skipScopeChecks) {
+      if (!skipPermissionChecks) {
         throwIfNoAccess({
-          scopes,
-          requiredScopes,
+          permissions,
+          requiredPermissions,
           workspaceId: workspace.id,
         });
       }
@@ -340,7 +343,7 @@ export const withWorkspace = (
         headers,
         session,
         workspace,
-        scopes,
+        permissions,
       });
     } catch (error) {
       return handleAndReturnErrorResponse(error, headers);

@@ -48,7 +48,7 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredScopes: ["workspaces.read"],
+    requiredPermissions: ["workspaces.read"],
   },
 );
 
@@ -73,19 +73,19 @@ export const PUT = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );
 
 // DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace or leave a workspace
 export const DELETE = withWorkspace(
-  async ({ searchParams, workspace, session, scopes }) => {
+  async ({ searchParams, workspace, session, permissions }) => {
     const { userId } = removeUserSchema.parse(searchParams);
 
     if (userId !== session.user.id) {
       throwIfNoAccess({
-        scopes,
-        requiredScopes: ["workspaces.write"],
+        permissions,
+        requiredPermissions: ["workspaces.write"],
         workspaceId: workspace.id,
       });
     }
@@ -167,6 +167,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    skipScopeChecks: true,
+    skipPermissionChecks: true,
   },
 );

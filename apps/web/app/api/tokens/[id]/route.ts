@@ -43,7 +43,7 @@ export const GET = withWorkspace(
     return NextResponse.json(tokenSchema.parse(token));
   },
   {
-    requiredScopes: ["tokens.read"],
+    requiredPermissions: ["tokens.read"],
   },
 );
 
@@ -106,7 +106,7 @@ export const PATCH = withWorkspace(
     return NextResponse.json(tokenSchema.parse(token));
   },
   {
-    requiredScopes: ["tokens.write"],
+    requiredPermissions: ["tokens.write"],
   },
 );
 
@@ -142,6 +142,6 @@ export const DELETE = withWorkspace(
     });
   },
   {
-    requiredScopes: ["tokens.write"],
+    requiredPermissions: ["tokens.write"],
   },
 );
