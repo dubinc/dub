@@ -57,7 +57,8 @@ function DeleteDomainModal({
               setShowDeleteDomainModal(false);
               toast.success("Successfully deleted domain!");
             } else {
-              toast.error("Something went wrong. Please try again.");
+              const { error } = await res.json();
+              toast.error(error.message);
             }
             setDeleting(false);
           });
