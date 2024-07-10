@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getScopesByRole, scopesToName } from "@/lib/api/tokens/scopes";
+import { ROLE_SCOPES_MAP, scopesToName } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -42,11 +42,9 @@ export const POST = withWorkspace(
     }
 
     // Check given scopes are valid based on user's role
-    const userScopes = getScopesByRole(role);
-
     if (
       scopes?.length &&
-      scopes.every((scope) => !userScopes.includes(scope))
+      scopes.every((scope) => !ROLE_SCOPES_MAP[role].includes(scope))
     ) {
       throw new DubApiError({
         code: "unprocessable_entity",

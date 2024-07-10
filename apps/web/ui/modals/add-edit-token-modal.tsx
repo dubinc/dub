@@ -130,7 +130,7 @@ function AddEditTokenModal({
 
   const scopesByResources = transformScopesForUI(
     getScopesByResourceForRole(isOwner ? "owner" : "member"),
-  ).filter((resource) => resource.betaFeature === betaTester);
+  ).filter((resource) => !resource.betaFeature || betaTester);
 
   return (
     <>

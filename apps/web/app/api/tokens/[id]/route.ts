@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getScopesByRole } from "@/lib/api/tokens/scopes";
+import { ROLE_SCOPES_MAP } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -67,11 +67,9 @@ export const PATCH = withWorkspace(
     });
 
     // Check given scopes are valid based on user's role
-    const userScopes = getScopesByRole(role);
-
     if (
       scopes?.length &&
-      scopes.every((scope) => !userScopes.includes(scope))
+      scopes.every((scope) => !ROLE_SCOPES_MAP[role].includes(scope))
     ) {
       throw new DubApiError({
         code: "unprocessable_entity",
