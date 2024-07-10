@@ -154,7 +154,7 @@ export const SCOPES: MasterScope[] = [
       (action) => !action.startsWith("tokens."),
     ),
   },
-] as const;
+];
 
 export const PERMISSIONS: Permission[] = [
   {
