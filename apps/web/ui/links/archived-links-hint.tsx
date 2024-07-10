@@ -13,14 +13,16 @@ export default function ArchivedLinksHint() {
 }
 
 function ArchivedLinksHintHelper() {
-  const { data: count } = useLinksCount({ showArchived: true });
+  const { data: count } = useLinksCount();
+  const { data: totalCount } = useLinksCount({ showArchived: true });
+  const archivedCount = totalCount - count;
   const { queryParams } = useRouterStuff();
 
   return (
-    count > 0 && (
+    archivedCount > 0 && (
       <li className="flex items-center rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-500 ring-2 ring-gray-50 transition-all sm:p-4">
         <Archive className="mr-2 h-4 w-4" />
-        <p>You have {count} archived links that match your filters.</p>
+        <p>You have {archivedCount} archived links that match your filters.</p>
         <button
           className="ml-1 font-medium underline underline-offset-2 hover:text-gray-800"
           onClick={() =>
