@@ -36,6 +36,7 @@ export const tokenSchema = z.object({
   user: z.object({
     id: z.string(),
     name: z.string().nullable(),
+    image: z.string().nullable(),
     isMachine: z.boolean(),
   }),
 });

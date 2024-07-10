@@ -8,8 +8,16 @@ import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { Delete } from "@/ui/shared/icons";
-import { Badge, Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
+import {
+  Avatar,
+  Badge,
+  Button,
+  LoadingSpinner,
+  Popover,
+  TokenAvatar,
+} from "@dub/ui";
 import { Key } from "@dub/ui/src/icons";
+import { Tooltip } from "@dub/ui/src/tooltip";
 import { fetcher, timeAgo } from "@dub/utils";
 import { Edit3, MoreVertical } from "lucide-react";
 import { useState } from "react";
@@ -114,13 +122,40 @@ const TokenRow = (token: TokenProps) => {
       <div className="relative grid grid-cols-5 items-center px-5 py-3 sm:px-10">
         <div className="col-span-3 flex items-center space-x-3">
           <TokenAvatar id={token.id} />
-          <div className="flex flex-col space-y-px">
-            <p className="font-semibold text-gray-700">{token.name}</p>
+          <div className="flex flex-col gap-y-px">
             <div className="flex items-center gap-x-2">
-              <p className="text-sm text-gray-500" suppressHydrationWarning>
-                Created {timeAgo(token.createdAt, { withAgo: true })}
-              </p>
+              <p className="font-semibold text-gray-700">{token.name}</p>
               <Badge variant="neutral">{scopesToName(token.scopes).name}</Badge>
+            </div>
+            <div className="flex items-center gap-x-1">
+              <Tooltip
+                content={
+                  <div className="w-full max-w-xs p-4">
+                    <Avatar user={token.user} className="h-10 w-10" />
+                    <div className="mt-2 flex items-center gap-x-1.5">
+                      <p className="text-sm font-semibold text-gray-700">
+                        {token.user.name || "Anonymous User"}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Created{" "}
+                      {new Date(token.createdAt).toLocaleDateString("en-us", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                }
+              >
+                <div>
+                  <Avatar user={token.user} className="h-4 w-4" />
+                </div>
+              </Tooltip>
+              <p>•</p>
+              <p className="text-sm text-gray-500" suppressHydrationWarning>
+                {timeAgo(token.createdAt)}
+              </p>
             </div>
           </div>
         </div>

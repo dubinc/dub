@@ -12,6 +12,40 @@ import { sendEmail } from "emails";
 import APIKeyCreated from "emails/api-key-created";
 import { NextResponse } from "next/server";
 
+// GET /api/tokens - get all tokens for a workspace
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const tokens = await prisma.restrictedToken.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        partialKey: true,
+        scopes: true,
+        lastUsed: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            isMachine: true,
+          },
+        },
+      },
+      orderBy: [{ lastUsed: "desc" }, { createdAt: "desc" }],
+    });
+
+    return NextResponse.json(tokenSchema.array().parse(tokens));
+  },
+  {
+    requiredPermissions: ["tokens.read"],
+  },
+);
+
 // POST /api/tokens – create a new token for a workspace
 export const POST = withWorkspace(
   async ({ req, session, workspace }) => {
@@ -81,7 +115,6 @@ export const POST = withWorkspace(
         userId: isMachine ? machineUser?.id! : session.user.id,
         projectId: workspace.id,
         rateLimit: getCurrentPlan(workspace.plan).limits.api,
-        createdBy: session.user.id,
         scopes:
           scopes && scopes.length > 0 ? [...new Set(scopes)].join(" ") : null,
       },
@@ -110,39 +143,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["tokens.write"],
-  },
-);
-
-// GET /api/tokens - get all tokens for a workspace
-export const GET = withWorkspace(
-  async ({ workspace }) => {
-    const tokens = await prisma.restrictedToken.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        partialKey: true,
-        scopes: true,
-        lastUsed: true,
-        createdAt: true,
-        updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            isMachine: true,
-          },
-        },
-      },
-      orderBy: [{ lastUsed: "desc" }, { createdAt: "desc" }],
-    });
-
-    return NextResponse.json(tokenSchema.array().parse(tokens));
-  },
-  {
-    requiredPermissions: ["tokens.read"],
   },
 );

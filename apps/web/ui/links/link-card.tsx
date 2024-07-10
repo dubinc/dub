@@ -395,7 +395,7 @@ export default function LinkCard({
                 </BadgeTooltip>
               )}
             </div>
-            <div className="flex max-w-fit items-center space-x-1">
+            <div className="flex max-w-fit items-center gap-x-1">
               <Tooltip
                 content={
                   <div className="w-full p-4">
