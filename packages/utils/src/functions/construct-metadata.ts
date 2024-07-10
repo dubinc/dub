@@ -3,7 +3,7 @@ import { HOME_DOMAIN } from "../constants";
 
 export function constructMetadata({
   title = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`,
-  description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management infrastructure for modern marketing teams to create, share, and track short links.`,
+  description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.`,
   image = "https://assets.dub.co/thumbnail.jpg",
   icons = [
     {
