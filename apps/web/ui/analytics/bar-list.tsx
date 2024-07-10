@@ -3,7 +3,7 @@
 import { LinkProps } from "@/lib/types";
 import { NumberTooltip, Tooltip, useMediaQuery } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
-import { cn, nFormatter, truncate } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -114,11 +114,9 @@ export function LineItem({
 }) {
   const lineItem = useMemo(() => {
     return (
-      <div className="z-10 flex items-center space-x-4 px-3">
+      <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
         {icon}
-        <div className="truncate text-sm text-gray-800">
-          {truncate(title, 56)}
-        </div>
+        <div className="truncate text-sm text-gray-800">{title}</div>
       </div>
     );
   }, [icon, tab, title]);
@@ -128,7 +126,7 @@ export function LineItem({
       href={href}
       scroll={false}
       onClick={() => setShowModal(false)}
-      className={`border-l-2 border-transparent px-4 py-1 ${hoverBackground} transition-all`}
+      className={`border-l-2 border-transparent px-4 py-1 ${hoverBackground} min-w-0 transition-all`}
     >
       <div className="group flex items-center justify-between">
         <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
