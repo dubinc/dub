@@ -143,14 +143,16 @@ export const SCOPES: MasterScope[] = [
   {
     scope: "apis.read",
     roles: ["owner", "member"],
-    permissions: PERMISSION_ACTIONS.filter((action) =>
-      action.endsWith(".read"),
+    permissions: PERMISSION_ACTIONS.filter(
+      (action) => action.endsWith(".read") && !action.startsWith("tokens."),
     ),
   },
   {
     scope: "apis.all",
     roles: ["owner", "member"],
-    permissions: PERMISSION_ACTIONS.map((action) => action),
+    permissions: PERMISSION_ACTIONS.map((action) => action).filter(
+      (action) => !action.startsWith("tokens."),
+    ),
   },
 ] as const;
 
@@ -159,73 +161,61 @@ export const PERMISSIONS: Permission[] = [
     action: "links.read",
     roles: ["owner", "member"],
     resource: "links",
-    betaFeature: false,
   },
   {
     action: "links.write",
     roles: ["owner", "member"],
     resource: "links",
-    betaFeature: false,
   },
   {
     action: "analytics.read",
     roles: ["owner", "member"],
     resource: "analytics",
-    betaFeature: false,
   },
   {
     action: "workspaces.read",
     roles: ["owner", "member"],
     resource: "workspaces",
-    betaFeature: false,
   },
   {
     action: "workspaces.write",
     roles: ["owner"],
     resource: "workspaces",
-    betaFeature: false,
   },
   {
     action: "domains.read",
     roles: ["owner", "member"],
     resource: "domains",
-    betaFeature: false,
   },
   {
     action: "domains.write",
     roles: ["owner"],
     resource: "domains",
-    betaFeature: false,
   },
   {
     action: "tags.read",
     roles: ["owner", "member"],
     resource: "tags",
-    betaFeature: false,
   },
   {
     action: "tags.write",
     roles: ["owner", "member"],
     resource: "tags",
-    betaFeature: false,
   },
   {
     action: "tokens.read",
     roles: ["owner", "member"],
     resource: "tokens",
-    betaFeature: false,
   },
   {
     action: "tokens.write",
     roles: ["owner", "member"],
     resource: "tokens",
-    betaFeature: false,
   },
   {
     action: "conversions.write",
     roles: ["owner"],
     resource: "conversions",
-    betaFeature: true,
   },
 ];
 
@@ -388,7 +378,6 @@ type Permission = {
   action: PermissionAction;
   roles: Role[];
   resource: ResourceKeys;
-  betaFeature: boolean;
 };
 
 type MasterScope = {
