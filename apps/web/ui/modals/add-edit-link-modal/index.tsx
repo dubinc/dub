@@ -86,7 +86,6 @@ function AddEditLinkModal({
     aiLimit,
     mutate: mutateWorkspace,
     betaTester,
-    plan,
   } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -94,7 +93,25 @@ function AddEditLinkModal({
   const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const { allActiveDomains: domains, primaryDomain, loading } = useDomains();
+  const { allActiveDomains, primaryDomain, allDomains, loading } = useDomains();
+
+  const domains = useMemo(() => {
+    // edge case where the link's current domain has been archived
+    if (
+      props?.domain &&
+      !allActiveDomains.find((domain) => domain.slug === props.domain)
+    ) {
+      const currentDomain = allDomains.find(
+        (domain) => domain.slug === props.domain,
+      );
+      if (currentDomain) {
+        return [...allActiveDomains, currentDomain].filter(Boolean);
+      } else {
+        return allActiveDomains;
+      }
+    }
+    return allActiveDomains;
+  }, [allDomains, allActiveDomains, props]);
 
   const [data, setData] = useState<LinkWithTagsProps>(
     props || duplicateProps || DEFAULT_LINK_PROPS,
@@ -376,7 +393,7 @@ function AddEditLinkModal({
           onScroll={handleScroll}
         >
           <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
-            <LinkLogo apexDomain={getApexDomain(url)} />
+            <LinkLogo apexDomain={getApexDomain(debouncedUrl)} />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
               {props ? `Edit ${shortLink}` : "Create a new link"}
             </h3>
@@ -618,9 +635,12 @@ function AddEditLinkModal({
                           "Only letters, numbers, '-', '/', and emojis are allowed.",
                         );
                       }}
-                      onBlur={(e) =>
-                        e.target.value && runKeyChecks(e.target.value)
-                      }
+                      onBlur={(e) => {
+                        // if the key is changed, check if key exists
+                        if (e.target.value && props?.key !== e.target.value) {
+                          runKeyChecks(e.target.value);
+                        }
+                      }}
                       disabled={props && lockKey}
                       autoComplete="off"
                       className={cn(

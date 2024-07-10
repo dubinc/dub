@@ -7,6 +7,7 @@ import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
 import {
   Badge,
   BlurImage,
+  Globe2,
   InlineSnippet,
   NumberTooltip,
   Tooltip,
@@ -18,13 +19,7 @@ import {
   nFormatter,
   punycode,
 } from "@dub/utils";
-import {
-  BarChart2,
-  ExternalLink,
-  Globe,
-  Link2,
-  MinusCircle,
-} from "lucide-react";
+import { BarChart2, ExternalLink, Link2, MinusCircle } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
 import PlanBadge from "./plan-badge";
@@ -124,7 +119,7 @@ export default function WorkspaceCard({
                               ? "Verify Domain"
                               : `Manage Domain${domains.length > 1 ? "s" : ""}`
                         }
-                        href={`/${slug}/domains`}
+                        href={`/${slug}/settings/domains`}
                       />
                     }
                   >
@@ -156,7 +151,7 @@ export default function WorkspaceCard({
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1 text-gray-500">
-            <Globe className="h-4 w-4" />
+            <Globe2 className="h-4 w-4" />
             {loading ? (
               <div className="h-4 w-16 animate-pulse rounded-md bg-gray-200" />
             ) : (

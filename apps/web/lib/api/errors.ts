@@ -199,6 +199,7 @@ export const errorSchemaFactory = (
                   example: code,
                 },
                 message: {
+                  "x-speakeasy-error-message": true,
                   type: "string",
                   description:
                     "A human readable explanation of what went wrong.",

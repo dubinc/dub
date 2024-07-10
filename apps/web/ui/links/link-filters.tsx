@@ -1,10 +1,9 @@
-import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useDomains from "@/lib/swr/use-domains";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps, TagProps } from "@/lib/types";
+import { TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
@@ -12,35 +11,28 @@ import {
   Button,
   Copy,
   LoadingCircle,
-  LoadingSpinner,
   Popover,
   Switch,
   Tick,
   useRouterStuff,
-  useToastWithUndo,
 } from "@dub/ui";
 import {
+  DUB_DOMAINS,
   DUB_WORKSPACE_ID,
   SWIPE_REVEAL_ANIMATION_SETTINGS,
-  isDubDomain,
   nFormatter,
   punycode,
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Archive, ChevronRight, Edit3, Search, XCircle } from "lucide-react";
+import { ChevronRight, Edit3, Search, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebouncedCallback } from "use-debounce";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
+import { SearchBoxPersisted } from "../shared/search-box";
 
 export default function LinkFilters() {
   const { data: domains } = useLinksCount({ groupBy: "domain" });
@@ -48,18 +40,7 @@ export default function LinkFilters() {
   const { tags } = useTags();
   const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
 
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
-  const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
-
-  useEffect(() => {
-    if (searchParams?.has("search")) {
-      queryParams({
-        set: { showArchived: "true" },
-      });
-    }
-  }, [pathname, searchParams]);
 
   const showClearButton = useMemo(() => {
     return [
@@ -79,10 +60,10 @@ export default function LinkFilters() {
       <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
-          {showClearButton && <ClearButton searchInputRef={searchInputRef} />}
+          {showClearButton && <ClearButton />}
         </div>
         <div className="hidden lg:block">
-          <SearchBox searchInputRef={searchInputRef} />
+          <InputSearchBox />
         </div>
       </div>
       <DomainsFilter />
@@ -101,14 +82,14 @@ export default function LinkFilters() {
   );
 }
 
-const ClearButton = ({ searchInputRef }) => {
+const ClearButton = () => {
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
+
   return (
     <button
       onClick={() => {
         router.replace(`/${slug}`);
-        searchInputRef.current.value = "";
       }}
       className="group flex items-center justify-center space-x-1 rounded-md border border-gray-400 px-2 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
     >
@@ -120,70 +101,14 @@ const ClearButton = ({ searchInputRef }) => {
   );
 };
 
-export const SearchBox = ({ searchInputRef }) => {
-  const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
-  const debounced = useDebouncedCallback((value) => {
-    queryParams({
-      set: {
-        search: value,
-      },
-      del: "page",
-    });
-  }, 500);
+export const InputSearchBox = () => {
   const { isValidating } = useLinks();
 
-  const onKeyDown = useCallback((e: KeyboardEvent) => {
-    const target = e.target as HTMLElement;
-    // only focus on filter input when:
-    // - user is not typing in an input or textarea
-    // - there is no existing modal backdrop (i.e. no other modal is open)
-    if (
-      e.key === "/" &&
-      target.tagName !== "INPUT" &&
-      target.tagName !== "TEXTAREA"
-    ) {
-      e.preventDefault();
-      searchInputRef.current?.focus();
-    }
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onKeyDown]);
-
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-        {isValidating && searchInputRef.current?.value.length > 0 ? (
-          <LoadingSpinner className="h-4 w-4" />
-        ) : (
-          <Search className="h-4 w-4 text-gray-400" />
-        )}
-      </div>
-      <input
-        ref={searchInputRef}
-        type="text"
-        className="peer w-full rounded-md border border-gray-200 px-10 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 sm:text-sm"
-        placeholder="Search..."
-        defaultValue={searchParams?.get("search") || ""}
-        onChange={(e) => {
-          debounced(e.target.value);
-        }}
-      />
-      {searchInputRef.current?.value.length > 0 && (
-        <button
-          onClick={() => {
-            searchInputRef.current.value = "";
-            queryParams({ del: "search" });
-          }}
-          className="pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 lg:hidden"
-        >
-          <XCircle className="h-4 w-4 text-gray-600" />
-        </button>
-      )}
-    </div>
+    <SearchBoxPersisted
+      loading={isValidating}
+      inputClassName="text-base sm:text-sm"
+    />
   );
 };
 
@@ -192,7 +117,7 @@ const DomainsFilter = () => {
   const { queryParams } = useRouterStuff();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
   const { id: workspaceId } = useWorkspace();
-  const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
+  const { allWorkspaceDomains } = useDomains();
 
   const [collapsed, setCollapsed] = useState(true);
   const [showMore, setShowMore] = useState(false);
@@ -208,7 +133,7 @@ const DomainsFilter = () => {
   const options = useMemo(() => {
     if (domains?.length === 0) return [];
 
-    const workspaceDomains = activeWorkspaceDomains?.map((domain) => ({
+    const workspaceDomains = allWorkspaceDomains?.map((domain) => ({
       ...domain,
       count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
     }));
@@ -216,14 +141,11 @@ const DomainsFilter = () => {
     const defaultDomains =
       workspaceId === `ws_${DUB_WORKSPACE_ID}`
         ? []
-        : activeDefaultDomains
-            ?.map((domain) => ({
-              ...domain,
-              count:
-                domains?.find(({ domain: d }) => d === domain.slug)?._count ||
-                0,
-            }))
-            .filter((d) => d.count > 0);
+        : DUB_DOMAINS?.map((domain) => ({
+            ...domain,
+            count:
+              domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
+          })).filter((d) => d.count > 0);
 
     const finalOptions = [
       ...(workspaceDomains || []),
@@ -231,7 +153,7 @@ const DomainsFilter = () => {
     ].sort((a, b) => b.count - a.count);
 
     return finalOptions;
-  }, [activeWorkspaceDomains, activeDefaultDomains, domains, workspaceId]);
+  }, [allWorkspaceDomains, domains, workspaceId]);
 
   useEffect(() => {
     if (options.length > 0) {
@@ -292,7 +214,7 @@ const DomainsFilter = () => {
                     className="flex w-full cursor-pointer items-center justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                   >
                     <p>{truncate(punycode(domain.slug), 24)}</p>
-                    <DomainPopover domain={domain} count={domain.count} />
+                    <p className="text-gray-500">{nFormatter(domain.count)}</p>
                   </label>
                 </div>
               ))
@@ -309,167 +231,6 @@ const DomainsFilter = () => {
         )}
       </AnimatePresence>
     </fieldset>
-  );
-};
-
-const DomainPopover = ({
-  domain,
-  count,
-}: {
-  domain: DomainProps;
-  count: number;
-}) => {
-  const { id, slug } = useWorkspace();
-  const [openPopover, setOpenPopover] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const { mutate: mutateDomains } = useDomains();
-  const { defaultDomains, mutate: mutateDefaultDomains } = useDefaultDomains();
-
-  const { AddEditDomainModal, setShowAddEditDomainModal } =
-    useAddEditDomainModal({
-      props: domain,
-    });
-
-  const toastWithUndo = useToastWithUndo();
-
-  const archiveDomain = (archive: boolean) => {
-    return fetch(`/api/domains/${domain.slug}?workspaceId=${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ archived: archive }),
-    });
-  };
-
-  const archiveDefaultDomain = (archive: boolean) => {
-    const newDefaultDomains = archive
-      ? defaultDomains?.filter((d) => d !== domain.slug)
-      : [...(defaultDomains || []), domain.slug];
-    return fetch(`/api/domains/default?workspaceId=${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        defaultDomains: newDefaultDomains,
-      }),
-    });
-  };
-
-  const handleArchiveRequest = async () => {
-    setProcessing(true);
-    if (isDubDomain(domain.slug)) {
-      const res = await archiveDefaultDomain(true);
-      if (res.ok) {
-        await mutateDefaultDomains();
-        toastWithUndo({
-          id: "domain-archive-undo-toast",
-          message: "Successfully archived domain!",
-          undo: () =>
-            toast.promise(archiveDefaultDomain(false), {
-              loading: "Undo in progress...",
-              success: () => {
-                mutateDefaultDomains();
-                return "Undo successful! Changes reverted.";
-              },
-              error: "Failed to roll back changes. An error occurred.",
-            }),
-          duration: 5000,
-        });
-      } else {
-        const { error } = await res.json();
-        setProcessing(false);
-        toast.error(error.message);
-      }
-    } else {
-      const res = await archiveDomain(true);
-      if (res.ok) {
-        await mutateDomains();
-        toastWithUndo({
-          id: "domain-archive-undo-toast",
-          message: `Successfully archived domain!`,
-          undo: () =>
-            toast.promise(archiveDomain(false), {
-              loading: "Undo in progress...",
-              success: () => {
-                mutateDomains();
-                return "Undo successful! Changes reverted.";
-              },
-              error: "Failed to roll back changes. An error occurred.",
-            }),
-          duration: 5000,
-        });
-      } else {
-        const { error } = await res.json();
-        setProcessing(false);
-        toast.error(error.message);
-      }
-    }
-  };
-
-  return processing ? (
-    <div className="flex h-6 items-center justify-center">
-      <LoadingCircle />
-    </div>
-  ) : (
-    <>
-      <Popover
-        content={
-          <div className="grid w-full gap-px p-2 sm:w-48">
-            {(!isDubDomain(domain.slug) || slug === "dub") && (
-              <Button
-                type="button"
-                text="Edit"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowAddEditDomainModal(true);
-                }}
-                icon={<Edit3 className="h-4 w-4" />}
-                className="h-9 w-full justify-start px-2 font-medium"
-              />
-            )}
-            <Button
-              type="button"
-              text="Archive"
-              variant="outline"
-              onClick={() => {
-                setOpenPopover(false);
-                handleArchiveRequest();
-              }}
-              icon={<Archive className="h-4 w-4" />}
-              className="h-9 w-full justify-start px-2 font-medium"
-            />
-          </div>
-        }
-        align="end"
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-      >
-        <button
-          type="button"
-          onClick={() => setOpenPopover(!openPopover)}
-          className={`${
-            openPopover ? "bg-gray-200" : "hover:bg-gray-200"
-          } flex h-6 items-center justify-center rounded-md transition-colors`}
-        >
-          <ThreeDots
-            className={`h-4 w-4 text-gray-500 ${
-              openPopover ? "" : "hidden group-hover:block"
-            }`}
-          />
-          <p
-            className={`text-gray-500 ${
-              openPopover ? "hidden" : "group-hover:hidden"
-            }`}
-          >
-            {nFormatter(count)}
-          </p>
-        </button>
-      </Popover>
-      <AddEditDomainModal />
-    </>
   );
 };
 

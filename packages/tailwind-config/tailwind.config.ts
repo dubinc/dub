@@ -53,6 +53,8 @@ const config: Config = {
         spinner: "spinner 1.2s linear infinite",
         // Custom blink animation (for loading-dots)
         blink: "blink 1.4s infinite both",
+        // Custom pulse animation
+        pulse: "pulse 1s linear infinite alternate",
       },
       keyframes: {
         // Modal
@@ -146,6 +148,15 @@ const config: Config = {
           },
           "100%": {
             opacity: "0.2",
+          },
+        },
+        // Custom pulse animation
+        pulse: {
+          from: {
+            opacity: "0",
+          },
+          to: {
+            opacity: "1",
           },
         },
       },

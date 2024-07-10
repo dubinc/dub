@@ -5,7 +5,6 @@ import { clickAnalyticsResponse } from "@/lib/zod/schemas/clicks-analytics";
 import { leadAnalyticsResponse } from "@/lib/zod/schemas/leads-analytics";
 import { saleAnalyticsResponse } from "@/lib/zod/schemas/sales-analytics";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
 
 const retrieveAnalytics: ZodOpenApiOperationObject = {
   operationId: "retrieveAnalytics",
@@ -15,7 +14,7 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
   description:
     "Retrieve analytics for a link, a domain, or the authenticated workspace. The response type depends on the `event` and `type` query parameters.",
   requestParams: {
-    query: workspaceParamsSchema.merge(analyticsQuerySchema),
+    query: analyticsQuerySchema,
   },
   responses: {
     "200": {

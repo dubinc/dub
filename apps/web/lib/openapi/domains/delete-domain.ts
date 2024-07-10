@@ -1,7 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { DomainSchema } from "@/lib/zod/schemas/domains";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
 
 export const deleteDomain: ZodOpenApiOperationObject = {
   operationId: "deleteDomain",
@@ -11,7 +10,6 @@ export const deleteDomain: ZodOpenApiOperationObject = {
   description:
     "Delete a domain from a workspace. It cannot be undone. This will also delete all the links associated with the domain.",
   requestParams: {
-    query: workspaceParamsSchema,
     path: DomainSchema.pick({ slug: true }),
   },
   responses: {

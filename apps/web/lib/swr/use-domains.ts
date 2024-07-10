@@ -12,7 +12,9 @@ import useWorkspace from "./use-workspace";
 export default function useDomains({
   id: workspaceId,
   domain,
-}: { id?: string; domain?: string } = {}) {
+  archived,
+  search,
+}: { id?: string; domain?: string; archived?: boolean; search?: string } = {}) {
   let id: string | undefined = undefined;
   if (workspaceId) {
     id = workspaceId;
@@ -22,7 +24,13 @@ export default function useDomains({
   }
 
   const { data, error, mutate } = useSWR<DomainProps[]>(
-    id && `/api/domains?workspaceId=${id}`,
+    id &&
+      `/api/domains?` +
+        new URLSearchParams({
+          workspaceId: id,
+          ...(archived !== undefined && { archived: archived.toString() }),
+          ...(search !== undefined && { search }),
+        }).toString(),
     fetcher,
     {
       dedupingInterval: 60000,
@@ -32,7 +40,6 @@ export default function useDomains({
 
   const allWorkspaceDomains = data || [];
   const activeWorkspaceDomains = data?.filter((domain) => !domain.archived);
-  const archivedWorkspaceDomains = data?.filter((domain) => domain.archived);
 
   const activeDefaultDomains =
     (workspaceDefaultDomains &&
@@ -62,7 +69,6 @@ export default function useDomains({
 
   return {
     activeWorkspaceDomains, // active workspace domains
-    archivedWorkspaceDomains, // archived workspace domains
     activeDefaultDomains, // active default Dub domains
     allWorkspaceDomains, // all workspace domains (active + archived)
     allActiveDomains, // all active domains (active workspace domains + active default Dub domains)

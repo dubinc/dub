@@ -20,7 +20,10 @@ export default function SettingsLayout({
     <div className="relative min-h-[calc(100vh-16px)] bg-white">
       <MaxWidthWrapper className="grid items-start gap-8 py-10 lg:grid-cols-5">
         <div
-          className={cn("flex gap-1 lg:sticky lg:grid", tabContainerClassName)}
+          className={cn(
+            "flex flex-wrap gap-1 lg:sticky lg:grid",
+            tabContainerClassName,
+          )}
         >
           {tabs.map(({ name, segment, icon }) => (
             <NavLink segment={segment} icon={icon}>

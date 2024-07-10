@@ -113,7 +113,7 @@ export const createLinkBodySchema = z.object({
   url: parseUrlSchemaAllowEmpty
     .describe("The destination URL of the short link.")
     .openapi({
-      example: "https://google/com",
+      example: "https://google.com",
     }),
   domain: z
     .string()
@@ -272,7 +272,7 @@ export const bulkUpdateLinksBodySchema = z.object({
         url: parseUrlSchema
           .describe("The destination URL of the short link.")
           .openapi({
-            example: "https://google/com",
+            example: "https://google.com",
           })
           .optional(),
       }),

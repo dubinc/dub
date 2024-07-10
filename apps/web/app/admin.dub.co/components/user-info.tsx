@@ -1,8 +1,7 @@
 "use client";
 
-import { Badge, Copy, Tick } from "@dub/ui";
+import { Badge, Copy, Globe2, Tick } from "@dub/ui";
 import { capitalize, nFormatter } from "@dub/utils";
-import { Globe } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -58,7 +57,7 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
           {Object.entries(data.defaultDomainLinks).map(([domain, count]) => (
             <div key={domain} className="flex justify-between py-2">
               <div className="flex items-center space-x-2">
-                <Globe className="h-4 w-4" />
+                <Globe2 className="h-4 w-4" />
                 <span className="font-semibold text-gray-700">{domain}</span>
               </div>
               <span className="text-gray-500">{count}</span>

@@ -38,7 +38,6 @@ next-env.d.ts
 
 # miscellaneous
 /pages/api/scripts*
-apps/docs/openapi.json
 packages/stripe-app/.build/*
 .react-email
 .contentlayer
