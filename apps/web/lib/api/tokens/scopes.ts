@@ -160,62 +160,50 @@ export const PERMISSIONS: Permission[] = [
   {
     action: "links.read",
     roles: ["owner", "member"],
-    resource: "links",
   },
   {
     action: "links.write",
     roles: ["owner", "member"],
-    resource: "links",
   },
   {
     action: "analytics.read",
     roles: ["owner", "member"],
-    resource: "analytics",
   },
   {
     action: "workspaces.read",
     roles: ["owner", "member"],
-    resource: "workspaces",
   },
   {
     action: "workspaces.write",
     roles: ["owner"],
-    resource: "workspaces",
   },
   {
     action: "domains.read",
     roles: ["owner", "member"],
-    resource: "domains",
   },
   {
     action: "domains.write",
     roles: ["owner"],
-    resource: "domains",
   },
   {
     action: "tags.read",
     roles: ["owner", "member"],
-    resource: "tags",
   },
   {
     action: "tags.write",
     roles: ["owner", "member"],
-    resource: "tags",
   },
   {
     action: "tokens.read",
     roles: ["owner", "member"],
-    resource: "tokens",
   },
   {
     action: "tokens.write",
     roles: ["owner", "member"],
-    resource: "tokens",
   },
   {
     action: "conversions.write",
     roles: ["owner"],
-    resource: "conversions",
   },
 ];
 
@@ -377,7 +365,6 @@ type Resource = {
 type Permission = {
   action: PermissionAction;
   roles: Role[];
-  resource: ResourceKeys;
 };
 
 type MasterScope = {
