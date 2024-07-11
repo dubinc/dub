@@ -2,7 +2,7 @@ import { vaidateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
-import { Logo } from "@dub/ui";
+import { BlurImage, Logo } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -17,6 +17,7 @@ export const metadata = constructMetadata({
   noIndex: true,
 });
 
+// OAuth app consent page
 export default async function Authorize({
   searchParams,
 }: {
@@ -46,7 +47,17 @@ export default async function Authorize({
       <div className="flex flex-col items-center justify-center space-y-6 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
         <div className="flex items-center gap-3">
           <a href={oAuthApp.website} target="_blank" rel="noreferrer">
-            <Logo className="h-14 w-14" />
+            {oAuthApp.logo ? (
+              <BlurImage
+                src={oAuthApp.logo}
+                alt={`Logo for ${oAuthApp.name}`}
+                className="h-14 w-14 rounded-full border border-gray-200"
+                width={20}
+                height={20}
+              />
+            ) : (
+              <Logo className="h-14 w-14" />
+            )}
           </a>
           <ArrowLeftRight className="h-6 w-6 text-gray-500" />
           <a href={HOME_DOMAIN} target="_blank" rel="noreferrer">

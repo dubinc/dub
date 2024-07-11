@@ -32,7 +32,7 @@ export const GET = withWorkspace(
 // PATCH /api/oauth-apps/[clientId] – update an OAuth app
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
-    const { name, developer, website, redirectUri } =
+    const { name, developer, website, redirectUri, logo } =
       updateOAuthAppSchema.parse(await parseRequestBody(req));
 
     const app = await prisma.oAuthApp.update({
@@ -45,6 +45,7 @@ export const PATCH = withWorkspace(
         ...(developer && { developer }),
         ...(website && { website }),
         ...(redirectUri && { redirectUri }),
+        ...(logo && { logo }),
       },
     });
 

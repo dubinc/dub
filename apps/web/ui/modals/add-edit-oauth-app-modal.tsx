@@ -25,6 +25,7 @@ const newApp: OAuthAppProps = {
   website: "",
   clientId: "",
   redirectUri: "",
+  logo: null,
 };
 
 function AddEditAppModal({
@@ -39,7 +40,7 @@ function AddEditAppModal({
   onAppCreated?: (App: OAuthAppProps) => void;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, logo, slug } = useWorkspace();
+  const { id: workspaceId, logo: workspaceLogo, slug } = useWorkspace();
   const [data, setData] = useState<OAuthAppProps>(app || newApp);
 
   // Determine the endpoint
@@ -85,7 +86,7 @@ function AddEditAppModal({
     }
   };
 
-  const { name, developer, website, redirectUri } = data;
+  const { name, developer, website, redirectUri, logo } = data;
   const buttonDisabled = !name || !developer || !website || !redirectUri;
 
   return (
@@ -96,9 +97,9 @@ function AddEditAppModal({
         className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
       >
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-          {logo ? (
+          {workspaceLogo ? (
             <BlurImage
-              src={logo}
+              src={workspaceLogo}
               alt={`Logo for ${slug}`}
               className="h-10 w-10 rounded-full border border-gray-200"
               width={20}
@@ -169,6 +170,22 @@ function AddEditAppModal({
                 value={website}
                 onChange={(e) => setData({ ...data, website: e.target.value })}
                 placeholder="https://acme.com"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="logo" className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-gray-900">Logo URL</h2>
+              <InfoTooltip content="URL to your application's logo" />
+            </label>
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                type="url"
+                value={logo || ""}
+                onChange={(e) => setData({ ...data, logo: e.target.value })}
+                placeholder="https://acme.com/logo.png"
               />
             </div>
           </div>

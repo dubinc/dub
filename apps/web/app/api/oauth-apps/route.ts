@@ -11,10 +11,10 @@ import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// POST /api/oauth-apps - create a new OAuth apps
+// POST /api/oauth-apps - create a new OAuth app
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, developer, website, redirectUri } =
+    const { name, developer, website, redirectUri, logo } =
       createOAuthAppSchema.parse(await parseRequestBody(req));
 
     const clientSecret = `${OAUTH_CLIENT_SECRET_PREFIX}${nanoid(OAUTH_CLIENT_SECRET_LENGTH)}`;
@@ -26,15 +26,11 @@ export const POST = withWorkspace(
         developer,
         website,
         redirectUri,
+        logo,
         clientId: nanoid(OAUTH_CLIENT_ID_LENGTH),
         clientSecretHashed: await hashToken(clientSecret),
         createdBy: session.user.id,
       },
-    });
-
-    console.log({
-      ...oAuthAppSchema.parse(client),
-      clientSecret,
     });
 
     return NextResponse.json(

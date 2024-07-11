@@ -8,6 +8,7 @@ export const oAuthAppSchema = z.object({
   developer: z.string(),
   website: z.string(),
   redirectUri: z.string(),
+  logo: z.string().nullable(),
 });
 
 export const createOAuthAppSchema = z.object({
@@ -19,6 +20,13 @@ export const createOAuthAppSchema = z.object({
       message: "website must be a valid URL",
     })
     .max(255),
+  logo: z
+    .string()
+    .url({
+      message: "Please provide a valid URL for the logo",
+    })
+    .max(255)
+    .nullable(),
   redirectUri: z
     .string()
     .url({ message: "redirect_uri must be a valid URL" })
