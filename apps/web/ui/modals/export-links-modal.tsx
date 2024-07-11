@@ -7,6 +7,7 @@ import {
   InfoTooltip,
   Logo,
   Modal,
+  Switch,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -221,19 +222,12 @@ function ExportLinksModal({
           name="useFilters"
           control={control}
           render={({ field }) => (
-            <div className="flex gap-2">
-              <Checkbox
-                id={useFiltersCheckboxId}
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-              <label
-                htmlFor={useFiltersCheckboxId}
-                className="flex select-none items-center gap-1.5 text-sm font-medium text-gray-600 group-hover:text-gray-800"
-              >
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex select-none items-center gap-2 text-sm font-medium text-gray-600 group-hover:text-gray-800">
                 Apply current filters
                 <InfoTooltip content="Filter exported links by your currently selected filters" />
-              </label>
+              </span>
+              <Switch checked={field.value} fn={field.onChange} />
             </div>
           )}
         />
