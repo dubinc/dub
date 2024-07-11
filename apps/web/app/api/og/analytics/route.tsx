@@ -32,12 +32,7 @@ export async function GET(req: NextRequest) {
     // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
     ...(link.projectId && { workspaceId: link.projectId }),
     linkId: link.id,
-    // if link created more than 24 hours ago, use 7d, else use 24h
-    interval:
-      new Date(link.createdAt).getTime() <
-      new Date().getTime() - 24 * 60 * 60 * 1000
-        ? "7d"
-        : "24h",
+    interval: "24h",
   });
 
   const clicks = data.reduce((acc, { clicks }) => acc + clicks, 0);
