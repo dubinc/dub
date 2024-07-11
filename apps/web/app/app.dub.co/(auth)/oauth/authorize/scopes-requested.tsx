@@ -8,6 +8,11 @@ interface ScopesProps {
 }
 
 export const ScopesRequested = ({ scopes }: ScopesProps) => {
+  // Add default scopes if not present
+  if (!scopes.includes("user.read")) {
+    scopes.push("user.read");
+  }
+
   const scopeWithDescriptions = scopes.map((scope) => {
     return {
       scope,

@@ -26,12 +26,11 @@ export const OAUTH_SCOPES = [
   "analytics.read",
   "domains.read",
   "domains.write",
-  "users.read",
+  "user.read",
 ];
 
 // Scope descriptions
 export const OAUTH_SCOPE_DESCRIPTIONS = {
-  "users.read": "Read access to your profile",
   "workspaces.read": "Read access to workspace",
   "workspaces.write": "Read and Write access to workspace",
   "links.read": "Read access to links",
@@ -41,4 +40,5 @@ export const OAUTH_SCOPE_DESCRIPTIONS = {
   "analytics.read": "Read access to analytics and events",
   "domains.read": "Read access to domains",
   "domains.write": "Read and Write access to domains",
+  "user.read": "Read access to your profile (name and email)",
 };
