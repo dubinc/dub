@@ -1,6 +1,14 @@
 import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, Checkbox, DateRangePicker, Logo, Modal } from "@dub/ui";
+import {
+  Button,
+  Checkbox,
+  DateRangePicker,
+  InfoTooltip,
+  Logo,
+  Modal,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -32,6 +40,7 @@ type FormData = {
     interval?: string;
   };
   columns: string[];
+  useFilters: boolean;
 };
 
 function ExportLinksModal({
@@ -42,8 +51,10 @@ function ExportLinksModal({
   setShowExportLinksModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
   const dateRangePickerId = useId();
-  const checkboxId = useId();
+  const columnCheckboxId = useId();
+  const useFiltersCheckboxId = useId();
 
   const {
     control,
@@ -55,13 +66,14 @@ function ExportLinksModal({
         interval: "all",
       },
       columns: defaultColumns,
+      useFilters: true,
     },
   });
 
   const onSubmit = handleSubmit(async (data) => {
     const lid = toast.loading("Exporting links...");
     try {
-      const queryString = new URLSearchParams({
+      const params = {
         ...(workspaceId && { workspaceId }),
         ...(data.dateRange.from && data.dateRange.to
           ? {
@@ -74,8 +86,13 @@ function ExportLinksModal({
         columns: (data.columns.length ? data.columns : defaultColumns).join(
           ",",
         ),
-      });
-      const response = await fetch(`/api/links/export?${queryString}`, {
+      };
+      const queryString = data.useFilters
+        ? getQueryString(params, {
+            ignore: ["import", "upgrade", "newLink"],
+          })
+        : "?" + new URLSearchParams(params).toString();
+      const response = await fetch(`/api/links/export${queryString}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +148,7 @@ function ExportLinksModal({
                 htmlFor={dateRangePickerId}
                 className="block text-sm font-medium text-gray-700"
               >
-                Link creation
+                Date Range
               </label>
               <DateRangePicker
                 id={dateRangePickerId}
@@ -175,7 +192,7 @@ function ExportLinksModal({
                   <div key={id} className="group flex gap-2">
                     <Checkbox
                       value={id}
-                      id={`${checkboxId}-${id}`}
+                      id={`${columnCheckboxId}-${id}`}
                       checked={field.value.includes(id)}
                       onCheckedChange={(checked) => {
                         field.onChange(
@@ -186,7 +203,7 @@ function ExportLinksModal({
                       }}
                     />
                     <label
-                      htmlFor={`${checkboxId}-${id}`}
+                      htmlFor={`${columnCheckboxId}-${id}`}
                       className="select-none text-sm font-medium text-gray-600 group-hover:text-gray-800"
                     >
                       {label}
@@ -197,6 +214,29 @@ function ExportLinksModal({
             )}
           />
         </div>
+
+        <div className="border-t border-gray-200" />
+
+        <Controller
+          name="useFilters"
+          control={control}
+          render={({ field }) => (
+            <div className="flex gap-2">
+              <Checkbox
+                id={useFiltersCheckboxId}
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+              <label
+                htmlFor={useFiltersCheckboxId}
+                className="flex select-none items-center gap-1.5 text-sm font-medium text-gray-600 group-hover:text-gray-800"
+              >
+                Apply current filters
+                <InfoTooltip content="Filter exported links by your currently selected filters" />
+              </label>
+            </div>
+          )}
+        />
         <Button loading={isLoading} text="Export links" />
       </form>
     </Modal>
