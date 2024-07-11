@@ -72,7 +72,7 @@ export const authorizeRequestSchema = z.object({
 
   // PKCE flow
   code_challenge: z.string().max(255).optional(),
-  code_challenge_method: z.string().optional().default("plain"),
+  code_challenge_method: z.string().optional(),
 });
 
 // Schema for OAuth2.0 code exchange request
@@ -82,6 +82,9 @@ export const authCodeExchangeSchema = z.object({
   client_secret: z.string().optional(),
   code: z.string().min(1, "Missing code"),
   redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
+
+  // PKCE flow
+  code_verifier: z.string().max(255).optional(),
 });
 
 // Schema for OAuth2.0 token refresh request

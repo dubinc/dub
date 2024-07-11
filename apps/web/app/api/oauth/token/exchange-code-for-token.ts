@@ -7,7 +7,8 @@ import {
   OAUTH_REFRESH_TOKEN_LIFETIME,
   OAUTH_REFRESH_TOKEN_PREFIX,
 } from "@/lib/api/oauth/constants";
-import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
+import { generateCodeChallengeHash } from "@/lib/api/oauth/utils";
+import { hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
@@ -19,34 +20,44 @@ export const exchangeAuthCodeForToken = async (
   req: NextRequest,
   params: z.infer<typeof authCodeExchangeSchema>,
 ) => {
-  const { client_id, client_secret, code, redirect_uri: redirectUri } = params;
+  const {
+    code,
+    redirect_uri: redirectUri,
+    code_verifier: codeVerifier,
+  } = params;
 
-  let clientId: string | undefined = client_id;
-  let clientSecret: string | undefined = client_secret;
+  let { client_id: clientId, client_secret: clientSecret } = params;
+  const isPKCE = codeVerifier !== undefined;
 
   // If no client_id or client_secret is provided in the request body
-  // then it should be provided in the Authorization header as Basic Auth
-  if (!clientId && !clientSecret) {
-    const token = getAuthTokenOrThrow(req, "Basic");
-    const splits = Buffer.from(token, "base64").toString("utf-8").split(":");
+  // then it should be provided in the Authorization header as Basic Auth for non-PKCE
+  if (!clientId && !clientSecret && !isPKCE) {
+    const authorizationHeader = req.headers.get("Authorization") || "";
+    const [type, token] = authorizationHeader.split(" ");
 
-    if (splits.length > 1) {
-      clientId = splits[0];
-      clientSecret = splits[1];
+    if (type === "Basic") {
+      const splits = Buffer.from(token, "base64").toString("utf-8").split(":");
+
+      if (splits.length > 1) {
+        clientId = splits[0];
+        clientSecret = splits[1];
+      }
     }
   }
 
-  if (!clientId || !clientSecret) {
+  if (!clientId || (!clientSecret && !isPKCE)) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Invalid client credentials",
+      message: "Missing client credentials",
     });
   }
 
   const app = await prisma.oAuthApp.findFirst({
     where: {
       clientId,
-      clientSecretHashed: await hashToken(clientSecret),
+      ...(clientSecret && {
+        clientSecretHashed: await hashToken(clientSecret),
+      }),
     },
     select: {
       name: true,
@@ -71,6 +82,8 @@ export const exchangeAuthCodeForToken = async (
       scopes: true,
       redirectUri: true,
       expiresAt: true,
+      codeChallenge: true,
+      codeChallengeMethod: true,
     },
   });
 
@@ -81,6 +94,21 @@ export const exchangeAuthCodeForToken = async (
     });
   }
 
+  if (isPKCE) {
+    const codeChallenge =
+      accessCode.codeChallengeMethod === "S256"
+        ? await generateCodeChallengeHash(codeVerifier)
+        : codeVerifier;
+
+    if (accessCode.codeChallenge != codeChallenge) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "invalid_grant",
+      });
+    }
+  }
+
+  // If the code has expired, delete it and throw an error
   if (accessCode.expiresAt < new Date()) {
     await prisma.oAuthCode.delete({
       where: {

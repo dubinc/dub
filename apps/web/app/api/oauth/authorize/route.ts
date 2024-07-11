@@ -42,9 +42,9 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
       userId: session.user.id,
       scopes: scope.join(" "),
       code: nanoid(OAUTH_CODE_LENGTH),
-      codeChallenge,
-      codeChallengeMethod,
       expiresAt: new Date(Date.now() + OAUTH_CODE_LIFETIME * 1000),
+      ...(codeChallenge && { codeChallenge }),
+      ...(codeChallengeMethod && { codeChallengeMethod }),
     },
   });
 

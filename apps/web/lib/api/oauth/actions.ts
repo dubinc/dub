@@ -15,12 +15,7 @@ export const vaidateAuthorizeRequest = async (params: any) => {
     };
   }
 
-  const requestParams = request.data;
-  const {
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    scope,
-  } = requestParams;
+  const { client_id: clientId, redirect_uri: redirectUri } = request.data;
 
   const oAuthApp = await prisma.oAuthApp.findFirst({
     where: {
@@ -40,11 +35,8 @@ export const vaidateAuthorizeRequest = async (params: any) => {
     };
   }
 
-  // TODO:
-  // Validate scope requested are valid
-
   return {
     oAuthApp,
-    requestParams,
+    requestParams: request.data,
   };
 };
