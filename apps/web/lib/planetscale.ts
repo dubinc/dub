@@ -73,6 +73,7 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
         projectId: string;
         publicStats: number;
         expiredUrl: string | null;
+        createdAt: string;
       })
     : null;
 };

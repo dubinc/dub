@@ -14,7 +14,6 @@ import {
   NumberTooltip,
   Popover,
   Refresh2,
-  SimpleTooltipContent,
   StatusBadge,
   Tooltip,
   useIntersectionObserver,
@@ -52,23 +51,6 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
   const { id: workspaceId, slug } = useWorkspace();
 
-  const { data: linkProps } = useSWRImmutable<LinkProps>(
-    workspaceId
-      ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key: "_root" }).toString()}`
-      : null,
-    fetcher,
-  );
-
-  const { data: totalEvents } = useSWR<{ clicks: number }>(
-    workspaceId &&
-      linkProps &&
-      `/api/analytics?event=clicks&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
-    fetcher,
-    {
-      dedupingInterval: 15000,
-    },
-  );
-
   const domainRef = useRef<any>();
   const entry = useIntersectionObserver(domainRef, {});
   const isVisible = !!entry?.isIntersecting;
@@ -81,6 +63,24 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       isVisible &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
+  );
+
+  const { data: linkProps } = useSWRImmutable<LinkProps>(
+    workspaceId &&
+      isVisible &&
+      `/api/links/info?${new URLSearchParams({ workspaceId, domain, key: "_root" }).toString()}`,
+    fetcher,
+  );
+
+  const { data: totalEvents } = useSWR<{ clicks: number }>(
+    workspaceId &&
+      isVisible &&
+      linkProps &&
+      `/api/analytics?event=clicks&workspaceId=${workspaceId}&domain=${domain}&key=_root&interval=all_unfiltered`,
+    fetcher,
+    {
+      dedupingInterval: 15000,
+    },
   );
 
   const [showDetails, setShowDetails] = useState(false);
@@ -317,14 +317,13 @@ function Menu({
         initial={false}
         className="flex items-center justify-end divide-x divide-gray-200 overflow-hidden rounded-md border border-gray-200 sm:divide-transparent sm:group-hover:divide-gray-200"
       >
-        <Tooltip content="Domain settings">
-          <Button
-            icon={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
-            variant="outline"
-            className="h-8 rounded-none border-0 px-3 text-gray-600"
-            onClick={() => setShowAddEditDomainModal(true)}
-          />
-        </Tooltip>
+        <Button
+          icon={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
+          variant="outline"
+          className="h-8 rounded-none border-0 px-3"
+          onClick={() => setShowAddEditDomainModal(true)}
+          disabledTooltip={permissionsError || undefined}
+        />
         <Tooltip content="Refresh">
           <Button
             icon={
@@ -417,16 +416,11 @@ function Menu({
                   }}
                   icon={<FolderInput className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
-                  {...(primary &&
-                    activeDomainsCount > 1 && {
-                      disabledTooltip: (
-                        <SimpleTooltipContent
-                          title="You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
-                          cta="Learn more."
-                          href="https://dub.co/help/article/how-to-set-primary-domain"
-                        />
-                      ),
-                    })}
+                  disabledTooltip={
+                    primary && activeDomainsCount > 1
+                      ? "You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
+                      : undefined
+                  }
                 />
                 <Button
                   text={archived ? "Unarchive" : "Archive"}

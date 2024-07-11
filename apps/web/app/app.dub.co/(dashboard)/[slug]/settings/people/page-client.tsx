@@ -53,28 +53,26 @@ export default function WorkspacePeopleClient() {
               text="Invite"
               onClick={() => setShowInviteTeammateModal(true)}
               className="h-9"
-              {...(clientAccessCheck({ action: "workspaces.write", role })
-                .error && {
-                disabledTooltip: clientAccessCheck({
+              disabledTooltip={
+                clientAccessCheck({
                   action: "workspaces.write",
                   role,
                   customPermissionDescription: "invite new teammates",
-                }).error,
-              })}
+                }).error || undefined
+              }
             />
             <Button
               icon={<LinkIcon className="h-4 w-4 text-gray-800" />}
               variant="secondary"
               onClick={() => setShowInviteCodeModal(true)}
               className="h-9 space-x-0"
-              {...(clientAccessCheck({ action: "workspaces.write", role })
-                .error && {
-                disabledTooltip: clientAccessCheck({
+              disabledTooltip={
+                clientAccessCheck({
                   action: "workspaces.write",
                   role,
                   customPermissionDescription: "generate invite links",
-                }).error,
-              })}
+                }).error || undefined
+              }
             />
           </div>
         </div>

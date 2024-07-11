@@ -41,9 +41,9 @@ export const clientAccessCheck = ({
   customPermissionDescription?: string;
 }) => {
   const permission = PERMISSIONS.find((p) => p.action === action)!;
-  const allowedRoles = permission.roles;
+  const allowedRoles = permission.roles.map((r) => `${r}s`);
 
-  if (allowedRoles.includes(role)) {
+  if (allowedRoles.includes(role.toLowerCase())) {
     return {
       error: false,
     };

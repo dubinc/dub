@@ -28,6 +28,7 @@ export const GET = withWorkspace(
         }),
         ...(archived !== undefined && { archived }),
       },
+      take: 100,
     });
 
     return NextResponse.json(z.array(DomainSchema).parse(domains));
