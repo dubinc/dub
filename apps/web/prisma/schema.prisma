@@ -299,6 +299,7 @@ model Link {
   @@index(trackConversion)
   @@index(proxy)
   @@index(password)
+  @@index(archived)
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
