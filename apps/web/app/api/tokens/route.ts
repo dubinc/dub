@@ -67,6 +67,14 @@ export const POST = withWorkspace(
       },
     });
 
+    // Only workspace owners can create machine users
+    if (isMachine && role !== "owner") {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Only workspace owners can create machine users.",
+      });
+    }
+
     if (!validateScopesForRole(scopes || [], role)) {
       throw new DubApiError({
         code: "unprocessable_entity",

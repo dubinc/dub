@@ -21,6 +21,7 @@ import {
 } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
+import { cn } from "@dub/utils";
 import {
   Dispatch,
   FormEvent,
@@ -60,7 +61,14 @@ function AddEditTokenModal({
   onTokenCreated?: (token: string) => void;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, logo, slug, betaTester, isOwner } = useWorkspace();
+  const {
+    id: workspaceId,
+    logo,
+    slug,
+    betaTester,
+    role,
+    isOwner,
+  } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
   const [preset, setPreset] = useState<ScopePreset>("all_access");
 
@@ -128,7 +136,7 @@ function AddEditTokenModal({
     (!name || token?.name === name) && token?.scopes === scopes;
 
   const scopesByResources = transformScopesForUI(
-    getScopesByResourceForRole(isOwner ? "owner" : "member"),
+    getScopesByResourceForRole(role),
   ).filter((resource) => !resource.betaFeature || betaTester);
 
   return (
@@ -188,21 +196,38 @@ function AddEditTokenModal({
                     />
                   </Label>
                 </div>
-                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                <div
+                  className={cn(
+                    "flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100",
+                    {
+                      "cursor-not-allowed opacity-75": !isOwner,
+                    },
+                  )}
+                >
                   <RadioGroupItem
                     value="machine"
                     id="machine"
                     className="ml-3"
+                    disabled={!isOwner}
                   />
                   <Label
                     htmlFor="machine"
-                    className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                    className={cn(
+                      "flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0",
+                      {
+                        "cursor-not-allowed": !isOwner,
+                      },
+                    )}
                   >
                     <p className="text-gray-600">Machine</p>
                     <InfoTooltip
                       content={
                         <SimpleTooltipContent
-                          title="A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
+                          title={
+                            isOwner
+                              ? "A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
+                              : "Only the workspace owner can create machine users."
+                          }
                           cta="Learn more"
                           href="https://dub.co/docs/api-reference/tokens#machine-users"
                         />

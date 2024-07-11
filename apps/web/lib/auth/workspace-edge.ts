@@ -257,13 +257,17 @@ export const withWorkspaceEdge = (
         });
       }
 
-      // By default, the user has access to all permissions based on their role
+      // Machine users have owner role by default
+      // Only workspace owners can create machine users
+      if (session.user.isMachine) {
+        workspace.users[0].role = "owner";
+      }
+
       permissions = getPermissionsByRole(workspace.users[0].role);
 
       // Find the subset of permissions that the user has access to based on the token scopes
       if (isRestrictedToken) {
         const tokenScopes: Scope[] = token.scopes.split(" ") || [];
-
         permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
           permissions.includes(p),
         );
