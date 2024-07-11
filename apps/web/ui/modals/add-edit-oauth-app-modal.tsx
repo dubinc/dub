@@ -1,22 +1,12 @@
-import {
-  ResourceScopeMapping,
-  Scope,
-  mapScopeToResource,
-  permissionsByResource,
-  resources,
-} from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import {
-  AnimatedSizeContainer,
   BlurImage,
   Button,
   ButtonProps,
   InfoTooltip,
   Logo,
   Modal,
-  RadioGroup,
-  RadioGroupItem,
 } from "@dub/ui";
 import {
   Dispatch,
@@ -35,7 +25,6 @@ const newApp: OAuthAppProps = {
   website: "",
   clientId: "",
   redirectUri: "",
-  scopes: [],
 };
 
 function AddEditAppModal({
@@ -50,11 +39,8 @@ function AddEditAppModal({
   onAppCreated?: (App: OAuthAppProps) => void;
 }) {
   const [saving, setSaving] = useState(false);
+  const { id: workspaceId, logo, slug } = useWorkspace();
   const [data, setData] = useState<OAuthAppProps>(app || newApp);
-  const { id: workspaceId, logo, slug, betaTester } = useWorkspace();
-  const [selectedScopes, setSelectedScopes] = useState<
-    ResourceScopeMapping | {}
-  >(mapScopeToResource(app?.scopes || []));
 
   // Determine the endpoint
   const endpoint = useMemo(() => {
@@ -83,10 +69,7 @@ function AddEditAppModal({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        ...data,
-        scopes: Object.values(selectedScopes).filter((v) => v),
-      }),
+      body: JSON.stringify(data),
     });
 
     const result = await response.json();
@@ -103,12 +86,7 @@ function AddEditAppModal({
   };
 
   const { name, developer, website, redirectUri } = data;
-  const buttonDisabled =
-    !name ||
-    !developer ||
-    !website ||
-    !redirectUri ||
-    Object.values(selectedScopes).filter((v) => v).length === 0;
+  const buttonDisabled = !name || !developer || !website || !redirectUri;
 
   return (
     <>
@@ -218,62 +196,6 @@ function AddEditAppModal({
               />
             </div>
           </div>
-
-          <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-gray-900">
-              Application permissions
-            </h2>
-            <p className="text-sm text-gray-500">
-              These permissions will be presented to the user when adding an app
-              to their workspace. Must choose at least one permission.
-            </p>
-          </div>
-
-          <AnimatedSizeContainer height>
-            <div className="flex flex-col divide-y text-sm">
-              {resources
-                .filter((resource) => resource.betaFeature === betaTester)
-                .map((resource) => (
-                  <div
-                    className="flex items-center justify-between py-4"
-                    key={resource.key}
-                  >
-                    <div className="flex items-center gap-1.5 text-gray-500">
-                      <p>{resource.name}</p>
-                      <InfoTooltip content={resource.description} />
-                    </div>
-                    <div>
-                      <RadioGroup
-                        defaultValue={selectedScopes[resource.key] || ""}
-                        className="flex gap-4"
-                        onValueChange={(v: Scope) => {
-                          setSelectedScopes({
-                            ...selectedScopes,
-                            [resource.key]: v,
-                          });
-                        }}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="" />
-                          <div>None</div>
-                        </div>
-                        {permissionsByResource[resource.key]?.map(
-                          (permission) => (
-                            <div
-                              className="flex items-center space-x-2"
-                              key={permission.scope}
-                            >
-                              <RadioGroupItem value={permission.scope} />
-                              <div>{permission.permission}</div>
-                            </div>
-                          ),
-                        )}
-                      </RadioGroup>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </AnimatedSizeContainer>
 
           <Button
             text={app ? "Save changes" : "Create"}

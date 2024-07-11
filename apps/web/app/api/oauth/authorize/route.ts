@@ -1,4 +1,8 @@
-import { OAUTH_CODE_LENGTH, OAUTH_CODE_LIFETIME } from "@/lib/api/oauth";
+import { DubApiError } from "@/lib/api/errors";
+import {
+  OAUTH_CODE_LENGTH,
+  OAUTH_CODE_LIFETIME,
+} from "@/lib/api/oauth/constants";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -8,8 +12,12 @@ import { NextResponse } from "next/server";
 
 // POST /api/oauth/authorize - approve OAuth authorization request
 export const POST = withWorkspace(async ({ session, req, workspace }) => {
-  const body = authorizeRequestSchema.parse(await parseRequestBody(req));
-  const { state, client_id: clientId, redirect_uri: redirectUri } = body;
+  const {
+    state,
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope,
+  } = authorizeRequestSchema.parse(await parseRequestBody(req));
 
   const oAuthApp = await prisma.oAuthApp.findUniqueOrThrow({
     where: {
@@ -17,13 +25,20 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
     },
   });
 
+  if (oAuthApp.redirectUri !== redirectUri) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Invalid redirect_uri parameter for the application.",
+    });
+  }
+
   const { code } = await prisma.oAuthCode.create({
     data: {
       clientId,
       redirectUri,
       projectId: workspace.id,
       userId: session.user.id,
-      scopes: oAuthApp.scopes,
+      scopes: scope.join(" "),
       code: nanoid(OAUTH_CODE_LENGTH),
       expiresAt: new Date(Date.now() + OAUTH_CODE_LIFETIME * 1000),
     },

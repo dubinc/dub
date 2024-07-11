@@ -1,8 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { fromZodError } from "./api/errors";
-import { authorizeRequestSchema } from "./zod/schemas/oauth";
+import { authorizeRequestSchema } from "../../zod/schemas/oauth";
+import { fromZodError } from "../errors";
 
 export const vaidateAuthorizeRequest = async (params: any) => {
   const request = authorizeRequestSchema.safeParse(params);
@@ -16,7 +16,11 @@ export const vaidateAuthorizeRequest = async (params: any) => {
   }
 
   const requestParams = request.data;
-  const { client_id: clientId, redirect_uri: redirectUri } = requestParams;
+  const {
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope,
+  } = requestParams;
 
   const oAuthApp = await prisma.oAuthApp.findFirst({
     where: {
@@ -35,6 +39,9 @@ export const vaidateAuthorizeRequest = async (params: any) => {
       error: "Invalid redirect_uri parameter for the application.",
     };
   }
+
+  // TODO:
+  // Validate scope requested are valid
 
   return {
     oAuthApp,

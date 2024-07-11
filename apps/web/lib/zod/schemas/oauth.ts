@@ -1,4 +1,4 @@
-import { availableScopes } from "@/lib/api/tokens/scopes";
+import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
 import { z } from "zod";
 
 export const oAuthAppSchema = z.object({
@@ -8,13 +8,9 @@ export const oAuthAppSchema = z.object({
   developer: z.string(),
   website: z.string(),
   redirectUri: z.string(),
-  scopes: z
-    .string()
-    .nullable()
-    .transform((val) => val?.split(" ") ?? []),
 });
 
-export const createOAuthClientSchema = z.object({
+export const createOAuthAppSchema = z.object({
   name: z.string().min(1).max(255),
   developer: z.string().min(1).max(255),
   website: z
@@ -40,12 +36,9 @@ export const createOAuthClientSchema = z.object({
           "redirect_uri must be a valid URL starting with 'https://' except for 'http://localhost'",
       },
     ),
-  scopes: z
-    .array(z.enum(availableScopes))
-    .min(1, "An OAuth app must have at least one scope"),
 });
 
-export const updateOAuthClientSchema = createOAuthClientSchema.partial();
+export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 
 // Schema for OAuth2.0 Authorization request
 export const authorizeRequestSchema = z.object({
@@ -55,6 +48,19 @@ export const authorizeRequestSchema = z.object({
     message: "response_type must be 'code'",
   }),
   state: z.string().max(255).optional(),
+  scope: z
+    .string()
+    .max(255)
+    .nullable()
+    .transform((scope) => scope?.split(",") ?? [])
+    .refine(
+      (scopes) => {
+        return scopes.every((scope) => OAUTH_SCOPES.includes(scope));
+      },
+      {
+        message: "Invalid scopes",
+      },
+    ),
 });
 
 // Schema for OAuth2.0 code exchange request

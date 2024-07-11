@@ -2,10 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  oAuthAppSchema,
-  updateOAuthClientSchema,
-} from "@/lib/zod/schemas/oauth";
+import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";
 
 // GET /api/oauth-apps/[clientId] – get an OAuth app
@@ -35,8 +32,8 @@ export const GET = withWorkspace(
 // PATCH /api/oauth-apps/[clientId] – update an OAuth app
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
-    const { name, developer, website, redirectUri, scopes } =
-      updateOAuthClientSchema.parse(await parseRequestBody(req));
+    const { name, developer, website, redirectUri } =
+      updateOAuthAppSchema.parse(await parseRequestBody(req));
 
     const app = await prisma.oAuthApp.update({
       where: {
@@ -48,7 +45,6 @@ export const PATCH = withWorkspace(
         ...(developer && { developer }),
         ...(website && { website }),
         ...(redirectUri && { redirectUri }),
-        ...(scopes && { scopes: [...new Set(scopes)].join(" ") }),
       },
     });
 

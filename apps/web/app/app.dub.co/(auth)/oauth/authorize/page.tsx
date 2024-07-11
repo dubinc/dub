@@ -1,5 +1,5 @@
+import { vaidateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
-import { vaidateAuthorizeRequest } from "@/lib/oauth";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { Logo } from "@dub/ui";
@@ -70,7 +70,7 @@ export default async function Authorize({
         </span>
       </div>
       <div className="flex flex-col space-y-3 bg-white px-2 py-6 sm:px-10">
-        <ScopesRequested scopesRequested={oAuthApp.scopes.split(" ")} />
+        <ScopesRequested scopes={requestParams.scope} />
       </div>
       <div className="flex flex-col space-y-2 border-t border-gray-200 bg-white px-2 py-6 sm:px-10">
         <Suspense fallback={<></>}>

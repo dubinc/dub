@@ -52,7 +52,7 @@ export default function AuthorizedAppsPageClient() {
           <div className="flex flex-col items-center justify-center gap-y-4 py-20">
             <EmptyState
               icon={Key}
-              title="You have not yet authorized any applications to connect with your Dub workspace."
+              title="You haven’t authorized any applications to access Dub workspace on your behalf."
             />
           </div>
         )}

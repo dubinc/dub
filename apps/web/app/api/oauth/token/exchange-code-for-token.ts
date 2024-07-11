@@ -6,7 +6,7 @@ import {
   OAUTH_REFRESH_TOKEN_LENGTH,
   OAUTH_REFRESH_TOKEN_LIFETIME,
   OAUTH_REFRESH_TOKEN_PREFIX,
-} from "@/lib/api/oauth";
+} from "@/lib/api/oauth/constants";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";

@@ -1,26 +1,27 @@
 "use client";
 
-import { permissions } from "@/lib/api/tokens/scopes";
+import { OAUTH_SCOPE_DESCRIPTIONS } from "@/lib/api/oauth/constants";
 import { Check } from "lucide-react";
 
 interface ScopesProps {
-  scopesRequested: string[];
+  scopes: string[];
 }
 
-export const ScopesRequested = (props: ScopesProps) => {
-  const { scopesRequested } = props;
+export const ScopesRequested = ({ scopes }: ScopesProps) => {
+  const scopeWithDescriptions = scopes.map((scope) => {
+    return {
+      scope,
+      description: OAUTH_SCOPE_DESCRIPTIONS[scope],
+    };
+  });
 
-  const requestedPermissions = permissions.filter((p) =>
-    scopesRequested.includes(p.scope),
-  );
-
-  requestedPermissions.forEach((permission) => {
-    permission.description = permission.description.replace(
+  scopeWithDescriptions.forEach((scope) => {
+    scope.description = scope.description.replace(
       "Write",
       "<strong className='font-medium'>Write</strong>",
     );
 
-    permission.description = permission.description.replace(
+    scope.description = scope.description.replace(
       "Read",
       "<strong className='font-medium'>Read</strong>",
     );
@@ -30,13 +31,11 @@ export const ScopesRequested = (props: ScopesProps) => {
     <>
       <span className="text-gray-600">Grant permissions:</span>
       <ul className="text-md space-y-1">
-        {requestedPermissions.map((permission) => {
+        {scopeWithDescriptions.map((scope) => {
           return (
-            <li className="flex items-center gap-2" key={permission.scope}>
+            <li className="flex items-center gap-2" key={scope.scope}>
               <Check className="h-4 w-4 text-green-500" />
-              <div
-                dangerouslySetInnerHTML={{ __html: permission.description }}
-              />
+              <div dangerouslySetInnerHTML={{ __html: scope.description }} />
             </li>
           );
         })}

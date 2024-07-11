@@ -5,17 +5,21 @@ import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { OAuthClient } from "@prisma/client";
+import { OAuthApp } from "@prisma/client";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
-  oAuthApp: Pick<OAuthClient, "name">;
+  oAuthApp: Pick<OAuthApp, "name">;
 }
 
-export const AuthorizeForm = (props: AuthorizeFormProps) => {
-  const { oAuthApp, client_id, redirect_uri, response_type, state } = props;
-
+export const AuthorizeForm = ({
+  client_id,
+  redirect_uri,
+  response_type,
+  state,
+  scope,
+}: AuthorizeFormProps) => {
   const { workspaces } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] =
@@ -71,6 +75,7 @@ export const AuthorizeForm = (props: AuthorizeFormProps) => {
       <input type="hidden" name="redirect_uri" value={redirect_uri} />
       <input type="hidden" name="response_type" value={response_type} />
       <input type="hidden" name="state" value={state} />
+      <input type="hidden" name="scope" value={scope.join(",")} />
       <p className="text-sm text-gray-500">
         Select a workspace to grant API access to
       </p>
