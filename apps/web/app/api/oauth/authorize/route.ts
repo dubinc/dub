@@ -14,9 +14,11 @@ import { NextResponse } from "next/server";
 export const POST = withWorkspace(async ({ session, req, workspace }) => {
   const {
     state,
+    scope,
     client_id: clientId,
     redirect_uri: redirectUri,
-    scope,
+    code_challenge: codeChallenge,
+    code_challenge_method: codeChallengeMethod,
   } = authorizeRequestSchema.parse(await parseRequestBody(req));
 
   const oAuthApp = await prisma.oAuthApp.findUniqueOrThrow({
@@ -40,6 +42,8 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
       userId: session.user.id,
       scopes: scope.join(" "),
       code: nanoid(OAUTH_CODE_LENGTH),
+      codeChallenge,
+      codeChallengeMethod,
       expiresAt: new Date(Date.now() + OAUTH_CODE_LIFETIME * 1000),
     },
   });

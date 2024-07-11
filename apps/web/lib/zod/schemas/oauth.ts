@@ -69,6 +69,10 @@ export const authorizeRequestSchema = z.object({
         message: "Invalid scopes",
       },
     ),
+
+  // PKCE flow
+  code_challenge: z.string().max(255).optional(),
+  code_challenge_method: z.string().optional().default("plain"),
 });
 
 // Schema for OAuth2.0 code exchange request
