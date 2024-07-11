@@ -94,6 +94,7 @@ function ExportLinksModal({
       a.click();
 
       toast.success("Exported successfully");
+      setShowExportLinksModal(false);
     } catch (error) {
       console.error(error);
       toast.error(error);
