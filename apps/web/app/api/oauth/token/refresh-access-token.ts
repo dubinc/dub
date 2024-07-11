@@ -140,6 +140,7 @@ export const refreshAccessToken = async (
     }),
   ]);
 
+  // https://www.oauth.com/oauth2-servers/making-authenticated-requests/refreshing-an-access-token/
   const response = {
     access_token: newAccessToken,
     refresh_token: newRefreshToken,

@@ -180,11 +180,13 @@ export const exchangeAuthCodeForToken = async (
     }),
   ]);
 
+  // https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
   const response = {
     access_token: accessToken,
     refresh_token: refreshToken,
     token_type: "Bearer",
     expires_in: OAUTH_ACCESS_TOKEN_LIFETIME,
+    scope: scopes,
   };
 
   return response;
