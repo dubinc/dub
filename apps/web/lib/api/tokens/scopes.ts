@@ -159,50 +159,62 @@ export const SCOPES: MasterScope[] = [
 export const PERMISSIONS: Permission[] = [
   {
     action: "links.read",
+    description: "access links",
     roles: ["owner", "member"],
   },
   {
     action: "links.write",
+    description: "create, update, or delete links",
     roles: ["owner", "member"],
   },
   {
     action: "analytics.read",
+    description: "access analytics",
     roles: ["owner", "member"],
   },
   {
     action: "workspaces.read",
+    description: "access workspaces",
     roles: ["owner", "member"],
   },
   {
     action: "workspaces.write",
+    description: "create, update, or delete the current workspace",
     roles: ["owner"],
   },
   {
     action: "domains.read",
+    description: "access domains",
     roles: ["owner", "member"],
   },
   {
     action: "domains.write",
+    description: "create, update, or delete domains",
     roles: ["owner"],
   },
   {
     action: "tags.read",
+    description: "access tags",
     roles: ["owner", "member"],
   },
   {
     action: "tags.write",
+    description: "create, update, or delete tags",
     roles: ["owner", "member"],
   },
   {
     action: "tokens.read",
+    description: "access API keys",
     roles: ["owner", "member"],
   },
   {
     action: "tokens.write",
+    description: "create, update, or delete API keys",
     roles: ["owner", "member"],
   },
   {
     action: "conversions.write",
+    description: "track conversions",
     roles: ["owner"],
   },
 ];
@@ -364,6 +376,7 @@ type Resource = {
 
 type Permission = {
   action: PermissionAction;
+  description: string;
   roles: Role[];
 };
 

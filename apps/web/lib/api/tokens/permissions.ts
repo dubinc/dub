@@ -1,5 +1,7 @@
+import { combineWords } from "@dub/utils";
+import { Role } from "@prisma/client";
 import { DubApiError } from "../errors";
-import { PermissionAction } from "./scopes";
+import { PERMISSIONS, PermissionAction } from "./scopes";
 
 // Check if the required scope is in the list of user scopes
 export const throwIfNoAccess = ({
@@ -27,4 +29,27 @@ export const throwIfNoAccess = ({
     code: "forbidden",
     message: `The provided key does not have the required permissions for this endpoint on the workspace 'ws_${workspaceId}'. Having the '${missingPermissions.join(" ")}' permission would allow this request to continue.`,
   });
+};
+
+export const clientAccessCheck = ({
+  action,
+  role,
+  customPermissionDescription,
+}: {
+  action: PermissionAction;
+  role: Role;
+  customPermissionDescription?: string;
+}) => {
+  const permission = PERMISSIONS.find((p) => p.action === action)!;
+  const allowedRoles = permission.roles;
+
+  if (allowedRoles.includes(role)) {
+    return {
+      error: false,
+    };
+  }
+
+  return {
+    error: `Only ${combineWords(allowedRoles)} can ${customPermissionDescription || permission.description}.`,
+  };
 };

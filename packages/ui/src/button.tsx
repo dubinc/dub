@@ -56,7 +56,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         <Tooltip content={disabledTooltip}>
           <div
             className={cn(
-              "flex h-10 w-full cursor-not-allowed items-center justify-center space-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none",
+              "flex h-10 w-full cursor-not-allowed items-center justify-center gap-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none",
               {
                 "border-transparent bg-transparent":
                   variant?.endsWith("outline"),
@@ -65,7 +65,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             )}
           >
             {icon}
-            <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>
+            {text && (
+              <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>
+            )}
             {shortcut && (
               <kbd
                 className={cn(

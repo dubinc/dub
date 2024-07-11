@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceUserProps } from "@/lib/types";
@@ -31,7 +32,7 @@ export default function WorkspacePeopleClient() {
     "Members",
   );
 
-  const { isOwner } = useWorkspace();
+  const { role } = useWorkspace();
 
   const { users } = useUsers({ invites: currentTab === "Invitations" });
 
@@ -52,9 +53,13 @@ export default function WorkspacePeopleClient() {
               text="Invite"
               onClick={() => setShowInviteTeammateModal(true)}
               className="h-9"
-              {...(!isOwner && {
-                disabledTooltip:
-                  "Only workspace owners can invite new teammates.",
+              {...(clientAccessCheck({ action: "workspaces.write", role })
+                .error && {
+                disabledTooltip: clientAccessCheck({
+                  action: "workspaces.write",
+                  role,
+                  customPermissionDescription: "invite new teammates",
+                }).error,
               })}
             />
             <Button
@@ -62,9 +67,13 @@ export default function WorkspacePeopleClient() {
               variant="secondary"
               onClick={() => setShowInviteCodeModal(true)}
               className="h-9 space-x-0"
-              {...(!isOwner && {
-                disabledTooltip:
-                  "Only workspace owners can generate invite links for new teammates.",
+              {...(clientAccessCheck({ action: "workspaces.write", role })
+                .error && {
+                disabledTooltip: clientAccessCheck({
+                  action: "workspaces.write",
+                  role,
+                  customPermissionDescription: "generate invite links",
+                }).error,
               })}
             />
           </div>
@@ -122,7 +131,13 @@ const UserCard = ({
 }) => {
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { isOwner } = useWorkspace();
+  const { role: userRole } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role: userRole,
+    customPermissionDescription: "edit roles or remove teammates",
+  }).error;
 
   const { id, name, email, createdAt, role: currentRole, isMachine } = user;
 
@@ -182,11 +197,11 @@ const UserCard = ({
                   className={cn(
                     "rounded-md border border-gray-200 text-xs text-gray-500 focus:border-gray-600 focus:ring-gray-600",
                     {
-                      "cursor-not-allowed bg-gray-100": !isOwner,
+                      "cursor-not-allowed bg-gray-100": permissionsError,
                     },
                   )}
                   value={role}
-                  disabled={!isOwner}
+                  disabled={permissionsError ? true : false}
                   onChange={(e) => {
                     setRole(e.target.value as "owner" | "member");
                     setOpenPopover(false);
@@ -254,10 +269,9 @@ const UserCard = ({
                 icon={<ThreeDots className="h-5 w-5 text-gray-500" />}
                 className="h-8 space-x-0 px-1 py-2"
                 variant="outline"
-                {...(!isOwner &&
+                {...(permissionsError &&
                   session?.user?.email !== email && {
-                    disabledTooltip:
-                      "Only workspace owners can edit roles or remove teammates.",
+                    disabledTooltip: permissionsError,
                   })}
               />
             </div>

@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -246,6 +247,12 @@ function Menu({
 
   const { isMobile } = useMediaQuery();
 
+  const { role } = useWorkspace();
+  const permissionsError = clientAccessCheck({
+    action: "domains.write",
+    role,
+  }).error;
+
   const { activeWorkspaceDomains } = useDomains();
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -455,6 +462,9 @@ function Menu({
             onClick={() => {
               setOpenPopover(!openPopover);
             }}
+            {...(permissionsError && {
+              disabledTooltip: permissionsError,
+            })}
           />
         </Popover>
       </motion.div>
