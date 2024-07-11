@@ -37,6 +37,11 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
             },
           },
         },
+        where: {
+          user: {
+            isMachine: false,
+          },
+        },
       },
     },
   });

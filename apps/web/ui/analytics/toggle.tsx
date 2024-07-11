@@ -87,7 +87,7 @@ export default function Toggle({
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
-  const scrolled = useScroll(80);
+  const scrolled = useScroll(120);
 
   const { tags } = useTags();
   const { allDomains: domains, primaryDomain } = useDomains();
