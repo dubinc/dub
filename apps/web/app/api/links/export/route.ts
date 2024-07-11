@@ -44,9 +44,7 @@ export const GET = withWorkspace(
             select: {
               tag: {
                 select: {
-                  id: true,
                   name: true,
-                  color: true,
                 },
               },
             },
