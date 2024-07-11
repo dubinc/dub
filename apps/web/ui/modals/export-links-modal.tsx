@@ -1,14 +1,6 @@
 import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  Button,
-  Checkbox,
-  DateRangePicker,
-  Logo,
-  Modal,
-  useMediaQuery,
-} from "@dub/ui";
-import va from "@vercel/analytics";
+import { Button, Checkbox, DateRangePicker, Logo, Modal } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -25,6 +17,7 @@ const columns = [
   { id: "url", label: "Destination URL" },
   { id: "clicks", label: "Clicks" },
   { id: "createdAt", label: "Created at" },
+  { id: "id", label: "Link ID" },
   { id: "updatedAt", label: "Updated at" },
   { id: "tags", label: "Tags" },
   { id: "archived", label: "Archived" },
@@ -33,12 +26,12 @@ const columns = [
 const defaultColumns = ["link", "url", "clicks", "createdAt"];
 
 type FormData = {
-  columns: string[];
   dateRange: {
     from?: Date;
     to?: Date;
     interval?: string;
   };
+  columns: string[];
 };
 
 function ExportLinksModal({
@@ -49,59 +42,64 @@ function ExportLinksModal({
   setShowExportLinksModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
-  const { isMobile } = useMediaQuery();
   const dateRangePickerId = useId();
   const checkboxId = useId();
 
   const {
-    register,
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { isLoading },
   } = useForm<FormData>({
     defaultValues: {
-      columns: defaultColumns,
       dateRange: {
         interval: "all",
       },
+      columns: defaultColumns,
     },
   });
 
-  const [loading, setLoading] = useState(false);
+  const onSubmit = handleSubmit(async (data) => {
+    const lid = toast.loading("Exporting links...");
+    try {
+      const queryString = new URLSearchParams({
+        ...(workspaceId && { workspaceId }),
+        ...(data.dateRange.from && data.dateRange.to
+          ? {
+              start: data.dateRange.from.toISOString(),
+              end: data.dateRange.to.toISOString(),
+            }
+          : {
+              interval: data.dateRange.interval ?? "all",
+            }),
+        columns: (data.columns.length ? data.columns : defaultColumns).join(
+          ",",
+        ),
+      });
+      const response = await fetch(`/api/links/export?${queryString}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-  const onSubmit = handleSubmit((data) => {
-    setLoading(true);
-    const queryString = new URLSearchParams({
-      ...(workspaceId && { workspaceId }),
-      ...(data.dateRange.from && data.dateRange.to
-        ? {
-            from: data.dateRange.from.toISOString(),
-            to: data.dateRange.to.toISOString(),
-          }
-        : {
-            interval: data.dateRange.interval ?? "all",
-          }),
-      columns: (data.columns.length ? data.columns : defaultColumns).join(","),
-    }).toString();
-    fetch(`/api/links/export?${queryString}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then(async (res) => {
-        if (res.status === 200 || res.status === 201) {
-          va.track("Exported links");
-          toast.success("Links exported successfully");
-          setShowExportLinksModal(false);
-        } else {
-          const { error } = await res.json();
-          toast.error(error.message);
-        }
-      })
-      // TODO: catch
-      .finally(() => setLoading(false));
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Dub Links Export - ${new Date().toISOString()}.csv`;
+      a.click();
+
+      toast.success("Exported successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error(error);
+    } finally {
+      toast.dismiss(lid);
+    }
   });
 
   return (
@@ -149,9 +147,9 @@ function ExportLinksModal({
                     ? field.value.interval ?? "all"
                     : undefined
                 }
-                onChange={(dateRange, preset) =>
-                  field.onChange(preset ? { interval: preset.id } : dateRange)
-                }
+                onChange={(dateRange, preset) => {
+                  field.onChange(preset ? { interval: preset.id } : dateRange);
+                }}
                 presets={INTERVAL_DISPLAYS.map(({ display, value }) => ({
                   id: value,
                   label: display,
@@ -171,7 +169,7 @@ function ExportLinksModal({
             name="columns"
             control={control}
             render={({ field }) => (
-              <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+              <div className="xs:grid-cols-2 mt-2 grid grid-cols-1 gap-x-4 gap-y-2">
                 {columns.map(({ id, label }) => (
                   <div key={id} className="group flex gap-2">
                     <Checkbox
@@ -198,7 +196,7 @@ function ExportLinksModal({
             )}
           />
         </div>
-        <Button loading={loading} text="Export links" />
+        <Button loading={isLoading} text="Export links" />
       </form>
     </Modal>
   );
