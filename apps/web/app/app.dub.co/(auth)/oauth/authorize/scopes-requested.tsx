@@ -13,7 +13,7 @@ export const ScopesRequested = ({ scopes }: ScopesProps) => {
     scopes.push("user.read");
   }
 
-  const scopeWithDescriptions = scopes.map((scope) => {
+  const scopeWithDescriptions = consolidateScopes(scopes).map((scope) => {
     return {
       scope,
       description: OAUTH_SCOPE_DESCRIPTIONS[scope],
@@ -47,4 +47,21 @@ export const ScopesRequested = ({ scopes }: ScopesProps) => {
       </ul>
     </>
   );
+};
+
+// Consolidate scopes to avoid duplication and show only the most permissive scope
+const consolidateScopes = (scopes: string[]) => {
+  const consolidated = new Set();
+
+  scopes.forEach((scope) => {
+    const [resource, action] = scope.split(".");
+
+    if (action === "write") {
+      consolidated.add(`${resource}.write`);
+    } else if (action === "read" && !consolidated.has(`${resource}.write`)) {
+      consolidated.add(`${resource}.read`);
+    }
+  });
+
+  return Array.from(consolidated) as string[];
 };
