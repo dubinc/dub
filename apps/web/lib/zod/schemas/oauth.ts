@@ -68,10 +68,13 @@ export const authorizeRequestSchema = z.object({
         message: "Invalid scopes",
       },
     ),
-
-  // PKCE flow
   code_challenge: z.string().max(190).optional(),
-  code_challenge_method: z.string(z.enum(["plain", "S256"])).optional(),
+  code_challenge_method: z
+    .string()
+    .refine((method) => method === "S256", {
+      message: "code_challenge_method must be 'S256'",
+    })
+    .optional(),
 });
 
 // Schema for OAuth2.0 code exchange request
@@ -81,8 +84,6 @@ export const authCodeExchangeSchema = z.object({
   client_secret: z.string().optional(),
   code: z.string().min(1, "Missing code"),
   redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
-
-  // PKCE flow
   code_verifier: z.string().max(190).optional(),
 });
 
@@ -94,6 +95,7 @@ export const refreshTokenSchema = z.object({
   refresh_token: z.string().min(1, "Missing refresh_token"),
 });
 
+// Token grant schema
 export const tokenGrantSchema = z.discriminatedUnion(
   "grant_type",
   [authCodeExchangeSchema, refreshTokenSchema],
@@ -104,6 +106,7 @@ export const tokenGrantSchema = z.discriminatedUnion(
   },
 );
 
+// Schema to represent an authorized OAuth app with user
 export const oAuthAuthorizedAppSchema = z
   .object({
     id: z.string(),

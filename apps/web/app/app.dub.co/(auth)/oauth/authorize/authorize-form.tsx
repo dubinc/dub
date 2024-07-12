@@ -76,14 +76,18 @@ export const AuthorizeForm = ({
       <input type="hidden" name="client_id" value={client_id} />
       <input type="hidden" name="redirect_uri" value={redirect_uri} />
       <input type="hidden" name="response_type" value={response_type} />
-      <input type="hidden" name="state" value={state} />
       <input type="hidden" name="scope" value={scope.join(",")} />
-      <input type="hidden" name="code_challenge" value={code_challenge} />
-      <input
-        type="hidden"
-        name="code_challenge_method"
-        value={code_challenge_method}
-      />
+      {state && <input type="hidden" name="state" value={state} />}
+      {code_challenge && (
+        <input type="hidden" name="code_challenge" value={code_challenge} />
+      )}
+      {code_challenge_method && (
+        <input
+          type="hidden"
+          name="code_challenge_method"
+          value={code_challenge_method}
+        />
+      )}
       <p className="text-sm text-gray-500">
         Select a workspace to grant API access to
       </p>
