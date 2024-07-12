@@ -42,5 +42,5 @@ export const OAUTH_SCOPE_DESCRIPTIONS = {
   "analytics.read": "Read access to analytics and events",
   "domains.read": "Read access to domains",
   "domains.write": "Read and Write access to domains",
-  "user.read": "Read access to your profile (name and email)",
+  "user.read": "Read your name, email and profile image",
 };

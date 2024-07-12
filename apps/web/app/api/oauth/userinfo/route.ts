@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
       id: user.id,
       email: user.email,
       name: user.name,
+      image: user.image,
     };
 
     return NextResponse.json(userInfo);

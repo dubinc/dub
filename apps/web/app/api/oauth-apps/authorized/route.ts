@@ -18,6 +18,7 @@ export const GET = withWorkspace(
             name: true,
             developer: true,
             website: true,
+            logo: true,
           },
         },
         user: {
@@ -36,6 +37,7 @@ export const GET = withWorkspace(
       name: app.oAuthApp.name,
       developer: app.oAuthApp.developer,
       website: app.oAuthApp.website,
+      logo: app.oAuthApp.logo,
       user: {
         id: app.user.id,
         name: app.user.name,

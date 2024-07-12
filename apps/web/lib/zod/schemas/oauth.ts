@@ -55,12 +55,11 @@ export const authorizeRequestSchema = z.object({
   response_type: z.string().refine((responseType) => responseType === "code", {
     message: "response_type must be 'code'",
   }),
-  state: z.string().max(255).optional(),
+  state: z.string().max(1024).optional(),
   scope: z
     .string()
-    .max(255)
     .nullable()
-    .transform((scope) => [...new Set(scope?.split(","))] ?? [])
+    .transform((scope) => [...new Set(scope?.split(/[,\s]/).filter(Boolean))])
     .refine(
       (scopes) => {
         return scopes.every((scope) => OAUTH_SCOPES.includes(scope));
@@ -71,7 +70,7 @@ export const authorizeRequestSchema = z.object({
     ),
 
   // PKCE flow
-  code_challenge: z.string().max(128).optional(),
+  code_challenge: z.string().max(190).optional(),
   code_challenge_method: z.string(z.enum(["plain", "S256"])).optional(),
 });
 
@@ -84,7 +83,7 @@ export const authCodeExchangeSchema = z.object({
   redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
 
   // PKCE flow
-  code_verifier: z.string().max(255).optional(),
+  code_verifier: z.string().max(190).optional(),
 });
 
 // Schema for OAuth2.0 token refresh request
@@ -120,5 +119,6 @@ export const oAuthAuthorizedAppSchema = z
       name: true,
       developer: true,
       website: true,
+      logo: true,
     }),
   );

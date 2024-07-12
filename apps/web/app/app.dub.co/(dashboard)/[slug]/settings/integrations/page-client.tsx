@@ -5,7 +5,13 @@ import { OAuthAuthorizedAppProps } from "@/lib/types";
 import { useDeleteAppModal } from "@/ui/modals/delete-oauth-app-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { Delete } from "@/ui/shared/icons";
-import { Button, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
+import {
+  BlurImage,
+  Button,
+  LoadingSpinner,
+  Popover,
+  TokenAvatar,
+} from "@dub/ui";
 import { Key } from "@dub/ui/src/icons";
 import { fetcher, formatDate } from "@dub/utils";
 import { MoreVertical } from "lucide-react";
@@ -77,7 +83,17 @@ const AppRow = (app: OAuthAuthorizedAppProps) => {
       <DeleteAppModal />
       <div className="relative grid grid-cols-5 items-center px-5 py-3 sm:px-10">
         <div className="col-span-3 flex items-center space-x-3">
-          <TokenAvatar id={app.name} />
+          {app.logo ? (
+            <BlurImage
+              src={app.logo}
+              alt={`Logo for ${app.name}`}
+              className="h-10 w-10 rounded-full border border-gray-200"
+              width={20}
+              height={20}
+            />
+          ) : (
+            <TokenAvatar id={app.clientId} />
+          )}
           <div className="flex flex-col space-y-px">
             <p className="font-semibold text-gray-700">{app.name}</p>
             <div className="flex items-center gap-x-2">
