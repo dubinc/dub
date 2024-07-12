@@ -107,8 +107,7 @@ const TokenRow = (token: TokenProps) => {
       id: token.id,
       name: token.name,
       isMachine: token.user.isMachine,
-      // @ts-ignore
-      scopes: token.scopes,
+      scopes: mapScopesToResource(token.scopes),
     },
   });
 
@@ -210,4 +209,16 @@ const TokenRow = (token: TokenProps) => {
       </div>
     </>
   );
+};
+
+const mapScopesToResource = (scopes: string[]) => {
+  const result = scopes.map((scope) => {
+    const [resource] = scope.split(".");
+
+    return {
+      [resource]: scope,
+    };
+  });
+
+  return Object.assign({}, ...result);
 };
