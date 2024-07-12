@@ -1,36 +1,26 @@
 import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
 import { z } from "zod";
 
-export const oAuthAppSchema = z.object({
-  clientId: z.string(),
-  clientSecret: z.string().optional(),
-  name: z.string(),
-  developer: z.string(),
-  website: z.string(),
-  redirectUri: z.string(),
-  logo: z.string().nullable(),
-});
-
 export const createOAuthAppSchema = z.object({
-  name: z.string().min(1).max(255),
-  developer: z.string().min(1).max(255),
+  name: z.string().min(1).max(100),
+  developer: z.string().min(1).max(100),
   website: z
     .string()
     .url({
       message: "website must be a valid URL",
     })
-    .max(255),
+    .max(100),
   logo: z
     .string()
     .url({
       message: "Please provide a valid URL for the logo",
     })
-    .max(255)
+    .max(190)
     .nullable(),
   redirectUri: z
     .string()
     .url({ message: "redirect_uri must be a valid URL" })
-    .max(255)
+    .max(190)
     .refine(
       (url) => {
         if (url.startsWith("http://localhost")) {
@@ -48,6 +38,16 @@ export const createOAuthAppSchema = z.object({
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 
+export const oAuthAppSchema = z.object({
+  clientId: z.string(),
+  clientSecret: z.string().optional(),
+  name: z.string(),
+  developer: z.string(),
+  website: z.string(),
+  redirectUri: z.string(),
+  logo: z.string().nullable(),
+});
+
 // Schema for OAuth2.0 Authorization request
 export const authorizeRequestSchema = z.object({
   client_id: z.string().min(1, "Missing client_id"),
@@ -60,7 +60,7 @@ export const authorizeRequestSchema = z.object({
     .string()
     .max(255)
     .nullable()
-    .transform((scope) => scope?.split(",") ?? [])
+    .transform((scope) => [...new Set(scope?.split(","))] ?? [])
     .refine(
       (scopes) => {
         return scopes.every((scope) => OAUTH_SCOPES.includes(scope));
@@ -71,8 +71,8 @@ export const authorizeRequestSchema = z.object({
     ),
 
   // PKCE flow
-  code_challenge: z.string().max(255).optional(),
-  code_challenge_method: z.string().optional(),
+  code_challenge: z.string().max(128).optional(),
+  code_challenge_method: z.string(z.enum(["plain", "S256"])).optional(),
 });
 
 // Schema for OAuth2.0 code exchange request

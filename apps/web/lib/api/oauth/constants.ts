@@ -17,7 +17,7 @@ export const OAUTH_REFRESH_TOKEN_PREFIX = "dub_refresh_token_";
 
 // These are the scopes an OAuth app can request on behalf of an user
 // Keep it separate from the actual scopes to avoid confusion
-// We don't all the scopes to be requested by an app
+// We don't want all the scopes to be requested by an app
 export const OAUTH_SCOPES = [
   "workspaces.read",
   "workspaces.write",
