@@ -6,7 +6,13 @@ import {
   intervals,
 } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { COUNTRY_CODES, PAGINATION_LIMIT, capitalize } from "@dub/utils";
+import {
+  COUNTRY_CODES,
+  DUB_FOUNDING_DATE,
+  PAGINATION_LIMIT,
+  capitalize,
+  formatDate,
+} from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
@@ -79,15 +85,9 @@ export const analyticsQuerySchema = z.object({
       "The interval to retrieve analytics for. Takes precedence over start and end. If undefined, defaults to 24h.",
     ),
   start: parseDateSchema
-    .refine(
-      (value: Date) => {
-        const foundingDate = new Date("2022-09-22T00:00:00.000Z"); // Dub.co founding date
-        return value >= foundingDate;
-      },
-      {
-        message: "The start date cannot be earlier than September 22, 2022.",
-      },
-    )
+    .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+      message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
+    })
     .optional()
     .describe("The start date and time when to retrieve analytics from."),
   end: parseDateSchema

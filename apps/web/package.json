@@ -85,6 +85,7 @@
     "react-dom-confetti": "^0.2.0",
     "react-email": "^2.0.0",
     "react-highlight-words": "^0.20.0",
+    "react-hook-form": "^7.52.1",
     "react-medium-image-zoom": "^5.1.7",
     "react-parallax-tilt": "^1.7.70",
     "react-spring": "^9.5.5",

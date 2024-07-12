@@ -8,6 +8,7 @@ export * from "./circle-half-dotted-clock";
 export * from "./circle-info";
 export * from "./circle-warning";
 export * from "./circle-xmark";
+export * from "./cloud-upload";
 export * from "./code";
 export * from "./crosshairs";
 export * from "./cube";

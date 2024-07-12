@@ -1,8 +1,17 @@
 import z from "@/lib/zod";
-import { COUNTRY_CODES, validDomainRegex } from "@dub/utils";
+import {
+  COUNTRY_CODES,
+  DUB_FOUNDING_DATE,
+  formatDate,
+  validDomainRegex,
+} from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
-import { parseUrlSchema, parseUrlSchemaAllowEmpty } from "./utils";
+import {
+  parseDateSchema,
+  parseUrlSchema,
+  parseUrlSchemaAllowEmpty,
+} from "./utils";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
@@ -90,6 +99,27 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
       .describe("The field to group the links by."),
   }),
 );
+
+export const linksExportQuerySchema = getLinksQuerySchema
+  .omit({ page: true })
+  .merge(
+    z.object({
+      columns: z
+        .string()
+        .transform((v) => v.split(","))
+        .describe("The columns to export."),
+      start: parseDateSchema
+        .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+          message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
+        })
+        .optional()
+        .describe("The start date of creation to retrieve links from."),
+      end: parseDateSchema
+        .describe("The end date of creation to retrieve links from.")
+        .optional(),
+      interval: z.string().optional().describe("The interval for the export."),
+    }),
+  );
 
 export const domainKeySchema = z.object({
   domain: z
