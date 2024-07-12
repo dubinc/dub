@@ -203,7 +203,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         >
           {data ? (
             data.status === "Valid Configuration" ? (
-              <div className="text-pretty mt-6 flex items-center gap-2 rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
+              <div className="mt-6 flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
                 <CircleCheck className="h-5 w-5 shrink-0" />
                 <div>
                   Good news! Your DNS records are set up correctly, but it can
