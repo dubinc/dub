@@ -69,28 +69,31 @@ export const exchangeAuthCodeForToken = async (
     });
   }
 
-  if (app.pkce && !codeVerifier) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Missing code_verifier parameter",
-    });
+  // When PKCE is enabled, the code_verifier is required
+  if (app.pkce) {
+    if (!codeVerifier) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Missing code_verifier parameter",
+      });
+    }
   }
 
-  if (!app.pkce && !clientSecret) {
-    throw new DubApiError({
-      code: "unauthorized",
-      message: "Missing client_secret",
-    });
-  }
+  // When PKCE is not enabled, the client_secret is required
+  else if (!app.pkce) {
+    if (!clientSecret) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Missing client_secret",
+      });
+    }
 
-  if (
-    clientSecret &&
-    app.clientSecretHashed !== (await hashToken(clientSecret))
-  ) {
-    throw new DubApiError({
-      code: "unauthorized",
-      message: "Invalid client_secret",
-    });
+    if (app.clientSecretHashed !== (await hashToken(clientSecret))) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Invalid client_secret",
+      });
+    }
   }
 
   // Now let's find the access code and validate it

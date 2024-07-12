@@ -86,9 +86,6 @@ export const refreshAccessToken = async (
     where: {
       clientId,
       refreshTokenHashed: await hashToken(refresh_token),
-      // expiresAt: {
-      //   gte: new Date(),
-      // },
     },
     select: {
       id: true,
