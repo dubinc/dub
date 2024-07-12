@@ -322,7 +322,6 @@ function Menu({
           variant="outline"
           className="h-8 rounded-none border-0 px-3"
           onClick={() => setShowAddEditDomainModal(true)}
-          disabledTooltip={permissionsError || undefined}
         />
         <Tooltip content="Refresh">
           <Button

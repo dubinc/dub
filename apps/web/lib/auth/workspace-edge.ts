@@ -244,6 +244,7 @@ export const withWorkspaceEdge = (
               id: true,
               slug: true,
               primary: true,
+              verified: true,
             },
           },
         },

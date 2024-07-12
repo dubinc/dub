@@ -1,4 +1,5 @@
 import { tb } from "@/lib/tinybird";
+import { PAGINATION_LIMIT } from "@dub/utils";
 import { z } from "zod";
 import { tbDemo } from "../tinybird/demo-client";
 import { eventsFilterTB } from "../zod/schemas/analytics";
@@ -48,6 +49,7 @@ export const getEvents = async (
     ...params,
     eventType: event,
     workspaceId,
+    offset: params.page * PAGINATION_LIMIT,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
   });
