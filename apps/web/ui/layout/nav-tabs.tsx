@@ -1,6 +1,7 @@
 "use client";
 
 import useDomains from "@/lib/swr/use-domains";
+import useDomainsCount from "@/lib/swr/use-domains-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -72,18 +73,18 @@ export default function NavTabs() {
 }
 const OnboardingChecklist = () => {
   const { setShowCompleteSetupModal } = useContext(ModalContext);
-  const { verified } = useDomains();
+  const { data: domainsCount } = useDomainsCount();
   const { data: links } = useLinksCount();
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
 
   const remainder = useMemo(() => {
     return (
-      (verified ? 0 : 1) +
+      (domainsCount && domainsCount > 0 ? 0 : 1) +
       (links > 0 ? 0 : 1) +
       ((users && users.length > 1) || (invites && invites.length > 0) ? 0 : 1)
     );
-  }, [links, invites, users, verified]);
+  }, [domainsCount, links, invites, users]);
 
   return (
     <button

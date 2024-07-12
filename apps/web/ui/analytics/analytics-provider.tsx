@@ -194,16 +194,20 @@ export default function AnalyticsProvider({
     {
       onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
-        if (error.status === 403) {
+        const errorMessage = JSON.parse(error.message)?.error.message;
+        if (
+          error.status === 403 &&
+          errorMessage.toLowerCase().includes("upgrade")
+        ) {
           toast.custom(() => (
             <UpgradeRequiredToast
               title="Upgrade for more analytics"
-              message={JSON.parse(error.message)?.error.message}
+              message={errorMessage}
             />
           ));
           setRequiresUpgrade(true);
         } else {
-          toast.error(JSON.parse(error.message)?.error.message);
+          toast.error(errorMessage);
         }
       },
       onErrorRetry: (error, ...args) => {

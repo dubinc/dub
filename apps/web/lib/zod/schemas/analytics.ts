@@ -9,6 +9,7 @@ import z from "@/lib/zod";
 import {
   COUNTRY_CODES,
   DUB_FOUNDING_DATE,
+  PAGINATION_LIMIT,
   capitalize,
   formatDate,
 } from "@dub/utils";
@@ -188,11 +189,11 @@ export const analyticsFilterTB = z
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true })
+  .omit({ granularity: true, timezone: true, page: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
-      limit: z.coerce.number().default(50),
+      limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
     }),
@@ -202,8 +203,8 @@ export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
   .and(
     z.object({
-      offset: z.coerce.number().default(0),
-      limit: z.coerce.number().default(50),
+      page: z.coerce.number().default(0),
+      limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
     }),
