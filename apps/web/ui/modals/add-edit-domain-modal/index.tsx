@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
@@ -328,7 +329,14 @@ function AddDomainButton({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
-  const { plan, nextPlan, domainsLimit, exceededDomains } = useWorkspace();
+  const { plan, nextPlan, role, domainsLimit, exceededDomains } =
+    useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "domains.write",
+    role,
+  }).error;
+
   const { queryParams } = useRouterStuff();
 
   return (
@@ -350,7 +358,9 @@ function AddDomainButton({
                 });
               }}
             />
-          ) : undefined
+          ) : (
+            permissionsError || undefined
+          )
         }
         onClick={() => setShowAddEditDomainModal(true)}
         {...buttonProps}

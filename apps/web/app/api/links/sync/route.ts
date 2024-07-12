@@ -81,6 +81,6 @@ export const POST = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["links.write"],
+    requiredPermissions: ["links.write"],
   },
 );

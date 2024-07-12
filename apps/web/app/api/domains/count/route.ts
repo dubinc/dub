@@ -21,6 +21,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["domains.read"],
+    requiredPermissions: ["domains.read"],
   },
 );

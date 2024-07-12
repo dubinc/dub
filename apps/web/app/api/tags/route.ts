@@ -25,7 +25,7 @@ export const GET = withWorkspace(
     return NextResponse.json(tags, { headers });
   },
   {
-    requiredScopes: ["tags.read"],
+    requiredPermissions: ["tags.read"],
   },
 );
 
@@ -82,6 +82,6 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredScopes: ["tags.write"],
+    requiredPermissions: ["tags.write"],
   },
 );

@@ -43,10 +43,10 @@ export function Tooltip({ children, content, side = "top" }: TooltipProps) {
         <TooltipPrimitive.Content
           sideOffset={8}
           side={side}
-          className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md"
+          className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
         >
           {typeof content === "string" ? (
-            <span className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+            <span className="block max-w-xs text-pretty px-4 py-2 text-center text-sm text-gray-700">
               {content}
             </span>
           ) : (

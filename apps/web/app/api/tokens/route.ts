@@ -1,4 +1,5 @@
-import { scopesToName } from "@/lib/api/tokens/scopes";
+import { DubApiError } from "@/lib/api/errors";
+import { scopesToName, validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -11,6 +12,40 @@ import { sendEmail } from "emails";
 import APIKeyCreated from "emails/api-key-created";
 import { NextResponse } from "next/server";
 
+// GET /api/tokens - get all tokens for a workspace
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const tokens = await prisma.restrictedToken.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        partialKey: true,
+        scopes: true,
+        lastUsed: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            isMachine: true,
+          },
+        },
+      },
+      orderBy: [{ lastUsed: "desc" }, { createdAt: "desc" }],
+    });
+
+    return NextResponse.json(tokenSchema.array().parse(tokens));
+  },
+  {
+    requiredPermissions: ["tokens.read"],
+  },
+);
+
 // POST /api/tokens – create a new token for a workspace
 export const POST = withWorkspace(
   async ({ req, session, workspace }) => {
@@ -19,6 +54,33 @@ export const POST = withWorkspace(
     );
 
     let machineUser: User | null = null;
+
+    const { role } = await prisma.projectUsers.findUniqueOrThrow({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId: workspace.id,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    // Only workspace owners can create machine users
+    if (isMachine && role !== "owner") {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Only workspace owners can create machine users.",
+      });
+    }
+
+    if (!validateScopesForRole(scopes || [], role)) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Some of the given scopes are not available for your role.",
+      });
+    }
 
     // Create machine user if needed
     if (isMachine) {
@@ -80,41 +142,6 @@ export const POST = withWorkspace(
     return NextResponse.json({ token });
   },
   {
-    requiredScopes: ["tokens.write"],
-  },
-);
-
-// GET /api/tokens - get all tokens for a workspace
-export const GET = withWorkspace(
-  async ({ workspace }) => {
-    const tokens = await prisma.restrictedToken.findMany({
-      where: {
-        projectId: workspace.id,
-        clientId: null, // Hide OAuth tokens from workspace tokens
-      },
-      select: {
-        id: true,
-        name: true,
-        partialKey: true,
-        scopes: true,
-        lastUsed: true,
-        createdAt: true,
-        updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            isMachine: true,
-          },
-        },
-      },
-      orderBy: [{ lastUsed: "desc" }, { createdAt: "desc" }],
-    });
-
-    return NextResponse.json(tokenSchema.array().parse(tokens));
-  },
-  {
-    requiredScopes: ["tokens.read"],
+    requiredPermissions: ["tokens.write"],
   },
 );

@@ -103,6 +103,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["domains.write"],
+    requiredPermissions: ["domains.read"],
   },
 );
