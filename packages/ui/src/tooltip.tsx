@@ -46,7 +46,7 @@ export function Tooltip({ children, content, side = "top" }: TooltipProps) {
           className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
         >
           {typeof content === "string" ? (
-            <span className="block max-w-xs text-pretty px-4 py-2 text-center text-sm text-gray-700">
+            <span className="text-pretty block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
               {content}
             </span>
           ) : (

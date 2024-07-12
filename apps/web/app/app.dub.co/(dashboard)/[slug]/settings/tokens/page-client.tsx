@@ -107,6 +107,7 @@ const TokenRow = (token: TokenProps) => {
       id: token.id,
       name: token.name,
       isMachine: token.user.isMachine,
+      // @ts-ignore
       scopes: token.scopes,
     },
   });

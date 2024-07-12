@@ -46,7 +46,7 @@ export const POST = withWorkspace(
     );
   },
   {
-    requiredScopes: ["oauth_apps.write"],
+    requiredPermissions: ["oauth_apps.write"],
   },
 );
 
@@ -62,6 +62,6 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(oAuthAppSchema).parse(apps));
   },
   {
-    requiredScopes: ["oauth_apps.read"],
+    requiredPermissions: ["oauth_apps.read"],
   },
 );

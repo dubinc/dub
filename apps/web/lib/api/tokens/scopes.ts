@@ -28,6 +28,8 @@ export const PERMISSION_ACTIONS = [
   "tokens.read",
   "tokens.write",
   "conversions.write",
+  "oauth_apps.read",
+  "oauth_apps.write",
 ] as const;
 
 export const RESOURCES: Resource[] = [
@@ -215,6 +217,16 @@ export const PERMISSIONS: Permission[] = [
   {
     action: "conversions.write",
     description: "track conversions",
+    roles: ["owner"],
+  },
+  {
+    action: "oauth_apps.read",
+    description: "Read OAuth apps",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "oauth_apps.write",
+    description: "Create, update, or delete OAuth apps",
     roles: ["owner"],
   },
 ];

@@ -47,6 +47,6 @@ export const GET = withWorkspace(
     return NextResponse.json(appsAuthorized);
   },
   {
-    requiredScopes: ["workspaces.read"],
+    requiredPermissions: ["workspaces.read"],
   },
 );

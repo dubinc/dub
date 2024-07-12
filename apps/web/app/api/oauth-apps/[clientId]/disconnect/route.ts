@@ -26,6 +26,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ id: params.clientId });
   },
   {
-    requiredScopes: ["oauth_apps.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );
