@@ -27,11 +27,10 @@ export const exchangeAuthCodeForToken = async (
   } = params;
 
   let { client_id: clientId, client_secret: clientSecret } = params;
-  const isPKCE = codeVerifier !== undefined;
 
   // If no client_id or client_secret is provided in the request body
   // then it should be provided in the Authorization header as Basic Auth for non-PKCE
-  if (!clientId && !clientSecret && !isPKCE) {
+  if (!clientId && !clientSecret) {
     const authorizationHeader = req.headers.get("Authorization") || "";
     const [type, token] = authorizationHeader.split(" ");
 
@@ -45,32 +44,56 @@ export const exchangeAuthCodeForToken = async (
     }
   }
 
-  if (!clientId || (!clientSecret && !isPKCE)) {
+  if (!clientId) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Missing client credentials",
+      message: "Missing client_id",
     });
   }
 
   const app = await prisma.oAuthApp.findFirst({
     where: {
       clientId,
-      ...(clientSecret && {
-        clientSecretHashed: await hashToken(clientSecret),
-      }),
     },
     select: {
       name: true,
+      pkce: true,
+      clientSecretHashed: true,
     },
   });
 
   if (!app) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Invalid client credentials",
+      message: "OAuth app not found for the provided client_id",
     });
   }
 
+  if (app.pkce && !codeVerifier) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Missing code_verifier parameter",
+    });
+  }
+
+  if (!app.pkce && !clientSecret) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Missing client_secret",
+    });
+  }
+
+  if (
+    clientSecret &&
+    app.clientSecretHashed !== (await hashToken(clientSecret))
+  ) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Invalid client_secret",
+    });
+  }
+
+  // Now let's find the access code and validate it
   const accessCode = await prisma.oAuthCode.findUnique({
     where: {
       code,
@@ -94,10 +117,10 @@ export const exchangeAuthCodeForToken = async (
     });
   }
 
-  if (isPKCE) {
+  if (app.pkce) {
     const codeChallenge =
       accessCode.codeChallengeMethod === "S256"
-        ? await generateCodeChallengeHash(codeVerifier)
+        ? await generateCodeChallengeHash(codeVerifier!)
         : codeVerifier;
 
     if (accessCode.codeChallenge != codeChallenge) {
@@ -209,13 +232,11 @@ export const exchangeAuthCodeForToken = async (
   ]);
 
   // https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
-  const response = {
+  return {
     access_token: accessToken,
     refresh_token: refreshToken,
     token_type: "Bearer",
     expires_in: OAUTH_ACCESS_TOKEN_LIFETIME,
     scope: scopes,
   };
-
-  return response;
 };

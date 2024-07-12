@@ -21,16 +21,28 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
     code_challenge_method: codeChallengeMethod,
   } = authorizeRequestSchema.parse(await parseRequestBody(req));
 
-  const oAuthApp = await prisma.oAuthApp.findUniqueOrThrow({
+  const app = await prisma.oAuthApp.findUniqueOrThrow({
     where: {
       clientId,
     },
+    select: {
+      redirectUri: true,
+      pkce: true,
+    },
   });
 
-  if (oAuthApp.redirectUri !== redirectUri) {
+  if (app.redirectUri !== redirectUri) {
     throw new DubApiError({
       code: "bad_request",
       message: "Invalid redirect_uri parameter for the application.",
+    });
+  }
+
+  // If PKCE is required, ensure that the code_challenge and code_challenge_method are present
+  if (app.pkce && (!codeChallenge || !codeChallengeMethod)) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Missing code_challenge or code_challenge_method parameters.",
     });
   }
 
@@ -43,8 +55,7 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
       scopes: scope.join(" "),
       code: nanoid(OAUTH_CODE_LENGTH),
       expiresAt: new Date(Date.now() + OAUTH_CODE_LIFETIME * 1000),
-      ...(codeChallenge && { codeChallenge }),
-      ...(codeChallengeMethod && { codeChallengeMethod }),
+      ...(app.pkce && { codeChallenge, codeChallengeMethod }),
     },
   });
 

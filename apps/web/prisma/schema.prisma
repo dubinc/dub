@@ -376,6 +376,7 @@ model OAuthApp {
   clientSecretHashed String
   redirectUri        String
   logo               String?
+  pkce               Boolean  @default(false)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   createdBy          String?

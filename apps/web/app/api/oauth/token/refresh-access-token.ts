@@ -7,7 +7,7 @@ import {
   OAUTH_REFRESH_TOKEN_LIFETIME,
   OAUTH_REFRESH_TOKEN_PREFIX,
 } from "@/lib/api/oauth/constants";
-import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
+import { hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
@@ -19,54 +19,80 @@ export const refreshAccessToken = async (
   req: NextRequest,
   params: z.infer<typeof refreshTokenSchema>,
 ) => {
-  const { client_id, client_secret, refresh_token: refreshToken } = params;
-
-  let clientId: string | undefined = client_id;
-  let clientSecret: string | undefined = client_secret;
+  let {
+    refresh_token,
+    client_id: clientId,
+    client_secret: clientSecret,
+  } = params;
 
   // If no client_id or client_secret is provided in the request body
-  // then it should be provided in the Authorization header as Basic Auth
+  // then it should be provided in the Authorization header as Basic Auth for non-PKCE
   if (!clientId && !clientSecret) {
-    const token = getAuthTokenOrThrow(req, "Basic");
-    const splits = Buffer.from(token, "base64").toString("utf-8").split(":");
+    const authorizationHeader = req.headers.get("Authorization") || "";
+    const [type, token] = authorizationHeader.split(" ");
 
-    if (splits.length > 1) {
-      clientId = splits[0];
-      clientSecret = splits[1];
+    if (type === "Basic") {
+      const splits = Buffer.from(token, "base64").toString("utf-8").split(":");
+
+      if (splits.length > 1) {
+        clientId = splits[0];
+        clientSecret = splits[1];
+      }
     }
   }
 
-  if (!clientId || !clientSecret) {
+  if (!clientId) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Invalid client credentials",
+      message: "Missing client_id",
     });
   }
 
   const app = await prisma.oAuthApp.findFirst({
     where: {
       clientId,
-      clientSecretHashed: await hashToken(clientSecret),
     },
     select: {
       name: true,
+      pkce: true,
+      clientSecretHashed: true,
     },
   });
 
   if (!app) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Invalid client credentials",
+      message: "OAuth app not found for the provided client_id",
     });
+  }
+
+  if (!app.pkce) {
+    if (!clientSecret) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Missing client_secret",
+      });
+    }
+
+    if (app.clientSecretHashed !== (await hashToken(clientSecret))) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Invalid client_secret",
+      });
+    }
   }
 
   const refreshTokenRecord = await prisma.oAuthRefreshToken.findFirst({
     where: {
       clientId,
-      refreshTokenHashed: await hashToken(refreshToken),
+      refreshTokenHashed: await hashToken(refresh_token),
+      // expiresAt: {
+      //   gte: new Date(),
+      // },
     },
     select: {
       id: true,
+      expiresAt: true,
       accessToken: {
         select: {
           id: true,
@@ -87,11 +113,17 @@ export const refreshAccessToken = async (
   if (!refreshTokenRecord) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Refresh token not found or invalid",
+      message: "Refresh token not found or expired",
     });
   }
 
-  const { accessToken, id: refreshTokenId } = refreshTokenRecord;
+  if (refreshTokenRecord.expiresAt < new Date()) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Refresh token expired",
+    });
+  }
+
   const {
     userId,
     projectId,
@@ -99,7 +131,7 @@ export const refreshAccessToken = async (
     name,
     project: workspace,
     id: accessTokenId,
-  } = accessToken;
+  } = refreshTokenRecord.accessToken;
 
   const newAccessToken = `${OAUTH_ACCESS_TOKEN_PREFIX}${nanoid(OAUTH_ACCESS_TOKEN_LENGTH)}`;
   const newRefreshToken = `${OAUTH_REFRESH_TOKEN_PREFIX}${nanoid(OAUTH_REFRESH_TOKEN_LENGTH)}`;
@@ -141,12 +173,10 @@ export const refreshAccessToken = async (
   ]);
 
   // https://www.oauth.com/oauth2-servers/making-authenticated-requests/refreshing-an-access-token/
-  const response = {
+  return {
     access_token: newAccessToken,
     refresh_token: newRefreshToken,
     token_type: "Bearer",
     expires_in: OAUTH_ACCESS_TOKEN_LIFETIME,
   };
-
-  return response;
 };
