@@ -1,11 +1,13 @@
 "use client";
 
 import useDomains from "@/lib/swr/use-domains";
+import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import EmptyState from "@/ui/shared/empty-state";
+import Pagination from "@/ui/shared/pagination";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Globe, useRouterStuff } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
@@ -22,12 +24,11 @@ export default function WorkspaceDomainsClient() {
   });
 
   const { searchParams, queryParams } = useRouterStuff();
-  const tab = searchParams.get("tab") || "active";
+  const archived = searchParams.get("archived");
   const search = searchParams.get("search");
-  const { allWorkspaceDomains, loading } = useDomains({
-    archived: tab === "archived" ? true : false,
-    search: search || undefined,
-  });
+
+  const { allWorkspaceDomains, loading } = useDomains();
+  const { data: domainsCount } = useDomainsCount();
 
   return (
     <>
@@ -50,21 +51,34 @@ export default function WorkspaceDomainsClient() {
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
             <div className="w-full sm:w-auto">
-              <SearchBoxPersisted loading={loading} />
+              <SearchBoxPersisted
+                loading={loading}
+                onChangeDebounced={(t) => {
+                  if (t) {
+                    queryParams({ set: { search: t }, del: "page" });
+                  } else {
+                    queryParams({ del: "search" });
+                  }
+                }}
+              />
             </div>
             <ToggleGroup
               options={[
                 { value: "active", label: "Active" },
                 { value: "archived", label: "Archived" },
               ]}
-              selected={tab}
-              selectAction={(id) => queryParams({ set: { tab: id } })}
+              selected={archived ? "archived" : "active"}
+              selectAction={(id) =>
+                id === "active"
+                  ? queryParams({ del: ["archived", "page"] })
+                  : queryParams({ set: { archived: "true" }, del: "page" })
+              }
             />
             <AddDomainButton />
           </div>
         </div>
         {workspaceId && <AddEditDomainModal />}
-        <div key={tab} className="animate-fade-in">
+        <div key={archived} className="animate-fade-in">
           {!loading ? (
             allWorkspaceDomains.length > 0 ? (
               <ul className="grid grid-cols-1 gap-3">
@@ -79,7 +93,7 @@ export default function WorkspaceDomainsClient() {
                 <EmptyState
                   icon={Globe}
                   title={
-                    tab === "archived"
+                    archived
                       ? "No archived domains found for this workspace"
                       : search
                         ? "No custom domains found"
@@ -99,6 +113,7 @@ export default function WorkspaceDomainsClient() {
             </ul>
           )}
         </div>
+        <Pagination pageSize={50} totalCount={domainsCount || 0} />
       </div>
 
       <DefaultDomains />

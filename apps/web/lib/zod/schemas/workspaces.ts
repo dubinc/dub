@@ -59,6 +59,7 @@ export const WorkspaceSchema = z
         DomainSchema.pick({
           slug: true,
           primary: true,
+          verified: true,
         }),
       )
       .describe("The domains of the workspace."),

@@ -539,6 +539,7 @@ export default function Toggle({
                           : {
                               [key]: value,
                             },
+                      del: "page",
                     });
                   }
                 }}
@@ -659,7 +660,7 @@ export default function Toggle({
           onRemoveAll={() =>
             queryParams({
               // Reset all filters except for date range
-              del: VALID_ANALYTICS_FILTERS.filter(
+              del: VALID_ANALYTICS_FILTERS.concat(["page"]).filter(
                 (f) => !["interval", "start", "end"].includes(f),
               ),
             })
