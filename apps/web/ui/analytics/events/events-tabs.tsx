@@ -68,7 +68,7 @@ export default function EventsTabs() {
         set: { tab: event },
         del: [
           // Reset pagination
-          "offset",
+          "page",
           // Reset sort if not possible
           ...(currentSort && !sortOptions.includes(currentSort)
             ? ["sort"]

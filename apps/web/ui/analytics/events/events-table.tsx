@@ -139,6 +139,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
         href={
           queryParams({
             set,
+            del: "page",
             getNewPath: true,
           }) as string
         }
