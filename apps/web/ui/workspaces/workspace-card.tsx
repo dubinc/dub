@@ -38,6 +38,8 @@ export default function WorkspaceCard({
     fetcher,
   );
 
+  console.log({ domains });
+
   const { user } = useUser();
 
   const isMigratedWorkspace = user?.migratedWorkspace === id;
