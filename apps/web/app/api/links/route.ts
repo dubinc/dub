@@ -53,7 +53,7 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["links.read"],
+    requiredPermissions: ["links.read"],
   },
 );
 
@@ -111,6 +111,6 @@ export const POST = withWorkspace(
   },
   {
     allowAnonymous: true,
-    requiredScopes: ["links.write"],
+    requiredPermissions: ["links.write"],
   },
 );

@@ -49,7 +49,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredScopes: ["tags.write"],
+    requiredPermissions: ["tags.write"],
   },
 );
 
@@ -115,6 +115,6 @@ export const DELETE = withWorkspace(
     }
   },
   {
-    requiredScopes: ["tags.write"],
+    requiredPermissions: ["tags.write"],
   },
 );

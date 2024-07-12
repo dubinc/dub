@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -202,7 +203,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         >
           {data ? (
             data.status === "Valid Configuration" ? (
-              <div className="mt-6 flex items-center gap-2 rounded-lg bg-green-100/80 p-3 text-sm text-green-600 [text-wrap:pretty]">
+              <div className="mt-6 flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
                 <CircleCheck className="h-5 w-5 shrink-0" />
                 <div>
                   Good news! Your DNS records are set up correctly, but it can
@@ -245,6 +246,12 @@ function Menu({
   const { primary, archived, slug: domain } = props;
 
   const { isMobile } = useMediaQuery();
+
+  const { role } = useWorkspace();
+  const permissionsError = clientAccessCheck({
+    action: "domains.write",
+    role,
+  }).error;
 
   const { activeWorkspaceDomains } = useDomains();
 
@@ -448,6 +455,9 @@ function Menu({
             onClick={() => {
               setOpenPopover(!openPopover);
             }}
+            {...(permissionsError && {
+              disabledTooltip: permissionsError,
+            })}
           />
         </Popover>
       </motion.div>

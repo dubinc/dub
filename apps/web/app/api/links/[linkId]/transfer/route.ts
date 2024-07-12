@@ -130,6 +130,6 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredScopes: ["links.write"],
+    requiredPermissions: ["links.write"],
   },
 );

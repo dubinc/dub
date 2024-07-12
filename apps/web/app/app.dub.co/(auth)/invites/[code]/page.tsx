@@ -11,9 +11,7 @@ const PageCopy = ({ title, message }: { title: string; message: string }) => {
   return (
     <>
       <h1 className="font-display text-3xl font-bold sm:text-4xl">{title}</h1>
-      <p className="max-w-lg text-gray-600 [text-wrap:balance] sm:text-lg">
-        {message}
-      </p>
+      <p className="max-w-lg text-pretty text-gray-600 sm:text-lg">{message}</p>
     </>
   );
 };

@@ -17,6 +17,6 @@ export const POST = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );

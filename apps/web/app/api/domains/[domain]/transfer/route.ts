@@ -139,6 +139,6 @@ export const POST = withWorkspace(
     return NextResponse.json(DomainSchema.parse(domainResponse), { headers });
   },
   {
-    requiredScopes: ["domains.write"],
+    requiredPermissions: ["domains.write"],
   },
 );
