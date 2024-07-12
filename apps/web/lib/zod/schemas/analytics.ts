@@ -193,7 +193,7 @@ export const eventsFilterTB = analyticsFilterTB
   .and(
     z.object({
       offset: z.coerce.number().default(0),
-      limit: z.coerce.number().default(50),
+      limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
     }),
