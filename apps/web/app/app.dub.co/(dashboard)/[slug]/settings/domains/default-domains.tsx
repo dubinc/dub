@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
@@ -26,7 +27,13 @@ function DubDomainsIcon(domain: string) {
 }
 
 export function DefaultDomains() {
-  const { id } = useWorkspace();
+  const { id, role } = useWorkspace();
+  const permissionsError = clientAccessCheck({
+    action: "domains.write",
+    role,
+    customPermissionDescription: "manage default domains",
+  }).error;
+
   const { defaultDomains: initialDefaultDomains, mutate } = useDefaultDomains();
   const [defaultDomains, setDefaultDomains] = useState<string[]>([]);
   useEffect(() => {
@@ -67,6 +74,7 @@ export function DefaultDomains() {
             />
             <Switch
               disabled={submitting}
+              disabledTooltip={permissionsError || undefined}
               checked={defaultDomains?.includes(slug)}
               fn={() => {
                 const oldDefaultDomains = defaultDomains.slice();
@@ -84,6 +92,9 @@ export function DefaultDomains() {
                 })
                   .then(async (res) => {
                     if (res.ok) {
+                      toast.success(
+                        `${slug} ${newDefaultDomains.includes(slug) ? "added to" : "removed from"} default domains.`,
+                      );
                       await mutate();
                     } else {
                       const error = await res.text();

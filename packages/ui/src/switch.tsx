@@ -2,7 +2,7 @@
 
 import { cn } from "@dub/utils";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { Dispatch, ReactNode, SetStateAction, useMemo } from "react";
 import { Tooltip } from "./tooltip";
 
 export function Switch({
@@ -24,25 +24,19 @@ export function Switch({
   disabled?: boolean;
   disabledTooltip?: string | ReactNode;
 }) {
-  if (disabledTooltip) {
-    return (
-      <Tooltip content={disabledTooltip}>
-        <div className="radix-state-checked:bg-gray-300 relative inline-flex h-4 w-8 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-gray-200">
-          <div className="h-3 w-3 transform rounded-full bg-white shadow-lg" />
-        </div>
-      </Tooltip>
-    );
-  }
+  const switchDisabled = useMemo(() => {
+    return disabledTooltip ? true : disabled || loading;
+  }, [disabledTooltip, disabled, loading]);
 
-  return (
+  const switchRoot = (
     <SwitchPrimitive.Root
       checked={loading ? false : checked}
       name="switch"
       {...(fn && { onCheckedChange: fn })}
-      disabled={disabled || loading}
+      disabled={switchDisabled}
       className={cn(
         "radix-state-checked:bg-blue-500 radix-state-unchecked:bg-gray-200 relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75",
-        (disabled || loading) && "cursor-not-allowed",
+        switchDisabled && "cursor-not-allowed",
         trackDimensions,
       )}
     >
@@ -57,4 +51,14 @@ export function Switch({
       />
     </SwitchPrimitive.Root>
   );
+
+  if (disabledTooltip) {
+    return (
+      <Tooltip content={disabledTooltip}>
+        <div>{switchRoot}</div>
+      </Tooltip>
+    );
+  }
+
+  return switchRoot;
 }

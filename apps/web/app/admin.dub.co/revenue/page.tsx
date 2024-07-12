@@ -11,6 +11,10 @@ export default function Revenue() {
 }
 
 async function RevenueRSC() {
+  if (!process.env.PROFITWELL_API_KEY) {
+    return null;
+  }
+
   const res = await fetch(
     "https://api.profitwell.com/v2/metrics/monthly/?metrics=recurring_revenue",
     {

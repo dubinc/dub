@@ -47,7 +47,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response, { headers });
   },
   {
-    requiredScopes: ["links.read"],
+    requiredPermissions: ["links.read"],
   },
 );
 
@@ -136,7 +136,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredScopes: ["links.write"],
+    requiredPermissions: ["links.write"],
   },
 );
 
@@ -156,6 +156,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ id: link.id }, { headers });
   },
   {
-    requiredScopes: ["links.write"],
+    requiredPermissions: ["links.write"],
   },
 );
