@@ -12,22 +12,22 @@ export default function usePagination(pageSize: number) {
 
   // Update state when URL parameter changes
   useEffect(() => {
-    const offset = parseInt(searchParams.get("offset") || "0") || 0;
+    const page = parseInt(searchParams.get("page") || "0") || 0;
     setPagination((p) => ({
       ...p,
-      pageIndex: Math.floor(offset / p.pageSize),
+      pageIndex: page,
     }));
-  }, [searchParams.get("offset")]);
+  }, [searchParams.get("page")]);
 
   // Update URL parameter when state changes
   useEffect(() => {
-    const offset = pagination.pageIndex * pagination.pageSize;
+    const page = pagination.pageIndex;
     queryParams(
-      offset === 0
-        ? { del: "offset" }
+      page === 0
+        ? { del: "page" }
         : {
             set: {
-              offset: offset.toString(),
+              page: page.toString(),
             },
           },
     );

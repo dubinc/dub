@@ -88,9 +88,9 @@ export interface WorkspaceProps {
   stripeConnectId: string | null;
   createdAt: Date;
   domains: {
-    id: string;
     slug: string;
     primary: boolean;
+    verified: boolean;
   }[];
   users: {
     role: RoleProps;

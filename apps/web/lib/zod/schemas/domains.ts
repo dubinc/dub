@@ -41,13 +41,26 @@ export const DomainSchema = z.object({
 export const getDomainsQuerySchema = z.object({
   archived: booleanQuerySchema
     .optional()
+    .default("false")
     .describe(
-      "Whether to return only archived domains or only unarchived domains in the response. Both are returned if not provided.",
+      "Whether to include archived domains in the response. Defaults to `false` if not provided.",
     ),
   search: z
     .string()
     .optional()
     .describe("The search term to filter the domains by."),
+  page: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe(
+      "The page number for pagination (each page contains 100 domains).",
+    ),
+});
+
+export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
+  page: true,
 });
 
 export const createDomainBodySchema = z.object({
