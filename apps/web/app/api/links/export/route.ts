@@ -125,6 +125,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["links.read"],
+    requiredPermissions: ["links.read"],
   },
 );
