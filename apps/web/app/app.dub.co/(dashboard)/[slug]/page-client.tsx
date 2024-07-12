@@ -16,7 +16,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { CloudUpload, Download } from "@dub/ui/src/icons";
-import { FilePlus2, Sheet } from "lucide-react";
+import { Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -68,34 +68,34 @@ const MoreLinkOptions = () => {
         content={
           <AnimatedSizeContainer width height>
             <div className="w-full divide-y divide-gray-200 md:w-52">
-              <div className="p-2">
-                {state === "default" && (
-                  <>
-                    <button
-                      onClick={() => setState("import")}
-                      className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                    >
-                      <IconMenu
-                        text="Import links"
-                        icon={<CloudUpload className="h-4 w-4" />}
-                      />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setOpenPopover(false);
-                        setShowExportLinksModal(true);
-                      }}
-                      className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                    >
-                      <IconMenu
-                        text="Export links"
-                        icon={<Download className="h-4 w-4" />}
-                      />
-                    </button>
-                  </>
-                )}
-                {state === "import" && (
-                  <>
+              {state === "default" && (
+                <div className="p-2">
+                  <button
+                    onClick={() => setState("import")}
+                    className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                  >
+                    <IconMenu
+                      text="Import links"
+                      icon={<CloudUpload className="h-4 w-4" />}
+                    />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowExportLinksModal(true);
+                    }}
+                    className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                  >
+                    <IconMenu
+                      text="Export links"
+                      icon={<Download className="h-4 w-4" />}
+                    />
+                  </button>
+                </div>
+              )}
+              {state === "import" && (
+                <>
+                  <div className="p-2">
                     <ImportOption
                       onClick={() => {
                         setOpenPopover(false);
@@ -132,7 +132,6 @@ const MoreLinkOptions = () => {
                         }
                       />
                     </ImportOption>
-
                     <ImportOption
                       onClick={() => {
                         setOpenPopover(false);
@@ -151,6 +150,8 @@ const MoreLinkOptions = () => {
                         }
                       />
                     </ImportOption>
+                  </div>
+                  <div className="p-2">
                     <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
                       <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
                         <IconMenu
@@ -159,19 +160,9 @@ const MoreLinkOptions = () => {
                         />
                       </div>
                     </Tooltip>
-                  </>
-                )}
-              </div>
-              <div className="p-2">
-                <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
-                  <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
-                    <IconMenu
-                      text="Bulk create links"
-                      icon={<FilePlus2 className="h-4 w-4" />}
-                    />
                   </div>
-                </Tooltip>
-              </div>
+                </>
+              )}
             </div>
           </AnimatedSizeContainer>
         }
