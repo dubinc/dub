@@ -7,6 +7,7 @@ import {
   InfoTooltip,
   Logo,
   Modal,
+  Switch,
 } from "@dub/ui";
 import {
   Dispatch,
@@ -26,6 +27,7 @@ const newApp: OAuthAppProps = {
   clientId: "",
   redirectUri: "",
   logo: null,
+  pkce: false,
 };
 
 function AddEditAppModal({
@@ -86,7 +88,7 @@ function AddEditAppModal({
     }
   };
 
-  const { name, developer, website, redirectUri, logo } = data;
+  const { name, developer, website, redirectUri, logo, pkce } = data;
   const buttonDisabled = !name || !developer || !website || !redirectUri;
 
   return (
@@ -212,6 +214,19 @@ function AddEditAppModal({
                 placeholder="https://acme.com/callback"
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pb-4">
+            <label htmlFor="pkce" className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-gray-900">Allow PKCE</h2>
+              <InfoTooltip content="We strongly recommend using the PKCE flow for increased security" />
+            </label>
+            <Switch
+              checked={pkce}
+              fn={(value: boolean) => {
+                setData({ ...data, pkce: value });
+              }}
+            />
           </div>
 
           <Button

@@ -14,7 +14,7 @@ import { z } from "zod";
 // POST /api/oauth-apps - create a new OAuth app
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, developer, website, redirectUri, logo } =
+    const { name, developer, website, redirectUri, logo, pkce } =
       createOAuthAppSchema.parse(await parseRequestBody(req));
 
     const clientSecret = `${OAUTH_CLIENT_SECRET_PREFIX}${nanoid(OAUTH_CLIENT_SECRET_LENGTH)}`;
@@ -30,6 +30,7 @@ export const POST = withWorkspace(
         clientId: nanoid(OAUTH_CLIENT_ID_LENGTH),
         clientSecretHashed: await hashToken(clientSecret),
         createdBy: session.user.id,
+        pkce,
       },
     });
 
