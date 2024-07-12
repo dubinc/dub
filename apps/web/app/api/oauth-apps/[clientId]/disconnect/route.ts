@@ -5,29 +5,21 @@ import { NextResponse } from "next/server";
 // DELETE /api/oauth-apps/[clientId]/disconnect - Disconnect an authorized OAuth app from the workspace
 export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
-    const { clientId } = params;
-    const { id: userId } = session.user;
-    const { id: projectId } = workspace;
+    const prismaArgs = {
+      userId_projectId_clientId: {
+        userId: session.user.id,
+        projectId: workspace.id,
+        clientId: params.clientId,
+      },
+    };
 
     await prisma.$transaction([
       prisma.oAuthAuthorizedApp.delete({
-        where: {
-          userId_projectId_clientId: {
-            userId,
-            projectId,
-            clientId,
-          },
-        },
+        where: prismaArgs,
       }),
 
       prisma.restrictedToken.delete({
-        where: {
-          userId_projectId_clientId: {
-            userId,
-            projectId,
-            clientId,
-          },
-        },
+        where: prismaArgs,
       }),
     ]);
 
