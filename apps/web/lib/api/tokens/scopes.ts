@@ -179,7 +179,7 @@ export const PERMISSIONS: Permission[] = [
   },
   {
     action: "workspaces.write",
-    description: "create, update, or delete the current workspace",
+    description: "update or delete the current workspace",
     roles: ["owner"],
   },
   {

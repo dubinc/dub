@@ -41,15 +41,15 @@ export const clientAccessCheck = ({
   customPermissionDescription?: string;
 }) => {
   const permission = PERMISSIONS.find((p) => p.action === action)!;
-  const allowedRoles = permission.roles.map((r) => `${r}s`);
+  const allowedRoles = permission.roles;
 
-  if (allowedRoles.includes(role.toLowerCase())) {
+  if (allowedRoles.includes(role)) {
     return {
       error: false,
     };
   }
 
   return {
-    error: `Only ${combineWords(allowedRoles)} can ${customPermissionDescription || permission.description}.`,
+    error: `Only workspace ${combineWords(allowedRoles.map((r) => `${r}s`))} can ${customPermissionDescription || permission.description}.`,
   };
 };
