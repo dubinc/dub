@@ -12,7 +12,6 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Globe, useRouterStuff } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
-import { useEffect } from "react";
 import { DefaultDomains } from "./default-domains";
 
 export default function WorkspaceDomainsClient() {
@@ -30,13 +29,6 @@ export default function WorkspaceDomainsClient() {
 
   const { allWorkspaceDomains, loading } = useDomains();
   const { data: domainsCount } = useDomainsCount();
-
-  useEffect(() => {
-    // if there are changes in the search or tab, we need to remove the page param
-    if (search || archived) {
-      queryParams({ del: "page" });
-    }
-  }, [search, archived]);
 
   return (
     <>
@@ -59,7 +51,16 @@ export default function WorkspaceDomainsClient() {
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
             <div className="w-full sm:w-auto">
-              <SearchBoxPersisted loading={loading} />
+              <SearchBoxPersisted
+                loading={loading}
+                onChangeDebounced={(t) => {
+                  if (t) {
+                    queryParams({ set: { search: t }, del: "page" });
+                  } else {
+                    queryParams({ del: "search" });
+                  }
+                }}
+              />
             </div>
             <ToggleGroup
               options={[
@@ -69,8 +70,8 @@ export default function WorkspaceDomainsClient() {
               selected={archived ? "archived" : "active"}
               selectAction={(id) =>
                 id === "active"
-                  ? queryParams({ del: "archived" })
-                  : queryParams({ set: { archived: "true" } })
+                  ? queryParams({ del: ["archived", "page"] })
+                  : queryParams({ set: { archived: "true" }, del: "page" })
               }
             />
             <AddDomainButton />
