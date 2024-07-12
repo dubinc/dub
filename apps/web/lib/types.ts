@@ -92,6 +92,7 @@ export interface WorkspaceProps {
     id: string;
     slug: string;
     primary: boolean;
+    verified: boolean;
   }[];
   users: {
     role: RoleProps;
