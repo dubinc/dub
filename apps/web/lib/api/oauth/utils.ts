@@ -1,3 +1,5 @@
+import { nanoid } from "ai";
+
 export const generateCodeChallengeHash = async (codeVerifier: string) => {
   const encoder = new TextEncoder();
   const data = encoder.encode(codeVerifier);
@@ -11,4 +13,14 @@ export const generateCodeChallengeHash = async (codeVerifier: string) => {
     .replace(/=+$/, "");
 
   return hashBase64;
+};
+
+export const createToken = ({
+  prefix,
+  length,
+}: {
+  prefix?: string;
+  length: number;
+}) => {
+  return `${prefix || ""}${nanoid(length)}`;
 };

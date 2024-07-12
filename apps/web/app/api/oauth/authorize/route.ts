@@ -1,13 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
-import {
-  OAUTH_CODE_LENGTH,
-  OAUTH_CODE_LIFETIME,
-} from "@/lib/api/oauth/constants";
+import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
+import { createToken } from "@/lib/api/oauth/utils";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
-import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/oauth/authorize - approve OAuth authorization request
@@ -53,8 +50,8 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
       projectId: workspace.id,
       userId: session.user.id,
       scopes: scope.join(" "),
-      code: nanoid(OAUTH_CODE_LENGTH),
-      expiresAt: new Date(Date.now() + OAUTH_CODE_LIFETIME * 1000),
+      code: createToken({ length: OAUTH_CONFIG.CODE_LENGTH }),
+      expiresAt: new Date(Date.now() + OAUTH_CONFIG.CODE_LIFETIME * 1000),
       ...(app.pkce && { codeChallenge, codeChallengeMethod }),
     },
   });

@@ -1,13 +1,9 @@
-import {
-  OAUTH_CLIENT_ID_LENGTH,
-  OAUTH_CLIENT_SECRET_LENGTH,
-  OAUTH_CLIENT_SECRET_PREFIX,
-} from "@/lib/api/oauth/constants";
+import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
+import { createToken } from "@/lib/api/oauth/utils";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
-import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -17,7 +13,14 @@ export const POST = withWorkspace(
     const { name, developer, website, redirectUri, logo, pkce } =
       createOAuthAppSchema.parse(await parseRequestBody(req));
 
-    const clientSecret = `${OAUTH_CLIENT_SECRET_PREFIX}${nanoid(OAUTH_CLIENT_SECRET_LENGTH)}`;
+    const clientSecret = createToken({
+      length: OAUTH_CONFIG.CLIENT_SECRET_LENGTH,
+      prefix: OAUTH_CONFIG.CLIENT_SECRET_PREFIX,
+    });
+
+    const clientId = createToken({
+      length: OAUTH_CONFIG.CLIENT_ID_LENGTH,
+    });
 
     const client = await prisma.oAuthApp.create({
       data: {
@@ -27,7 +30,7 @@ export const POST = withWorkspace(
         website,
         redirectUri,
         logo,
-        clientId: nanoid(OAUTH_CLIENT_ID_LENGTH),
+        clientId,
         clientSecretHashed: await hashToken(clientSecret),
         createdBy: session.user.id,
         pkce,

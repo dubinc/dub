@@ -1,19 +1,21 @@
-// Lifetime in seconds
-export const OAUTH_ACCESS_TOKEN_LIFETIME = 2 * 60 * 60; // 2 hours
-export const OAUTH_REFRESH_TOKEN_LIFETIME = 60 * 24 * 60 * 60; // 60 days
-export const OAUTH_CODE_LIFETIME = 2 * 60; // 2 minutes
+// OAuth configuration
+export const OAUTH_CONFIG = {
+  ACCESS_TOKEN_LIFETIME: 2 * 60 * 60, // 2 hours
+  REFRESH_TOKEN_LIFETIME: 60 * 24 * 60 * 60, // 60 days
+  CODE_LIFETIME: 2 * 60, // 2 minutes
 
-export const OAUTH_CLIENT_ID_LENGTH = 32;
-export const OAUTH_CLIENT_SECRET_LENGTH = 32;
-export const OAUTH_ACCESS_TOKEN_LENGTH = 40;
-export const OAUTH_REFRESH_TOKEN_LENGTH = 40;
-export const OAUTH_CODE_LENGTH = 40;
+  CLIENT_ID_LENGTH: 32,
+  CLIENT_SECRET_LENGTH: 32,
+  ACCESS_TOKEN_LENGTH: 40,
+  REFRESH_TOKEN_LENGTH: 40,
+  CODE_LENGTH: 40,
 
-// TODO:
-// Keep it short and simple (Discuss with Steven)
-export const OAUTH_CLIENT_SECRET_PREFIX = "dub_app_secret_";
-export const OAUTH_ACCESS_TOKEN_PREFIX = "dub_access_token_";
-export const OAUTH_REFRESH_TOKEN_PREFIX = "dub_refresh_token_";
+  // TODO:
+  // Keep it short and simple (Discuss with Steven)
+  CLIENT_SECRET_PREFIX: "dub_app_secret_",
+  ACCESS_TOKEN_PREFIX: "dub_access_token_",
+  REFRESH_TOKEN_PREFIX: "dub_refresh_token_",
+};
 
 // These are the scopes an OAuth app can request on behalf of an user
 // Keep it separate from the actual scopes to avoid confusion

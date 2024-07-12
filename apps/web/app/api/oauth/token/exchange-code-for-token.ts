@@ -1,18 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
-import {
-  OAUTH_ACCESS_TOKEN_LENGTH,
-  OAUTH_ACCESS_TOKEN_LIFETIME,
-  OAUTH_ACCESS_TOKEN_PREFIX,
-  OAUTH_REFRESH_TOKEN_LENGTH,
-  OAUTH_REFRESH_TOKEN_LIFETIME,
-  OAUTH_REFRESH_TOKEN_PREFIX,
-} from "@/lib/api/oauth/constants";
-import { generateCodeChallengeHash } from "@/lib/api/oauth/utils";
+import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
+import { createToken, generateCodeChallengeHash } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
-import { getCurrentPlan, nanoid } from "@dub/utils";
+import { getCurrentPlan } from "@dub/utils";
 import { NextRequest } from "next/server";
 
 // Exchange authorization code with access token
@@ -166,10 +159,16 @@ export const exchangeAuthCodeForToken = async (
 
   const { userId, projectId, scopes } = accessCode;
 
-  const accessToken = `${OAUTH_ACCESS_TOKEN_PREFIX}${nanoid(OAUTH_ACCESS_TOKEN_LENGTH)}`;
-  const refreshToken = `${OAUTH_REFRESH_TOKEN_PREFIX}${nanoid(OAUTH_REFRESH_TOKEN_LENGTH)}`;
+  const accessToken = createToken({
+    length: OAUTH_CONFIG.ACCESS_TOKEN_LENGTH,
+    prefix: OAUTH_CONFIG.ACCESS_TOKEN_PREFIX,
+  });
+  const refreshToken = createToken({
+    length: OAUTH_CONFIG.REFRESH_TOKEN_LENGTH,
+    prefix: OAUTH_CONFIG.REFRESH_TOKEN_PREFIX,
+  });
   const accessTokenExpires = new Date(
-    Date.now() + OAUTH_ACCESS_TOKEN_LIFETIME * 1000,
+    Date.now() + OAUTH_CONFIG.ACCESS_TOKEN_LIFETIME * 1000,
   );
 
   // Delete the existing token issued to the client for the user for the selected workspace before creating a new one
@@ -210,7 +209,7 @@ export const exchangeAuthCodeForToken = async (
             clientId,
             refreshTokenHashed: await hashToken(refreshToken),
             expiresAt: new Date(
-              Date.now() + OAUTH_REFRESH_TOKEN_LIFETIME * 1000,
+              Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
             ),
           },
         },
@@ -239,7 +238,7 @@ export const exchangeAuthCodeForToken = async (
     access_token: accessToken,
     refresh_token: refreshToken,
     token_type: "Bearer",
-    expires_in: OAUTH_ACCESS_TOKEN_LIFETIME,
+    expires_in: OAUTH_CONFIG.ACCESS_TOKEN_LIFETIME,
     scope: scopes,
   };
 };
