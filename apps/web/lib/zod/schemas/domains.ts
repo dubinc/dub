@@ -55,7 +55,7 @@ export const getDomainsQuerySchema = z.object({
     .nonnegative()
     .optional()
     .describe(
-      "The page number for pagination (each page contains 100 domains).",
+      "The page number for pagination (each page contains 50 domains).",
     ),
 });
 
