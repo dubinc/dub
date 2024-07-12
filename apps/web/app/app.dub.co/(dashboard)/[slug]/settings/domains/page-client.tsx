@@ -113,7 +113,11 @@ export default function WorkspaceDomainsClient() {
             </ul>
           )}
         </div>
-        <Pagination pageSize={50} totalCount={domainsCount || 0} />
+        <Pagination
+          pageSize={50}
+          totalCount={domainsCount || 0}
+          unit="domains"
+        />
       </div>
 
       <DefaultDomains />

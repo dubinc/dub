@@ -633,6 +633,7 @@ export default function EventsTable() {
           <Pagination
             pageSize={PAGINATION_LIMIT}
             totalCount={totalEvents?.[tab] ?? 0}
+            unit="events"
           />
 
           {/* Loading/error overlay */}

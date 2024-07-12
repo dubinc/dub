@@ -4,9 +4,11 @@ import usePagination from "../analytics/events/use-pagination";
 export default function Pagination({
   pageSize,
   totalCount,
+  unit,
 }: {
   pageSize: number;
   totalCount: number;
+  unit: string;
 }) {
   const { pagination, setPagination } = usePagination(pageSize);
 
@@ -21,7 +23,7 @@ export default function Pagination({
             totalCount,
           )}
         </span>{" "}
-        of <span className="font-medium">{totalCount}</span> domains
+        of <span className="font-medium">{totalCount}</span> {unit}
       </div>
       <div className="flex items-center gap-2">
         <Button
