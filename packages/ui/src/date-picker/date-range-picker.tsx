@@ -46,7 +46,7 @@ const DateRangePickerInner = ({
   const [range, setRange] = useState<DateRange | undefined>(
     preset?.dateRange ?? value ?? defaultValue ?? undefined,
   );
-  const [month, setMonth] = useState<Date | undefined>(range?.from);
+  const [month, setMonth] = useState<Date | undefined>(range?.to);
 
   const initialRange = useMemo(() => {
     return range;
@@ -66,8 +66,8 @@ const DateRangePickerInner = ({
   }, [presets, presetId]);
 
   useEffect(() => {
-    if (!open) setMonth(range?.from);
-    else if (range) setMonth(range.from);
+    if (!open) setMonth(range?.to);
+    else if (range) setMonth(range.to);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 

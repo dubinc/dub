@@ -38,8 +38,6 @@ export default function WorkspaceCard({
     fetcher,
   );
 
-  console.log({ domains });
-
   const { user } = useUser();
 
   const isMigratedWorkspace = user?.migratedWorkspace === id;
@@ -96,7 +94,9 @@ export default function WorkspaceCard({
               ) : (
                 <div className="flex items-center">
                   <p className="text-gray-500">
-                    {domains.find((d) => d.primary)?.slug || domains[0].slug}
+                    {domains.length > 0
+                      ? domains.find((d) => d.primary)?.slug || domains[0].slug
+                      : "dub.sh"}
                   </p>
                   <Tooltip
                     content={
@@ -104,7 +104,7 @@ export default function WorkspaceCard({
                         domains={domains}
                         title={
                           domains.length === 0
-                            ? "No domains added yet – currently using Dub default domains."
+                            ? "No custom domains added yet – currently using Dub default domains."
                             : "Here are all the domains for this workspace."
                         }
                         cta={
