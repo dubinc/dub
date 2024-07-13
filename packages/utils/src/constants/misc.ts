@@ -30,3 +30,5 @@ export const DICEBEAR_AVATAR_URL =
 export const PAGINATION_LIMIT = 100;
 
 export const TWO_WEEKS_IN_SECONDS = 60 * 60 * 24 * 14;
+
+export const DUB_FOUNDING_DATE = new Date("2022-09-22T00:00:00.000Z");
