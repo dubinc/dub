@@ -6,23 +6,37 @@ import { prisma } from "@/lib/prisma";
 import {
   DomainSchema,
   createDomainBodySchema,
+  getDomainsQuerySchema,
 } from "@/lib/zod/schemas/domains";
+import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ req, workspace }) => {
+    const searchParams = getSearchParams(req.url);
+    const { search, archived, page } =
+      getDomainsQuerySchema.parse(searchParams);
+
     const domains = await prisma.domain.findMany({
       where: {
         projectId: workspace.id,
+        archived,
+        ...(search && {
+          slug: {
+            contains: search,
+          },
+        }),
       },
+      take: 50,
+      skip: page ? page * 100 : 0,
     });
 
     return NextResponse.json(z.array(DomainSchema).parse(domains));
   },
   {
-    requiredScopes: ["domains.read"],
+    requiredPermissions: ["domains.read"],
   },
 );
 
@@ -93,6 +107,6 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredScopes: ["domains.write"],
+    requiredPermissions: ["domains.write"],
   },
 );

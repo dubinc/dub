@@ -64,26 +64,22 @@ export default function LinkSort() {
       <Button
         variant="secondary"
         onClick={() => setOpenPopover(!openPopover)}
-        className="hover:bg-white"
-        text={
-          <span className="flex items-center gap-3">
-            <span>{sort ? selectedSort.display : "Sort"}</span>
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 text-gray-400",
-                openPopover ? "rotate-180 transform" : "",
-              )}
-            />
-          </span>
-        }
-        icon={
-          sort ? (
-            <SortDesc className="h-4 w-4" />
-          ) : (
-            <Sort className="h-4 w-4 shrink-0" />
-          )
-        }
-      />
+        className={cn(
+          "group flex h-10 w-full cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all lg:w-48",
+          "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
+          "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+        )}
+      >
+        {sort ? (
+          <SortDesc className="h-4 w-4" />
+        ) : (
+          <Sort className="h-4 w-4 shrink-0" />
+        )}
+        <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
+          {sort ? selectedSort.display : "Sort by"}
+        </span>
+        <ChevronDown className="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+      </Button>
     </Popover>
   );
 }

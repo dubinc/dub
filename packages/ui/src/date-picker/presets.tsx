@@ -86,7 +86,7 @@ const Presets = <TPreset extends Preset, TValue>({
               value={preset.id}
               className={cn(
                 "relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-gray-200",
-                "px-2.5 py-1.5 text-left text-base text-gray-700 shadow-sm outline-none sm:w-full sm:border-none sm:py-2 sm:text-sm sm:shadow-none",
+                "px-2.5 py-1.5 text-left text-sm text-gray-700 shadow-sm outline-none sm:w-full sm:border-none sm:py-2 sm:shadow-none",
                 "disabled:pointer-events-none disabled:opacity-50",
                 "sm:data-[selected=true]:bg-gray-100",
                 matchesCurrent(preset) && "font-semibold text-gray-800",

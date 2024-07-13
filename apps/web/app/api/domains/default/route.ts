@@ -34,7 +34,7 @@ export const GET = withWorkspace(
     return NextResponse.json(defaultDomainsArray);
   },
   {
-    requiredScopes: ["domains.read"],
+    requiredPermissions: ["domains.read"],
   },
 );
 
@@ -66,6 +66,6 @@ export const PUT = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["domains.write"],
+    requiredPermissions: ["domains.write"],
   },
 );

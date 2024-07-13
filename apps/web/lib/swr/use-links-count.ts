@@ -1,16 +1,21 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import z from "../zod";
+import { getLinksCountQuerySchema } from "../zod/schemas/links";
 import useWorkspace from "./use-workspace";
 
-export default function useLinksCount({
-  groupBy,
-}: {
-  groupBy?: "domain" | "tagId";
-} = {}) {
-  const { id } = useWorkspace();
+const partialQuerySchema = getLinksCountQuerySchema.partial();
+
+export default function useLinksCount(
+  opts: z.infer<typeof partialQuerySchema> = {},
+) {
+  const { id, slug } = useWorkspace();
   const { getQueryString } = useRouterStuff();
+  const pathname = usePathname();
+  const isLinksPage = pathname === `/${slug}`;
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -24,15 +29,20 @@ export default function useLinksCount({
       ? `/api/links/count${getQueryString(
           {
             workspaceId: id,
-            ...(groupBy && { groupBy }),
+            ...opts,
           },
           {
-            ignore: ["import", "upgrade", "newLink"],
+            ignore: [
+              "import",
+              "upgrade",
+              "newLink",
+              ...(!isLinksPage ? ["search"] : []),
+            ],
           },
         )}`
       : admin
         ? `/api/admin/links/count${getQueryString({
-            ...(groupBy && { groupBy }),
+            ...opts,
           })}`
         : null,
     fetcher,

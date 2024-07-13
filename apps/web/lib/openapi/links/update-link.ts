@@ -1,8 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { LinkSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
 
 export const updateLink: ZodOpenApiOperationObject = {
   operationId: "updateLink",
@@ -12,18 +11,18 @@ export const updateLink: ZodOpenApiOperationObject = {
   description:
     "Update a link for the authenticated workspace. If there's no change, returns it as it is.",
   requestParams: {
-    query: workspaceParamsSchema,
     path: z.object({
-      linkId: z.string().openapi({
-        description:
+      linkId: z
+        .string()
+        .describe(
           "The id of the link to update. You may use either `linkId` (obtained via `/links/info` endpoint) or `externalId` prefixed with `ext_`.",
-      }),
+        ),
     }),
   },
   requestBody: {
     content: {
       "application/json": {
-        schema: createLinkBodySchema,
+        schema: updateLinkBodySchema,
       },
     },
   },

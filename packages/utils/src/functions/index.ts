@@ -1,6 +1,7 @@
 export * from "./capitalize";
 export * from "./chunk";
 export * from "./cn";
+export * from "./combine-words";
 export * from "./construct-metadata";
 export * from "./datetime";
 export * from "./deep-equal";

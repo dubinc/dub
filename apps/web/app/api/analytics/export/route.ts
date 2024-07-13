@@ -68,6 +68,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["analytics.read"],
+    requiredPermissions: ["analytics.read"],
   },
 );

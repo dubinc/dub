@@ -17,6 +17,7 @@ export * from "./label";
 export * from "./modal";
 export * from "./popover";
 export * from "./radio-group";
+export * from "./status-badge";
 export * from "./switch";
 export * from "./table";
 export * from "./tooltip";
@@ -32,7 +33,6 @@ export * from "./background";
 export * from "./footer";
 export * from "./max-width-wrapper";
 export * from "./nav";
-export * from "./nav-mobile";
 
 // content
 export * from "./content";

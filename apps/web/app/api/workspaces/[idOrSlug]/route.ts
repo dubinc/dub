@@ -34,7 +34,7 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredScopes: ["workspaces.read"],
+    requiredPermissions: ["workspaces.read"],
   },
 );
 
@@ -92,7 +92,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );
 
@@ -106,6 +106,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(workspace);
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );

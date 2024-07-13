@@ -33,6 +33,7 @@ export const GET = withSession(async ({ session }) => {
         select: {
           slug: true,
           primary: true,
+          verified: true,
         },
       },
     },

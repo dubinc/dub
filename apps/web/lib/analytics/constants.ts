@@ -1,3 +1,5 @@
+import { DUB_FOUNDING_DATE } from "@dub/utils";
+
 export const intervals = [
   "24h",
   "7d",
@@ -73,7 +75,7 @@ export const INTERVAL_DATA: Record<
   },
   all: {
     // Dub.co founding date
-    startDate: new Date("2022-09-22"),
+    startDate: DUB_FOUNDING_DATE,
     granularity: "month",
   },
 };

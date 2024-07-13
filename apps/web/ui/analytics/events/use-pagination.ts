@@ -4,21 +4,21 @@ import { useEffect, useMemo } from "react";
 export default function usePagination(pageSize: number) {
   const { searchParams, queryParams } = useRouterStuff();
 
-  const offset = useMemo(
-    () => parseInt(searchParams.get("offset") || "0") || 0,
-    [searchParams.get("offset")],
+  const page = useMemo(
+    () => parseInt(searchParams.get("page") || "0") || 0,
+    [searchParams.get("page")],
   );
 
   const { pagination, setPagination } = useTablePagination({
     pageSize,
-    offset,
-    onOffsetChange: (offset) => {
+    page,
+    onPageChange: (p) => {
       queryParams(
-        offset === 0
-          ? { del: "offset" }
+        p === 0
+          ? { del: "page" }
           : {
               set: {
-                offset: offset.toString(),
+                page: p.toString(),
               },
             },
       );
@@ -27,11 +27,25 @@ export default function usePagination(pageSize: number) {
 
   // Update state when URL parameter changes
   useEffect(() => {
+    const page = parseInt(searchParams.get("page") || "0") || 0;
     setPagination((p) => ({
       ...p,
-      pageIndex: Math.floor(offset / p.pageSize),
+      pageIndex: page,
     }));
-  }, [offset]);
+  }, [searchParams.get("page")]);
+
+  // Update URL parameter when state changes
+  useEffect(() => {
+    queryParams(
+      pagination.pageIndex === 0
+        ? { del: "page" }
+        : {
+            set: {
+              page: pagination.pageIndex.toString(),
+            },
+          },
+    );
+  }, [pagination]);
 
   return { pagination, setPagination };
 }

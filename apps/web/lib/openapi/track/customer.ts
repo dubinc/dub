@@ -4,16 +4,12 @@ import {
   trackCustomerResponseSchema,
 } from "@/lib/zod/schemas/customers";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
 
 export const trackCustomer: ZodOpenApiOperationObject = {
   operationId: "trackCustomer",
   "x-speakeasy-name-override": "customer",
   summary: "Track a customer",
   description: "Track a customer for an authenticated workspace.",
-  requestParams: {
-    query: workspaceParamsSchema,
-  },
   requestBody: {
     content: {
       "application/json": {

@@ -25,7 +25,7 @@ export const GET = withWorkspace(
     return NextResponse.json({ publicStats: response?.publicStats });
   },
   {
-    requiredScopes: ["links.read"],
+    requiredPermissions: ["links.read"],
   },
 );
 
@@ -49,6 +49,6 @@ export const PUT = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["links.write"],
+    requiredPermissions: ["links.write"],
   },
 );

@@ -25,7 +25,7 @@ import {
   Cube,
   CursorRays,
   FlagWavy,
-  Globe,
+  Globe2,
   Hyperlink,
   Magic,
   MobilePhone,
@@ -87,7 +87,7 @@ export default function Toggle({
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
-  const scrolled = useScroll(80);
+  const scrolled = useScroll(120);
 
   const { tags } = useTags();
   const { allDomains: domains, primaryDomain } = useDomains();
@@ -167,7 +167,7 @@ export default function Toggle({
         : [
             {
               value: `Clicks on ${primaryDomain} domain this year`,
-              icon: Globe,
+              icon: Globe2,
             },
           ]),
       {
@@ -211,7 +211,7 @@ export default function Toggle({
         : [
             {
               key: "domain",
-              icon: Globe,
+              icon: Globe2,
               label: "Domain",
               getOptionIcon: (value) => (
                 <BlurImage
@@ -259,7 +259,7 @@ export default function Toggle({
               options: [
                 {
                   value: true,
-                  icon: Globe,
+                  icon: Globe2,
                   label: "Root domain link",
                 },
                 {
@@ -440,7 +440,7 @@ export default function Toggle({
   return (
     <>
       <div
-        className={cn("sticky top-[6.85rem] z-10 bg-gray-50 py-3 md:py-3", {
+        className={cn("sticky top-10 z-10 bg-gray-50 py-3 md:py-3", {
           "top-14": isPublicStatsPage,
           "top-0": adminPage,
           "top-16": demoPage,
@@ -539,6 +539,7 @@ export default function Toggle({
                           : {
                               [key]: value,
                             },
+                      del: "page",
                     });
                   }
                 }}
@@ -659,7 +660,7 @@ export default function Toggle({
           onRemoveAll={() =>
             queryParams({
               // Reset all filters except for date range
-              del: VALID_ANALYTICS_FILTERS.filter(
+              del: VALID_ANALYTICS_FILTERS.concat(["page"]).filter(
                 (f) => !["interval", "start", "end"].includes(f),
               ),
             })

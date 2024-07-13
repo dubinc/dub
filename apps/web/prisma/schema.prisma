@@ -94,7 +94,7 @@ model RestrictedToken {
   name       String
   hashedKey  String    @unique
   partialKey String
-  scopes     String? // space separated (Eg: "read:links write:links")
+  scopes     String? // space separated (Eg: "links:write", "domains:read")
   expires    DateTime?
   lastUsed   DateTime?
   rateLimit  Int       @default(600) // rate limit per minute
@@ -299,6 +299,7 @@ model Link {
   @@index(trackConversion)
   @@index(proxy)
   @@index(password)
+  @@index(archived)
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
   @@index(lastClicked)

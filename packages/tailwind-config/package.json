@@ -5,7 +5,7 @@
   "main": "index.ts",
   "types": "index.ts",
   "devDependencies": {
-    "tailwindcss": "^3.3.3"
+    "tailwindcss": "^3.4.4"
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.6",

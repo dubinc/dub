@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Badge, useRouterStuff } from "@dub/ui";
+import { useRouterStuff } from "@dub/ui";
 import Cookies from "js-cookie";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -49,11 +49,11 @@ export default function UpgradeBanner() {
               },
             })
           }
-          className="mb-1 ml-3 hidden sm:block"
+          className="hidden transition-all duration-75 active:scale-95 sm:block"
         >
-          <Badge variant="rainbow" className="px-3 py-1">
+          <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-sm text-transparent">
             Upgrade
-          </Badge>
+          </span>
         </button>
       )}
     </>

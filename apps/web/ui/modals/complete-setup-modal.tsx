@@ -1,4 +1,4 @@
-import useDomains from "@/lib/swr/use-domains";
+import useDomainsCount from "@/lib/swr/use-domains-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import { ModalContext } from "@/ui/modals/provider";
@@ -24,7 +24,7 @@ function CompleteSetupModal({
 }) {
   const { slug } = useParams() as { slug: string };
 
-  const { verified } = useDomains();
+  const { data: domainsCount } = useDomainsCount();
   const { data: count } = useLinksCount();
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
@@ -33,9 +33,9 @@ function CompleteSetupModal({
   const tasks = useMemo(() => {
     return [
       {
-        display: "Configure your custom domain",
-        cta: `/${slug}/domains`,
-        checked: verified,
+        display: "Set up your custom domain",
+        cta: `/${slug}/settings/domains`,
+        checked: domainsCount && domainsCount > 0,
       },
       {
         display: "Create or import your links",
@@ -48,7 +48,7 @@ function CompleteSetupModal({
         checked: (users && users.length > 1) || (invites && invites.length > 0),
       },
     ];
-  }, [slug, verified, count]);
+  }, [slug, domainsCount, count, users, invites]);
 
   return (
     <Modal

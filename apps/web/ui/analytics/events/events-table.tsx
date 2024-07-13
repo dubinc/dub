@@ -33,8 +33,6 @@ import EmptyState from "./empty-state";
 import ExportButton from "./export-button";
 import usePagination from "./use-pagination";
 
-const PAGE_SIZE = 100;
-
 type EventType = "clicks" | "leads" | "sales";
 
 type Datum =
@@ -128,6 +126,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
         href={
           queryParams({
             set,
+            del: "page",
             getNewPath: true,
           }) as string
         }
@@ -390,7 +389,7 @@ export default function EventsTable() {
 
   const defaultData = useMemo(() => [], []);
 
-  const { pagination, setPagination } = usePagination(PAGE_SIZE);
+  const { pagination, setPagination } = usePagination();
 
   const { queryString: originalQueryString, totalEvents } =
     useContext(AnalyticsContext);
@@ -399,8 +398,7 @@ export default function EventsTable() {
     () =>
       editQueryString(originalQueryString, {
         event: tab,
-        offset: (pagination.pageIndex * pagination.pageSize).toString(),
-        limit: pagination.pageSize.toString(),
+        page: pagination.pageIndex.toString(),
         sortBy,
         order,
       }).toString(),
@@ -457,7 +455,7 @@ export default function EventsTable() {
             .map((c) => c.id)
             .join(","),
         },
-        ["offset", "limit"], // Remove offset and limit
+        ["page"],
       ),
     [queryString, table.getVisibleFlatColumns()],
   );

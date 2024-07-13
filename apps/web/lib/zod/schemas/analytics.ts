@@ -6,7 +6,13 @@ import {
   intervals,
 } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { COUNTRY_CODES, capitalize } from "@dub/utils";
+import {
+  COUNTRY_CODES,
+  DUB_FOUNDING_DATE,
+  PAGINATION_LIMIT,
+  capitalize,
+  formatDate,
+} from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
@@ -79,15 +85,9 @@ export const analyticsQuerySchema = z.object({
       "The interval to retrieve analytics for. Takes precedence over start and end. If undefined, defaults to 24h.",
     ),
   start: parseDateSchema
-    .refine(
-      (value: Date) => {
-        const foundingDate = new Date("2022-09-22T00:00:00.000Z"); // Dub.co founding date
-        return value >= foundingDate;
-      },
-      {
-        message: "The start date cannot be earlier than September 22, 2022.",
-      },
-    )
+    .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+      message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
+    })
     .optional()
     .describe("The start date and time when to retrieve analytics from."),
   end: parseDateSchema
@@ -189,11 +189,11 @@ export const analyticsFilterTB = z
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true })
+  .omit({ granularity: true, timezone: true, page: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
-      limit: z.coerce.number().default(50),
+      limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
     }),
@@ -203,8 +203,8 @@ export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
   .and(
     z.object({
-      offset: z.coerce.number().default(0),
-      limit: z.coerce.number().default(50),
+      page: z.coerce.number().default(0),
+      limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
     }),

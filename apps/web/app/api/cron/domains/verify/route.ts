@@ -67,7 +67,7 @@ export async function GET(req: Request) {
     const domains = result.map((domain) => {
       return {
         ...domain,
-        clicks: domain.links[0].clicks,
+        clicks: domain.links.length > 0 ? domain.links[0].clicks : 0,
       };
     });
 
