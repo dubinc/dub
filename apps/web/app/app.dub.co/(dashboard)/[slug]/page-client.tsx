@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { SearchBox } from "@/ui/links/link-filters";
+import { InputSearchBox } from "@/ui/links/link-filters";
 import LinkSort from "@/ui/links/link-sort";
 import LinksContainer from "@/ui/links/links-container";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
@@ -48,7 +48,7 @@ export default function WorkspaceLinksClient() {
             </h1>
             <div className="flex space-x-2">
               <div className="w-72 max-w-full">
-                <SearchBox />
+                <InputSearchBox />
               </div>
               <Filter.Select
                 filters={filters}

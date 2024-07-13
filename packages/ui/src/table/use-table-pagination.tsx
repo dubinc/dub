@@ -3,27 +3,27 @@ import { useEffect, useState } from "react";
 
 export function useTablePagination({
   pageSize,
-  offset,
-  onOffsetChange,
+  page,
+  onPageChange,
 }: {
   pageSize: number;
-  offset: number;
-  onOffsetChange?: (offset: number) => void;
+  page: number;
+  onPageChange?: (page: number) => void;
 }) {
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
+    pageIndex: page,
     pageSize,
   });
 
   useEffect(() => {
     setPagination((p) => ({
       ...p,
-      pageIndex: Math.floor(offset / p.pageSize),
+      pageIndex: page,
     }));
-  }, [offset]);
+  }, [page]);
 
   useEffect(() => {
-    onOffsetChange?.(pagination.pageIndex * pagination.pageSize);
+    onPageChange?.(pagination.pageIndex);
   }, [pagination]);
 
   return { pagination, setPagination };

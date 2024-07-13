@@ -1,9 +1,9 @@
-import { Button, IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
+import { Sort } from "@/ui/shared/icons";
+import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown, SortDesc } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Sort } from "../shared/icons";
 
 const sortOptions = [
   {
@@ -61,8 +61,7 @@ export default function LinkSort() {
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
     >
-      <Button
-        variant="secondary"
+      <button
         onClick={() => setOpenPopover(!openPopover)}
         className={cn(
           "group flex h-10 w-full cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all lg:w-48",
@@ -79,7 +78,7 @@ export default function LinkSort() {
           {sort ? selectedSort.display : "Sort by"}
         </span>
         <ChevronDown className="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
-      </Button>
+      </button>
     </Popover>
   );
 }
