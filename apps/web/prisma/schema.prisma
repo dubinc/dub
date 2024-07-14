@@ -214,22 +214,11 @@ model Domain {
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
 
-  // TODO: Remove these columns after merging #977
-  target      String?
-  type        String    @default("redirect")
-  clicks      Int       @default(0)
-  lastClicked DateTime? // when the link was last clicked
-  publicStats Boolean   @default(false)
-  description String?
-  noindex     Boolean  @default(false)
-
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index(projectId)
-  @@index(clicks(sort: Desc))
-  @@index(lastClicked)
   @@index(lastChecked(sort: Asc))
 }
 
