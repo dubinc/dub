@@ -45,6 +45,10 @@ export default function WorkspaceSettingsLayout({
       icon: ShieldCheck,
       segment: "security",
     },
+    {
+      name: "Referrals",
+      segment: "referrals",
+    },
   ];
 
   return (
