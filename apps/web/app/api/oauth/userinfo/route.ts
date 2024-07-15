@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
         user: {
           select: {
             id: true,
-            email: true,
             name: true,
             image: true,
           },
@@ -41,7 +40,6 @@ export async function GET(req: NextRequest) {
 
     const userInfo = {
       id: user.id,
-      email: user.email,
       name: user.name,
       image: user.image,
     };
