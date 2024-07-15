@@ -69,6 +69,28 @@ export const DUB_DOMAINS = [
           projectId: DUB_WORKSPACE_ID,
         },
         {
+          id: "cloxw8qtk000bjt08n9b812vs",
+          slug: "ggl.link",
+          verified: true,
+          primary: false,
+          archived: false,
+          placeholder:
+            "https://docs.google.com/document/d/15-GOZA12SXGEh8lNwU5QI1jBi04TCPgY2-LChTbXVpA",
+          allowedHostnames: [
+            "google.com",
+            "google.co.uk",
+            "google.ca",
+            "google.es",
+            "google.fr",
+            "docs.google.com",
+            "drive.google.com",
+            "maps.google.com",
+          ],
+          description:
+            "Branded domain for Google links (Search, Docs, Sheets, Slides, Drive, Maps, etc.).",
+          projectId: DUB_WORKSPACE_ID,
+        },
+        {
           id: "clugy7euh000a11h6ignmj42o",
           slug: "loooooooo.ng",
           verified: true,
@@ -76,7 +98,7 @@ export const DUB_DOMAINS = [
           archived: true,
           placeholder: "https://d.to/long",
           description:
-            "Branded domain for lengthening links instead of shortening them.",
+            "Branded domain for lengthening links instead of shortening them (April Fool's Prank).",
           projectId: DUB_WORKSPACE_ID,
         },
       ]

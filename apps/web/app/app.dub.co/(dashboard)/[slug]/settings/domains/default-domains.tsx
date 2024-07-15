@@ -5,7 +5,13 @@ import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { Logo, Switch } from "@dub/ui";
-import { Amazon, ChatGPT, GitHubEnhanced, Spotify } from "@dub/ui/src/icons";
+import {
+  Amazon,
+  ChatGPT,
+  GitHubEnhanced,
+  GoogleEnhanced,
+  Spotify,
+} from "@dub/ui/src/icons";
 import { DUB_DOMAINS } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -21,6 +27,8 @@ function DubDomainsIcon(domain: string) {
       return Spotify;
     case "amzn.id":
       return Amazon;
+    case "ggl.link":
+      return GoogleEnhanced;
     default:
       return Logo;
   }

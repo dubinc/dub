@@ -38,6 +38,7 @@ export * from "./youtube";
 export * from "./default-domains/amazon";
 export * from "./default-domains/chatgpt";
 export * from "./default-domains/github";
+export * from "./default-domains/google";
 export * from "./default-domains/spotify";
 
 // Nucleo icons

@@ -167,6 +167,7 @@ model DefaultDomains {
   sptifi      Boolean @default(true)
   gitnew      Boolean @default(true)
   amznid      Boolean @default(true)
+  ggllink     Boolean @default(true)
   loooooooong Boolean @default(false)
   projectId   String  @unique
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

@@ -1,6 +1,12 @@
 import { cn } from "@dub/utils";
 import { RESOURCES } from "../../content";
-import { Amazon, ChatGPT, GitHubEnhanced, Spotify } from "../../icons";
+import {
+  Amazon,
+  ChatGPT,
+  GitHubEnhanced,
+  GoogleEnhanced,
+  Spotify,
+} from "../../icons";
 import { ContentProps, createHref } from "../shared";
 import {
   ContentLinkCard,
@@ -28,6 +34,11 @@ export function ResourcesContent({ domain }: ContentProps) {
             name="GitHub Link Shortener"
             href={createHref("/tools/github-link-shortener", domain)}
             icon={<GitHubEnhanced />}
+          />
+          <ToolLinkCard
+            name="Google Link Shortener"
+            href={createHref("/tools/google-link-shortener", domain)}
+            icon={<GoogleEnhanced />}
           />
           <ToolLinkCard
             name="Amazon Link Shortener"
