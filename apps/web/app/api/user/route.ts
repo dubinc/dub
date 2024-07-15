@@ -9,11 +9,22 @@ import { z } from "zod";
 
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-  });
+  const [user, account] = await Promise.all([
+    prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+    }),
+
+    prisma.account.findFirst({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        provider: true,
+      },
+    }),
+  ]);
 
   const migratedWorkspace = await redis.hget(
     "migrated_links_users",
@@ -27,6 +38,7 @@ export const GET = withSession(async ({ session }) => {
   return NextResponse.json({
     ...user,
     migratedWorkspace,
+    provider: account?.provider,
   });
 });
 
