@@ -3,25 +3,14 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
-import {
-  Avatar,
-  LinkLogo,
-  MaxWidthWrapper,
-  Table,
-  useRouterStuff,
-  useTable,
-} from "@dub/ui";
-import {
-  PAGINATION_LIMIT,
-  formatDate,
-  formatDateTime,
-  getApexDomain,
-} from "@dub/utils";
+import { MaxWidthWrapper, Table, useRouterStuff, useTable } from "@dub/ui";
+import { PAGINATION_LIMIT } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { LinkTitleColumn } from "./link-title-column";
 
-type ResponseLink = LinkWithTagsProps & {
+export type ResponseLink = LinkWithTagsProps & {
   user: UserProps;
 };
 
@@ -77,64 +66,11 @@ function LinksList({
         id: "link",
         header: "Link",
         accessorFn: (d) => d,
-        cell: ({ getValue }) => {
-          const path = getValue().key === "_root" ? "" : `/${getValue().key}`;
-
-          return (
-            <div className="flex items-center gap-3">
-              <LinkLogo
-                apexDomain={getApexDomain(getValue().url)}
-                className="h-4 w-4 sm:h-4 sm:w-4"
-              />
-              <span className="truncate" title={`${getValue().domain}${path}`}>
-                <span className="font-medium text-gray-950">
-                  {getValue().domain}
-                </span>
-                {path}
-              </span>
-            </div>
-          );
-        },
+        cell: ({ getValue }) => (
+          <LinkTitleColumn link={getValue() as ResponseLink} />
+        ),
         enableHiding: false,
         size: 130,
-      },
-      {
-        id: "url",
-        header: "URL",
-        accessorKey: "url",
-        size: 130,
-      },
-      {
-        id: "creator",
-        header: "Creator",
-        accessorFn: (d) => d.user,
-        cell: ({ getValue }) => {
-          const user = getValue() as ResponseLink["user"];
-          return (
-            <div className="flex items-center gap-3">
-              <Avatar user={user} className="h-4 w-4" />
-              <span className="truncate" title={user.name}>
-                {user.name}
-              </span>
-            </div>
-          );
-        },
-        size: 50,
-      },
-      {
-        id: "created",
-        header: "Created",
-        accessorKey: "createdAt",
-        cell: ({ getValue }) => {
-          const createdAt = getValue() as Date;
-
-          return (
-            <span title={formatDateTime(createdAt)}>
-              {formatDate(createdAt)}
-            </span>
-          );
-        },
-        size: 50,
       },
       {
         id: "clicks",
@@ -152,17 +88,21 @@ function LinksList({
   });
 
   useEffect(() => {
-    queryParams({
-      set: {
-        page: (pagination.pageIndex + 1).toString(),
-      },
-    });
+    queryParams(
+      pagination.pageIndex === 0
+        ? { del: "page" }
+        : {
+            set: {
+              page: (pagination.pageIndex + 1).toString(),
+            },
+          },
+    );
   }, [pagination]);
 
   const { table, ...tableProps } = useTable({
     variant: compact ? "compact-list" : "loose-list",
     showColumnHeadings: false,
-    data: links ?? [],
+    data: links?.slice(0, 10) ?? [],
     loading,
     columns,
     pagination: pagination,
