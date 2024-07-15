@@ -191,7 +191,7 @@ export default async function LinkMiddleware(
         req,
         linkId,
         clickId,
-        ...(url && { url: getFinalUrl(url, { req }) }),
+        url,
       }),
     );
   }
@@ -227,7 +227,15 @@ export default async function LinkMiddleware(
     // rewrite to deeplink page if the link is a mailto: or tel:
   } else if (isSupportedDeeplinkProtocol(url)) {
     return NextResponse.rewrite(
-      new URL(`/deeplink/${encodeURIComponent(url)}`, req.url),
+      new URL(
+        `/deeplink/${encodeURIComponent(
+          getFinalUrl(url, {
+            req,
+            clickId: trackConversion ? clickId : undefined,
+          }),
+        )}`,
+        req.url,
+      ),
       {
         headers: {
           ...DUB_HEADERS,
@@ -240,7 +248,15 @@ export default async function LinkMiddleware(
   } else if (rewrite) {
     if (iframeable) {
       return NextResponse.rewrite(
-        new URL(`/cloaked/${encodeURIComponent(url)}`, req.url),
+        new URL(
+          `/cloaked/${encodeURIComponent(
+            getFinalUrl(url, {
+              req,
+              clickId: trackConversion ? clickId : undefined,
+            }),
+          )}`,
+          req.url,
+        ),
         {
           headers: {
             ...DUB_HEADERS,
