@@ -1,5 +1,5 @@
 import {
-  isBetaTester,
+  getFeatureFlags,
   isBlacklistedDomain,
   updateConfig,
 } from "@/lib/edge-config";
@@ -218,8 +218,10 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (trackConversion) {
-    if (!workspace || !(await isBetaTester(workspace.id))) {
+  if (trackConversion && workspace) {
+    const flags = await getFeatureFlags(workspace?.id);
+
+    if (!flags.conversions) {
       return {
         link: payload,
         error: "Conversion tracking is only available for beta testers.",

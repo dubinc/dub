@@ -11,7 +11,7 @@ import {
   getPermissionsByRole,
   mapScopesToPermissions,
 } from "../api/tokens/scopes";
-import { isBetaTester } from "../edge-config";
+import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -48,13 +48,13 @@ export const withWorkspace = (
       "enterprise",
     ], // if the action needs a specific plan
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
-    betaFeature, // if the action is a beta feature
+    featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
     skipPermissionChecks, // if the action doesn't need to check for required permission(s)
   }: {
     requiredPlan?: Array<PlanProps>;
     allowAnonymous?: boolean;
-    betaFeature?: boolean;
+    featureFlag?: "conversions" | "integrations";
     requiredPermissions?: PermissionAction[];
     skipPermissionChecks?: boolean;
   } = {},
@@ -308,9 +308,10 @@ export const withWorkspace = (
       }
 
       // beta feature checks
-      if (betaFeature) {
-        const betaTester = await isBetaTester(workspace.id);
-        if (!betaTester) {
+      if (featureFlag) {
+        const flags = await getFeatureFlags(workspace.id);
+
+        if (!flags[featureFlag]) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Beta feature.",

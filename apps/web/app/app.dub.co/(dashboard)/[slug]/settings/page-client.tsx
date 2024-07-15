@@ -15,7 +15,7 @@ import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, role, betaTester } = useWorkspace();
+  const { id, name, slug, role, flags } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "workspaces.write",
@@ -95,7 +95,7 @@ export default function WorkspaceSettingsClient() {
       />
       <WorkspaceId />
       <UploadLogo />
-      {betaTester && (
+      {flags?.conversions && (
         <Suspense>
           <ConnectStripe />
         </Suspense>

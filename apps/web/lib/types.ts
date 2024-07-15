@@ -68,6 +68,8 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
+export type BetaFeatures = "conversions" | "integrations";
+
 export interface WorkspaceProps {
   id: string;
   name: string;
@@ -97,7 +99,9 @@ export interface WorkspaceProps {
     role: RoleProps;
   }[];
   inviteCode: string;
-  betaTester?: boolean;
+  flags: {
+    [key in BetaFeatures]: boolean;
+  };
 }
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
