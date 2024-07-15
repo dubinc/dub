@@ -7,53 +7,61 @@ import {
   Avatar,
   CopyButton,
   LinkLogo,
-  TableContext,
   Tooltip,
+  useIntersectionObserver,
 } from "@dub/ui";
 import { ArrowRight } from "@dub/ui/src/icons";
 import { cn, formatDateTime, getApexDomain } from "@dub/utils";
 import { formatDate } from "date-fns";
 import { Mail } from "lucide-react";
-import { useContext, useId } from "react";
+import { useRef } from "react";
 import { ResponseLink } from "./links-container";
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain, user, createdAt } = link;
   const path = link.key === "_root" ? "" : `/${link.key}`;
 
-  const { variant } = useContext(TableContext);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const id = useId();
+  const entry = useIntersectionObserver(ref, {});
+  const isVisible = !!entry?.isIntersecting;
 
   return (
-    <div className="flex items-center gap-3 transition-[padding] group-data-[variant=loose-list]/table:sm:py-2">
-      <div className="relative flex items-center justify-center">
-        {/* Link logo background circle */}
-        <div className="absolute inset-0 shrink-0 rounded-full border border-gray-200 opacity-0 transition-opacity group-data-[variant=loose-list]/table:sm:opacity-100">
-          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-gray-100" />
-        </div>
-        <div className="relative transition-[padding] group-data-[variant=loose-list]/table:p-1 group-data-[variant=loose-list]/table:md:p-2">
-          <LinkLogo
-            apexDomain={getApexDomain(url)}
-            className="h-4 w-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose-list]/table:sm:h-5 group-data-[variant=loose-list]/table:sm:w-5"
-          />
-        </div>
-      </div>
-      <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose-list]/table:h-[44px]">
-        <div className="flex items-center gap-2">
-          <span
-            className="block truncate font-medium text-gray-950"
-            title={`${domain}${path}`}
-          >
-            {domain + path}
-          </span>
-          <Details link={link} compact />
-        </div>
+    <div
+      ref={ref}
+      className="flex h-[24px] items-center gap-3 transition-[height] group-data-[variant=loose-list]/table:h-[60px]"
+    >
+      {isVisible && (
+        <>
+          <div className="relative flex items-center justify-center">
+            {/* Link logo background circle */}
+            <div className="absolute inset-0 shrink-0 rounded-full border border-gray-200 opacity-0 transition-opacity group-data-[variant=loose-list]/table:sm:opacity-100">
+              <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-gray-100" />
+            </div>
+            <div className="relative p-1 transition-[padding] group-data-[variant=loose-list]/table:sm:p-2">
+              <LinkLogo
+                apexDomain={getApexDomain(url)}
+                className="h-4 w-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose-list]/table:sm:h-5 group-data-[variant=loose-list]/table:sm:w-5"
+              />
+            </div>
+          </div>
+          <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose-list]/table:h-[44px]">
+            <div className="flex items-center gap-2">
+              <span
+                className="block truncate font-medium text-gray-950"
+                title={`${domain}${path}`}
+              >
+                {domain + path}
+              </span>
+              <Details link={link} compact />
+            </div>
 
-        <div className="mt-1">
-          <Details link={link} />
-        </div>
-      </div>
+            <div className="mt-1">
+              <Details link={link} />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
