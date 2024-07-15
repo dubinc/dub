@@ -50,7 +50,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    betaFeature: true,
+    featureFlag: "conversions",
     requiredPermissions: ["analytics.read"],
   },
 );

@@ -16,7 +16,7 @@ type Tab = {
 };
 
 export default function Main() {
-  const { betaTester } = useWorkspace();
+  const { flags } = useWorkspace();
   const { totalEvents, requiresUpgrade, demoPage, selectedTab } =
     useContext(AnalyticsContext);
   const searchParams = useSearchParams();
@@ -34,7 +34,7 @@ export default function Main() {
           colorClassName: "text-blue-500/50",
           show: ["clicks"],
         },
-        ...(betaTester || demoPage
+        ...(flags?.conversions || demoPage
           ? [
               {
                 id: "leads",
@@ -51,7 +51,7 @@ export default function Main() {
             ]
           : []),
       ] as Tab[],
-    [betaTester],
+    [flags],
   );
 
   const tab = tabs.find(({ id }) => id === selectedTab) || {

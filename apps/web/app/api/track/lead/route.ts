@@ -127,7 +127,7 @@ export const POST = withWorkspaceEdge(
     return NextResponse.json(response);
   },
   {
-    betaFeature: true,
+    featureFlag: "conversions",
     requiredPermissions: ["conversions.write"],
   },
 );
