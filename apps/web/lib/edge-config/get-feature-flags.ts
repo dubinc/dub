@@ -1,7 +1,7 @@
 import { get } from "@vercel/edge-config";
 import { BetaFeatures } from "../types";
 
-type BetaTesters = Record<BetaFeatures, string[]>;
+type BetaFeaturesRecord = Record<BetaFeatures, string[]>;
 
 export const getFeatureFlags = async (workspaceId: string) => {
   const workspaceFeatures: Record<BetaFeatures, boolean> = {
@@ -17,17 +17,17 @@ export const getFeatureFlags = async (workspaceId: string) => {
     return workspaceFeatures;
   }
 
-  let betaTesters: BetaTesters | undefined = undefined;
+  let betaFeatures: BetaFeaturesRecord | undefined = undefined;
 
   try {
-    betaTesters = await get("betaTesters");
+    betaFeatures = await get("betaFeatures");
   } catch (e) {
-    console.error(`Error getting beta testers: ${e}`);
-    betaTesters = undefined;
+    console.error(`Error getting beta features: ${e}`);
+    betaFeatures = undefined;
   }
 
-  if (betaTesters) {
-    for (const [featureFlag, workspaceIds] of Object.entries(betaTesters)) {
+  if (betaFeatures) {
+    for (const [featureFlag, workspaceIds] of Object.entries(betaFeatures)) {
       if (workspaceIds.includes(workspaceId)) {
         workspaceFeatures[featureFlag] = true;
       }
