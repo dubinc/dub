@@ -27,30 +27,17 @@ const variantDefaults = { default: "", "compact-list": "", "loose-list": "" };
 
 const tableVariants = cva(
   [
-    "group/table w-full table-fixed border-separate transition-[border-spacing] border-spacing-0",
+    "group/table w-full table-fixed border-separate transition-[border-spacing,margin-top] border-spacing-0",
   ],
   {
     variants: {
       variant: {
         ...variantDefaults,
-        default: [
-          // Remove side borders from table to avoid interfering with outer border
-          "[&_tr>*:first-child]:border-l-transparent", // Left column
-          "[&_tr>*:last-child]:border-r-transparent", // Right column
-        ],
         "loose-list": [
-          "border-spacing-y-4",
+          "border-spacing-y-4 -mt-4",
           // Round left and right sides of each row
           "[&_tr>*:first-child]:rounded-l-xl",
           "[&_tr>*:last-child]:rounded-r-xl",
-        ],
-        "compact-list": [
-          // Round top corners
-          "[&_*:first-child>tr:first-child>*:first-child]:rounded-tl-xl",
-          "[&_*:first-child>tr:first-child>*:last-child]:rounded-tr-xl",
-
-          // Top border
-          "[&_*:first-child>tr:first-child>*]:border-t",
         ],
       },
     },
@@ -61,15 +48,24 @@ const tableVariants = cva(
           "[&_tr>*:first-child]:border-l [&_tr>*:last-child]:border-r",
         ],
       },
+      {
+        variant: ["default", "compact-list"],
+        className: [
+          // Remove side borders from table to avoid interfering with outer border
+          "[&_tr>*:first-child]:border-l-transparent", // Left column
+          "[&_tr>*:last-child]:border-r-transparent", // Right column
+        ],
+      },
     ],
   },
 );
 
-const tableWrapperVariants = cva("relative sm:rounded-t-xl", {
+const tableWrapperVariants = cva("relative sm:rounded-xl", {
   variants: {
     variant: {
       ...variantDefaults,
       default: "border border-gray-200 bg-white",
+      "compact-list": "border border-gray-200 bg-white",
     },
   },
 });
@@ -89,16 +85,12 @@ const tableCellVariants = cva(
 
 const tableRowVariants = cva("", {
   variants: {
-    variant: variantDefaults,
-  },
-  compoundVariants: [
-    {
-      // Loose/compact lists have hover effects
-      variant: ["loose-list", "compact-list"],
-      className:
+    variant: {
+      ...variantDefaults,
+      "loose-list":
         "transition-[filter] hover:[filter:drop-shadow(0_8px_12px_#222A350d)_drop-shadow(0_32px_80px_#2f30370f)]",
     },
-  ],
+  },
 });
 
 const tablePaginationVariants = cva(
@@ -108,18 +100,13 @@ const tablePaginationVariants = cva(
       variant: {
         ...variantDefaults,
         "loose-list":
-          "rounded-xl [filter:drop-shadow(0_5px_8px_#222A351d)] bottom-4 w-[768px] max-w-full",
+          "border rounded-xl [filter:drop-shadow(0_5px_8px_#222A351d)] bottom-4 w-[768px] max-w-full",
       },
     },
     compoundVariants: [
       {
         variant: ["default", "compact-list"],
         className: "rounded-b-[inherit] bottom-0 w-full border-t",
-      },
-      {
-        // Needs its own border because the table wrapper doesn't have one
-        variant: ["loose-list", "compact-list"],
-        className: "border",
       },
     ],
   },
@@ -261,7 +248,7 @@ export function Table<T>({
     <TableContext.Provider value={{ variant: variant ?? "default" }}>
       <div className={tableWrapperVariants({ variant })}>
         {(!error && !!data?.length) || loading ? (
-          <div className="min-h-[400px] rounded-[inherit]">
+          <div className="min-h-[400px] overflow-hidden rounded-[inherit]">
             <table
               className={cn(tableVariants({ variant }), className)}
               style={columnSizeVars}
@@ -358,7 +345,7 @@ export function Table<T>({
                         }}
                       >
                         <div className="flex w-full items-center justify-between overflow-hidden truncate">
-                          <div className="min-w-0 shrink">
+                          <div className="min-w-0 shrink grow">
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext(),

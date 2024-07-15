@@ -8,6 +8,7 @@ import { PAGINATION_LIMIT } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { LinkDetailsColumn } from "./link-details-column";
 import { LinkTitleColumn } from "./link-title-column";
 
 export type ResponseLink = LinkWithTagsProps & {
@@ -30,7 +31,7 @@ export default function LinksContainer({
         className="w-24 border border-gray-200 text-xs"
         onClick={() => setCompact((c) => !c)}
       >
-        toggle compact
+        toggle view
       </button>
       <LinksList
         AddEditLinkButton={AddEditLinkButton}
@@ -64,18 +65,19 @@ function LinksList({
     () => [
       {
         id: "link",
-        header: "Link",
         accessorFn: (d) => d,
         cell: ({ getValue }) => (
           <LinkTitleColumn link={getValue() as ResponseLink} />
         ),
         enableHiding: false,
-        size: 130,
+        size: 150,
       },
       {
-        id: "clicks",
-        header: "Clicks",
-        accessorKey: "clicks",
+        id: "details",
+        accessorFn: (d) => d,
+        cell: ({ getValue }) => (
+          <LinkDetailsColumn link={getValue() as ResponseLink} />
+        ),
         size: 50,
       },
     ],

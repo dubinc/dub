@@ -23,22 +23,23 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const ref = useRef<HTMLDivElement>(null);
 
+  // Use intersection observer for basic "virtualization" to improve transition performance
   const entry = useIntersectionObserver(ref, {});
   const isVisible = !!entry?.isIntersecting;
 
   return (
     <div
       ref={ref}
-      className="flex h-[24px] items-center gap-3 transition-[height] group-data-[variant=loose-list]/table:h-[60px]"
+      className="flex h-[32px] items-center gap-3 transition-[height] group-data-[variant=loose-list]/table:h-[60px]"
     >
       {isVisible && (
         <>
-          <div className="relative flex items-center justify-center">
+          <div className="relative flex shrink-0 items-center justify-center">
             {/* Link logo background circle */}
             <div className="absolute inset-0 shrink-0 rounded-full border border-gray-200 opacity-0 transition-opacity group-data-[variant=loose-list]/table:sm:opacity-100">
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-gray-100" />
             </div>
-            <div className="relative p-1 transition-[padding] group-data-[variant=loose-list]/table:sm:p-2">
+            <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose-list]/table:sm:p-2">
               <LinkLogo
                 apexDomain={getApexDomain(url)}
                 className="h-4 w-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose-list]/table:sm:h-5 group-data-[variant=loose-list]/table:sm:w-5"
@@ -71,7 +72,7 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 text-xs transition-opacity md:gap-3",
+        "flex min-w-0 items-center gap-1.5 text-xs transition-opacity md:gap-3",
         compact
           ? "opacity-0 group-data-[variant=compact-list]/table:opacity-100"
           : "opacity-0 group-data-[variant=loose-list]/table:opacity-100",
