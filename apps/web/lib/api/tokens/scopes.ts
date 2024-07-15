@@ -2,7 +2,7 @@ import { Role } from "@prisma/client";
 import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 
-export const SCOPE_NAMES = [
+export const SCOPES = [
   "workspaces.read",
   "workspaces.write",
   "links.read",
@@ -17,11 +17,11 @@ export const SCOPE_NAMES = [
   "apis.read", // All read scopes
 ] as const;
 
-export type ScopeName = (typeof SCOPE_NAMES)[number];
+export type Scope = (typeof SCOPES)[number];
 
 // Scopes available for Workspace API keys
-export const SCOPES: {
-  scope: ScopeName;
+export const RESOURCE_SCOPES: {
+  scope: Scope;
   roles: Role[];
   permissions: PermissionAction[];
   type?: "read" | "write";
@@ -125,7 +125,7 @@ export const SCOPES: {
   },
 ];
 
-export const SCOPES_BY_RESOURCE = SCOPES.reduce((acc, scope) => {
+export const SCOPES_BY_RESOURCE = RESOURCE_SCOPES.reduce((acc, scope) => {
   if (!scope.resource || !scope.type) {
     return acc;
   }
@@ -144,13 +144,13 @@ export const SCOPES_BY_RESOURCE = SCOPES.reduce((acc, scope) => {
 }, {});
 
 // Scope to permissions mapping
-export const SCOPE_PERMISSIONS_MAP = SCOPES.reduce((acc, scope) => {
+export const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   acc[scope.scope] = scope.permissions;
   return acc;
 }, {});
 
 // Role to scopes mapping
-export const ROLE_SCOPES_MAP = SCOPES.reduce((acc, scope) => {
+export const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   scope.roles.forEach((role) => {
     if (!acc[role]) {
       acc[role] = [];
@@ -163,7 +163,7 @@ export const ROLE_SCOPES_MAP = SCOPES.reduce((acc, scope) => {
 }, {});
 
 // // For each scope, get the permissions it grants access to and return array of permissions
-export const mapScopesToPermissions = (scopes: ScopeName[]) => {
+export const mapScopesToPermissions = (scopes: Scope[]) => {
   const permissions: PermissionAction[] = [];
 
   scopes.forEach((scope) => {
@@ -179,7 +179,7 @@ export const mapScopesToPermissions = (scopes: ScopeName[]) => {
 export const getScopesByResourceForRole = (role: Role) => {
   const groupedByResource = {};
 
-  const allowedScopes = SCOPES.map((scope) => {
+  const allowedScopes = RESOURCE_SCOPES.map((scope) => {
     if (scope.roles.includes(role)) {
       return scope;
     }
@@ -237,7 +237,7 @@ export const scopesToName = (scopes: string[]) => {
   };
 };
 
-export const validateScopesForRole = (scopes: ScopeName[], role: Role) => {
+export const validateScopesForRole = (scopes: Scope[], role: Role) => {
   const allowedScopes = ROLE_SCOPES_MAP[role];
   const invalidScopes = scopes.filter(
     (scope) => !allowedScopes.includes(scope),
