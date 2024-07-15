@@ -19,6 +19,7 @@ model User {
   emailVerified DateTime?
   image         String?
   isMachine     Boolean   @default(false)
+  passwordHash  String?
 
   accounts         Account[]
   sessions         Session[]
