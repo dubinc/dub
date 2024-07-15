@@ -19,21 +19,10 @@ import {
 } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
-import LinkCard from "./link-card";
-import LinkCardPlaceholder from "./link-card-placeholder";
-import LinkPagination from "./link-pagination";
-import NoLinksPlaceholder from "./no-links-placeholder";
+import { useEffect, useMemo, useState } from "react";
 
 type ResponseLink = LinkWithTagsProps & {
   user: UserProps;
-};
-
-type ListProps = {
-  AddEditLinkButton: () => JSX.Element;
-  links?: ResponseLink[];
-  count?: number;
-  loading?: boolean;
 };
 
 export default function LinksContainer({
@@ -54,55 +43,30 @@ export default function LinksContainer({
       >
         toggle compact
       </button>
-      {compact ? (
-        <CompactList
-          AddEditLinkButton={AddEditLinkButton}
-          links={links}
-          count={count}
-          loading={isValidating}
-        />
-      ) : (
-        <DefaultList
-          AddEditLinkButton={AddEditLinkButton}
-          links={links}
-          count={count}
-          loading={isValidating}
-        />
-      )}
+      <LinksList
+        AddEditLinkButton={AddEditLinkButton}
+        links={links}
+        count={count}
+        loading={isValidating}
+        compact={compact}
+      />
     </MaxWidthWrapper>
   );
 }
 
-function DefaultList({ AddEditLinkButton, links, count, loading }: ListProps) {
-  return (
-    <>
-      <ul className="grid min-h-[66.5vh] auto-rows-min gap-3">
-        {links && !loading ? (
-          links.length > 0 ? (
-            links.map((props) => (
-              <Suspense key={props.id} fallback={<LinkCardPlaceholder />}>
-                <LinkCard props={props} />
-              </Suspense>
-            ))
-          ) : (
-            <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
-          )
-        ) : (
-          Array.from({ length: 10 }).map((_, i) => (
-            <LinkCardPlaceholder key={i} />
-          ))
-        )}
-      </ul>
-      {count && count > 0 ? (
-        <Suspense>
-          <LinkPagination />
-        </Suspense>
-      ) : null}
-    </>
-  );
-}
-
-function CompactList({ AddEditLinkButton, links, count, loading }: ListProps) {
+function LinksList({
+  AddEditLinkButton,
+  links,
+  count,
+  loading,
+  compact,
+}: {
+  AddEditLinkButton: () => JSX.Element;
+  links?: ResponseLink[];
+  count?: number;
+  loading?: boolean;
+  compact: boolean;
+}) {
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams?.get("page") || "1") || 1;
@@ -196,6 +160,8 @@ function CompactList({ AddEditLinkButton, links, count, loading }: ListProps) {
   }, [pagination]);
 
   const { table, ...tableProps } = useTable({
+    variant: compact ? "compact-list" : "loose-list",
+    showColumnHeadings: false,
     data: links ?? [],
     loading,
     columns,
