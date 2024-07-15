@@ -1,7 +1,4 @@
-// @ts-nocheck
-
-// TODO:
-// Fix the script
+// @ts-nocheck – old migration script
 
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";

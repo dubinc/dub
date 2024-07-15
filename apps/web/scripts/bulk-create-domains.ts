@@ -1,3 +1,5 @@
+// @ts-nocheck – old migration script
+
 import { addDomainToVercel } from "@/lib/api/domains";
 import { createLink } from "@/lib/api/links";
 import { prisma } from "@/lib/prisma";
