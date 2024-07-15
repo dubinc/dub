@@ -280,16 +280,11 @@ export function useAddEditAppModal(
     );
   }, [showAddEditAppModal, setShowAddEditAppModal]);
 
-  const AddAppButtonCallback = useCallback(() => {
-    return <AddAppButton setShowAddEditAppModal={setShowAddEditAppModal} />;
-  }, [setShowAddEditAppModal]);
-
   return useMemo(
     () => ({
       setShowAddEditAppModal,
       AddEditAppModal: AddEditAppModalCallback,
-      AddAppButton: AddAppButtonCallback,
     }),
-    [setShowAddEditAppModal, AddEditAppModalCallback, AddAppButtonCallback],
+    [setShowAddEditAppModal, AddEditAppModalCallback],
   );
 }

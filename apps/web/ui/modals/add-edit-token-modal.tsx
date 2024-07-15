@@ -1,7 +1,7 @@
 import { ResourceKey, RESOURCES } from "@/lib/api/rbac/resources";
 import {
   getScopesByResourceForRole,
-  ScopeName,
+  Scope,
   scopePresets,
 } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -35,7 +35,7 @@ import { mutate } from "swr";
 type APIKeyProps = {
   id?: string;
   name: string;
-  scopes: { [key: string]: ScopeName };
+  scopes: { [key: string]: Scope };
   isMachine: boolean;
 };
 
@@ -294,7 +294,7 @@ function AddEditTokenModal({
                       <RadioGroup
                         defaultValue={scopes[resource.key] || ""}
                         className="flex gap-4"
-                        onValueChange={(v: ScopeName) => {
+                        onValueChange={(v: Scope) => {
                           setData({
                             ...data,
                             scopes: {

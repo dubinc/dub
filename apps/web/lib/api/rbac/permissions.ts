@@ -15,6 +15,8 @@ export const PERMISSION_ACTIONS = [
   "conversions.write",
   "oauth_apps.read",
   "oauth_apps.write",
+  "integrations.read",
+  "integrations.disconnect",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -93,6 +95,16 @@ export const ROLE_PERMISSIONS: {
     action: "oauth_apps.write",
     description: "Create, update, or delete OAuth apps",
     roles: ["owner"],
+  },
+  {
+    action: "integrations.read",
+    description: "Read authorized OAuth apps",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "integrations.disconnect",
+    description: "Disconnect authorized OAuth apps",
+    roles: ["owner", "member"],
   },
 ];
 

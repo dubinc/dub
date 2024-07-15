@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useAddEditAppModal } from "@/ui/modals/add-edit-oauth-app-modal";
@@ -14,7 +15,7 @@ import {
   Popover,
   TokenAvatar,
 } from "@dub/ui";
-import { Key } from "@dub/ui/src/icons";
+import { Window } from "@dub/ui/src/icons";
 import { fetcher } from "@dub/utils";
 import { Copy, Edit3, MoreVertical } from "lucide-react";
 import { useState } from "react";
@@ -22,7 +23,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 
 export default function OAuthAppPageClient() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, role } = useWorkspace();
   const { data: apps, isLoading } = useSWR<OAuthAppProps[]>(
     `/api/oauth-apps?workspaceId=${workspaceId}`,
     fetcher,
@@ -40,7 +41,7 @@ export default function OAuthAppPageClient() {
     setShowAppCreatedModal(true);
   };
 
-  const { AddEditAppModal, AddAppButton } = useAddEditAppModal({
+  const { AddEditAppModal, setShowAddEditAppModal } = useAddEditAppModal({
     onAppCreated,
   });
 
@@ -49,8 +50,8 @@ export default function OAuthAppPageClient() {
       <AppCreatedModal />
       <AddEditAppModal />
       <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="flex flex-col items-center justify-between gap-4 space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
-          <div className="flex max-w-screen-sm flex-col space-y-3">
+        <div className="flex flex-col items-center justify-between gap-4 space-y-3 p-5 sm:flex-row sm:space-y-0 sm:p-10">
+          <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">OAuth Applications</h2>
             <p className="text-sm text-gray-500">
               Applications owned by your workspace. You can use OAuth app to
@@ -64,7 +65,20 @@ export default function OAuthAppPageClient() {
               </a>
             </p>
           </div>
-          <AddAppButton />
+          <div className="flex">
+            <Button
+              text="Create App"
+              className="h-9 w-28"
+              onClick={() => setShowAddEditAppModal(true)}
+              disabledTooltip={
+                clientAccessCheck({
+                  action: "oauth_apps.write",
+                  role,
+                  customPermissionDescription: "create OAuth apps",
+                }).error || undefined
+              }
+            />
+          </div>
         </div>
         {isLoading || !apps ? (
           <div className="flex flex-col items-center justify-center space-y-4 py-20">
@@ -85,10 +99,21 @@ export default function OAuthAppPageClient() {
         ) : (
           <div className="flex flex-col items-center justify-center gap-y-4 py-20">
             <EmptyState
-              icon={Key}
+              icon={Window}
               title="No OAuth Applications found for this workspace"
             />
-            <AddAppButton />
+            <Button
+              text="Create App"
+              className="h-9 w-28"
+              onClick={() => setShowAddEditAppModal(true)}
+              disabledTooltip={
+                clientAccessCheck({
+                  action: "oauth_apps.write",
+                  role,
+                  customPermissionDescription: "create OAuth apps",
+                }).error || undefined
+              }
+            />
           </div>
         )}
       </div>
