@@ -10,13 +10,12 @@ import { waitUntil } from "@vercel/functions";
 import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
-import { throwIfNoAccess } from "../api/tokens/permissions";
 import {
   PermissionAction,
-  Scope,
   getPermissionsByRole,
-  mapScopesToPermissions,
-} from "../api/tokens/scopes";
+} from "../api/rbac/permissions";
+import { throwIfNoAccess } from "../api/tokens/permissions";
+import { ScopeName, mapScopesToPermissions } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
@@ -276,7 +275,7 @@ export const withWorkspaceEdge = (
 
       // Find the subset of permissions that the user has access to based on the token scopes
       if (isRestrictedToken) {
-        const tokenScopes: Scope[] = token.scopes.split(" ") || [];
+        const tokenScopes: ScopeName[] = token.scopes.split(" ") || [];
         permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
           permissions.includes(p),
         );

@@ -4,13 +4,12 @@ import { PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { throwIfNoAccess } from "../api/tokens/permissions";
 import {
   PermissionAction,
-  Scope,
   getPermissionsByRole,
-  mapScopesToPermissions,
-} from "../api/tokens/scopes";
+} from "../api/rbac/permissions";
+import { throwIfNoAccess } from "../api/tokens/permissions";
+import { ScopeName, mapScopesToPermissions } from "../api/tokens/scopes";
 import { isBetaTester } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -300,7 +299,7 @@ export const withWorkspace = (
 
       // Find the subset of permissions that the user has access to based on the token scopes
       if (isRestrictedToken) {
-        const tokenScopes: Scope[] = token.scopes.split(" ") || [];
+        const tokenScopes: ScopeName[] = token.scopes.split(" ") || [];
         permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
           permissions.includes(p),
         );
