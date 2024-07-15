@@ -85,7 +85,7 @@ function AddEditLinkModal({
     aiUsage,
     aiLimit,
     mutate: mutateWorkspace,
-    betaTester,
+    flags,
   } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -754,7 +754,9 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 md:px-16">
               <TagsSection {...{ props, data, setData }} />
-              {betaTester && <ConversionSection {...{ data, setData }} />}
+              {flags?.conversions && (
+                <ConversionSection {...{ data, setData }} />
+              )}
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}

@@ -17,16 +17,18 @@ export default function NavTabs() {
   const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
   const domain = useSearchParams()?.get("domain");
-  const { loading, error, betaTester } = useWorkspace();
+  const { loading, error, flags } = useWorkspace();
 
   const tabs = useMemo(
     () => [
       { name: "Links", href: `/${slug}` },
       { name: "Analytics", href: `/${slug}/analytics` },
-      ...(betaTester ? [{ name: "Events", href: `/${slug}/events` }] : []),
+      ...(flags?.conversions
+        ? [{ name: "Events", href: `/${slug}/events` }]
+        : []),
       { name: "Settings", href: `/${slug}/settings` },
     ],
-    [betaTester],
+    [flags],
   );
 
   const { loading: loadingDomains } = useDomains();

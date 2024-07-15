@@ -3,7 +3,7 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { PlanProps, WorkspaceProps } from "@/lib/types";
+import { BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -17,7 +17,7 @@ import {
   getPermissionsByRole,
   mapScopesToPermissions,
 } from "../api/tokens/scopes";
-import { isBetaTester } from "../edge-config";
+import { getFeatureFlags } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
 import type { Session } from "./utils";
@@ -57,14 +57,14 @@ export const withWorkspaceEdge = (
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
-    betaFeature, // if the action is a beta feature
+    featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
   }: {
     requiredPlan?: Array<PlanProps>;
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     needNotExceededAI?: boolean;
-    betaFeature?: boolean;
+    featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
   } = {},
 ) => {
@@ -282,9 +282,10 @@ export const withWorkspaceEdge = (
       });
 
       // beta feature checks
-      if (betaFeature) {
-        const betaTester = await isBetaTester(workspace.id);
-        if (!betaTester) {
+      if (featureFlag) {
+        const flags = await getFeatureFlags(workspace.id);
+
+        if (!flags[featureFlag]) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Beta feature.",
