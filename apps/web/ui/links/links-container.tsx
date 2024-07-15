@@ -102,7 +102,7 @@ function LinksList({
   const { table, ...tableProps } = useTable({
     variant: compact ? "compact-list" : "loose-list",
     showColumnHeadings: false,
-    data: links?.slice(0, 10) ?? [],
+    data: links ?? [],
     loading,
     columns,
     pagination: pagination,
