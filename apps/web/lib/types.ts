@@ -99,7 +99,7 @@ export interface WorkspaceProps {
     role: RoleProps;
   }[];
   inviteCode: string;
-  flags: {
+  flags?: {
     [key in BetaFeatures]: boolean;
   };
 }
