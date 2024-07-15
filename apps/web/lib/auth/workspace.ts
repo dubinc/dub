@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
-import { PlanProps, WorkspaceWithUsers } from "@/lib/types";
+import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -54,7 +54,7 @@ export const withWorkspace = (
   }: {
     requiredPlan?: Array<PlanProps>;
     allowAnonymous?: boolean;
-    featureFlag?: "conversions" | "integrations";
+    featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
     skipPermissionChecks?: boolean;
   } = {},
