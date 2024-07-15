@@ -37,8 +37,9 @@ export * from "./youtube";
 // dub default domains logos
 export * from "./default-domains/amazon";
 export * from "./default-domains/chatgpt";
-export * from "./default-domains/github";
-export * from "./default-domains/google";
+export * from "./default-domains/figma";
+export * from "./default-domains/github-enhanced";
+export * from "./default-domains/google-enhanced";
 export * from "./default-domains/spotify";
 
 // Nucleo icons
