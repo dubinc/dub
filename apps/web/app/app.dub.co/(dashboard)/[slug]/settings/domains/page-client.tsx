@@ -27,7 +27,7 @@ export default function WorkspaceDomainsClient() {
   const archived = searchParams.get("archived");
   const search = searchParams.get("search");
 
-  const { allWorkspaceDomains, loading } = useDomains();
+  const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
   const { data: domainsCount } = useDomainsCount();
 
   return (

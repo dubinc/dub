@@ -10,15 +10,23 @@ import useSWR from "swr";
 import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
 
-export default function useDomains() {
+export default function useDomains({
+  includeParams,
+}: {
+  includeParams?: boolean;
+} = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const { data, error, mutate } = useSWR<DomainProps[]>(
     workspaceId &&
-      `/api/domains${getQueryString({
-        workspaceId,
-      })}`,
+      `/api/domains${
+        includeParams
+          ? getQueryString({
+              workspaceId,
+            })
+          : `?workspaceId=${workspaceId}`
+      }`,
     fetcher,
     {
       dedupingInterval: 60000,
