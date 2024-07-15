@@ -7,6 +7,23 @@ import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+// GET /api/oauth-apps - get all OAuth apps for a specific workspace
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const apps = await prisma.oAuthApp.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+    });
+
+    return NextResponse.json(z.array(oAuthAppSchema).parse(apps));
+  },
+  {
+    requiredPermissions: ["oauth_apps.read"],
+    featureFlag: "integrations",
+  },
+);
+
 // POST /api/oauth-apps - create a new OAuth app
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
@@ -47,21 +64,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.write"],
-  },
-);
-
-// GET /api/oauth-apps - get all OAuth apps for a specific workspace
-export const GET = withWorkspace(
-  async ({ workspace }) => {
-    const apps = await prisma.oAuthApp.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-    });
-
-    return NextResponse.json(z.array(oAuthAppSchema).parse(apps));
-  },
-  {
-    requiredPermissions: ["oauth_apps.read"],
+    featureFlag: "integrations",
   },
 );
