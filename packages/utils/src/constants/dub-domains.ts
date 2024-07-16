@@ -100,7 +100,7 @@ export const DUB_DOMAINS = [
             "https://www.figma.com/design/YAfTk6SGV2HcSvL2415oED/Dub.co-Brand-Assets-(Public)?node-id=1-36593&t=QMKQNtUzxSSzG3hX-1",
           allowedHostnames: ["figma.com"],
           description:
-            "Branded domain for Figma links (portfolios, projects, files, etc.).",
+            "Branded domain for Figma links (portfolios, prototypes, presentations, etc.).",
           projectId: DUB_WORKSPACE_ID,
         },
         {
