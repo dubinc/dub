@@ -88,7 +88,7 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
           className={cn("truncate", url ? "text-gray-500" : "text-gray-400")}
           title={url}
         >
-          {url || "No URL configured"}
+          {url?.replace(/^https?:\/\//, "") || "No URL configured"}
         </span>
       </div>
       <div className="hidden shrink-0 sm:block">
