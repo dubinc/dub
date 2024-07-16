@@ -35,6 +35,10 @@ export const navItems = [
     childItems: SDKS,
   },
   {
+    name: "Customers",
+    href: "/customers",
+  },
+  {
     name: "Pricing",
     href: "/pricing",
   },
