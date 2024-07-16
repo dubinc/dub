@@ -1,20 +1,28 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { UserProps } from "@/lib/types";
+import { DomainProps, UserProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
   Avatar,
   CopyButton,
   LinkLogo,
   Tooltip,
+  TooltipContent,
   useIntersectionObserver,
 } from "@dub/ui";
 import { ArrowRight } from "@dub/ui/src/icons";
-import { cn, formatDateTime, getApexDomain } from "@dub/utils";
+import {
+  cn,
+  fetcher,
+  formatDateTime,
+  getApexDomain,
+  isDubDomain,
+} from "@dub/utils";
 import { formatDate } from "date-fns";
 import { Mail } from "lucide-react";
-import { useRef } from "react";
+import { PropsWithChildren, useRef } from "react";
+import useSWR from "swr";
 import { ResponseLink } from "./links-container";
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
@@ -48,12 +56,16 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
           </div>
           <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose-list]/table:h-[44px]">
             <div className="flex items-center gap-2">
-              <span
-                className="block truncate font-medium text-gray-950"
-                title={`${domain}${path}`}
-              >
-                {domain + path}
-              </span>
+              <div className="text-gray-950">
+                <UnverifiedTooltip link={link}>
+                  <span
+                    className="block truncate font-medium"
+                    title={`${domain}${path}`}
+                  >
+                    {domain + path}
+                  </span>
+                </UnverifiedTooltip>
+              </div>
               <Details link={link} compact />
             </div>
 
@@ -64,6 +76,36 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         </>
       )}
     </div>
+  );
+}
+
+function UnverifiedTooltip({
+  link,
+  children,
+}: PropsWithChildren<{ link: ResponseLink }>) {
+  const { id: workspaceId, slug } = useWorkspace();
+
+  const { data: { verified } = {}, isLoading } = useSWR<DomainProps>(
+    !isDubDomain(link.domain) &&
+      workspaceId &&
+      `/api/domains/${link.domain}?workspaceId=${workspaceId}`,
+    fetcher,
+  );
+
+  return !isLoading && !isDubDomain(link.domain) && !verified ? (
+    <Tooltip
+      content={
+        <TooltipContent
+          title="Your branded links won't work until you verify your domain."
+          cta="Verify your domain"
+          href={`/${slug}/settings/domains`}
+        />
+      }
+    >
+      <div className="text-gray-500 line-through">{children}</div>
+    </Tooltip>
+  ) : (
+    children
   );
 }
 
