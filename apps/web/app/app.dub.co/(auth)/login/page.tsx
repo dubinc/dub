@@ -2,6 +2,7 @@ import { Button, Logo } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { Suspense } from "react";
 import LoginForm from "./form";
+import { SignInWithEmailPassword } from "./signin-email-password";
 
 export const metadata = constructMetadata({
   title: `Sign in to ${process.env.NEXT_PUBLIC_APP_NAME}`,
@@ -32,6 +33,8 @@ export default function LoginPage() {
             </>
           }
         >
+          <SignInWithEmailPassword csrfToken="" />
+          <div className="border-t border-gray-300" />
           <LoginForm />
         </Suspense>
       </div>

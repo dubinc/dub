@@ -10,3 +10,8 @@ export const updatePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(8, "Password must be at least 8 characters"),
 });
+
+export const signInSchema = z.object({
+  email: z.string().email().min(1),
+  password: z.string().min(1),
+});

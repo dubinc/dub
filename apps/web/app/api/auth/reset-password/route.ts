@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
-import { resetPasswordSchema } from "@/lib/zod/schemas/password";
+import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "emails";
 import PasswordUpdated from "emails/password-updated";
 import { NextRequest, NextResponse } from "next/server";

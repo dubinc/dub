@@ -17,6 +17,7 @@ import { dub } from "../dub";
 import { subscribe } from "../flodesk";
 import { isStored, storage } from "../storage";
 import { UserProps } from "../types";
+import { validatePassword } from "./password";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -165,7 +166,61 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+
+    // Sign in with email and password
+    CredentialsProvider({
+      id: "credentials",
+      name: "Dub.co",
+      type: "credentials",
+      credentials: {
+        email: { type: "email" },
+        password: { type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials) {
+          throw new Error("no-credentials");
+        }
+
+        const { email, password } = credentials;
+
+        if (!email || !password) {
+          throw new Error("no-credentials");
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: {
+            id: true,
+            passwordHash: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        });
+
+        if (!user || !user.passwordHash) {
+          throw new Error("invalid-credentials");
+        }
+
+        const passwordMatch = await validatePassword({
+          password,
+          passwordHash: user.passwordHash,
+        });
+
+        if (!passwordMatch) {
+          throw new Error("invalid-credentials");
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        };
+      },
+    }),
   ],
+  // @ts-ignore
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   cookies: {

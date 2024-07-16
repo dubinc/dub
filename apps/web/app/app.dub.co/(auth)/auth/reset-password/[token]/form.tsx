@@ -1,7 +1,7 @@
 "use client";
 
 import z from "@/lib/zod";
-import { resetPasswordSchema } from "@/lib/zod/schemas/password";
+import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { zodResolver } from "@hookform/resolvers/zod";

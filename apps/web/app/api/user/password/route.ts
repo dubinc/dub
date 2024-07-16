@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withSession } from "@/lib/auth";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
-import { updatePasswordSchema } from "@/lib/zod/schemas/password";
+import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
 import { NextResponse } from "next/server";
 
 // PATCH /api/user/password - updates the user's password
