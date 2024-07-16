@@ -191,7 +191,7 @@ export default async function LinkMiddleware(
         req,
         linkId,
         clickId,
-        url,
+        ...(url && { url: getFinalUrl(url, { req }) }),
       }),
     );
   }
