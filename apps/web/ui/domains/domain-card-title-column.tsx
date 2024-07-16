@@ -1,5 +1,5 @@
 import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/src/icons";
-import { punycode } from "@dub/utils";
+import { cn, punycode } from "@dub/utils";
 
 export function DomainCardTitleColumn({
   domain,
@@ -19,8 +19,14 @@ export function DomainCardTitleColumn({
   return (
     <div className="flex min-w-0 items-center gap-4">
       <div className="hidden rounded-full border border-gray-200 sm:block">
-        <div className="rounded-full border border-white bg-gradient-to-t from-gray-100 p-1 md:p-3">
-          <Icon className="h-5 w-5" />
+        <div
+          className={cn(
+            "rounded-full",
+            !defaultDomain &&
+              "border border-white bg-gradient-to-t from-gray-100 p-1 md:p-3",
+          )}
+        >
+          <Icon className={cn("size-5", defaultDomain && "size-8")} />
         </div>
       </div>
       <div className="overflow-hidden">

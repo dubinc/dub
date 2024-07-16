@@ -1,3 +1,5 @@
+// @ts-nocheck – old migration script
+
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 

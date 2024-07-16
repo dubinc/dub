@@ -59,7 +59,7 @@ export default function WorkspaceLinksClient() {
     <>
       <AddEditLinkModal />
       <AddEditTagModal />
-      <div className="mt-10 flex items-center pt-3">
+      <div className="mt-10 flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap">
             <h1 className="order-1 text-2xl font-semibold tracking-tight text-black">

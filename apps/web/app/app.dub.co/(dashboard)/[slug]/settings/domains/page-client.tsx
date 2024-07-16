@@ -27,7 +27,7 @@ export default function WorkspaceDomainsClient() {
   const archived = searchParams.get("archived");
   const search = searchParams.get("search");
 
-  const { allWorkspaceDomains, loading } = useDomains();
+  const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
   const { data: domainsCount } = useDomainsCount();
 
   return (
@@ -113,7 +113,11 @@ export default function WorkspaceDomainsClient() {
             </ul>
           )}
         </div>
-        <Pagination pageSize={50} totalCount={domainsCount || 0} />
+        <Pagination
+          pageSize={50}
+          totalCount={domainsCount || 0}
+          unit="domains"
+        />
       </div>
 
       <DefaultDomains />

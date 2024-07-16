@@ -21,9 +21,11 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
+import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import {
   DEFAULT_LINK_PROPS,
+  DUB_DOMAINS,
   cn,
   deepEqual,
   getApexDomain,
@@ -85,7 +87,7 @@ function AddEditLinkModal({
     aiUsage,
     aiLimit,
     mutate: mutateWorkspace,
-    betaTester,
+    flags,
   } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -501,15 +503,9 @@ function AddEditLinkModal({
                       />
                     )}
                   </div>
-                  {urlError ? (
-                    <p className="text-sm text-red-600" id="key-error">
-                      Invalid URL
-                    </p>
-                  ) : url ? (
-                    <div className="animate-text-appear text-xs font-normal text-gray-500">
-                      press <strong>Enter</strong> ↵ to submit
-                    </div>
-                  ) : null}
+                  <div className="animate-text-appear text-xs font-normal text-gray-500">
+                    press <strong>Enter</strong> ↵ to submit
+                  </div>
                 </div>
                 <div className="relative mt-2 flex rounded-md shadow-sm">
                   <input
@@ -544,6 +540,11 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
+                {urlError && (
+                  <p className="mt-2 text-sm text-red-600" id="key-error">
+                    {urlError}
+                  </p>
+                )}
               </div>
 
               {key !== "_root" && (
@@ -714,8 +715,8 @@ function AddEditLinkModal({
                       </Tooltip>
                     )}
                   </div>
-                  {keyError &&
-                    (keyError.includes("Upgrade to Pro") ? (
+                  {keyError ? (
+                    keyError.includes("Upgrade to Pro") ? (
                       <p className="mt-2 text-sm text-red-600" id="key-error">
                         {keyError.split("Upgrade to Pro")[0]}
                         <span
@@ -732,7 +733,10 @@ function AddEditLinkModal({
                       <p className="mt-2 text-sm text-red-600" id="key-error">
                         {keyError}
                       </p>
-                    ))}
+                    )
+                  ) : (
+                    <DefaultDomainPrompt data={data} setData={setData} />
+                  )}
                 </div>
               )}
             </div>
@@ -754,7 +758,9 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 md:px-16">
               <TagsSection {...{ props, data, setData }} />
-              {betaTester && <ConversionSection {...{ data, setData }} />}
+              {flags?.conversions && (
+                <ConversionSection {...{ data, setData }} />
+              )}
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
@@ -799,6 +805,32 @@ function AddEditLinkModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function DefaultDomainPrompt({
+  data,
+  setData,
+}: {
+  data: LinkWithTagsProps;
+  setData: Dispatch<SetStateAction<LinkWithTagsProps>>;
+}) {
+  const apexDomain = getApexDomain(data.url);
+  const hostnameFor = DUB_DOMAINS.find((domain) =>
+    domain?.allowedHostnames?.includes(apexDomain),
+  );
+  const domain = hostnameFor?.slug;
+
+  if (!domain || data.domain === domain) return null;
+
+  return (
+    <button
+      className="flex items-center gap-1 p-2 text-sm text-gray-500 transition-all duration-75 hover:text-gray-700 active:scale-[0.98]"
+      onClick={() => setData({ ...data, domain })}
+    >
+      <ArrowTurnRight2 className="h-4 w-4" />
+      <p>Use the {domain} domain instead?</p>
+    </button>
   );
 }
 

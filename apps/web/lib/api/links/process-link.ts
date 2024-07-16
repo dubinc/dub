@@ -1,5 +1,5 @@
 import {
-  isBetaTester,
+  getFeatureFlags,
   isBlacklistedDomain,
   updateConfig,
 } from "@/lib/edge-config";
@@ -175,8 +175,8 @@ export async function processLink<T extends Record<string, any>>({
     if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
       return {
         link: payload,
-        error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
-          .map((d) => `\`${d}\``)
+        error: `Invalid URL. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+          .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
       };
@@ -218,8 +218,10 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (trackConversion) {
-    if (!workspace || !(await isBetaTester(workspace.id))) {
+  if (trackConversion && workspace) {
+    const flags = await getFeatureFlags(workspace?.id);
+
+    if (!flags.conversions) {
       return {
         link: payload,
         error: "Conversion tracking is only available for beta testers.",
