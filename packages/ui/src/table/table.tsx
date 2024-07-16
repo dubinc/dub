@@ -248,7 +248,7 @@ export function Table<T>({
     <TableContext.Provider value={{ variant: variant ?? "default" }}>
       <div className={tableWrapperVariants({ variant })}>
         {(!error && !!data?.length) || loading ? (
-          <div className="min-h-[400px] overflow-hidden rounded-[inherit]">
+          <div className="min-h-[400px] rounded-[inherit]">
             <table
               className={cn(tableVariants({ variant }), className)}
               style={columnSizeVars}
