@@ -30,7 +30,7 @@ export default function Analytics({
         {({ basePath }) => {
           const isPublicStatsPage = basePath.startsWith("/stats");
           return (
-            <div className="bg-gray-50 py-10">
+            <div className="py-10">
               <Toggle />
               <div className="mx-auto grid max-w-screen-xl gap-5 px-2.5 lg:px-20">
                 <Main />
