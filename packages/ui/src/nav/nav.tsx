@@ -64,6 +64,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
 
   const scrolled = useScroll(80);
+  const scrolledHalf = useScroll(40);
   const selectedLayout = useSelectedLayoutSegment();
   const { data: session, isLoading } = useSWR(
     domain === "dub.co" && "/api/auth/session",
@@ -81,9 +82,15 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
           theme === "dark" && "dark",
         )}
       >
+        {/* Mobile background */}
         <div
           className={cn(
-            "-z-1 absolute inset-0 border-transparent transition-all",
+            "absolute inset-0 block transition-all lg:hidden",
+            scrolledHalf &&
+              (selectedLayout &&
+              HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout)
+                ? "bg-white dark:bg-black"
+                : "bg-white/75 backdrop-blur-md dark:bg-black/75"),
           )}
         />
         <MaxWidthWrapper className="relative">
@@ -107,6 +114,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
               className="relative hidden lg:block"
             >
               <NavigationMenuPrimitive.List className="relative flex flex-row gap-2 px-2 py-0.5">
+                {/* Desktop background */}
                 <div className="absolute inset-0 -z-[1]">
                   <div
                     className={cn(
