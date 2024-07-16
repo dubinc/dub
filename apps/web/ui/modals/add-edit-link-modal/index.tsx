@@ -165,6 +165,25 @@ function AddEditLinkModal({
     }
   };
 
+  const runDestinationUrlChecks = async (value: string) => {
+    const res = await fetch(
+      `/api/links/verify/destination-url?domain=${domain}&url=${value}`,
+    );
+    const { error } = await res.json();
+    if (error) {
+      setUrlError(error.message);
+    } else {
+      setUrlError(null);
+    }
+  };
+
+  useEffect(() => {
+    // Run destination URL checks when domain changes, for e.g., when domain is switched.
+    if (showAddEditLinkModal && url.length > 0 && domain) {
+      runDestinationUrlChecks(url);
+    }
+  }, [domain, showAddEditLinkModal, url]);
+
   const [generatedKeys, setGeneratedKeys] = useState<string[]>(
     props ? [props.key] : [],
   );
@@ -505,7 +524,7 @@ function AddEditLinkModal({
                   </div>
                   {urlError ? (
                     <p className="text-sm text-red-600" id="key-error">
-                      Invalid URL
+                      {urlError || "Invalid URL"}
                     </p>
                   ) : url ? (
                     <div className="animate-text-appear text-xs font-normal text-gray-500">
@@ -529,6 +548,9 @@ function AddEditLinkModal({
                     onChange={(e) => {
                       setUrlError(null);
                       setData({ ...data, url: e.target.value });
+                    }}
+                    onBlur={(e) => {
+                      e.target.value && runDestinationUrlChecks(e.target.value);
                     }}
                     className={`${
                       urlError
