@@ -21,9 +21,11 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
+import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import {
   DEFAULT_LINK_PROPS,
+  DUB_DOMAINS,
   cn,
   deepEqual,
   getApexDomain,
@@ -714,8 +716,8 @@ function AddEditLinkModal({
                       </Tooltip>
                     )}
                   </div>
-                  {keyError &&
-                    (keyError.includes("Upgrade to Pro") ? (
+                  {keyError ? (
+                    keyError.includes("Upgrade to Pro") ? (
                       <p className="mt-2 text-sm text-red-600" id="key-error">
                         {keyError.split("Upgrade to Pro")[0]}
                         <span
@@ -732,7 +734,10 @@ function AddEditLinkModal({
                       <p className="mt-2 text-sm text-red-600" id="key-error">
                         {keyError}
                       </p>
-                    ))}
+                    )
+                  ) : (
+                    <DefaultDomainPrompt data={data} setData={setData} />
+                  )}
                 </div>
               )}
             </div>
@@ -801,6 +806,32 @@ function AddEditLinkModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function DefaultDomainPrompt({
+  data,
+  setData,
+}: {
+  data: LinkWithTagsProps;
+  setData: Dispatch<SetStateAction<LinkWithTagsProps>>;
+}) {
+  const apexDomain = getApexDomain(data.url);
+  const hostnameFor = DUB_DOMAINS.find((domain) =>
+    domain?.allowedHostnames?.includes(apexDomain),
+  );
+  const domain = hostnameFor?.slug;
+
+  if (!domain || data.domain === domain) return null;
+
+  return (
+    <button
+      className="flex items-center gap-1 p-2 text-sm text-gray-500 transition-all duration-75 hover:text-gray-700 active:scale-[0.98]"
+      onClick={() => setData({ ...data, domain })}
+    >
+      <ArrowTurnRight2 className="h-4 w-4" />
+      <p>Use the {domain} domain instead?</p>
+    </button>
   );
 }
 
