@@ -59,10 +59,18 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               <div className="min-w-0 text-gray-950">
                 <UnverifiedTooltip link={link}>
                   <span
-                    className="block truncate font-medium"
+                    className="flex items-center truncate font-medium"
                     title={`${domain}${path}`}
                   >
                     {domain + path}
+
+                    <div className="transition-all group-hover/row:translate-x-0 group-hover:opacity-100 sm:-translate-x-1 sm:opacity-0">
+                      <CopyButton
+                        value={domain + path}
+                        variant="neutral"
+                        className="ml-1 translate-y-px p-0.5"
+                      />
+                    </div>
                   </span>
                 </UnverifiedTooltip>
               </div>
