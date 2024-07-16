@@ -33,7 +33,7 @@ export default function LoginPage() {
             </>
           }
         >
-          <SignInWithEmailPassword csrfToken="" />
+          <SignInWithEmailPassword />
           <div className="border-t border-gray-300" />
           <LoginForm />
         </Suspense>

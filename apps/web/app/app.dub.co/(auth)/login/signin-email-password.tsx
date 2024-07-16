@@ -8,18 +8,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-interface SignInWithEmailPasswordProps {
-  csrfToken: string;
-}
-
 const errorCodes = {
   "no-credentials": "Please provide an email and password.",
   "invalid-credentials": "Email or password is incorrect.",
 };
 
-export const SignInWithEmailPassword = ({
-  csrfToken,
-}: SignInWithEmailPasswordProps) => {
+export const SignInWithEmailPassword = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -35,7 +29,6 @@ export const SignInWithEmailPassword = ({
     try {
       const response = await signIn("credentials", {
         ...data,
-        csrfToken,
         redirect: false,
         callbackUrl: searchParams.get("next") || "/",
       });
