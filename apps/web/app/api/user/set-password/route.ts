@@ -1,12 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { PASSWORD_RESET_TOKEN_EXPIRY } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
 import ResetPasswordLink from "emails/reset-password-link";
 import { NextResponse } from "next/server";
-
-const PASSWORD_RESET_TOKEN_EXPIRY = 6 * 60 * 60 * 1000; // 6 hours
 
 // POST /api/user/set-password - set account password (for users who signed up with a OAuth provider)
 export const POST = withSession(async ({ session }) => {
@@ -33,7 +32,7 @@ export const POST = withSession(async ({ session }) => {
     data: {
       identifier: session.user.email,
       token: randomBytes(32).toString("hex"),
-      expires: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRY),
+      expires: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRY * 1000),
     },
   });
 

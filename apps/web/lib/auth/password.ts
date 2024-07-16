@@ -13,3 +13,5 @@ export async function validatePassword({
 }) {
   return await compare(password, passwordHash);
 }
+
+export const PASSWORD_RESET_TOKEN_EXPIRY = 1 * 60 * 60; // 1 hour
