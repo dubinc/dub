@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     // Send the email to inform the user that their password has been updated
     await sendEmail({
-      subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Your password has been reset`,
+      subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been reset`,
       email: identifier,
       react: PasswordUpdated({
         email: identifier,

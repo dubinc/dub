@@ -21,7 +21,7 @@ export default function PasswordUpdated({
   return (
     <Html>
       <Head />
-      <Preview>Your Dub.co Login Link</Preview>
+      <Preview>Your password has been reset</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -34,17 +34,15 @@ export default function PasswordUpdated({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Your Login Link
+              Password has been reset
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Welcome to Dub.co!
+              The password for your Dub account has been successfully reset.
             </Text>
             <Text className="text-sm leading-6 text-black">
-              Please click the magic link below to sign in to your account.
-            </Text>
-            <Section className="my-8 text-center"></Section>
-            <Text className="text-sm leading-6 text-black">
-              or copy and paste this URL into your browser:
+              If you did not make this change or you believe an unauthorised
+              person has accessed your account, please contact us immediately to
+              secure your account.
             </Text>
             <Footer email={email} />
           </Container>
