@@ -23,6 +23,8 @@ export const sendEmail = async ({
   react?: ReactElement<any, string | JSXElementConstructor<any>>;
   marketing?: boolean;
 }) => {
+  return true
+
   if (process.env.NODE_ENV === "development" && !client) {
     // Set up a fake email client for development
     console.info(

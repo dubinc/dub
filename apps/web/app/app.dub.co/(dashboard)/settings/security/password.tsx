@@ -52,36 +52,4 @@ export const SetPassword = () => {
       </div>
     </div>
   );
-
-  // return (
-  //   <Form
-  //     title="Password"
-  //     description="Manage your account password."
-  //     inputAttrs={{
-  //       name: "password",
-  //       defaultValue:
-  //         status === "loading" ? undefined : session?.user?.name || "",
-  //       placeholder: "Steve Jobs",
-  //       maxLength: 32,
-  //     }}
-  //     helpText="Max 32 characters."
-  //     handleSubmit={(data) =>
-  //       fetch("/api/user", {
-  //         method: "PATCH",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(data),
-  //       }).then(async (res) => {
-  //         if (res.status === 200) {
-  //           update();
-  //           toast.success("Successfully updated your name!");
-  //         } else {
-  //           const { error } = await res.json();
-  //           toast.error(error.message);
-  //         }
-  //       })
-  //     }
-  //   />
-  // );
 };

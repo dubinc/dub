@@ -10,7 +10,7 @@ const PASSWORD_RESET_TOKEN_EXPIRY = 6 * 60 * 60 * 1000; // 6 hours
 
 // POST /api/user/set-password - set account password (for users who signed up with a OAuth provider)
 export const POST = withSession(async ({ session }) => {
-  const user = await prisma.user.findFirstOrThrow({
+  const user = await prisma.user.findFirst({
     where: {
       id: session.user.id,
       isMachine: false,
@@ -24,7 +24,8 @@ export const POST = withSession(async ({ session }) => {
   if (!user) {
     throw new DubApiError({
       code: "bad_request",
-      message: "User already has a password. Request a password reset instead.",
+      message:
+        "You already have a password set. You can change it in your account settings.",
     });
   }
 
@@ -48,5 +49,5 @@ export const POST = withSession(async ({ session }) => {
     }),
   });
 
-  return NextResponse.json({});
+  return NextResponse.json({ ok: true });
 });
