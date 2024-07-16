@@ -6,10 +6,10 @@ export async function hashPassword(password: string) {
 
 export async function validatePassword({
   password,
-  hashedPassword,
+  passwordHash,
 }: {
   password: string;
-  hashedPassword: string;
+  passwordHash: string;
 }) {
-  return await compare(password, hashedPassword);
+  return await compare(password, passwordHash);
 }

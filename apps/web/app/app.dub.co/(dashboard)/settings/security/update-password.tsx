@@ -1,69 +1,128 @@
 "use client";
 
-import useUser from "@/lib/swr/use-user";
-import { Form } from "@dub/ui";
-import { useState } from "react";
+import z from "@/lib/zod";
+import { updatePasswordSchema } from "@/lib/zod/schemas/password";
+import { Button } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 // Allow the user to update their existing password
 export const UpdatePassword = () => {
-  const { user, loading } = useUser();
-  const [sending, setSending] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { isLoading, disabled, errors },
+  } = useForm<z.infer<typeof updatePasswordSchema>>({
+    resolver: zodResolver(updatePasswordSchema),
+  });
 
-  // Send an email to the user with instructions to set their password
-  const sendPasswordSetRequest = async () => {
+  const onSubmit = handleSubmit(async (data) => {
     try {
-      setSending(true);
-
-      const response = await fetch("/api/user/set-password", {
-        method: "POST",
+      const response = await fetch("/api/user/password", {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      if (response.ok) {
-        toast.success(
-          `We've sent you an email to ${user?.email} with instructions to set your password`,
-        );
-        return;
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error.message);
       }
 
-      const { error } = await response.json();
-      throw new Error(error.message);
+      toast.success("Your password has been updated.");
     } catch (error) {
       toast.error(error.message);
-    } finally {
-      setSending(false);
     }
-  };
+  });
 
   return (
-    <Form
-      title="Password"
-      description="Manage your account password."
-      inputAttrs={{
-        name: "name",
-        // defaultValue:
-        //   status === "loading" ? undefined : session?.user?.name || "",
-        placeholder: "Steve Jobs",
-        maxLength: 32,
-      }}
-      helpText="Password must be at least 8 characters long containing at least one number, one uppercase letter, and one lowercase letter."
-      handleSubmit={(data) =>
-        fetch("/api/user", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }).then(async (res) => {
-          if (res.status === 200) {
-            // update();
-            toast.success("Successfully updated your name!");
-          } else {
-            const { error } = await res.json();
-            toast.error(error.message);
-          }
-        })
-      }
-    />
+    <form
+      className="rounded-lg border border-gray-200 bg-white"
+      onSubmit={onSubmit}
+    >
+      <div className="flex flex-col space-y-3 p-5 sm:p-10">
+        <h2 className="text-xl font-medium">Password</h2>
+        <p className="pb-2 text-sm text-gray-500">
+          Manage your account password on {process.env.NEXT_PUBLIC_APP_NAME}.
+        </p>
+        <div className="flex flex-wrap justify-between space-y-4 sm:space-x-4 sm:space-y-0">
+          <div className="min-w-[200px] flex-1">
+            <label
+              htmlFor="currentPassword"
+              className="mb-2 block text-sm font-medium text-gray-500"
+            >
+              Current Password
+            </label>
+            <input
+              type="password"
+              placeholder="********"
+              {...register("currentPassword")}
+              required
+              aria-invalid={errors.currentPassword ? "true" : "false"}
+              className={cn(
+                "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                errors.currentPassword && "border-red-500",
+              )}
+            />
+            {errors.currentPassword && (
+              <span
+                className="mt-2 block text-sm text-red-500"
+                role="alert"
+                aria-live="assertive"
+              >
+                {errors.currentPassword.message}
+              </span>
+            )}
+          </div>
+
+          <div className="min-w-[200px] flex-1">
+            <label
+              htmlFor="newPassword"
+              className="mb-2 block text-sm font-medium text-gray-500"
+            >
+              New Password
+            </label>
+            <input
+              type="password"
+              placeholder="********"
+              {...register("newPassword")}
+              required
+              className={cn(
+                "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                errors.newPassword && "border-red-500",
+              )}
+            />
+            {errors.newPassword && (
+              <span
+                className="mt-2 block text-sm text-red-500"
+                role="alert"
+                aria-live="assertive"
+              >
+                {errors.newPassword.message}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
+        <p className="text-sm text-gray-500">
+          Passwords must be at least 8 characters long containing at least one
+          number, one uppercase, and one lowercase letter.
+        </p>
+        <div className="shrink-0">
+          <Button
+            text="Update Password"
+            loading={isLoading}
+            disabled={disabled}
+            type="submit"
+          />
+        </div>
+      </div>
+    </form>
   );
 };

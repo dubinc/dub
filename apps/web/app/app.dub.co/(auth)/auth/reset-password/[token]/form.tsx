@@ -31,16 +31,15 @@ export const ResetPasswordForm = () => {
         },
       });
 
-      if (response.ok) {
-        toast.success(
-          "Your password has been reset. You can now log in with your new password.",
-        );
-        router.replace("/login");
-        return;
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error.message);
       }
 
-      const { error } = await response.json();
-      throw new Error(error.message);
+      toast.success(
+        "Your password has been reset. You can now log in with your new password.",
+      );
+      router.replace("/login");
     } catch (error) {
       toast.error(error.message);
     }
