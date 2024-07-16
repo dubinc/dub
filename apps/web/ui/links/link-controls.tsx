@@ -70,7 +70,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   });
 
   return (
-    <div className="flex justify-end sm:w-[124px]">
+    <div className="flex justify-end">
       <div
         className={cn(
           "flex items-center justify-end divide-x divide-gray-200 overflow-hidden rounded-md border border-gray-200",
