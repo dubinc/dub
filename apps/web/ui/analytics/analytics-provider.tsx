@@ -72,7 +72,7 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, betaTester } = useWorkspace();
+  const { id: workspaceId, slug, flags } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
@@ -106,7 +106,7 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const selectedTab: EventType = useMemo(() => {
-    if (!demoPage && !betaTester) return "clicks";
+    if (!demoPage && !flags?.conversions) return "clicks";
 
     const tab = searchParams.get("tab");
 
@@ -188,7 +188,7 @@ export default function AnalyticsProvider({
     [key in CompositeAnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demoPage || betaTester ? "composite" : "clicks",
+      event: demoPage || flags?.conversions ? "composite" : "clicks",
     })}`,
     fetcher,
     {
