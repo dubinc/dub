@@ -8,6 +8,7 @@ import { Logo, Switch } from "@dub/ui";
 import {
   Amazon,
   ChatGPT,
+  Figma,
   GitHubEnhanced,
   GoogleEnhanced,
   Spotify,
@@ -29,6 +30,8 @@ function DubDomainsIcon(domain: string) {
       return Amazon;
     case "ggl.link":
       return GoogleEnhanced;
+    case "fig.page":
+      return Figma;
     default:
       return Logo;
   }

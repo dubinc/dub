@@ -68,26 +68,39 @@ export const DUB_DOMAINS = [
             "Branded domain for Amazon links (products, wishlists, etc.).",
           projectId: DUB_WORKSPACE_ID,
         },
+        // {
+        //   id: "clymd6zkc0001elilr1215tj9",
+        //   slug: "ggl.link",
+        //   verified: true,
+        //   primary: false,
+        //   archived: false,
+        //   placeholder:
+        //     "https://docs.google.com/document/d/15-GOZA12SXGEh8lNwU5QI1jBi04TCPgY2-LChTbXVpA",
+        //   allowedHostnames: [
+        //     "google.com",
+        //     "google.co.uk",
+        //     "google.ca",
+        //     "google.es",
+        //     "google.fr",
+        //     "docs.google.com",
+        //     "drive.google.com",
+        //     "maps.google.com",
+        //   ],
+        //   description:
+        //     "Branded domain for Google links (Search, Docs, Sheets, Slides, Drive, Maps, etc.).",
+        //   projectId: DUB_WORKSPACE_ID,
+        // },
         {
-          id: "cloxw8qtk000bjt08n9b812vs",
-          slug: "ggl.link",
+          id: "clymczttm0001jgkore3ltr37",
+          slug: "fig.page",
           verified: true,
           primary: false,
           archived: false,
           placeholder:
-            "https://docs.google.com/document/d/15-GOZA12SXGEh8lNwU5QI1jBi04TCPgY2-LChTbXVpA",
-          allowedHostnames: [
-            "google.com",
-            "google.co.uk",
-            "google.ca",
-            "google.es",
-            "google.fr",
-            "docs.google.com",
-            "drive.google.com",
-            "maps.google.com",
-          ],
+            "https://www.figma.com/design/YAfTk6SGV2HcSvL2415oED/Dub.co-Brand-Assets-(Public)?node-id=1-36593&t=QMKQNtUzxSSzG3hX-1",
+          allowedHostnames: ["figma.com"],
           description:
-            "Branded domain for Google links (Search, Docs, Sheets, Slides, Drive, Maps, etc.).",
+            "Branded domain for Figma links (portfolios, projects, files, etc.).",
           projectId: DUB_WORKSPACE_ID,
         },
         {
