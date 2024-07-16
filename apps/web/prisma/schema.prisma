@@ -9,7 +9,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch", "fullTextIndex", "driverAdapters"]
+  previewFeatures = ["fullTextSearch", "fullTextIndex", "driverAdapters", "omitApi"]
 }
 
 model User {
