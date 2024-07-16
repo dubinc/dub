@@ -76,7 +76,7 @@ const tableCellVariants = cva(
     variants: {
       variant: {
         default: "border-r border-b", // Right and left borders, removed from outer columns above
-        "compact-list": "border-b bg-white", // Bottom border, with other sides added above
+        "compact-list": "border-b", // Bottom border, with other sides added above
         "loose-list": "border-y bg-white", // Top and bottom borders, with other sides added above
       },
     },

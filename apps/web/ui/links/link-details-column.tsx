@@ -1,6 +1,6 @@
 import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Crosshairs, useIntersectionObserver } from "@dub/ui";
+import { Crosshairs, Tooltip, useIntersectionObserver } from "@dub/ui";
 import { CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
 import { fetcher, nFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -19,7 +19,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   const isVisible = !!entry?.isIntersecting;
 
   const { id: workspaceId, slug, exceededClicks } = useWorkspace();
-  const { primaryTags, additionalTags } = useOrganizedTags(tags);
+  const { primaryTag, additionalTags } = useOrganizedTags(tags);
 
   const { data: totalEvents } = useSWR<{
     [key in CompositeAnalyticsResponseOptions]?: number;
@@ -42,11 +42,22 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
 
   return (
     <div ref={ref} className="flex items-center justify-end gap-5">
-      <div className="flex items-center gap-2">
-        {primaryTags.map((tag) => (
-          <TagBadge key={tag.id} {...tag} />
-        ))}
-      </div>
+      {primaryTag && (
+        <Tooltip
+          content={
+            <div className="flex flex-wrap gap-1.5 p-3">
+              {tags.map((tag) => (
+                <TagBadge key={tag.id} {...tag} />
+              ))}
+            </div>
+          }
+          side="bottom"
+        >
+          <div className="cursor-default transition-transform hover:scale-105">
+            <TagBadge withIcon {...primaryTag} plus={additionalTags.length} />
+          </div>
+        </Tooltip>
+      )}
       <Link
         href={`/${slug}/analytics?domain=${domain}&key=${key}`}
         className="flex items-center gap-3 rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-950 transition-colors hover:bg-gray-200"
@@ -66,9 +77,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
           </div>
         ))}
       </Link>
-      <div className="ml-2">
-        <LinkControls link={link} />
-      </div>
+      <LinkControls link={link} />
     </div>
   );
 }
@@ -76,9 +85,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
 function useOrganizedTags(tags: ResponseLink["tags"]) {
   const searchParams = useSearchParams();
 
-  const [primaryTags, additionalTags] = useMemo(() => {
-    const primaryTagsCount = 1;
-
+  const [primaryTag, additionalTags] = useMemo(() => {
     const filteredTagIds =
       searchParams?.get("tagIds")?.split(",")?.filter(Boolean) ?? [];
 
@@ -94,11 +101,8 @@ function useOrganizedTags(tags: ResponseLink["tags"]) {
           )
         : tags;
 
-    return [
-      sortedTags.filter((_, idx) => idx < primaryTagsCount),
-      sortedTags.filter((_, idx) => idx >= primaryTagsCount),
-    ];
+    return [sortedTags?.[0], sortedTags.slice(1)];
   }, [tags, searchParams]);
 
-  return { primaryTags, additionalTags };
+  return { primaryTag, additionalTags };
 }

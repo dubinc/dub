@@ -6,17 +6,19 @@ export default function TagBadge({
   name,
   color,
   withIcon,
+  plus,
 }: {
   name: string;
   color: TagColorProps;
   withIcon?: boolean;
+  plus?: number;
 }) {
   return (
     <span
       className={cn(
         "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
-        withIcon &&
-          "flex items-center space-x-1.5 rounded-full p-1.5 sm:rounded-md sm:px-2 sm:py-0.5",
+        (withIcon || plus) &&
+          "flex items-center gap-x-1.5 rounded-full p-1.5 sm:rounded-md sm:px-2 sm:py-0.5",
         color === "red" && "bg-red-100 text-red-600",
         color === "yellow" && "bg-yellow-100 text-yellow-600",
         color === "green" && "bg-green-100 text-green-600",
@@ -29,6 +31,11 @@ export default function TagBadge({
       <p {...(withIcon && { className: "hidden sm:inline-block" })}>
         {truncate(name || "", 24)}
       </p>
+      {plus && (
+        <span>
+          <span className="pl-1 pr-2.5 opacity-30">|</span>+{plus}
+        </span>
+      )}
     </span>
   );
 }
