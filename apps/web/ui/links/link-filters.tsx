@@ -107,7 +107,7 @@ export const InputSearchBox = () => {
   return (
     <SearchBoxPersisted
       loading={isValidating}
-      inputClassName="text-base sm:text-sm"
+      inputClassName="text-base sm:text-sm h-10"
     />
   );
 };
