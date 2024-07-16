@@ -7,21 +7,19 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef } from "react";
 import useSWR from "swr";
+import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
 import TagBadge from "./tag-badge";
 
-export function LinkDetailsColumn({
-  link: { id, domain, key, tags, trackConversion, ...link },
-}: {
-  link: ResponseLink;
-}) {
-  const { primaryTags, additionalTags } = useOrganizedTags(tags);
-
-  const { id: workspaceId, slug, exceededClicks } = useWorkspace();
+export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
+  const { id, domain, key, tags, trackConversion } = link;
 
   const ref = useRef<HTMLDivElement>(null);
   const entry = useIntersectionObserver(ref, {});
   const isVisible = !!entry?.isIntersecting;
+
+  const { id: workspaceId, slug, exceededClicks } = useWorkspace();
+  const { primaryTags, additionalTags } = useOrganizedTags(tags);
 
   const { data: totalEvents } = useSWR<{
     [key in CompositeAnalyticsResponseOptions]?: number;
@@ -68,6 +66,9 @@ export function LinkDetailsColumn({
           </div>
         ))}
       </Link>
+      <div className="ml-2">
+        <LinkControls link={link} />
+      </div>
     </div>
   );
 }

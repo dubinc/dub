@@ -70,7 +70,6 @@ function LinksList({
           <LinkTitleColumn link={getValue() as ResponseLink} />
         ),
         enableHiding: false,
-        size: 150,
       },
       {
         id: "details",
@@ -78,7 +77,6 @@ function LinksList({
         cell: ({ getValue }) => (
           <LinkDetailsColumn link={getValue() as ResponseLink} />
         ),
-        size: 50,
       },
     ],
     [],

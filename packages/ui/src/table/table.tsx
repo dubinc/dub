@@ -83,7 +83,7 @@ const tableCellVariants = cva(
   },
 );
 
-const tableRowVariants = cva("", {
+const tableRowVariants = cva("group/row", {
   variants: {
     variant: {
       ...variantDefaults,
