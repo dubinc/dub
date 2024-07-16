@@ -15,7 +15,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { LinkDetailsColumn } from "./link-details-column";
+import LinkNotFound from "./link-not-found";
 import { LinkTitleColumn } from "./link-title-column";
+import NoLinksPlaceholder from "./no-links-placeholder";
 
 export const linkViewModes = ["cards", "rows"] as const;
 export type LinksViewMode = (typeof linkViewModes)[number];
@@ -63,6 +65,14 @@ function LinksList({
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams?.get("page") || "1") || 1;
+
+  const isFiltered = [
+    "domain",
+    "tagId",
+    "userId",
+    "search",
+    "showArchived",
+  ].some((param) => searchParams.has(param));
 
   const { isMobile } = useMediaQuery();
 
@@ -118,5 +128,11 @@ function LinksList({
     resourceName: (plural) => `link${plural ? "s" : ""}`,
   });
 
-  return <Table table={table} {...tableProps} />;
+  return links === undefined || links.length ? (
+    <Table table={table} {...tableProps} />
+  ) : isFiltered ? (
+    <LinkNotFound />
+  ) : (
+    <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
+  );
 }

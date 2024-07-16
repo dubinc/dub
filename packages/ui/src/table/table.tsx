@@ -374,10 +374,12 @@ export function Table<T>({
           </div>
         ) : (
           <div className="flex h-96 w-full items-center justify-center text-sm text-gray-500">
-            {error || emptyState || "Failed to load data."}
+            {error ||
+              emptyState ||
+              `No ${resourceName?.(true) || "items"} found.`}
           </div>
         )}
-        {pagination && !error && (!loading || !!data?.length) && (
+        {pagination && !error && !!data?.length && (
           <div className={tablePaginationVariants({ variant })}>
             <div>
               <span className="hidden sm:inline-block">Viewing</span>{" "}

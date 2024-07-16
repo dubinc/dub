@@ -1,13 +1,14 @@
 "use client";
 
+import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LinkDisplay from "@/ui/links/link-display";
-import { InputSearchBox } from "@/ui/links/link-filters";
 import LinksContainer, { linkViewModes } from "@/ui/links/links-container";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { ThreeDots } from "@/ui/shared/icons";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
@@ -46,6 +47,8 @@ export default function WorkspaceLinksClient() {
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     useLinkFilters();
 
+  const { isValidating } = useLinks();
+
   return (
     <>
       <AddEditLinkModal />
@@ -57,7 +60,10 @@ export default function WorkspaceLinksClient() {
             </h1>
             <div className="order-4 flex grow flex-wrap justify-end gap-2 md:order-2">
               <div className="w-full md:w-72">
-                <InputSearchBox />
+                <SearchBoxPersisted
+                  loading={isValidating}
+                  inputClassName="h-10"
+                />
               </div>
               <div className="grow basis-0 md:grow-0">
                 <Filter.Select
