@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { PASSWORD_RESET_TOKEN_EXPIRY } from "@/lib/auth/password";
+import { PASSWORD_RESET_TOKEN_EXPIRY } from "@/lib/auth/constants";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";

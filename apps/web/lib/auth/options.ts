@@ -17,6 +17,11 @@ import { dub } from "../dub";
 import { subscribe } from "../flodesk";
 import { isStored, storage } from "../storage";
 import { UserProps } from "../types";
+import {
+  exceededLoginAttemptsThreshold,
+  incrementLoginAttempts,
+  resetLoginAttempts,
+} from "./lock-account";
 import { validatePassword } from "./password";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
@@ -195,11 +200,16 @@ export const authOptions: NextAuthOptions = {
             name: true,
             email: true,
             image: true,
+            invalidLoginAttempts: true,
           },
         });
 
         if (!user || !user.passwordHash) {
           throw new Error("invalid-credentials");
+        }
+
+        if (exceededLoginAttemptsThreshold(user)) {
+          throw new Error("exceeded-login-attempts");
         }
 
         const passwordMatch = await validatePassword({
@@ -208,8 +218,18 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!passwordMatch) {
-          throw new Error("invalid-credentials");
+          const exceededLoginAttempts = exceededLoginAttemptsThreshold(
+            await incrementLoginAttempts(user),
+          );
+
+          if (exceededLoginAttempts) {
+            throw new Error("exceeded-login-attempts");
+          } else {
+            throw new Error("invalid-credentials");
+          }
         }
+
+        await resetLoginAttempts(user.id);
 
         return {
           id: user.id,

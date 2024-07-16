@@ -13,13 +13,15 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  isMachine     Boolean   @default(false)
-  passwordHash  String?
+  id                   String    @id @default(cuid())
+  name                 String?
+  email                String?   @unique
+  emailVerified        DateTime?
+  image                String?
+  isMachine            Boolean   @default(false)
+  passwordHash         String?
+  invalidLoginAttempts Int       @default(0)
+  lockedUntil          DateTime?
 
   accounts         Account[]
   sessions         Session[]

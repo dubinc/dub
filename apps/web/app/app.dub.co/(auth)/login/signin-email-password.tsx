@@ -11,6 +11,8 @@ import { toast } from "sonner";
 const errorCodes = {
   "no-credentials": "Please provide an email and password.",
   "invalid-credentials": "Email or password is incorrect.",
+  "exceeded-login-attempts":
+    "Account has been locked due to too many login attempts. Please contact support to unlock your account.",
 };
 
 export const SignInWithEmailPassword = () => {
@@ -19,6 +21,7 @@ export const SignInWithEmailPassword = () => {
 
   const {
     register,
+    resetField,
     handleSubmit,
     formState: { isLoading, isSubmitting },
   } = useForm<z.infer<typeof signInSchema>>({
@@ -38,6 +41,7 @@ export const SignInWithEmailPassword = () => {
       }
 
       if (!response.ok && response.error) {
+        resetField("password");
         throw new Error(errorCodes[response.error]);
       }
 
