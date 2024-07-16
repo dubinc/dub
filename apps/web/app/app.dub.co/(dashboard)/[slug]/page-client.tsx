@@ -6,6 +6,7 @@ import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer, { linkViewModes } from "@/ui/links/links-container";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
+import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -21,7 +22,7 @@ import {
   useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
-import { CloudUpload, Download } from "@dub/ui/src/icons";
+import { CloudUpload, Download, Tag } from "@dub/ui/src/icons";
 import { Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -33,7 +34,12 @@ import {
 } from "react";
 
 export default function WorkspaceLinksClient() {
+  const router = useRouter();
+
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
+  const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
+
+  const { slug } = useWorkspace();
 
   const [viewMode, setViewMode] = useLocalStorage(
     "links-view-mode",
@@ -52,6 +58,7 @@ export default function WorkspaceLinksClient() {
   return (
     <>
       <AddEditLinkModal />
+      <AddEditTagModal />
       <div className="mt-10 flex items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap">
@@ -71,6 +78,50 @@ export default function WorkspaceLinksClient() {
                   onSelect={onSelect}
                   onRemove={onRemove}
                   className="w-full"
+                  emptyState={{
+                    tagId: (
+                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                        <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
+                          <Tag className="h-8 w-8 text-gray-700" />
+                        </div>
+                        <p className="mt-2 font-medium text-gray-950">
+                          No tags found
+                        </p>
+                        <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
+                          Add tags to organize your links
+                        </p>
+                        <div>
+                          <Button
+                            className="mt-1 h-8"
+                            onClick={() => setShowAddEditTagModal(true)}
+                            text="Add tag"
+                          />
+                        </div>
+                      </div>
+                    ),
+                    domain: (
+                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                        <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
+                          <Tag className="h-8 w-8 text-gray-700" />
+                        </div>
+                        <p className="mt-2 font-medium text-gray-950">
+                          No domains found
+                        </p>
+                        <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
+                          Add a custom domain to match your brand
+                        </p>
+                        <div>
+                          <Button
+                            className="mt-1 h-8"
+                            onClick={() =>
+                              router.push(`/${slug}/settings/domains`)
+                            }
+                            text="Add domain"
+                          />
+                        </div>
+                      </div>
+                    ),
+                  }}
                 />
               </div>
               <div className="grow basis-0 md:grow-0">

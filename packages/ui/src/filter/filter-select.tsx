@@ -29,6 +29,7 @@ type FilterSelectProps = {
   }[];
   askAI?: boolean;
   children?: ReactNode;
+  emptyState?: ReactNode | Record<string, ReactNode>;
   className?: string;
 };
 
@@ -40,6 +41,7 @@ export function FilterSelect({
   activeFilters,
   askAI,
   children,
+  emptyState,
   className,
 }: FilterSelectProps) {
   const { isMobile } = useMediaQuery();
@@ -200,7 +202,14 @@ export function FilterSelect({
 
                 {/* Only render CommandEmpty if not loading */}
                 {(!selectedFilter || selectedFilter.options) && (
-                  <CommandEmpty search={search} askAI={askAI} />
+                  <CommandEmpty search={search} askAI={askAI}>
+                    {emptyState
+                      ? isEmptyStateObject(emptyState)
+                        ? emptyState?.[selectedFilterKey ?? "default"] ??
+                          "No matches"
+                        : emptyState
+                      : "No matches"}
+                  </CommandEmpty>
                 )}
               </Command.List>
             </FilterScroll>
@@ -234,6 +243,16 @@ export function FilterSelect({
         </div>
       </button>
     </Popover>
+  );
+}
+
+function isEmptyStateObject(
+  emptyState: ReactNode | Record<string, ReactNode>,
+): emptyState is Record<string, ReactNode> {
+  return (
+    typeof emptyState === "object" &&
+    emptyState !== null &&
+    !isValidElement(emptyState)
   );
 }
 
@@ -345,10 +364,11 @@ function FilterButton({
 const CommandEmpty = ({
   search,
   askAI,
-}: {
+  children,
+}: PropsWithChildren<{
   search: string;
   askAI?: boolean;
-}) => {
+}>) => {
   if (askAI && search) {
     return (
       <Command.Empty className="flex min-w-[180px] items-center space-x-2 rounded-md bg-gray-100 px-3 py-2">
@@ -361,7 +381,7 @@ const CommandEmpty = ({
   } else {
     return (
       <Command.Empty className="p-2 text-center text-sm text-gray-400">
-        No matches
+        {children}
       </Command.Empty>
     );
   }
