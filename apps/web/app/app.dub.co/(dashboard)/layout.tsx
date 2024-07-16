@@ -13,7 +13,7 @@ export const metadata = constructMetadata();
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <Providers>
-      <div className="min-h-screen w-full bg-white">
+      <div className="min-h-screen w-full bg-gray-50">
         <div className="sticky -top-16 z-20 border-b border-gray-200 bg-white">
           <MaxWidthWrapper>
             <MainNav />
