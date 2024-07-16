@@ -17,6 +17,7 @@ export const GET = withWorkspace(
         sptifi: true,
         gitnew: true,
         amznid: true,
+        figpage: true,
         loooooooong: true,
       },
     });

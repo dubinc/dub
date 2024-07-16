@@ -38,7 +38,7 @@ export function ProductContent({ domain }: ContentProps) {
       </div>
       <div className="border-l border-gray-200 p-5 dark:border-white/20">
         <Link
-          href={createHref("/blog/category/customers", domain)}
+          href={createHref("/customers", domain)}
           className={cn(
             contentHeadingClassName,
             "group mb-2 flex items-center transition-colors hover:text-black dark:hover:text-white",
