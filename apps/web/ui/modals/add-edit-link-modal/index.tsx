@@ -503,15 +503,9 @@ function AddEditLinkModal({
                       />
                     )}
                   </div>
-                  {urlError ? (
-                    <p className="text-sm text-red-600" id="key-error">
-                      Invalid URL
-                    </p>
-                  ) : url ? (
-                    <div className="animate-text-appear text-xs font-normal text-gray-500">
-                      press <strong>Enter</strong> ↵ to submit
-                    </div>
-                  ) : null}
+                  <div className="animate-text-appear text-xs font-normal text-gray-500">
+                    press <strong>Enter</strong> ↵ to submit
+                  </div>
                 </div>
                 <div className="relative mt-2 flex rounded-md shadow-sm">
                   <input
@@ -546,6 +540,11 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
+                {urlError && (
+                  <p className="mt-2 text-sm text-red-600" id="key-error">
+                    {urlError}
+                  </p>
+                )}
               </div>
 
               {key !== "_root" && (
