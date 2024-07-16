@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
