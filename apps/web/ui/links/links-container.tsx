@@ -3,7 +3,13 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
-import { MaxWidthWrapper, Table, useRouterStuff, useTable } from "@dub/ui";
+import {
+  MaxWidthWrapper,
+  Table,
+  useMediaQuery,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import { PAGINATION_LIMIT } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
@@ -61,6 +67,8 @@ function LinksList({
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams?.get("page") || "1") || 1;
 
+  const { isMobile } = useMediaQuery();
+
   const columns: ColumnDef<ResponseLink, any>[] = useMemo(
     () => [
       {
@@ -70,6 +78,7 @@ function LinksList({
           <LinkTitleColumn link={getValue() as ResponseLink} />
         ),
         enableHiding: false,
+        size: 10000,
       },
       {
         id: "details",
@@ -77,9 +86,10 @@ function LinksList({
         cell: ({ getValue }) => (
           <LinkDetailsColumn link={getValue() as ResponseLink} />
         ),
+        size: isMobile ? 80 : 400,
       },
     ],
-    [],
+    [isMobile],
   );
 
   const [pagination, setPagination] = useState({

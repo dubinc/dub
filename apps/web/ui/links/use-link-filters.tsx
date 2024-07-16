@@ -109,7 +109,7 @@ export function useLinkFilters() {
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
       ...(userId ? [{ key: "userId", value: userId }] : []),
       ...(showArchived
-        ? [{ key: "root", value: showArchived === "true" }]
+        ? [{ key: "showArchived", value: showArchived === "true" }]
         : []),
     ];
   }, [searchParamsObj]);

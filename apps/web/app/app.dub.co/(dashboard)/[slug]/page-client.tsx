@@ -1,8 +1,8 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import LinkDisplay from "@/ui/links/link-display";
 import { InputSearchBox } from "@/ui/links/link-filters";
-import LinkSort from "@/ui/links/link-sort";
 import LinksContainer from "@/ui/links/links-container";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
@@ -26,7 +26,6 @@ import {
   Dispatch,
   ReactNode,
   SetStateAction,
-  Suspense,
   useEffect,
   useState,
 } from "react";
@@ -42,24 +41,27 @@ export default function WorkspaceLinksClient() {
       <AddEditLinkModal />
       <div className="mt-10 flex items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold tracking-tight text-black">
+          <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap">
+            <h1 className="order-1 text-2xl font-semibold tracking-tight text-black">
               Links
             </h1>
-            <div className="flex space-x-2">
-              <div className="w-72 max-w-full">
+            <div className="order-4 flex grow flex-wrap justify-end gap-2 md:order-2">
+              <div className="w-full md:w-72">
                 <InputSearchBox />
               </div>
-              <Filter.Select
-                filters={filters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-              />
-              <div className="grow-0">
-                <Suspense>
-                  <LinkSort />
-                </Suspense>
+              <div className="grow basis-0 md:grow-0">
+                <Filter.Select
+                  filters={filters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  className="w-full"
+                />
               </div>
+              <div className="grow basis-0 md:grow-0">
+                <LinkDisplay />
+              </div>
+            </div>
+            <div className="order-3 flex gap-x-2">
               <div className="grow-0">
                 <AddEditLinkButton />
               </div>

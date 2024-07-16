@@ -71,15 +71,27 @@ const tableWrapperVariants = cva("relative sm:rounded-xl", {
 });
 
 const tableCellVariants = cva(
-  "px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap border-gray-200 transition-[background-color]",
+  "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-gray-200 transition-[background-color]",
   {
     variants: {
       variant: {
         default: "border-r border-b", // Right and left borders, removed from outer columns above
         "compact-list": "border-b", // Bottom border, with other sides added above
-        "loose-list": "border-y bg-white", // Top and bottom borders, with other sides added above
+        "loose-list": [
+          "border-y bg-white px-2", // Top and bottom borders, with other sides added above
+
+          // Outer cells have extra padding on the outside
+          "[&:first-child]:pl-4",
+          "[&:last-child]:pr-4",
+        ],
       },
     },
+    compoundVariants: [
+      {
+        variant: ["default", "compact-list"],
+        className: "px-4",
+      },
+    ],
   },
 );
 
@@ -100,7 +112,7 @@ const tablePaginationVariants = cva(
       variant: {
         ...variantDefaults,
         "loose-list":
-          "border rounded-xl [filter:drop-shadow(0_5px_8px_#222A351d)] bottom-4 w-[768px] max-w-full",
+          "border rounded-xl [filter:drop-shadow(0_5px_8px_#222A351d)] bottom-4 max-w-[768px] w-full",
       },
     },
     compoundVariants: [

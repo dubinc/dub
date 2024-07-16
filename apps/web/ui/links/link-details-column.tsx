@@ -1,8 +1,8 @@
 import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Crosshairs, Tooltip, useIntersectionObserver } from "@dub/ui";
-import { CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
-import { fetcher, nFormatter } from "@dub/utils";
+import { CursorRays, InvoiceDollar, LinesY } from "@dub/ui/src/icons";
+import { cn, fetcher, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef } from "react";
@@ -41,7 +41,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   );
 
   return (
-    <div ref={ref} className="flex items-center justify-end gap-5">
+    <div ref={ref} className="flex items-center justify-end gap-2 sm:gap-5">
       {primaryTag && (
         <Tooltip
           content={
@@ -60,22 +60,35 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
       )}
       <Link
         href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-        className="flex items-center gap-3 rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-950 transition-colors hover:bg-gray-200"
+        className="rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-950 transition-colors hover:bg-gray-200"
       >
-        {[
-          { id: "clicks", icon: CursorRays, value: totalEvents?.clicks },
-          ...(trackConversion
-            ? [
-                { id: "sales", icon: Crosshairs, value: totalEvents?.sales },
-                { id: "leads", icon: InvoiceDollar, value: totalEvents?.leads },
-              ]
-            : []),
-        ].map(({ id, icon: Icon, value }) => (
-          <div key={id} className="flex items-center gap-1">
-            <Icon className="h-4 w-4 text-gray-600" />
-            {nFormatter(totalEvents?.clicks)}
-          </div>
-        ))}
+        <LinesY className="my-0.5 block h-4 w-4 text-gray-600 sm:hidden" />
+        <div className="hidden items-center gap-3 sm:flex">
+          {[
+            { id: "clicks", icon: CursorRays, value: totalEvents?.clicks },
+            ...(trackConversion
+              ? [
+                  {
+                    id: "sales",
+                    icon: Crosshairs,
+                    value: totalEvents?.sales,
+                    className: "hidden sm:flex",
+                  },
+                  {
+                    id: "leads",
+                    icon: InvoiceDollar,
+                    value: totalEvents?.leads,
+                    className: "hidden sm:flex",
+                  },
+                ]
+              : []),
+          ].map(({ id, icon: Icon, value, className }) => (
+            <div key={id} className={cn("flex items-center gap-1", className)}>
+              <Icon className="h-4 w-4 shrink-0 text-gray-600" />
+              {nFormatter(value)}
+            </div>
+          ))}
+        </div>
       </Link>
       <LinkControls link={link} />
     </div>

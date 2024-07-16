@@ -32,7 +32,7 @@ export default function TagBadge({
         {truncate(name || "", 24)}
       </p>
       {plus && (
-        <span>
+        <span className="hidden sm:block">
           <span className="pl-1 pr-2.5 opacity-30">|</span>+{plus}
         </span>
       )}

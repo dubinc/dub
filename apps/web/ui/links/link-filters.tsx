@@ -104,12 +104,7 @@ const ClearButton = () => {
 export const InputSearchBox = () => {
   const { isValidating } = useLinks();
 
-  return (
-    <SearchBoxPersisted
-      loading={isValidating}
-      inputClassName="text-base sm:text-sm h-10"
-    />
-  );
+  return <SearchBoxPersisted loading={isValidating} inputClassName="h-10" />;
 };
 
 const DomainsFilter = () => {

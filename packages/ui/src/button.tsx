@@ -66,7 +66,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           >
             {icon}
             {text && (
-              <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>
+              <div className={cn(shortcut && "flex-1 text-left")}>{text}</div>
             )}
             {shortcut && (
               <kbd
@@ -100,7 +100,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? <LoadingSpinner /> : icon ? icon : null}
-        {text && <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>}
+        {text && (
+          <div className={cn(shortcut && "flex-1 text-left")}>{text}</div>
+        )}
         {shortcut && (
           <kbd
             className={cn(

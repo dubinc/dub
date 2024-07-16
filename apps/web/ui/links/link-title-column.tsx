@@ -42,7 +42,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
     >
       {isVisible && (
         <>
-          <div className="relative flex shrink-0 items-center justify-center">
+          <div className="relative hidden shrink-0 items-center justify-center sm:flex">
             {/* Link logo background circle */}
             <div className="absolute inset-0 shrink-0 rounded-full border border-gray-200 opacity-0 transition-opacity group-data-[variant=loose-list]/table:sm:opacity-100">
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-gray-100" />
@@ -56,7 +56,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
           </div>
           <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose-list]/table:h-[44px]">
             <div className="flex items-center gap-2">
-              <div className="text-gray-950">
+              <div className="min-w-0 text-gray-950">
                 <UnverifiedTooltip link={link}>
                   <span
                     className="block truncate font-medium"
@@ -114,9 +114,9 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
   return (
     <div
       className={cn(
-        "flex min-w-0 items-center gap-1.5 text-xs transition-opacity md:gap-3",
+        "flex min-w-0 items-center gap-1.5 text-xs transition-[opacity,width] delay-[0s,150ms] duration-[150ms,0s] md:gap-3",
         compact
-          ? "opacity-0 group-data-[variant=compact-list]/table:opacity-100"
+          ? "w-0 opacity-0 group-data-[variant=compact-list]/table:w-auto group-data-[variant=compact-list]/table:opacity-100"
           : "opacity-0 group-data-[variant=loose-list]/table:opacity-100",
       )}
     >

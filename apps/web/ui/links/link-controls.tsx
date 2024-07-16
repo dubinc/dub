@@ -79,8 +79,8 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       <div
         className={cn(
           "flex items-center justify-end divide-x divide-gray-200 overflow-hidden rounded-md border border-gray-200",
-          "sm:divide-transparent sm:border-transparent sm:group-hover/row:divide-gray-200 sm:group-hover/row:border-gray-200", // Only show divider on mobile or when hovered
-          "w-[43px] transition-[width] duration-300 sm:group-hover/row:w-[124px]",
+          "divide-transparent border-transparent sm:group-hover/row:divide-gray-200 sm:group-hover/row:border-gray-200", // Only show divider on mobile or when hovered
+          "w-[30px] transition-[width] duration-300 sm:w-[43px] sm:group-hover/row:w-[124px]",
         )}
       >
         {isVisible && (
