@@ -13,7 +13,7 @@ import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
@@ -68,6 +68,49 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       clicks: 0,
     },
   });
+
+  const onKeyDown = (e: any) => {
+    const key = e.key.toLowerCase();
+    // only run shortcut logic if:
+    // - the 3 dots menu is open
+    // - the key pressed is one of the shortcuts
+    if (openPopover && ["e", "d", "q", "a", "t", "i", "x"].includes(key)) {
+      e.preventDefault();
+      setOpenPopover(false);
+      switch (key) {
+        case "e":
+          setShowAddEditLinkModal(true);
+          break;
+        case "d":
+          setShowDuplicateLinkModal(true);
+          break;
+        case "q":
+          setShowLinkQRModal(true);
+          break;
+        case "a":
+          setShowArchiveLinkModal(true);
+          break;
+        case "t":
+          if (isDubDomain(link.domain)) {
+            setShowTransferLinkModal(true);
+          }
+          break;
+        case "i":
+          copyLinkId();
+          break;
+        case "x":
+          setShowDeleteLinkModal(true);
+          break;
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onKeyDown]);
 
   return (
     <div className="flex justify-end">
