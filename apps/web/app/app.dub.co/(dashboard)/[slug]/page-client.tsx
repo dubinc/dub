@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import LinkDisplay from "@/ui/links/link-display";
 import { InputSearchBox } from "@/ui/links/link-filters";
-import LinksContainer from "@/ui/links/links-container";
+import LinksContainer, { linkViewModes } from "@/ui/links/links-container";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
@@ -17,6 +17,7 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
+  useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
 import { CloudUpload, Download } from "@dub/ui/src/icons";
@@ -32,6 +33,15 @@ import {
 
 export default function WorkspaceLinksClient() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
+
+  const [viewMode, setViewMode] = useLocalStorage(
+    "links-view-mode",
+    linkViewModes[0],
+  );
+
+  useEffect(() => {
+    if (!linkViewModes.includes(viewMode)) setViewMode("cards");
+  }, [viewMode]);
 
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     useLinkFilters();
@@ -58,7 +68,10 @@ export default function WorkspaceLinksClient() {
                 />
               </div>
               <div className="grow basis-0 md:grow-0">
-                <LinkDisplay />
+                <LinkDisplay
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                />
               </div>
             </div>
             <div className="order-3 flex gap-x-2">
@@ -77,7 +90,10 @@ export default function WorkspaceLinksClient() {
         </MaxWidthWrapper>
       </div>
       <div className="mt-3">
-        <LinksContainer AddEditLinkButton={AddEditLinkButton} />
+        <LinksContainer
+          AddEditLinkButton={AddEditLinkButton}
+          viewMode={viewMode}
+        />
       </div>
     </>
   );

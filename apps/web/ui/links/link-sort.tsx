@@ -64,7 +64,7 @@ export default function LinkSort() {
       <button
         onClick={() => setOpenPopover(!openPopover)}
         className={cn(
-          "group flex h-10 w-full cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all lg:w-48",
+          "group flex h-10 cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all",
           "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
           "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
         )}

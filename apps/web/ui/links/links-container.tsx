@@ -17,34 +17,31 @@ import { useEffect, useMemo, useState } from "react";
 import { LinkDetailsColumn } from "./link-details-column";
 import { LinkTitleColumn } from "./link-title-column";
 
+export const linkViewModes = ["cards", "rows"] as const;
+export type LinksViewMode = (typeof linkViewModes)[number];
+
 export type ResponseLink = LinkWithTagsProps & {
   user: UserProps;
 };
 
 export default function LinksContainer({
   AddEditLinkButton,
+  viewMode,
 }: {
   AddEditLinkButton: () => JSX.Element;
+  viewMode: LinksViewMode;
 }) {
   const { links, isValidating } = useLinks();
   const { data: count } = useLinksCount();
 
-  const [compact, setCompact] = useState(false);
-
   return (
     <MaxWidthWrapper className="grid gap-y-2">
-      <button
-        className="w-24 border border-gray-200 text-xs"
-        onClick={() => setCompact((c) => !c)}
-      >
-        toggle view
-      </button>
       <LinksList
         AddEditLinkButton={AddEditLinkButton}
         links={links}
         count={count}
         loading={isValidating}
-        compact={compact}
+        compact={viewMode === "rows"}
       />
     </MaxWidthWrapper>
   );

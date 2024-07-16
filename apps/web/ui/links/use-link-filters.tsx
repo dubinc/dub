@@ -3,7 +3,7 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BlurImage, Globe, Tag, Trash, User, useRouterStuff } from "@dub/ui";
+import { BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
 import { DUB_WORKSPACE_ID, GOOGLE_FAVICON_URL, cn } from "@dub/utils";
 import { useMemo } from "react";
 import { COLORS_LIST } from "./tag-badge";
@@ -88,29 +88,15 @@ export function useLinkFilters() {
             },
           ]
         : []),
-      {
-        key: "showArchived",
-        icon: Trash,
-        label: "Archived",
-        options: [
-          {
-            value: true,
-            label: "Include archived links",
-          },
-        ],
-      },
     ];
   }, [domains, tags]);
 
   const activeFilters = useMemo(() => {
-    const { domain, tagId, userId, showArchived } = searchParamsObj;
+    const { domain, tagId, userId } = searchParamsObj;
     return [
       ...(domain ? [{ key: "domain", value: domain }] : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
       ...(userId ? [{ key: "userId", value: userId }] : []),
-      ...(showArchived
-        ? [{ key: "showArchived", value: showArchived === "true" }]
-        : []),
     ];
   }, [searchParamsObj]);
 
@@ -130,7 +116,7 @@ export function useLinkFilters() {
 
   const onRemoveAll = () => {
     queryParams({
-      del: ["domain", "tagId", "userId", "showArchived", "search"],
+      del: ["domain", "tagId", "userId", "search"],
     });
   };
 

@@ -9,9 +9,9 @@ import {
   Popover,
   SimpleTooltipContent,
 } from "@dub/ui";
-import { CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
+import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
-import { Archive, CopyPlus, Delete, FolderInput } from "lucide-react";
+import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -157,7 +157,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}
-                  icon={<Archive className="h-4 w-4" />}
+                  icon={<BoxArchive className="h-4 w-4" />}
                   shortcut="A"
                   className="h-9 px-2 font-medium"
                 />
