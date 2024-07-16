@@ -14,6 +14,17 @@ export const GET = withSession(async ({ session }) => {
       where: {
         id: session.user.id,
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        subscribed: true,
+        createdAt: true,
+        defaultWorkspace: true,
+        source: true,
+        passwordHash: true,
+      },
     }),
 
     prisma.account.findFirst({
@@ -39,6 +50,7 @@ export const GET = withSession(async ({ session }) => {
     ...user,
     migratedWorkspace,
     provider: account?.provider,
+    hasPassword: user?.passwordHash !== null,
   });
 });
 
