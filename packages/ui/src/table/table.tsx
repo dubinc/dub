@@ -106,7 +106,7 @@ const tableRowVariants = cva("group/row", {
 });
 
 const tablePaginationVariants = cva(
-  "-mt-px sticky flex mx-auto items-center border-gray-200 justify-between bg-white px-4 py-3.5 text-sm leading-6 text-gray-600 transition-[width,bottom,filter]",
+  "-mt-px sticky flex mx-auto items-center border-gray-200 justify-between bg-white px-4 py-3.5 text-sm leading-6 text-gray-600 transition-[max-width,width,bottom,filter]",
   {
     variants: {
       variant: {
@@ -118,7 +118,7 @@ const tablePaginationVariants = cva(
     compoundVariants: [
       {
         variant: ["default", "compact-list"],
-        className: "rounded-b-[inherit] bottom-0 w-full border-t",
+        className: "rounded-b-[inherit] bottom-0 w-full border-t max-w-full",
       },
     ],
   },

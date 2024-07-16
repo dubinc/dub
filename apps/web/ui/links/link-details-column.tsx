@@ -42,55 +42,66 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
 
   return (
     <div ref={ref} className="flex items-center justify-end gap-2 sm:gap-5">
-      {primaryTag && (
-        <Tooltip
-          content={
-            <div className="flex flex-wrap gap-1.5 p-3">
-              {tags.map((tag) => (
-                <TagBadge key={tag.id} {...tag} />
+      {isVisible && (
+        <>
+          {primaryTag && (
+            <Tooltip
+              content={
+                <div className="flex flex-wrap gap-1.5 p-3">
+                  {tags.map((tag) => (
+                    <TagBadge key={tag.id} {...tag} />
+                  ))}
+                </div>
+              }
+              side="bottom"
+            >
+              <div className="cursor-default transition-transform hover:scale-105">
+                <TagBadge
+                  withIcon
+                  {...primaryTag}
+                  plus={additionalTags.length}
+                />
+              </div>
+            </Tooltip>
+          )}
+          <Link
+            href={`/${slug}/analytics?domain=${domain}&key=${key}`}
+            className="rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-950 transition-colors hover:bg-gray-200"
+          >
+            <LinesY className="my-0.5 block h-4 w-4 text-gray-600 sm:hidden" />
+            <div className="hidden items-center gap-3 sm:flex">
+              {[
+                { id: "clicks", icon: CursorRays, value: totalEvents?.clicks },
+                ...(trackConversion
+                  ? [
+                      {
+                        id: "sales",
+                        icon: Crosshairs,
+                        value: totalEvents?.sales,
+                        className: "hidden sm:flex",
+                      },
+                      {
+                        id: "leads",
+                        icon: InvoiceDollar,
+                        value: totalEvents?.leads,
+                        className: "hidden sm:flex",
+                      },
+                    ]
+                  : []),
+              ].map(({ id, icon: Icon, value, className }) => (
+                <div
+                  key={id}
+                  className={cn("flex items-center gap-1", className)}
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-gray-600" />
+                  {nFormatter(value)}
+                </div>
               ))}
             </div>
-          }
-          side="bottom"
-        >
-          <div className="cursor-default transition-transform hover:scale-105">
-            <TagBadge withIcon {...primaryTag} plus={additionalTags.length} />
-          </div>
-        </Tooltip>
+          </Link>
+          <LinkControls link={link} />
+        </>
       )}
-      <Link
-        href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-        className="rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-950 transition-colors hover:bg-gray-200"
-      >
-        <LinesY className="my-0.5 block h-4 w-4 text-gray-600 sm:hidden" />
-        <div className="hidden items-center gap-3 sm:flex">
-          {[
-            { id: "clicks", icon: CursorRays, value: totalEvents?.clicks },
-            ...(trackConversion
-              ? [
-                  {
-                    id: "sales",
-                    icon: Crosshairs,
-                    value: totalEvents?.sales,
-                    className: "hidden sm:flex",
-                  },
-                  {
-                    id: "leads",
-                    icon: InvoiceDollar,
-                    value: totalEvents?.leads,
-                    className: "hidden sm:flex",
-                  },
-                ]
-              : []),
-          ].map(({ id, icon: Icon, value, className }) => (
-            <div key={id} className={cn("flex items-center gap-1", className)}>
-              <Icon className="h-4 w-4 shrink-0 text-gray-600" />
-              {nFormatter(value)}
-            </div>
-          ))}
-        </div>
-      </Link>
-      <LinkControls link={link} />
     </div>
   );
 }

@@ -8,13 +8,12 @@ import {
   PenWriting,
   Popover,
   SimpleTooltipContent,
-  useIntersectionObserver,
 } from "@dub/ui";
 import { CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { Archive, CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
@@ -23,10 +22,6 @@ import { ResponseLink } from "./links-container";
 
 export function LinkControls({ link }: { link: ResponseLink }) {
   const { slug } = useParams() as { slug?: string };
-
-  const ref = useRef<HTMLDivElement>(null);
-  const entry = useIntersectionObserver(ref, {});
-  const isVisible = !!entry?.isIntersecting;
 
   const [openPopover, setOpenPopover] = useState(false);
   const [copiedLinkId, setCopiedLinkId] = useState(false);
@@ -75,7 +70,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   });
 
   return (
-    <div ref={ref} className="flex justify-end sm:w-[124px]">
+    <div className="flex justify-end sm:w-[124px]">
       <div
         className={cn(
           "flex items-center justify-end divide-x divide-gray-200 overflow-hidden rounded-md border border-gray-200",
@@ -83,16 +78,12 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           "w-[30px] transition-[width] duration-300 sm:w-[43px] sm:group-hover/row:w-[124px]",
         )}
       >
-        {isVisible && (
-          <>
-            <LinkQRModal />
-            <AddEditLinkModal />
-            <DuplicateLinkModal />
-            <ArchiveLinkModal />
-            <TransferLinkModal />
-            <DeleteLinkModal />
-          </>
-        )}
+        <LinkQRModal />
+        <AddEditLinkModal />
+        <DuplicateLinkModal />
+        <ArchiveLinkModal />
+        <TransferLinkModal />
+        <DeleteLinkModal />
         <Button
           icon={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
           variant="outline"
