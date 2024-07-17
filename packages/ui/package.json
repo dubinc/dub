@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.1.33",
+  "version": "0.1.37",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -16,7 +16,6 @@
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@vercel/analytics": "^1.0.0",
     "next": "14.2.0-canary.47",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -50,12 +49,14 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@react-aria/datepicker": "^3.10.0",
     "@react-stately/datepicker": "^3.9.3",
+    "@vercel/analytics": "^1.3.1",
     "class-variance-authority": "^0.7.0",
     "cmdk": "^0.2.0",
     "date-fns": "^3.6.0",
     "framer-motion": "^10.16.16",
     "js-cookie": "^3.0.5",
     "linkify-react": "^4.1.3",
+    "linkifyjs": "^4.1.3",
     "lucide-react": "^0.367.0",
     "react-day-picker": "^8.10.1",
     "sonner": "^1.4.41",

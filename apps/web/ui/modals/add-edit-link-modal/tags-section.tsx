@@ -16,6 +16,7 @@ import { Check, ChevronDown, Tag, X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useDebounce } from "use-debounce";
 
 export default function TagsSection({
   data,
@@ -62,10 +63,12 @@ export default function TagsSection({
     },
   });
 
+  const [debouncedUrl] = useDebounce(url, 500);
+
   useEffect(() => {
     if (
       !linkId &&
-      url &&
+      debouncedUrl &&
       title &&
       description &&
       !exceededAI &&
@@ -77,7 +80,7 @@ export default function TagsSection({
       complete(
         `From the list of avaialble tags below, suggest relevant tags for this link: 
         
-        - URL: ${url}
+        - URL: ${debouncedUrl}
         - Meta title: ${title}
         - Meta description: ${description}. 
         
@@ -86,7 +89,7 @@ export default function TagsSection({
         Available tags: ${availableTags.map(({ name }) => name).join(", ")}`,
       );
     }
-  }, [url, title, description]);
+  }, [debouncedUrl, title, description]);
 
   const [creatingTag, setCreatingTag] = useState(false);
 

@@ -166,6 +166,24 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
+  } else if (domain === "dub.link") {
+    if (!workspace || workspace.plan === "free") {
+      return {
+        link: payload,
+        error:
+          "You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain.",
+        code: "forbidden",
+      };
+    }
+    const flags = await getFeatureFlags(workspace.id);
+    if (!flags.dublink) {
+      return {
+        link: payload,
+        error:
+          "dub.link is still currently in beta. Please contact support@dub.co if you need access.",
+        code: "forbidden",
+      };
+    }
 
     // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
   } else if (isDubDomain(domain)) {
@@ -175,8 +193,8 @@ export async function processLink<T extends Record<string, any>>({
     if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
       return {
         link: payload,
-        error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
-          .map((d) => `\`${d}\``)
+        error: `Invalid URL. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+          .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
       };
