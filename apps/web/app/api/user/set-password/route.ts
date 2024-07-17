@@ -36,8 +36,6 @@ export const POST = withSession(async ({ session }) => {
     },
   });
 
-  console.log(`${process.env.NEXTAUTH_URL}/auth/reset-password/${token}`);
-
   // Send email with password reset link
   await sendEmail({
     subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Password reset instructions`,
