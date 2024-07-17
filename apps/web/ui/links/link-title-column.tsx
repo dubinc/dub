@@ -32,6 +32,7 @@ import {
   formatDateTime,
   getApexDomain,
   isDubDomain,
+  linkConstructor,
 } from "@dub/utils";
 import { formatDate } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
@@ -52,8 +53,7 @@ const quickViewSettings = [
 ];
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
-  const { url, domain } = link;
-  const path = link.key === "_root" ? "" : `/${link.key}`;
+  const { url, domain, key } = link;
 
   const { isMobile } = useMediaQuery();
 
@@ -92,10 +92,10 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                 <UnverifiedTooltip link={link}>
                   <div className="flex items-center font-medium">
                     <span
-                      title={`${domain}${path}`}
+                      title={linkConstructor({ domain, key, pretty: true })}
                       className="truncate leading-6"
                     >
-                      {domain + path}
+                      {linkConstructor({ domain, key, pretty: true })}
                     </span>
 
                     <AnimatePresence>
@@ -124,7 +124,11 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                             <CommentsBadge comments={link.comments} />
                           )}
                           <CopyButton
-                            value={domain + path}
+                            value={linkConstructor({
+                              domain,
+                              key,
+                              pretty: false,
+                            })}
                             variant="neutral"
                             className="p-1"
                           />
