@@ -1,44 +1,55 @@
 import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Crosshairs, Tooltip, useIntersectionObserver } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Crosshairs,
+  Tooltip,
+  useIntersectionObserver,
+  useMediaQuery,
+} from "@dub/ui";
 import { CursorRays, InvoiceDollar, LinesY } from "@dub/ui/src/icons";
-import { cn, fetcher, nFormatter } from "@dub/utils";
+import { cn, fetcher, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
 import TagBadge from "./tag-badge";
 
+function useOrganizedTags(tags: ResponseLink["tags"]) {
+  const searchParams = useSearchParams();
+
+  const [primaryTag, additionalTags] = useMemo(() => {
+    const filteredTagIds =
+      searchParams?.get("tagIds")?.split(",")?.filter(Boolean) ?? [];
+
+    /*
+      Sort tags so that the filtered tags are first. The most recently selected
+      filtered tag (last in array) should be displayed first.
+    */
+    const sortedTags =
+      filteredTagIds.length > 0
+        ? [...tags].sort(
+            (a, b) =>
+              filteredTagIds.indexOf(b.id) - filteredTagIds.indexOf(a.id),
+          )
+        : tags;
+
+    return [sortedTags?.[0], sortedTags.slice(1)];
+  }, [tags, searchParams]);
+
+  return { primaryTag, additionalTags };
+}
+
 export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
-  const { id, domain, key, tags, trackConversion } = link;
+  const { tags } = link;
 
   const ref = useRef<HTMLDivElement>(null);
   const entry = useIntersectionObserver(ref, {});
   const isVisible = !!entry?.isIntersecting;
 
-  const { id: workspaceId, slug, exceededClicks } = useWorkspace();
   const { primaryTag, additionalTags } = useOrganizedTags(tags);
-
-  const { data: totalEvents } = useSWR<{
-    [key in CompositeAnalyticsResponseOptions]?: number;
-  }>(
-    // Only fetch data if the link is visible and there's a slug and the usage is not exceeded
-    isVisible &&
-      workspaceId &&
-      !exceededClicks &&
-      `/api/analytics?event=composite&workspaceId=${workspaceId}&linkId=${id}&interval=all_unfiltered`,
-    fetcher,
-    {
-      fallbackData: {
-        clicks: link.clicks,
-        leads: link.leads,
-        sales: link.sales,
-      },
-      dedupingInterval: 60000,
-    },
-  );
 
   return (
     <div ref={ref} className="flex items-center justify-end gap-2 sm:gap-5">
@@ -64,41 +75,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
               </div>
             </Tooltip>
           )}
-          <Link
-            href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-            className="rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-950 transition-colors hover:bg-gray-200"
-          >
-            <LinesY className="my-0.5 block h-4 w-4 text-gray-600 sm:hidden" />
-            <div className="hidden items-center gap-3 sm:flex">
-              {[
-                { id: "clicks", icon: CursorRays, value: totalEvents?.clicks },
-                ...(trackConversion
-                  ? [
-                      {
-                        id: "sales",
-                        icon: Crosshairs,
-                        value: totalEvents?.sales,
-                        className: "hidden sm:flex",
-                      },
-                      {
-                        id: "leads",
-                        icon: InvoiceDollar,
-                        value: totalEvents?.leads,
-                        className: "hidden sm:flex",
-                      },
-                    ]
-                  : []),
-              ].map(({ id, icon: Icon, value, className }) => (
-                <div
-                  key={id}
-                  className={cn("flex items-center gap-1", className)}
-                >
-                  <Icon className="h-4 w-4 shrink-0 text-gray-600" />
-                  {nFormatter(value)}
-                </div>
-              ))}
-            </div>
-          </Link>
+          <AnalyticsBadge link={link} />
           <LinkControls link={link} />
         </>
       )}
@@ -106,27 +83,108 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   );
 }
 
-function useOrganizedTags(tags: ResponseLink["tags"]) {
-  const searchParams = useSearchParams();
+function AnalyticsBadge({ link }: { link: ResponseLink }) {
+  const { id, domain, key, trackConversion } = link;
 
-  const [primaryTag, additionalTags] = useMemo(() => {
-    const filteredTagIds =
-      searchParams?.get("tagIds")?.split(",")?.filter(Boolean) ?? [];
+  const { id: workspaceId, slug, exceededClicks } = useWorkspace();
+  const { isMobile } = useMediaQuery();
 
-    /*
-      Sort tags so that the filtered tags are first. The most recently selected
-      filtered tag (last in array) should be displayed first.
-    */
-    const sortedTags =
-      filteredTagIds.length > 0
-        ? [...tags].sort(
-            (a, b) =>
-              filteredTagIds.indexOf(b.id) - filteredTagIds.indexOf(a.id),
-          )
-        : tags;
+  const { data: totalEvents } = useSWR<{
+    [key in CompositeAnalyticsResponseOptions]?: number;
+  }>(
+    // Only fetch data if there's a slug and the usage is not exceeded
+    workspaceId &&
+      !exceededClicks &&
+      `/api/analytics?event=composite&workspaceId=${workspaceId}&linkId=${id}&interval=all_unfiltered`,
+    fetcher,
+    {
+      fallbackData: {
+        clicks: link.clicks,
+        leads: link.leads,
+        sales: link.sales,
+      },
+      dedupingInterval: 60000,
+    },
+  );
 
-    return [sortedTags?.[0], sortedTags.slice(1)];
-  }, [tags, searchParams]);
+  const [hoveredId, setHoveredId] = useState<string>("clicks");
+  const hoveredValue = totalEvents?.[hoveredId];
 
-  return { primaryTag, additionalTags };
+  return isMobile ? (
+    <Link
+      href={`/${slug}/analytics?domain=${domain}&key=${key}`}
+      className="rounded-md bg-gray-100 text-sm text-gray-950 transition-colors hover:bg-gray-200"
+    >
+      <LinesY className="m-1 h-4 w-4 text-gray-600" />
+    </Link>
+  ) : (
+    <Tooltip
+      content={
+        <AnimatedSizeContainer width height>
+          <div
+            key={hoveredId}
+            className="whitespace-nowrap px-3 py-2 text-gray-600"
+          >
+            <p className="text-sm">
+              <span className="font-medium text-gray-950">
+                {nFormatter(hoveredValue)}
+              </span>{" "}
+              {hoveredValue !== 1 ? hoveredId : hoveredId.slice(0, -1)}
+            </p>
+            {hoveredId === "clicks" && link.lastClicked && (
+              <p className="mt-1 text-xs text-gray-500">
+                Last clicked {timeAgo(link.lastClicked, { withAgo: true })}
+              </p>
+            )}
+          </div>
+        </AnimatedSizeContainer>
+      }
+      side="bottom"
+    >
+      <div className="overflow-hidden rounded-md bg-gray-100 text-sm text-gray-950">
+        <div className="hidden items-center sm:flex">
+          {[
+            {
+              id: "clicks",
+              icon: CursorRays,
+              value: totalEvents?.clicks,
+              label: trackConversion ? undefined : "clicks",
+            },
+            ...(trackConversion
+              ? [
+                  {
+                    id: "leads",
+                    icon: Crosshairs,
+                    value: totalEvents?.leads,
+                    className: "hidden sm:flex",
+                  },
+                  {
+                    id: "sales",
+                    icon: InvoiceDollar,
+                    value: totalEvents?.sales,
+                    className: "hidden sm:flex",
+                  },
+                ]
+              : []),
+          ].map(({ id, icon: Icon, value, className, label }) => (
+            <Link
+              key={id}
+              href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${id}`}
+              className={cn(
+                "flex items-center gap-1 px-1.5 py-0.5 transition-colors hover:bg-gray-200",
+                className,
+              )}
+              onPointerEnter={() => setHoveredId(id)}
+              onPointerLeave={() =>
+                setHoveredId((i) => (i === id ? "clicks" : i))
+              }
+            >
+              <Icon className="text-gray-6000 h-4 w-4 shrink-0" />
+              {nFormatter(value) + (label ? ` ${label}` : "")}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </Tooltip>
+  );
 }
