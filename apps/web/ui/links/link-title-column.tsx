@@ -93,12 +93,15 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               <div className="min-w-0 text-gray-950">
                 <UnverifiedTooltip link={link}>
                   <div className="flex items-center font-medium">
-                    <span
+                    <a
+                      href={linkConstructor({ domain, key, pretty: false })}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       title={linkConstructor({ domain, key, pretty: true })}
-                      className="truncate leading-6"
+                      className="truncate leading-6 text-gray-800 transition-colors hover:text-black"
                     >
                       {linkConstructor({ domain, key, pretty: true })}
-                    </span>
+                    </a>
 
                     <AnimatePresence>
                       {(hovered || isMobile) && (
@@ -283,12 +286,19 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
         ) : (
           <ArrowTurnRight2 className="h-3 w-3 text-gray-400" />
         )}
-        <span
-          className={cn("truncate", url ? "text-gray-500" : "text-gray-400")}
-          title={url}
-        >
-          {url?.replace(/^https?:\/\//, "") || "No URL configured"}
-        </span>
+        {url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={url}
+            className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline"
+          >
+            {url.replace(/^https?:\/\//, "")}
+          </a>
+        ) : (
+          <span className="truncate text-gray-400">No URL configured</span>
+        )}
       </div>
       <div className="hidden shrink-0 sm:block">
         <UserAvatar user={user} />
