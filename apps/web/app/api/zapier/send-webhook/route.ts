@@ -1,21 +1,12 @@
 import { transformLink } from "@/lib/api/links";
-import { receiver } from "@/lib/cron";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 
 // POST /api/zapier/send-webhook - Send payload to Zapier hooks
 export async function POST(req: Request) {
   const body = await req.json();
 
-  if (process.env.VERCEL === "1") {
-    const isValid = await receiver.verify({
-      signature: req.headers.get("Upstash-Signature") || "",
-      body: JSON.stringify(body),
-    });
-
-    if (!isValid) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-  }
+  await verifyQstashSignature(req, body);
 
   const { linkId } = body;
 
