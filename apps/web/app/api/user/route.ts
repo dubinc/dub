@@ -51,6 +51,7 @@ export const GET = withSession(async ({ session }) => {
     migratedWorkspace,
     provider: account?.provider,
     hasPassword: user?.passwordHash !== null,
+    passwordHash: undefined,
   });
 });
 

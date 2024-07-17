@@ -13,7 +13,6 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
-import { ratelimitOrThrow } from "../api/utils";
 import { dub } from "../dub";
 import { subscribe } from "../flodesk";
 import { isStored, storage } from "../storage";
@@ -192,9 +191,6 @@ export const authOptions: NextAuthOptions = {
         if (!email || !password) {
           throw new Error("no-credentials");
         }
-
-        // @ts-ignore
-        await ratelimitOrThrow(req, "login-with-credentials");
 
         const user = await prisma.user.findUnique({
           where: { email },

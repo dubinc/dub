@@ -1,34 +1,5 @@
-import { getSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { RequestSetPassword } from "./request-set-password";
-import { UpdatePassword } from "./update-password";
-
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+import SecurityPageClient from "./page-client";
 
 export default async function SecurityPage() {
-  const user = await getUser();
-
-  return <>{user.hasPassword ? <UpdatePassword /> : <RequestSetPassword />}</>;
+  return <SecurityPageClient />;
 }
-
-const getUser = async () => {
-  const session = await getSession();
-
-  if (!session) {
-    throw new Error("Unauthorized");
-  }
-
-  const user = await prisma.user.findFirstOrThrow({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      passwordHash: true,
-    },
-  });
-
-  return {
-    hasPassword: user.passwordHash !== null,
-  };
-};
