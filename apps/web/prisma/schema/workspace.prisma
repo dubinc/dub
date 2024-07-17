@@ -1,0 +1,80 @@
+
+
+model Project {
+  id   String  @id @default(cuid())
+  name String
+  slug String  @unique
+  logo String?
+
+  plan              String  @default("free")
+  stripeId          String? @unique // Stripe subscription ID
+  billingCycleStart Int // day of the month when the billing cycle starts
+  stripeConnectId   String? @unique // for Stripe Connect
+  inviteCode        String? @unique
+
+  usage        Int @default(0)
+  usageLimit   Int @default(1000)
+  aiUsage      Int @default(0)
+  aiLimit      Int @default(10)
+  linksUsage   Int @default(0)
+  linksLimit   Int @default(25)
+  domainsLimit Int @default(3)
+  tagsLimit    Int @default(5)
+  usersLimit   Int @default(1)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  usageLastChecked DateTime @default(now())
+
+  users            ProjectUsers[]
+  invites          ProjectInvite[]
+  sentEmails       SentEmail[]
+  links            Link[]
+  domains          Domain[]
+  tags             Tag[]
+  customers        Customer[]
+  defaultDomains   DefaultDomains[]
+  restrictedTokens RestrictedToken[]
+
+  @@index(usageLastChecked(sort: Asc))
+}
+
+model ProjectInvite {
+  email     String
+  expires   DateTime
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  createdAt DateTime @default(now())
+
+  @@unique([email, projectId])
+  @@index([projectId])
+}
+
+enum Role {
+  owner
+  member
+}
+
+model ProjectUsers {
+  id        String   @id @default(cuid())
+  role      Role     @default(member)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+}
+
+model SentEmail {
+  id        String   @id @default(cuid())
+  type      String
+  createdAt DateTime @default(now())
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String?
+
+  @@index([projectId])
+}
