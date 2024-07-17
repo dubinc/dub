@@ -18,7 +18,7 @@ export const DUB_DOMAINS = [
           id: "clxp3lfsb00011na8tfs7t0lx",
           slug: "dub.link",
           verified: true,
-          primary: false,
+          primary: true,
           archived: false,
           placeholder: "https://dub.co/help/article/what-is-dub",
           allowedHostnames: [],
