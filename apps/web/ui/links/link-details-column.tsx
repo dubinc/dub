@@ -116,7 +116,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-      className="rounded-md bg-gray-100 text-sm text-gray-950 transition-colors hover:bg-gray-200"
+      className="rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800"
     >
       <LinesY className="m-1 h-4 w-4 text-gray-600" />
     </Link>
