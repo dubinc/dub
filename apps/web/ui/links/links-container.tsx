@@ -5,6 +5,7 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
 import { CardList, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
+import { Dispatch, SetStateAction, createContext, useState } from "react";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import { LinkDetailsColumn } from "./link-details-column";
 import LinkNotFound from "./link-not-found";
@@ -41,6 +42,14 @@ export default function LinksContainer({
   );
 }
 
+export const LinksListContext = createContext<{
+  openMenuLinkId: string | null;
+  setOpenMenuLinkId: Dispatch<SetStateAction<string | null>>;
+}>({
+  openMenuLinkId: null,
+  setOpenMenuLinkId: () => {},
+});
+
 function LinksList({
   AddEditLinkButton,
   links,
@@ -58,6 +67,8 @@ function LinksList({
   const searchParams = useSearchParams();
   const page = (parseInt(searchParams?.get("page") || "1") || 1) - 1;
 
+  const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
+
   const isFiltered = [
     "domain",
     "tagId",
@@ -67,7 +78,7 @@ function LinksList({
   ].some((param) => searchParams.has(param));
 
   return loading || links?.length ? (
-    <div>
+    <LinksListContext.Provider value={{ openMenuLinkId, setOpenMenuLinkId }}>
       {/* Cards */}
       <CardList variant={compact ? "compact" : "loose"} loading={loading}>
         {links?.length
@@ -110,7 +121,7 @@ function LinksList({
           totalCount={count ?? links.length}
         />
       )}
-    </div>
+    </LinksListContext.Provider>
   ) : isFiltered ? (
     <LinkNotFound />
   ) : (

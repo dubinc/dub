@@ -4,6 +4,7 @@ import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
 import {
   Button,
+  CardList,
   IconMenu,
   PenWriting,
   Popover,
@@ -13,17 +14,24 @@ import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";
-import { ResponseLink } from "./links-container";
+import { LinksListContext, ResponseLink } from "./links-container";
 
 export function LinkControls({ link }: { link: ResponseLink }) {
   const { slug } = useParams() as { slug?: string };
 
-  const [openPopover, setOpenPopover] = useState(false);
+  const { hovered } = useContext(CardList.Card.Context);
+
+  const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
+  const openPopover = openMenuLinkId === link.id;
+  const setOpenPopover = (open: boolean) => {
+    setOpenMenuLinkId(open ? link.id : null);
+  };
+
   const [copiedLinkId, setCopiedLinkId] = useState(false);
 
   const copyLinkId = () => {
@@ -72,9 +80,12 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   const onKeyDown = (e: any) => {
     const key = e.key.toLowerCase();
     // only run shortcut logic if:
-    // - the 3 dots menu is open
+    // - the 3 dots menu is open or the link card is hovered
     // - the key pressed is one of the shortcuts
-    if (openPopover && ["e", "d", "q", "a", "t", "i", "x"].includes(key)) {
+    if (
+      (openPopover || (openMenuLinkId === null && hovered)) &&
+      ["e", "d", "q", "a", "t", "i", "x"].includes(key)
+    ) {
       e.preventDefault();
       setOpenPopover(false);
       switch (key) {
