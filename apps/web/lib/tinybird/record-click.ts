@@ -18,11 +18,13 @@ import { ratelimit } from "../upstash";
 export async function recordClick({
   req,
   linkId,
+  parentLinkId,
   clickId,
   url,
 }: {
   req: NextRequest;
   linkId: string;
+  parentLinkId?: string;
   clickId?: string;
   url?: string;
 }) {
@@ -56,8 +58,13 @@ export async function recordClick({
           timestamp: new Date(Date.now()).toISOString(),
           identity_hash,
           click_id: clickId || nanoid(16),
-          link_id: linkId,
-          alias_link_id: "",
+          /* 
+            if the link is a child alias of another link, 
+              log the click under the parent link ID
+            else log the click under the link ID
+          */
+          link_id: parentLinkId || linkId,
+          alias_link_id: parentLinkId ? linkId : "",
           url: url || "",
           ip:
             // only record IP if it's a valid IP and not from EU

@@ -103,6 +103,7 @@ export default async function LinkMiddleware(
     geo,
     expiredUrl,
     doIndex,
+    parentLinkId,
   } = link;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
@@ -190,6 +191,7 @@ export default async function LinkMiddleware(
       recordClick({
         req,
         linkId,
+        parentLinkId,
         clickId,
         ...(url && { url: getFinalUrl(url, { req }) }),
       }),
