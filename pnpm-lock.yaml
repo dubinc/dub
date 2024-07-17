@@ -484,6 +484,9 @@ importers:
       linkify-react:
         specifier: ^4.1.3
         version: 4.1.3(linkifyjs@4.1.3)(react@18.2.0)
+      linkifyjs:
+        specifier: ^4.1.3
+        version: 4.1.3
       lucide-react:
         specifier: ^0.367.0
         version: 0.367.0(react@18.2.0)
