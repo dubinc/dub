@@ -3,9 +3,11 @@ import { useRouterStuff } from "@dub/ui";
 import {
   DUB_DOMAINS,
   DUB_WORKSPACE_ID,
+  PREMIUM_SHORT_DOMAIN,
   SHORT_DOMAIN,
   fetcher,
 } from "@dub/utils";
+import { useMemo } from "react";
 import useSWR from "swr";
 import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
@@ -51,11 +53,19 @@ export default function useDomains({
     ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : activeDefaultDomains),
   ];
 
-  const primaryDomain =
-    activeWorkspaceDomains && activeWorkspaceDomains.length > 0
-      ? activeWorkspaceDomains.find((domain) => domain.primary)?.slug ||
+  const primaryDomain = useMemo(() => {
+    if (activeWorkspaceDomains && activeWorkspaceDomains.length > 0) {
+      return (
+        activeWorkspaceDomains.find(({ primary }) => primary)?.slug ||
         activeWorkspaceDomains[0].slug
-      : SHORT_DOMAIN;
+      );
+    } else if (
+      activeDefaultDomains.find(({ slug }) => slug === PREMIUM_SHORT_DOMAIN)
+    ) {
+      return PREMIUM_SHORT_DOMAIN;
+    }
+    return SHORT_DOMAIN;
+  }, [activeDefaultDomains, activeWorkspaceDomains]);
 
   return {
     activeWorkspaceDomains, // active workspace domains
