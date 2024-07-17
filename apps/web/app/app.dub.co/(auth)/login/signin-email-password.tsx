@@ -2,7 +2,7 @@
 
 import z from "@/lib/zod";
 import { signInSchema } from "@/lib/zod/schemas/auth";
-import { Button } from "@dub/ui";
+import { Button, Input } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -19,21 +19,17 @@ const errorCodes = {
 export const SignInWithEmailPassword = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
     resetField,
     handleSubmit,
-    formState: { isLoading },
-  } = useForm<z.infer<typeof signInSchema>>({
-    defaultValues: { email: "", password: "" },
-  });
+    formState: { isSubmitting, disabled },
+  } = useForm<z.infer<typeof signInSchema>>();
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      setSubmitting(true);
-
       const response = await signIn("credentials", {
         ...data,
         redirect: false,
@@ -55,37 +51,49 @@ export const SignInWithEmailPassword = () => {
         return;
       }
     } catch (error) {
-      setSubmitting(false);
-      toast.error(error.message);
+      setError(error.message);
     }
   });
 
   return (
-    <form onSubmit={onSubmit}>
-      <div className="flex flex-col space-y-4">
-        <input
-          type="email"
-          placeholder="panic@thedis.co"
-          autoComplete="email"
-          required
-          {...register("email")}
-          className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-        />
-        <input
-          type="password"
-          placeholder="********"
-          autoComplete="password"
-          required
-          {...register("password")}
-          className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-        />
-        <Button
-          text="Sign in"
-          type="submit"
-          loading={isLoading}
-          disabled={submitting}
-        />
-      </div>
-    </form>
+    <>
+      {error && (
+        <div className="mb-4 rounded-md bg-red-100 p-3 text-red-900 dark:bg-red-900 dark:text-red-200">
+          <div className="relative flex md:flex-row">
+            <div className="flex flex-grow flex-col sm:flex-row">
+              <div className="ltr:ml-3 rtl:mr-3">
+                <h3 className="text-sm font-medium">
+                  {errorCodes[error] || error}
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={onSubmit}>
+        <div className="flex flex-col space-y-4">
+          <Input
+            type="email"
+            placeholder="Email address"
+            autoComplete="email"
+            required
+            {...register("email")}
+          />
+          <Input
+            type="password"
+            placeholder="Password"
+            required
+            {...register("password")}
+          />
+          <Button
+            text="Sign in"
+            type="submit"
+            loading={isSubmitting}
+            disabled={disabled}
+          />
+        </div>
+      </form>
+    </>
   );
 };
