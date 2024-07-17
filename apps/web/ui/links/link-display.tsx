@@ -39,9 +39,9 @@ export default function LinkDisplay({
                 <button
                   key={id}
                   className={cn(
-                    "flex h-16 flex-col items-center justify-center gap-1 rounded-md transition-colors",
+                    "flex h-16 flex-col items-center justify-center gap-1 rounded-md border border-transparent transition-colors",
                     selected
-                      ? "bg-gray-200 text-gray-950"
+                      ? "border-gray-300 bg-gray-100 text-gray-950"
                       : "text-gray-800 hover:bg-gray-100 hover:text-gray-950",
                   )}
                   onClick={() => onViewModeChange(id as LinksViewMode)}
