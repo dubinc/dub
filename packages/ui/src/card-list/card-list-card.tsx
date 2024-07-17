@@ -47,6 +47,7 @@ export function CardListCard({
         onClick={
           onClick
             ? (e) => {
+                // Traverse up the DOM tree to see if there's a clickable element between this card and the click
                 for (
                   let target = e.target as HTMLElement, i = 0;
                   target !== e.currentTarget && i < 100; // Only go 100 levels deep
