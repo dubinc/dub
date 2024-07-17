@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody, ratelimitOrThrow } from "@/lib/api/utils";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 // POST /api/auth/reset-password - reset password using the reset token
 export async function POST(req: NextRequest) {
   try {
+    await ratelimitOrThrow(req, "reset-password");
+
     const { token, password } = resetPasswordSchema.parse(
       await parseRequestBody(req),
     );
