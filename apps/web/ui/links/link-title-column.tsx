@@ -8,6 +8,7 @@ import {
   CardList,
   CopyButton,
   LinkLogo,
+  QRCode,
   Switch,
   Tooltip,
   TooltipContent,
@@ -40,6 +41,7 @@ import { Mail } from "lucide-react";
 import { PropsWithChildren, useContext, useRef } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
+import { useLinkQRModal } from "../modals/link-qr-modal";
 import { ResponseLink } from "./links-container";
 
 const quickViewSettings = [
@@ -132,6 +134,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                             variant="neutral"
                             className="p-1"
                           />
+                          <QRCodeButton link={link} />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -240,6 +243,25 @@ function CommentsBadge({ comments }: { comments: string }) {
           <Page2 className="h-3.5 w-3.5" />
         </div>
       </Tooltip>
+    </div>
+  );
+}
+
+function QRCodeButton({ link }: { link: ResponseLink }) {
+  const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
+    props: link,
+  });
+
+  return (
+    <div className="sm:block">
+      <LinkQRModal />
+      <button
+        type="button"
+        onClick={() => setShowLinkQRModal(true)}
+        className="rounded-full bg-gray-100 p-[5px] hover:bg-gray-200"
+      >
+        <QRCode className="h-3 w-3" />
+      </button>
     </div>
   );
 }
