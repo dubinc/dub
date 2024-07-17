@@ -5,6 +5,7 @@ import { signInSchema } from "@/lib/zod/schemas/auth";
 import { Button } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -18,18 +19,21 @@ const errorCodes = {
 export const SignInWithEmailPassword = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
     resetField,
     handleSubmit,
-    formState: { isLoading, isSubmitting },
+    formState: { isLoading },
   } = useForm<z.infer<typeof signInSchema>>({
     defaultValues: { email: "", password: "" },
   });
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      setSubmitting(true);
+
       const response = await signIn("credentials", {
         ...data,
         redirect: false,
@@ -51,6 +55,7 @@ export const SignInWithEmailPassword = () => {
         return;
       }
     } catch (error) {
+      setSubmitting(false);
       toast.error(error.message);
     }
   });
@@ -78,7 +83,7 @@ export const SignInWithEmailPassword = () => {
           text="Sign in"
           type="submit"
           loading={isLoading}
-          disabled={isSubmitting}
+          disabled={submitting}
         />
       </div>
     </form>

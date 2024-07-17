@@ -2,8 +2,7 @@
 
 import z from "@/lib/zod";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
-import { Button } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button, Input, Label } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,7 +12,9 @@ export const UpdatePassword = () => {
   const {
     register,
     handleSubmit,
-    formState: { isLoading, disabled, errors },
+    setError,
+    formState: { isSubmitting, disabled, errors },
+    reset,
   } = useForm<z.infer<typeof updatePasswordSchema>>({
     resolver: zodResolver(updatePasswordSchema),
   });
@@ -30,9 +31,11 @@ export const UpdatePassword = () => {
 
       if (!response.ok) {
         const { error } = await response.json();
-        throw new Error(error.message);
+        setError("currentPassword", { message: error.message });
+        return;
       }
 
+      reset();
       toast.success("Your password has been updated.");
     } catch (error) {
       toast.error(error.message);
@@ -50,61 +53,46 @@ export const UpdatePassword = () => {
           Manage your account password on {process.env.NEXT_PUBLIC_APP_NAME}.
         </p>
         <div className="flex flex-wrap justify-between space-y-4 sm:space-x-4 sm:space-y-0">
-          <div className="min-w-[200px] flex-1">
-            <label
-              htmlFor="currentPassword"
-              className="mb-2 block text-sm font-medium text-gray-500"
-            >
-              Current Password
-            </label>
-            <input
+          <div className="grid w-full max-w-sm items-center gap-2">
+            <Label htmlFor="currentPassword">Current Password</Label>
+            <Input
               type="password"
               placeholder="********"
               {...register("currentPassword")}
               required
-              aria-invalid={errors.currentPassword ? "true" : "false"}
-              className={cn(
-                "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
-                errors.currentPassword && "border-red-500",
-              )}
             />
-            {errors.currentPassword && (
-              <span
-                className="mt-2 block text-sm text-red-500"
-                role="alert"
-                aria-live="assertive"
-              >
-                {errors.currentPassword.message}
-              </span>
-            )}
           </div>
 
-          <div className="min-w-[200px] flex-1">
-            <label
-              htmlFor="newPassword"
-              className="mb-2 block text-sm font-medium text-gray-500"
-            >
-              New Password
-            </label>
-            <input
+          <div className="grid w-full max-w-sm items-center gap-2">
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input
               type="password"
               placeholder="********"
               {...register("newPassword")}
               required
-              className={cn(
-                "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
-                errors.newPassword && "border-red-500",
-              )}
             />
-            {errors.newPassword && (
-              <span
-                className="mt-2 block text-sm text-red-500"
-                role="alert"
-                aria-live="assertive"
-              >
-                {errors.newPassword.message}
-              </span>
-            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap justify-between">
+          <div className="grid w-full max-w-sm items-center gap-2">
+            <span
+              className="block text-sm text-red-500"
+              role="alert"
+              aria-live="assertive"
+            >
+              {errors.currentPassword?.message}
+            </span>
+          </div>
+
+          <div className="grid w-full max-w-sm items-center gap-2">
+            <span
+              className="block text-sm text-red-500"
+              role="alert"
+              aria-live="assertive"
+            >
+              {errors.newPassword?.message}
+            </span>
           </div>
         </div>
       </div>
@@ -117,7 +105,7 @@ export const UpdatePassword = () => {
         <div className="shrink-0">
           <Button
             text="Update Password"
-            loading={isLoading}
+            loading={isSubmitting}
             disabled={disabled}
             type="submit"
           />

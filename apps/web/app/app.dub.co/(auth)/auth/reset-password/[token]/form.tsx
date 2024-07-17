@@ -2,8 +2,7 @@
 
 import z from "@/lib/zod";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
-import { Button } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button, Input, Label } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -16,7 +15,7 @@ export const ResetPasswordForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { isLoading, disabled, errors },
+    formState: { errors, isSubmitting },
   } = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
   });
@@ -47,29 +46,20 @@ export const ResetPasswordForm = () => {
 
   return (
     <>
-      <form className="flex flex-col space-y-4" onSubmit={onSubmit}>
+      <form className="flex flex-col space-y-5" onSubmit={onSubmit}>
         <input type="hidden" value={token} {...register("token")} />
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-2 block text-sm font-medium text-gray-500"
-          >
-            Password
-          </label>
-          <input
+
+        <div className="grid w-full max-w-sm items-center gap-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
             type="password"
             placeholder="********"
             {...register("password")}
             required
-            aria-invalid={errors.password ? "true" : "false"}
-            className={cn(
-              "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
-              errors.password && "border-red-500",
-            )}
           />
           {errors.password && (
             <span
-              className="mt-2 block text-sm text-red-500"
+              className="block text-sm text-red-500"
               role="alert"
               aria-live="assertive"
             >
@@ -78,26 +68,17 @@ export const ResetPasswordForm = () => {
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor="confirmPassword"
-            className="mb-2 block text-sm font-medium text-gray-500"
-          >
-            Confirm Password
-          </label>
-          <input
+        <div className="grid w-full max-w-sm items-center gap-2">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
             type="password"
             placeholder="********"
             {...register("confirmPassword")}
             required
-            className={cn(
-              "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
-              errors.confirmPassword && "border-red-500",
-            )}
           />
           {errors.confirmPassword && (
             <span
-              className="mt-2 block text-sm text-red-500"
+              className="block text-sm text-red-500"
               role="alert"
               aria-live="assertive"
             >
@@ -109,8 +90,8 @@ export const ResetPasswordForm = () => {
         <Button
           text="Reset Password"
           type="submit"
-          loading={isLoading}
-          disabled={disabled}
+          loading={isSubmitting}
+          disabled={isSubmitting}
         />
       </form>
     </>
