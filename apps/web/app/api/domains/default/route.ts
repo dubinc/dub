@@ -17,6 +17,7 @@ export const GET = withWorkspace(
         sptifi: true,
         gitnew: true,
         amznid: true,
+        figpage: true,
         loooooooong: true,
       },
     });
@@ -59,6 +60,7 @@ export const PUT = withWorkspace(
         sptifi: defaultDomains.includes("spti.fi"),
         gitnew: defaultDomains.includes("git.new"),
         amznid: defaultDomains.includes("amzn.id"),
+        figpage: defaultDomains.includes("fig.page"),
         loooooooong: defaultDomains.includes("loooooooo.ng"),
       },
     });

@@ -175,8 +175,8 @@ export async function processLink<T extends Record<string, any>>({
     if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
       return {
         link: payload,
-        error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
-          .map((d) => `\`${d}\``)
+        error: `Invalid URL. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+          .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
       };
