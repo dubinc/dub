@@ -5,15 +5,12 @@ import { DomainProps, UserProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
   Avatar,
-  CardList,
   CopyButton,
   LinkLogo,
-  QRCode,
   Switch,
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
-  useMediaQuery,
 } from "@dub/ui";
 import {
   Apple,
@@ -36,12 +33,10 @@ import {
   linkConstructor,
 } from "@dub/utils";
 import { formatDate } from "date-fns";
-import { AnimatePresence, motion } from "framer-motion";
 import { Mail } from "lucide-react";
-import { PropsWithChildren, useContext, useRef } from "react";
+import { PropsWithChildren, useRef } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
-import { useLinkQRModal } from "../modals/link-qr-modal";
 import { ResponseLink } from "./links-container";
 
 const quickViewSettings = [
@@ -56,10 +51,6 @@ const quickViewSettings = [
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain, key } = link;
-
-  const { isMobile } = useMediaQuery();
-
-  const { hovered } = useContext(CardList.Card.Context);
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -91,58 +82,30 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
           <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[44px]">
             <div className="flex items-center gap-2">
               <div className="min-w-0 text-gray-950">
-                <UnverifiedTooltip link={link}>
-                  <div className="flex items-center font-medium">
+                <div className="flex items-center gap-2">
+                  <UnverifiedTooltip link={link}>
                     <a
                       href={linkConstructor({ domain, key, pretty: false })}
                       target="_blank"
                       rel="noopener noreferrer"
                       title={linkConstructor({ domain, key, pretty: true })}
-                      className="truncate leading-6 text-gray-800 transition-colors hover:text-black"
+                      className="truncate font-semibold leading-6 text-gray-800 transition-colors hover:text-black"
                     >
                       {linkConstructor({ domain, key, pretty: true })}
                     </a>
-
-                    <AnimatePresence>
-                      {(hovered || isMobile) && (
-                        <motion.div
-                          initial={{
-                            width: 0,
-                            opacity: 0,
-                          }}
-                          animate={{
-                            width: "auto",
-                            opacity: 1,
-                          }}
-                          exit={{
-                            width: 0,
-                            opacity: 0,
-                          }}
-                          transition={{ duration: 0.15 }}
-                          className="-mt-px ml-1 flex translate-y-px items-center justify-end gap-1 overflow-visible [mask-image:linear-gradient(to_right,transparent,black_4px)]"
-                        >
-                          <div className="w-0" /> {/* Spacer for masking */}
-                          {hasQuickViewSettings && (
-                            <SettingsBadge link={link} />
-                          )}
-                          {link.comments && (
-                            <CommentsBadge comments={link.comments} />
-                          )}
-                          <CopyButton
-                            value={linkConstructor({
-                              domain,
-                              key,
-                              pretty: false,
-                            })}
-                            variant="neutral"
-                            className="p-1"
-                          />
-                          <QRCodeButton link={link} />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </UnverifiedTooltip>
+                  </UnverifiedTooltip>
+                  <CopyButton
+                    value={linkConstructor({
+                      domain,
+                      key,
+                      pretty: false,
+                    })}
+                    variant="neutral"
+                    className="p-1.5"
+                  />
+                  {hasQuickViewSettings && <SettingsBadge link={link} />}
+                  {link.comments && <CommentsBadge comments={link.comments} />}
+                </div>
               </div>
               <Details link={link} compact />
             </div>
@@ -219,8 +182,8 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
         )}
         side="bottom"
       >
-        <div className="rounded-full bg-gray-100 p-1 hover:bg-gray-200">
-          <Bolt className="h-3.5 w-3.5" />
+        <div className="rounded-full p-1.5 hover:bg-gray-100">
+          <Bolt className="size-3.5" />
         </div>
       </Tooltip>
     </div>
@@ -234,7 +197,7 @@ function CommentsBadge({ comments }: { comments: string }) {
         content={
           <div className="divide-y-gray-200 divide-y text-sm">
             <div className="flex items-center gap-2 px-4 py-3">
-              <Page2 className="h-3.5 w-3.5" />
+              <Page2 className="size-3.5" />
               <span className="text-gray-500">Link comments</span>
             </div>
             <p className="max-w-[300px] px-5 py-3 text-gray-700">{comments}</p>
@@ -242,29 +205,10 @@ function CommentsBadge({ comments }: { comments: string }) {
         }
         side="bottom"
       >
-        <div className="rounded-full bg-gray-100 p-1 hover:bg-gray-200">
-          <Page2 className="h-3.5 w-3.5" />
+        <div className="rounded-full p-1.5 hover:bg-gray-100">
+          <Page2 className="size-3.5" />
         </div>
       </Tooltip>
-    </div>
-  );
-}
-
-function QRCodeButton({ link }: { link: ResponseLink }) {
-  const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
-    props: link,
-  });
-
-  return (
-    <div className="hidden sm:block">
-      <LinkQRModal />
-      <button
-        type="button"
-        onClick={() => setShowLinkQRModal(true)}
-        className="rounded-full bg-gray-100 p-[5px] hover:bg-gray-200"
-      >
-        <QRCode className="h-3 w-3" />
-      </button>
     </div>
   );
 }
