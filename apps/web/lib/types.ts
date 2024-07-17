@@ -68,7 +68,22 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
+export type BetaFeatures = "conversions" | "integrations";
+
 export interface WorkspaceProps extends Project {
+  id: string;
+  name: string;
+  slug: string;
+  logo: string | null;
+  usage: number;
+  usageLimit: number;
+  aiUsage: number;
+  aiLimit: number;
+  linksUsage: number;
+  linksLimit: number;
+  domainsLimit: number;
+  tagsLimit: number;
+  usersLimit: number;
   plan: PlanProps;
   stripeId: string | null;
   billingCycleStart: number;
@@ -78,12 +93,15 @@ export interface WorkspaceProps extends Project {
     id: string;
     slug: string;
     primary: boolean;
+    verified: boolean;
   }[];
   users: {
     role: RoleProps;
   }[];
   inviteCode: string;
-  betaTester?: boolean;
+  flags?: {
+    [key in BetaFeatures]: boolean;
+  };
 }
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;

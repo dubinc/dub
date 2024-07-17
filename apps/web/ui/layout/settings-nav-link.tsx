@@ -31,7 +31,7 @@ export default function NavLink({
       key={href}
       href={href}
       className={cn(
-        "flex items-center gap-2.5 rounded-lg p-2 text-sm text-gray-950 outline-none transition-all duration-75",
+        "flex items-center gap-2.5 whitespace-nowrap rounded-lg p-2 text-sm text-gray-950 outline-none transition-all duration-75",
         "ring-black/50 focus-visible:ring-2",
         isSelected
           ? "bg-gray-950/5"
@@ -41,7 +41,7 @@ export default function NavLink({
       {Icon && (
         <Icon
           className={cn(
-            "h-4 w-4",
+            "h-4 w-4 shrink-0",
             isSelected ? "text-gray-950" : "text-gray-700",
           )}
         />

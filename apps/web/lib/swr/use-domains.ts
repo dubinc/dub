@@ -1,4 +1,5 @@
 import { DomainProps } from "@/lib/types";
+import { useRouterStuff } from "@dub/ui";
 import {
   DUB_DOMAINS,
   DUB_WORKSPACE_ID,
@@ -10,19 +11,22 @@ import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
 
 export default function useDomains({
-  id: workspaceId,
-  domain,
-}: { id?: string; domain?: string } = {}) {
-  let id: string | undefined = undefined;
-  if (workspaceId) {
-    id = workspaceId;
-  } else {
-    const { id: paramsId } = useWorkspace();
-    id = paramsId;
-  }
+  includeParams,
+}: {
+  includeParams?: boolean;
+} = {}) {
+  const { id: workspaceId } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
 
   const { data, error, mutate } = useSWR<DomainProps[]>(
-    id && `/api/domains?workspaceId=${id}`,
+    workspaceId &&
+      `/api/domains${
+        includeParams
+          ? getQueryString({
+              workspaceId,
+            })
+          : `?workspaceId=${workspaceId}`
+      }`,
     fetcher,
     {
       dedupingInterval: 60000,
@@ -32,7 +36,6 @@ export default function useDomains({
 
   const allWorkspaceDomains = data || [];
   const activeWorkspaceDomains = data?.filter((domain) => !domain.archived);
-  const archivedWorkspaceDomains = data?.filter((domain) => domain.archived);
 
   const activeDefaultDomains =
     (workspaceDefaultDomains &&
@@ -41,11 +44,11 @@ export default function useDomains({
 
   const allDomains = [
     ...allWorkspaceDomains,
-    ...(id === `ws_${DUB_WORKSPACE_ID}` ? [] : DUB_DOMAINS),
+    ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : DUB_DOMAINS),
   ];
   const allActiveDomains = [
     ...(activeWorkspaceDomains || []),
-    ...(id === `ws_${DUB_WORKSPACE_ID}` ? [] : activeDefaultDomains),
+    ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : activeDefaultDomains),
   ];
 
   const primaryDomain =
@@ -54,21 +57,13 @@ export default function useDomains({
         activeWorkspaceDomains[0].slug
       : SHORT_DOMAIN;
 
-  const verified = domain
-    ? // If a domain is passed, check if it's verified
-      allDomains.find((d) => d.slug === domain)?.verified
-    : // If no domain is passed, check if any of the workspace domains are verified
-      activeWorkspaceDomains?.some((d) => d.verified);
-
   return {
     activeWorkspaceDomains, // active workspace domains
-    archivedWorkspaceDomains, // archived workspace domains
     activeDefaultDomains, // active default Dub domains
     allWorkspaceDomains, // all workspace domains (active + archived)
     allActiveDomains, // all active domains (active workspace domains + active default Dub domains)
     allDomains, // all domains (all workspace domains + all default Dub domains)
     primaryDomain,
-    verified,
     loading: !data && !error,
     mutate,
     error,

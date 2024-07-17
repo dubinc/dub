@@ -3,11 +3,12 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { MaxWidthWrapper } from "@dub/ui";
-import { Suspense, useRef } from "react";
+import { Suspense } from "react";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
+import ArchivedLinksHint from "./archived-links-hint";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
-import LinkFilters, { SearchBox } from "./link-filters";
+import LinkFilters, { InputSearchBox } from "./link-filters";
 import LinkPagination from "./link-pagination";
 import LinkSort from "./link-sort";
 import NoLinksPlaceholder from "./no-links-placeholder";
@@ -20,7 +21,6 @@ export default function LinksContainer({
   const { links, isValidating } = useLinks();
   const { data: count } = useLinksCount();
   const { LinkFiltersButton, LinkFiltersModal } = useLinkFiltersModal();
-  const searchInputRef = useRef();
 
   return (
     <>
@@ -33,7 +33,7 @@ export default function LinksContainer({
           </Suspense>
         </div>
         <div className="block lg:hidden">
-          <SearchBox searchInputRef={searchInputRef} />
+          <InputSearchBox />
         </div>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
           <div className="scrollbar-hide sticky top-14 col-span-2 hidden max-h-[calc(100vh-80px)] self-start overflow-auto rounded-lg border border-gray-200 bg-white lg:block">
@@ -58,6 +58,9 @@ export default function LinksContainer({
                   <LinkCardPlaceholder key={i} />
                 ))
               )}
+              <Suspense>
+                <ArchivedLinksHint />
+              </Suspense>
             </ul>
             {count && count > 0 ? (
               <Suspense>

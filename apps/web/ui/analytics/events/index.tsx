@@ -19,11 +19,11 @@ export default function AnalyticsEvents({
   adminPage?: boolean;
   demoPage?: boolean;
 }) {
-  const { slug, betaTester } = useWorkspace();
+  const { slug, flags } = useWorkspace();
   const { searchParams } = useRouterStuff();
   const tab = searchParams.get("tab");
 
-  if (!betaTester) {
+  if (!flags?.conversions) {
     redirect(`/${slug}/analytics`);
   }
 

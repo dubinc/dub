@@ -29,6 +29,11 @@ export const updateUsage = async () => {
         select: {
           user: true,
         },
+        where: {
+          user: {
+            isMachine: false,
+          },
+        },
         orderBy: {
           createdAt: "asc",
         },

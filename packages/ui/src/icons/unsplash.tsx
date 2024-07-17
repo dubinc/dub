@@ -1,4 +1,4 @@
-export default function Unsplash({ className }: { className?: string }) {
+export function Unsplash({ className }: { className?: string }) {
   return (
     <svg
       width="32"

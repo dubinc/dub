@@ -17,6 +17,7 @@ export const GET = withWorkspace(
         sptifi: true,
         gitnew: true,
         amznid: true,
+        figpage: true,
         loooooooong: true,
       },
     });
@@ -34,7 +35,7 @@ export const GET = withWorkspace(
     return NextResponse.json(defaultDomainsArray);
   },
   {
-    requiredScopes: ["domains.read"],
+    requiredPermissions: ["domains.read"],
   },
 );
 
@@ -59,6 +60,7 @@ export const PUT = withWorkspace(
         sptifi: defaultDomains.includes("spti.fi"),
         gitnew: defaultDomains.includes("git.new"),
         amznid: defaultDomains.includes("amzn.id"),
+        figpage: defaultDomains.includes("fig.page"),
         loooooooong: defaultDomains.includes("loooooooo.ng"),
       },
     });
@@ -66,6 +68,6 @@ export const PUT = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["domains.write"],
+    requiredPermissions: ["domains.write"],
   },
 );

@@ -1,6 +1,9 @@
 import {
+  RESOURCES,
+  ResourceKeys,
   Scope,
-  resourcePermissions,
+  ScopeByResource,
+  getScopesByResourceForRole,
   scopePresets,
 } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -18,6 +21,7 @@ import {
 } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { SimpleTooltipContent } from "@dub/ui/src/tooltip";
+import { cn } from "@dub/utils";
 import {
   Dispatch,
   FormEvent,
@@ -57,7 +61,7 @@ function AddEditTokenModal({
   onTokenCreated?: (token: string) => void;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, logo, slug, betaTester } = useWorkspace();
+  const { id: workspaceId, logo, slug, role, isOwner, flags } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
   const [preset, setPreset] = useState<ScopePreset>("all_access");
 
@@ -124,6 +128,12 @@ function AddEditTokenModal({
   const buttonDisabled =
     (!name || token?.name === name) && token?.scopes === scopes;
 
+  const scopesByResources = transformScopesForUI(
+    getScopesByResourceForRole(role),
+  ).filter(
+    ({ key, betaFeature }) => !betaFeature || (flags && flags[key] === true),
+  );
+
   return (
     <>
       <Modal
@@ -181,21 +191,38 @@ function AddEditTokenModal({
                     />
                   </Label>
                 </div>
-                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                <div
+                  className={cn(
+                    "flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100",
+                    {
+                      "cursor-not-allowed opacity-75": !isOwner,
+                    },
+                  )}
+                >
                   <RadioGroupItem
                     value="machine"
                     id="machine"
                     className="ml-3"
+                    disabled={!isOwner}
                   />
                   <Label
                     htmlFor="machine"
-                    className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
+                    className={cn(
+                      "flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0",
+                      {
+                        "cursor-not-allowed": !isOwner,
+                      },
+                    )}
                   >
                     <p className="text-gray-600">Machine</p>
                     <InfoTooltip
                       content={
                         <SimpleTooltipContent
-                          title="A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
+                          title={
+                            isOwner
+                              ? "A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
+                              : "Only the workspace owner can create machine users."
+                          }
                           cta="Learn more"
                           href="https://dub.co/docs/api-reference/tokens#machine-users"
                         />
@@ -251,51 +278,46 @@ function AddEditTokenModal({
             </div>
             {preset === "restricted" && (
               <div className="flex flex-col divide-y text-sm">
-                {resourcePermissions
-                  .filter(
-                    // filter out beta features
-                    (resource) => !resource.betaFeature || betaTester,
-                  )
-                  .map((resource) => (
-                    <div
-                      className="flex items-center justify-between py-4"
-                      key={resource.key}
-                    >
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <p>{resource.name}</p>
-                        <InfoTooltip content={resource.description} />
-                      </div>
-                      <div>
-                        <RadioGroup
-                          defaultValue={scopes[resource.key] || ""}
-                          className="flex gap-4"
-                          onValueChange={(v: Scope) => {
-                            setData({
-                              ...data,
-                              scopes: {
-                                ...scopes,
-                                [resource.key]: v,
-                              },
-                            });
-                          }}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="" />
-                            <div>None</div>
-                          </div>
-                          {resource.permissions.map((permission) => (
-                            <div
-                              className="flex items-center space-x-2"
-                              key={permission.scope}
-                            >
-                              <RadioGroupItem value={permission.scope} />
-                              <div>{permission.permission}</div>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </div>
+                {scopesByResources.map((resource) => (
+                  <div
+                    className="flex items-center justify-between py-4"
+                    key={resource.key}
+                  >
+                    <div className="flex items-center gap-1.5 text-gray-500">
+                      <p>{resource.name}</p>
+                      <InfoTooltip content={resource.description} />
                     </div>
-                  ))}
+                    <div>
+                      <RadioGroup
+                        defaultValue={scopes[resource.key] || ""}
+                        className="flex gap-4"
+                        onValueChange={(v: Scope) => {
+                          setData({
+                            ...data,
+                            scopes: {
+                              ...scopes,
+                              [resource.key]: v,
+                            },
+                          });
+                        }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="" />
+                          <div>None</div>
+                        </div>
+                        {resource.scopes.map((scope) => (
+                          <div
+                            className="flex items-center space-x-2"
+                            key={scope.scope}
+                          >
+                            <RadioGroupItem value={scope.scope} />
+                            <div className="capitalize">{scope.type}</div>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </AnimatedSizeContainer>
@@ -370,3 +392,12 @@ export function useAddEditTokenModal(
     ],
   );
 }
+
+const transformScopesForUI = (scopedResources: ScopeByResource) => {
+  return Object.keys(scopedResources).map((resourceKey: ResourceKeys) => {
+    return {
+      ...RESOURCES.find((r) => r.key === resourceKey)!,
+      scopes: scopedResources[resourceKey],
+    };
+  });
+};

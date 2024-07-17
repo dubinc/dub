@@ -1,5 +1,5 @@
 import {
-  isBetaTester,
+  getFeatureFlags,
   isBlacklistedDomain,
   updateConfig,
 } from "@/lib/edge-config";
@@ -11,6 +11,7 @@ import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
   SHORT_DOMAIN,
+  combineWords,
   getApexDomain,
   getDomainWithoutWWW,
   getUrlFromString,
@@ -111,20 +112,18 @@ export async function processLink<T extends Record<string, any>>({
       geo ||
       doIndex
     ) {
-      const proFeaturesString = [
-        proxy && "custom social media cards",
-        password && "password protection",
-        rewrite && "link cloaking",
-        expiresAt && "link expiration",
-        ios && "iOS targeting",
-        android && "Android targeting",
-        geo && "geo targeting",
-        doIndex && "search engine indexing",
-      ]
-        .filter(Boolean)
-        .join(", ")
-        // final one should be "and" instead of comma
-        .replace(/, ([^,]*)$/, " and $1");
+      const proFeaturesString = combineWords(
+        [
+          proxy && "custom social media cards",
+          password && "password protection",
+          rewrite && "link cloaking",
+          expiresAt && "link expiration",
+          ios && "iOS targeting",
+          android && "Android targeting",
+          geo && "geo targeting",
+          doIndex && "search engine indexing",
+        ].filter(Boolean) as string[],
+      );
 
       return {
         link: payload,
@@ -176,8 +175,8 @@ export async function processLink<T extends Record<string, any>>({
     if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
       return {
         link: payload,
-        error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
-          .map((d) => `\`${d}\``)
+        error: `Invalid URL. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+          .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
       };
@@ -219,8 +218,10 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (trackConversion) {
-    if (!workspace || !(await isBetaTester(workspace.id))) {
+  if (trackConversion && workspace) {
+    const flags = await getFeatureFlags(workspace?.id);
+
+    if (!flags.conversions) {
       return {
         link: payload,
         error: "Conversion tracking is only available for beta testers.",

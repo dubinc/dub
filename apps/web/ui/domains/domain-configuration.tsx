@@ -1,7 +1,7 @@
 import { DomainVerificationStatusProps } from "@/lib/types";
-import { CopyButton } from "@dub/ui";
-import { getSubdomain } from "@dub/utils";
-import { useState } from "react";
+import { CircleInfo, CopyButton, TabSelect } from "@dub/ui";
+import { cn, getSubdomain } from "@dub/utils";
+import { Fragment, useState } from "react";
 
 export default function DomainConfiguration({
   data,
@@ -17,7 +17,7 @@ export default function DomainConfiguration({
       (x: any) => x.type === "TXT",
     );
     return (
-      <div className="border-t border-gray-200">
+      <div>
         <DnsRecord
           instructions={`Please set the following TXT record on <code>${domainJson.apexName}</code> to prove ownership of <code>${domainJson.name}</code>:`}
           records={[
@@ -38,7 +38,7 @@ export default function DomainConfiguration({
 
   if (data.status === "Conflicting DNS Records") {
     return (
-      <div className="border-t border-gray-200 pt-5">
+      <div className="pt-5">
         <div className="flex justify-start space-x-4">
           <div className="ease border-b-2 border-black pb-1 text-sm text-black transition-all duration-150">
             {configJson?.conflicts.some((x) => x.type === "A")
@@ -65,7 +65,7 @@ export default function DomainConfiguration({
           )}
         />
         <DnsRecord
-          instructions="Afterwards, set the following record on your DNS provider to continue:"
+          instructions="Afterwards, set the following record on your DNS provider:"
           records={[
             {
               type: recordType,
@@ -81,35 +81,26 @@ export default function DomainConfiguration({
 
   if (data.status === "Unknown Error") {
     return (
-      <div className="border-t border-gray-200 pt-5">
+      <div className="pt-5">
         <p className="mb-5 text-sm">{data.response.domainJson.error.message}</p>
       </div>
     );
   }
 
   return (
-    <div className="border-t border-gray-200 pt-5">
-      <div className="flex justify-start space-x-4">
-        <button
-          onClick={() => setRecordType("A")}
-          className={`${
-            recordType == "A"
-              ? "border-black text-black"
-              : "border-white text-gray-400"
-          } ease border-b-2 pb-1 text-sm transition-all duration-150`}
-        >
-          A Record{!subdomain && " (recommended)"}
-        </button>
-        <button
-          onClick={() => setRecordType("CNAME")}
-          className={`${
-            recordType == "CNAME"
-              ? "border-black text-black"
-              : "border-white text-gray-400"
-          } ease border-b-2 pb-1 text-sm transition-all duration-150`}
-        >
-          CNAME Record{subdomain && " (recommended)"}
-        </button>
+    <div className="pt-2">
+      <div className="-ml-1.5 border-b border-gray-200">
+        <TabSelect
+          options={[
+            { id: "A", label: `A Record${!subdomain ? " (recommended)" : ""}` },
+            {
+              id: "CNAME",
+              label: `CNAME Record${subdomain ? " (recommended)" : ""}`,
+            },
+          ]}
+          selected={recordType}
+          onSelect={setRecordType}
+        />
       </div>
 
       <DnsRecord
@@ -117,8 +108,7 @@ export default function DomainConfiguration({
           recordType === "A" ? "apex domain" : "subdomain"
         } <code>${
           recordType === "A" ? domainJson.apexName : domainJson.name
-        }</code>, set the following ${recordType} record on your DNS provider to
-              continue:`}
+        }</code>, set the following ${recordType} record on your DNS provider:`}
         records={[
           {
             type: recordType,
@@ -135,7 +125,7 @@ export default function DomainConfiguration({
 const MarkdownText = ({ text }: { text: string }) => {
   return (
     <p
-      className="prose-sm prose-code:rounded-md prose-code:bg-blue-100 prose-code:p-1 prose-code:text-[14px] prose-code:font-medium prose-code:font-mono prose-code:text-blue-900 my-5 max-w-none"
+      className="prose-sm prose-code:rounded-md prose-code:bg-gray-100 prose-code:p-1 prose-code:text-[.8125rem] prose-code:font-medium prose-code:font-mono prose-code:text-gray-900 max-w-none"
       dangerouslySetInnerHTML={{ __html: text }}
     />
   );
@@ -151,52 +141,67 @@ const DnsRecord = ({
   warning?: string;
 }) => {
   const hasTtl = records.some((x) => x.ttl);
+
   return (
-    <div className="my-3 text-left">
-      <MarkdownText text={instructions} />
-      <div className="flex items-center justify-start space-x-10 rounded-md bg-gray-50 p-2">
-        <div>
-          <p className="text-sm font-bold">Type</p>
-          {records.map((record) => (
-            <p key={record.type} className="mt-2 font-mono text-sm">
+    <div className="mt-3 text-left text-gray-600">
+      <div className="my-5">
+        <MarkdownText text={instructions} />
+      </div>
+      <div
+        className={cn(
+          "scrollbar-hide grid items-end gap-x-10 gap-y-1 overflow-x-auto rounded-lg bg-gray-100/80 p-4 text-sm",
+          hasTtl
+            ? "grid-cols-[repeat(4,min-content)]"
+            : "grid-cols-[repeat(3,min-content)]",
+        )}
+      >
+        {["Type", "Name", "Value"].concat(hasTtl ? "TTL" : []).map((s) => (
+          <p key={s} className="font-medium text-gray-950">
+            {s}
+          </p>
+        ))}
+
+        {records.map((record, idx) => (
+          <Fragment key={idx}>
+            <p key={record.type} className="font-mono">
               {record.type}
             </p>
-          ))}
-        </div>
-        <div>
-          <p className="text-sm font-bold">Name</p>
-          {records.map((record) => (
-            <p key={record.name} className="mt-2 font-mono text-sm">
+            <p key={record.name} className="font-mono">
               {record.name}
             </p>
-          ))}
-        </div>
-        <div>
-          <p className="text-sm font-bold">Value</p>
-          {records.map((record) => (
-            <p key={record.value} className="mt-2 font-mono text-sm">
-              {record.value} <CopyButton value={record.value} />
+            <p key={record.value} className="flex items-end gap-1 font-mono">
+              {record.value}{" "}
+              <CopyButton
+                variant="neutral"
+                className="-mb-0.5"
+                value={record.value}
+              />
             </p>
-          ))}
-        </div>
-        {hasTtl && (
-          <div>
-            <p className="text-sm font-bold">TTL</p>
-            {records.map((record) => (
-              <p key={record.ttl} className="mt-2 font-mono text-sm">
+            {hasTtl && (
+              <p key={record.ttl} className="font-mono">
                 {record.ttl}
               </p>
-            ))}
-          </div>
-        )}
+            )}
+          </Fragment>
+        ))}
       </div>
       {(warning || hasTtl) && (
-        <MarkdownText
-          text={
-            warning ||
-            "Note: for TTL, if <code>86400</code> is not available, set the highest value possible. Also, domain propagation can take anywhere between 1 hour to 12 hours."
-          }
-        />
+        <div
+          className={cn(
+            "mt-4 flex items-center gap-2 rounded-lg p-3",
+            warning
+              ? "bg-orange-50 text-orange-600"
+              : "bg-indigo-50 text-indigo-600",
+          )}
+        >
+          <CircleInfo className="h-5 w-5 shrink-0" />
+          <MarkdownText
+            text={
+              warning ||
+              "If a TTL value of 86400 is not available, choose the highest available value. Domain propagation may take up to 12 hours."
+            }
+          />
+        </div>
       )}
     </div>
   );

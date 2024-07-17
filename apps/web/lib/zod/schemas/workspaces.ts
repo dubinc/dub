@@ -59,6 +59,7 @@ export const WorkspaceSchema = z
         DomainSchema.pick({
           slug: true,
           primary: true,
+          verified: true,
         }),
       )
       .describe("The domains of the workspace."),
@@ -66,11 +67,11 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The invite code of the workspace."),
-    betaTester: z
-      .boolean()
+    flags: z
+      .record(z.boolean())
       .optional()
       .describe(
-        "Whether the workspace is enrolled in the beta testing program.",
+        "The feature flags of the workspace, indicating which features are enabled.",
       ),
   })
   .openapi({

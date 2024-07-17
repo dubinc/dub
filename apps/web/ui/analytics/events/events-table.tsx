@@ -4,8 +4,8 @@ import { editQueryString } from "@/lib/analytics/utils";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
+import Pagination from "@/ui/shared/pagination";
 import {
-  Button,
   CursorRays,
   LinkLogo,
   LoadingSpinner,
@@ -16,6 +16,7 @@ import {
 import { FilterBars, SortOrder } from "@dub/ui/src/icons";
 import {
   COUNTRIES,
+  PAGINATION_LIMIT,
   capitalize,
   cn,
   fetcher,
@@ -42,7 +43,6 @@ import EmptyState from "./empty-state";
 import ExportButton from "./export-button";
 import usePagination from "./use-pagination";
 
-const PAGE_SIZE = 100;
 const tableCellClassName =
   "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap";
 
@@ -139,6 +139,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
         href={
           queryParams({
             set,
+            del: "page",
             getNewPath: true,
           }) as string
         }
@@ -158,7 +159,7 @@ export default function EventsTable() {
   const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
-  const { pagination, setPagination } = usePagination(PAGE_SIZE);
+  const { pagination, setPagination } = usePagination(PAGINATION_LIMIT);
 
   const scrollContainer = useRef<HTMLDivElement>(null);
 
@@ -412,8 +413,7 @@ export default function EventsTable() {
     () =>
       editQueryString(originalQueryString, {
         event: tab,
-        offset: (pagination.pageIndex * pagination.pageSize).toString(),
-        limit: pagination.pageSize.toString(),
+        page: pagination.pageIndex.toString(),
         sortBy,
         order,
       }).toString(),
@@ -460,7 +460,7 @@ export default function EventsTable() {
             .map((c) => c.id)
             .join(","),
         },
-        ["offset", "limit"], // Remove offset and limit
+        ["page"],
       ),
     [queryString, table.getVisibleFlatColumns()],
   );
@@ -630,40 +630,11 @@ export default function EventsTable() {
               )}
             </div>
           )}
-          <div className="sticky bottom-0 flex items-center justify-between rounded-b-[inherit] border-t border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600">
-            <div>
-              <span className="hidden sm:inline-block">Viewing</span>{" "}
-              <span className="font-medium">
-                {pagination.pageIndex * pagination.pageSize + 1}-
-                {Math.min(
-                  pagination.pageIndex * pagination.pageSize +
-                    pagination.pageSize,
-                  table.getRowCount(),
-                )}
-              </span>{" "}
-              of{" "}
-              <span className="font-medium">
-                {table.getRowCount().toLocaleString()}
-              </span>{" "}
-              events
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                text="Previous"
-                className="h-7 px-2"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              />
-              <Button
-                variant="secondary"
-                text="Next"
-                className="h-7 px-2"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              />
-            </div>
-          </div>
+          <Pagination
+            pageSize={PAGINATION_LIMIT}
+            totalCount={totalEvents?.[tab] ?? 0}
+            unit="events"
+          />
 
           {/* Loading/error overlay */}
           <AnimatePresence>

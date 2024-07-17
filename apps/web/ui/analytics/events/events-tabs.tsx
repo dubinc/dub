@@ -29,7 +29,7 @@ export default function EventsTabs() {
   const tab = searchParams.get("tab") || "clicks";
   const { demoPage } = useContext(AnalyticsContext);
 
-  const { betaTester } = useWorkspace();
+  const { flags } = useWorkspace();
   const { baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
@@ -37,7 +37,7 @@ export default function EventsTabs() {
     [key in CompositeAnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demoPage || betaTester ? "composite" : "clicks",
+      event: demoPage || flags?.conversions ? "composite" : "clicks",
     })}`,
     fetcher,
     {
@@ -49,7 +49,7 @@ export default function EventsTabs() {
     useSWRImmutable<TimeseriesData>(
       `${baseApiPath}?${editQueryString(queryString, {
         groupBy: "timeseries",
-        event: demoPage || betaTester ? "composite" : "clicks",
+        event: demoPage || flags?.conversions ? "composite" : "clicks",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       })}`,
       fetcher,
@@ -68,7 +68,7 @@ export default function EventsTabs() {
         set: { tab: event },
         del: [
           // Reset pagination
-          "offset",
+          "page",
           // Reset sort if not possible
           ...(currentSort && !sortOptions.includes(currentSort)
             ? ["sort"]
@@ -86,49 +86,50 @@ export default function EventsTabs() {
 
   return (
     <div className="grid w-full grid-cols-3 gap-2 overflow-x-auto sm:gap-4">
-      {["clicks", ...(demoPage || betaTester ? ["leads", "sales"] : [])].map(
-        (event) => (
-          <button
-            key={event}
-            className={cn(
-              "flex justify-between gap-4 rounded-xl border bg-white px-5 py-4 text-left transition-[box-shadow] focus:outline-none",
-              tab === event
-                ? "border-black shadow-[0_0_0_1px_black_inset]"
-                : "border-gray-200 focus-visible:border-black",
-            )}
-            onClick={() => onEventTabClick(event)}
-          >
-            <div>
-              <p className="text-sm text-gray-600">{capitalize(event)}</p>
-              <div className="mt-2">
-                {totalEvents ? (
-                  <CountingNumbers
-                    as="p"
-                    className={cn(
-                      "text-2xl transition-opacity",
-                      isLoadingTotalEvents && "opacity-40",
-                    )}
-                  >
-                    {totalEvents?.[event] ?? 0}
-                  </CountingNumbers>
-                ) : (
-                  <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
-                )}
-              </div>
+      {[
+        "clicks",
+        ...(demoPage || flags?.conversions ? ["leads", "sales"] : []),
+      ].map((event) => (
+        <button
+          key={event}
+          className={cn(
+            "flex justify-between gap-4 rounded-xl border bg-white px-5 py-4 text-left transition-[box-shadow] focus:outline-none",
+            tab === event
+              ? "border-black shadow-[0_0_0_1px_black_inset]"
+              : "border-gray-200 focus-visible:border-black",
+          )}
+          onClick={() => onEventTabClick(event)}
+        >
+          <div>
+            <p className="text-sm text-gray-600">{capitalize(event)}</p>
+            <div className="mt-2">
+              {totalEvents ? (
+                <CountingNumbers
+                  as="p"
+                  className={cn(
+                    "text-2xl transition-opacity",
+                    isLoadingTotalEvents && "opacity-40",
+                  )}
+                >
+                  {totalEvents?.[event] ?? 0}
+                </CountingNumbers>
+              ) : (
+                <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
+              )}
             </div>
-            {timeseriesData && !isMobile && (
-              <div
-                className={cn(
-                  "relative h-full max-w-[140px] grow transition-opacity",
-                  isLoadingTimeseries && "opacity-40",
-                )}
-              >
-                <Chart data={timeseriesData} event={event} />
-              </div>
-            )}
-          </button>
-        ),
-      )}
+          </div>
+          {timeseriesData && !isMobile && (
+            <div
+              className={cn(
+                "relative h-full max-w-[140px] grow transition-opacity",
+                isLoadingTimeseries && "opacity-40",
+              )}
+            >
+              <Chart data={timeseriesData} event={event} />
+            </div>
+          )}
+        </button>
+      ))}
     </div>
   );
 }

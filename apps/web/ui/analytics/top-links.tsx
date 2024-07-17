@@ -44,7 +44,7 @@ export default function TopLinks() {
                   title:
                     !showUrls && d["shortLink"]
                       ? d["shortLink"].replace(/^https?:\/\//, "")
-                      : d.url,
+                      : d.url?.replace(/^https?:\/\//, ""),
                   href: queryParams({
                     set: {
                       ...(!showUrls

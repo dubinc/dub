@@ -94,7 +94,7 @@ model RestrictedToken {
   name       String
   hashedKey  String    @unique
   partialKey String
-  scopes     String? // space separated (Eg: "read:links write:links")
+  scopes     String? // space separated (Eg: "links:write", "domains:read")
   expires    DateTime?
   lastUsed   DateTime?
   rateLimit  Int       @default(600) // rate limit per minute
@@ -166,11 +166,14 @@ model ProjectInvite {
 
 model DefaultDomains {
   id          String  @id @default(cuid())
+  dublink     Boolean @default(false)
   dubsh       Boolean @default(true)
   chatgpt     Boolean @default(true)
   sptifi      Boolean @default(true)
   gitnew      Boolean @default(true)
   amznid      Boolean @default(true)
+  ggllink     Boolean @default(true)
+  figpage     Boolean @default(true)
   loooooooong Boolean @default(false)
   projectId   String  @unique
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -218,22 +221,11 @@ model Domain {
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
 
-  // TODO: Remove these columns after merging #977
-  target      String?
-  type        String    @default("redirect")
-  clicks      Int       @default(0)
-  lastClicked DateTime? // when the link was last clicked
-  publicStats Boolean   @default(false)
-  description String?
-  noindex     Boolean  @default(false)
-
   // these attributes will exist on both Link and Domain models
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index(projectId)
-  @@index(clicks(sort: Desc))
-  @@index(lastClicked)
   @@index(lastChecked(sort: Asc))
 }
 
@@ -303,6 +295,7 @@ model Link {
   @@index(trackConversion)
   @@index(proxy)
   @@index(password)
+  @@index(archived)
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
   @@index(lastClicked)

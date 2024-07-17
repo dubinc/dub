@@ -3,7 +3,7 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { PlanProps, WorkspaceProps } from "@/lib/types";
+import { BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -11,8 +11,13 @@ import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import { throwIfNoAccess } from "../api/tokens/permissions";
-import { Scope, roleScopesMapping } from "../api/tokens/scopes";
-import { isBetaTester } from "../edge-config";
+import {
+  PermissionAction,
+  Scope,
+  getPermissionsByRole,
+  mapScopesToPermissions,
+} from "../api/tokens/scopes";
+import { getFeatureFlags } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
 import type { Session } from "./utils";
@@ -25,7 +30,7 @@ interface WithWorkspaceEdgeHandler {
     headers,
     session,
     workspace,
-    scopes,
+    permissions,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -33,7 +38,7 @@ interface WithWorkspaceEdgeHandler {
     headers?: Record<string, string>;
     session: Session;
     workspace: WorkspaceProps;
-    scopes: Scope[];
+    permissions: PermissionAction[];
   }): Promise<Response | StreamingTextResponse>;
 }
 
@@ -52,15 +57,15 @@ export const withWorkspaceEdge = (
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
-    betaFeature, // if the action is a beta feature
-    requiredScopes = [],
+    featureFlag, // if the action needs a specific feature flag
+    requiredPermissions = [],
   }: {
     requiredPlan?: Array<PlanProps>;
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     needNotExceededAI?: boolean;
-    betaFeature?: boolean;
-    requiredScopes?: Scope[];
+    featureFlag?: BetaFeatures;
+    requiredPermissions?: PermissionAction[];
   } = {},
 ) => {
   return async (
@@ -88,7 +93,7 @@ export const withWorkspaceEdge = (
       let session: Session | undefined;
       let workspaceId: string | undefined;
       let workspaceSlug: string | undefined;
-      let scopes: Scope[] = [];
+      let permissions: PermissionAction[] = [];
       let token: any | null = null;
       const isRestrictedToken = apiKey?.startsWith("dub_");
 
@@ -239,6 +244,7 @@ export const withWorkspaceEdge = (
               id: true,
               slug: true,
               primary: true,
+              verified: true,
             },
           },
         },
@@ -252,24 +258,34 @@ export const withWorkspaceEdge = (
         });
       }
 
-      // Find scopes based on the token or user's role
-      if (token && "scopes" in token) {
-        scopes = (token.scopes?.split(" ") as Scope[]) || [];
-      } else {
-        scopes = roleScopesMapping[workspace.users[0].role];
+      // Machine users have owner role by default
+      // Only workspace owners can create machine users
+      if (session.user.isMachine) {
+        workspace.users[0].role = "owner";
+      }
+
+      permissions = getPermissionsByRole(workspace.users[0].role);
+
+      // Find the subset of permissions that the user has access to based on the token scopes
+      if (isRestrictedToken) {
+        const tokenScopes: Scope[] = token.scopes.split(" ") || [];
+        permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
+          permissions.includes(p),
+        );
       }
 
       // Check user has permission to make the action
       throwIfNoAccess({
-        scopes,
-        requiredScopes,
+        permissions,
+        requiredPermissions,
         workspaceId: workspace.id,
       });
 
       // beta feature checks
-      if (betaFeature) {
-        const betaTester = await isBetaTester(workspace.id);
-        if (!betaTester) {
+      if (featureFlag) {
+        const flags = await getFeatureFlags(workspace.id);
+
+        if (!flags[featureFlag]) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Beta feature.",
@@ -376,7 +392,7 @@ export const withWorkspaceEdge = (
         headers,
         session,
         workspace,
-        scopes,
+        permissions,
       });
     } catch (error) {
       return handleAndReturnErrorResponse(error, headers);

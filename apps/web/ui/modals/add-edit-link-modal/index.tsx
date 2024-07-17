@@ -21,9 +21,11 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
+import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import {
   DEFAULT_LINK_PROPS,
+  DUB_DOMAINS,
   cn,
   deepEqual,
   getApexDomain,
@@ -85,8 +87,7 @@ function AddEditLinkModal({
     aiUsage,
     aiLimit,
     mutate: mutateWorkspace,
-    betaTester,
-    plan,
+    flags,
   } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -94,7 +95,25 @@ function AddEditLinkModal({
   const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const { allActiveDomains: domains, primaryDomain, loading } = useDomains();
+  const { allActiveDomains, primaryDomain, allDomains, loading } = useDomains();
+
+  const domains = useMemo(() => {
+    // edge case where the link's current domain has been archived
+    if (
+      props?.domain &&
+      !allActiveDomains.find((domain) => domain.slug === props.domain)
+    ) {
+      const currentDomain = allDomains.find(
+        (domain) => domain.slug === props.domain,
+      );
+      if (currentDomain) {
+        return [...allActiveDomains, currentDomain].filter(Boolean);
+      } else {
+        return allActiveDomains;
+      }
+    }
+    return allActiveDomains;
+  }, [allDomains, allActiveDomains, props]);
 
   const [data, setData] = useState<LinkWithTagsProps>(
     props || duplicateProps || DEFAULT_LINK_PROPS,
@@ -376,7 +395,7 @@ function AddEditLinkModal({
           onScroll={handleScroll}
         >
           <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
-            <LinkLogo apexDomain={getApexDomain(url)} />
+            <LinkLogo apexDomain={getApexDomain(debouncedUrl)} />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
               {props ? `Edit ${shortLink}` : "Create a new link"}
             </h3>
@@ -484,15 +503,9 @@ function AddEditLinkModal({
                       />
                     )}
                   </div>
-                  {urlError ? (
-                    <p className="text-sm text-red-600" id="key-error">
-                      Invalid URL
-                    </p>
-                  ) : url ? (
-                    <div className="animate-text-appear text-xs font-normal text-gray-500">
-                      press <strong>Enter</strong> ↵ to submit
-                    </div>
-                  ) : null}
+                  <div className="animate-text-appear text-xs font-normal text-gray-500">
+                    press <strong>Enter</strong> ↵ to submit
+                  </div>
                 </div>
                 <div className="relative mt-2 flex rounded-md shadow-sm">
                   <input
@@ -527,6 +540,11 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
+                {urlError && (
+                  <p className="mt-2 text-sm text-red-600" id="key-error">
+                    {urlError}
+                  </p>
+                )}
               </div>
 
               {key !== "_root" && (
@@ -618,9 +636,12 @@ function AddEditLinkModal({
                           "Only letters, numbers, '-', '/', and emojis are allowed.",
                         );
                       }}
-                      onBlur={(e) =>
-                        e.target.value && runKeyChecks(e.target.value)
-                      }
+                      onBlur={(e) => {
+                        // if the key is changed, check if key exists
+                        if (e.target.value && props?.key !== e.target.value) {
+                          runKeyChecks(e.target.value);
+                        }
+                      }}
                       disabled={props && lockKey}
                       autoComplete="off"
                       className={cn(
@@ -694,8 +715,8 @@ function AddEditLinkModal({
                       </Tooltip>
                     )}
                   </div>
-                  {keyError &&
-                    (keyError.includes("Upgrade to Pro") ? (
+                  {keyError ? (
+                    keyError.includes("Upgrade to Pro") ? (
                       <p className="mt-2 text-sm text-red-600" id="key-error">
                         {keyError.split("Upgrade to Pro")[0]}
                         <span
@@ -712,7 +733,10 @@ function AddEditLinkModal({
                       <p className="mt-2 text-sm text-red-600" id="key-error">
                         {keyError}
                       </p>
-                    ))}
+                    )
+                  ) : (
+                    <DefaultDomainPrompt data={data} setData={setData} />
+                  )}
                 </div>
               )}
             </div>
@@ -734,7 +758,9 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 md:px-16">
               <TagsSection {...{ props, data, setData }} />
-              {betaTester && <ConversionSection {...{ data, setData }} />}
+              {flags?.conversions && (
+                <ConversionSection {...{ data, setData }} />
+              )}
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
@@ -779,6 +805,35 @@ function AddEditLinkModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function DefaultDomainPrompt({
+  data,
+  setData,
+}: {
+  data: LinkWithTagsProps;
+  setData: Dispatch<SetStateAction<LinkWithTagsProps>>;
+}) {
+  const apexDomain = getApexDomain(data.url);
+  const hostnameFor = DUB_DOMAINS.find((domain) =>
+    domain?.allowedHostnames?.includes(apexDomain),
+  );
+  const domain = hostnameFor?.slug;
+
+  if (!domain || data.domain === domain) return null;
+
+  return (
+    <button
+      className="flex items-center gap-1 p-2 text-xs text-gray-500 transition-all duration-75 hover:text-gray-700 active:scale-[0.98]"
+      onClick={() => setData({ ...data, domain })}
+      type="button"
+    >
+      <ArrowTurnRight2 className="size-3.5" />
+      <p>
+        Use <strong className="font-semibold">{domain}</strong> domain instead?
+      </p>
+    </button>
   );
 }
 

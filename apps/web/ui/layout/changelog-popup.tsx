@@ -6,12 +6,12 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://dub.co/blog/workspace-api-keys";
-const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/workspace-api-keys.jpg";
-const CHANGELOG_TITLE = "Introducing Workspace API Keys";
+const CHANGELOG_URL = "https://dub.co/blog/announcing-dub-api";
+const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/dub-api.jpg";
+const CHANGELOG_TITLE = "Announcing the Dub API GA";
 const CHANGELOG_DESCRIPTION =
-  "A new and improved way for you to build integrations with the Dub API.";
-const CHANGELOG_ID = "hideChangelogPopup07022024";
+  "We're excited to announce that the Dub API is now generally available, with native SDKs in the languages you love.";
+const CHANGELOG_ID = "hideChangelogPopup07092024";
 
 export default function ChangelogPopup() {
   return (
@@ -56,7 +56,7 @@ export function ChangelogPopupInner() {
           />
         </div>
         <div className="grid max-w-xs gap-1.5 p-4 text-center">
-          <p className="text-center text-sm font-semibold text-gray-800 underline-offset-4 group-hover:underline">
+          <p className="text-center font-semibold text-gray-800 underline-offset-4 group-hover:underline">
             {CHANGELOG_TITLE}
           </p>
           <p className="text-sm text-gray-500">{CHANGELOG_DESCRIPTION}</p>

@@ -95,7 +95,7 @@ export const POST = withWorkspaceEdge(
     return NextResponse.json(response);
   },
   {
-    betaFeature: true,
-    requiredScopes: ["conversions.write"],
+    featureFlag: "conversions",
+    requiredPermissions: ["conversions.write"],
   },
 );

@@ -1,7 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import { workspaceParamsSchema } from "../request";
 
 export const upsertLink: ZodOpenApiOperationObject = {
   operationId: "upsertLink",
@@ -10,9 +9,6 @@ export const upsertLink: ZodOpenApiOperationObject = {
   summary: "Upsert a link",
   description:
     "Upsert a link for the authenticated workspace by its URL. If a link with the same URL already exists, return it (or update it if there are any changes). Otherwise, a new link will be created.",
-  requestParams: {
-    query: workspaceParamsSchema,
-  },
   requestBody: {
     content: {
       "application/json": {

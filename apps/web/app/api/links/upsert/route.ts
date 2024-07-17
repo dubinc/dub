@@ -152,6 +152,6 @@ export const PUT = withWorkspace(
     }
   },
   {
-    requiredScopes: ["links.write"],
+    requiredPermissions: ["links.write"],
   },
 );

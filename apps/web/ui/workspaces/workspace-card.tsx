@@ -1,12 +1,12 @@
 "use client";
 
-import useDomains from "@/lib/swr/use-domains";
 import useUser from "@/lib/swr/use-user";
-import { DomainProps, WorkspaceProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
 import {
   Badge,
   BlurImage,
+  Globe2,
   InlineSnippet,
   NumberTooltip,
   Tooltip,
@@ -18,13 +18,7 @@ import {
   nFormatter,
   punycode,
 } from "@dub/utils";
-import {
-  BarChart2,
-  ExternalLink,
-  Globe,
-  Link2,
-  MinusCircle,
-} from "lucide-react";
+import { BarChart2, ExternalLink, Link2, MinusCircle } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
 import PlanBadge from "./plan-badge";
@@ -37,14 +31,8 @@ export default function WorkspaceCard({
   logo,
   usage,
   plan,
+  domains,
 }: WorkspaceProps) {
-  const {
-    allWorkspaceDomains: domains,
-    primaryDomain,
-    verified,
-    loading,
-  } = useDomains({ id });
-
   const { data: count } = useSWR<number>(
     `/api/links/count?workspaceId=${id}`,
     fetcher,
@@ -98,33 +86,33 @@ export default function WorkspaceCard({
               <h2 className="max-w-[200px] truncate text-lg font-medium text-gray-700">
                 {name}
               </h2>
-              {loading ? (
+              {!domains ? (
                 <div className="mt-1 flex items-center space-x-2">
                   <div className="h-5 w-20 animate-pulse rounded-md bg-gray-200" />
                   <div className="h-5 w-5 animate-pulse rounded-full bg-gray-200" />
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <p className="text-gray-500">{primaryDomain}</p>
+                  <p className="text-gray-500">
+                    {domains.length > 0
+                      ? domains.find((d) => d.primary)?.slug || domains[0].slug
+                      : "dub.sh"}
+                  </p>
                   <Tooltip
                     content={
                       <DomainsTooltip
                         domains={domains}
                         title={
                           domains.length === 0
-                            ? "No domains added yet – currently using Dub default domains."
-                            : verified === false
-                              ? "Please verify your domain to start adding links."
-                              : "Here are all the domains for this workspace."
+                            ? "No custom domains added yet – currently using Dub default domains."
+                            : "Here are all the domains for this workspace."
                         }
                         cta={
                           domains.length === 0
                             ? "Add Domain"
-                            : verified === false
-                              ? "Verify Domain"
-                              : `Manage Domain${domains.length > 1 ? "s" : ""}`
+                            : `Manage Domain${domains.length > 1 ? "s" : ""}`
                         }
-                        href={`/${slug}/domains`}
+                        href={`/${slug}/settings/domains`}
                       />
                     }
                   >
@@ -141,11 +129,9 @@ export default function WorkspaceCard({
                           fill="rgb(209 213 219)"
                           className="h-5 w-5 text-white"
                         />
-                      ) : verified ? (
+                      ) : (
                         <CheckCircleFill className="h-5 w-5 text-blue-500" />
-                      ) : verified === false ? (
-                        <XCircleFill className="h-5 w-5 text-gray-300" />
-                      ) : null}
+                      )}
                     </div>
                   </Tooltip>
                 </div>
@@ -156,8 +142,8 @@ export default function WorkspaceCard({
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1 text-gray-500">
-            <Globe className="h-4 w-4" />
-            {loading ? (
+            <Globe2 className="h-4 w-4" />
+            {!domains ? (
               <div className="h-4 w-16 animate-pulse rounded-md bg-gray-200" />
             ) : (
               <h2 className="whitespace-nowrap text-sm">
@@ -197,7 +183,7 @@ const DomainsTooltip = ({
   cta,
   href,
 }: {
-  domains: DomainProps[];
+  domains: { slug: string; verified: boolean }[];
   title: string;
   cta?: string;
   href: string;

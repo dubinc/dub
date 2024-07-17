@@ -12,6 +12,7 @@ import {
   Tick,
   useRouterStuff,
 } from "@dub/ui";
+import { SimpleTooltipContent, Tooltip } from "@dub/ui/src/tooltip";
 import {
   APP_DOMAIN,
   SELF_SERVE_PAID_PLANS,
@@ -114,10 +115,10 @@ function UpgradePlanModal({
         </motion.p>
       </motion.div>
       <div className="bg-gray-50 px-4 py-6 text-left sm:px-16">
-        <div className="flex w-full">
+        <div className="flex w-full gap-x-1">
           <Popover
             content={
-              <div className="w-full p-2 md:w-56">
+              <div className="w-full p-2 md:w-48">
                 {SELF_SERVE_PAID_PLANS.map(({ name, colors }, i) => (
                   <button
                     key={i}
@@ -151,7 +152,11 @@ function UpgradePlanModal({
           >
             <button
               onClick={() => setOpenPlanSelector(!openPlanSelector)}
-              className="mr-2 flex w-56 items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-[98%]"
+              className={cn(
+                "group flex h-10 w-full cursor-pointer appearance-none items-center justify-between gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all lg:w-48",
+                "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
+                "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+              )}
             >
               <IconMenu
                 text={selectedPlan.name}
@@ -177,7 +182,7 @@ function UpgradePlanModal({
           />
           <Popover
             content={
-              <div className="w-full p-2 md:w-36">
+              <div className="w-full p-2 md:w-48">
                 {PERIODS.map((p, i) => (
                   <button
                     key={i}
@@ -202,7 +207,11 @@ function UpgradePlanModal({
           >
             <button
               onClick={() => setOpenPeriodSelector(!openPeriodSelector)}
-              className="flex flex-1 items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-[98%]"
+              className={cn(
+                "group flex h-10 w-full cursor-pointer appearance-none items-center justify-between gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all lg:w-48",
+                "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
+                "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+              )}
             >
               <span className="text-sm text-gray-500">
                 {capitalize(period)}
@@ -250,14 +259,40 @@ function UpgradePlanModal({
             animate="show"
             className="my-4 flex flex-col space-y-2"
           >
-            {selectedPlan.features.map(({ text }, i) => (
+            {selectedPlan.name.startsWith("Business") && (
+              <motion.div
+                key="business-plan-feature"
+                variants={STAGGER_CHILD_VARIANTS}
+                className="text-sm text-gray-500"
+              >
+                Everything in Pro, plus:
+              </motion.div>
+            )}
+            {selectedPlan.features.map(({ text, footnote }, i) => (
               <motion.div
                 key={i}
                 variants={STAGGER_CHILD_VARIANTS}
                 className="flex items-center space-x-2 text-sm text-gray-500"
               >
                 <CheckCircleFill className="h-5 w-5 text-green-500" />
-                <span>{text}</span>
+
+                {footnote ? (
+                  <Tooltip
+                    content={
+                      typeof footnote === "string" ? (
+                        footnote
+                      ) : (
+                        <SimpleTooltipContent {...footnote} />
+                      )
+                    }
+                  >
+                    <p className="cursor-help text-gray-600 underline decoration-dotted underline-offset-2">
+                      {text}
+                    </p>
+                  </Tooltip>
+                ) : (
+                  <p className="text-gray-600">{text}</p>
+                )}
               </motion.div>
             ))}
           </motion.div>

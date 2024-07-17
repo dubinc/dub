@@ -35,7 +35,7 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredScopes: ["workspaces.read"],
+    requiredPermissions: ["workspaces.read"],
   },
 );
 
@@ -61,7 +61,7 @@ export const POST = withWorkspace(
     return NextResponse.json(data);
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
     requiredPlan: ["enterprise"],
   },
 );
@@ -86,6 +86,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(data);
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );

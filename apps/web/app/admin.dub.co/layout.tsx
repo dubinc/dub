@@ -46,7 +46,9 @@ export default async function AdminLayout({
           </div>
         </MaxWidthWrapper>
       </div>
-      {children}
+      <div className="flex flex-col items-center justify-center">
+        {children}
+      </div>
     </div>
   );
 }

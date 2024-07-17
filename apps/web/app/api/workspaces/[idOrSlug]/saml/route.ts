@@ -45,7 +45,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredScopes: ["workspaces.read"],
+    requiredPermissions: ["workspaces.read"],
   },
 );
 
@@ -69,7 +69,7 @@ export const POST = withWorkspace(
     return NextResponse.json(data);
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
     requiredPlan: ["enterprise"],
   },
 );
@@ -90,6 +90,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ response: "removed SAML connection" });
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );

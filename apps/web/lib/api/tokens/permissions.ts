@@ -1,34 +1,55 @@
+import { combineWords } from "@dub/utils";
+import { Role } from "@prisma/client";
 import { DubApiError } from "../errors";
-import { Scope, scopeMapping } from "./scopes";
+import { PERMISSIONS, PermissionAction } from "./scopes";
 
 // Check if the required scope is in the list of user scopes
 export const throwIfNoAccess = ({
-  scopes,
-  requiredScopes,
+  permissions,
+  requiredPermissions,
   workspaceId,
 }: {
-  scopes: Scope[];
-  requiredScopes: Scope[];
+  permissions: PermissionAction[]; // user or token permissions
+  requiredPermissions: PermissionAction[];
   workspaceId: string;
 }) => {
-  if (requiredScopes.length === 0) {
+  if (requiredPermissions.length === 0) {
     return;
   }
 
-  const userScopes: Scope[] = scopes
-    .map((scope) => scopeMapping[scope] || scope)
-    .flat();
+  const missingPermissions = requiredPermissions.filter(
+    (p) => !permissions.includes(p),
+  );
 
-  const missingScopes = requiredScopes
-    .filter((requiredScope) => !userScopes.includes(requiredScope))
-    .join(", ");
-
-  for (const requiredScope of requiredScopes) {
-    if (!userScopes.includes(requiredScope)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: `The provided key does not have the required permissions for this endpoint on the workspace 'ws_${workspaceId}'. Having the '${missingScopes}' permission would allow this request to continue.`,
-      });
-    }
+  if (missingPermissions.length === 0) {
+    return;
   }
+
+  throw new DubApiError({
+    code: "forbidden",
+    message: `The provided key does not have the required permissions for this endpoint on the workspace 'ws_${workspaceId}'. Having the '${missingPermissions.join(" ")}' permission would allow this request to continue.`,
+  });
+};
+
+export const clientAccessCheck = ({
+  action,
+  role,
+  customPermissionDescription,
+}: {
+  action: PermissionAction;
+  role: Role;
+  customPermissionDescription?: string;
+}) => {
+  const permission = PERMISSIONS.find((p) => p.action === action)!;
+  const allowedRoles = permission.roles;
+
+  if (allowedRoles.includes(role)) {
+    return {
+      error: false,
+    };
+  }
+
+  return {
+    error: `Only workspace ${combineWords(allowedRoles.map((r) => `${r}s`))} can ${customPermissionDescription || permission.description}.`,
+  };
 };

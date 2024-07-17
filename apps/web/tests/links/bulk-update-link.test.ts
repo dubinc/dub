@@ -89,8 +89,7 @@ test("PATCH /links/bulk", async (ctx) => {
 
   // third link will throw an error because git.new only allows certain destination URLs
   expect(links[2]).toStrictEqual({
-    error:
-      "Invalid url. You can only use git.new short links for URLs starting with `github.com`, `gist.github.com`.",
+    error: `Invalid URL. You can only use git.new short links for URLs starting with "github.com", "gist.github.com".`,
     code: "unprocessable_entity",
     link: expect.any(Object),
   });

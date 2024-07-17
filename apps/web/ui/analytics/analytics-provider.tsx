@@ -72,7 +72,7 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, betaTester } = useWorkspace();
+  const { id: workspaceId, slug, flags } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
@@ -106,7 +106,7 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const selectedTab: EventType = useMemo(() => {
-    if (!demoPage && !betaTester) return "clicks";
+    if (!demoPage && !flags?.conversions) return "clicks";
 
     const tab = searchParams.get("tab");
 
@@ -188,22 +188,26 @@ export default function AnalyticsProvider({
     [key in CompositeAnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demoPage || betaTester ? "composite" : "clicks",
+      event: demoPage || flags?.conversions ? "composite" : "clicks",
     })}`,
     fetcher,
     {
       onSuccess: () => setRequiresUpgrade(false),
       onError: (error) => {
-        if (error.status === 403) {
+        const errorMessage = JSON.parse(error.message)?.error.message;
+        if (
+          error.status === 403 &&
+          errorMessage.toLowerCase().includes("upgrade")
+        ) {
           toast.custom(() => (
             <UpgradeRequiredToast
               title="Upgrade for more analytics"
-              message={JSON.parse(error.message)?.error.message}
+              message={errorMessage}
             />
           ));
           setRequiresUpgrade(true);
         } else {
-          toast.error(JSON.parse(error.message)?.error.message);
+          toast.error(errorMessage);
         }
       },
       onErrorRetry: (error, ...args) => {

@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
-import { isBetaTester } from "@/lib/edge-config";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import {
   WorkspaceSchema,
@@ -12,7 +12,6 @@ import { NextResponse } from "next/server";
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
   async ({ workspace, headers }) => {
-    const betaTester = await isBetaTester(workspace.id);
     const domains = await prisma.domain.findMany({
       where: {
         projectId: workspace.id,
@@ -28,13 +27,13 @@ export const GET = withWorkspace(
         ...workspace,
         id: `ws_${workspace.id}`,
         domains,
-        betaTester,
+        flags: await getFeatureFlags(workspace.id),
       }),
       { headers },
     );
   },
   {
-    requiredScopes: ["workspaces.read"],
+    requiredPermissions: ["workspaces.read"],
   },
 );
 
@@ -71,13 +70,11 @@ export const PATCH = withWorkspace(
         });
       }
 
-      const betaTester = await isBetaTester(workspace.id);
-
       return NextResponse.json(
         WorkspaceSchema.parse({
           ...response,
           id: `ws_${response.id}`,
-          betaTester,
+          flags: await getFeatureFlags(workspace.id),
         }),
       );
     } catch (error) {
@@ -92,7 +89,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );
 
@@ -106,6 +103,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(workspace);
   },
   {
-    requiredScopes: ["workspaces.write"],
+    requiredPermissions: ["workspaces.write"],
   },
 );

@@ -1,7 +1,11 @@
 import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
-import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
+import {
+  DomainProps,
+  LinkWithTagsProps,
+  TagProps,
+  UserProps,
+} from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -112,7 +116,6 @@ export default function LinkCard({
   const { slug } = params;
 
   const { id: workspaceId, exceededClicks } = useWorkspace();
-  const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
   const entry = useIntersectionObserver(linkRef, {});
@@ -135,6 +138,15 @@ export default function LinkCard({
       },
       dedupingInterval: 60000,
     },
+  );
+
+  // only check domain verification status if not Dub default domain
+  const { data: { verified } = {}, isLoading } = useSWR<DomainProps>(
+    isVisible &&
+      !isDubDomain(domain) &&
+      workspaceId &&
+      `/api/domains/${domain}?workspaceId=${workspaceId}`,
+    fetcher,
   );
 
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
@@ -315,13 +327,13 @@ export default function LinkCard({
           */}
           <div className="ml-2 sm:ml-4">
             <div className="flex max-w-fit flex-wrap items-center gap-x-2">
-              {!verified && !loading ? (
+              {!isDubDomain(domain) && !verified && !isLoading ? (
                 <Tooltip
                   content={
                     <TooltipContent
                       title="Your branded links won't work until you verify your domain."
                       cta="Verify your domain"
-                      href={`/${slug}/domains`}
+                      href={`/${slug}/settings/domains`}
                     />
                   }
                 >
@@ -395,7 +407,7 @@ export default function LinkCard({
                 </BadgeTooltip>
               )}
             </div>
-            <div className="flex max-w-fit items-center space-x-1">
+            <div className="flex max-w-fit items-center gap-x-1">
               <Tooltip
                 content={
                   <div className="w-full p-4">
