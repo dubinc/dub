@@ -3,17 +3,9 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
-import {
-  MaxWidthWrapper,
-  Table,
-  useMediaQuery,
-  useRouterStuff,
-  useTable,
-} from "@dub/ui";
-import { PAGINATION_LIMIT } from "@dub/utils";
-import { ColumnDef } from "@tanstack/react-table";
+import { CardList, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import LinkCardPlaceholder from "./link-card-placeholder";
 import { LinkDetailsColumn } from "./link-details-column";
 import LinkNotFound from "./link-not-found";
 import { LinkTitleColumn } from "./link-title-column";
@@ -64,7 +56,7 @@ function LinksList({
 }) {
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
-  const currentPage = parseInt(searchParams?.get("page") || "1") || 1;
+  const page = (parseInt(searchParams?.get("page") || "1") || 1) - 1;
 
   const isFiltered = [
     "domain",
@@ -74,62 +66,51 @@ function LinksList({
     "showArchived",
   ].some((param) => searchParams.has(param));
 
-  const { isMobile } = useMediaQuery();
+  return loading || links?.length ? (
+    <div>
+      {/* Cards */}
+      <CardList variant={compact ? "compact" : "loose"} loading={loading}>
+        {links?.length
+          ? // Link cards
+            links.map((link) => (
+              <CardList.Card
+                key={link.id}
+                className="flex items-center gap-4 text-sm"
+              >
+                <div className="min-w-0 grow">
+                  <LinkTitleColumn link={link} />
+                </div>
+                <LinkDetailsColumn link={link} />
+              </CardList.Card>
+            ))
+          : // Loading placeholder cards
+            Array.from({ length: 6 }).map((_, idx) => (
+              <CardList.Card key={idx} className="flex items-center gap-4">
+                <LinkCardPlaceholder />
+              </CardList.Card>
+            ))}
+      </CardList>
 
-  const columns: ColumnDef<ResponseLink, any>[] = useMemo(
-    () => [
-      {
-        id: "link",
-        accessorFn: (d) => d,
-        cell: ({ getValue }) => (
-          <LinkTitleColumn link={getValue() as ResponseLink} />
-        ),
-        enableHiding: false,
-        size: 10000,
-      },
-      {
-        id: "details",
-        accessorFn: (d) => d,
-        cell: ({ getValue }) => (
-          <LinkDetailsColumn link={getValue() as ResponseLink} />
-        ),
-        size: isMobile ? 80 : 400,
-      },
-    ],
-    [isMobile],
-  );
-
-  const [pagination, setPagination] = useState({
-    pageIndex: currentPage - 1,
-    pageSize: PAGINATION_LIMIT,
-  });
-
-  useEffect(() => {
-    queryParams(
-      pagination.pageIndex === 0
-        ? { del: "page" }
-        : {
-            set: {
-              page: (pagination.pageIndex + 1).toString(),
-            },
-          },
-    );
-  }, [pagination]);
-
-  const { table, ...tableProps } = useTable({
-    variant: compact ? "compact-list" : "loose-list",
-    showColumnHeadings: false,
-    data: links ?? [],
-    loading,
-    columns,
-    pagination: pagination,
-    rowCount: count ?? 0,
-    onPaginationChange: setPagination,
-    resourceName: (plural) => `link${plural ? "s" : ""}`,
-  });
-
-  return links === undefined || links.length ? (
-    <Table table={table} {...tableProps} />
+      {/* Pagination */}
+      {!!links?.length && (
+        <CardList.Pagination
+          page={page}
+          onPageChange={(p) => {
+            const newPage = p(page);
+            queryParams(
+              newPage === 0
+                ? { del: "page" }
+                : {
+                    set: {
+                      page: (newPage + 1).toString(),
+                    },
+                  },
+            );
+          }}
+          totalCount={count ?? links.length}
+        />
+      )}
+    </div>
   ) : isFiltered ? (
     <LinkNotFound />
   ) : (
