@@ -273,7 +273,6 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
 
-      // @ts-ignore
       if (user?.lockedAt) {
         return false;
       }
