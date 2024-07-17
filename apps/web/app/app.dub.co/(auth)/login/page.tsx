@@ -22,7 +22,7 @@ export default function LoginPage() {
           Start creating short links with superpowers
         </p>
       </div>
-      <div className="flex flex-col  bg-gray-50 px-4 py-8 sm:px-16">
+      <div className="flex flex-col bg-gray-50 px-4 py-8 sm:px-16">
         <SignInWithEmailPassword />
         <div className="my-8 border-t border-gray-300 bg-red-300" />
         <div className="space-y-3">
