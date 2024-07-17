@@ -2,6 +2,7 @@ import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
+  CardList,
   Crosshairs,
   Tooltip,
   useIntersectionObserver,
@@ -11,7 +12,7 @@ import { CursorRays, InvoiceDollar, LinesY } from "@dub/ui/src/icons";
 import { cn, fetcher, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useContext, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
@@ -110,6 +111,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const [hoveredId, setHoveredId] = useState<string>("clicks");
   const hoveredValue = totalEvents?.[hoveredId];
 
+  const { variant } = useContext(CardList.Context);
+
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}`}
@@ -175,7 +178,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               key={id}
               href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${id}`}
               className={cn(
-                "flex items-center gap-1 px-1.5 py-0.5 transition-colors hover:bg-gray-100",
+                "flex items-center gap-1 px-1.5 py-0.5 transition-colors",
+                variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
                 className,
               )}
               onPointerEnter={() => setHoveredId(id)}
