@@ -21,7 +21,7 @@ model User {
   isMachine            Boolean   @default(false)
   passwordHash         String?
   invalidLoginAttempts Int       @default(0)
-  lockedUntil          DateTime?
+  lockedAt             DateTime?
 
   accounts         Account[]
   sessions         Session[]

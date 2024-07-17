@@ -267,6 +267,12 @@ export const authOptions: NextAuthOptions = {
       if (!user.email || (await isBlacklistedEmail(user.email))) {
         return false;
       }
+
+      // @ts-ignore
+      if (user?.lockedAt) {
+        return false;
+      }
+
       if (account?.provider === "google" || account?.provider === "github") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },

@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { User } from "@prisma/client";
-import { ACCOUN_LOCK_DURATION, MAX_LOGIN_ATTEMPTS } from "./constants";
+import { MAX_LOGIN_ATTEMPTS } from "./constants";
 
 export const incrementLoginAttempts = async (
   user: Pick<User, "id" | "email">,
 ) => {
-  const { invalidLoginAttempts, lockedUntil } = await prisma.user.update({
+  const { invalidLoginAttempts, lockedAt } = await prisma.user.update({
     where: { id: user.id },
     data: {
       invalidLoginAttempts: {
@@ -13,16 +13,16 @@ export const incrementLoginAttempts = async (
       },
     },
     select: {
-      lockedUntil: true,
+      lockedAt: true,
       invalidLoginAttempts: true,
     },
   });
 
-  if (!lockedUntil && invalidLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+  if (!lockedAt && invalidLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        lockedUntil: new Date(Date.now() + ACCOUN_LOCK_DURATION * 1000),
+        lockedAt: new Date(),
       },
     });
 
@@ -32,7 +32,7 @@ export const incrementLoginAttempts = async (
 
   return {
     invalidLoginAttempts,
-    lockedUntil,
+    lockedAt,
   };
 };
 
@@ -43,17 +43,6 @@ export const resetLoginAttempts = async (userId: string) => {
       invalidLoginAttempts: 0,
     },
   });
-};
-
-export const isAccountLocked = async (userId: string) => {
-  const { lockedUntil } = await prisma.user.findUniqueOrThrow({
-    where: { id: userId },
-    select: {
-      lockedUntil: true,
-    },
-  });
-
-  return lockedUntil && lockedUntil > new Date();
 };
 
 export const exceededLoginAttemptsThreshold = (
