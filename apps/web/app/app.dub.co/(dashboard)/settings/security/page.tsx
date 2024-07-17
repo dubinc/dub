@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { RequestSetPassword } from "./request-set-password";
 import { UpdatePassword } from "./update-password";
 
-export const dynamic = "auto";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export default async function SecurityPage() {
   const user = await getUser();
