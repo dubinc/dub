@@ -253,7 +253,7 @@ function QRCodeButton({ link }: { link: ResponseLink }) {
   });
 
   return (
-    <div className="sm:block">
+    <div className="hidden sm:block">
       <LinkQRModal />
       <button
         type="button"

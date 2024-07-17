@@ -6,10 +6,9 @@ import { LinkWithTagsProps, UserProps } from "@/lib/types";
 import { CardList, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import { Dispatch, SetStateAction, createContext, useState } from "react";
+import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
-import { LinkDetailsColumn } from "./link-details-column";
 import LinkNotFound from "./link-not-found";
-import { LinkTitleColumn } from "./link-title-column";
 import NoLinksPlaceholder from "./no-links-placeholder";
 
 export const linkViewModes = ["cards", "rows"] as const;
@@ -83,20 +82,10 @@ function LinksList({
       <CardList variant={compact ? "compact" : "loose"} loading={loading}>
         {links?.length
           ? // Link cards
-            links.map((link) => (
-              <CardList.Card
-                key={link.id}
-                className="flex items-center gap-4 text-sm"
-              >
-                <div className="min-w-0 grow">
-                  <LinkTitleColumn link={link} />
-                </div>
-                <LinkDetailsColumn link={link} />
-              </CardList.Card>
-            ))
+            links.map((link) => <LinkCard link={link} />)
           : // Loading placeholder cards
             Array.from({ length: 6 }).map((_, idx) => (
-              <CardList.Card key={idx} className="flex items-center gap-4">
+              <CardList.Card key={idx} innerClassName="flex items-center gap-4">
                 <LinkCardPlaceholder />
               </CardList.Card>
             ))}
