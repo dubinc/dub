@@ -191,6 +191,9 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
+        // TODO:
+        // Rate limit login attempts by IP address or email
+
         const user = await prisma.user.findUnique({
           where: { email },
           select: {
