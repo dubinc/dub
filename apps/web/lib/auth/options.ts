@@ -20,7 +20,6 @@ import { UserProps } from "../types";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
-  resetLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
 
@@ -229,7 +228,13 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        await resetLoginAttempts(user.id);
+        // Reset invalid login attempts
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            invalidLoginAttempts: 0,
+          },
+        });
 
         return {
           id: user.id,

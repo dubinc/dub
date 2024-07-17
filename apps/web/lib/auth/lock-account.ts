@@ -36,15 +36,6 @@ export const incrementLoginAttempts = async (
   };
 };
 
-export const resetLoginAttempts = async (userId: string) => {
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      invalidLoginAttempts: 0,
-    },
-  });
-};
-
 export const exceededLoginAttemptsThreshold = (
   user: Pick<User, "invalidLoginAttempts">,
 ) => {
