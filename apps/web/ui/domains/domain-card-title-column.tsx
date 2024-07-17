@@ -1,5 +1,6 @@
 import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/src/icons";
-import { cn, punycode } from "@dub/utils";
+import { cn, getPrettyUrl, punycode } from "@dub/utils";
+import { Star } from "lucide-react";
 
 export function DomainCardTitleColumn({
   domain,
@@ -41,12 +42,17 @@ export function DomainCardTitleColumn({
             {punycode(domain)}
           </a>
 
-          {primary && (
+          {primary ? (
             <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-sky-400/[.15] px-1.5 py-0.5 text-xs font-medium text-sky-600">
               <Flag2 className="hidden h-3 w-3 sm:block" />
               Primary
             </span>
-          )}
+          ) : defaultDomain && domain === "dub.link" ? (
+            <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-yellow-400/[.25] px-1.5 py-0.5 text-xs font-medium text-yellow-600">
+              <Star className="h-3 w-3" />
+              Premium
+            </span>
+          ) : null}
         </div>
         {(!defaultDomain || description) && (
           <div className="mt-1 flex items-center gap-1 text-xs">
@@ -62,9 +68,14 @@ export function DomainCardTitleColumn({
                 <ArrowTurnRight2 className="h-3 w-3 text-gray-400" />
                 {url !== undefined ? (
                   url ? (
-                    <span className="truncate text-gray-500" title={url}>
-                      {url}
-                    </span>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate text-gray-500 transition-all hover:text-gray-700 hover:underline hover:underline-offset-2"
+                    >
+                      {getPrettyUrl(url)}
+                    </a>
                   ) : (
                     <span className="truncate text-gray-400">
                       No redirect configured

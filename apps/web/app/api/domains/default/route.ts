@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
@@ -13,6 +14,7 @@ export const GET = withWorkspace(
       },
       select: {
         dubsh: true,
+        dublink: true,
         chatgpt: true,
         sptifi: true,
         gitnew: true,
@@ -50,12 +52,21 @@ export const PUT = withWorkspace(
       await req.json(),
     );
 
+    if (workspace.plan === "free" && defaultDomains.includes("dub.link")) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain.",
+      });
+    }
+
     const response = await prisma.defaultDomains.update({
       where: {
         projectId: workspace.id,
       },
       data: {
         dubsh: defaultDomains.includes("dub.sh"),
+        dublink: defaultDomains.includes("dub.link"),
         chatgpt: defaultDomains.includes("chatg.pt"),
         sptifi: defaultDomains.includes("spti.fi"),
         gitnew: defaultDomains.includes("git.new"),

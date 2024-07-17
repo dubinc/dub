@@ -69,7 +69,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "conversions" | "integrations";
+export type BetaFeatures = "conversions" | "integrations" | "dublink";
 
 export interface WorkspaceProps {
   id: string;
