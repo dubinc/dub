@@ -8,12 +8,24 @@ import {
   CardList,
   CopyButton,
   LinkLogo,
+  Switch,
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
   useMediaQuery,
 } from "@dub/ui";
-import { ArrowRight, Page2 } from "@dub/ui/src/icons";
+import {
+  Apple,
+  ArrowRight,
+  Bolt,
+  Cards,
+  CircleHalfDottedClock,
+  EarthPosition,
+  EyeSlash,
+  InputPassword,
+  Page2,
+  Robot,
+} from "@dub/ui/src/icons";
 import {
   cn,
   fetcher,
@@ -26,7 +38,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Mail } from "lucide-react";
 import { PropsWithChildren, useContext, useRef } from "react";
 import useSWR from "swr";
+import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
 import { ResponseLink } from "./links-container";
+
+const quickViewSettings = [
+  { label: "Custom Social Media Cards", icon: Cards, key: "proxy" },
+  { label: "Link Cloaking", icon: EyeSlash, key: "rewrite" },
+  { label: "Password Protection", icon: InputPassword, key: "password" },
+  { label: "Link Expiration", icon: CircleHalfDottedClock, key: "expiresAt" },
+  { label: "iOS Targeting", icon: Apple, key: "ios" },
+  { label: "Android Targeting", icon: Robot, key: "android" },
+  { label: "Geo Targeting", icon: EarthPosition, key: "geo" },
+];
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain } = link;
@@ -41,6 +64,8 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   // Use intersection observer for basic "virtualization" to improve transition performance
   const entry = useIntersectionObserver(ref, {});
   const isVisible = !!entry?.isIntersecting;
+
+  const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
   return (
     <div
@@ -65,11 +90,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
             <div className="flex items-center gap-2">
               <div className="min-w-0 text-gray-950">
                 <UnverifiedTooltip link={link}>
-                  <span
-                    className="flex items-center font-medium"
-                    title={`${domain}${path}`}
-                  >
-                    <span className="truncate leading-6">{domain + path}</span>
+                  <div className="flex items-center font-medium">
+                    <span
+                      title={`${domain}${path}`}
+                      className="truncate leading-6"
+                    >
+                      {domain + path}
+                    </span>
 
                     <AnimatePresence>
                       {(hovered || isMobile) && (
@@ -90,6 +117,9 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                           className="-mt-px ml-1 flex translate-y-px items-center justify-end gap-1 overflow-visible [mask-image:linear-gradient(to_right,transparent,black_4px)]"
                         >
                           <div className="w-0" /> {/* Spacer for masking */}
+                          {hasQuickViewSettings && (
+                            <SettingsBadge link={link} />
+                          )}
                           {link.comments && (
                             <CommentsBadge comments={link.comments} />
                           )}
@@ -101,7 +131,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </span>
+                  </div>
                 </UnverifiedTooltip>
               </div>
               <Details link={link} compact />
@@ -142,6 +172,48 @@ function UnverifiedTooltip({
     </Tooltip>
   ) : (
     children
+  );
+}
+
+function SettingsBadge({ link }: { link: ResponseLink }) {
+  const settings = quickViewSettings.filter(({ key }) => link?.[key]);
+
+  const { AddEditLinkModal, setShowAddEditLinkModal } = useAddEditLinkModal({
+    props: link,
+  });
+
+  return (
+    <div className="hidden sm:block">
+      <AddEditLinkModal />
+      <Tooltip
+        content={({ setOpen }) => (
+          <div className="flex w-[340px] flex-col p-3 text-sm">
+            {settings.map(({ label, icon: Icon }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  setShowAddEditLinkModal(true);
+                }}
+                className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-gray-100"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="h-4 w-4 text-gray-600" />
+                  <span className="text-gray-950">{label}</span>
+                </div>
+                <Switch checked />
+              </button>
+            ))}
+          </div>
+        )}
+        side="bottom"
+      >
+        <div className="rounded-full bg-gray-100 p-1 hover:bg-gray-200">
+          <Bolt className="h-3.5 w-3.5" />
+        </div>
+      </Tooltip>
+    </div>
   );
 }
 
