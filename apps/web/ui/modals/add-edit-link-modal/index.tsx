@@ -825,11 +825,14 @@ function DefaultDomainPrompt({
 
   return (
     <button
-      className="flex items-center gap-1 p-2 text-sm text-gray-500 transition-all duration-75 hover:text-gray-700 active:scale-[0.98]"
+      className="flex items-center gap-1 p-2 text-xs text-gray-500 transition-all duration-75 hover:text-gray-700 active:scale-[0.98]"
       onClick={() => setData({ ...data, domain })}
+      type="button"
     >
-      <ArrowTurnRight2 className="h-4 w-4" />
-      <p>Use the {domain} domain instead?</p>
+      <ArrowTurnRight2 className="size-3.5" />
+      <p>
+        Use <strong className="font-semibold">{domain}</strong> domain instead?
+      </p>
     </button>
   );
 }
