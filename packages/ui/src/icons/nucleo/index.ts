@@ -36,6 +36,7 @@ export * from "./lines-y";
 export * from "./magnifier";
 export * from "./mobile-phone";
 export * from "./office-building";
+export * from "./page2";
 export * from "./paintbrush";
 export * from "./pen-writing";
 export * from "./qrcode";

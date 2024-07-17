@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import { cva } from "class-variance-authority";
-import { PropsWithChildren, useContext } from "react";
+import { PropsWithChildren, createContext, useContext, useState } from "react";
 import { CardListContext } from "./card-list";
 
 const cardListCardVariants = cva(
@@ -17,15 +17,27 @@ const cardListCardVariants = cva(
   },
 );
 
+export const CardContext = createContext<{
+  hovered: boolean;
+}>({ hovered: false });
+
 export function CardListCard({
   className,
   children,
 }: PropsWithChildren<{ className?: string }>) {
   const { variant } = useContext(CardListContext);
 
+  const [hovered, setHovered] = useState(false);
+
   return (
-    <li className={cn(cardListCardVariants({ variant }), className)}>
-      {children}
+    <li
+      className={cn(cardListCardVariants({ variant }), className)}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+    >
+      <CardContext.Provider value={{ hovered }}>
+        {children}
+      </CardContext.Provider>
     </li>
   );
 }

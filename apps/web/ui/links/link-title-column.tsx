@@ -5,13 +5,15 @@ import { DomainProps, UserProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
   Avatar,
+  CardList,
   CopyButton,
   LinkLogo,
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
+  useMediaQuery,
 } from "@dub/ui";
-import { ArrowRight } from "@dub/ui/src/icons";
+import { ArrowRight, Page2 } from "@dub/ui/src/icons";
 import {
   cn,
   fetcher,
@@ -20,14 +22,19 @@ import {
   isDubDomain,
 } from "@dub/utils";
 import { formatDate } from "date-fns";
+import { AnimatePresence, motion } from "framer-motion";
 import { Mail } from "lucide-react";
-import { PropsWithChildren, useRef } from "react";
+import { PropsWithChildren, useContext, useRef } from "react";
 import useSWR from "swr";
 import { ResponseLink } from "./links-container";
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
-  const { url, domain, user, createdAt } = link;
+  const { url, domain } = link;
   const path = link.key === "_root" ? "" : `/${link.key}`;
+
+  const { isMobile } = useMediaQuery();
+
+  const { hovered } = useContext(CardList.Card.Context);
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -62,24 +69,45 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                     className="flex items-center font-medium"
                     title={`${domain}${path}`}
                   >
-                    <span className="truncate">{domain + path}</span>
+                    <span className="truncate leading-6">{domain + path}</span>
 
-                    <div className="transition-all group-hover/card:w-[22px] group-hover/card:translate-x-0 group-hover/card:opacity-100 sm:w-0 sm:-translate-x-1 sm:opacity-0">
-                      <CopyButton
-                        value={domain + path}
-                        variant="neutral"
-                        className="ml-1 translate-y-px p-0.5"
-                      />
-                    </div>
+                    <AnimatePresence>
+                      {(hovered || isMobile) && (
+                        <motion.div
+                          initial={{
+                            width: 0,
+                            opacity: 0,
+                          }}
+                          animate={{
+                            width: "auto",
+                            opacity: 1,
+                          }}
+                          exit={{
+                            width: 0,
+                            opacity: 0,
+                          }}
+                          transition={{ duration: 0.15 }}
+                          className="-mt-px ml-1 flex translate-y-px items-center justify-end gap-1 overflow-visible [mask-image:linear-gradient(to_right,transparent,black_4px)]"
+                        >
+                          <div className="w-0" /> {/* Spacer for masking */}
+                          {link.comments && (
+                            <CommentsBadge comments={link.comments} />
+                          )}
+                          <CopyButton
+                            value={domain + path}
+                            variant="neutral"
+                            className="p-1"
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </span>
                 </UnverifiedTooltip>
               </div>
               <Details link={link} compact />
             </div>
 
-            <div className="mt-1">
-              <Details link={link} />
-            </div>
+            <Details link={link} />
           </div>
         </>
       )}
@@ -117,12 +145,35 @@ function UnverifiedTooltip({
   );
 }
 
+function CommentsBadge({ comments }: { comments: string }) {
+  return (
+    <div className="hidden sm:block">
+      <Tooltip
+        content={
+          <div className="divide-y-gray-200 divide-y text-sm">
+            <div className="flex items-center gap-2 px-4 py-3">
+              <Page2 className="h-3.5 w-3.5" />
+              <span className="text-gray-500">Link comments</span>
+            </div>
+            <p className="max-w-[300px] px-5 py-3 text-gray-700">{comments}</p>
+          </div>
+        }
+        side="bottom"
+      >
+        <div className="rounded-full bg-gray-100 p-1 hover:bg-gray-200">
+          <Page2 className="h-3.5 w-3.5" />
+        </div>
+      </Tooltip>
+    </div>
+  );
+}
+
 function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
   const { url, user, createdAt } = link;
   return (
     <div
       className={cn(
-        "min-w-0 items-center gap-1.5 text-xs transition-[opacity,display] delay-[0s,150ms] duration-[150ms,0s] md:gap-3",
+        "min-w-0 items-center gap-1.5 text-sm transition-[opacity,display] delay-[0s,150ms] duration-[150ms,0s] md:gap-3",
         compact
           ? "hidden opacity-0 group-data-[variant=compact]/card-list:flex group-data-[variant=compact]/card-list:opacity-100"
           : "hidden opacity-0 group-data-[variant=loose]/card-list:flex group-data-[variant=loose]/card-list:opacity-100",
