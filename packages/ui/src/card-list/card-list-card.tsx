@@ -34,15 +34,13 @@ export function CardListCard({
 
   const [hovered, setHovered] = useState(false);
 
-  const InnerElement = onClick ? "button" : "div";
-
   return (
     <li
       className={cn(cardListCardVariants({ variant }), outerClassName)}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
     >
-      <InnerElement
+      <div
         className={cn(cardListCardInnerClassName, innerClassName)}
         onClick={
           onClick
@@ -69,7 +67,7 @@ export function CardListCard({
         <CardContext.Provider value={{ hovered }}>
           {children}
         </CardContext.Provider>
-      </InnerElement>
+      </div>
     </li>
   );
 }

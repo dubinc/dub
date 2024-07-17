@@ -131,9 +131,13 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               </span>{" "}
               {hoveredValue !== 1 ? hoveredId : hoveredId.slice(0, -1)}
             </p>
-            {hoveredId === "clicks" && link.lastClicked && (
+            {hoveredId === "clicks" && (
               <p className="mt-1 text-xs text-gray-500">
-                Last clicked {timeAgo(link.lastClicked, { withAgo: true })}
+                {link.lastClicked
+                  ? `Last clicked ${timeAgo(link.lastClicked, {
+                      withAgo: true,
+                    })}`
+                  : "No clicks recorded yet"}
               </p>
             )}
           </div>
@@ -141,7 +145,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
       }
       side="bottom"
     >
-      <div className="overflow-hidden rounded-md bg-gray-100 text-sm text-gray-950">
+      <div className="overflow-hidden rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800">
         <div className="hidden items-center sm:flex">
           {[
             {
@@ -171,7 +175,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               key={id}
               href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${id}`}
               className={cn(
-                "flex items-center gap-1 px-1.5 py-0.5 transition-colors hover:bg-gray-200",
+                "flex items-center gap-1 px-1.5 py-0.5 transition-colors hover:bg-gray-100",
                 className,
               )}
               onPointerEnter={() => setHoveredId(id)}
