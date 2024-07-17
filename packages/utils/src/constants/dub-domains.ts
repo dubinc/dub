@@ -15,6 +15,18 @@ export const DUB_DOMAINS = [
   ...(process.env.NEXT_PUBLIC_IS_DUB
     ? [
         {
+          id: "clxp3lfsb00011na8tfs7t0lx",
+          slug: "dub.link",
+          verified: true,
+          primary: false,
+          archived: false,
+          placeholder: "https://dub.co/help/article/what-is-dub",
+          allowedHostnames: [],
+          description:
+            "Premium short domain on Dub – only available on our Pro plan and above.",
+          projectId: DUB_WORKSPACE_ID,
+        },
+        {
           id: "clce1z7cs00y8rbstk4xtnj0k",
           slug: "chatg.pt",
           verified: true,
