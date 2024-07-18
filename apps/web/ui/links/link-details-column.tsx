@@ -1,5 +1,6 @@
 import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { TagProps } from "@/lib/types";
 import {
   AnimatedSizeContainer,
   CardList,
@@ -7,12 +8,19 @@ import {
   Tooltip,
   useIntersectionObserver,
   useMediaQuery,
+  useRouterStuff,
 } from "@dub/ui";
 import { CursorRays, InvoiceDollar, LinesY } from "@dub/ui/src/icons";
 import { cn, fetcher, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useContext, useMemo, useRef, useState } from "react";
+import {
+  PropsWithChildren,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useSWR from "swr";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
@@ -46,6 +54,8 @@ function useOrganizedTags(tags: ResponseLink["tags"]) {
 export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   const { tags } = link;
 
+  const { queryParams } = useRouterStuff();
+
   const ref = useRef<HTMLDivElement>(null);
   const entry = useIntersectionObserver(ref, {});
   const isVisible = !!entry?.isIntersecting;
@@ -57,30 +67,65 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
       {isVisible && (
         <>
           {primaryTag && (
-            <Tooltip
-              content={
-                <div className="flex flex-wrap gap-1.5 p-3">
-                  {tags.map((tag) => (
-                    <TagBadge key={tag.id} {...tag} />
-                  ))}
-                </div>
-              }
-              side="bottom"
-            >
-              <div className="cursor-default transition-transform hover:scale-105">
-                <TagBadge
-                  withIcon
-                  {...primaryTag}
-                  plus={additionalTags.length}
-                />
-              </div>
-            </Tooltip>
+            <TagsTooltip additionalTags={additionalTags}>
+              <TagButton tag={primaryTag} plus={additionalTags.length} />
+            </TagsTooltip>
           )}
           <AnalyticsBadge link={link} />
           <LinkControls link={link} />
         </>
       )}
     </div>
+  );
+}
+
+function TagsTooltip({
+  additionalTags,
+  children,
+}: PropsWithChildren<{ additionalTags: TagProps[] }>) {
+  return !!additionalTags.length ? (
+    <Tooltip
+      content={
+        <div className="flex flex-wrap gap-1.5 p-3">
+          {additionalTags.map((tag) => (
+            <TagButton key={tag.id} tag={tag} />
+          ))}
+        </div>
+      }
+      side="bottom"
+    >
+      <div>{children}</div>
+    </Tooltip>
+  ) : (
+    children
+  );
+}
+
+function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
+  const { queryParams } = useRouterStuff();
+  const searchParams = useSearchParams();
+
+  const selectedTagIds =
+    searchParams?.get("tagIds")?.split(",")?.filter(Boolean) ?? [];
+
+  return (
+    <button
+      onClick={() => {
+        let newTagIds = selectedTagIds.includes(tag.id)
+          ? selectedTagIds.filter((id) => id !== tag.id)
+          : [...selectedTagIds, tag.id];
+
+        queryParams({
+          set: {
+            tagIds: newTagIds.join(","),
+          },
+          del: [...(newTagIds.length ? [] : ["tagIds"])],
+        });
+      }}
+      className="transition-all duration-75 hover:scale-105 active:scale-100"
+    >
+      <TagBadge {...tag} withIcon plus={plus} />
+    </button>
   );
 }
 

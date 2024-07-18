@@ -100,7 +100,11 @@ function LinksList({
             links.map((link) => <LinkCard link={link} />)
           : // Loading placeholder cards
             Array.from({ length: 6 }).map((_, idx) => (
-              <CardList.Card key={idx} innerClassName="flex items-center gap-4">
+              <CardList.Card
+                key={idx}
+                outerClassName="pointer-events-none"
+                innerClassName="flex items-center gap-4"
+              >
                 <LinkCardPlaceholder />
               </CardList.Card>
             ))}
