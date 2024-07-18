@@ -78,21 +78,22 @@ export function useLinkFilters() {
         key: "userId",
         icon: User,
         label: "Creator",
-        options: users?.map(({ id, name, image, count }) => ({
-          value: id,
-          label: name,
-          icon: image ? (
-            <Avatar
-              user={{
-                id,
-                name,
-                image,
-              }}
-              className="h-4 w-4"
-            />
-          ) : null,
-          right: count,
-        })),
+        options:
+          users?.map(({ id, name, image, count }) => ({
+            value: id,
+            label: name,
+            icon: (
+              <Avatar
+                user={{
+                  id,
+                  name,
+                  image,
+                }}
+                className="h-4 w-4"
+              />
+            ),
+            right: count,
+          })) ?? null,
       },
     ];
   }, [domains, tags, users]);
