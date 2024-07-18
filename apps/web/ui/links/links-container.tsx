@@ -4,16 +4,14 @@ import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
 import {
-  Button,
   CardList,
   MaxWidthWrapper,
-  Tooltip,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { BoxArchive } from "@dub/ui/src/icons";
 import { useSearchParams } from "next/navigation";
 import { Dispatch, SetStateAction, createContext, useState } from "react";
+import ArchivedLinksHint from "./archived-links-hint";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkNotFound from "./link-not-found";
@@ -129,43 +127,7 @@ function LinksList({
           totalCount={count ?? links.length}
           resourceName={(plural) => `${plural ? "links" : "link"}`}
         >
-          {!!archivedCount && !isMobile && (
-            <Tooltip
-              side="top"
-              content={
-                <div className="px-3 py-2 text-sm text-gray-500">
-                  <div className="flex items-center gap-4">
-                    <span>
-                      <span className="font-medium text-gray-950">
-                        {archivedCount}
-                      </span>{" "}
-                      archived link{archivedCount !== 1 && "s"} that match
-                      {archivedCount === 1 && "es"} the applied filters
-                    </span>
-                    <div>
-                      <Button
-                        className="h-6 px-2"
-                        variant="secondary"
-                        text="Show archived links"
-                        onClick={() =>
-                          queryParams({
-                            set: {
-                              showArchived: "true",
-                            },
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-              }
-            >
-              <div className="flex cursor-default items-center gap-1.5 rounded-md bg-gray-100 px-2 py-0.5 text-sm font-medium text-gray-950 hover:bg-gray-200">
-                <BoxArchive className="h-3 w-3" />
-                {archivedCount}
-              </div>
-            </Tooltip>
-          )}
+          <ArchivedLinksHint />
         </CardList.Pagination>
       )}
     </LinksListContext.Provider>
