@@ -364,7 +364,12 @@ function FilterButton({
         "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
         "data-[selected=true]:bg-gray-100",
       )}
-      onSelect={onSelect}
+      onPointerDown={(e) => {
+        e.preventDefault();
+      }}
+      onPointerUp={(e) => {
+        onSelect();
+      }}
       value={label}
     >
       <span className="shrink-0 text-gray-600">
