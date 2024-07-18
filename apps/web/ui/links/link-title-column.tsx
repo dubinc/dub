@@ -33,9 +33,10 @@ import {
   isDubDomain,
   linkConstructor,
 } from "@dub/utils";
+import * as HoverCard from "@radix-ui/react-hover-card";
 import { formatDate } from "date-fns";
 import { Mail } from "lucide-react";
-import { PropsWithChildren, useRef } from "react";
+import { PropsWithChildren, useRef, useState } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
 import { ResponseLink } from "./links-container";
@@ -159,37 +160,45 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
     props: link,
   });
 
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="hidden sm:block">
       <AddEditLinkModal />
-      <Tooltip
-        content={({ setOpen }) => (
-          <div className="flex w-[340px] flex-col p-3 text-sm">
-            {settings.map(({ label, icon: Icon }) => (
-              <button
-                key={label}
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  setShowAddEditLinkModal(true);
-                }}
-                className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-gray-100"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="h-4 w-4 text-gray-600" />
-                  <span className="text-gray-950">{label}</span>
-                </div>
-                <Switch checked />
-              </button>
-            ))}
+      <HoverCard.Root open={open} onOpenChange={setOpen} openDelay={0}>
+        <HoverCard.Portal>
+          <HoverCard.Content
+            side="bottom"
+            sideOffset={8}
+            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+          >
+            <div className="flex w-[340px] flex-col p-3 text-sm">
+              {settings.map(({ label, icon: Icon }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setShowAddEditLinkModal(true);
+                  }}
+                  className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-gray-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-4 w-4 text-gray-600" />
+                    <span className="text-gray-950">{label}</span>
+                  </div>
+                  <Switch checked />
+                </button>
+              ))}
+            </div>
+          </HoverCard.Content>
+        </HoverCard.Portal>
+        <HoverCard.Trigger asChild>
+          <div className="rounded-full p-1.5 hover:bg-gray-100">
+            <Bolt className="size-3.5" />
           </div>
-        )}
-        side="bottom"
-      >
-        <div className="rounded-full p-1.5 hover:bg-gray-100">
-          <Bolt className="size-3.5" />
-        </div>
-      </Tooltip>
+        </HoverCard.Trigger>
+      </HoverCard.Root>
     </div>
   );
 }
@@ -197,22 +206,30 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
 function CommentsBadge({ comments }: { comments: string }) {
   return (
     <div className="hidden sm:block">
-      <Tooltip
-        content={
-          <div className="divide-y-gray-200 divide-y text-sm">
-            <div className="flex items-center gap-2 px-4 py-3">
-              <Page2 className="size-3.5" />
-              <span className="text-gray-500">Link comments</span>
+      <HoverCard.Root openDelay={0}>
+        <HoverCard.Portal>
+          <HoverCard.Content
+            side="bottom"
+            sideOffset={8}
+            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+          >
+            <div className="divide-y-gray-200 divide-y text-sm">
+              <div className="flex items-center gap-2 px-4 py-3">
+                <Page2 className="size-3.5" />
+                <span className="text-gray-500">Link comments</span>
+              </div>
+              <p className="max-w-[300px] px-5 py-3 text-gray-700">
+                {comments}
+              </p>
             </div>
-            <p className="max-w-[300px] px-5 py-3 text-gray-700">{comments}</p>
+          </HoverCard.Content>
+        </HoverCard.Portal>
+        <HoverCard.Trigger asChild>
+          <div className="rounded-full p-1.5 hover:bg-gray-100">
+            <Page2 className="size-3.5" />
           </div>
-        }
-        side="bottom"
-      >
-        <div className="rounded-full p-1.5 hover:bg-gray-100">
-          <Page2 className="size-3.5" />
-        </div>
-      </Tooltip>
+        </HoverCard.Trigger>
+      </HoverCard.Root>
     </div>
   );
 }
