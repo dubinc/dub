@@ -4,6 +4,7 @@ import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
 import {
   Button,
+  CardList,
   IconMenu,
   PenWriting,
   Popover,
@@ -22,6 +23,8 @@ import { LinksListContext, ResponseLink } from "./links-container";
 
 export function LinkControls({ link }: { link: ResponseLink }) {
   const { slug } = useParams() as { slug?: string };
+
+  const { hovered } = useContext(CardList.Card.Context);
 
   const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
   const openPopover = openMenuLinkId === link.id;
@@ -76,10 +79,17 @@ export function LinkControls({ link }: { link: ResponseLink }) {
 
   const onKeyDown = (e: any) => {
     const key = e.key.toLowerCase();
+    const existingModalBackdrop = document.getElementById("modal-backdrop");
     // only run shortcut logic if:
-    // - the 3 dots menu is open or the link card is hovered
+    // - there's no active opened modal
+    // - the 3 dots menu is open
+    // - the link card is hovered and
     // - the key pressed is one of the shortcuts
-    if (openPopover && ["e", "d", "q", "a", "t", "i", "x"].includes(key)) {
+    if (
+      !existingModalBackdrop &&
+      (openPopover || (hovered && openMenuLinkId === null)) &&
+      ["e", "d", "q", "a", "t", "i", "x"].includes(key)
+    ) {
       e.preventDefault();
       setOpenPopover(false);
       switch (key) {

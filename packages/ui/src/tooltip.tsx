@@ -17,13 +17,12 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export interface TooltipProps {
-  children: ReactNode;
+export interface TooltipProps
+  extends Omit<TooltipPrimitive.TooltipContentProps, "content"> {
   content:
     | ReactNode
     | string
     | ((props: { setOpen: (open: boolean) => void }) => ReactNode);
-  side?: "top" | "bottom" | "left" | "right";
 }
 
 export function Tooltip({ children, content, side = "top" }: TooltipProps) {

@@ -54,8 +54,6 @@ function useOrganizedTags(tags: ResponseLink["tags"]) {
 export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   const { tags } = link;
 
-  const { queryParams } = useRouterStuff();
-
   const ref = useRef<HTMLDivElement>(null);
   const entry = useIntersectionObserver(ref, {});
   const isVisible = !!entry?.isIntersecting;
@@ -93,6 +91,7 @@ function TagsTooltip({
         </div>
       }
       side="bottom"
+      align="end"
     >
       <div>{children}</div>
     </Tooltip>
@@ -122,7 +121,6 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
           del: [...(newTagIds.length ? [] : ["tagIds"])],
         });
       }}
-      className="transition-all duration-75 hover:scale-105 active:scale-100"
     >
       <TagBadge {...tag} withIcon plus={plus} />
     </button>
