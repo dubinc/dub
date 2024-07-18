@@ -44,6 +44,10 @@ export async function getLinksCount({
       groupBy !== "domain" && {
         domain,
       }),
+    ...(userId &&
+      groupBy !== "userId" && {
+        userId,
+      }),
   };
 
   if (groupBy === "tagId") {
@@ -86,7 +90,7 @@ export async function getLinksCount({
           : {}),
     };
 
-    if (groupBy === "domain") {
+    if (groupBy === "domain" || groupBy === "userId") {
       return await prisma.link.groupBy({
         by: [groupBy],
         where,

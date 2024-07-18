@@ -1,9 +1,9 @@
 import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
-import useUser from "@/lib/swr/use-user";
+import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
+import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
 import { DUB_WORKSPACE_ID, GOOGLE_FAVICON_URL, cn } from "@dub/utils";
 import { useMemo } from "react";
 import { COLORS_LIST } from "./tag-badge";
@@ -11,7 +11,7 @@ import { COLORS_LIST } from "./tag-badge";
 export function useLinkFilters() {
   const domains = useDomainFilterOptions();
   const tags = useTagFilterOptions();
-  const { user } = useUser();
+  const users = useUserFilterOptions();
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
@@ -74,23 +74,28 @@ export function useLinkFilters() {
             right: count,
           })) ?? null,
       },
-      ...(user?.id
-        ? [
-            {
-              key: "userId",
-              icon: User,
-              label: "Creator",
-              options: [
-                {
-                  value: user?.id,
-                  label: "Me",
-                },
-              ],
-            },
-          ]
-        : []),
+      {
+        key: "userId",
+        icon: User,
+        label: "Creator",
+        options: users?.map(({ id, name, image, count }) => ({
+          value: id,
+          label: name,
+          icon: image ? (
+            <Avatar
+              user={{
+                id,
+                name,
+                image,
+              }}
+              className="h-4 w-4"
+            />
+          ) : null,
+          right: count,
+        })),
+      },
     ];
-  }, [domains, tags]);
+  }, [domains, tags, users]);
 
   const selectedTagIds = useMemo(
     () => searchParamsObj["tagIds"]?.split(",")?.filter(Boolean) ?? [],
@@ -195,5 +200,22 @@ function useTagFilterOptions() {
         }))
         .sort((a, b) => b.count - a.count) ?? null,
     [tags, tagsCount],
+  );
+}
+
+function useUserFilterOptions() {
+  const { users } = useUsers();
+  const { data: usersCount } = useLinksCount({ groupBy: "userId" });
+
+  return useMemo(
+    () =>
+      users
+        ?.map((user) => ({
+          ...user,
+          count:
+            usersCount?.find(({ userId }) => userId === user.id)?._count || 0,
+        }))
+        .sort((a, b) => b.count - a.count) ?? null,
+    [users, usersCount],
   );
 }
