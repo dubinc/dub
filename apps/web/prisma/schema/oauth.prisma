@@ -1,0 +1,66 @@
+model OAuthApp {
+  id                 String               @id @default(cuid())
+  clientId           String               @unique
+  name               String
+  developer          String
+  website            String
+  clientSecretHashed String
+  redirectUri        String
+  logo               String?
+  pkce               Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  createdBy          String?
+  projectId          String
+  user               User?                @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  oAuthCodes         OAuthCode[]
+  accessTokens       RestrictedToken[]
+  refreshTokens      OAuthRefreshToken[]
+  authorizedApps     OAuthAuthorizedApp[]
+
+  @@index(projectId)
+}
+
+model OAuthCode {
+  id                  String   @id @default(cuid())
+  clientId            String
+  userId              String // User who granted access
+  projectId           String // Workspace that user granted access to
+  code                String   @unique
+  scopes              String?
+  redirectUri         String
+  codeChallenge       String?
+  codeChallengeMethod String?
+  expiresAt           DateTime
+  createdAt           DateTime @default(now())
+  oAuthApp            OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model OAuthRefreshToken {
+  id                 String          @id @default(cuid())
+  clientId           String
+  accessTokenId      String
+  refreshTokenHashed String          @unique
+  expiresAt          DateTime
+  createdAt          DateTime        @default(now())
+  oAuthApp           OAuthApp        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  accessToken        RestrictedToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
+
+  @@index(accessTokenId)
+}
+
+model OAuthAuthorizedApp {
+  id        String   @id @default(cuid())
+  clientId  String
+  projectId String // workspace that user granted access to
+  userId    String // user who granted access
+  createdAt DateTime @default(now())
+  oAuthApp  OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId, clientId])
+}

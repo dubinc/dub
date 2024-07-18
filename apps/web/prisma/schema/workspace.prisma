@@ -1,5 +1,3 @@
-
-
 model Project {
   id   String  @id @default(cuid())
   name String
@@ -26,15 +24,18 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
 
-  users            ProjectUsers[]
-  invites          ProjectInvite[]
-  sentEmails       SentEmail[]
-  links            Link[]
-  domains          Domain[]
-  tags             Tag[]
-  customers        Customer[]
-  defaultDomains   DefaultDomains[]
-  restrictedTokens RestrictedToken[]
+  users               ProjectUsers[]
+  invites             ProjectInvite[]
+  sentEmails          SentEmail[]
+  links               Link[]
+  domains             Domain[]
+  tags                Tag[]
+  customers           Customer[]
+  defaultDomains      DefaultDomains[]
+  restrictedTokens    RestrictedToken[]
+  oAuthCodes          OAuthCode[]
+  oAuthApps           OAuthApp[] // OAuth apps workspace published
+  oAuthAuthorizedApps OAuthAuthorizedApp[] // OAuth apps workspace authorized
 
   @@index(usageLastChecked(sort: Asc))
 }
