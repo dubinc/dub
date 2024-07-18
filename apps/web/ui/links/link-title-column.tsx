@@ -240,7 +240,7 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
             target="_blank"
             rel="noopener noreferrer"
             title={url}
-            className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4"
+            className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
           >
             {getPrettyUrl(url)}
           </a>
