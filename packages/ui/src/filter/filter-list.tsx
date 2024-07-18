@@ -11,7 +11,7 @@ type FilterListProps = {
     key: Filter["key"];
     value: FilterOption["value"];
   }[];
-  onRemove: (key: string) => void;
+  onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveAll: () => void;
   className?: string;
 };
@@ -119,7 +119,7 @@ export function FilterList({
                     <button
                       type="button"
                       className="h-full rounded-r-md p-2 text-gray-500 ring-inset ring-gray-500 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus-visible:ring-1"
-                      onClick={() => onRemove(key)}
+                      onClick={() => onRemove(key, value)}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
