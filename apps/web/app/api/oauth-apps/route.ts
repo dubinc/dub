@@ -49,7 +49,7 @@ export const POST = withWorkspace(
         logo,
         clientId,
         clientSecretHashed: await hashToken(clientSecret),
-        createdBy: session.user.id,
+        userId: session.user.id,
         pkce,
       },
     });
