@@ -178,7 +178,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               key={id}
               href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${id}`}
               className={cn(
-                "flex items-center gap-1 px-1.5 py-0.5 transition-colors",
+                "flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 transition-colors",
                 variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
                 className,
               )}

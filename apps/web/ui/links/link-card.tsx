@@ -15,7 +15,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
       <CardList.Card
         key={link.id}
         onClick={() => setShowAddEditLinkModal(true)}
-        innerClassName="flex items-center gap-4 text-sm"
+        innerClassName="flex items-center gap-12 text-sm"
       >
         <div className="min-w-0 grow">
           <LinkTitleColumn link={link} />

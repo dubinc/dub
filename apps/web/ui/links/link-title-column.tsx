@@ -218,7 +218,7 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
   return (
     <div
       className={cn(
-        "min-w-0 items-center gap-1.5 text-sm transition-[opacity,display] delay-[0s,150ms] duration-[150ms,0s] md:gap-3",
+        "min-w-0 items-center gap-1.5 whitespace-nowrap text-sm transition-[opacity,display] delay-[0s,150ms] duration-[150ms,0s] md:gap-3",
         compact
           ? "hidden opacity-0 group-data-[variant=compact]/card-list:flex group-data-[variant=compact]/card-list:opacity-100"
           : "hidden opacity-0 group-data-[variant=loose]/card-list:flex group-data-[variant=loose]/card-list:opacity-100",
