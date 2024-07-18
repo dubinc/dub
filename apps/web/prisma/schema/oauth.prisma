@@ -10,9 +10,9 @@ model OAuthApp {
   pkce               Boolean              @default(false)
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-  createdBy          String?
+  userId             String?
   projectId          String
-  user               User?                @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
   oAuthCodes         OAuthCode[]
   accessTokens       RestrictedToken[]
