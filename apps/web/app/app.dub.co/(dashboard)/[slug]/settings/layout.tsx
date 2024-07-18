@@ -6,6 +6,7 @@ import {
   Receipt2,
   ShieldCheck,
   Users6,
+  WindowSettings,
 } from "@dub/ui/src/icons";
 import { ReactNode } from "react";
 
@@ -44,6 +45,11 @@ export default function WorkspaceSettingsLayout({
       name: "Security",
       icon: ShieldCheck,
       segment: "security",
+    },
+    {
+      name: "Notifications",
+      icon: WindowSettings,
+      segment: "notifications",
     },
   ];
 
