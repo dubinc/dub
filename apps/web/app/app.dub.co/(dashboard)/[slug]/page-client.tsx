@@ -75,6 +75,7 @@ export default function WorkspaceLinksClient() {
               <div className="grow basis-0 md:grow-0">
                 <Filter.Select
                   filters={filters}
+                  activeFilters={activeFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
                   className="w-full"

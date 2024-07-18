@@ -1,6 +1,6 @@
 import { cn, truncate } from "@dub/utils";
 import { Command, useCommandState } from "cmdk";
-import { Check, ChevronDown, ListFilter } from "lucide-react";
+import { ChevronDown, ListFilter } from "lucide-react";
 import {
   PropsWithChildren,
   ReactNode,
@@ -14,14 +14,14 @@ import {
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useMediaQuery, useResizeObserver } from "../hooks";
-import { LoadingSpinner, Magic } from "../icons";
+import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
 import { Filter, FilterOption } from "./types";
 
 type FilterSelectProps = {
   filters: Filter[];
   onSelect: (key: string, value: FilterOption["value"]) => void;
-  onRemove: (key: string) => void;
+  onRemove: (key: string, value: FilterOption["value"]) => void;
   onOpenFilter?: (key: string) => void;
   activeFilters?: {
     key: Filter["key"];
@@ -87,16 +87,36 @@ export function FilterSelect({
     onOpenFilter?.(key);
   }, []);
 
+  const isOptionSelected = useCallback(
+    (value: FilterOption["value"]) => {
+      if (!selectedFilter || !activeFilters) return false;
+
+      const activeFilter = activeFilters.find(
+        ({ key }) => key === selectedFilterKey,
+      );
+
+      return (
+        activeFilter?.value === value ||
+        (activeFilter &&
+          selectedFilter.multiple &&
+          Array.isArray(activeFilter.value) &&
+          activeFilter.value.includes(value))
+      );
+    },
+    [selectedFilter],
+  );
+
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
       if (selectedFilter) {
-        activeFilters?.find(({ key }) => key === selectedFilterKey)?.value ===
-        value
-          ? onRemove(selectedFilter.key)
-          : onSelect(selectedFilter.key, value);
-      }
+        const isSelected = isOptionSelected(value);
 
-      setIsOpen(false);
+        isSelected
+          ? onRemove(selectedFilter.key, value)
+          : onSelect(selectedFilter.key, value);
+
+        if (!selectedFilter.multiple) setIsOpen(false);
+      }
     },
     [activeFilters, selectedFilter, askAI],
   );
@@ -168,10 +188,7 @@ export function FilterSelect({
                     ))
                   : // Filter options
                     selectedFilter.options?.map((option) => {
-                      const isSelected =
-                        activeFilters?.find(
-                          ({ key }) => key === selectedFilterKey,
-                        )?.value === option.value;
+                      const isSelected = isOptionSelected(option.value);
 
                       return (
                         <FilterButton

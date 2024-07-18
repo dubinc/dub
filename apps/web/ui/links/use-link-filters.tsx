@@ -37,9 +37,10 @@ export function useLinkFilters() {
         })),
       },
       {
-        key: "tagId",
+        key: "tagIds",
         icon: Tag,
         label: "Tag",
+        multiple: true,
         getOptionIcon: (value, props) => {
           const tagColor =
             props.option?.data?.color ??
@@ -91,32 +92,56 @@ export function useLinkFilters() {
     ];
   }, [domains, tags]);
 
+  const selectedTagIds = useMemo(
+    () => searchParamsObj["tagIds"]?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj],
+  );
+
   const activeFilters = useMemo(() => {
-    const { domain, tagId, userId } = searchParamsObj;
+    const { domain, tagIds, userId } = searchParamsObj;
     return [
       ...(domain ? [{ key: "domain", value: domain }] : []),
-      ...(tagId ? [{ key: "tagId", value: tagId }] : []),
+      ...(tagIds ? [{ key: "tagIds", value: selectedTagIds }] : []),
       ...(userId ? [{ key: "userId", value: userId }] : []),
     ];
   }, [searchParamsObj]);
 
   const onSelect = (key: string, value: any) => {
-    queryParams({
-      set: {
-        [key]: value,
-      },
-    });
+    if (key === "tagIds") {
+      queryParams({
+        set: {
+          tagIds: selectedTagIds.concat(value).join(","),
+        },
+      });
+    } else {
+      queryParams({
+        set: {
+          [key]: value,
+        },
+      });
+    }
   };
 
-  const onRemove = (key: string) => {
-    queryParams({
-      del: key,
-    });
+  const onRemove = (key: string, value: any) => {
+    if (
+      key === "tagIds" &&
+      !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+    ) {
+      queryParams({
+        set: {
+          tagIds: selectedTagIds.filter((id) => id !== value).join(","),
+        },
+      });
+    } else {
+      queryParams({
+        del: key,
+      });
+    }
   };
 
   const onRemoveAll = () => {
     queryParams({
-      del: ["domain", "tagId", "userId", "search"],
+      del: ["domain", "tagIds", "userId", "search"],
     });
   };
 

@@ -9,6 +9,7 @@ export * from "./box-archive";
 export * from "./bullet-list";
 export * from "./cards";
 export * from "./chart-line";
+export * from "./check";
 export * from "./circle-check";
 export * from "./circle-half-dotted-clock";
 export * from "./circle-info";
