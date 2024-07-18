@@ -108,7 +108,10 @@ function LinksList({
             );
           }}
           totalCount={count ?? links.length}
-        />
+          resourceName={(plural) => `${plural ? "links" : "link"}`}
+        >
+          {!!archivedCount && `${archivedCount} archived`}
+        </CardList.Pagination>
       )}
     </LinksListContext.Provider>
   ) : isFiltered ? (
