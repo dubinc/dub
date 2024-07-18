@@ -79,9 +79,9 @@ export function useLinkFilters() {
         icon: User,
         label: "Creator",
         options:
-          users?.map(({ id, name, image, count }) => ({
+          users?.map(({ id, name, email, image, count }) => ({
             value: id,
-            label: name,
+            label: name || email,
             icon: (
               <Avatar
                 user={{

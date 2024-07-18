@@ -6,7 +6,6 @@ import { combineTagIds } from "./utils";
 export async function getLinksCount({
   searchParams,
   workspaceId,
-  userId,
 }: {
   searchParams: z.infer<typeof getLinksCountQuerySchema>;
   workspaceId: string;
@@ -19,6 +18,7 @@ export async function getLinksCount({
     tagId,
     tagIds,
     tagNames,
+    userId,
     showArchived,
     withTags,
   } = searchParams;
@@ -28,7 +28,6 @@ export async function getLinksCount({
   const linksWhere = {
     projectId: workspaceId,
     archived: showArchived ? undefined : false,
-    ...(userId && { userId }),
     ...(search && {
       OR: [
         {
@@ -44,6 +43,7 @@ export async function getLinksCount({
       groupBy !== "domain" && {
         domain,
       }),
+    // when filtering by user, only filter by user if the filter group is not "Users"
     ...(userId &&
       groupBy !== "userId" && {
         userId,

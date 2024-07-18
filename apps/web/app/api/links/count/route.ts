@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace }) => {
     const params = getLinksCountQuerySchema.parse(searchParams);
-    const { userId, domain } = params;
+    const { domain } = params;
 
     if (domain) {
       await getDomainOrThrow({ domain, workspace: workspace });
@@ -17,7 +17,6 @@ export const GET = withWorkspace(
     const count = await getLinksCount({
       searchParams: params,
       workspaceId: workspace.id,
-      userId,
     });
 
     return NextResponse.json(count, {
