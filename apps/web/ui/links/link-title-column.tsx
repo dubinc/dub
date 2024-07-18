@@ -29,6 +29,7 @@ import {
   fetcher,
   formatDateTime,
   getApexDomain,
+  getPrettyUrl,
   isDubDomain,
   linkConstructor,
 } from "@dub/utils";
@@ -83,9 +84,9 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
             <div className="flex items-center gap-2">
               <div className="min-w-0 text-gray-950">
                 <div className="flex items-center gap-2">
-                  <UnverifiedTooltip link={link}>
+                  <UnverifiedTooltip domain={domain} _key={key}>
                     <a
-                      href={linkConstructor({ domain, key, pretty: false })}
+                      href={linkConstructor({ domain, key })}
                       target="_blank"
                       rel="noopener noreferrer"
                       title={linkConstructor({ domain, key, pretty: true })}
@@ -119,19 +120,20 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 }
 
 function UnverifiedTooltip({
-  link,
+  domain,
+  _key,
   children,
-}: PropsWithChildren<{ link: ResponseLink }>) {
+}: PropsWithChildren<{ domain: string; _key: string }>) {
   const { id: workspaceId, slug } = useWorkspace();
 
   const { data: { verified } = {}, isLoading } = useSWR<DomainProps>(
-    !isDubDomain(link.domain) &&
+    !isDubDomain(domain) &&
       workspaceId &&
-      `/api/domains/${link.domain}?workspaceId=${workspaceId}`,
+      `/api/domains/${domain}?workspaceId=${workspaceId}`,
     fetcher,
   );
 
-  return !isLoading && !isDubDomain(link.domain) && !verified ? (
+  return !isLoading && !isDubDomain(domain) && !verified ? (
     <Tooltip
       content={
         <TooltipContent
@@ -141,7 +143,9 @@ function UnverifiedTooltip({
         />
       }
     >
-      <div className="text-gray-500 line-through">{children}</div>
+      <p className="cursor-default truncate font-semibold leading-6 text-gray-500 line-through">
+        {linkConstructor({ domain, key: _key, pretty: true })}
+      </p>
     </Tooltip>
   ) : (
     children
@@ -236,9 +240,9 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
             target="_blank"
             rel="noopener noreferrer"
             title={url}
-            className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline"
+            className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4"
           >
-            {url.replace(/^https?:\/\//, "")}
+            {getPrettyUrl(url)}
           </a>
         ) : (
           <span className="truncate text-gray-400">No URL configured</span>
