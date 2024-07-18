@@ -100,6 +100,8 @@ export const DUB_DOMAINS = [
             "googleblog.com",
             "developers.googleblog.com",
             "blog.google",
+            "youtube.com",
+            "youtu.be",
           ],
           description:
             "Branded domain for Google links (Search, Docs, Sheets, Slides, Drive, Maps, etc.).",
