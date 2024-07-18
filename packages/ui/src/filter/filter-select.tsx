@@ -370,6 +370,7 @@ function FilterButton({
       onPointerUp={(e) => {
         onSelect();
       }}
+      onSelect={onSelect}
       value={label}
     >
       <span className="shrink-0 text-gray-600">
