@@ -1,5 +1,3 @@
-
-
 model Project {
   id   String  @id @default(cuid())
   name String
@@ -26,15 +24,16 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
 
-  users            ProjectUsers[]
-  invites          ProjectInvite[]
-  sentEmails       SentEmail[]
-  links            Link[]
-  domains          Domain[]
-  tags             Tag[]
-  customers        Customer[]
-  defaultDomains   DefaultDomains[]
-  restrictedTokens RestrictedToken[]
+  users                  ProjectUsers[]
+  invites                ProjectInvite[]
+  sentEmails             SentEmail[]
+  links                  Link[]
+  domains                Domain[]
+  tags                   Tag[]
+  customers              Customer[]
+  defaultDomains         DefaultDomains[]
+  restrictedTokens       RestrictedToken[]
+  NotificationPreference NotificationPreference[]
 
   @@index(usageLastChecked(sort: Asc))
 }
@@ -77,4 +76,17 @@ model SentEmail {
   projectId String?
 
   @@index([projectId])
+}
+
+model NotificationPreference {
+  id                          String  @id @default(cuid())
+  userId                      String
+  projectId                   String
+  linkUsageSummary            Boolean @default(true)
+  domainConfigurationWarnings Boolean @default(true)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
 }
