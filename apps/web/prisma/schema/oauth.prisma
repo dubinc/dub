@@ -1,23 +1,24 @@
 model OAuthApp {
-  id                 String               @id @default(cuid())
-  clientId           String               @unique
+  id                 String   @id @default(cuid())
+  clientId           String   @unique
   name               String
   developer          String
   website            String
   clientSecretHashed String
   redirectUri        String
   logo               String?
-  pkce               Boolean              @default(false)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  pkce               Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
   userId             String?
   projectId          String
-  user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
-  project            Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  oAuthCodes         OAuthCode[]
-  accessTokens       RestrictedToken[]
-  refreshTokens      OAuthRefreshToken[]
-  authorizedApps     OAuthAuthorizedApp[]
+
+  user           User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  oAuthCodes     OAuthCode[]
+  accessTokens   RestrictedToken[]
+  refreshTokens  OAuthRefreshToken[]
+  authorizedApps OAuthAuthorizedApp[]
 
   @@index(projectId)
 }
@@ -34,20 +35,22 @@ model OAuthCode {
   codeChallengeMethod String?
   expiresAt           DateTime
   createdAt           DateTime @default(now())
-  oAuthApp            OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  oAuthApp OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model OAuthRefreshToken {
-  id                 String          @id @default(cuid())
+  id                 String   @id @default(cuid())
   clientId           String
   accessTokenId      String
-  refreshTokenHashed String          @unique
+  refreshTokenHashed String   @unique
   expiresAt          DateTime
-  createdAt          DateTime        @default(now())
-  oAuthApp           OAuthApp        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  accessToken        RestrictedToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+
+  oAuthApp    OAuthApp        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  accessToken RestrictedToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
 
   @@index(accessTokenId)
 }
@@ -58,9 +61,10 @@ model OAuthAuthorizedApp {
   projectId String // workspace that user granted access to
   userId    String // user who granted access
   createdAt DateTime @default(now())
-  oAuthApp  OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  oAuthApp OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId, clientId])
 }
