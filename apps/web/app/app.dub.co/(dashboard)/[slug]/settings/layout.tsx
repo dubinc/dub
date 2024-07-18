@@ -41,11 +41,6 @@ export default function WorkspaceSettingsLayout({
       segment: "tokens",
     },
     {
-      name: "Integrations",
-      icon: Gear2,
-      segment: "integrations",
-    },
-    {
       name: "OAuth Apps",
       icon: Key,
       segment: "oauth-apps",

@@ -4,8 +4,8 @@ export const OAUTH_CONFIG = {
   REFRESH_TOKEN_LIFETIME: 60 * 24 * 60 * 60, // 60 days
   CODE_LIFETIME: 2 * 60, // 2 minutes
 
-  CLIENT_ID_LENGTH: 32,
-  CLIENT_SECRET_LENGTH: 32,
+  CLIENT_ID_LENGTH: 24,
+  CLIENT_SECRET_LENGTH: 30,
   ACCESS_TOKEN_LENGTH: 40,
   REFRESH_TOKEN_LENGTH: 40,
   CODE_LENGTH: 40,
@@ -30,7 +30,7 @@ export const OAUTH_SCOPES = [
   "analytics.read",
   "domains.read",
   "domains.write",
-  "user.read",
+  "user.read", // default scope, no need to request it
 ];
 
 // Scope descriptions

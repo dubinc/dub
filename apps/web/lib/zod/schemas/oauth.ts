@@ -61,15 +61,18 @@ export const authorizeRequestSchema = z.object({
   scope: z
     .string()
     .nullable()
-    .transform((scope) => [...new Set(scope?.split(/[,\s]/).filter(Boolean))])
-    .refine(
-      (scopes) => {
-        return scopes.every((scope) => OAUTH_SCOPES.includes(scope));
-      },
-      {
-        message: "Invalid scopes",
-      },
-    ),
+    .transform((scope) => {
+      const scopes = [...new Set(scope?.split(/[,\s]/).filter(Boolean))];
+
+      if (!scopes.includes("user.read")) {
+        scopes.push("user.read");
+      }
+
+      return scopes;
+    })
+    .refine((scopes) => scopes.every((scope) => OAUTH_SCOPES.includes(scope)), {
+      message: "Invalid scopes",
+    }),
   code_challenge: z.string().max(190).optional(),
   code_challenge_method: z
     .string()

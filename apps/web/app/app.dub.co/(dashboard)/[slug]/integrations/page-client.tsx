@@ -9,6 +9,7 @@ import {
   BlurImage,
   Button,
   LoadingSpinner,
+  MaxWidthWrapper,
   Popover,
   TokenAvatar,
 } from "@dub/ui";
@@ -27,15 +28,18 @@ export default function AuthorizedAppsPageClient() {
 
   return (
     <>
-      <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="flex flex-col items-center justify-between gap-4 space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
-          <div className="flex max-w-screen-sm flex-col space-y-3">
-            <h2 className="text-xl font-medium">Integrations Enabled</h2>
-            <p className="text-sm text-gray-500">
-              Applications that have access to your workspace resources.
-            </p>
+      <div className="flex h-36 w-full items-center border-b border-gray-200 bg-white">
+        <MaxWidthWrapper>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-semibold tracking-tight text-black">
+              Integrations
+            </h1>
+            <div className="flex gap-2"></div>
           </div>
-        </div>
+        </MaxWidthWrapper>
+      </div>
+
+      <MaxWidthWrapper className="flex flex-col space-y-3 py-3">
         {isLoading || !apps ? (
           <div className="flex flex-col items-center justify-center space-y-4 py-20">
             <LoadingSpinner className="h-6 w-6 text-gray-500" />
@@ -44,15 +48,10 @@ export default function AuthorizedAppsPageClient() {
             </p>
           </div>
         ) : apps.length > 0 ? (
-          <div>
-            <div className="grid grid-cols-5 border-b border-gray-200 px-5 py-2 text-sm font-medium text-gray-500 sm:px-10">
-              <div className="col-span-3">Name</div>
-            </div>
-            <div className="divide-y divide-gray-200">
-              {apps.map((app) => (
-                <AppRow key={app.id} {...app} />
-              ))}
-            </div>
+          <div className="divide-y divide-gray-200">
+            {apps.map((app) => (
+              <AppRow key={app.id} {...app} />
+            ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-y-4 py-20">
@@ -62,7 +61,7 @@ export default function AuthorizedAppsPageClient() {
             />
           </div>
         )}
-      </div>
+      </MaxWidthWrapper>
     </>
   );
 }
@@ -81,7 +80,7 @@ const AppRow = (app: OAuthAuthorizedAppProps) => {
   return (
     <>
       <DeleteAppModal />
-      <div className="relative grid grid-cols-5 items-center px-5 py-3 sm:px-10">
+      <div className="relative grid grid-cols-5 items-center bg-white px-5 py-3 sm:px-10">
         <div className="col-span-3 flex items-center space-x-3">
           {app.logo ? (
             <BlurImage
