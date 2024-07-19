@@ -48,7 +48,7 @@ export const POST = withWorkspace(
         redirectUri,
         logo,
         clientId,
-        clientSecretHashed: await hashToken(clientSecret),
+        hashedClientSecret: await hashToken(clientSecret),
         userId: session.user.id,
         pkce,
       },

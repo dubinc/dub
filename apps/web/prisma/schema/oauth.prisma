@@ -4,7 +4,7 @@ model OAuthApp {
   name               String
   developer          String
   website            String
-  clientSecretHashed String
+  hashedClientSecret String
   redirectUri        String
   logo               String?
   pkce               Boolean  @default(false)
@@ -21,6 +21,7 @@ model OAuthApp {
   authorizedApps OAuthAuthorizedApp[]
 
   @@index(projectId)
+  @@index([userId])
 }
 
 model OAuthCode {
@@ -39,6 +40,10 @@ model OAuthCode {
   oAuthApp OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([userId])
+  @@index([projectId])
 }
 
 model OAuthRefreshToken {
@@ -52,7 +57,8 @@ model OAuthRefreshToken {
   oAuthApp    OAuthApp        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   accessToken RestrictedToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
 
-  @@index(accessTokenId)
+  @@index([clientId])
+  @@index([accessTokenId])
 }
 
 model OAuthAuthorizedApp {
@@ -67,4 +73,6 @@ model OAuthAuthorizedApp {
   project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId, clientId])
+  @@index([clientId])
+  @@index([projectId])
 }

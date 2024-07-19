@@ -51,7 +51,7 @@ export const exchangeAuthCodeForToken = async (
     select: {
       name: true,
       pkce: true,
-      clientSecretHashed: true,
+      hashedClientSecret: true,
     },
   });
 
@@ -81,7 +81,7 @@ export const exchangeAuthCodeForToken = async (
       });
     }
 
-    if (app.clientSecretHashed !== (await hashToken(clientSecret))) {
+    if (app.hashedClientSecret !== (await hashToken(clientSecret))) {
       throw new DubApiError({
         code: "unauthorized",
         message: "Invalid client_secret",
