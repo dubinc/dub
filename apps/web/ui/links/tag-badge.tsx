@@ -33,7 +33,7 @@ export default function TagBadge({
       </p>
       {!!plus && (
         <span className="hidden sm:block">
-          <span className="pl-1 pr-2.5 opacity-30">|</span>+{plus}
+          <span className="pr-1.5 opacity-30 md:pl-1 md:pr-2.5">|</span>+{plus}
         </span>
       )}
     </span>

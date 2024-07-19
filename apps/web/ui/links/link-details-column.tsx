@@ -101,6 +101,8 @@ function TagsTooltip({
 }
 
 function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
+  const { isMobile, isDesktop } = useMediaQuery();
+
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
 
@@ -122,7 +124,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
         });
       }}
     >
-      <TagBadge {...tag} withIcon plus={plus} />
+      <TagBadge {...tag} withIcon={isMobile || isDesktop} plus={plus} />
     </button>
   );
 }
@@ -231,7 +233,12 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               }
             >
               <Icon className="text-gray-6000 h-4 w-4 shrink-0" />
-              {nFormatter(value) + (label ? ` ${label}` : "")}
+              <span>
+                {nFormatter(value)}
+                {label && (
+                  <span className="hidden md:inline-block">&nbsp;{label}</span>
+                )}
+              </span>
             </Link>
           ))}
         </div>

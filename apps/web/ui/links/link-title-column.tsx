@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps, UserProps } from "@/lib/types";
+import { DomainProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
   Avatar,
@@ -83,7 +83,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
           </div>
           <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[44px]">
             <div className="flex items-center gap-2">
-              <div className="min-w-0 text-gray-950">
+              <div className="min-w-0 shrink grow-0 text-gray-950">
                 <div className="flex items-center gap-2">
                   <UnverifiedTooltip domain={domain} _key={key}>
                     <a
@@ -239,17 +239,20 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
   return (
     <div
       className={cn(
-        "min-w-0 items-center gap-1.5 whitespace-nowrap text-sm transition-[opacity,display] delay-[0s,150ms] duration-[150ms,0s] md:gap-3",
+        "min-w-0 items-center whitespace-nowrap text-sm transition-[opacity,display] delay-[0s,150ms] duration-[150ms,0s]",
         compact
-          ? "hidden opacity-0 group-data-[variant=compact]/card-list:flex group-data-[variant=compact]/card-list:opacity-100"
-          : "hidden opacity-0 group-data-[variant=loose]/card-list:flex group-data-[variant=loose]/card-list:opacity-100",
+          ? [
+              "hidden gap-2.5 opacity-0 group-data-[variant=compact]/card-list:flex group-data-[variant=compact]/card-list:opacity-100",
+              "xs:min-w-[40px] xs:basis-[40px] min-w-0 shrink-0 grow basis-0 sm:min-w-[120px] sm:basis-[120px]",
+            ]
+          : "hidden gap-1.5 opacity-0 group-data-[variant=loose]/card-list:flex group-data-[variant=loose]/card-list:opacity-100 md:gap-3",
       )}
     >
       <div className="flex min-w-0 items-center gap-1">
         {compact ? (
-          <ArrowRight className="mr-1 h-3 w-3 text-gray-400" />
+          <ArrowRight className="mr-1 h-3 w-3 shrink-0 text-gray-400" />
         ) : (
-          <ArrowTurnRight2 className="h-3 w-3 text-gray-400" />
+          <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-gray-400" />
         )}
         {url ? (
           <a
@@ -266,9 +269,9 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
         )}
       </div>
       <div className="hidden shrink-0 sm:block">
-        <UserAvatar user={user} />
+        <UserAvatar link={link} compact={compact} />
       </div>
-      <div className="hidden sm:block">
+      <div className="hidden shrink-0 sm:group-data-[variant=loose]/card-list:block">
         <Tooltip content={formatDateTime(createdAt)}>
           <span className="text-gray-400">
             {formatDate(createdAt, "MMM d")}
@@ -279,7 +282,14 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
   );
 }
 
-function UserAvatar({ user }: { user: UserProps }) {
+function UserAvatar({
+  link,
+  compact,
+}: {
+  link: ResponseLink;
+  compact?: boolean;
+}) {
+  const { user } = link;
   const { slug } = useWorkspace();
 
   return (
@@ -300,9 +310,10 @@ function UserAvatar({ user }: { user: UserProps }) {
                 />
               )}
           </div>
-          {user?.name && user.email && (
-            <p className="mt-1 text-xs text-gray-500">{user.email}</p>
-          )}
+          <div className="flex flex-col gap-1 text-xs text-gray-500">
+            {user?.name && user.email && <p>{user.email}</p>}
+            {compact && <p>Created {formatDate(link.createdAt, "MMM d")}</p>}
+          </div>
         </div>
       }
     >

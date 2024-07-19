@@ -20,7 +20,7 @@ export function CardListPagination({
     <>
       {/* Placeholder to make room for the floating pagination at the bottom of the list */}
       <div className="h-[90px]" />
-      <div className="fixed bottom-4 left-1/2 w-full max-w-[768px] -translate-x-1/2 px-2.5">
+      <div className="fixed bottom-4 left-1/2 w-full max-w-[768px] -translate-x-1/2 px-2.5 max-[920px]:bottom-5 max-[920px]:pr-20">
         <nav className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600 [filter:drop-shadow(0_5px_8px_#222A351d)]">
           <div className="flex items-center gap-4">
             <div>
