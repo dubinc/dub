@@ -9,6 +9,7 @@ import {
 } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import AdminMiddleware from "./lib/middleware/admin";
+import AxiomMiddleware from "./lib/middleware/axiom";
 import CreateLinkMiddleware from "./lib/middleware/create-link";
 
 export const config = {
@@ -28,6 +29,8 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key, fullKey } = parse(req);
+
+  AxiomMiddleware(req, ev);
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
