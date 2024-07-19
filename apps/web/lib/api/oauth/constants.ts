@@ -12,6 +12,7 @@ export const OAUTH_CONFIG = {
 
   CLIENT_ID_PREFIX: "dub_app_",
   CLIENT_SECRET_PREFIX: "dub_app_secret_",
+  ACCESS_TOKEN_PREFIX: "dub_access_token_",
 };
 
 // These are the scopes an OAuth app can request on behalf of an user

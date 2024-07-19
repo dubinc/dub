@@ -161,6 +161,7 @@ export const exchangeAuthCodeForToken = async (
 
   const accessToken = createToken({
     length: OAUTH_CONFIG.ACCESS_TOKEN_LENGTH,
+    prefix: OAUTH_CONFIG.ACCESS_TOKEN_PREFIX,
   });
   const refreshToken = createToken({
     length: OAUTH_CONFIG.REFRESH_TOKEN_LENGTH,

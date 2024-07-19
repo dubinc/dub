@@ -43,7 +43,7 @@ export default async function Authorize({
   }
 
   return (
-    <div className="relative z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
+    <div className="relative z-10 m-auto h-fit w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
       <div className="flex flex-col items-center justify-center space-y-6 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
         <div className="flex items-center gap-3">
           <a href={oAuthApp.website} target="_blank" rel="noreferrer">
