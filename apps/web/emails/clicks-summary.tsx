@@ -61,6 +61,8 @@ export default function ClicksSummary({
     clicks: number;
   }[];
 }) {
+  const notificationSettingsUrl = `https://app.${appDomain}/${workspaceSlug}/settings/notifications`;
+
   return (
     <Html>
       <Head />
@@ -172,7 +174,10 @@ export default function ClicksSummary({
                 </Section>
               </>
             )}
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl={notificationSettingsUrl}
+            />
           </Container>
         </Body>
       </Tailwind>
