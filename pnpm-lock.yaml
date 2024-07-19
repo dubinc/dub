@@ -116,9 +116,6 @@ importers:
       '@vercel/og':
         specifier: ^0.6.2
         version: 0.6.2
-      '@vercel/speed-insights':
-        specifier: ^1.0.1
-        version: 1.0.1
       '@visx/axis':
         specifier: ^2.14.0
         version: 2.14.0(react@18.2.0)
@@ -230,6 +227,9 @@ importers:
       openapi3-ts:
         specifier: ^4.2.1
         version: 4.2.1
+      posthog-js:
+        specifier: ^1.148.0
+        version: 1.148.0
       postmark:
         specifier: ^4.0.2
         version: 4.0.2
@@ -490,6 +490,9 @@ importers:
       lucide-react:
         specifier: ^0.367.0
         version: 0.367.0(react@18.2.0)
+      posthog-js:
+        specifier: ^1.148.0
+        version: 1.148.0
       react-day-picker:
         specifier: ^8.10.1
         version: 8.10.1(date-fns@3.6.0)(react@18.2.0)
@@ -8459,11 +8462,6 @@ packages:
       yoga-wasm-web: 0.3.3
     dev: false
 
-  /@vercel/speed-insights@1.0.1:
-    resolution: {integrity: sha512-cm8KTTsDgS1AbWsgIEZuMoyPUjclzeqJihyLp0tnA21B/x9iTE8hu2S5zM+/DBzihuHxWL1dx9pCWk22ctMFWQ==}
-    requiresBuild: true
-    dev: false
-
   /@visx/axis@2.14.0(react@18.2.0):
     resolution: {integrity: sha512-/mJuPiAUN/YdatSlXkkXD/8Pb4gVclbucNZkpUk6JVhnrmow0a1x73QiMXKuH2qDO5GDaqQS0C3Ly9lI3qTQ5Q==}
     peerDependencies:
@@ -11786,6 +11784,10 @@ packages:
     resolution: {integrity: sha512-p5161BqbuCaSnB8jIbzQHOlpgsPmK5rJVDfDKO91Axs5NC1uu3HRQm6wt9cd9/+GtQQIO53JdGXXoyDpTAsgYA==}
     dependencies:
       bser: 2.1.1
+
+  /fflate@0.4.8:
+    resolution: {integrity: sha512-FJqqoDBR00Mdj9ppamLa/Y7vxm+PRmNWA67N846RvsoYVMKB4q3y/de5PA7gUmRMYK/8CMz2GDZQmCRN1wBcWA==}
+    dev: false
 
   /fflate@0.7.4:
     resolution: {integrity: sha512-5u2V/CDW15QM1XbbgS+0DfPxVB+jUKhWEKuuFuHncbk3tEEqzmoXL+2KyOFuKGqOnmdIy0/davWF1CkuwtibCw==}
@@ -16110,6 +16112,14 @@ packages:
       xtend: 4.0.2
     dev: false
 
+  /posthog-js@1.148.0:
+    resolution: {integrity: sha512-nydf+aret26YViDBwH7DdN/c8dmCzQGNQ1yredeE47UlbpJ3J/iTgskNdmGJIofFcdSagcwAE/FF7s++YfTtvg==}
+    dependencies:
+      fflate: 0.4.8
+      preact: 10.22.1
+      web-vitals: 4.2.2
+    dev: false
+
   /postmark@4.0.2:
     resolution: {integrity: sha512-2zlCv+KVVQ0KoamXZHE7d+gXzLlr8tPE+PxQmtUaIZhbHzZAq4D6yH2b+ykhA8wYCc5ISodcx8U1aNLenXBs9g==}
     dependencies:
@@ -16129,6 +16139,10 @@ packages:
 
   /preact@10.18.1:
     resolution: {integrity: sha512-mKUD7RRkQQM6s7Rkmi7IFkoEHjuFqRQUaXamO61E6Nn7vqF/bo7EZCmSyrUnp2UWHw0O7XjZ2eeXis+m7tf4lg==}
+    dev: false
+
+  /preact@10.22.1:
+    resolution: {integrity: sha512-jRYbDDgMpIb5LHq3hkI0bbl+l/TQ9UnkdQ0ww+lp+4MMOdqaUYdFc5qeyP+IV8FAd/2Em7drVPeKdQxsiWCf/A==}
     dev: false
 
   /prelude-ls@1.2.1:
@@ -19492,6 +19506,10 @@ packages:
   /web-streams-polyfill@4.0.0-beta.3:
     resolution: {integrity: sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==}
     engines: {node: '>= 14'}
+    dev: false
+
+  /web-vitals@4.2.2:
+    resolution: {integrity: sha512-nYfoOqb4EmElljyXU2qdeE76KsvoHdftQKY4DzA9Aw8DervCg2bG634pHLrJ/d6+B4mE3nWTSJv8Mo7B2mbZkw==}
     dev: false
 
   /webidl-conversions@3.0.1:

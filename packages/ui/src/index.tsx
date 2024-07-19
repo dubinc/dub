@@ -47,6 +47,7 @@ export * from "./inline-snippet";
 export * from "./link-logo";
 export * from "./link-preview";
 export * from "./popup";
+export * from "./posthog-pageview";
 export * from "./progress-bar";
 export * from "./tab-select";
 

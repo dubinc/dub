@@ -58,6 +58,7 @@
     "linkify-react": "^4.1.3",
     "linkifyjs": "^4.1.3",
     "lucide-react": "^0.367.0",
+    "posthog-js": "^1.148.0",
     "react-day-picker": "^8.10.1",
     "sonner": "^1.4.41",
     "swr": "^2.1.5",
