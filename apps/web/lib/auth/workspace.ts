@@ -135,6 +135,7 @@ export const withWorkspace = (
                 scopes: true,
                 rateLimit: true,
                 projectId: true,
+                expires: true,
               }),
               user: {
                 select: {
