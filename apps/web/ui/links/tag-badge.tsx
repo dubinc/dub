@@ -1,4 +1,5 @@
 import { TagColorProps } from "@/lib/types";
+import { useMediaQuery } from "@dub/ui";
 import { cn, truncate } from "@dub/utils";
 import { Tag } from "lucide-react";
 
@@ -13,6 +14,8 @@ export default function TagBadge({
   withIcon?: boolean;
   plus?: number;
 }) {
+  const { isDesktop } = useMediaQuery();
+
   return (
     <span
       className={cn(
@@ -29,7 +32,7 @@ export default function TagBadge({
     >
       {withIcon && <Tag className="h-3 w-3" />}
       <p {...(withIcon && { className: "hidden sm:inline-block" })}>
-        {truncate(name || "", 24)}
+        {truncate(name || "", !isDesktop ? 20 : 24)}
       </p>
       {!!plus && (
         <span className="hidden sm:block">
