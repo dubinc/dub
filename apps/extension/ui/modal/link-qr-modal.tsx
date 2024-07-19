@@ -152,7 +152,7 @@ export function QRCodeDownload({
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col items-center justify-center rounded-lg  border-gray-200 bg-white  pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center rounded-lg  border-gray-200 bg-white pt-8 text-black sm:px-16">
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Download QR Code</h3>
 
@@ -343,9 +343,8 @@ function AdvancedSettings({
   return (
     <div>
       <div className="px-4 sm:px-16">
-        <button
-          type="button"
-          className="flex items-center"
+        <div
+          className="flex cursor-pointer items-center"
           onClick={() => setExpanded(!expanded)}
         >
           <ChevronRight
@@ -354,7 +353,7 @@ function AdvancedSettings({
             } transition-all`}
           />
           <p className="text-sm text-gray-600">Advanced options</p>
-        </button>
+        </div>
       </div>
       {expanded && (
         <motion.div
@@ -385,8 +384,6 @@ function AdvancedSettings({
                 <Switch
                   fn={setShowLogo}
                   checked={showLogo}
-                  trackDimensions="h-6 w-12"
-                  thumbDimensions="w-5 h-5"
                   thumbTranslate="translate-x-6"
                 />
                 <p className="text-sm text-gray-600">
@@ -416,8 +413,6 @@ function AdvancedSettings({
                   <Switch
                     fn={setShowLogo}
                     checked={showLogo}
-                    trackDimensions="h-6 w-12"
-                    thumbDimensions="w-5 h-5"
                     thumbTranslate="translate-x-6"
                     disabled={true}
                   />
@@ -438,7 +433,7 @@ function AdvancedSettings({
             <div className="relative mt-1 flex h-9 w-48 rounded-md shadow-sm">
               <Tooltip
                 content={
-                  <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
+                  <div className="flex max-w-xs cursor-pointer flex-col items-center space-y-3 p-5 text-center">
                     <HexColorPicker
                       color={qrData.fgColor}
                       onChange={debouncedSetFgColor}
@@ -461,7 +456,7 @@ function AdvancedSettings({
                 onChange={(color) => setFgColor(color)}
                 prefixed
                 style={{ borderColor: qrData.fgColor }}
-                className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
+                className="block w-full rounded-r-md border-2 border-l-0 bg-white pl-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
               />
             </div>
           </div>

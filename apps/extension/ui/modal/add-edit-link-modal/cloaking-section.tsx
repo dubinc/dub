@@ -4,11 +4,12 @@ import {
   getUrlFromString,
 } from "@dub/utils";
 import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle, Loader } from "lucide-react";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { LinkProps } from "src/types";
 import useSWR from "swr";
 import { SimpleTooltipContent, Switch } from "../../";
+import LoadingCircle from "../../../public/icons/loading-circle";
 import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function CloakingSection({
@@ -57,8 +58,13 @@ export default function CloakingSection({
             <iframe
               src={getUrlFromString(data.url)}
               className="absolute z-10 h-full w-full"
+              style={{
+                scrollbarWidth: "none",
+                whiteSpace: "nowrap",
+                border: "none",
+              }}
             />
-            <Loader />
+            <LoadingCircle />
           </div>
           <IframeIndicator
             url={getUrlFromString(data.url)}
@@ -80,7 +86,7 @@ function IframeIndicator({ url, domain }: { url: string; domain: string }) {
     <div className="flex items-start space-x-2 rounded-md border border-gray-300 bg-white p-3">
       <div className="flex-none">
         {isLoading ? (
-          <Loader className="h-5 w-5" />
+          <LoadingCircle className="h-5 w-5" />
         ) : data?.iframeable ? (
           <CheckCircle className="h-5 w-5 text-green-500" />
         ) : (

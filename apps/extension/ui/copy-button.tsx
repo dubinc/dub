@@ -15,7 +15,7 @@ export function CopyButton({
   const [copied, setCopied] = useState(false);
   const Comp = icon || Copy;
   return (
-    <button
+    <div
       onClick={(e) => {
         e.stopPropagation();
         setCopied(true);
@@ -25,16 +25,16 @@ export function CopyButton({
         setTimeout(() => setCopied(false), 3000);
       }}
       className={cn(
-        "group rounded-full bg-gray-100 p-2 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95",
+        "group rounded-full bg-gray-100 p-3 text-center transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95",
         className,
       )}
     >
       <span className="sr-only">Copy</span>
       {copied ? (
-        <Check className="h-4 w-4 text-gray-500 transition-all group-hover:text-gray-800" />
+        <Check className="h-3 w-3 text-gray-500 transition-all group-hover:text-gray-800" />
       ) : (
-        <Comp className="h-4 w-4 text-gray-500 transition-all group-hover:text-gray-800" />
+        <Comp className="h-3 w-3 text-gray-500 transition-all group-hover:text-gray-800" />
       )}
-    </button>
+    </div>
   );
 }

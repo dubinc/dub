@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { LinkProps } from "src/types";
 import { SimpleTooltipContent, Switch } from "../../";
+import Input from "../../../ui/input";
 import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function AndroidSection({
@@ -53,7 +54,7 @@ export default function AndroidSection({
           className="mt-3 flex rounded-md shadow-sm"
           {...FADE_IN_ANIMATION_SETTINGS}
         >
-          <input
+          <Input
             name="android-url"
             id="android-url"
             placeholder="https://play.google.com/store/apps/details?id=com.disney.disneyplus"
@@ -61,7 +62,7 @@ export default function AndroidSection({
             onChange={(e) => {
               setData({ ...data, android: e.target.value });
             }}
-            className="block w-full rounded-md border-gray-300 px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className="block w-full rounded-md border border-gray-300 bg-white px-5 py-2 text-gray-900 placeholder-gray-400 shadow-none focus:border-gray-500 focus:shadow-lg focus:outline-none focus:ring-gray-500 sm:text-sm"
             aria-invalid="true"
           />
         </motion.div>

@@ -4,6 +4,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { LinkProps } from "src/types";
 import { SimpleTooltipContent, Switch } from "../../";
+import Input from "../../../ui/input";
 import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function PasswordSection({
@@ -56,11 +57,11 @@ export default function PasswordSection({
           className="relative mt-3 rounded-md shadow-sm"
           {...FADE_IN_ANIMATION_SETTINGS}
         >
-          <input
+          <Input
             name="password"
             id="password"
             type={showPassword ? "text" : "password"}
-            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 placeholder-gray-400 shadow-none focus:border-gray-500 focus:shadow-lg focus:outline-none focus:ring-gray-500 sm:text-sm"
             value={password || ""}
             placeholder="Enter password"
             onChange={(e) => {
@@ -68,10 +69,9 @@ export default function PasswordSection({
             }}
             aria-invalid="true"
           />
-          <button
-            type="button"
+          <div
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 flex items-center pr-3"
+            className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3"
           >
             {showPassword ? (
               <EyeIcon className="h-4 w-4 text-gray-400" aria-hidden="true" />
@@ -81,7 +81,7 @@ export default function PasswordSection({
                 aria-hidden="true"
               />
             )}
-          </button>
+          </div>
         </motion.div>
       )}
     </div>

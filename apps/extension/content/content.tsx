@@ -1,3 +1,4 @@
+import React from "react";
 import ReactDOM from "react-dom/client";
 import ContentApp from "./ContentApp";
 import("./base.css");
@@ -10,5 +11,9 @@ function initial() {
   rootDiv.id = "extension-root";
   document.body.appendChild(rootDiv);
   const root = ReactDOM.createRoot(rootDiv);
-  root.render(<ContentApp />);
+  root.render(
+    <React.StrictMode>
+      <ContentApp />
+    </React.StrictMode>,
+  );
 }

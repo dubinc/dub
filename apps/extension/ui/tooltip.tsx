@@ -5,7 +5,7 @@ import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
 import { Badge } from "./badge";
-import { ButtonProps } from "./button";
+import { Button, ButtonProps } from "./button";
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
@@ -82,13 +82,13 @@ export function TooltipContent({
             {cta}
           </Link>
         ) : onClick ? (
-          <button
+          <Button
             type="button"
             className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
             onClick={onClick}
           >
             {cta}
-          </button>
+          </Button>
         ) : null)}
     </div>
   );
@@ -205,9 +205,9 @@ export function ButtonTooltip({
   return (
     <Tooltip content={tooltipContent}>
       <div className="flex cursor-pointer items-center">
-        <button type="button" {...props}>
+        <Button type="button" {...props}>
           {children}
-        </button>
+        </Button>
       </div>
     </Tooltip>
   );

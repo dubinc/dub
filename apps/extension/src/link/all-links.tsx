@@ -22,8 +22,7 @@ function AllLinks() {
 
   return (
     <div
-      className="h-40 overflow-y-auto pr-2"
-      style={{ scrollbarWidth: "none", whiteSpace: "nowrap" }}
+    className=""
     >
       {allLinks?.length ? (
         allLinks?.map((link) => <LinkCard props={link} />)

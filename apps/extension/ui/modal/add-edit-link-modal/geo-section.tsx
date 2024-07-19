@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { LinkProps } from "src/types";
-import { SimpleTooltipContent, Switch } from "../../";
+import { Button, SimpleTooltipContent, Switch } from "../../";
+import Input from "../../../ui/input";
 import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function GeoSection({
@@ -68,13 +69,13 @@ export default function GeoSection({
                 setData={setData}
               />
             ))}
-          <button
+          <Button
             type="button"
             onClick={addGeoSelector}
-            className="mt-2 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-400 transition-all duration-75 hover:border-gray-400 hover:text-gray-500 active:bg-gray-50"
-          >
-            Add location
-          </button>
+            className="mt-2 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-400 transition-all duration-75 hover:border-gray-400 hover:text-gray-500 focus:shadow-lg active:bg-gray-50"
+            variant="outline"
+            text="Add location"
+          />
         </motion.div>
       )}
     </div>
@@ -129,11 +130,11 @@ const GeoSelector = ({
             </option>
           ))}
         </select>
-        <input
+        <Input
           name="geo-url"
           required
           autoComplete="off"
-          className="block w-full rounded-r-md border-gray-300 px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+          className="m-0 block w-full cursor-pointer rounded-r-md border-gray-300 bg-white px-5 py-2 text-gray-900 placeholder-gray-400 shadow-none focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
           value={url}
           placeholder="URL"
           onChange={(e) => {
@@ -147,13 +148,12 @@ const GeoSelector = ({
           }}
         />
       </div>
-      <button
+      <Button
         type="button"
         onClick={() => removeGeoSelector(country)}
-        className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white text-sm text-gray-400 transition-all duration-75 hover:border-gray-400 hover:text-gray-500 active:bg-gray-50"
-      >
-        <Trash size={16} className="text-gray-400" />
-      </button>
+        className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white p-0 text-sm text-gray-400 transition-all duration-75 hover:border-gray-300  active:bg-gray-50"
+        icon={<Trash size={16} className="text-gray-400" />}
+      />
     </div>
   );
 };

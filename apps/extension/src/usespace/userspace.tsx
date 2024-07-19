@@ -12,7 +12,7 @@ import { useSelectedWorkspace } from "../workspace/workspace-now";
 import WorkspaceList from "../workspace/workspaceList";
 
 export default function UserSpace() {
-  const { workspaces } = useWorkspaces();
+  const { workspaces } = useWorkspaces()
   const { user, loading } = useAuth();
   const { selectedWorkspace, setSelectedWorkspace } = useSelectedWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
@@ -63,17 +63,17 @@ export default function UserSpace() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="flex items-center justify-between rounded-lg bg-white p-1 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
+          className="flex items-center justify-between border-none rounded-lg bg-white p-1 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
         >
           <div className="flex items-center pr-2">
             <img
               src={
-                user.image
-                  ? user.image
-                  : `https://api.dicebear.com/7.x/micah/svg?seed`
+                user?.image
+                  ? user?.image
+                  : `https://api.dicebear.com/7.x/micah/svg?seed=alpha`
               }
               alt="user"
-              className="h-10 w-10  overflow-hidden rounded-full"
+              className="h-10 w-10 overflow-hidden rounded-full"
             />
             {selected && (
               <>

@@ -51,7 +51,7 @@ export default function CommentsSection({
           <TextareaAutosize
             name="comments"
             minRows={3}
-            className="block w-full rounded-md border-gray-300 px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className="block w-full rounded-md border-gray-300 bg-white px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             placeholder="Add comments"
             value={comments || ""}
             onChange={(e) => {

@@ -2,7 +2,14 @@
   position: fixed;
   bottom: 0;
   right: 0;
-  z-index: 99999;
+  z-index: 99999 !important;
+  color: black;
+}
+button{
+  
+}
+p {
+  margin:0;
 }
 
 @keyframes blink { 50% { fill: transparent }}

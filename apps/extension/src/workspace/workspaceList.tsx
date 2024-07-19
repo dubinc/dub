@@ -35,7 +35,7 @@ export default function WorkspaceList({
               className="h-5 w-5 shrink-0 overflow-hidden rounded-full"
             />
             <span
-              className={`block overflow-auto truncate text-sm  ${
+              className={`block overflow-auto truncate text-sm text-black ${
                 selected?.name === workspace.name
                   ? "pr-5 font-medium"
                   : "font-normal"
@@ -58,16 +58,15 @@ export default function WorkspaceList({
           No workspaces
         </div>
       )}
-      <button
+      <div
         key="add"
         onClick={() => {
           setOpenPopover(false);
         }}
-        className="flex w-full cursor-pointer items-center space-x-1 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
+        className="flex w-full cursor-pointer items-center justify-center space-x-1 rounded-md p-2 transition-all duration-75 bg-black hover:bg-gray-900"
       >
-        <PlusCircle className="h-5 w-5 text-gray-500" />
-        <span className="block truncate text-xs">Add a new workspace</span>
-      </button>
+        <span className="block truncate text-xs text-white">Add New</span>
+      </div>
     </div>
   );
 }

@@ -14,12 +14,10 @@ import {
   CircleAlert,
   CornerDownLeftIcon,
   LinkedinIcon,
-  Loader,
   Lock,
   Shuffle,
   Sparkles,
   TriangleAlert,
-  Twitter,
   X,
 } from "lucide-react";
 import {
@@ -45,8 +43,11 @@ import {
 } from "../../";
 import useDomains from "../../../lib/swr/use-domain";
 import useWorkspace from "../../../lib/swr/use-workspace";
+import { TwitterIcon } from "../../../public";
+import LoadingCircle from "../../../public/icons/loading-circle";
 import { LinkProps, LinkWithTagsProps } from "../../../src/types";
 import { useSelectedWorkspace } from "../../../src/workspace/workspace-now";
+import Input from "../../../ui/input";
 import { UpgradeToProToast } from "../../shared/upgrade-to-pro-toast";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
@@ -96,7 +97,6 @@ function AddEditLinkModal({
   );
 
   useEffect(() => {
-    // for a new link (no props or duplicateProps), set the domain to the primary domain
     if (primaryDomain && !props && !duplicateProps) {
       setData((prev) => ({
         ...prev,
@@ -123,7 +123,6 @@ function AddEditLinkModal({
   }, 500);
 
   useEffect(() => {
-    // if there's no key, generate a random key
     if (showAddEditLinkModal && url.length > 0 && !key) {
       generateRandomKey();
     }
@@ -293,22 +292,21 @@ function AddEditLinkModal({
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
-      preventDefaultClose={homepageDemo ? false : true}
-      onClose={() => {}}
+      onClose={() => setShowAddEditLinkModal(false)}
     >
       <div
         style={{ scrollbarWidth: "none" }}
-        className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden"
+        className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto bg-white text-black md:grid-cols-2 md:overflow-hidden"
       >
         {!homepageDemo && (
-          <button
+          <Button
             onClick={() => {
               setShowAddEditLinkModal(false);
             }}
-            className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
-          >
-            <X className="h-5 w-5" />
-          </button>
+            className="group absolute right-0 top-0 z-20 m-3 hidden h-10 w-10 rounded-full p-2 text-center text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
+            icon={<X className="h-5 w-5" />}
+            variant="outline"
+          />
         )}
 
         <div
@@ -395,7 +393,7 @@ function AddEditLinkModal({
             }}
             className="grid gap-6 bg-gray-50 pt-8"
           >
-            <div className="grid gap-6 px-4 md:px-16">
+            <div className="mb-1 grid gap-6 px-4 md:px-16">
               <div>
                 <div className="flex items-center justify-between">
                   <label
@@ -414,8 +412,8 @@ function AddEditLinkModal({
                     </div>
                   ) : null}
                 </div>
-                <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <input
+                <div className="relative flex rounded-md border border-gray-300 shadow-sm">
+                  <Input
                     name="url"
                     id={`url-${randomIdx}`}
                     required
@@ -435,7 +433,7 @@ function AddEditLinkModal({
                       urlError
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                    } block w-full rounded-md px-5 py-2 focus:outline-none sm:text-sm`}
+                    } block w-full rounded-md border-none bg-white px-5 py-2 shadow-none focus:shadow-lg focus:outline-none sm:text-sm `}
                     aria-invalid="true"
                   />
                   {urlError && (
@@ -457,9 +455,8 @@ function AddEditLinkModal({
                     Short Link
                   </label>
                   {props && lockKey ? (
-                    <button
+                    <div
                       className="flex h-6 items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                      type="button"
                       onClick={() => {
                         window.confirm(
                           "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
@@ -467,21 +464,24 @@ function AddEditLinkModal({
                       }}
                     >
                       <Lock className="h-3 w-3" />
-                    </button>
+                    </div>
                   ) : (
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2">
                       <ButtonTooltip
                         tooltipContent="Generate a random key"
                         onClick={generateRandomKey}
                         disabled={generatingRandomKey}
-                        className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                      >
-                        {generatingRandomKey ? (
-                          <Loader />
-                        ) : (
-                          <Shuffle className="h-3 w-3" />
-                        )}
-                      </ButtonTooltip>
+                        className="flex h-7 w-7 items-center justify-center rounded-md border-none bg-gray-200 p-0 px-0 text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                        icon={
+                          generatingRandomKey ? (
+                            <LoadingCircle />
+                          ) : (
+                            <Shuffle className="h-3 w-3" />
+                          )
+                        }
+                        children={undefined}
+                      />
+
                       <ButtonTooltip
                         tooltipContent="Generate a key using AI"
                         onClick={generateAIKey}
@@ -490,10 +490,10 @@ function AddEditLinkModal({
                           (aiLimit && aiUsage && aiUsage >= aiLimit) ||
                           !url
                         }
-                        className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                      >
-                        <Sparkles className="h-4 w-4" />
-                      </ButtonTooltip>
+                        icon={<Sparkles className="h-4 w-4" />}
+                        className="flex h-7 w-7 items-center justify-center rounded-md border-none bg-gray-200 p-0 px-0 text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                        children={undefined}
+                      />
                     </div>
                   )}
                 </div>
@@ -506,7 +506,7 @@ function AddEditLinkModal({
                       setData({ ...data, domain: e.target.value });
                     }}
                     className={cn(
-                      "max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                      "ounded-l-md max-w-[16rem] cursor-pointer border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
                       props && lockKey && "cursor-not-allowed",
                     )}
                   >
@@ -534,7 +534,7 @@ function AddEditLinkModal({
                     disabled={props && lockKey}
                     autoComplete="off"
                     className={cn(
-                      "block w-full rounded-r-md border-gray-300 px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                      "block w-full rounded-r-md border border-gray-300 bg-white px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:shadow-lg focus:outline-none focus:ring-gray-500 sm:text-sm",
                       {
                         "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                           keyError,
@@ -580,7 +580,7 @@ function AddEditLinkModal({
                               </div>
                               {shortLink.length > 25 && (
                                 <div className="mt-1 flex items-center space-x-2">
-                                  <Twitter className="h-4 w-4" />
+                                  <TwitterIcon className="h-4 w-4" />
                                   <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
                                     {truncate(shortLink, 25)}
                                   </p>
@@ -627,7 +627,7 @@ function AddEditLinkModal({
                 className="absolute inset-0 flex items-center px-4 md:px-16"
                 aria-hidden="true"
               >
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full !border border-t border-gray-300 border-opacity-20" />
               </div>
               <div className="relative flex justify-center">
                 <span className="-translate-y-1 bg-gray-50 px-2 text-sm text-gray-500">

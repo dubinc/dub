@@ -91,19 +91,19 @@ export function InputSelect({
           }
         }}
         disabled={disabled}
-        className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
+        className="block w-full truncate border-none border-white bg-white px-0 text-base text-gray-900 placeholder-gray-400 shadow-none outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
       />
     );
   });
 
   const CloseChevron = memo(() => (
-    <button
+    <div
       onClick={() => {
         setOpenCommandList((prev) => !prev);
         setSelectedItem(null);
         setInputValue("");
       }}
-      className="absolute inset-y-0 right-0 my-auto pr-3"
+      className="absolute inset-y-0 right-0 m-3 flex pr-3 text-center"
     >
       {inputValue.length > 0 ? (
         <X className="h-4 w-4 text-gray-400 transition-all hover:text-gray-700" />
@@ -117,7 +117,7 @@ export function InputSelect({
           )}
         />
       )}
-    </button>
+    </div>
   ));
 
   // renders a reusable list of items
@@ -227,7 +227,10 @@ export function InputSelect({
                 </div>
               </div>
               {openCommandList && (
-                <Command.List className="dub-scrollbar h-[70vh] overflow-y-auto p-2">
+                <Command.List
+                  className="dub-scrollbar h-[70vh] overflow-y-auto p-2"
+                  style={{ scrollbarWidth: "none", whiteSpace: "nowrap" }}
+                >
                   {items.length === 0 &&
                     inputValue === "" &&
                     (noItemsElement ? (
@@ -257,7 +260,7 @@ export function InputSelect({
     <Command ref={commandRef} className="relative" loop>
       <div
         className={cn(
-          "group rounded-md border border-gray-200 bg-white px-1 transition-all focus-within:border-gray-500 focus-within:ring-4 focus-within:ring-gray-200",
+          "group flex items-center justify-center rounded-md border border-gray-200 bg-white px-1 transition-all focus-within:border-gray-500 focus-within:ring-4 focus-within:ring-gray-200",
           className,
         )}
       >
@@ -275,13 +278,16 @@ export function InputSelect({
             icon || <Search className="h-4 w-4 text-gray-400" />
           )}
         </div>
-        <div className="flex h-10 px-8">
+        <div className="flex h-10 items-center justify-center px-8">
           <CommandInput />
           <CloseChevron />
         </div>
       </div>
       {openCommandList && (
-        <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full min-w-[160px] overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all duration-75">
+        <Command.List
+          className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full min-w-[160px] overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all duration-75"
+          style={{ scrollbarWidth: "none", whiteSpace: "nowrap" }}
+        >
           {items.length === 0 &&
             inputValue === "" &&
             (noItemsElement ? (

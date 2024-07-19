@@ -1,4 +1,4 @@
-const WhatsappIcon = () => {
+export default function WhatsappIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -6,6 +6,7 @@ const WhatsappIcon = () => {
       width="28px"
       height="28px"
       clipRule="evenodd"
+      className={className}
     >
       <path
         fill="#fff"
@@ -31,6 +32,4 @@ const WhatsappIcon = () => {
       />
     </svg>
   );
-};
-
-export default WhatsappIcon;
+}

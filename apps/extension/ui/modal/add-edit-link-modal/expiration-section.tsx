@@ -9,6 +9,7 @@ import { Expand } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { LinkProps } from "src/types";
 import { InfoTooltip, SimpleTooltipContent, Switch } from "../../";
+import Input from "../../../ui/input";
 import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function ExpirationSection({
@@ -72,9 +73,9 @@ export default function ExpirationSection({
                   }
                 }
               }}
-              className="flex-1 border-none bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+              className="flex-1 border border-none bg-transparent px-3 py-2 text-gray-900 placeholder-gray-400 focus:shadow-lg focus:outline-none focus:ring-0 sm:text-sm"
             />
-            <input
+            <Input
               type="datetime-local"
               id="expiresAt"
               name="expiresAt"
@@ -86,7 +87,7 @@ export default function ExpirationSection({
                   inputRef.current.value = formatDateTime(expiryDate);
                 }
               }}
-              className="w-[40px] border-none bg-transparent text-gray-500 focus:outline-none focus:ring-0 sm:text-sm"
+              className="cursor-pointer border-none border-opacity-25 bg-transparent px-2 py-0 text-gray-500 shadow-none focus:outline-none focus:ring-0 sm:text-sm"
             />
           </div>
           <div className="mt-4">
@@ -120,7 +121,7 @@ export default function ExpirationSection({
                 onChange={(e) => {
                   setData({ ...data, expiredUrl: e.target.value });
                 }}
-                className="block w-full rounded-md border-gray-300 px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border border-gray-300 border-opacity-25 bg-white px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:shadow-lg focus:outline-none focus:ring-gray-500 sm:text-sm"
                 aria-invalid="true"
               />
             </div>

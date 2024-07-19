@@ -1,18 +1,20 @@
 import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
-import {
-  CircleSlash2,
-  Link2,
-  Loader,
-  Sparkles,
-  UploadCloud,
-} from "lucide-react";
+import { CircleSlash2, Link2, Sparkles, UploadCloud } from "lucide-react";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { LinkProps } from "src/types";
-import { ButtonTooltip, Popover, SimpleTooltipContent, Switch } from "../../";
+import {
+  Button,
+  ButtonTooltip,
+  Popover,
+  SimpleTooltipContent,
+  Switch,
+} from "../../";
 import { resizeImage } from "../../../lib/images";
 import useWorkspace from "../../../lib/swr/use-workspace";
+import LoadingCircle from "../../../public/icons/loading-circle";
+import Input from "../../../ui/input";
 import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 import UnsplashSearch from "./unsplash-search";
 
@@ -102,7 +104,7 @@ export default function OGSection({
           <div>
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Image</p>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-1">
                 <ButtonTooltip
                   tooltipContent="Paste a URL to an image."
                   onClick={() => {
@@ -114,10 +116,11 @@ export default function OGSection({
                       setData((prev) => ({ ...prev, image }));
                     }
                   }}
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                >
-                  <Link2 className="h-4 w-4 text-gray-500" />
-                </ButtonTooltip>
+                  className="flex h-7 w-7 items-center justify-center rounded-md border-none bg-gray-200 p-0 px-0 text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                  icon={<Link2 className="h-4 w-4 text-gray-500" />}
+                  children={undefined}
+                />
+
                 <Popover
                   content={
                     <UnsplashSearch
@@ -128,12 +131,12 @@ export default function OGSection({
                   openPopover={openPopover}
                   setOpenPopover={handleSet}
                 >
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={handleSet}
-                    className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                  >
-                    <CircleSlash2 className="h-3 w-3 text-gray-500" />
-                  </button>
+                    className="flex h-7 w-7 items-center justify-center rounded-md bg-gray-200 p-0 px-0 text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                    icon={<CircleSlash2 className="h-3 w-3 text-gray-500" />}
+                  />
                 </Popover>
               </div>
             </div>
@@ -143,7 +146,7 @@ export default function OGSection({
             >
               {generatingMetatags && (
                 <div className="absolute z-[5] flex h-full w-full items-center justify-center rounded-md bg-white">
-                  <Loader />
+                  <LoadingCircle />
                 </div>
               )}
               <div
@@ -191,7 +194,7 @@ export default function OGSection({
               >
                 {resizing ? (
                   <>
-                    <Loader />
+                    <LoadingCircle />
                     <p className="mt-2 text-center text-sm text-gray-500">
                       Resizing image...
                     </p>
@@ -222,12 +225,12 @@ export default function OGSection({
               )}
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
-              <input
+              <Input
                 id="image"
                 name="image"
                 type="file"
                 accept="image/*"
-                className="sr-only"
+                className="sr-only border border-gray-400 bg-white focus:shadow-lg"
                 onChange={onChangePicture}
               />
             </div>
@@ -244,16 +247,18 @@ export default function OGSection({
                   tooltipContent="Generate an optimized title using AI."
                   onClick={() => console.log("test")}
                   disabled={!title || exceededAI}
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                >
-                  {true ? <Loader /> : <Sparkles className="h-4 w-4" />}
-                </ButtonTooltip>
+                  className="flex h-7 w-7 items-center justify-center rounded-md border-none bg-gray-200 p-0 px-0 text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                  icon={
+                    true ? <LoadingCircle /> : <Sparkles className="h-4 w-4" />
+                  }
+                  children={undefined}
+                />
               </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
                 <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white">
-                  <Loader />
+                  <LoadingCircle />
                 </div>
               )}
               <TextareaAutosize
@@ -261,7 +266,7 @@ export default function OGSection({
                 id="title"
                 minRows={3}
                 maxLength={120}
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-none bg-white px-3 text-gray-900 placeholder-gray-400 focus:border-gray-400 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder={`${process.env.NEXT_PUBLIC_APP_NAME} - open-source link management infrastructure.`}
                 value={title || ""}
                 onChange={(e) => {
@@ -283,18 +288,20 @@ export default function OGSection({
                 </p>
                 <ButtonTooltip
                   tooltipContent="Generate an optimized description using AI."
-                  onClick={() => console.log("dhh")}
+                  onClick={() => console.log("test")}
                   disabled={!description}
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                >
-                  {true ? <Loader /> : <Sparkles className="h-4 w-4" />}
-                </ButtonTooltip>
+                  className="flex h-7 w-7 items-center justify-center rounded-md border-none bg-gray-200 p-0 px-0 text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                  icon={
+                    true ? <LoadingCircle /> : <Sparkles className="h-4 w-4" />
+                  }
+                  children={undefined}
+                />
               </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
                 <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white">
-                  <Loader />
+                  <LoadingCircle />
                 </div>
               )}
               <TextareaAutosize
@@ -302,7 +309,7 @@ export default function OGSection({
                 id="description"
                 minRows={3}
                 maxLength={240}
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-none bg-white px-3 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder={`${process.env.NEXT_PUBLIC_APP_NAME} is open-source link management infrastructure for modern marketing teams.`}
                 value={description || ""}
                 onChange={(e) => {

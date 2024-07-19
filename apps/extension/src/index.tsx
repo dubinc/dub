@@ -12,7 +12,7 @@ function Extension({ handleClose }: { handleClose: () => void }) {
   const [openTab, setOpenTab] = useState<boolean>(true);
 
   return (
-    <div className="mb-20 mr-10 rounded-lg bg-white p-6 text-black shadow-lg">
+    <div className="mb-14 mr-10 rounded-lg bg-white p-6 text-black shadow-lg">
       <TooltipProvider>
         <SelectedWorkspaceProvider>
           <div className="flex flex-row justify-between">
@@ -26,31 +26,32 @@ function Extension({ handleClose }: { handleClose: () => void }) {
           </div>
 
           <div className="mt-3 flex gap-4">
-            <button
+            <div
               className={`${
                 openTab ? "bg-blue-100 text-black" : "bg-gray-200 text-gray-500"
-              } group rounded-full p-3 transition-all duration-75 hover:scale-105 hover:text-black focus:outline-none active:scale-95`}
+              } group cursor-pointer rounded-full p-4 transition-all duration-75 hover:scale-105 hover:text-black focus:outline-none active:scale-95`}
               onClick={() => setOpenTab(true)}
             >
               <IconMenu icon={<Link className="h-4 w-4" />} />
-            </button>
-            <button
+            </div>
+            <div
               className={`${
                 !openTab
                   ? "bg-blue-100 text-black"
                   : "bg-gray-200 text-gray-500"
               }
-          group rounded-full p-3 transition-all duration-75 hover:scale-110 hover:text-black focus:outline-none active:scale-95`}
+              group cursor-pointer rounded-full p-4 transition-all duration-75 hover:scale-110 hover:text-black focus:outline-none active:scale-95`}
               onClick={() => {
                 setOpenTab(false);
               }}
             >
               <IconMenu icon={<GalleryVerticalEnd className="h-4 w-4 " />} />
-            </button>
+            </div>
           </div>
+          <div className="h-40 overflow-y-auto my-4"  style={{ scrollbarWidth: "none", whiteSpace: "nowrap" }}>
           {openTab && <LinkInput />}
           {!openTab && <AllLinks />}
-
+          </div>
           <div className="flex items-center justify-between">
             <UserSpace />
             <a

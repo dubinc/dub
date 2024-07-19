@@ -3,11 +3,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Badge, SimpleTooltipContent, Tooltip } from "@/ui";
 import TagBadge from "@/ui/shared/tag-badge";
 import { Command, useCommandState } from "cmdk";
-import { Check, ChevronDown, Loader, Sparkle, Tag, X } from "lucide-react";
+import { Check, ChevronDown, Sparkle, Tag, X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LinkWithTagsProps, TagProps } from "src/types";
 import { mutate } from "swr";
+import LoadingCircle from "../../../public/icons/loading-circle";
 
 export default function TagsSection({
   data,
@@ -124,7 +125,7 @@ export default function TagsSection({
         <div className="group rounded-md border border-gray-300 bg-white p-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
           <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
             {creatingTag ? (
-              <Loader />
+              <LoadingCircle />
             ) : (
               <Tooltip
                 content={

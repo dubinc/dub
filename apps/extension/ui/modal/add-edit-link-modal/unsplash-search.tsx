@@ -1,5 +1,4 @@
 import { fetcher } from "@dub/utils";
-import { Loader } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { LinkProps } from "src/types";
@@ -7,6 +6,7 @@ import useSWR from "swr";
 import { Basic } from "unsplash-js/dist/methods/photos/types";
 import { useDebounce } from "use-debounce";
 import { useMediaQuery } from "../../";
+import LoadingCircle from "../../../public/icons/loading-circle";
 
 export default function UnsplashSearch({
   setData,
@@ -98,7 +98,7 @@ export default function UnsplashSearch({
         )
       ) : (
         <div className="flex h-[90%] items-center justify-center">
-          <Loader />
+          <LoadingCircle />
         </div>
       )}
     </div>

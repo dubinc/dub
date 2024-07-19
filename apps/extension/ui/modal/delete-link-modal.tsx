@@ -12,6 +12,7 @@ import { mutate } from "swr";
 import useWorkspace from "../../lib/swr/use-workspace";
 import { Button } from "../button";
 import { useMediaQuery } from "../hooks";
+import Input from "../input";
 import { LinkLogo } from "../link-logo";
 import { Modal } from "../modal";
 
@@ -45,7 +46,7 @@ function DeleteLinkModal({
       showModal={showDeleteLinkModal}
       setShowModal={setShowDeleteLinkModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center text-black sm:px-16">
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Delete {shortlink}</h3>
         <p className="text-sm text-gray-500">
@@ -88,15 +89,16 @@ function DeleteLinkModal({
             below
           </label>
           <div className="relative mt-1 rounded-md shadow-sm">
-            <input
+            <Input
               type="text"
               name="verification"
               id="verification"
               pattern={shortlink}
               required
+              placeholder={`Enter ${shortlink}`}
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block h-9 w-full rounded-md border-gray-300 px-4 text-gray-900 placeholder-gray-400 focus:border-black focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block h-9 w-full rounded-md border border-gray-300 bg-white px-4 text-gray-900 placeholder-gray-400 focus:border-black focus:shadow-lg focus:outline-none focus:ring-gray-500 sm:text-sm"
             />
           </div>
         </div>

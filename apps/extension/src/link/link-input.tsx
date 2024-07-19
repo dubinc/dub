@@ -1,14 +1,15 @@
 import { cn, isValidUrl } from "@dub/utils";
 import { Ban, CornerDownLeftIcon, Link2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import IconMenu from "../../public/IconMenu";
 import LinkTemplate from "../../public/icons/linkTemplate";
+import Input from "../../ui/input";
 import { useAddEditLinkModal } from "../../ui/modal/add-edit-link-modal";
 import { setLocalLinks } from "../../utils/functions/localLinks";
 import { useAuth } from "../auth/use-Auth";
 import { ShortLinkProps } from "../types";
 import { useSelectedWorkspace } from "../workspace/workspace-now";
 import LinkCard from "./link-card";
+import AllLinks from "./all-links";
 
 export default function LinkInput() {
   const [url, setUrl] = useState("");
@@ -75,19 +76,16 @@ export default function LinkInput() {
       <AddEditLinkModal />
       <form
         onSubmit={handleSubmit}
-        className="relative mt-3 flex items-center justify-center"
+        className="relative flex mb-4 items-center justify-center"
       >
-        <IconMenu
-          icon={
-            <Link2
-              className={cn("absolute inset-y-0 left-0 my-2 ml-3 h-5 w-5 ", {
-                "text-gray-400": isValid,
-                "text-red-400": !isValid,
-              })}
-            />
-          }
+        <Link2
+          className={cn("absolute inset-y-0 left-0 my-2 ml-4 h-5 w-5 ", {
+            "text-gray-400": isValid,
+            "text-red-900": !isValid,
+          })}
         />
-        <input
+
+        <Input
           type="text"
           placeholder="https://app.dub.co/register"
           autoComplete="off"
@@ -95,24 +93,23 @@ export default function LinkInput() {
           className={cn(
             {
               "border-gray-200 focus:border-black": isValid,
-              "border-red-300 focus:border-red-400": !isValid,
+              "border-red-900 focus:border-red-900": !isValid,
             },
-            "focus:outline-nonefocus:border-black peer block w-full overflow-hidden  rounded-md border bg-white p-2 pl-10 pr-14  shadow-lg focus:outline-none focus:ring-0 sm:text-sm",
+            "h-auto w-full px-12",
           )}
           value={url}
           onChange={handleInputChange}
         />
-        <button
+        <div
           className={cn(
             {
               "border-gray-200 hover:border-gray-700 focus:border-black":
                 isValid,
-              "border-red-300 hover:border-red-400 focus:border-red-400":
+              "border-red-300 hover:border-red-900 focus:border-red-900":
                 !isValid,
             },
             "lucide lucide-corner-down-left absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-12 items-center justify-center rounded border  p-0.5 font-sans text-sm font-medium text-gray-400  hover:text-gray-700  focus:outline-none",
           )}
-          type="submit"
         >
           {isValid ? (
             user && selectedWorkspace ? (
@@ -121,11 +118,13 @@ export default function LinkInput() {
               <CornerDownLeftIcon className="h-5 w-5" />
             )
           ) : (
-            <Ban className="h-5 w-5 text-red-400" />
+            <Ban className="h-5 w-5 border-red-900 text-red-900" />
           )}
-        </button>
+        </div>
       </form>
-      {link ? <LinkCard props={link} /> : <LinkTemplate />}
+      <div className="w-[400px] flex">
+       {link ? <LinkCard props={link} /> : <AllLinks />}
+      </div>
     </div>
   );
 }

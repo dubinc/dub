@@ -1,6 +1,6 @@
 import React from "react";
 import DubLogo from "../public/icons/logo";
-import Extension from "../src/extension";
+import Extension from "../src";
 
 export default function ContentApp() {
   const [isOpen, setIsOpen] = React.useState(false);

@@ -1,4 +1,4 @@
-const RedditIcon = () => {
+export default function RedditIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -7,6 +7,7 @@ const RedditIcon = () => {
       width="28px"
       height="28px"
       viewBox="0 0 256 256"
+      className={className}
     >
       <g transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
         <circle cx="45" cy="45" r="45" fill="rgb(255,69,0)" />
@@ -18,5 +19,4 @@ const RedditIcon = () => {
       </g>
     </svg>
   );
-};
-export default RedditIcon;
+}

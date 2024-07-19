@@ -1,11 +1,12 @@
 "use client";
 
 import { fetcher, getDomainWithoutWWW, getUrlFromString } from "@dub/utils";
-import { Image, Link2, Loader } from "lucide-react";
+import { Image, Link2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
+import LoadingCircle from "../public/icons/loading-circle";
 import { useMediaQuery } from "./hooks";
 
 export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
@@ -70,7 +71,7 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
       <div className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50">
         {isValidating && (
           <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
-            <Loader />
+            <LoadingCircle />
           </div>
         )}
         {image ? (
@@ -135,7 +136,7 @@ export function LinkPreviewPlaceholder({
       </div>
       <div className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50">
         <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
-          <Loader />
+          <LoadingCircle />
         </div>
       </div>
     </>

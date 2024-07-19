@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
-import { Loader } from "lucide-react";
 import { ReactNode } from "react";
+import LoadingCircle from "../public/icons/loading-circle";
 import { Tooltip } from "./tooltip";
 
 export interface ButtonProps
@@ -42,9 +42,9 @@ export function Button({
           )}
         >
           {icon}
-          <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>
+          <p className={cn(shortcut && "mb-0 mt-0 flex-1 text-left")}>{text}</p>
           {shortcut && (
-            <kbd
+            <div
               className={cn(
                 "hidden rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block",
                 {
@@ -53,7 +53,7 @@ export function Button({
               )}
             >
               {shortcut}
-            </kbd>
+            </div>
           )}
         </div>
       </Tooltip>
@@ -64,7 +64,7 @@ export function Button({
       // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
       type={props.onClick ? "button" : "submit"}
       className={cn(
-        "group flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all",
+        "group flex h-10 w-full items-center justify-center space-x-2 rounded-md border border-opacity-25 bg-white px-4 text-sm transition-all",
         props.disabled || loading
           ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
           : {
@@ -86,10 +86,10 @@ export function Button({
       disabled={props.disabled || loading}
       {...props}
     >
-      {loading ? <Loader /> : icon ? icon : null}
+      {loading ? <LoadingCircle /> : icon ? icon : null}
       {text && <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>}
       {shortcut && (
-        <kbd
+        <div
           className={cn(
             "hidden rounded px-2 py-0.5 text-xs font-light transition-all duration-75 md:inline-block",
             {
@@ -105,7 +105,7 @@ export function Button({
           )}
         >
           {shortcut}
-        </kbd>
+        </div>
       )}
     </button>
   );

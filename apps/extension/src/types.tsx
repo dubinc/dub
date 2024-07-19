@@ -85,7 +85,6 @@ export type LinkProps = Link;
 
 export interface ShortLinkProps extends LinkProps {
   tags: TagProps[];
-  shortLink: string;
   tagId: null;
   qrCode: string;
   workspaceId: string;

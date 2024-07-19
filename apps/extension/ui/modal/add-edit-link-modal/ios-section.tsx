@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { LinkProps } from "src/types";
 import { SimpleTooltipContent, Switch } from "../../";
+import Input from "../../../ui/input";
 import { ProBadgeTooltip } from "../../shared/pro-badge-tooltip";
 
 export default function IOSSection({
@@ -51,7 +52,7 @@ export default function IOSSection({
           className="mt-3 flex rounded-md shadow-sm"
           {...FADE_IN_ANIMATION_SETTINGS}
         >
-          <input
+          <Input
             name="ios-url"
             id="ios-url"
             placeholder="https://apps.apple.com/app/1611158928"
@@ -59,7 +60,7 @@ export default function IOSSection({
             onChange={(e) => {
               setData({ ...data, ios: e.target.value });
             }}
-            className="block w-full rounded-md border-gray-300 px-5 py-2 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className="block w-full rounded-md border border-gray-300 bg-white px-5 py-2 text-gray-900 placeholder-gray-400 shadow-none focus:border-gray-500 focus:shadow-lg focus:outline-none focus:ring-gray-500 sm:text-sm"
             aria-invalid="true"
           />
         </motion.div>
