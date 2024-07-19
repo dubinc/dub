@@ -1,4 +1,11 @@
-import { ApiMiddleware, AppMiddleware, LinkMiddleware } from "@/lib/middleware";
+import {
+  AdminMiddleware,
+  ApiMiddleware,
+  AppMiddleware,
+  AxiomMiddleware,
+  CreateLinkMiddleware,
+  LinkMiddleware,
+} from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
 import {
   ADMIN_HOSTNAMES,
@@ -8,9 +15,6 @@ import {
   isValidUrl,
 } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import AdminMiddleware from "./lib/middleware/admin";
-import AxiomMiddleware from "./lib/middleware/axiom";
-import CreateLinkMiddleware from "./lib/middleware/create-link";
 
 export const config = {
   matcher: [
