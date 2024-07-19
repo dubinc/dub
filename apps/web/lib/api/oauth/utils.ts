@@ -15,11 +15,11 @@ export const generateCodeChallengeHash = async (codeVerifier: string) => {
 };
 
 export const createToken = ({
-  prefix,
   length,
+  prefix,
 }: {
-  prefix?: string;
   length: number;
+  prefix?: string;
 }) => {
   return `${prefix || ""}${randomBytes(length).toString("hex")}`;
 };

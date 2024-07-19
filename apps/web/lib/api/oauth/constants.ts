@@ -13,8 +13,6 @@ export const OAUTH_CONFIG = {
   // TODO:
   // Keep it short and simple (Discuss with Steven)
   CLIENT_SECRET_PREFIX: "dub_app_secret_",
-  ACCESS_TOKEN_PREFIX: "dub_access_token_",
-  REFRESH_TOKEN_PREFIX: "dub_refresh_token_",
 };
 
 // These are the scopes an OAuth app can request on behalf of an user
