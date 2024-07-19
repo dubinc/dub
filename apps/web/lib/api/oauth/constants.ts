@@ -10,8 +10,7 @@ export const OAUTH_CONFIG = {
   REFRESH_TOKEN_LENGTH: 40,
   CODE_LENGTH: 40,
 
-  // TODO:
-  // Keep it short and simple (Discuss with Steven)
+  CLIENT_ID_PREFIX: "dub_app_",
   CLIENT_SECRET_PREFIX: "dub_app_secret_",
 };
 

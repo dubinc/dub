@@ -30,13 +30,14 @@ export const POST = withWorkspace(
     const { name, developer, website, redirectUri, logo, pkce } =
       createOAuthAppSchema.parse(await parseRequestBody(req));
 
+    const clientId = createToken({
+      length: OAUTH_CONFIG.CLIENT_ID_LENGTH,
+      prefix: OAUTH_CONFIG.CLIENT_ID_PREFIX,
+    });
+
     const clientSecret = createToken({
       length: OAUTH_CONFIG.CLIENT_SECRET_LENGTH,
       prefix: OAUTH_CONFIG.CLIENT_SECRET_PREFIX,
-    });
-
-    const clientId = createToken({
-      length: OAUTH_CONFIG.CLIENT_ID_LENGTH,
     });
 
     const client = await prisma.oAuthApp.create({
