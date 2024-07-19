@@ -109,6 +109,9 @@ async function VerifyInvite({ code }: { code: string }) {
     data: {
       userId: session.user.id,
       projectId: workspace.id,
+      notificationPreference: {
+        create: {},
+      },
     },
   });
 

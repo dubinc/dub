@@ -66,6 +66,9 @@ export const POST = withSession(async ({ session, params }) => {
         userId: session.user.id,
         role: "member",
         projectId: workspace.id,
+        notificationPreference: {
+          create: {},
+        },
       },
     }),
     prisma.projectInvite.delete({
