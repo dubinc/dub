@@ -207,7 +207,7 @@ export const exchangeAuthCodeForToken = async (
         refreshTokens: {
           create: {
             clientId,
-            refreshTokenHashed: await hashToken(refreshToken),
+            hashedRefreshToken: await hashToken(refreshToken),
             expiresAt: new Date(
               Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
             ),

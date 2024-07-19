@@ -79,7 +79,7 @@ export const refreshAccessToken = async (
   const refreshTokenRecord = await prisma.oAuthRefreshToken.findFirst({
     where: {
       clientId,
-      refreshTokenHashed: await hashToken(refresh_token),
+      hashedRefreshToken: await hashToken(refresh_token),
     },
     select: {
       id: true,
@@ -159,7 +159,7 @@ export const refreshAccessToken = async (
         refreshTokens: {
           create: {
             clientId,
-            refreshTokenHashed: await hashToken(newRefreshToken),
+            hashedRefreshToken: await hashToken(newRefreshToken),
             expiresAt: new Date(
               Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
             ),

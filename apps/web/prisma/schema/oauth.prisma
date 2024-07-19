@@ -50,7 +50,7 @@ model OAuthRefreshToken {
   id                 String   @id @default(cuid())
   clientId           String
   accessTokenId      String
-  refreshTokenHashed String   @unique
+  hashedRefreshToken String   @unique
   expiresAt          DateTime
   createdAt          DateTime @default(now())
 
