@@ -1,15 +1,44 @@
-const preferences = [
+"use client";
+
+import { updateNotificationPreference } from "@/lib/actions/update-notification-preference";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { LoadingSpinner } from "@dub/ui/src/icons";
+import { fetcher } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
+import { toast } from "sonner";
+import useSWR from "swr";
+
+const notifications = [
   {
-    key: "links_usage_summary",
-    title: "Monthly links usage summary",
+    type: "linkUsageSummary",
+    description: "Monthly links usage summary",
   },
   {
-    key: "domain_configuration",
-    title: "Domain configuration warnings",
+    type: "domainConfigurationWarnings",
+    description: "Domain configuration warnings",
   },
 ];
 
+interface PreferenceProps {
+  type: string;
+  description: string;
+  enabled: boolean;
+  onChange: (value: boolean) => void;
+}
+
 export const NotificationPreferences = () => {
+  const { id: workspaceId } = useWorkspace();
+  const { executeAsync } = useAction(updateNotificationPreference);
+
+  const {
+    data: preferences,
+    isLoading,
+    mutate,
+  } = useSWR<{
+    linkUsageSummary: boolean;
+    domainConfigurationWarnings: boolean;
+  }>(`/api/workspaces/${workspaceId}/notification-preferences`, fetcher);
+
   return (
     <>
       <div className="rounded-lg border border-gray-200 bg-white">
@@ -23,22 +52,56 @@ export const NotificationPreferences = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 p-5 sm:p-10">
-          {preferences.map((preference) => (
-            <Preference key={preference.key} title={preference.title} />
-          ))}
+        <div className="flex flex-col gap-3 p-5 sm:p-10">
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            notifications.map((notification) => (
+              <Preference
+                {...notification}
+                enabled={preferences ? preferences[notification.type] : false}
+                key={notification.type}
+                onChange={async (value) => {
+                  if (!workspaceId) return;
+
+                  const response = await executeAsync({
+                    workspaceId,
+                    type: notification.type as any,
+                    value,
+                  });
+
+                  if (response?.data) {
+                    mutate();
+                    toast.success("Notification preference saved.");
+                  } else {
+                    toast.error(response?.serverError?.serverError);
+                  }
+                }}
+              />
+            ))
+          )}
         </div>
       </div>
     </>
   );
 };
 
-const Preference = ({ key, title }: { key: string; title: string }) => {
+const Preference = ({
+  type,
+  description,
+  enabled,
+  onChange,
+}: PreferenceProps) => {
   return (
-    <div key={key}>
-      <label className="flex items-center text-gray-700 font-medium">
-        <input type="checkbox" />
-        <span className="ml-2 text-sm">{title}</span>
+    <div key={type}>
+      <label className="flex items-center font-medium text-gray-700">
+        <input
+          type="checkbox"
+          className="h-4 w-4 border-gray-300 text-black focus:outline-none focus:ring-0"
+          onChange={(e) => onChange(e.target.checked)}
+          checked={enabled}
+        />
+        <span className="ml-2 text-sm text-gray-500">{description}</span>
       </label>
     </div>
   );
