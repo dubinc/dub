@@ -43,25 +43,25 @@ export default async function Authorize({
   }
 
   return (
-    <div className="relative z-10 m-auto h-fit w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
-      <div className="flex flex-col items-center justify-center space-y-6 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
+    <div className="relative z-10 m-auto w-full max-w-md border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
+      <div className="flex flex-col items-center justify-center space-y-6 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:rounded-t-2xl sm:px-16">
         <div className="flex items-center gap-3">
           <a href={oAuthApp.website} target="_blank" rel="noreferrer">
             {oAuthApp.logo ? (
               <BlurImage
                 src={oAuthApp.logo}
                 alt={`Logo for ${oAuthApp.name}`}
-                className="h-14 w-14 rounded-full border border-gray-200"
+                className="size-12 rounded-full border border-gray-200"
                 width={20}
                 height={20}
               />
             ) : (
-              <Logo className="h-14 w-14" />
+              <Logo className="size-12" />
             )}
           </a>
-          <ArrowLeftRight className="h-6 w-6 text-gray-500" />
+          <ArrowLeftRight className="size-5 text-gray-500" />
           <a href={HOME_DOMAIN} target="_blank" rel="noreferrer">
-            <Logo className="h-14 w-14" />
+            <Logo className="size-12" />
           </a>
         </div>
         <p className="text-md">
@@ -83,7 +83,7 @@ export default async function Authorize({
       <div className="flex flex-col space-y-3 bg-white px-2 py-6 sm:px-10">
         <ScopesRequested scopes={requestParams.scope} />
       </div>
-      <div className="flex flex-col space-y-2 border-t border-gray-200 bg-white px-2 py-6 sm:px-10">
+      <div className="flex flex-col space-y-2 border-t border-gray-200 bg-white px-2 py-6 sm:rounded-b-2xl sm:px-10">
         <Suspense fallback={<></>}>
           <AuthorizeForm oAuthApp={oAuthApp} {...requestParams} />
         </Suspense>

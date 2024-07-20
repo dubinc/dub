@@ -41,11 +41,6 @@ export default function WorkspaceSettingsLayout({
       segment: "tokens",
     },
     {
-      name: "OAuth Apps",
-      icon: Key,
-      segment: "oauth-apps",
-    },
-    {
       name: "Security",
       icon: ShieldCheck,
       segment: "security",

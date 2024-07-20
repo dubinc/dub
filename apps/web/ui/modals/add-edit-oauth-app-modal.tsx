@@ -1,14 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
-import {
-  BlurImage,
-  Button,
-  ButtonProps,
-  InfoTooltip,
-  Logo,
-  Modal,
-  Switch,
-} from "@dub/ui";
+import { Button, ButtonProps, InfoTooltip, Logo, Modal, Switch } from "@dub/ui";
 import {
   Dispatch,
   FormEvent,
@@ -98,21 +90,14 @@ function AddEditAppModal({
         setShowModal={setShowAddEditAppModal}
         className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
       >
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-          {workspaceLogo ? (
-            <BlurImage
-              src={workspaceLogo}
-              alt={`Logo for ${slug}`}
-              className="h-10 w-10 rounded-full border border-gray-200"
-              width={20}
-              height={20}
-            />
-          ) : (
-            <Logo />
-          )}
+        <div className="flex flex-col items-center justify-center gap-1 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+          <Logo className="mb-3" />
           <h1 className="text-lg font-medium">
-            {app ? "Update" : "Add New"} OAuth Application
+            {app ? "Update" : "Create"} OAuth Application
           </h1>
+          <p className="text-sm text-gray-500">
+            Allow users to sign in to your application using their Dub account.
+          </p>
         </div>
 
         <form
