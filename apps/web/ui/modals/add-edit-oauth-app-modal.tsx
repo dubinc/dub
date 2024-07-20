@@ -1,11 +1,13 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { Button, ButtonProps, InfoTooltip, Logo, Modal, Switch } from "@dub/ui";
+import slugify from "@sindresorhus/slugify";
 import {
   Dispatch,
   FormEvent,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -14,6 +16,7 @@ import { mutate } from "swr";
 
 const newApp: OAuthAppProps = {
   name: "",
+  slug: "",
   developer: "",
   website: "",
   clientId: "",
@@ -34,7 +37,7 @@ function AddEditAppModal({
   onAppCreated?: (App: OAuthAppProps) => void;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, logo: workspaceLogo, slug } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
   const [data, setData] = useState<OAuthAppProps>(app || newApp);
 
   // Determine the endpoint
@@ -80,8 +83,17 @@ function AddEditAppModal({
     }
   };
 
-  const { name, developer, website, redirectUri, logo, pkce } = data;
-  const buttonDisabled = !name || !developer || !website || !redirectUri;
+  const { name, slug, developer, website, redirectUri, logo, pkce } = data;
+
+  useEffect(() => {
+    setData((prev) => ({
+      ...prev,
+      slug: slugify(name),
+    }));
+  }, [name]);
+
+  const buttonDisabled =
+    !name || !slug || !developer || !website || !redirectUri;
 
   return (
     <>
@@ -120,6 +132,25 @@ function AddEditAppModal({
                 autoFocus
                 autoComplete="off"
                 placeholder="My App"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="slug" className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-gray-900">
+                Application slug
+              </h2>
+              <InfoTooltip content="Unique slug for this application on Dub" />
+            </label>
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                required
+                value={slug}
+                onChange={(e) => setData({ ...data, slug: e.target.value })}
+                autoComplete="off"
+                placeholder="my-app"
               />
             </div>
           </div>

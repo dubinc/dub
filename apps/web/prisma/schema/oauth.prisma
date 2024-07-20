@@ -2,6 +2,7 @@ model OAuthApp {
   id                 String   @id @default(cuid())
   clientId           String   @unique
   name               String
+  slug               String   @unique
   developer          String
   website            String
   hashedClientSecret String
@@ -22,6 +23,7 @@ model OAuthApp {
 
   @@index(projectId)
   @@index([userId])
+  @@index([slug])
 }
 
 model OAuthCode {

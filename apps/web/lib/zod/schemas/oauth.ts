@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const createOAuthAppSchema = z.object({
   name: z.string().min(1).max(100),
+  slug: z.string().min(1).max(100),
   developer: z.string().min(1).max(100),
   website: z
     .string()
@@ -43,6 +44,7 @@ export const oAuthAppSchema = z.object({
   clientId: z.string(),
   clientSecret: z.string().optional(),
   name: z.string(),
+  slug: z.string(),
   developer: z.string(),
   website: z.string(),
   redirectUri: z.string(),

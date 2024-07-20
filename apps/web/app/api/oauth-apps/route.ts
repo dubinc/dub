@@ -27,7 +27,7 @@ export const GET = withWorkspace(
 // POST /api/oauth-apps - create a new OAuth app
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, developer, website, redirectUri, logo, pkce } =
+    const { name, slug, developer, website, redirectUri, logo, pkce } =
       createOAuthAppSchema.parse(await parseRequestBody(req));
 
     const clientId = createToken({
@@ -44,6 +44,7 @@ export const POST = withWorkspace(
       data: {
         projectId: workspace.id,
         name,
+        slug,
         developer,
         website,
         redirectUri,
