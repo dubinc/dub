@@ -36,7 +36,7 @@ export default function TagBadge({
         className,
       )}
     >
-      {withIcon && <Tag className="h-3 w-3" />}
+      {withIcon && <Tag className="h-3 w-3 shrink-0" />}
       <span
         className={cn(
           withIcon && !primary && "hidden sm:inline-block",
