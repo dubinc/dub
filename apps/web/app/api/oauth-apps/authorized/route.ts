@@ -15,6 +15,7 @@ export const GET = withWorkspace(
         oAuthApp: {
           select: {
             clientId: true,
+            slug: true,
             name: true,
             developer: true,
             website: true,
@@ -35,6 +36,7 @@ export const GET = withWorkspace(
       createdAt: app.createdAt,
       clientId: app.oAuthApp.clientId,
       name: app.oAuthApp.name,
+      slug: app.oAuthApp.slug,
       developer: app.oAuthApp.developer,
       website: app.oAuthApp.website,
       logo: app.oAuthApp.logo,

@@ -1,5 +1,5 @@
-import AuthorizedAppsPageClient from "./page-client";
+import IntegrationsPageClient from "./page-client";
 
-export default function AuthorizedAppsPage() {
-  return <AuthorizedAppsPageClient />;
+export default function IntegrationsPage() {
+  return <IntegrationsPageClient />;
 }

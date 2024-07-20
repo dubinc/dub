@@ -19,12 +19,14 @@ import { useState } from "react";
 import useSWR from "swr";
 import IntegrationCard from "./integration-card";
 
-export default function AuthorizedAppsPageClient() {
+export default function IntegrationsPageClient() {
   const { id: workspaceId, slug, flags } = useWorkspace();
   const { data: apps, isLoading } = useSWR<OAuthAuthorizedAppProps[]>(
     `/api/oauth-apps/authorized?workspaceId=${workspaceId}`,
     fetcher,
   );
+
+  console.log({ apps });
 
   if (!flags?.integrations) {
     redirect(`/${slug}`);
@@ -79,9 +81,7 @@ export default function AuthorizedAppsPageClient() {
         {isLoading || !apps ? (
           <div className="flex flex-col items-center justify-center space-y-4 py-20">
             <LoadingSpinner className="h-6 w-6 text-gray-500" />
-            <p className="text-sm text-gray-500">
-              Fetching authorized applications...
-            </p>
+            <p className="text-sm text-gray-500">Fetching integrations...</p>
           </div>
         ) : apps.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-3">

@@ -127,6 +127,7 @@ export const oAuthAuthorizedAppSchema = z
     oAuthAppSchema.pick({
       clientId: true,
       name: true,
+      slug: true,
       developer: true,
       website: true,
       logo: true,
