@@ -376,7 +376,7 @@ function FilterButton({
         isMobile ? setTimeout(onSelect, 100) : onSelect();
       }}
       onSelect={onSelect}
-      value={label}
+      value={label + option?.value}
     >
       <span className="shrink-0 text-gray-600">
         {isReactNode(Icon) ? Icon : <Icon className="h-4 w-4" />}
