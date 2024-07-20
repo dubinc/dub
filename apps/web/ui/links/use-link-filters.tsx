@@ -4,7 +4,12 @@ import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
-import { DUB_WORKSPACE_ID, GOOGLE_FAVICON_URL, cn } from "@dub/utils";
+import {
+  DUB_WORKSPACE_ID,
+  GOOGLE_FAVICON_URL,
+  cn,
+  nFormatter,
+} from "@dub/utils";
 import { useMemo } from "react";
 import { COLORS_LIST } from "./tag-badge";
 
@@ -33,7 +38,7 @@ export function useLinkFilters() {
         options: domains.map(({ slug, count }) => ({
           value: slug,
           label: slug,
-          right: count,
+          right: nFormatter(count, { full: true }),
         })),
       },
       {
