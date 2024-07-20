@@ -95,7 +95,7 @@ export default function LinkDisplay({
     >
       <Button
         variant="secondary"
-        className="[&>div]:w-full"
+        className="hover:bg-white [&>div]:w-full"
         text={
           <div className="flex w-full items-center gap-2">
             <Sliders className="h-4 w-4" />
