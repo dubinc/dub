@@ -14,10 +14,12 @@ import {
   MaxWidthWrapper,
   Popover,
   TokenAvatar,
+  buttonVariants,
 } from "@dub/ui";
 import { Key } from "@dub/ui/src/icons";
-import { fetcher, formatDate } from "@dub/utils";
+import { cn, fetcher, formatDate } from "@dub/utils";
 import { MoreVertical } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
@@ -61,9 +63,18 @@ export default function AuthorizedAppsPageClient() {
             </h1>
             <div className="flex gap-2">
               <Button
-                text="Create"
+                text="Create Integration"
                 onClick={() => setShowAddEditAppModal(true)}
               />
+              <Link
+                href={`/${slug}/integrations/console`}
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+                )}
+              >
+                My Integrations
+              </Link>
             </div>
           </div>
         </MaxWidthWrapper>
