@@ -347,6 +347,8 @@ function FilterButton({
   right?: ReactNode;
   onSelect: () => void;
 }) {
+  const { isMobile } = useMediaQuery();
+
   const Icon = option
     ? option.icon ??
       filter.getOptionIcon?.(option.value, { key: filter.key, option }) ??
@@ -367,8 +369,11 @@ function FilterButton({
       onPointerDown={(e) => {
         e.preventDefault();
       }}
-      onPointerUp={() => {
-        onSelect();
+      onPointerUp={(e) => {
+        e.preventDefault();
+        // Mobile touches have some sort of delay that can cause the next page's option's
+        // onClick / onSelect to be triggered so we delay this by 100ms to account for it
+        isMobile ? setTimeout(onSelect, 100) : onSelect();
       }}
       onSelect={onSelect}
       value={label + option?.value}
