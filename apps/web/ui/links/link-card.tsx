@@ -82,6 +82,8 @@ export default function LinkCard({
     tags,
     comments,
     user,
+    title,
+    description
   } = props;
 
   const searchParams = useSearchParams();
@@ -373,6 +375,16 @@ export default function LinkCard({
                   key,
                 })}
               />
+              {title && (
+                <h3 className="text-sm font-semibold text-gray-800 ">
+                  {title}
+                </h3>
+              )}
+              {description && (
+                <p className="text-sm text-gray-600">
+                  {description}
+                </p>
+              )}
               {comments && (
                 <Tooltip
                   content={
