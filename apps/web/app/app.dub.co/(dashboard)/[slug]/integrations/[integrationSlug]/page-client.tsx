@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
-import { useDeleteAppModal } from "@/ui/modals/delete-oauth-app-modal";
+import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
@@ -37,14 +37,14 @@ export default function IntegrationPageClient({
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { DeleteAppModal, setShowDeleteAppModal } = useDeleteAppModal({
-    app: integration,
-    appType: "authorized",
-  });
+  const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
+    useUninstallIntegrationModal({
+      integration: integration,
+    });
 
   return (
     <MaxWidthWrapper className="my-10 grid max-w-screen-lg gap-8">
-      <DeleteAppModal />
+      <UninstallIntegrationModal />
       <Link
         href={`/${slug}/integrations`}
         className="flex items-center gap-x-1"
@@ -82,7 +82,7 @@ export default function IntegrationPageClient({
                 icon={<Trash className="h-4 w-4" />}
                 className="h-9 justify-start px-2"
                 onClick={() => {
-                  setShowDeleteAppModal(true);
+                  setShowUninstallIntegrationModal(true);
                 }}
               />
             </div>
@@ -102,7 +102,7 @@ export default function IntegrationPageClient({
           </button>
         </Popover>
       </div>
-      <div className="flex gap-12 rounded-lg border border-gray-200 p-4">
+      <div className="flex gap-12 rounded-lg border border-gray-200 bg-white p-4">
         {integration.installed && (
           <div className="flex items-center gap-2">
             <Avatar user={integration.installed.by} className="size-8" />
