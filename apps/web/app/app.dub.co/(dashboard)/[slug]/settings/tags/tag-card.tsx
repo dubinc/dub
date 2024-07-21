@@ -7,7 +7,7 @@ import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import { Button, CardList, Popover } from "@dub/ui";
 import { LoadingSpinner, PenWriting, Tag } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -87,7 +87,7 @@ export function TagCard({
               href={`/${slug}?tagIds=${tag.id}`}
               className="whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800 transition-colors hover:bg-gray-100"
             >
-              {linksCount || 0} link{linksCount !== 1 && "s"}
+              {nFormatter(linksCount || 0)} link{linksCount !== 1 && "s"}
             </Link>
           )}
           <Popover
