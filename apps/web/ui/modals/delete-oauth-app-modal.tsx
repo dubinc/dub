@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { Button, Logo, Modal, useMediaQuery } from "@dub/ui";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -14,13 +15,14 @@ import { mutate } from "swr";
 interface DeleteAppModalProps {
   showDeleteAppModal: boolean;
   setShowDeleteAppModal: Dispatch<SetStateAction<boolean>>;
-  app: Pick<OAuthAppProps, "name" | "clientId">;
+  app: Pick<OAuthAppProps, "name" | "slug" | "clientId">;
   appType: "published" | "authorized";
 }
 
 function DeleteAppModal(props: DeleteAppModalProps) {
   const { showDeleteAppModal, setShowDeleteAppModal, app, appType } = props;
 
+  const router = useRouter();
   const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
@@ -28,16 +30,15 @@ function DeleteAppModal(props: DeleteAppModalProps) {
   const action = useMemo(() => {
     if (appType === "authorized") {
       return {
-        url: `/api/integrations/${app.clientId}/uninstall?workspaceId=${workspaceId}`,
-        mutate: `/api/integrations/installations?workspaceId=${workspaceId}`,
+        url: `/api/integrations/${app.slug}/uninstall?workspaceId=${workspaceId}`,
         message: "Successfully uninstalled the application!",
         title: `Uninstall ${app.name}`,
         description: `This will uninstall the application from your workspace. Are you sure you want to continue?`,
       };
     } else {
       return {
-        url: `/api/integrations/${app.clientId}?workspaceId=${workspaceId}`,
-        mutate: `/api/integrations?workspaceId=${workspaceId}`,
+        url: `/api/oauth/apps/${app.clientId}?workspaceId=${workspaceId}`,
+        mutate: `/api/oauth/apps?workspaceId=${workspaceId}`,
         message: "Successfully deleted the application!",
         title: `Delete ${app.name}`,
         description: `This will permanently delete the application and revoke all the access tokens associated with it. Are you sure you want to continue?`,
@@ -54,7 +55,11 @@ function DeleteAppModal(props: DeleteAppModalProps) {
       const result = await response.json();
 
       if (response.ok) {
-        mutate(action.mutate);
+        if (action.mutate) {
+          mutate(action.mutate);
+        } else {
+          router.refresh();
+        }
         toast.success(action.message);
         setShowDeleteAppModal(false);
       } else {
@@ -105,7 +110,7 @@ export function useDeleteAppModal({
   app,
   appType,
 }: {
-  app: Pick<OAuthAppProps, "name" | "clientId">;
+  app: Pick<OAuthAppProps, "name" | "slug" | "clientId">;
   appType: "published" | "authorized";
 }) {
   const [showDeleteAppModal, setShowDeleteAppModal] = useState(false);

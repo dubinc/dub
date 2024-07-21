@@ -4,28 +4,22 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useAddEditAppModal } from "@/ui/modals/add-edit-oauth-app-modal";
 import { useAppCreatedModal } from "@/ui/modals/oauth-app-created-modal";
-import EmptyState from "@/ui/shared/empty-state";
-import {
-  Button,
-  LoadingSpinner,
-  MaxWidthWrapper,
-  buttonVariants,
-} from "@dub/ui";
-import { Key } from "@dub/ui/src/icons";
-import { cn, fetcher } from "@dub/utils";
+import { Button, MaxWidthWrapper, buttonVariants } from "@dub/ui";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState } from "react";
-import useSWR from "swr";
 import IntegrationCard from "./integration-card";
 
-export default function IntegrationsPageClient() {
+export default function IntegrationsPageClient({
+  integrations,
+}: {
+  integrations: (OAuthAppProps & {
+    installations: number;
+    installed: boolean;
+  })[];
+}) {
   const { slug, flags } = useWorkspace();
-
-  const { data: allIntegrations, isLoading } = useSWR<OAuthAppProps[]>(
-    "/api/integrations/list",
-    fetcher,
-  );
 
   if (!flags?.integrations) {
     redirect(`/${slug}`);
@@ -77,25 +71,11 @@ export default function IntegrationsPageClient() {
       </div>
 
       <MaxWidthWrapper className="flex flex-col gap-3 py-4">
-        {isLoading || !allIntegrations ? (
-          <div className="flex flex-col items-center justify-center space-y-4 py-20">
-            <LoadingSpinner className="h-6 w-6 text-gray-500" />
-            <p className="text-sm text-gray-500">Fetching integrations...</p>
-          </div>
-        ) : allIntegrations.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-3">
-            {allIntegrations.map((app) => (
-              <IntegrationCard key={app.clientId} {...app} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-y-4 rounded-xl border border-gray-200 bg-white py-36">
-            <EmptyState
-              icon={Key}
-              title="You haven't authorized any applications to access Dub workspace on your behalf."
-            />
-          </div>
-        )}
+        <div className="grid gap-4 sm:grid-cols-3">
+          {integrations.map((integration) => (
+            <IntegrationCard key={integration.clientId} {...integration} />
+          ))}
+        </div>
       </MaxWidthWrapper>
     </>
   );
