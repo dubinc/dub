@@ -37,12 +37,18 @@ export function Avatar({
   );
 }
 
-export function TokenAvatar({ id }: { id: string }) {
+export function TokenAvatar({
+  id,
+  className,
+}: {
+  id: string;
+  className?: string;
+}) {
   return (
     <img
       src={`https://api.dicebear.com/7.x/shapes/svg?seed=${id}`}
       alt="avatar"
-      className="h-10 w-10 rounded-full"
+      className={cn("h-10 w-10 rounded-full", className)}
       draggable={false}
     />
   );

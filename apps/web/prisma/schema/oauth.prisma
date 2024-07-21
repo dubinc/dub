@@ -3,12 +3,14 @@ model OAuthApp {
   clientId           String   @unique
   name               String
   slug               String   @unique
+  description        String?  @db.LongText
   developer          String
   website            String
   hashedClientSecret String
   redirectUri        String
   logo               String?
   pkce               Boolean  @default(false)
+  verified           Boolean  @default(false)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   userId             String?

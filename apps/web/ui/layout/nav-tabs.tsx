@@ -48,25 +48,29 @@ export default function NavTabs() {
         scrolled && "sm:translate-x-9",
       )}
     >
-      {tabs.map(({ name, href }) => (
-        <Link key={href} href={href} className="relative">
-          <div className="mx-1 my-1.5 rounded-md px-3 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200">
-            <p className="text-sm text-gray-600 hover:text-black">{name}</p>
-          </div>
-          {(pathname === href ||
-            (href.endsWith("/settings") && pathname?.startsWith(href))) && (
-            <motion.div
-              layoutId="indicator"
-              transition={{
-                duration: 0.25,
-              }}
-              className="absolute bottom-0 w-full px-1.5"
-            >
-              <div className="h-0.5 bg-black" />
-            </motion.div>
-          )}
-        </Link>
-      ))}
+      {tabs.map(({ name, href }) => {
+        const isActive =
+          href === `/${slug}` ? pathname === href : pathname.startsWith(href);
+
+        return (
+          <Link key={href} href={href} className="relative">
+            <div className="mx-1 my-1.5 rounded-md px-3 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200">
+              <p className="text-sm text-gray-600 hover:text-black">{name}</p>
+            </div>
+            {isActive && (
+              <motion.div
+                layoutId="indicator"
+                transition={{
+                  duration: 0.25,
+                }}
+                className="absolute bottom-0 w-full px-1.5"
+              >
+                <div className="h-0.5 bg-black" />
+              </motion.div>
+            )}
+          </Link>
+        );
+      })}
       {slug &&
         !loading &&
         !error &&

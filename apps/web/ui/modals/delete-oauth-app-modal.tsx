@@ -28,16 +28,16 @@ function DeleteAppModal(props: DeleteAppModalProps) {
   const action = useMemo(() => {
     if (appType === "authorized") {
       return {
-        url: `/api/oauth-apps/${app.clientId}/disconnect?workspaceId=${workspaceId}`,
-        mutate: `/api/oauth-apps/authorized?workspaceId=${workspaceId}`,
-        message: "Successfully disconnected the application!",
-        title: `Disconnect ${app.name}`,
-        description: `This will disconnect the application from your workspace. Are you sure you want to continue?`,
+        url: `/api/integrations/${app.clientId}/uninstall?workspaceId=${workspaceId}`,
+        mutate: `/api/integrations/installations?workspaceId=${workspaceId}`,
+        message: "Successfully uninstalled the application!",
+        title: `Uninstall ${app.name}`,
+        description: `This will uninstall the application from your workspace. Are you sure you want to continue?`,
       };
     } else {
       return {
-        url: `/api/oauth-apps/${app.clientId}?workspaceId=${workspaceId}`,
-        mutate: `/api/oauth-apps?workspaceId=${workspaceId}`,
+        url: `/api/integrations/${app.clientId}?workspaceId=${workspaceId}`,
+        mutate: `/api/integrations?workspaceId=${workspaceId}`,
         message: "Successfully deleted the application!",
         title: `Delete ${app.name}`,
         description: `This will permanently delete the application and revoke all the access tokens associated with it. Are you sure you want to continue?`,

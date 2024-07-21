@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { OAuthAppProps, OAuthAuthorizedAppProps } from "@/lib/types";
+import { OAuthAppProps } from "@/lib/types";
 import { useAddEditAppModal } from "@/ui/modals/add-edit-oauth-app-modal";
 import { useAppCreatedModal } from "@/ui/modals/oauth-app-created-modal";
 import EmptyState from "@/ui/shared/empty-state";
@@ -20,13 +20,12 @@ import useSWR from "swr";
 import IntegrationCard from "./integration-card";
 
 export default function IntegrationsPageClient() {
-  const { id: workspaceId, slug, flags } = useWorkspace();
-  const { data: apps, isLoading } = useSWR<OAuthAuthorizedAppProps[]>(
-    `/api/oauth-apps/authorized?workspaceId=${workspaceId}`,
+  const { slug, flags } = useWorkspace();
+
+  const { data: allIntegrations, isLoading } = useSWR<OAuthAppProps[]>(
+    "/api/integrations/list",
     fetcher,
   );
-
-  console.log({ apps });
 
   if (!flags?.integrations) {
     redirect(`/${slug}`);
@@ -78,15 +77,15 @@ export default function IntegrationsPageClient() {
       </div>
 
       <MaxWidthWrapper className="flex flex-col gap-3 py-4">
-        {isLoading || !apps ? (
+        {isLoading || !allIntegrations ? (
           <div className="flex flex-col items-center justify-center space-y-4 py-20">
             <LoadingSpinner className="h-6 w-6 text-gray-500" />
             <p className="text-sm text-gray-500">Fetching integrations...</p>
           </div>
-        ) : apps.length > 0 ? (
+        ) : allIntegrations.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-3">
-            {apps.map((app) => (
-              <IntegrationCard key={app.id} {...app} />
+            {allIntegrations.map((app) => (
+              <IntegrationCard key={app.clientId} {...app} />
             ))}
           </div>
         ) : (

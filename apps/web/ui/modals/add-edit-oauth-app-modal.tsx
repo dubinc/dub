@@ -17,12 +17,14 @@ import { mutate } from "swr";
 const newApp: OAuthAppProps = {
   name: "",
   slug: "",
+  description: "",
   developer: "",
   website: "",
   clientId: "",
   redirectUri: "",
   logo: null,
   pkce: false,
+  verified: false,
 };
 
 function AddEditAppModal({
@@ -45,13 +47,13 @@ function AddEditAppModal({
     if (app) {
       return {
         method: "PATCH",
-        url: `/api/oauth-apps/${app.clientId}?workspaceId=${workspaceId}`,
+        url: `/api/integrations/${app.clientId}?workspaceId=${workspaceId}`,
         successMessage: "OAuth app updated!",
       };
     } else {
       return {
         method: "POST",
-        url: `/api/oauth-apps?workspaceId=${workspaceId}`,
+        url: `/api/integrations?workspaceId=${workspaceId}`,
         successMessage: "OAuth app created!",
       };
     }
@@ -73,7 +75,7 @@ function AddEditAppModal({
     const result = await response.json();
 
     if (response.ok) {
-      mutate(`/api/oauth-apps?workspaceId=${workspaceId}`);
+      mutate(`/api/integrations?workspaceId=${workspaceId}`);
       toast.success(endpoint.successMessage);
       onAppCreated?.(result);
       setShowAddEditAppModal(false);

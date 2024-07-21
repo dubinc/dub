@@ -45,11 +45,13 @@ export const oAuthAppSchema = z.object({
   clientSecret: z.string().optional(),
   name: z.string(),
   slug: z.string(),
+  description: z.string().nullish(),
   developer: z.string(),
   website: z.string(),
   redirectUri: z.string(),
   logo: z.string().nullable(),
   pkce: z.boolean(),
+  verified: z.boolean(),
 });
 
 // Schema for OAuth2.0 Authorization request

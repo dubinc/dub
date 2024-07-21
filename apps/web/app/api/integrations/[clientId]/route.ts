@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";
 
-// GET /api/oauth-apps/[clientId] – get an OAuth app
+// GET /api/integrations/[clientId] – get an integration created by the workspace
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
     const app = await prisma.oAuthApp.findFirst({
@@ -30,7 +30,7 @@ export const GET = withWorkspace(
   },
 );
 
-// PATCH /api/oauth-apps/[clientId] – update an OAuth app
+// PATCH /api/integrations/[clientId] – update an integration
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
     const { name, slug, developer, website, redirectUri, logo, pkce } =
@@ -60,7 +60,7 @@ export const PATCH = withWorkspace(
   },
 );
 
-// DELETE /api/oauth-apps/[clientId] - delete an OAuth app
+// DELETE /api/integrations/[clientId] - delete an integration
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const app = await prisma.oAuthApp.findFirst({

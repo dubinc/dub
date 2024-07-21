@@ -2,7 +2,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/oauth-apps/authorized - applications authorized to access workspace resources
+// GET /api/integrations/installations - get all installed integrations for a specific workspace
 export const GET = withWorkspace(
   async ({ workspace }) => {
     const result = await prisma.oAuthAuthorizedApp.findMany({
@@ -31,22 +31,22 @@ export const GET = withWorkspace(
       },
     });
 
-    const appsAuthorized = result.map((app) => ({
-      id: app.id,
-      createdAt: app.createdAt,
-      clientId: app.oAuthApp.clientId,
-      name: app.oAuthApp.name,
-      slug: app.oAuthApp.slug,
-      developer: app.oAuthApp.developer,
-      website: app.oAuthApp.website,
-      logo: app.oAuthApp.logo,
+    const installedIntegrations = result.map((integration) => ({
+      id: integration.id,
+      createdAt: integration.createdAt,
+      clientId: integration.oAuthApp.clientId,
+      name: integration.oAuthApp.name,
+      slug: integration.oAuthApp.slug,
+      developer: integration.oAuthApp.developer,
+      website: integration.oAuthApp.website,
+      logo: integration.oAuthApp.logo,
       user: {
-        id: app.user.id,
-        name: app.user.name,
+        id: integration.user.id,
+        name: integration.user.name,
       },
     }));
 
-    return NextResponse.json(appsAuthorized);
+    return NextResponse.json(installedIntegrations);
   },
   {
     requiredPermissions: ["integrations.read"],

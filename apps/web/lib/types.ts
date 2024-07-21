@@ -203,7 +203,9 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type OAuthAuthorizedAppProps = z.infer<
+export type CreatedIntegrationProps = z.infer<typeof oAuthAppSchema>;
+
+export type InstalledIntegrationProps = z.infer<
   typeof oAuthAuthorizedAppSchema
 > & {
   createdAt: string;
