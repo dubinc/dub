@@ -38,10 +38,7 @@ export default function IntegrationCard(app: OAuthAppProps) {
         <p className="font-semibold text-gray-700">{app.name}</p>
       </div>
       <div className="mt-4 grid gap-2">
-        <p className="text-sm text-gray-500">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam,
-          quos.
-        </p>
+        <p className="text-sm text-gray-500">{app.description}</p>
         <p className="text-sm text-gray-500">
           Built by{" "}
           <span className="font-medium text-gray-700">{app.developer}</span>
