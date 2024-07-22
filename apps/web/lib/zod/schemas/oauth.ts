@@ -35,7 +35,18 @@ export const createOAuthAppSchema = z.object({
           "redirect_uri must be a valid URL starting with 'https://' except for 'http://localhost'",
       },
     ),
-  description: z.string().max(5000).nullable(),
+  description: z
+    .string()
+    .max(50, {
+      message: "must be less than 50 characters",
+    })
+    .nullable(),
+  readme: z
+    .string()
+    .max(1000, {
+      message: "must be less than 1000 characters",
+    })
+    .nullable(),
   pkce: z.boolean().default(false),
 });
 
@@ -48,6 +59,7 @@ export const oAuthAppSchema = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.string().nullish(),
+  readme: z.string().nullish(),
   developer: z.string(),
   website: z.string(),
   redirectUri: z.string(),

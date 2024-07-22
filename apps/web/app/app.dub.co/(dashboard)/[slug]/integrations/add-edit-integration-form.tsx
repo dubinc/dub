@@ -18,6 +18,7 @@ const defaultValues: NewIntegration = {
   name: "",
   slug: "",
   description: "",
+  readme: "",
   developer: "",
   website: "",
   redirectUri: "",
@@ -100,6 +101,7 @@ export default function AddEditIntegrationForm({
     name,
     slug,
     description,
+    readme,
     developer,
     website,
     redirectUri,
@@ -162,13 +164,34 @@ export default function AddEditIntegrationForm({
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
             <TextareaAutosize
-              name="comments"
-              minRows={3}
+              name="description"
+              minRows={2}
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="Add a description"
               value={description || ""}
+              maxLength={50}
               onChange={(e) => {
                 setData({ ...data, description: e.target.value });
+              }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="slug" className="flex items-center space-x-2">
+            <h2 className="text-sm font-medium text-gray-900">Overview</h2>
+            <InfoTooltip content="Provide some details about your integration. This will be displayed on the integration page. Markdown is supported." />
+          </label>
+          <div className="relative mt-2 rounded-md shadow-sm">
+            <TextareaAutosize
+              name="readme"
+              minRows={10}
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              placeholder="## My Awesome Integration"
+              value={readme || ""}
+              maxLength={1000}
+              onChange={(e) => {
+                setData({ ...data, readme: e.target.value });
               }}
             />
           </div>
