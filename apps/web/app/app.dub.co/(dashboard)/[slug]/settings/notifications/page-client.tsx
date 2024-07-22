@@ -2,7 +2,9 @@
 
 import { updateNotificationPreference } from "@/lib/actions/update-notification-preference";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
+import { Globe, Hyperlink } from "@dub/ui/src/icons";
 import { useAction } from "next-safe-action/hooks";
 
 type PreferenceType = "linkUsageSummary" | "domainConfigurationUpdates";
@@ -11,15 +13,23 @@ type Preferences = Record<PreferenceType, boolean>;
 
 const notifications: {
   type: PreferenceType;
+  icon: React.ElementType;
+  title: string;
   description: string;
 }[] = [
   {
     type: "linkUsageSummary",
-    description: "Monthly links usage summary",
+    icon: Hyperlink,
+    title: "Monthly links usage summary",
+    description:
+      "Monthly summary email of your top 5 links by usage & total links created.",
   },
   {
     type: "domainConfigurationUpdates",
-    description: "Domain configuration warnings",
+    icon: Globe,
+    title: "Domain configuration updates",
+    description:
+      "Email notifications for your custom domain configuration updates.",
   },
 ];
 
@@ -78,33 +88,36 @@ export default function NotificationsSettingsPageClient() {
         </div>
 
         <div className="flex flex-col gap-3 p-5 sm:p-10">
-          {notifications.map((notification) => (
-            <div key={notification.type}>
-              <label className="flex items-center font-medium text-gray-700">
-                <Switch
-                  checked={preferences?.[notification.type] ?? false}
-                  disabled={isLoading}
-                  fn={(checked: boolean) => {
-                    if (!preferences) return;
+          {notifications.map(({ type, icon, title, description }) => (
+            <div
+              key={type}
+              className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-5"
+            >
+              <DomainCardTitleColumn
+                domain={title}
+                icon={icon}
+                description={description}
+              />
+              <Switch
+                checked={preferences?.[type] ?? false}
+                disabled={isLoading}
+                fn={(checked: boolean) => {
+                  if (!preferences) return;
 
-                    update(
-                      () =>
-                        handleUpdate({
-                          type: notification.type,
-                          value: checked,
-                          currentPreferences: preferences,
-                        }),
-                      {
-                        ...preferences,
-                        [notification.type]: checked,
-                      },
-                    );
-                  }}
-                />
-                <span className="ml-2 text-sm text-gray-500">
-                  {notification.description}
-                </span>
-              </label>
+                  update(
+                    () =>
+                      handleUpdate({
+                        type,
+                        value: checked,
+                        currentPreferences: preferences,
+                      }),
+                    {
+                      ...preferences,
+                      [type]: checked,
+                    },
+                  );
+                }}
+              />
             </div>
           ))}
         </div>
