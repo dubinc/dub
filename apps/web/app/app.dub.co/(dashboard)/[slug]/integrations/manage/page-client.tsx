@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
-import { MaxWidthWrapper, buttonVariants } from "@dub/ui";
+import { LoadingSpinner, MaxWidthWrapper, buttonVariants } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -46,9 +46,13 @@ export default function IntegrationConsolePageClient() {
 
       <MaxWidthWrapper className="flex flex-col gap-3 py-4">
         <div className="grid gap-4 sm:grid-cols-3">
-          {integrations?.map((integration) => (
-            <IntegrationCard key={integration.id} {...integration} />
-          ))}
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            integrations?.map((integration) => (
+              <IntegrationCard key={integration.id} {...integration} />
+            ))
+          )}
         </div>
       </MaxWidthWrapper>
     </>

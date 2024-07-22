@@ -2,11 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
+import { useRemoveIntegrationModal } from "@/ui/modals/remove-integration-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   BlurImage,
   Button,
-  CopyButton,
   LoadingSpinner,
   MaxWidthWrapper,
   Popover,
@@ -19,6 +19,7 @@ import { notFound, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import AddEditIntegrationForm from "../../add-edit-integration-form";
+import AppCredentials from "./credentials";
 
 export default function IntegrationManagePageClient({
   integrationId,
@@ -33,10 +34,10 @@ export default function IntegrationManagePageClient({
     fetcher,
   );
 
-  // const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
-  //   useUninstallIntegrationModal({
-  //     integration: integration,
-  //   });
+  const { RemoveIntegrationModal, setShowRemoveIntegrationModal } =
+    useRemoveIntegrationModal({
+      integration,
+    });
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -49,7 +50,7 @@ export default function IntegrationManagePageClient({
   return (
     <>
       <MaxWidthWrapper className="my-10 grid max-w-screen-lg gap-8">
-        {/* <UninstallIntegrationModal /> */}
+        <RemoveIntegrationModal />
         <Link
           href={`/${slug}/integrations/manage`}
           className="flex items-center gap-x-1"
@@ -88,7 +89,7 @@ export default function IntegrationManagePageClient({
                   icon={<Trash className="h-4 w-4" />}
                   className="h-9 justify-start px-2"
                   onClick={() => {
-                    // setShowUninstallIntegrationModal(true);
+                    setShowRemoveIntegrationModal(true);
                   }}
                 />
               </div>
@@ -108,12 +109,6 @@ export default function IntegrationManagePageClient({
             </button>
           </Popover>
         </div>
-
-        {/* <div className="flex gap-12 rounded-lg border border-gray-200 bg-white p-4">
-        <div className="flex items-center gap-2">
-          <AddEditIntegrationForm />
-        </div>
-      </div> */}
       </MaxWidthWrapper>
 
       <MaxWidthWrapper className="max-w-screen-lg space-y-10">
@@ -126,49 +121,3 @@ export default function IntegrationManagePageClient({
     </>
   );
 }
-
-const AppCredentials = ({
-  clientId,
-  clientSecret,
-}: {
-  clientId: string | null;
-  clientSecret: string | null;
-}) => {
-  if (!clientId) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col space-y-4 bg-gray-50 text-left">
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-500">Client ID</label>
-        <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-3">
-          <p className="font-mono text-sm text-gray-500">{clientId}</p>
-          <div className="flex flex-col gap-2">
-            <CopyButton value={clientId} className="rounded-md" />
-          </div>
-        </div>
-      </div>
-
-      {clientSecret && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-500">
-            Client Secret
-          </label>
-          <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-3">
-            <p className="text-nowrap font-mono text-sm text-gray-500">
-              {clientSecret}
-            </p>
-            <div className="flex flex-col gap-2">
-              <CopyButton value={clientSecret} className="rounded-md" />
-            </div>
-          </div>
-          <span className="text-xs text-red-400">
-            Be sure to copy your client secret. You won’t be able to see it
-            again.
-          </span>
-        </div>
-      )}
-    </div>
-  );
-};
