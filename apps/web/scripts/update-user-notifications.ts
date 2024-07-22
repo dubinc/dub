@@ -9,9 +9,6 @@ async function main() {
         isMachine: false,
       },
       notificationPreference: null,
-      project: {
-        slug: "acme",
-      },
     },
     select: {
       id: true,
