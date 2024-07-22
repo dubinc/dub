@@ -3,24 +3,23 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { MaxWidthWrapper, buttonVariants } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import useSWR from "swr";
 import IntegrationCard from "./integration-card";
 
-export default function IntegrationsPageClient({
-  integrations,
-}: {
-  integrations: (OAuthAppProps & {
-    installations: number;
-    installed: boolean;
-  })[];
-}) {
-  const { slug, flags } = useWorkspace();
+export default function IntegrationConsolePageClient() {
+  const { slug, id: workspaceId, flags } = useWorkspace();
 
   if (!flags?.integrations) {
     redirect(`/${slug}`);
   }
+
+  const { data: integrations, isLoading } = useSWR<OAuthAppProps[]>(
+    `/api/oauth/apps?workspaceId=${workspaceId}`,
+    fetcher,
+  );
 
   return (
     <>
@@ -40,15 +39,6 @@ export default function IntegrationsPageClient({
               >
                 Create Integration
               </Link>
-              <Link
-                href={`/${slug}/integrations/manage`}
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
-                )}
-              >
-                My Integrations
-              </Link>
             </div>
           </div>
         </MaxWidthWrapper>
@@ -56,8 +46,8 @@ export default function IntegrationsPageClient({
 
       <MaxWidthWrapper className="flex flex-col gap-3 py-4">
         <div className="grid gap-4 sm:grid-cols-3">
-          {integrations.map((integration) => (
-            <IntegrationCard key={integration.clientId} {...integration} />
+          {integrations?.map((integration) => (
+            <IntegrationCard key={integration.id} {...integration} />
           ))}
         </div>
       </MaxWidthWrapper>

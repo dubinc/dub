@@ -10,11 +10,21 @@ import { z } from "zod";
 // GET /api/oauth/apps - get all OAuth apps created by a workspace
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    const apps = await prisma.oAuthApp.findMany({
+    const result = await prisma.oAuthApp.findMany({
       where: {
         projectId: workspace.id,
       },
+      include: {
+        _count: {
+          select: { authorizedApps: true },
+        },
+      },
     });
+
+    const apps = result.map((app) => ({
+      ...app,
+      installations: app._count.authorizedApps,
+    }));
 
     return NextResponse.json(z.array(oAuthAppSchema).parse(apps));
   },
@@ -27,8 +37,16 @@ export const GET = withWorkspace(
 // POST /api/oauth/apps - create a new OAuth app
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, slug, developer, website, redirectUri, logo, pkce } =
-      createOAuthAppSchema.parse(await parseRequestBody(req));
+    const {
+      name,
+      slug,
+      developer,
+      website,
+      description,
+      redirectUri,
+      logo,
+      pkce,
+    } = createOAuthAppSchema.parse(await parseRequestBody(req));
 
     const clientId = createToken({
       length: OAUTH_CONFIG.CLIENT_ID_LENGTH,
@@ -47,6 +65,7 @@ export const POST = withWorkspace(
         slug,
         developer,
         website,
+        description,
         redirectUri,
         logo,
         clientId,

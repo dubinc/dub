@@ -221,3 +221,10 @@ export type InstalledIntegrationProps = z.infer<
 > & {
   createdAt: string;
 };
+
+export type NewIntegration = Omit<
+  OAuthAppProps,
+  "id" | "clientId" | "verified" | "installations"
+>;
+
+export type ExistingIntegration = OAuthAppProps;

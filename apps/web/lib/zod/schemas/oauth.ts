@@ -35,12 +35,14 @@ export const createOAuthAppSchema = z.object({
           "redirect_uri must be a valid URL starting with 'https://' except for 'http://localhost'",
       },
     ),
+  description: z.string().max(5000).nullable(),
   pkce: z.boolean().default(false),
 });
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 
 export const oAuthAppSchema = z.object({
+  id: z.string(),
   clientId: z.string(),
   clientSecret: z.string().optional(),
   name: z.string(),
@@ -52,6 +54,7 @@ export const oAuthAppSchema = z.object({
   logo: z.string().nullable(),
   pkce: z.boolean(),
   verified: z.boolean(),
+  installations: z.number().default(0),
 });
 
 // Schema for OAuth2.0 Authorization request
