@@ -7,24 +7,16 @@ import { NextResponse } from "next/server";
 
 // DELETE /api/integrations/[slug]/installation - delete an installation by slug
 export const DELETE = withWorkspace(
-  async ({ params, workspace }) => {
-    const integration = await prisma.oAuthAuthorizedApp.findFirst({
+  async ({ searchParams, workspace }) => {
+    const { installationId } = searchParams;
+
+    const installation = await prisma.oAuthAuthorizedApp.findUnique({
       where: {
-        projectId: workspace.id,
-        oAuthApp: {
-          slug: params.slug,
-        },
-      },
-      select: {
-        id: true,
-        clientId: true,
-        userId: true,
+        id: installationId,
       },
     });
 
-    console.log({ integration });
-
-    if (!integration) {
+    if (!installation) {
       throw new DubApiError({
         code: "not_found",
         message: "Integration not found",
@@ -34,21 +26,21 @@ export const DELETE = withWorkspace(
     await prisma.$transaction([
       prisma.oAuthAuthorizedApp.delete({
         where: {
-          id: integration.id,
+          id: installationId,
         },
       }),
       prisma.restrictedToken.delete({
         where: {
           userId_projectId_clientId: {
-            userId: integration.userId,
+            userId: installation.userId,
             projectId: workspace.id,
-            clientId: integration.clientId,
+            clientId: installation.clientId,
           },
         },
       }),
     ]);
 
-    return NextResponse.json({ id: params.clientId });
+    return NextResponse.json({ id: installationId });
   },
   {
     requiredPermissions: ["integrations.write"],

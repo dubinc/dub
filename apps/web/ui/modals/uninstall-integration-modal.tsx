@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { OAuthAppProps } from "@/lib/types";
+import { IntegrationPageProps } from "@/lib/types";
 import {
   BlurImage,
   Button,
@@ -25,12 +25,12 @@ function UninstallIntegrationModal({
 }: {
   showUninstallIntegrationModal: boolean;
   setShowUninstallIntegrationModal: Dispatch<SetStateAction<boolean>>;
-  integration: OAuthAppProps;
+  integration: IntegrationPageProps;
 }) {
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
   const { id: workspaceId, logo } = useWorkspace();
-  const { name, description, slug } = integration;
+  const { name, description, installed } = integration;
   const { isMobile } = useMediaQuery();
 
   return (
@@ -83,7 +83,7 @@ function UninstallIntegrationModal({
           onClick={() => {
             setRemoving(true);
             fetch(
-              `/api/integration/${slug}/uninstall?workspaceId=${workspaceId}`,
+              `/api/integrations/uninstall?workspaceId=${workspaceId}&installationId=${installed?.id}`,
               {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
@@ -108,7 +108,7 @@ function UninstallIntegrationModal({
 export function useUninstallIntegrationModal({
   integration,
 }: {
-  integration: OAuthAppProps;
+  integration: IntegrationPageProps;
 }) {
   const [showUninstallIntegrationModal, setShowUninstallIntegrationModal] =
     useState(false);

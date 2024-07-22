@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { OAuthAppProps } from "@/lib/types";
+import { IntegrationPageProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -21,17 +21,7 @@ import { useState } from "react";
 export default function IntegrationPageClient({
   integration,
 }: {
-  integration: OAuthAppProps & {
-    installations: number;
-    installed: {
-      by: {
-        id: string;
-        name: string | null;
-        image: string | null;
-      };
-      createdAt: Date;
-    } | null;
-  };
+  integration: IntegrationPageProps;
 }) {
   const { slug } = useWorkspace();
 
@@ -44,7 +34,7 @@ export default function IntegrationPageClient({
 
   return (
     <MaxWidthWrapper className="my-10 grid max-w-screen-lg gap-8">
-      <UninstallIntegrationModal />
+      {integration.installed && <UninstallIntegrationModal />}
       <Link
         href={`/${slug}/integrations`}
         className="flex items-center gap-x-1"
@@ -72,35 +62,37 @@ export default function IntegrationPageClient({
             <p className="text-sm text-gray-500">{integration.description}</p>
           </div>
         </div>
-        <Popover
-          align="end"
-          content={
-            <div className="grid w-screen gap-px p-2 sm:w-48">
-              <Button
-                text="Uninstall Integration"
-                variant="danger-outline"
-                icon={<Trash className="h-4 w-4" />}
-                className="h-9 justify-start px-2"
-                onClick={() => {
-                  setShowUninstallIntegrationModal(true);
-                }}
-              />
-            </div>
-          }
-          openPopover={openPopover}
-          setOpenPopover={setOpenPopover}
-        >
-          <button
-            onClick={() => setOpenPopover(!openPopover)}
-            className={cn(
-              "flex h-10 items-center rounded-md border px-1.5 outline-none transition-all",
-              "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
-              "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
-            )}
+        {integration.installed && (
+          <Popover
+            align="end"
+            content={
+              <div className="grid w-screen gap-px p-2 sm:w-48">
+                <Button
+                  text="Uninstall Integration"
+                  variant="danger-outline"
+                  icon={<Trash className="h-4 w-4" />}
+                  className="h-9 justify-start px-2"
+                  onClick={() => {
+                    setShowUninstallIntegrationModal(true);
+                  }}
+                />
+              </div>
+            }
+            openPopover={openPopover}
+            setOpenPopover={setOpenPopover}
           >
-            <ThreeDots className="h-5 w-5 text-gray-500" />
-          </button>
-        </Popover>
+            <button
+              onClick={() => setOpenPopover(!openPopover)}
+              className={cn(
+                "flex h-10 items-center rounded-md border px-1.5 outline-none transition-all",
+                "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
+                "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+              )}
+            >
+              <ThreeDots className="h-5 w-5 text-gray-500" />
+            </button>
+          </Popover>
+        )}
       </div>
       <div className="flex gap-12 rounded-lg border border-gray-200 bg-white p-4">
         {integration.installed && (

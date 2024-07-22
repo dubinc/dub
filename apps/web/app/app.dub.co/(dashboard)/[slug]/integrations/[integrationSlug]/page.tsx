@@ -48,6 +48,7 @@ export default async function IntegrationPage({
         installed:
           integration.authorizedApps.length > 0
             ? {
+                id: integration.authorizedApps[0].id,
                 by: {
                   id: integration.authorizedApps[0].userId,
                   name: integration.authorizedApps[0].user.name,
