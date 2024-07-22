@@ -119,7 +119,7 @@ export default function IntegrationPageClient({
           </div>
         </div>
         <div>
-          <p className="text-gray-5000 text-xs">WEBSITE</p>
+          <p className="text-xs text-gray-500">WEBSITE</p>
           <a
             href={integration.website}
             className="flex items-center gap-x-1 text-sm font-medium text-gray-700"
