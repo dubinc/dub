@@ -1,5 +1,5 @@
-import { NotificationPreferences } from "./preferences";
+import NotificationsSettingsPageClient from "./page-client";
 
-export default function Page() {
-  return <NotificationPreferences />;
+export default function NotificationsSettingsPage() {
+  return <NotificationsSettingsPageClient />;
 }

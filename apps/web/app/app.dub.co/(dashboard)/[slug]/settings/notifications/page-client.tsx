@@ -16,7 +16,7 @@ const notifications = [
   },
 ];
 
-export const NotificationPreferences = () => {
+export default function NotificationsSettingsPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { executeAsync } = useAction(updateNotificationPreference);
 
@@ -57,10 +57,13 @@ export const NotificationPreferences = () => {
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-center justify-between gap-4 space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
           <div className="flex max-w-screen-sm flex-col space-y-3">
-            <h2 className="text-xl font-medium">Notifications</h2>
+            <h2 className="text-xl font-medium">Workspace Notifications</h2>
             <p className="text-sm text-gray-500">
-              Adjust your notification preferences and choose which updates you
-              want to receive.
+              Adjust your personal notification preferences and choose which
+              updates you want to receive.
+              <br />
+              These settings will only be applied to your personal account and
+              will not affect your workspace-level settings.
             </p>
           </div>
         </div>
@@ -96,4 +99,4 @@ export const NotificationPreferences = () => {
       </div>
     </>
   );
-};
+}
