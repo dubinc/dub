@@ -14,7 +14,7 @@ import {
 } from "@dub/ui";
 import { Globe, OfficeBuilding } from "@dub/ui/src/icons";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
-import { ChevronLeft, Trash } from "lucide-react";
+import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import Markdown from "react-markdown";
@@ -132,8 +132,20 @@ export default function IntegrationPageClient({
       </div>
 
       {integration.readme && (
-        <div className="prose prose-sm w-full max-w-none rounded-lg border border-gray-200 bg-white p-4">
-          <Markdown>{integration.readme}</Markdown>
+        <div className="w-full rounded-lg border border-gray-200 bg-white">
+          <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
+            <BookOpenText className="size-4" />
+            <p className="text-sm font-medium text-gray-700">README</p>
+          </div>
+          <Markdown
+            className={cn(
+              "prose prose-sm prose-gray max-w-none p-6 transition-all",
+              "prose-headings:leading-tight",
+              "prose-a:font-medium prose-a:text-gray-500 prose-a:underline-offset-4 hover:prose-a:text-black",
+            )}
+          >
+            {integration.readme}
+          </Markdown>
         </div>
       )}
     </MaxWidthWrapper>
