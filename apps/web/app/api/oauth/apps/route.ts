@@ -7,7 +7,7 @@ import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// GET /api/integrations - get all integrations created by a workspace
+// GET /api/oauth/apps - get all OAuth apps created by a workspace
 export const GET = withWorkspace(
   async ({ workspace }) => {
     const apps = await prisma.oAuthApp.findMany({
@@ -24,7 +24,7 @@ export const GET = withWorkspace(
   },
 );
 
-// POST /api/integrations - create a new integration
+// POST /api/oauth/apps - create a new OAuth app
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const { name, slug, developer, website, redirectUri, logo, pkce } =
