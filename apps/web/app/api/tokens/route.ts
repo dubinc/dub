@@ -18,6 +18,7 @@ export const GET = withWorkspace(
     const tokens = await prisma.restrictedToken.findMany({
       where: {
         projectId: workspace.id,
+        installationId: null,
       },
       select: {
         id: true,

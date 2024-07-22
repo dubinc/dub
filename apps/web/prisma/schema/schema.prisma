@@ -20,16 +20,19 @@ model User {
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
 
-  accounts         Account[]
-  sessions         Session[]
-  projects         ProjectUsers[]
-  links            Link[]
-  tokens           Token[]
-  restrictedTokens RestrictedToken[]
-  createdAt        DateTime          @default(now())
-  subscribed       Boolean           @default(true)
-  source           String?
-  defaultWorkspace String?
+  accounts            Account[]
+  sessions            Session[]
+  projects            ProjectUsers[]
+  links               Link[]
+  tokens              Token[]
+  restrictedTokens    RestrictedToken[]
+  createdAt           DateTime             @default(now())
+  subscribed          Boolean              @default(true)
+  source              String?
+  defaultWorkspace    String?
+  oAuthCodes          OAuthCode[]
+  oAuthAuthorizedApps OAuthAuthorizedApp[] // OAuth apps user authorized for their workspace
+  oAuthApps           OAuthApp[] // OAuth apps user created in their workspace
 
   @@index(source)
   @@index(defaultWorkspace)

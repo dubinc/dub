@@ -1,5 +1,6 @@
 import SettingsLayout from "@/ui/layout/settings-layout";
 import {
+  CircleInfo,
   Gear2,
   Globe,
   Key,
@@ -47,8 +48,20 @@ export default function WorkspaceSettingsLayout({
     },
   ];
 
+  const extraTabs = [
+    {
+      name: "Notifications",
+      icon: CircleInfo,
+      segment: "notifications",
+    },
+  ];
+
   return (
-    <SettingsLayout tabs={tabs} tabContainerClassName="top-16">
+    <SettingsLayout
+      tabs={tabs}
+      extraTabs={extraTabs}
+      tabContainerClassName="top-16"
+    >
       {children}
     </SettingsLayout>
   );
