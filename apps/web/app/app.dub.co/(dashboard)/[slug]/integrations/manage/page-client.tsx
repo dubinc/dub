@@ -2,7 +2,10 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
-import { LoadingSpinner, MaxWidthWrapper, buttonVariants } from "@dub/ui";
+import IntegrationCardPlaceholder from "@/ui/integrations/integration-card-placeholder";
+import EmptyState from "@/ui/shared/empty-state";
+import { MaxWidthWrapper, buttonVariants } from "@dub/ui";
+import { HexadecagonStar } from "@dub/ui/src/icons";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -45,15 +48,25 @@ export default function IntegrationConsolePageClient() {
       </div>
 
       <MaxWidthWrapper className="flex flex-col gap-3 py-4">
-        <div className="grid gap-4 sm:grid-cols-3">
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : (
-            integrations?.map((integration) => (
-              <IntegrationCard key={integration.id} {...integration} />
-            ))
-          )}
-        </div>
+        {integrations && integrations.length === 0 ? (
+          <div className="flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white py-10">
+            <EmptyState
+              icon={HexadecagonStar}
+              title="No integrations found"
+              description="You haven't added any integrations yet."
+            />
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {isLoading || !integrations
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <IntegrationCardPlaceholder key={i} />
+                ))
+              : integrations.map((integration) => (
+                  <IntegrationCard key={integration.id} {...integration} />
+                ))}
+          </div>
+        )}
       </MaxWidthWrapper>
     </>
   );

@@ -2,11 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
+import IntegrationCard from "@/ui/integrations/integration-card";
 import { MaxWidthWrapper, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import IntegrationCard from "./integration-card";
 
 export default function IntegrationsPageClient({
   integrations,
