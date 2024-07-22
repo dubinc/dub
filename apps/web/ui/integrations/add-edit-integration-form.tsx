@@ -24,6 +24,8 @@ const defaultValues: NewIntegration = {
   redirectUri: "",
   logo: "",
   pkce: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 export default function AddEditIntegrationForm({

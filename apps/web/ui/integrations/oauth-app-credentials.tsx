@@ -2,7 +2,7 @@
 
 import { CopyButton } from "@dub/ui";
 
-export default function AppCredentials({
+export default function OAuthAppCredentials({
   clientId,
   clientSecret,
 }: {
