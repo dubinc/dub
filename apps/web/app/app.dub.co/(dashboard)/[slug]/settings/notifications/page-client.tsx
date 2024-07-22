@@ -78,10 +78,8 @@ export default function NotificationsSettingsPageClient() {
             <h2 className="text-xl font-medium">Workspace Notifications</h2>
             <p className="text-sm text-gray-500">
               Adjust your personal notification preferences and choose which
-              updates you want to receive.
-              <br />
-              These settings will only be applied to your personal account and
-              will not affect your workspace-level settings.
+              updates you want to receive. These settings will only be applied
+              to your personal account.
             </p>
           </div>
         </div>
