@@ -24,7 +24,7 @@ export default function Footer({
       </Text>
 
       {notificationSettingsUrl && (
-        <Text className="text-center text-[12px] leading-6 text-gray-500">
+        <Text className="text-[12px] leading-6 text-gray-500">
           Don’t want to get these emails?{" "}
           <Link
             className="text-gray-700 underline"
