@@ -15,6 +15,18 @@ export const DUB_DOMAINS = [
   ...(process.env.NEXT_PUBLIC_IS_DUB
     ? [
         {
+          id: "clxp3lfsb00011na8tfs7t0lx",
+          slug: "dub.link",
+          verified: true,
+          primary: true,
+          archived: false,
+          placeholder: "https://dub.co/help/article/what-is-dub",
+          allowedHostnames: [],
+          description:
+            "Premium short domain on Dub – only available on our Pro plan and above.",
+          projectId: DUB_WORKSPACE_ID,
+        },
+        {
           id: "clce1z7cs00y8rbstk4xtnj0k",
           slug: "chatg.pt",
           verified: true,
@@ -68,28 +80,33 @@ export const DUB_DOMAINS = [
             "Branded domain for Amazon links (products, wishlists, etc.).",
           projectId: DUB_WORKSPACE_ID,
         },
-        // {
-        //   id: "clymd6zkc0001elilr1215tj9",
-        //   slug: "ggl.link",
-        //   verified: true,
-        //   primary: false,
-        //   archived: false,
-        //   placeholder:
-        //     "https://docs.google.com/document/d/15-GOZA12SXGEh8lNwU5QI1jBi04TCPgY2-LChTbXVpA",
-        //   allowedHostnames: [
-        //     "google.com",
-        //     "google.co.uk",
-        //     "google.ca",
-        //     "google.es",
-        //     "google.fr",
-        //     "docs.google.com",
-        //     "drive.google.com",
-        //     "maps.google.com",
-        //   ],
-        //   description:
-        //     "Branded domain for Google links (Search, Docs, Sheets, Slides, Drive, Maps, etc.).",
-        //   projectId: DUB_WORKSPACE_ID,
-        // },
+        {
+          id: "clymd6zkc0001elilr1215tj9",
+          slug: "ggl.link",
+          verified: true,
+          primary: false,
+          archived: false,
+          placeholder:
+            "https://docs.google.com/document/d/15-GOZA12SXGEh8lNwU5QI1jBi04TCPgY2-LChTbXVpA",
+          allowedHostnames: [
+            "google.com",
+            "google.co.uk",
+            "google.ca",
+            "google.es",
+            "google.fr",
+            "docs.google.com",
+            "drive.google.com",
+            "maps.google.com",
+            "googleblog.com",
+            "developers.googleblog.com",
+            "blog.google",
+            "youtube.com",
+            "youtu.be",
+          ],
+          description:
+            "Branded domain for Google links (Search, Docs, Sheets, Slides, Drive, Maps, etc.).",
+          projectId: DUB_WORKSPACE_ID,
+        },
         {
           id: "clymczttm0001jgkore3ltr37",
           slug: "fig.page",
