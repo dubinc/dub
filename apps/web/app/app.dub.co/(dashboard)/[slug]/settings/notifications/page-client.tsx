@@ -18,18 +18,17 @@ const notifications: {
   description: string;
 }[] = [
   {
+    type: "domainConfigurationUpdates",
+    icon: Globe,
+    title: "Domain configuration updates",
+    description: "Updates to your custom domain configuration.",
+  },
+  {
     type: "linkUsageSummary",
     icon: Hyperlink,
     title: "Monthly links usage summary",
     description:
       "Monthly summary email of your top 5 links by usage & total links created.",
-  },
-  {
-    type: "domainConfigurationUpdates",
-    icon: Globe,
-    title: "Domain configuration updates",
-    description:
-      "Email notifications for your custom domain configuration updates.",
   },
 ];
 
