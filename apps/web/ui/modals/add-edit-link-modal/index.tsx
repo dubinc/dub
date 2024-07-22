@@ -52,7 +52,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce, useDebouncedCallback } from "use-debounce";
+import { useDebounce } from "use-debounce";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -131,27 +131,16 @@ function AddEditLinkModal({
 
   const { domain, key, url, password, proxy } = data;
 
-  const generateRandomKey = useDebouncedCallback(async () => {
-    if (generatingRandomKey) return;
-
-    if (domain && workspaceId) {
-      setKeyError(null);
-      setGeneratingRandomKey(true);
-      const res = await fetch(
-        `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
-      );
-      const key = await res.json();
-      setData((prev) => ({ ...prev, key }));
-      setGeneratingRandomKey(false);
-    }
-  }, 500);
-
-  useEffect(() => {
-    // if there's no key, generate a random key
-    if (showAddEditLinkModal && url.length > 0 && !key) {
-      generateRandomKey();
-    }
-  }, [showAddEditLinkModal, url]);
+  const generateRandomKey = async () => {
+    setKeyError(null);
+    setGeneratingRandomKey(true);
+    const res = await fetch(
+      `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
+    );
+    const key = await res.json();
+    setData((prev) => ({ ...prev, key }));
+    setGeneratingRandomKey(false);
+  };
 
   const runKeyChecks = async (value: string) => {
     const res = await fetch(
@@ -405,7 +394,6 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
-              generateRandomKey.cancel();
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
               const bodyData = {
@@ -571,6 +559,7 @@ function AddEditLinkModal({
                     ) : (
                       <div className="flex items-center">
                         <ButtonTooltip
+                          tabIndex={-1}
                           tooltipContent="Generate a random key"
                           onClick={generateRandomKey}
                           disabled={generatingRandomKey || generatingAIKey}
@@ -583,6 +572,7 @@ function AddEditLinkModal({
                           )}
                         </ButtonTooltip>
                         <ButtonTooltip
+                          tabIndex={-1}
                           tooltipContent="Generate a key using AI"
                           onClick={generateAIKey}
                           disabled={
@@ -605,6 +595,7 @@ function AddEditLinkModal({
                   <div className="relative mt-1 flex rounded-md shadow-sm">
                     <div>
                       <select
+                        tabIndex={-1}
                         disabled={props && lockKey}
                         value={domain}
                         onChange={(e) => {
@@ -640,6 +631,13 @@ function AddEditLinkModal({
                         // if the key is changed, check if key exists
                         if (e.target.value && props?.key !== e.target.value) {
                           runKeyChecks(e.target.value);
+                        } else if (
+                          domain &&
+                          workspaceId &&
+                          url.length > 0 &&
+                          !saving
+                        ) {
+                          generateRandomKey();
                         }
                       }}
                       disabled={props && lockKey}

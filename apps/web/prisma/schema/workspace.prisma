@@ -1,5 +1,3 @@
-
-
 model Project {
   id   String  @id @default(cuid())
   name String
@@ -26,15 +24,18 @@ model Project {
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
 
-  users            ProjectUsers[]
-  invites          ProjectInvite[]
-  sentEmails       SentEmail[]
-  links            Link[]
-  domains          Domain[]
-  tags             Tag[]
-  customers        Customer[]
-  defaultDomains   DefaultDomains[]
-  restrictedTokens RestrictedToken[]
+  users               ProjectUsers[]
+  invites             ProjectInvite[]
+  sentEmails          SentEmail[]
+  links               Link[]
+  domains             Domain[]
+  tags                Tag[]
+  customers           Customer[]
+  defaultDomains      DefaultDomains[]
+  restrictedTokens    RestrictedToken[]
+  oAuthCodes          OAuthCode[]
+  oAuthApps           OAuthApp[] // OAuth apps workspace published
+  oAuthAuthorizedApps OAuthAuthorizedApp[] // OAuth apps workspace authorized
 
   @@index(usageLastChecked(sort: Asc))
 }
@@ -56,14 +57,15 @@ enum Role {
 }
 
 model ProjectUsers {
-  id        String   @id @default(cuid())
-  role      Role     @default(member)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId String
+  id                     String                  @id @default(cuid())
+  role                   Role                    @default(member)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 String
+  project                Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId              String
+  notificationPreference NotificationPreference?
 
   @@unique([userId, projectId])
   @@index([projectId])
@@ -77,4 +79,13 @@ model SentEmail {
   projectId String?
 
   @@index([projectId])
+}
+
+model NotificationPreference {
+  id                          String  @id @default(cuid())
+  projectUserId               String  @unique
+  linkUsageSummary            Boolean @default(true)
+  domainConfigurationUpdates  Boolean @default(true)
+
+  projectUser ProjectUsers @relation(fields: [projectUserId], references: [id], onDelete: Cascade)
 }
