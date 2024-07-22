@@ -37,8 +37,8 @@ export const createOAuthAppSchema = z.object({
     ),
   description: z
     .string()
-    .max(50, {
-      message: "must be less than 50 characters",
+    .max(120, {
+      message: "must be less than 120 characters",
     })
     .nullable(),
   readme: z
