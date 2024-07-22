@@ -54,6 +54,8 @@ export const oAuthAppSchema = z.object({
   logo: z.string().nullable(),
   pkce: z.boolean(),
   verified: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
   installations: z.number().default(0),
 });
 
