@@ -1,6 +1,6 @@
 import IntegrationManagePageClient from "./page-client";
 
-export default async function IntegrationManagePage({
+export default function IntegrationManagePage({
   params,
 }: {
   params: { integrationId: string };
