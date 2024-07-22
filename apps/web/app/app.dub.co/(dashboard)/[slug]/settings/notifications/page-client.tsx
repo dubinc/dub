@@ -5,7 +5,14 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 
-const notifications = [
+type PreferenceType = "linkUsageSummary" | "domainConfigurationUpdates";
+
+type Preferences = Record<PreferenceType, boolean>;
+
+const notifications: {
+  type: PreferenceType;
+  description: string;
+}[] = [
   {
     type: "linkUsageSummary",
     description: "Monthly links usage summary",
@@ -24,30 +31,32 @@ export default function NotificationsSettingsPageClient() {
     data: preferences,
     isLoading,
     update,
-  } = useOptimisticUpdate<{
-    linkUsageSummary: boolean;
-    domainConfigurationUpdates: boolean;
-  }>(`/api/workspaces/${workspaceId}/notification-preferences`, {
-    loading: "Updating notification preference...",
-    success: "Notification preference updated.",
-    error: "Failed to update notification preference.",
-  });
+  } = useOptimisticUpdate<Preferences>(
+    `/api/workspaces/${workspaceId}/notification-preferences`,
+    {
+      loading: "Updating notification preference...",
+      success: "Notification preference updated.",
+      error: "Failed to update notification preference.",
+    },
+  );
 
   const handleUpdate = async ({
     type,
     value,
+    currentPreferences,
   }: {
     type: string;
     value: boolean;
+    currentPreferences: Preferences;
   }) => {
     await executeAsync({
       workspaceId: workspaceId!,
-      type: type as "linkUsageSummary" | "domainConfigurationUpdates",
+      type: type as PreferenceType,
       value,
     });
 
     return {
-      ...preferences,
+      ...currentPreferences,
       [type]: value,
     };
   };
@@ -76,11 +85,14 @@ export default function NotificationsSettingsPageClient() {
                   checked={preferences?.[notification.type] ?? false}
                   disabled={isLoading}
                   fn={(checked: boolean) => {
+                    if (!preferences) return;
+
                     update(
                       () =>
                         handleUpdate({
                           type: notification.type,
                           value: checked,
+                          currentPreferences: preferences,
                         }),
                       {
                         ...preferences,
