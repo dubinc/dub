@@ -8,11 +8,15 @@ async function main() {
       user: {
         isMachine: false,
       },
+      notificationPreference: null,
+      project: {
+        slug: "acme",
+      },
     },
     select: {
       id: true,
     },
-    take: 500,
+    take: 1000,
     skip: 0,
   });
 

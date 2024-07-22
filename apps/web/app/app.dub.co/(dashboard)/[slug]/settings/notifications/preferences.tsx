@@ -2,12 +2,8 @@
 
 import { updateNotificationPreference } from "@/lib/actions/update-notification-preference";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Switch } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/src/icons";
-import { fetcher } from "@dub/utils";
+import { Switch, useOptimisticUpdate } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
-import { toast } from "sonner";
-import useSWR from "swr";
 
 const notifications = [
   {
@@ -20,13 +16,6 @@ const notifications = [
   },
 ];
 
-interface PreferenceProps {
-  type: string;
-  description: string;
-  enabled: boolean;
-  onChange: (value: boolean) => void;
-}
-
 export const NotificationPreferences = () => {
   const { id: workspaceId } = useWorkspace();
   const { executeAsync } = useAction(updateNotificationPreference);
@@ -34,13 +23,34 @@ export const NotificationPreferences = () => {
   const {
     data: preferences,
     isLoading,
-    mutate,
-  } = useSWR<{
+    update,
+  } = useOptimisticUpdate<{
     linkUsageSummary: boolean;
     domainConfigurationUpdates: boolean;
-  }>(`/api/workspaces/${workspaceId}/notification-preferences`, fetcher, {
-    dedupingInterval: 30000,
+  }>(`/api/workspaces/${workspaceId}/notification-preferences`, {
+    loading: "Updating notification preference...",
+    success: "Notification preference updated.",
+    error: "Failed to update notification preference.",
   });
+
+  const handleUpdate = async ({
+    type,
+    value,
+  }: {
+    type: string;
+    value: boolean;
+  }) => {
+    await executeAsync({
+      workspaceId: workspaceId!,
+      type: type as "linkUsageSummary" | "domainConfigurationUpdates",
+      value,
+    });
+
+    return {
+      ...preferences,
+      [type]: value,
+    };
+  };
 
   return (
     <>
@@ -56,51 +66,34 @@ export const NotificationPreferences = () => {
         </div>
 
         <div className="flex flex-col gap-3 p-5 sm:p-10">
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : (
-            notifications.map((notification) => (
-              <Preference
-                {...notification}
-                enabled={preferences ? preferences[notification.type] : false}
-                key={notification.type}
-                onChange={async (value) => {
-                  if (!workspaceId) return;
-
-                  const response = await executeAsync({
-                    workspaceId,
-                    type: notification.type as any,
-                    value,
-                  });
-
-                  if (response?.data) {
-                    mutate();
-                    toast.success("Notification preference saved.");
-                  } else {
-                    toast.error(response?.serverError?.serverError);
-                  }
-                }}
-              />
-            ))
-          )}
+          {notifications.map((notification) => (
+            <div key={notification.type}>
+              <label className="flex items-center font-medium text-gray-700">
+                <Switch
+                  checked={preferences?.[notification.type] ?? false}
+                  disabled={isLoading}
+                  fn={(checked: boolean) => {
+                    update(
+                      () =>
+                        handleUpdate({
+                          type: notification.type,
+                          value: checked,
+                        }),
+                      {
+                        ...preferences,
+                        [notification.type]: checked,
+                      },
+                    );
+                  }}
+                />
+                <span className="ml-2 text-sm text-gray-500">
+                  {notification.description}
+                </span>
+              </label>
+            </div>
+          ))}
         </div>
       </div>
     </>
-  );
-};
-
-const Preference = ({
-  type,
-  description,
-  enabled,
-  onChange,
-}: PreferenceProps) => {
-  return (
-    <div key={type}>
-      <label className="flex items-center font-medium text-gray-700">
-        <Switch checked={enabled} fn={(value) => onChange(value)} />
-        <span className="ml-2 text-sm text-gray-500">{description}</span>
-      </label>
-    </div>
   );
 };

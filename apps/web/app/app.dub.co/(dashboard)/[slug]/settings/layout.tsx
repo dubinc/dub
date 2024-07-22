@@ -1,12 +1,12 @@
 import SettingsLayout from "@/ui/layout/settings-layout";
 import {
+  CircleInfo,
   Gear2,
   Globe,
   Key,
   Receipt2,
   ShieldCheck,
   Users6,
-  WindowSettings,
 } from "@dub/ui/src/icons";
 import { ReactNode } from "react";
 
@@ -46,15 +46,22 @@ export default function WorkspaceSettingsLayout({
       icon: ShieldCheck,
       segment: "security",
     },
+  ];
+
+  const extraTabs = [
     {
       name: "Notifications",
-      icon: WindowSettings,
+      icon: CircleInfo,
       segment: "notifications",
     },
   ];
 
   return (
-    <SettingsLayout tabs={tabs} tabContainerClassName="top-16">
+    <SettingsLayout
+      tabs={tabs}
+      extraTabs={extraTabs}
+      tabContainerClassName="top-16"
+    >
       {children}
     </SettingsLayout>
   );
