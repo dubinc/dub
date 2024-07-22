@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { BlurImage, TokenAvatar } from "@dub/ui";
+import { Download, OfficeBuilding } from "@dub/ui/src/icons";
 import Link from "next/link";
 
 export default function IntegrationCard(
@@ -19,7 +20,7 @@ export default function IntegrationCard(
         </p>
       )}
       <div className="flex items-center gap-x-3">
-        <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+        <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2.5">
           {integration.logo ? (
             <BlurImage
               src={integration.logo}
@@ -32,16 +33,22 @@ export default function IntegrationCard(
             <TokenAvatar id={integration.clientId} className="size-6" />
           )}
         </div>
-        <p className="font-semibold text-gray-700">{integration.name}</p>
+        <div>
+          <p className="font-semibold text-gray-700">{integration.name}</p>
+          <div className="flex items-center gap-1 text-gray-500">
+            <OfficeBuilding className="size-3" />
+            <span className="text-sm">{integration.developer}</span>
+          </div>
+        </div>
       </div>
-      <div className="mt-4 grid gap-2">
-        <p className="text-sm text-gray-500">{integration.description}</p>
-        <p className="text-sm text-gray-500">
-          Built by{" "}
-          <span className="font-medium text-gray-700">
-            {integration.developer}
-          </span>
+      <div className="items-between grid h-24 pt-4">
+        <p className="line-clamp-3 text-sm text-gray-500">
+          {integration.description}
         </p>
+        <div className="flex items-center justify-end gap-1 text-gray-500">
+          <Download className="size-4" />
+          <span className="text-sm">{integration.installations} installs</span>
+        </div>
       </div>
     </Link>
   );

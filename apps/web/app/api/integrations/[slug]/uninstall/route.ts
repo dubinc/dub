@@ -22,6 +22,8 @@ export const DELETE = withWorkspace(
       },
     });
 
+    console.log({ integration });
+
     if (!integration) {
       throw new DubApiError({
         code: "not_found",

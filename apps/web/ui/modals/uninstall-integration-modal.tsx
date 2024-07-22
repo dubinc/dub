@@ -29,8 +29,8 @@ function UninstallIntegrationModal({
 }) {
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
-  const { logo } = useWorkspace();
-  const { name, slug, description } = integration;
+  const { id: workspaceId, logo } = useWorkspace();
+  const { name, description, slug } = integration;
   const { isMobile } = useMediaQuery();
 
   return (
@@ -82,10 +82,13 @@ function UninstallIntegrationModal({
           loading={removing}
           onClick={() => {
             setRemoving(true);
-            fetch(`/api/integration/${integration.slug}/uninstall`, {
-              method: "DELETE",
-              headers: { "Content-Type": "application/json" },
-            }).then(async (res) => {
+            fetch(
+              `/api/integration/${slug}/uninstall?workspaceId=${workspaceId}`,
+              {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+              },
+            ).then(async (res) => {
               if (res.status === 200) {
                 router.refresh();
                 toast.success("Successfully removed integration!");

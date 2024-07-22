@@ -12,7 +12,7 @@ import {
   Popover,
   TokenAvatar,
 } from "@dub/ui";
-import { Globe, ReferredVia } from "@dub/ui/src/icons";
+import { Globe, OfficeBuilding } from "@dub/ui/src/icons";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { ChevronLeft, Trash } from "lucide-react";
 import Link from "next/link";
@@ -122,7 +122,7 @@ export default function IntegrationPageClient({
         <div>
           <p className="text-xs text-gray-500">DEVELOPER</p>
           <div className="flex items-center gap-x-1 text-sm font-medium text-gray-700">
-            <ReferredVia className="size-4" />
+            <OfficeBuilding className="size-4" />
             {integration.developer}
           </div>
         </div>
