@@ -18,8 +18,8 @@ import Link from "next/link";
 import { notFound, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
-import AddEditIntegrationForm from "../../add-edit-integration-form";
-import AppCredentials from "./credentials";
+import AddEditIntegrationForm from "../../../../../../../ui/integrations/add-edit-integration-form";
+import OAuthAppCredentials from "../../../../../../../ui/integrations/oauth-app-credentials";
 
 export default function IntegrationManagePageClient({
   integrationId,
@@ -112,7 +112,7 @@ export default function IntegrationManagePageClient({
       </MaxWidthWrapper>
 
       <MaxWidthWrapper className="max-w-screen-lg space-y-10">
-        <AppCredentials
+        <OAuthAppCredentials
           clientId={integration.clientId}
           clientSecret={searchParams.get("client_secret") || null}
         />

@@ -5,7 +5,7 @@ import { buttonVariants, MaxWidthWrapper } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import AddEditIntegrationForm from "../add-edit-integration-form";
+import AddEditIntegrationForm from "../../../../../../ui/integrations/add-edit-integration-form";
 
 export default function NewIntegrationPageClient() {
   const { slug: workspaceSlug, flags } = useWorkspace();
