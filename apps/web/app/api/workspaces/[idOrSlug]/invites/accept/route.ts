@@ -67,7 +67,7 @@ export const POST = withSession(async ({ session, params }) => {
         role: "member",
         projectId: workspace.id,
         notificationPreference: {
-          create: {},
+          create: {}, // by default, users are opted in to all notifications
         },
       },
     }),

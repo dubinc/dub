@@ -6,7 +6,7 @@ import { authActionClient } from "./safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  type: z.enum(["linkUsageSummary", "domainConfigurationWarnings"]),
+  type: z.enum(["linkUsageSummary", "domainConfigurationUpdates"]),
   value: z.boolean(),
 });
 

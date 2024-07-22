@@ -2,6 +2,7 @@
 
 import { updateNotificationPreference } from "@/lib/actions/update-notification-preference";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Switch } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { fetcher } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -14,7 +15,7 @@ const notifications = [
     description: "Monthly links usage summary",
   },
   {
-    type: "domainConfigurationWarnings",
+    type: "domainConfigurationUpdates",
     description: "Domain configuration warnings",
   },
 ];
@@ -36,8 +37,10 @@ export const NotificationPreferences = () => {
     mutate,
   } = useSWR<{
     linkUsageSummary: boolean;
-    domainConfigurationWarnings: boolean;
-  }>(`/api/workspaces/${workspaceId}/notification-preferences`, fetcher);
+    domainConfigurationUpdates: boolean;
+  }>(`/api/workspaces/${workspaceId}/notification-preferences`, fetcher, {
+    dedupingInterval: 30000,
+  });
 
   return (
     <>
@@ -95,12 +98,7 @@ const Preference = ({
   return (
     <div key={type}>
       <label className="flex items-center font-medium text-gray-700">
-        <input
-          type="checkbox"
-          className="h-4 w-4 border-gray-300 text-black focus:outline-none focus:ring-0"
-          onChange={(e) => onChange(e.target.checked)}
-          checked={enabled}
-        />
+        <Switch checked={enabled} fn={(value) => onChange(value)} />
         <span className="ml-2 text-sm text-gray-500">{description}</span>
       </label>
     </div>

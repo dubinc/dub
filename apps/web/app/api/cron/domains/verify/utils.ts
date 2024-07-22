@@ -63,7 +63,7 @@ export const handleDomainUpdates = async ({
             isMachine: false,
           },
           notificationPreference: {
-            domainConfigurationWarnings: true,
+            domainConfigurationUpdates: true,
           },
         },
       },

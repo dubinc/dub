@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace, session }) => {
   const response = await prisma.notificationPreference.findFirstOrThrow({
     select: {
-      domainConfigurationWarnings: true,
+      domainConfigurationUpdates: true,
       linkUsageSummary: true,
     },
     where: {
@@ -16,6 +16,8 @@ export const GET = withWorkspace(async ({ workspace, session }) => {
       },
     },
   });
+
+  console.log({ response });
 
   return NextResponse.json(response);
 });
