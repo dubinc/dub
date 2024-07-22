@@ -1,5 +1,3 @@
-
-
 model Project {
   id   String  @id @default(cuid())
   name String
@@ -22,9 +20,10 @@ model Project {
   tagsLimit    Int @default(5)
   usersLimit   Int @default(1)
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  usageLastChecked DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  usageLastChecked  DateTime @default(now())
+  zapierHookEnabled Boolean  @default(false)
 
   users            ProjectUsers[]
   invites          ProjectInvite[]
@@ -35,6 +34,7 @@ model Project {
   customers        Customer[]
   defaultDomains   DefaultDomains[]
   restrictedTokens RestrictedToken[]
+  zapierHooks      ZapierHook[]
 
   @@index(usageLastChecked(sort: Asc))
 }
