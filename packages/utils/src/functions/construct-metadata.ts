@@ -48,11 +48,7 @@ export function constructMetadata({
         ],
       }),
       ...(video && {
-        videos: [
-          {
-            url: video,
-          },
-        ],
+        videos: video,
       }),
     },
     twitter: {
