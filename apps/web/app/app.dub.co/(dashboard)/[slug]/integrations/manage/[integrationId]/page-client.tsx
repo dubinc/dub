@@ -56,7 +56,7 @@ export default function IntegrationManagePageClient({
           className="flex items-center gap-x-1"
         >
           <ChevronLeft className="size-4" />
-          <p className="text-sm font-medium text-gray-500">Integrations</p>
+          <p className="text-sm font-medium text-gray-500">My Integrations</p>
         </Link>
         <div className="flex justify-between">
           <div className="flex items-center gap-x-3">

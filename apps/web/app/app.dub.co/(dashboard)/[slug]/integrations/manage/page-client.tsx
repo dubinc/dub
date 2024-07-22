@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
-import IntegrationCardPlaceholder from "@/ui/integrations/integration-card-placeholder";
+import OAuthAppPlaceholder from "@/ui/integrations/oauth-app-placeholder";
 import EmptyState from "@/ui/shared/empty-state";
 import { MaxWidthWrapper, buttonVariants } from "@dub/ui";
 import { HexadecagonStar } from "@dub/ui/src/icons";
@@ -10,7 +10,7 @@ import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import useSWR from "swr";
-import IntegrationCard from "./integration-card";
+import OAuthAppCard from "../../../../../../ui/integrations/oauth-app-card";
 
 export default function IntegrationConsolePageClient() {
   const { slug, id: workspaceId, flags } = useWorkspace();
@@ -30,7 +30,7 @@ export default function IntegrationConsolePageClient() {
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold tracking-tight text-black">
-              Integrations
+              My Integrations
             </h1>
             <div className="flex gap-2">
               <Link
@@ -57,13 +57,13 @@ export default function IntegrationConsolePageClient() {
             />
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4">
             {isLoading || !integrations
               ? Array.from({ length: 3 }).map((_, i) => (
-                  <IntegrationCardPlaceholder key={i} />
+                  <OAuthAppPlaceholder key={i} />
                 ))
               : integrations.map((integration) => (
-                  <IntegrationCard key={integration.id} {...integration} />
+                  <OAuthAppCard key={integration.id} {...integration} />
                 ))}
           </div>
         )}

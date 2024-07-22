@@ -1,4 +1,4 @@
-export default function IntegrationCardPlaceholder() {
+export default function OAuthAppPlaceholder() {
   return (
     <div className="relative grid gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4">
       <div className="flex items-center gap-2">
