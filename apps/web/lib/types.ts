@@ -3,6 +3,7 @@ import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
+import { oAuthAppSchema, oAuthAuthorizedAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
 
 export type LinkProps = Link;
@@ -199,3 +200,31 @@ export const tagColors = [
 export type MetaTag = z.infer<typeof metaTagsSchema>;
 
 export type TokenProps = z.infer<typeof tokenSchema>;
+
+export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
+
+export type IntegrationPageProps = OAuthAppProps & {
+  installations: number;
+  installed: {
+    id: string;
+    by: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+    createdAt: Date;
+  } | null;
+};
+
+export type InstalledIntegrationProps = z.infer<
+  typeof oAuthAuthorizedAppSchema
+> & {
+  createdAt: string;
+};
+
+export type NewIntegration = Omit<
+  OAuthAppProps,
+  "id" | "clientId" | "verified" | "installations"
+>;
+
+export type ExistingIntegration = OAuthAppProps;

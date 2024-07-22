@@ -3,7 +3,6 @@ import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
 import AnalyticsAreaChart from "./analytics-area-chart";
 import { AnalyticsContext } from "./analytics-provider";
@@ -19,11 +18,7 @@ export default function Main() {
   const { flags } = useWorkspace();
   const { totalEvents, requiresUpgrade, demoPage, selectedTab } =
     useContext(AnalyticsContext);
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-
-  // Root domain related
-  const root = searchParams.get("root");
 
   const tabs = useMemo(
     () =>

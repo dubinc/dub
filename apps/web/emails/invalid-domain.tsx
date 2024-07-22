@@ -19,12 +19,16 @@ export default function InvalidDomain({
   domain = "dub.sh",
   workspaceSlug = "dub",
   invalidDays = 14,
+  appDomain = "dub.co",
 }: {
   email: string;
   domain: string;
   workspaceSlug: string;
   invalidDays: number;
+  appDomain: string;
 }): JSX.Element {
+  const notificationSettingsUrl = `https://app.${appDomain}/${workspaceSlug}/settings/notifications`;
+
   return (
     <Html>
       <Head />
@@ -82,7 +86,10 @@ export default function InvalidDomain({
                   } days.`
                 : "this will be the last time we will email you about this."}
             </Text>
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl={notificationSettingsUrl}
+            />
           </Container>
         </Body>
       </Tailwind>
