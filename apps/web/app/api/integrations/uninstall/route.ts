@@ -1,13 +1,11 @@
-// GET /api/integrations/[slug]/installation - get an installation by slug
-
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// DELETE /api/integrations/[slug]/installation - delete an installation by slug
+// DELETE /api/integrations/uninstall - delete an installation by id
 export const DELETE = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, session }) => {
     const { installationId } = searchParams;
 
     const installation = await prisma.oAuthAuthorizedApp.findUnique({
@@ -23,22 +21,18 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await prisma.$transaction([
-      prisma.oAuthAuthorizedApp.delete({
-        where: {
-          id: installationId,
-        },
-      }),
-      prisma.restrictedToken.delete({
-        where: {
-          userId_projectId_clientId: {
-            userId: installation.userId,
-            projectId: workspace.id,
-            clientId: installation.clientId,
-          },
-        },
-      }),
-    ]);
+    if (installation.userId !== session.user.id) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "You are not authorized to uninstall this integration",
+      });
+    }
+
+    await prisma.oAuthAuthorizedApp.delete({
+      where: {
+        id: installationId,
+      },
+    });
 
     return NextResponse.json({ id: installationId });
   },

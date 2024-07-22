@@ -19,8 +19,6 @@ model OAuthApp {
   user           User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
   oAuthCodes     OAuthCode[]
-  accessTokens   RestrictedToken[]
-  refreshTokens  OAuthRefreshToken[]
   authorizedApps OAuthAuthorizedApp[]
 
   @@index(projectId)
@@ -52,16 +50,16 @@ model OAuthCode {
 
 model OAuthRefreshToken {
   id                 String   @id @default(cuid())
-  clientId           String
+  installationId     String
   accessTokenId      String
   hashedRefreshToken String   @unique
   expiresAt          DateTime
   createdAt          DateTime @default(now())
 
-  oAuthApp    OAuthApp        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  accessToken RestrictedToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
+  accessToken   RestrictedToken    @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
+  authorizedApp OAuthAuthorizedApp @relation(fields: [installationId], references: [id], onDelete: Cascade)
 
-  @@index([clientId])
+  @@index([installationId])
   @@index([accessTokenId])
 }
 
@@ -72,9 +70,11 @@ model OAuthAuthorizedApp {
   userId    String // user who granted access
   createdAt DateTime @default(now())
 
-  oAuthApp OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  oAuthApp      OAuthApp            @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  accessTokens  RestrictedToken[]
+  refreshTokens OAuthRefreshToken[]
 
   @@unique([userId, projectId, clientId])
   @@index([clientId])

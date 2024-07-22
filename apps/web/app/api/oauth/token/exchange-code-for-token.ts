@@ -163,55 +163,38 @@ export const exchangeAuthCodeForToken = async (
     length: OAUTH_CONFIG.ACCESS_TOKEN_LENGTH,
     prefix: OAUTH_CONFIG.ACCESS_TOKEN_PREFIX,
   });
+
   const refreshToken = createToken({
     length: OAUTH_CONFIG.REFRESH_TOKEN_LENGTH,
   });
+
   const accessTokenExpires = new Date(
     Date.now() + OAUTH_CONFIG.ACCESS_TOKEN_LIFETIME * 1000,
   );
 
-  // Delete the existing token issued to the client for the user for the selected workspace before creating a new one
+  // Add to authorized apps
   // We only support one token per client per user per workspace at a time
+  const installation = await prisma.oAuthAuthorizedApp.upsert({
+    create: {
+      userId,
+      projectId,
+      clientId,
+    },
+    update: {},
+    where: {
+      userId_projectId_clientId: {
+        clientId,
+        userId,
+        projectId,
+      },
+    },
+  });
+
   await prisma.$transaction([
+    // Remove all existing tokens for this client
     prisma.restrictedToken.deleteMany({
       where: {
-        userId,
-        projectId,
-        clientId,
-      },
-    }),
-
-    prisma.oAuthAuthorizedApp.deleteMany({
-      where: {
-        userId,
-        projectId,
-        clientId,
-      },
-    }),
-  ]);
-
-  await prisma.$transaction([
-    // Create the access token and refresh token
-    prisma.restrictedToken.create({
-      data: {
-        clientId,
-        userId,
-        projectId,
-        scopes,
-        name: `Access token for ${app.name}`,
-        hashedKey: await hashToken(accessToken),
-        partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
-        rateLimit: getCurrentPlan(workspace.plan as string).limits.api,
-        expires: accessTokenExpires,
-        refreshTokens: {
-          create: {
-            clientId,
-            hashedRefreshToken: await hashToken(refreshToken),
-            expiresAt: new Date(
-              Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
-            ),
-          },
-        },
+        installationId: installation.id,
       },
     }),
 
@@ -222,12 +205,27 @@ export const exchangeAuthCodeForToken = async (
       },
     }),
 
-    // Add to authorized apps
-    prisma.oAuthAuthorizedApp.create({
+    // Create the access token and refresh token
+    prisma.restrictedToken.create({
       data: {
-        clientId,
+        name: `Access token for ${app.name}`,
+        hashedKey: await hashToken(accessToken),
+        partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
+        scopes,
+        expires: accessTokenExpires,
+        rateLimit: getCurrentPlan(workspace.plan as string).limits.api,
         userId,
         projectId,
+        installationId: installation.id,
+        refreshTokens: {
+          create: {
+            installationId: installation.id,
+            hashedRefreshToken: await hashToken(refreshToken),
+            expiresAt: new Date(
+              Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,
+            ),
+          },
+        },
       },
     }),
   ]);

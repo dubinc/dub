@@ -78,24 +78,29 @@ export const refreshAccessToken = async (
 
   const refreshTokenRecord = await prisma.oAuthRefreshToken.findFirst({
     where: {
-      clientId,
       hashedRefreshToken: await hashToken(refresh_token),
     },
     select: {
       id: true,
       expiresAt: true,
-      accessToken: {
+      authorizedApp: {
         select: {
           id: true,
-          name: true,
           userId: true,
+          clientId: true,
           projectId: true,
-          scopes: true,
           project: {
             select: {
               plan: true,
             },
           },
+        },
+      },
+      accessToken: {
+        select: {
+          id: true,
+          name: true,
+          scopes: true,
         },
       },
     },
@@ -104,60 +109,63 @@ export const refreshAccessToken = async (
   if (!refreshTokenRecord) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Refresh token not found or expired",
+      message: "Refresh token not found.",
+    });
+  }
+
+  if (refreshTokenRecord.authorizedApp.clientId !== clientId) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Client ID mismatch.",
     });
   }
 
   if (refreshTokenRecord.expiresAt < new Date()) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Refresh token expired",
+      message: "Refresh token expired.",
     });
   }
-
-  const {
-    userId,
-    projectId,
-    scopes,
-    name,
-    project: workspace,
-    id: accessTokenId,
-  } = refreshTokenRecord.accessToken;
 
   const newAccessToken = createToken({
     length: OAUTH_CONFIG.ACCESS_TOKEN_LENGTH,
     prefix: OAUTH_CONFIG.ACCESS_TOKEN_PREFIX,
   });
+
   const newRefreshToken = createToken({
     length: OAUTH_CONFIG.REFRESH_TOKEN_LENGTH,
   });
+
   const accessTokenExpires = new Date(
     Date.now() + OAUTH_CONFIG.ACCESS_TOKEN_LIFETIME * 1000,
   );
+
+  const { accessToken, authorizedApp } = refreshTokenRecord;
 
   await prisma.$transaction([
     // Delete the old access token
     prisma.restrictedToken.delete({
       where: {
-        id: accessTokenId,
+        id: accessToken.id,
       },
     }),
 
     // Create the access token and refresh token
     prisma.restrictedToken.create({
       data: {
-        clientId,
-        userId,
-        projectId,
-        scopes,
-        name,
+        name: accessToken.name,
         hashedKey: await hashToken(newAccessToken),
         partialKey: `${newAccessToken.slice(0, 3)}...${newAccessToken.slice(-4)}`,
-        rateLimit: getCurrentPlan(workspace.plan as string).limits.api,
+        scopes: accessToken.scopes,
         expires: accessTokenExpires,
+        rateLimit: getCurrentPlan(authorizedApp.project.plan as string).limits
+          .api,
+        userId: authorizedApp.userId,
+        projectId: authorizedApp.projectId,
+        installationId: authorizedApp.id,
         refreshTokens: {
           create: {
-            clientId,
+            installationId: authorizedApp.id,
             hashedRefreshToken: await hashToken(newRefreshToken),
             expiresAt: new Date(
               Date.now() + OAUTH_CONFIG.REFRESH_TOKEN_LIFETIME * 1000,

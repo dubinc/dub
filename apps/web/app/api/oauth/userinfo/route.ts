@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         expires: {
           gte: new Date(),
         },
-        clientId: {
+        installationId: {
           not: null,
         },
       },

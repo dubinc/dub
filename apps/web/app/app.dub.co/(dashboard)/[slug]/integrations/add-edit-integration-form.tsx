@@ -15,13 +15,13 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 const defaultValues: NewIntegration = {
-  name: "Demo",
-  slug: "demo",
+  name: "",
+  slug: "",
   description: "",
-  developer: "Kiran",
-  website: "http://localhost:3000/api/oauth/callback",
-  redirectUri: "http://localhost:3000/api/oauth/callback",
-  logo: "http://localhost:3000/api/oauth/callback",
+  developer: "",
+  website: "",
+  redirectUri: "",
+  logo: "",
   pkce: false,
 };
 
@@ -247,7 +247,7 @@ export default function AddEditIntegrationForm({
         <div className="flex items-center justify-between pb-4 pt-2">
           <label htmlFor="pkce" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">Allow PKCE</h2>
-            <InfoTooltip content="We strongly recommend using the PKCE flow for increased security" />
+            <InfoTooltip content="We strongly recommend using the PKCE flow for increased security. Make sure your application supports it." />
           </label>
           <Switch
             checked={pkce}
