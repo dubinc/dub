@@ -24,7 +24,6 @@ export const getFeatureFlags = async (workspaceId: string) => {
     betaFeatures = await get("betaFeatures");
   } catch (e) {
     console.error(`Error getting beta features: ${e}`);
-    betaFeatures = undefined;
   }
 
   if (betaFeatures) {

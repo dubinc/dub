@@ -1,9 +1,7 @@
+import { ResourceKey, RESOURCES } from "@/lib/api/rbac/resources";
 import {
-  RESOURCES,
-  ResourceKeys,
-  Scope,
-  ScopeByResource,
   getScopesByResourceForRole,
+  Scope,
   scopePresets,
 } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -393,8 +391,8 @@ export function useAddEditTokenModal(
   );
 }
 
-const transformScopesForUI = (scopedResources: ScopeByResource) => {
-  return Object.keys(scopedResources).map((resourceKey: ResourceKeys) => {
+const transformScopesForUI = (scopedResources) => {
+  return Object.keys(scopedResources).map((resourceKey: ResourceKey) => {
     return {
       ...RESOURCES.find((r) => r.key === resourceKey)!,
       scopes: scopedResources[resourceKey],

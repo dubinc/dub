@@ -16,13 +16,17 @@ export const parseDateTime = (str: Date | string) => {
   return chrono.parseDate(str);
 };
 
-export const formatDate = (datetime: Date | string) => {
+export const formatDate = (
+  datetime: Date | string,
+  options?: Intl.DateTimeFormatOptions,
+) => {
   if (datetime.toString() === "Invalid Date") return "";
   return new Date(datetime).toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
     timeZone: "UTC",
+    ...options,
   });
 };
 
