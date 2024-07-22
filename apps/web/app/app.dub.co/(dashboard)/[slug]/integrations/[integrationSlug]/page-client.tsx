@@ -17,6 +17,7 @@ import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { ChevronLeft, Trash } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import Markdown from "react-markdown";
 
 export default function IntegrationPageClient({
   integration,
@@ -129,6 +130,12 @@ export default function IntegrationPageClient({
           </a>
         </div>
       </div>
+
+      {integration.readme && (
+        <div className="prose prose-sm w-full max-w-none rounded-lg border border-gray-200 bg-white p-4">
+          <Markdown>{integration.readme}</Markdown>
+        </div>
+      )}
     </MaxWidthWrapper>
   );
 }
