@@ -102,6 +102,9 @@ export const POST = withSession(async ({ req, session }) => {
         create: {
           userId: session.user.id,
           role: "owner",
+          notificationPreference: {
+            create: {},
+          },
         },
       },
       billingCycleStart: new Date().getDate(),
