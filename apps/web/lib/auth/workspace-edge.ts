@@ -11,13 +11,12 @@ import { StreamingTextResponse } from "ai";
 import { getToken } from "next-auth/jwt";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextRequest } from "next/server";
-import { throwIfNoAccess } from "../api/tokens/permissions";
 import {
   PermissionAction,
-  Scope,
   getPermissionsByRole,
-  mapScopesToPermissions,
-} from "../api/tokens/scopes";
+} from "../api/rbac/permissions";
+import { throwIfNoAccess } from "../api/tokens/permissions";
+import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { getFeatureFlags } from "../edge-config";
 import { prismaEdge } from "../prisma/edge";
 import { hashToken } from "./hash-token";
@@ -134,6 +133,7 @@ export const withWorkspaceEdge = (
                 scopes: true,
                 rateLimit: true,
                 projectId: true,
+                expires: true,
               }),
               user: {
                 select: {
@@ -156,6 +156,13 @@ export const withWorkspaceEdge = (
             throw new DubApiError({
               code: "unauthorized",
               message: "Unauthorized: Invalid API key.",
+            });
+          }
+
+          if (token.expires && token.expires < new Date()) {
+            throw new DubApiError({
+              code: "forbidden",
+              message: "Unauthorized: Access token expired.",
             });
           }
 
