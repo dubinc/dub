@@ -1,34 +1,17 @@
-import { Sort } from "@/ui/shared/icons";
 import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown, SortDesc } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-
-const sortOptions = [
-  {
-    display: "Date Added",
-    slug: "createdAt",
-  },
-  {
-    display: "Number of Clicks",
-    slug: "clicks",
-  },
-  {
-    display: "Last Clicked",
-    slug: "lastClicked",
-  },
-];
+import { useContext, useState } from "react";
+import { LinksDisplayContext, sortOptions } from "./links-display-provider";
 
 export default function LinkSort() {
-  const [openPopover, setOpenPopover] = useState(false);
-  const searchParams = useSearchParams();
-  const sort = searchParams?.get("sort");
   const { queryParams } = useRouterStuff();
 
-  const selectedSort = useMemo(() => {
-    return sortOptions.find((s) => s.slug === sort) || sortOptions[0];
-  }, [sort]);
+  const [openPopover, setOpenPopover] = useState(false);
+
+  const { sort: sortSlug, setSort } = useContext(LinksDisplayContext);
+  const selectedSort =
+    sortOptions.find((s) => s.slug === sortSlug) ?? sortOptions[0];
 
   return (
     <Popover
@@ -38,10 +21,9 @@ export default function LinkSort() {
             <button
               key={slug}
               onClick={() => {
+                setSort(slug);
                 queryParams({
-                  set: {
-                    sort: slug,
-                  },
+                  del: "sort", // Remove legacy query param
                 });
                 setOpenPopover(false);
               }}
@@ -51,7 +33,7 @@ export default function LinkSort() {
                 text={display}
                 icon={<SortDesc className="h-4 w-4" />}
               />
-              {selectedSort.slug === slug && (
+              {sortSlug === slug && (
                 <Tick className="h-4 w-4" aria-hidden="true" />
               )}
             </button>
@@ -69,13 +51,9 @@ export default function LinkSort() {
           "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
         )}
       >
-        {sort ? (
-          <SortDesc className="h-4 w-4" />
-        ) : (
-          <Sort className="h-4 w-4 shrink-0" />
-        )}
+        <SortDesc className="h-4 w-4" />
         <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
-          {sort ? selectedSort.display : "Sort by"}
+          {selectedSort.display || "Sort by"}
         </span>
         <ChevronDown className="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
       </button>

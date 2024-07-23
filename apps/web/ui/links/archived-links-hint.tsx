@@ -1,12 +1,14 @@
 import useLinksCount from "@/lib/swr/use-links-count";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button } from "@dub/ui";
 import { BoxArchive } from "@dub/ui/src/icons";
 import { Tooltip } from "@dub/ui/src/tooltip";
 import { useSearchParams } from "next/navigation";
+import { useContext } from "react";
+import { LinksDisplayContext } from "./links-display-provider";
 
 export default function ArchivedLinksHint() {
   const searchParams = useSearchParams();
-  const showArchived = searchParams.get("showArchived") === "true";
+  const { showArchived } = useContext(LinksDisplayContext);
   // only show the hint if there filters but showArchived is false
   // @ts-ignore – until https://github.com/microsoft/TypeScript/issues/54466 is fixed
   return searchParams.size > 0 && !showArchived && <ArchivedLinksHintHelper />;
@@ -16,7 +18,8 @@ function ArchivedLinksHintHelper() {
   const { data: count } = useLinksCount();
   const { data: totalCount } = useLinksCount({ showArchived: true });
   const archivedCount = totalCount - count;
-  const { queryParams } = useRouterStuff();
+
+  const { setShowArchived } = useContext(LinksDisplayContext);
 
   return (
     archivedCount > 0 && (
@@ -37,13 +40,7 @@ function ArchivedLinksHintHelper() {
                   className="h-6 px-2"
                   variant="secondary"
                   text="Show archived links"
-                  onClick={() =>
-                    queryParams({
-                      set: {
-                        showArchived: "true",
-                      },
-                    })
-                  }
+                  onClick={() => setShowArchived(true)}
                 />
               </div>
             </div>

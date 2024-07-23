@@ -9,7 +9,6 @@ import {
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import LinkSort from "./link-sort";
 import {
@@ -22,6 +21,8 @@ export default function LinkDisplay() {
   const {
     viewMode,
     setViewMode,
+    showArchived,
+    setShowArchived,
     displayProperties,
     setDisplayProperties,
     isDirty,
@@ -30,7 +31,6 @@ export default function LinkDisplay() {
   } = useContext(LinksDisplayContext);
 
   const [openPopover, setOpenPopover] = useState(false);
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
 
   return (
@@ -66,7 +66,7 @@ export default function LinkDisplay() {
               );
             })}
           </div>
-          <div className="flex h-20 items-center justify-between gap-2 px-4">
+          <div className="flex h-16 items-center justify-between gap-2 px-4">
             <span className="flex items-center gap-2">
               <ArrowsOppositeDirectionY className="h-4 w-4 text-gray-800" />
               Ordering
@@ -75,25 +75,20 @@ export default function LinkDisplay() {
               <LinkSort />
             </div>
           </div>
-          <div className="flex h-20 items-center justify-between gap-2 px-4">
+          <div className="flex h-16 items-center justify-between gap-2 px-4">
             <span className="flex items-center gap-2">
               <BoxArchive className="h-4 w-4 text-gray-800" />
               Show archived links
             </span>
             <div>
               <Switch
-                checked={searchParams.get("showArchived") === "true"}
-                fn={(checked) =>
-                  queryParams(
-                    checked
-                      ? {
-                          set: {
-                            showArchived: "true",
-                          },
-                        }
-                      : { del: "showArchived" },
-                  )
-                }
+                checked={showArchived}
+                fn={(checked) => {
+                  setShowArchived(checked);
+                  queryParams({
+                    del: "showArchived", // Remove legacy query param
+                  });
+                }}
               />
             </div>
           </div>
@@ -175,7 +170,14 @@ export default function LinkDisplay() {
         className="hover:bg-white [&>div]:w-full"
         text={
           <div className="flex w-full items-center gap-2">
-            <Sliders className="h-4 w-4" />
+            <div className="relative shrink-0">
+              <Sliders className="h-4 w-4" />
+              {isDirty && (
+                <div className="absolute -right-0.5 top-0 h-[5px] w-[5px] rounded-full bg-blue-500">
+                  <div className="h-full w-full animate-pulse rounded-full ring-2 ring-blue-500/30" />
+                </div>
+              )}
+            </div>
             <span className="grow text-left">Display</span>
             <ChevronDown
               className={cn("h-4 w-4 text-gray-400 transition-transform", {

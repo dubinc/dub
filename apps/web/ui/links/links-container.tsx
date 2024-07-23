@@ -3,12 +3,7 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
-import {
-  CardList,
-  MaxWidthWrapper,
-  useMediaQuery,
-  useRouterStuff,
-} from "@dub/ui";
+import { CardList, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -33,12 +28,10 @@ export default function LinksContainer({
 }: {
   AddEditLinkButton: () => JSX.Element;
 }) {
-  const { viewMode } = useContext(LinksDisplayContext);
+  const { viewMode, sort, showArchived } = useContext(LinksDisplayContext);
 
-  const { links, isValidating } = useLinks();
+  const { links, isValidating } = useLinks({ sort, showArchived });
   const { data: count } = useLinksCount();
-  const { data: totalCount } = useLinksCount({ showArchived: true });
-  const archivedCount = totalCount - count;
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">
@@ -46,7 +39,6 @@ export default function LinksContainer({
         AddEditLinkButton={AddEditLinkButton}
         links={links}
         count={count}
-        archivedCount={archivedCount}
         loading={isValidating}
         compact={viewMode === "rows"}
       />
@@ -66,19 +58,15 @@ function LinksList({
   AddEditLinkButton,
   links,
   count,
-  archivedCount,
   loading,
   compact,
 }: {
   AddEditLinkButton: () => JSX.Element;
   links?: ResponseLink[];
   count?: number;
-  archivedCount: number;
   loading?: boolean;
   compact: boolean;
 }) {
-  const { isMobile } = useMediaQuery();
-
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
   const page = (parseInt(searchParams?.get("page") || "1") || 1) - 1;
