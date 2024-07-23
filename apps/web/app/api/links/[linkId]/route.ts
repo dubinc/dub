@@ -113,8 +113,11 @@ export const PATCH = withWorkspace(
 
     try {
       const response = await updateLink({
-        oldDomain: link.domain,
-        oldKey: link.key,
+        oldLink: {
+          domain: link.domain,
+          key: link.key,
+          image: link.image,
+        },
         updatedLink: processedLink,
       });
 
