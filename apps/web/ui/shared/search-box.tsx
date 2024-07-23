@@ -124,7 +124,9 @@ export function SearchBoxPersisted({
   // Set value when URL param changes
   useEffect(() => {
     const search = searchParams.get(urlParam);
-    if (search ?? "" !== value) setValue(search ?? "");
+    // Only update if the value and debouncedValue are synced (the user isn't actively typing)
+    if ((search ?? "" !== value) && value === debouncedValue)
+      setValue(search ?? "");
   }, [searchParams.get(urlParam)]);
 
   return (
