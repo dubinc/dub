@@ -127,14 +127,14 @@ function UnverifiedTooltip({
 }: PropsWithChildren<{ domain: string; _key: string }>) {
   const { id: workspaceId, slug } = useWorkspace();
 
-  const { data: { verified } = {}, isLoading } = useSWR<DomainProps>(
-    !isDubDomain(domain) &&
-      workspaceId &&
+  const { data: { verified } = {} } = useSWR<DomainProps>(
+    workspaceId &&
+      !isDubDomain(domain) &&
       `/api/domains/${domain}?workspaceId=${workspaceId}`,
     fetcher,
   );
 
-  return !isLoading && !isDubDomain(domain) && !verified ? (
+  return !isDubDomain(domain) && verified === false ? (
     <Tooltip
       content={
         <TooltipContent
