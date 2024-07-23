@@ -51,7 +51,7 @@ export default function UserDropdown() {
               />
             </Link>
             <Link
-              href="/settings"
+              href="/account/settings"
               onClick={() => setOpenPopover(false)}
               className="block w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >

@@ -20,7 +20,7 @@ export default function NavLink({
     slug?: string;
   };
 
-  const href = `${slug ? `/${slug}` : ""}/settings${
+  const href = `${slug ? `/${slug}` : "/account"}/settings${
     segment ? `/${segment}` : ""
   }`;
 
