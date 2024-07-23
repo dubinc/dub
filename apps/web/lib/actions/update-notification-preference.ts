@@ -10,6 +10,7 @@ const schema = z.object({
   value: z.boolean(),
 });
 
+// Update the notification preference for a user in a workspace
 export const updateNotificationPreference = authActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {

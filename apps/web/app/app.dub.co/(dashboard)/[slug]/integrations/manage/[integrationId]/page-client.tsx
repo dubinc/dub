@@ -1,5 +1,6 @@
 "use client";
 
+import { generateClientSecret } from "@/lib/actions/generate-client-secret";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useRemoveIntegrationModal } from "@/ui/modals/remove-integration-modal";
@@ -13,10 +14,12 @@ import {
   TokenAvatar,
 } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
-import { ChevronLeft, Trash } from "lucide-react";
+import { ChevronLeft, RefreshCcw, Trash } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import AddEditIntegrationForm from "../../../../../../../ui/integrations/add-edit-integration-form";
 import OAuthAppCredentials from "../../../../../../../ui/integrations/oauth-app-credentials";
@@ -29,6 +32,7 @@ export default function IntegrationManagePageClient({
   const searchParams = useSearchParams();
   const { slug, id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
+  const { executeAsync, result, status } = useAction(generateClientSecret);
   const { data: integration, isLoading } = useSWR<OAuthAppProps>(
     `/api/oauth/apps/${integrationId}?workspaceId=${workspaceId}`,
     fetcher,
@@ -84,6 +88,29 @@ export default function IntegrationManagePageClient({
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
                 <Button
+                  text={
+                    status === "executing" ? "Generating..." : "Generate secret"
+                  }
+                  variant="outline"
+                  icon={<RefreshCcw className="h-4 w-4" />}
+                  className="h-9 justify-start px-2 font-medium"
+                  disabled={status === "executing"}
+                  onClick={async () => {
+                    await executeAsync({
+                      workspaceId: workspaceId!,
+                      integrationId,
+                    });
+
+                    if (status === "hasSucceeded") {
+                      toast.success("New client secret generated.");
+                    } else if (status === "hasErrored") {
+                      toast.error(result.serverError?.serverError);
+                    }
+
+                    setOpenPopover(false);
+                  }}
+                />
+                <Button
                   text="Remove Integration"
                   variant="danger-outline"
                   icon={<Trash className="h-4 w-4" />}
@@ -114,7 +141,11 @@ export default function IntegrationManagePageClient({
       <MaxWidthWrapper className="max-w-screen-lg space-y-10">
         <OAuthAppCredentials
           clientId={integration.clientId}
-          clientSecret={searchParams.get("client_secret") || null}
+          clientSecret={
+            searchParams.get("client_secret") ||
+            result.data?.clientSecret ||
+            null
+          }
         />
         <AddEditIntegrationForm integration={integration} />
       </MaxWidthWrapper>
