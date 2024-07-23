@@ -25,19 +25,19 @@ model Project {
   usageLastChecked  DateTime @default(now())
   zapierHookEnabled Boolean  @default(false)
 
-  users            ProjectUsers[]
-  invites          ProjectInvite[]
-  sentEmails       SentEmail[]
-  links            Link[]
-  domains          Domain[]
-  tags             Tag[]
-  customers        Customer[]
-  defaultDomains   DefaultDomains[]
-  restrictedTokens RestrictedToken[]
+  users               ProjectUsers[]
+  invites             ProjectInvite[]
+  sentEmails          SentEmail[]
+  links               Link[]
+  domains             Domain[]
+  tags                Tag[]
+  customers           Customer[]
+  defaultDomains      DefaultDomains[]
+  restrictedTokens    RestrictedToken[]
   oAuthCodes          OAuthCode[]
   oAuthApps           OAuthApp[] // OAuth apps workspace published
   oAuthAuthorizedApps OAuthAuthorizedApp[] // OAuth apps workspace authorized
-  zapierHooks      ZapierHook[]
+  zapierHooks         ZapierHook[]
 
   @@index(usageLastChecked(sort: Asc))
 }
@@ -84,10 +84,10 @@ model SentEmail {
 }
 
 model NotificationPreference {
-  id                          String  @id @default(cuid())
-  projectUserId               String  @unique
-  linkUsageSummary            Boolean @default(true)
-  domainConfigurationUpdates  Boolean @default(true)
+  id                         String  @id @default(cuid())
+  projectUserId              String  @unique
+  linkUsageSummary           Boolean @default(true)
+  domainConfigurationUpdates Boolean @default(true)
 
   projectUser ProjectUsers @relation(fields: [projectUserId], references: [id], onDelete: Cascade)
 }
