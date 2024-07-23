@@ -3,18 +3,16 @@ import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { SHORT_DOMAIN, getParamsFromURL, truncate } from "@dub/utils";
+import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function updateLink({
-  oldDomain = SHORT_DOMAIN,
-  oldKey,
+  oldLink,
   updatedLink,
 }: {
-  oldDomain?: string;
-  oldKey: string;
+  oldLink: { domain: string; key: string; image?: string | null };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
 }) {
@@ -30,8 +28,8 @@ export async function updateLink({
     proxy,
     geo,
   } = updatedLink;
-  const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
-  const changedDomain = domain !== oldDomain;
+  const changedKey = key.toLowerCase() !== oldLink.key.toLowerCase();
+  const changedDomain = domain !== oldLink.domain;
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
@@ -50,6 +48,8 @@ export async function updateLink({
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
+  const imageUrlNonce = nanoid(7);
+
   const response = await prisma.link.update({
     where: {
       id,
@@ -61,7 +61,7 @@ export async function updateLink({
       description: truncate(description, 240),
       image:
         proxy && image && !isStored(image)
-          ? `${process.env.STORAGE_BASE_URL}/images/${id}`
+          ? `${R2_URL}/images/${id}_${imageUrlNonce}`
           : image,
       utm_source,
       utm_medium,
@@ -132,15 +132,19 @@ export async function updateLink({
       }),
       // if key is changed: delete the old key in Redis
       (changedDomain || changedKey) &&
-        redis.hdel(oldDomain.toLowerCase(), oldKey.toLowerCase()),
+        redis.hdel(oldLink.domain.toLowerCase(), oldLink.key.toLowerCase()),
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&
         !isStored(image) &&
-        storage.upload(`images/${id}`, image, {
+        storage.upload(`images/${id}_${imageUrlNonce}`, image, {
           width: 1200,
           height: 630,
         }),
+      // if old link image is stored in R2, delete it
+      oldLink.image &&
+        isStored(oldLink.image) &&
+        storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
     ]),
   );
 

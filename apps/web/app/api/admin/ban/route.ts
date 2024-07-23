@@ -3,7 +3,8 @@ import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
 import { unsubscribe } from "@/lib/flodesk";
 import { prisma } from "@/lib/prisma";
-import { storage } from "@/lib/storage";
+import { isStored, storage } from "@/lib/storage";
+import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -58,8 +59,9 @@ export const POST = withAdmin(async ({ req }) => {
         },
       }),
       // if the user has a custom avatar, delete it
-      user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-        storage.delete(`avatars/${user.id}`),
+      user.image &&
+        isStored(user.image) &&
+        storage.delete(user.image.replace(`${R2_URL}/`, "")),
       unsubscribe(email),
       updateConfig({
         key: "emails",

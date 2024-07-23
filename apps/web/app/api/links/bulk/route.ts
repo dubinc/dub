@@ -5,11 +5,14 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isStored, storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   bulkCreateLinksBodySchema,
   bulkUpdateLinksBodySchema,
 } from "@/lib/zod/schemas/links";
+import { R2_URL } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links
@@ -244,6 +247,17 @@ export const PATCH = withWorkspace(async ({ req, workspace, headers }) => {
           workspaceId: workspace.id,
         })
       : [];
+
+  waitUntil(
+    Promise.allSettled(
+      links.map(async (link) => {
+        // delete old proxy image urls if exist
+        if (link.image && isStored(link.image)) {
+          storage.delete(link.image.replace(`${R2_URL}/`, ""));
+        }
+      }),
+    ),
+  );
 
   return NextResponse.json([...response, ...errorLinks], { headers });
 });

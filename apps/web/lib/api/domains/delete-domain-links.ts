@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { storage } from "../../storage";
+import { isStored, storage } from "../../storage";
 import { recordLink } from "../../tinybird";
 import { removeDomainFromVercel } from "./remove-domain-vercel";
 
@@ -64,8 +65,8 @@ export async function deleteDomainAndLinks(domain: string) {
           })),
         ]),
         ...allLinks.map((link) => {
-          if (link.image?.startsWith(process.env.STORAGE_BASE_URL as string)) {
-            storage.delete(`images/${link.id}`);
+          if (link.image && isStored(link.image)) {
+            storage.delete(link.image.replace(`${R2_URL}/`, ""));
           }
         }),
         // remove the domain from Vercel

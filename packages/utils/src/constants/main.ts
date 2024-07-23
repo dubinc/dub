@@ -54,3 +54,5 @@ export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.jpg";
 export const DUB_WORKSPACE_ID = "cl7pj5kq4006835rbjlt2ofka";
 export const LEGAL_WORKSPACE_ID = "clrflia0j0000vs7sqfhz9c7q";
 export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
+
+export const R2_URL = process.env.STORAGE_BASE_URL as string;

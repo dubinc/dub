@@ -41,11 +41,7 @@ export function constructMetadata({
       title,
       description,
       ...(image && {
-        images: [
-          {
-            url: image,
-          },
-        ],
+        images: image,
       }),
       ...(video && {
         videos: video,
