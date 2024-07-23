@@ -50,11 +50,13 @@ export const LinksDisplayContext = createContext<{
   setViewMode: (v: LinksViewMode) => void;
   displayProperties: LinkDisplayProperty[];
   setDisplayProperties: (p: LinkDisplayProperty[]) => void;
+  reset: () => void;
 }>({
   viewMode: "cards",
   setViewMode: () => {},
   displayProperties: defaultDisplayProperties,
   setDisplayProperties: () => {},
+  reset: () => {},
 });
 
 export function LinksDisplayProvider({ children }: PropsWithChildren) {
@@ -86,6 +88,10 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
         setViewMode,
         displayProperties,
         setDisplayProperties,
+        reset: () => {
+          setDisplayProperties(defaultDisplayProperties);
+          setViewMode(linkViewModes[0]);
+        },
       }}
     >
       {children}

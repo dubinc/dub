@@ -18,8 +18,13 @@ import {
 } from "./links-display-provider";
 
 export default function LinkDisplay() {
-  const { viewMode, setViewMode, displayProperties, setDisplayProperties } =
-    useContext(LinksDisplayContext);
+  const {
+    viewMode,
+    setViewMode,
+    displayProperties,
+    setDisplayProperties,
+    reset,
+  } = useContext(LinksDisplayContext);
 
   const [openPopover, setOpenPopover] = useState(false);
   const searchParams = useSearchParams();
@@ -130,7 +135,19 @@ export default function LinkDisplay() {
               })}
             </div>
           </div>
-          <div className=""></div>
+          <div className="flex items-center justify-end p-2">
+            <Button
+              className="h-8 w-auto"
+              variant="outline"
+              text="Reset to default"
+              onClick={() => {
+                reset();
+                queryParams({
+                  del: ["sort", "showArchived"],
+                });
+              }}
+            />
+          </div>
         </div>
       }
       openPopover={openPopover}
