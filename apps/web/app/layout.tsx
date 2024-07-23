@@ -16,7 +16,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn(satoshi.variable, inter.variable)}>
+    <html
+      lang="en"
+      className={cn(satoshi.variable, inter.variable, "font-default")}
+    >
       <body>
         <AxiomWebVitals />
         <TooltipProvider>
