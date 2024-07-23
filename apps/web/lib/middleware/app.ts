@@ -47,7 +47,9 @@ export default async function AppMiddleware(req: NextRequest) {
       path === "/login" ||
       path === "/register" ||
       path.startsWith("/analytics") ||
+      path.startsWith("/events") ||
       path.startsWith("/integrations") ||
+      path.startsWith("/domains") ||
       path.startsWith("/settings")
     ) {
       const defaultWorkspace = await getDefaultWorkspace(user);
