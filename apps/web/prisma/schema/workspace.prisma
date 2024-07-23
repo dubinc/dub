@@ -20,10 +20,9 @@ model Project {
   tagsLimit    Int @default(5)
   usersLimit   Int @default(1)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  usageLastChecked  DateTime @default(now())
-  zapierHookEnabled Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  usageLastChecked DateTime @default(now())
 
   users               ProjectUsers[]
   invites             ProjectInvite[]

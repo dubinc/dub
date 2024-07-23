@@ -20,18 +20,6 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     },
   });
 
-  // Enable the hook on the workspace
-  if (hook) {
-    await prisma.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        zapierHookEnabled: true,
-      },
-    });
-  }
-
   console.info(`[Zapier] Workspace ${workspace.id} subscribed to ${hook}`);
 
   return NextResponse.json({ id: hook.id }, { status: 201 });

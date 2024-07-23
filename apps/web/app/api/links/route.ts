@@ -1,20 +1,16 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
+import { sendToZapier } from "@/lib/api/links/send-to-zapier";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas/links";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  LOCALHOST_IP,
-  getSearchParamsWithArray,
-} from "@dub/utils";
+import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -103,14 +99,8 @@ export const POST = withWorkspace(
 
       waitUntil(
         (async () => {
-          // Publish to Zapier if the project has a Zapier hook enabled
-          if (response.projectId && workspace.zapierHookEnabled) {
-            await qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/zapier/send-webhook`,
-              body: {
-                linkId: response.id,
-              },
-            });
+          if (response.projectId) {
+            await sendToZapier(response);
           }
         })(),
       );
