@@ -142,8 +142,8 @@ export default function IntegrationManagePageClient({
         <OAuthAppCredentials
           clientId={integration.clientId}
           clientSecret={
-            searchParams.get("client_secret") ||
             result.data?.clientSecret ||
+            searchParams.get("client_secret") ||
             null
           }
         />

@@ -18,17 +18,21 @@ export const createOAuthAppSchema = z.object({
     })
     .max(190)
     .nullable(),
-  redirectUri: z
+  redirectUris: z
     .string()
-    .url({ message: "redirect_uri must be a valid URL" })
-    .max(190)
+    .array()
+    .min(1, {
+      message: "At least one redirect URI is required",
+    })
+    .max(5, {
+      message: "only 5 redirect URIs are allowed",
+    })
     .refine(
-      (url) => {
-        if (url.startsWith("http://localhost")) {
-          return true;
-        }
-
-        return url.startsWith("https://");
+      (urls) => {
+        return urls.every(
+          (url) =>
+            url.startsWith("https://") || url.startsWith("http://localhost"),
+        );
       },
       {
         message:
@@ -62,7 +66,7 @@ export const oAuthAppSchema = z.object({
   readme: z.string().nullish(),
   developer: z.string(),
   website: z.string(),
-  redirectUri: z.string(),
+  redirectUris: z.array(z.string()),
   logo: z.string().nullable(),
   pkce: z.boolean(),
   verified: z.boolean(),
