@@ -3,7 +3,8 @@
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LinkDisplay from "@/ui/links/link-display";
-import LinksContainer, { linkViewModes } from "@/ui/links/links-container";
+import LinksContainer from "@/ui/links/links-container";
+import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
@@ -19,7 +20,6 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
-  useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
 import { CloudUpload, Download, Tag } from "@dub/ui/src/icons";
@@ -41,22 +41,13 @@ export default function WorkspaceLinksClient() {
 
   const { slug } = useWorkspace();
 
-  const [viewMode, setViewMode] = useLocalStorage(
-    "links-view-mode",
-    linkViewModes[0],
-  );
-
-  useEffect(() => {
-    if (!linkViewModes.includes(viewMode)) setViewMode("cards");
-  }, [viewMode]);
-
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     useLinkFilters();
 
   const { isValidating } = useLinks();
 
   return (
-    <>
+    <LinksDisplayProvider>
       <AddEditLinkModal />
       <AddEditTagModal />
       <div className="mt-10 flex w-full items-center pt-3">
@@ -126,10 +117,7 @@ export default function WorkspaceLinksClient() {
                 />
               </div>
               <div className="grow basis-0 md:grow-0">
-                <LinkDisplay
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                />
+                <LinkDisplay />
               </div>
             </div>
             <div className="order-3 flex gap-x-2">
@@ -148,12 +136,9 @@ export default function WorkspaceLinksClient() {
         </MaxWidthWrapper>
       </div>
       <div className="mt-3">
-        <LinksContainer
-          AddEditLinkButton={AddEditLinkButton}
-          viewMode={viewMode}
-        />
+        <LinksContainer AddEditLinkButton={AddEditLinkButton} />
       </div>
-    </>
+    </LinksDisplayProvider>
   );
 }
 

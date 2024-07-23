@@ -24,6 +24,7 @@ import {
 import useSWR from "swr";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
+import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 function useOrganizedTags(tags: ResponseLink["tags"]) {
@@ -54,6 +55,8 @@ function useOrganizedTags(tags: ResponseLink["tags"]) {
 export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   const { tags } = link;
 
+  const { displayProperties } = useContext(LinksDisplayContext);
+
   const ref = useRef<HTMLDivElement>(null);
   const entry = useIntersectionObserver(ref, {});
   const isVisible = !!entry?.isIntersecting;
@@ -64,12 +67,14 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
     <div ref={ref} className="flex items-center justify-end gap-2 sm:gap-5">
       {isVisible && (
         <>
-          {primaryTag && (
+          {displayProperties.includes("tags") && primaryTag && (
             <TagsTooltip additionalTags={additionalTags}>
               <TagButton tag={primaryTag} plus={additionalTags.length} />
             </TagsTooltip>
           )}
-          <AnalyticsBadge link={link} />
+          {displayProperties.includes("analytics") && (
+            <AnalyticsBadge link={link} />
+          )}
           <LinkControls link={link} />
         </>
       )}

@@ -9,20 +9,20 @@ import {
 import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import LinkSort from "./link-sort";
-import { LinksViewMode } from "./links-container";
+import {
+  LinksDisplayContext,
+  LinksViewMode,
+  linkDisplayProperties,
+} from "./links-display-provider";
 
-export default function LinkDisplay({
-  viewMode,
-  onViewModeChange,
-}: {
-  viewMode: LinksViewMode;
-  onViewModeChange: (viewMode: LinksViewMode) => void;
-}) {
+export default function LinkDisplay() {
+  const { viewMode, setViewMode, displayProperties, setDisplayProperties } =
+    useContext(LinksDisplayContext);
+
   const [openPopover, setOpenPopover] = useState(false);
   const searchParams = useSearchParams();
-  const sort = searchParams?.get("sort");
   const { queryParams } = useRouterStuff();
 
   return (
@@ -44,7 +44,8 @@ export default function LinkDisplay({
                       ? "border-gray-300 bg-gray-100 text-gray-950"
                       : "text-gray-800 hover:bg-gray-100 hover:text-gray-950",
                   )}
-                  onClick={() => onViewModeChange(id as LinksViewMode)}
+                  onClick={() => setViewMode(id as LinksViewMode)}
+                  aria-pressed={selected}
                 >
                   <Icon
                     className={cn(
@@ -88,6 +89,48 @@ export default function LinkDisplay({
               />
             </div>
           </div>
+          <div className="p-4">
+            <span className="text-xs uppercase text-gray-500">
+              Display Properties
+            </span>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {linkDisplayProperties.map((property) => {
+                const active = displayProperties.includes(property.id);
+                return (
+                  <button
+                    key={property.id}
+                    aria-pressed={active}
+                    onClick={() => {
+                      let newDisplayProperties = active
+                        ? displayProperties.filter((p) => p !== property.id)
+                        : [...displayProperties, property.id];
+
+                      if (property.switch) {
+                        // Toggle switched property
+                        newDisplayProperties = [
+                          ...newDisplayProperties.filter(
+                            (p) => p !== property.switch,
+                          ),
+                          ...(active ? [property.switch] : []),
+                        ];
+                      }
+
+                      setDisplayProperties(newDisplayProperties);
+                    }}
+                    className={cn(
+                      "rounded-md border px-2 py-0.5",
+                      active
+                        ? "border-gray-300 bg-gray-100 text-gray-950"
+                        : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-950",
+                    )}
+                  >
+                    {property.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className=""></div>
         </div>
       }
       openPopover={openPopover}

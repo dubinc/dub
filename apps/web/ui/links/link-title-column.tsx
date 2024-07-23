@@ -36,10 +36,11 @@ import {
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { formatDate } from "date-fns";
 import { Mail } from "lucide-react";
-import { PropsWithChildren, useRef, useState } from "react";
+import { PropsWithChildren, useContext, useRef, useState } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
 import { ResponseLink } from "./links-container";
+import { LinksDisplayContext } from "./links-display-provider";
 
 const quickViewSettings = [
   { label: "Custom Social Media Cards", icon: Cards, key: "proxy" },
@@ -53,6 +54,8 @@ const quickViewSettings = [
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain, key } = link;
+
+  const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -69,7 +72,12 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
     >
       {isVisible && (
         <>
-          <div className="relative hidden shrink-0 items-center justify-center sm:flex">
+          <div
+            className={cn(
+              "relative hidden shrink-0 items-center justify-center",
+              displayProperties.includes("icon") && "sm:flex",
+            )}
+          >
             {/* Link logo background circle */}
             <div className="absolute inset-0 shrink-0 rounded-full border border-gray-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-gray-100" />
@@ -85,17 +93,23 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
             <div className="flex items-center gap-2">
               <div className="min-w-0 shrink grow-0 text-gray-950">
                 <div className="flex items-center gap-2">
-                  <UnverifiedTooltip domain={domain} _key={key}>
-                    <a
-                      href={linkConstructor({ domain, key })}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={linkConstructor({ domain, key, pretty: true })}
-                      className="truncate font-semibold leading-6 text-gray-800 transition-colors hover:text-black"
-                    >
-                      {linkConstructor({ domain, key, pretty: true })}
-                    </a>
-                  </UnverifiedTooltip>
+                  {displayProperties.includes("title") && link.title ? (
+                    <span className="truncate font-semibold leading-6 text-gray-800">
+                      {link.title}
+                    </span>
+                  ) : (
+                    <UnverifiedTooltip domain={domain} _key={key}>
+                      <a
+                        href={linkConstructor({ domain, key })}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={linkConstructor({ domain, key, pretty: true })}
+                        className="truncate font-semibold leading-6 text-gray-800 transition-colors hover:text-black"
+                      >
+                        {linkConstructor({ domain, key, pretty: true })}
+                      </a>
+                    </UnverifiedTooltip>
+                  )}
                   <CopyButton
                     value={linkConstructor({
                       domain,
@@ -235,7 +249,10 @@ function CommentsBadge({ comments }: { comments: string }) {
 }
 
 function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
-  const { url, user, createdAt } = link;
+  const { url, createdAt } = link;
+
+  const { displayProperties } = useContext(LinksDisplayContext);
+
   return (
     <div
       className={cn(
@@ -249,29 +266,45 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
       )}
     >
       <div className="flex min-w-0 items-center gap-1">
-        {compact ? (
-          <ArrowRight className="mr-1 h-3 w-3 shrink-0 text-gray-400" />
+        {displayProperties.includes("url") &&
+          (compact ? (
+            <ArrowRight className="mr-1 h-3 w-3 shrink-0 text-gray-400" />
+          ) : (
+            <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-gray-400" />
+          ))}
+        {displayProperties.includes("url") ? (
+          url ? (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={url}
+              className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
+            >
+              {getPrettyUrl(url)}
+            </a>
+          ) : (
+            <span className="truncate text-gray-400">No URL configured</span>
+          )
         ) : (
-          <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-gray-400" />
-        )}
-        {url ? (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={url}
-            className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
-          >
-            {getPrettyUrl(url)}
-          </a>
-        ) : (
-          <span className="truncate text-gray-400">No URL configured</span>
+          <span className="truncate text-gray-500">{link.description}</span>
         )}
       </div>
-      <div className="hidden shrink-0 sm:block">
+      <div
+        className={cn(
+          "hidden shrink-0",
+          displayProperties.includes("user") && "sm:block",
+        )}
+      >
         <UserAvatar link={link} compact={compact} />
       </div>
-      <div className="hidden shrink-0 sm:group-data-[variant=loose]/card-list:block">
+      <div
+        className={cn(
+          "hidden shrink-0",
+          displayProperties.includes("createdAt") &&
+            "sm:group-data-[variant=loose]/card-list:block",
+        )}
+      >
         <Tooltip content={formatDateTime(createdAt)}>
           <span className="text-gray-400">
             {formatDate(createdAt, "MMM d")}

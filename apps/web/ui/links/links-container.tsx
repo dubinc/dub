@@ -10,15 +10,19 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
-import { Dispatch, SetStateAction, createContext, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useContext,
+  useState,
+} from "react";
 import ArchivedLinksHint from "./archived-links-hint";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkNotFound from "./link-not-found";
+import { LinksDisplayContext } from "./links-display-provider";
 import NoLinksPlaceholder from "./no-links-placeholder";
-
-export const linkViewModes = ["cards", "rows"] as const;
-export type LinksViewMode = (typeof linkViewModes)[number];
 
 export type ResponseLink = LinkWithTagsProps & {
   user: UserProps;
@@ -26,11 +30,11 @@ export type ResponseLink = LinkWithTagsProps & {
 
 export default function LinksContainer({
   AddEditLinkButton,
-  viewMode,
 }: {
   AddEditLinkButton: () => JSX.Element;
-  viewMode: LinksViewMode;
 }) {
+  const { viewMode } = useContext(LinksDisplayContext);
+
   const { links, isValidating } = useLinks();
   const { data: count } = useLinksCount();
   const { data: totalCount } = useLinksCount({ showArchived: true });
