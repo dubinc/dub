@@ -21,14 +21,15 @@ export const linkDisplayProperties: {
   id: LinkDisplayProperty;
   label: string;
   switch?: LinkDisplayProperty;
+  mobile?: boolean;
 }[] = [
-  { id: "icon", label: "Icon" },
+  { id: "icon", label: "Icon", mobile: false },
   { id: "link", label: "Short link", switch: "title" },
   { id: "url", label: "Destination URL", switch: "description" },
   { id: "title", label: "Title", switch: "link" },
   { id: "description", label: "Description", switch: "url" },
-  { id: "createdAt", label: "Created Date" },
-  { id: "user", label: "Creator" },
+  { id: "createdAt", label: "Created Date", mobile: false },
+  { id: "user", label: "Creator", mobile: false },
   { id: "tags", label: "Tags" },
   { id: "analytics", label: "Analytics" },
 ];

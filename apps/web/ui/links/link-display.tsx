@@ -124,6 +124,7 @@ export default function LinkDisplay() {
                     }}
                     className={cn(
                       "rounded-md border px-2 py-0.5",
+                      property.mobile === false && "hidden sm:block",
                       active
                         ? "border-gray-300 bg-gray-100 text-gray-950"
                         : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-950",
