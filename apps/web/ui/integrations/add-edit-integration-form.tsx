@@ -21,7 +21,7 @@ const defaultValues: NewIntegration = {
   readme: "",
   developer: "",
   website: "",
-  redirectUri: "",
+  redirectUris: [],
   logo: "",
   pkce: false,
   createdAt: new Date(),
@@ -88,14 +88,14 @@ export default function AddEditIntegrationForm({
     if (response.ok) {
       mutate(`/api/oauth/apps/${result.id}?workspaceId=${workspaceId}`, result);
       toast.success(endpoint.successMessage);
+
+      if (endpoint.method === "POST") {
+        router.push(
+          `/${workspaceSlug}/integrations/manage/${result.id}?client_secret=${result.clientSecret}`,
+        );
+      }
     } else {
       toast.error(result.error.message);
-    }
-
-    if (endpoint.method === "POST") {
-      router.push(
-        `/${workspaceSlug}/integrations/manage/${result.id}?client_secret=${result.clientSecret}`,
-      );
     }
   };
 
@@ -106,19 +106,19 @@ export default function AddEditIntegrationForm({
     readme,
     developer,
     website,
-    redirectUri,
+    redirectUris,
     logo,
     pkce,
   } = data;
 
   const buttonDisabled =
-    !name || !slug || !developer || !website || !redirectUri;
+    !name || !slug || !developer || !website || !redirectUris;
 
   return (
     <>
       <form
         onSubmit={onSubmit}
-        className="flex flex-col space-y-4 pb-20 text-left"
+        className="flex flex-col space-y-5 pb-20 text-left"
       >
         <div>
           <label htmlFor="name" className="flex items-center space-x-2">
@@ -251,20 +251,24 @@ export default function AddEditIntegrationForm({
         </div>
 
         <div>
-          <label htmlFor="redirectUri" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Callback URL</h2>
-            <InfoTooltip content="URL to redirect the user after authentication. Must use HTTPS, except for localhost" />
+          <label htmlFor="redirectUris" className="flex items-center space-x-2">
+            <h2 className="text-sm font-medium text-gray-900">Callback URLs</h2>
+            <InfoTooltip content="All OAuth redirect URLs, separated with newlines. Must use HTTPS, except for localhost." />
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
-            <input
+            <TextareaAutosize
+              name="redirectUris"
+              minRows={3}
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              type="url"
+              placeholder="https://acme.com/oauth/callback"
+              value={redirectUris.join("\n")}
               required
-              value={redirectUri}
-              onChange={(e) =>
-                setData({ ...data, redirectUri: e.target.value })
-              }
-              placeholder="https://acme.com/callback"
+              onChange={(e) => {
+                setData({
+                  ...data,
+                  redirectUris: e.target.value.split("\n"),
+                });
+              }}
             />
           </div>
         </div>

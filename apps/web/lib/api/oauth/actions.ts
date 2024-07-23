@@ -29,7 +29,9 @@ export const vaidateAuthorizeRequest = async (params: any) => {
     };
   }
 
-  if (oAuthApp.redirectUri !== redirectUri) {
+  const redirectUris = (oAuthApp.redirectUris || []) as string[];
+
+  if (!redirectUris.includes(redirectUri)) {
     return {
       error: "Invalid redirect_uri parameter for the application.",
     };

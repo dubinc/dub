@@ -40,7 +40,7 @@ export const PATCH = withWorkspace(
       website,
       description,
       readme,
-      redirectUri,
+      redirectUris,
       logo,
       pkce,
     } = updateOAuthAppSchema.parse(await parseRequestBody(req));
@@ -57,7 +57,7 @@ export const PATCH = withWorkspace(
         website,
         description,
         readme,
-        redirectUri,
+        redirectUris,
         logo,
         pkce,
       },

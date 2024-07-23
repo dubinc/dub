@@ -8,7 +8,7 @@ model OAuthApp {
   developer          String
   website            String
   hashedClientSecret String
-  redirectUri        String
+  redirectUris       Json
   logo               String?
   pkce               Boolean  @default(false)
   verified           Boolean  @default(false)
