@@ -3,6 +3,8 @@
 import { generateClientSecret } from "@/lib/actions/generate-client-secret";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
+import AddEditIntegrationForm from "@/ui/integrations/add-edit-integration-form";
+import OAuthAppCredentials from "@/ui/integrations/oauth-app-credentials";
 import { useRemoveIntegrationModal } from "@/ui/modals/remove-integration-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -21,8 +23,6 @@ import { notFound, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import AddEditIntegrationForm from "../../../../../../../ui/integrations/add-edit-integration-form";
-import OAuthAppCredentials from "../../../../../../../ui/integrations/oauth-app-credentials";
 
 export default function IntegrationManagePageClient({
   integrationId,
@@ -89,7 +89,9 @@ export default function IntegrationManagePageClient({
               <div className="grid w-screen gap-px p-2 sm:w-48">
                 <Button
                   text={
-                    status === "executing" ? "Generating..." : "Generate secret"
+                    status === "executing"
+                      ? "Regenerating..."
+                      : "Regenerate secret"
                   }
                   variant="outline"
                   icon={<RefreshCcw className="h-4 w-4" />}
