@@ -101,16 +101,9 @@ export async function createLink(link: ProcessedLinkProps) {
         workspace_id: response.projectId,
         created_at: response.createdAt,
       }),
-      /* Upload image to R2 and update the link with the uploaded image URL when:
-          - proxy is enabled
-          - image is set and:
-              - image is not stored in R2
-                or  
-              - image URL does not start with the R2 URL + image ID (could be duplicate link flow)
-      */
-      ...(proxy &&
-      image &&
-      (!isStored(image) || !image.startsWith(`${R2_URL}/images/${response.id}`))
+      // Upload image to R2 and update the link with the uploaded image URL when
+      // proxy is enabled and image is set and not stored in R2
+      ...(proxy && image && !isStored(image)
         ? [
             // upload image to R2
             storage.upload(`images/${response.id}`, image, {

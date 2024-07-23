@@ -93,8 +93,8 @@ export async function deleteWorkspace(
           })),
         ),
         // remove all images from R2
-        ...defaultDomainLinks.map(({ image }) =>
-          image && isStored(image)
+        ...defaultDomainLinks.map(({ id, image }) =>
+          image && image.startsWith(`${R2_URL}/images/${id}`)
             ? storage.delete(image.replace(`${R2_URL}/`, ""))
             : Promise.resolve(),
         ),

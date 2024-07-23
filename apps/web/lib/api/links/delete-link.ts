@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { R2_URL } from "@dub/utils";
@@ -16,9 +16,9 @@ export async function deleteLink(linkId: string) {
   });
   waitUntil(
     Promise.allSettled([
-      // if the image is stored in Cloudflare R2, delete it
+      // if there's a valid image and it has the same link ID, delete it
       link.image &&
-        isStored(link.image) &&
+        link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
         storage.delete(link.image.replace(`${R2_URL}/`, "")),
       redis.hdel(link.domain.toLowerCase(), link.key.toLowerCase()),
       recordLink({

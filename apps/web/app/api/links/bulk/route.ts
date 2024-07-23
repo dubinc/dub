@@ -5,7 +5,7 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   bulkCreateLinksBodySchema,
@@ -251,8 +251,11 @@ export const PATCH = withWorkspace(async ({ req, workspace, headers }) => {
   waitUntil(
     Promise.allSettled(
       links.map(async (link) => {
-        // delete old proxy image urls if exist
-        if (link.image && isStored(link.image)) {
+        // delete old proxy image urls if exist and match the link ID
+        if (
+          link.image &&
+          link.image.startsWith(`${R2_URL}/images/${link.id}`)
+        ) {
           storage.delete(link.image.replace(`${R2_URL}/`, ""));
         }
       }),

@@ -141,9 +141,9 @@ export async function updateLink({
           width: 1200,
           height: 630,
         }),
-      // if old link image is stored in R2, delete it
+      // if there's a valid old image and it has the same link ID, delete it
       oldLink.image &&
-        isStored(oldLink.image) &&
+        oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
         storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
     ]),
   );
