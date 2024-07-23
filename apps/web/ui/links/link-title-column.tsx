@@ -16,6 +16,7 @@ import {
   Apple,
   ArrowRight,
   Bolt,
+  BoxArchive,
   Cards,
   CircleHalfDottedClock,
   EarthPosition,
@@ -83,10 +84,18 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-gray-100" />
             </div>
             <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
-              <LinkLogo
-                apexDomain={getApexDomain(url)}
-                className="h-4 w-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
-              />
+              {link.archived ? (
+                <Tooltip content="Archived">
+                  <div>
+                    <BoxArchive className="h-4 w-4 shrink-0 p-0.5 text-gray-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
+                  </div>
+                </Tooltip>
+              ) : (
+                <LinkLogo
+                  apexDomain={getApexDomain(url)}
+                  className="h-4 w-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
+                />
+              )}
             </div>
           </div>
           <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[44px]">
@@ -94,7 +103,12 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               <div className="min-w-0 shrink grow-0 text-gray-950">
                 <div className="flex items-center gap-2">
                   {displayProperties.includes("title") && link.title ? (
-                    <span className="truncate font-semibold leading-6 text-gray-800">
+                    <span
+                      className={cn(
+                        "truncate font-semibold leading-6 text-gray-800",
+                        link.archived && "text-gray-600",
+                      )}
+                    >
                       {link.title}
                     </span>
                   ) : (
@@ -104,7 +118,10 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                         target="_blank"
                         rel="noopener noreferrer"
                         title={linkConstructor({ domain, key, pretty: true })}
-                        className="truncate font-semibold leading-6 text-gray-800 transition-colors hover:text-black"
+                        className={cn(
+                          "truncate font-semibold leading-6 text-gray-800 transition-colors hover:text-black",
+                          link.archived && "text-gray-600",
+                        )}
                       >
                         {linkConstructor({ domain, key, pretty: true })}
                       </a>
