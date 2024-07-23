@@ -5,13 +5,12 @@ import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
-import { throwIfNoAccess } from "../api/tokens/permissions";
 import {
   PermissionAction,
-  Scope,
   getPermissionsByRole,
-  mapScopesToPermissions,
-} from "../api/tokens/scopes";
+} from "../api/rbac/permissions";
+import { throwIfNoAccess } from "../api/tokens/permissions";
+import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -136,6 +135,7 @@ export const withWorkspace = (
                 scopes: true,
                 rateLimit: true,
                 projectId: true,
+                expires: true,
               }),
               user: {
                 select: {
@@ -158,6 +158,13 @@ export const withWorkspace = (
             throw new DubApiError({
               code: "unauthorized",
               message: "Unauthorized: Invalid API key.",
+            });
+          }
+
+          if (token.expires && token.expires < new Date()) {
+            throw new DubApiError({
+              code: "forbidden",
+              message: "Unauthorized: Access token expired.",
             });
           }
 

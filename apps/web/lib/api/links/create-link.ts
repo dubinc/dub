@@ -4,7 +4,12 @@ import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { APP_DOMAIN_WITH_NGROK, getParamsFromURL, truncate } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  R2_URL,
+  getParamsFromURL,
+  truncate,
+} from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { updateLinksUsage } from "./update-links-usage";
@@ -78,7 +83,7 @@ export async function createLink(link: ProcessedLinkProps) {
     },
   });
 
-  const uploadedImageUrl = `${process.env.STORAGE_BASE_URL}/images/${response.id}`;
+  const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
 
   waitUntil(
     Promise.all([
@@ -96,7 +101,8 @@ export async function createLink(link: ProcessedLinkProps) {
         workspace_id: response.projectId,
         created_at: response.createdAt,
       }),
-      // if proxy image is set, upload image to R2 and update the link with the uploaded image URL
+      // Upload image to R2 and update the link with the uploaded image URL when
+      // proxy is enabled and image is set and not stored in R2
       ...(proxy && image && !isStored(image)
         ? [
             // upload image to R2
