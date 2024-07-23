@@ -40,6 +40,7 @@ export async function bulkUpdateLinks(
         data: {
           ...rest,
           url,
+          proxy,
           title: truncate(title, 120),
           description: truncate(description, 240),
           image:

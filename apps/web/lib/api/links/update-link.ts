@@ -141,9 +141,10 @@ export async function updateLink({
           width: 1200,
           height: 630,
         }),
-      // if there's a valid old image and it has the same link ID, delete it
+      // if there's a valid old image and it starts with the same link ID but is different from the new image, delete it
       oldLink.image &&
         oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
+        oldLink.image !== image &&
         storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
     ]),
   );
