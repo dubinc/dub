@@ -1,7 +1,7 @@
 import { withSession } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import { R2_URL, nanoid, trim } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -67,7 +67,10 @@ export const PATCH = withSession(async ({ req, session }) => {
 
     waitUntil(
       (async () => {
-        if (session.user.image && isStored(session.user.image)) {
+        if (
+          session.user.image &&
+          session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
+        ) {
           await storage.delete(session.user.image.replace(`${R2_URL}/`, ""));
         }
       })(),
@@ -113,9 +116,9 @@ export const DELETE = withSession(async ({ session }) => {
       },
     });
     const response = await Promise.allSettled([
-      // if the user has a custom avatar, delete it
+      // if the user has a custom avatar and it is stored by their userId, delete it
       user.image &&
-        isStored(user.image) &&
+        user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`) &&
         storage.delete(user.image.replace(`${R2_URL}/`, "")),
       unsubscribe(session.user.email),
     ]);

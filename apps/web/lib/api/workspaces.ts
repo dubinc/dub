@@ -1,6 +1,6 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import {
   DUB_DOMAINS_ARRAY,
@@ -103,7 +103,7 @@ export async function deleteWorkspace(
       await Promise.all([
         // delete workspace logo if it's a custom logo stored in R2
         workspace.logo &&
-          isStored(workspace.logo) &&
+          workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
           storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
         // if they have a Stripe subscription, cancel it
         workspace.stripeId && cancelSubscription(workspace.stripeId),
@@ -162,7 +162,7 @@ export async function deleteWorkspaceAdmin(
   const deleteWorkspaceResponse = await Promise.all([
     // delete workspace logo if it's a custom logo stored in R2
     workspace.logo &&
-      isStored(workspace.logo) &&
+      workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
       storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),

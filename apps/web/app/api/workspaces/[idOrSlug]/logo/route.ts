@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { R2_URL, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -27,7 +27,10 @@ export const POST = withWorkspace(
 
     waitUntil(
       (async () => {
-        if (workspace.logo && isStored(workspace.logo)) {
+        if (
+          workspace.logo &&
+          workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`)
+        ) {
           await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
         }
       })(),
