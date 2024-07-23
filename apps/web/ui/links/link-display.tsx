@@ -123,7 +123,7 @@ export default function LinkDisplay() {
                       setDisplayProperties(newDisplayProperties);
                     }}
                     className={cn(
-                      "rounded-md border px-2 py-0.5",
+                      "rounded-md border px-2 py-0.5 text-sm",
                       property.mobile === false && "hidden sm:block",
                       active
                         ? "border-gray-300 bg-gray-100 text-gray-950"
