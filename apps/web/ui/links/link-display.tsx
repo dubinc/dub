@@ -7,6 +7,7 @@ import {
   TableRows2,
 } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
@@ -23,6 +24,8 @@ export default function LinkDisplay() {
     setViewMode,
     displayProperties,
     setDisplayProperties,
+    isDirty,
+    persist,
     reset,
   } = useContext(LinksDisplayContext);
 
@@ -136,19 +139,32 @@ export default function LinkDisplay() {
               })}
             </div>
           </div>
-          <div className="flex items-center justify-end p-2">
-            <Button
-              className="h-8 w-auto"
-              variant="outline"
-              text="Reset to default"
-              onClick={() => {
-                reset();
-                queryParams({
-                  del: ["sort", "showArchived"],
-                });
-              }}
-            />
-          </div>
+          <AnimatePresence initial={false}>
+            {isDirty && (
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: "auto" }}
+                exit={{ height: 0 }}
+                transition={{ duration: 0.15 }}
+                className="overflow-hidden"
+              >
+                <div className="flex items-center justify-end gap-2 p-2">
+                  <Button
+                    className="h-8 w-auto px-2"
+                    variant="outline"
+                    text="Reset to default"
+                    onClick={reset}
+                  />
+                  <Button
+                    className="h-8 w-auto px-2"
+                    variant="primary"
+                    text="Set as default"
+                    onClick={persist}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       }
       openPopover={openPopover}

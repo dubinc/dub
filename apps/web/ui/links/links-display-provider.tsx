@@ -1,5 +1,12 @@
 import { useLocalStorage } from "@dub/ui";
-import { PropsWithChildren, createContext } from "react";
+import {
+  Dispatch,
+  PropsWithChildren,
+  SetStateAction,
+  createContext,
+  useMemo,
+  useState,
+} from "react";
 
 export const linkViewModes = ["cards", "rows"] as const;
 
@@ -46,41 +53,73 @@ export const defaultDisplayProperties: LinkDisplayProperty[] = [
   "analytics",
 ];
 
+function parseViewMode(viewModeRaw: string) {
+  return (linkViewModes as unknown as string[]).includes(viewModeRaw)
+    ? viewModeRaw
+    : linkViewModes[0];
+}
+
+function parseDisplayProperties(displayPropertiesRaw: string[]) {
+  return displayPropertiesRaw.filter((p) =>
+    (linkDisplayPropertyIds as unknown as string[]).includes(p),
+  ) as LinkDisplayProperty[];
+}
+
 export const LinksDisplayContext = createContext<{
   viewMode: LinksViewMode;
-  setViewMode: (v: LinksViewMode) => void;
+  setViewMode: Dispatch<SetStateAction<LinksViewMode>>;
   displayProperties: LinkDisplayProperty[];
-  setDisplayProperties: (p: LinkDisplayProperty[]) => void;
+  setDisplayProperties: Dispatch<SetStateAction<LinkDisplayProperty[]>>;
+  isDirty: boolean;
+  persist: () => void;
   reset: () => void;
 }>({
   viewMode: "cards",
   setViewMode: () => {},
   displayProperties: defaultDisplayProperties,
   setDisplayProperties: () => {},
+  /** Whether the current values differ from the persisted values */
+  isDirty: false,
+  /** Updates the persisted values to the current values */
+  persist: () => {},
+  /** Resets the current values to the persisted values */
   reset: () => {},
 });
 
 export function LinksDisplayProvider({ children }: PropsWithChildren) {
-  const [viewModeRaw, setViewMode] = useLocalStorage(
-    "links-view-mode",
-    linkViewModes[0],
+  const [viewModePersisted, setViewModePersisted] =
+    useLocalStorage<LinksViewMode>("links-view-mode", linkViewModes[0]);
+
+  const [viewMode, setViewMode] = useState(parseViewMode(viewModePersisted));
+
+  const [displayPropertiesPersisted, setDisplayPropertiesPersisted] =
+    useLocalStorage<string[]>(
+      "links-display-properties",
+      defaultDisplayProperties,
+    );
+
+  const [displayProperties, setDisplayProperties] = useState(
+    parseDisplayProperties(displayPropertiesPersisted),
   );
 
-  const viewMode = linkViewModes.includes(viewModeRaw)
-    ? viewModeRaw
-    : linkViewModes[0];
+  const isDirty = useMemo(() => {
+    if (viewMode !== parseViewMode(viewModePersisted)) return true;
+    if (
+      displayProperties.slice().sort().join(",") !==
+      parseDisplayProperties(displayPropertiesPersisted)
+        .slice()
+        .sort()
+        .join(",")
+    )
+      return true;
 
-  const [displayPropertiesRaw, setDisplayProperties] = useLocalStorage<
-    string[]
-  >("links-display-properties", defaultDisplayProperties);
-
-  const displayProperties = (
-    Array.isArray(displayPropertiesRaw)
-      ? displayPropertiesRaw
-      : defaultDisplayProperties
-  ).filter((p) =>
-    (linkDisplayPropertyIds as unknown as string[]).includes(p),
-  ) as LinkDisplayProperty[];
+    return false;
+  }, [
+    viewModePersisted,
+    viewMode,
+    displayPropertiesPersisted,
+    displayProperties,
+  ]);
 
   return (
     <LinksDisplayContext.Provider
@@ -89,9 +128,16 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
         setViewMode,
         displayProperties,
         setDisplayProperties,
+        isDirty,
+        persist: () => {
+          setViewModePersisted(viewMode as LinksViewMode);
+          setDisplayPropertiesPersisted(displayProperties);
+        },
         reset: () => {
-          setDisplayProperties(defaultDisplayProperties);
-          setViewMode(linkViewModes[0]);
+          setViewMode(parseViewMode(viewModePersisted));
+          setDisplayProperties(
+            parseDisplayProperties(displayPropertiesPersisted),
+          );
         },
       }}
     >
