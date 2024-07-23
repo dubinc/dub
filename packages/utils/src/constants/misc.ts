@@ -8,6 +8,7 @@ export const DEFAULT_LINK_PROPS: any = {
   title: null,
   description: null,
   image: null,
+  video: null,
   trackConversion: false,
   proxy: false,
   rewrite: false,

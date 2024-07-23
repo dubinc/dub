@@ -6,6 +6,7 @@ import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
+  R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { recordLink } from "../tinybird";
@@ -92,17 +93,18 @@ export async function deleteWorkspace(
           })),
         ),
         // remove all images from R2
-        ...defaultDomainLinks.map(({ id, proxy, image }) =>
-          proxy && image?.startsWith(process.env.STORAGE_BASE_URL as string)
-            ? storage.delete(`images/${id}`)
+        ...defaultDomainLinks.map(({ id, image }) =>
+          image && image.startsWith(`${R2_URL}/images/${id}`)
+            ? storage.delete(image.replace(`${R2_URL}/`, ""))
             : Promise.resolve(),
         ),
       ]);
 
       await Promise.all([
         // delete workspace logo if it's a custom logo stored in R2
-        workspace.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-          storage.delete(`logos/${workspace.id}`),
+        workspace.logo &&
+          workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
+          storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
         // if they have a Stripe subscription, cancel it
         workspace.stripeId && cancelSubscription(workspace.stripeId),
         // delete the workspace
@@ -159,8 +161,9 @@ export async function deleteWorkspaceAdmin(
 
   const deleteWorkspaceResponse = await Promise.all([
     // delete workspace logo if it's a custom logo stored in R2
-    workspace.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-      storage.delete(`logos/${workspace.id}`),
+    workspace.logo &&
+      workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
+      storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
     // delete the workspace

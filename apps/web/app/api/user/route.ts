@@ -3,7 +3,8 @@ import { unsubscribe } from "@/lib/flodesk";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
-import { trim } from "@dub/utils";
+import { R2_URL, nanoid, trim } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -45,7 +46,10 @@ export const PATCH = withSession(async ({ req, session }) => {
 
   try {
     if (image) {
-      const { url } = await storage.upload(`avatars/${session.user.id}`, image);
+      const { url } = await storage.upload(
+        `avatars/${session.user.id}_${nanoid(7)}`,
+        image,
+      );
       image = url;
     }
     const response = await prisma.user.update({
@@ -60,6 +64,18 @@ export const PATCH = withSession(async ({ req, session }) => {
         ...(defaultWorkspace && { defaultWorkspace }),
       },
     });
+
+    waitUntil(
+      (async () => {
+        if (
+          session.user.image &&
+          session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
+        ) {
+          await storage.delete(session.user.image.replace(`${R2_URL}/`, ""));
+        }
+      })(),
+    );
+
     return NextResponse.json(response);
   } catch (error) {
     if (error.code === "P2002") {
@@ -100,9 +116,10 @@ export const DELETE = withSession(async ({ session }) => {
       },
     });
     const response = await Promise.allSettled([
-      // if the user has a custom avatar, delete it
-      user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-        storage.delete(`avatars/${session.user.id}`),
+      // if the user has a custom avatar and it is stored by their userId, delete it
+      user.image &&
+        user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`) &&
+        storage.delete(user.image.replace(`${R2_URL}/`, "")),
       unsubscribe(session.user.email),
     ]);
     return NextResponse.json(response);

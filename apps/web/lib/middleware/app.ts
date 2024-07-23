@@ -42,12 +42,21 @@ export default async function AppMiddleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 
       // if the path is / or /login or /register, redirect to the default workspace
-    } else if (path === "/" || path === "/login" || path === "/register") {
+    } else if (
+      path === "/" ||
+      path === "/login" ||
+      path === "/register" ||
+      path.startsWith("/analytics") ||
+      path.startsWith("/events") ||
+      path.startsWith("/integrations") ||
+      path.startsWith("/domains") ||
+      path.startsWith("/settings")
+    ) {
       const defaultWorkspace = await getDefaultWorkspace(user);
 
       if (defaultWorkspace) {
         return NextResponse.redirect(
-          new URL(`/${defaultWorkspace}${searchParamsString}`, req.url),
+          new URL(`/${defaultWorkspace}${path}${searchParamsString}`, req.url),
         );
       } else {
         return NextResponse.redirect(new URL("/workspaces", req.url));

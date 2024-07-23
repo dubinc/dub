@@ -141,10 +141,9 @@ export default function LinkCard({
   );
 
   // only check domain verification status if not Dub default domain
-  const { data: { verified } = {}, isLoading } = useSWR<DomainProps>(
-    isVisible &&
+  const { data: { verified } = {} } = useSWR<DomainProps>(
+    workspaceId &&
       !isDubDomain(domain) &&
-      workspaceId &&
       `/api/domains/${domain}?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -327,7 +326,7 @@ export default function LinkCard({
           */}
           <div className="ml-2 sm:ml-4">
             <div className="flex max-w-fit flex-wrap items-center gap-x-2">
-              {!isDubDomain(domain) && !verified && !isLoading ? (
+              {!isDubDomain(domain) && verified === false ? (
                 <Tooltip
                   content={
                     <TooltipContent
