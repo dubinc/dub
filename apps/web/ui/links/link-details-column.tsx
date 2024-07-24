@@ -196,7 +196,6 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
           </div>
         </AnimatedSizeContainer>
       }
-      side="bottom"
     >
       <div className="overflow-hidden rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800">
         <div className="hidden items-center sm:flex">
