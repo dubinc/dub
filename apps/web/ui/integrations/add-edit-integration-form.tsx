@@ -7,6 +7,7 @@ import {
   OAuthAppProps,
 } from "@/lib/types";
 import { Button, InfoTooltip, Switch } from "@dub/ui";
+import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { redirect, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -35,6 +36,9 @@ export default function AddEditIntegrationForm({
 }) {
   const router = useRouter();
   const { slug: workspaceSlug, id: workspaceId, flags } = useWorkspace();
+  const [urls, setUrls] = useState<{ id: string; value: string }[]>([
+    { id: nanoid(), value: "" },
+  ]);
 
   if (!flags?.integrations) {
     redirect(`/${workspaceSlug}`);
@@ -51,6 +55,14 @@ export default function AddEditIntegrationForm({
       slug: slugify(name),
     }));
   }, [data.name]);
+
+  useEffect(() => {
+    if (integration) {
+      setUrls(
+        integration.redirectUris.map((u) => ({ id: nanoid(), value: u })),
+      );
+    }
+  }, [integration]);
 
   // Determine the endpoint
   const endpoint = useMemo(() => {
@@ -79,7 +91,10 @@ export default function AddEditIntegrationForm({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        redirectUris: urls.map((u) => u.value),
+      }),
     });
 
     setSaving(false);
@@ -251,25 +266,76 @@ export default function AddEditIntegrationForm({
         </div>
 
         <div>
-          <label htmlFor="redirectUris" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Callback URLs</h2>
-            <InfoTooltip content="All OAuth redirect URLs, separated with newlines. Must use HTTPS, except for localhost." />
-          </label>
-          <div className="relative mt-2 rounded-md shadow-sm">
-            <TextareaAutosize
-              name="redirectUris"
-              minRows={3}
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="https://acme.com/oauth/callback"
-              value={redirectUris.join("\n")}
-              required
-              onChange={(e) => {
-                setData({
-                  ...data,
-                  redirectUris: e.target.value.split("\n"),
-                });
-              }}
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="redirectUris"
+              className="flex items-center space-x-2"
+            >
+              <h2 className="text-sm font-medium text-gray-900">
+                Callback URLs
+              </h2>
+              <InfoTooltip content="All OAuth redirect URLs, All URLs must use HTTPS, except for localhost." />
+            </label>
+            <Button
+              text="Add Callback URL"
+              variant="primary"
+              className="h-[26px] w-fit px-2.5 py-1 text-xs"
+              onClick={() => setUrls([...urls, { id: nanoid(), value: "" }])}
             />
+          </div>
+
+          <div className="relative mt-2">
+            <div className="flex flex-col space-y-2">
+              {urls.map((url) => (
+                <div className="flex flex-col space-y-2" key={url.id}>
+                  <div className="grid gap-2 text-sm md:grid md:grid-cols-12">
+                    <div className="col-span-12">
+                      <div>
+                        <div className="relative">
+                          <input
+                            type="url"
+                            placeholder="https://acme.com/oauth/callback"
+                            value={url.value}
+                            onChange={(e) => {
+                              setUrls(
+                                urls.map((u) =>
+                                  u.id === url.id
+                                    ? { ...u, value: e.target.value }
+                                    : u,
+                                ),
+                              );
+                            }}
+                            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                          />
+
+                          {urls.length > 1 && (
+                            <div className="absolute inset-y-0 right-0 flex items-center space-x-1 pl-3 pr-1">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                text="Remove"
+                                onClick={() => {
+                                  const newUrls = urls.filter(
+                                    (u) => u.id !== url.id,
+                                  );
+
+                                  if (newUrls.length === 0) {
+                                    newUrls.push({ id: nanoid(), value: "" });
+                                  }
+
+                                  setUrls(newUrls);
+                                }}
+                                className="h-[26px] border-gray-300 px-2.5 py-1 text-xs text-red-500 hover:bg-gray-50"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
