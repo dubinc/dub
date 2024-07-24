@@ -37,6 +37,7 @@ export const generateClientSecret = authActionClient
       },
       data: {
         hashedClientSecret: await hashToken(clientSecret),
+        partialClientSecret: `${clientSecret.slice(0, 3)}...${clientSecret.slice(-4)}`,
       },
     });
 
