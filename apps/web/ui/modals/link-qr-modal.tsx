@@ -227,9 +227,9 @@ export function QRCodePicker({
           >
             <>
               <button
-                onClick={() => {
+                onClick={async () => {
                   download(
-                    getQRAsSVGDataUri({
+                    await getQRAsSVGDataUri({
                       ...qrData,
                       ...(qrData.imageSettings && {
                         imageSettings: {
