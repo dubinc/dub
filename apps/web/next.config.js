@@ -1,4 +1,5 @@
 const { withSentryConfig } = require("@sentry/nextjs");
+const { withAxiom } = require("next-axiom");
 
 const REDIRECT_SEGMENTS = [
   "pricing",
@@ -9,10 +10,8 @@ const REDIRECT_SEGMENTS = [
   "_static",
 ];
 
-const { withAxiom } = require("next-axiom");
-
 /** @type {import('next').NextConfig} */
-module.exports = withAxiom({
+nextConfig = withAxiom({
   reactStrictMode: false,
   experimental: {
     serverComponentsExternalPackages: [
@@ -20,6 +19,9 @@ module.exports = withAxiom({
       "@react-email/render",
       "@react-email/tailwind",
     ],
+
+    // The instrumentation hook is required for Sentry to work on the serverside
+    instrumentationHook: true,
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
@@ -212,17 +214,11 @@ module.exports = withAxiom({
   },
 });
 
-module.exports = withSentryConfig(
-  module.exports,
-  {
-    // Suppresses source map uploading logs during build
-    silent: true,
-  },
-  {
-    // Hides source maps from generated client bundles
-    hideSourceMaps: true,
-
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    disableLogger: true,
-  },
-);
+module.exports = withSentryConfig(nextConfig, {
+  silent: false, // Can be used to suppress logs
+  org: "dubinc",
+  project: "web",
+  hideSourceMaps: true,
+  debug: true,
+  disableLogger: true,
+});
