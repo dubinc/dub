@@ -23,12 +23,14 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
       clientId,
     },
     select: {
-      redirectUri: true,
+      redirectUris: true,
       pkce: true,
     },
   });
 
-  if (app.redirectUri !== redirectUri) {
+  const redirectUris = (app.redirectUris || []) as string[];
+
+  if (!redirectUris.includes(redirectUri)) {
     throw new DubApiError({
       code: "bad_request",
       message: "Invalid redirect_uri parameter for the application.",

@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -44,10 +45,23 @@ export const POST = withWorkspace(
       website,
       description,
       readme,
-      redirectUri,
+      redirectUris,
       logo,
       pkce,
     } = createOAuthAppSchema.parse(await parseRequestBody(req));
+
+    const app = await prisma.oAuthApp.findUnique({
+      where: {
+        slug,
+      },
+    });
+
+    if (app) {
+      throw new DubApiError({
+        code: "conflict",
+        message: `The slug "${slug}" is already taken for another integration.`,
+      });
+    }
 
     const clientId = createToken({
       length: OAUTH_CONFIG.CLIENT_ID_LENGTH,
@@ -68,7 +82,7 @@ export const POST = withWorkspace(
         website,
         description,
         readme,
-        redirectUri,
+        redirectUris,
         logo,
         clientId,
         hashedClientSecret: await hashToken(clientSecret),
