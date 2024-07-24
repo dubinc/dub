@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { IntegrationPageProps } from "@/lib/types";
+import { InstalledIntegrationInfoProps } from "@/lib/types";
 import {
   BlurImage,
   Button,
@@ -25,7 +25,7 @@ function UninstallIntegrationModal({
 }: {
   showUninstallIntegrationModal: boolean;
   setShowUninstallIntegrationModal: Dispatch<SetStateAction<boolean>>;
-  integration: IntegrationPageProps;
+  integration: InstalledIntegrationInfoProps;
 }) {
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
@@ -108,7 +108,7 @@ function UninstallIntegrationModal({
 export function useUninstallIntegrationModal({
   integration,
 }: {
-  integration: IntegrationPageProps;
+  integration: InstalledIntegrationInfoProps;
 }) {
   const [showUninstallIntegrationModal, setShowUninstallIntegrationModal] =
     useState(false);
