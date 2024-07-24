@@ -86,7 +86,7 @@ export const POST = withWorkspace(
         logo,
         clientId,
         hashedClientSecret: await hashToken(clientSecret),
-        partialClientSecret: `${clientSecret.slice(0, 3)}...${clientSecret.slice(-4)}`,
+        partialClientSecret: `dub_app_secret_****${clientSecret.slice(-8)}`,
         userId: session.user.id,
         pkce,
       },

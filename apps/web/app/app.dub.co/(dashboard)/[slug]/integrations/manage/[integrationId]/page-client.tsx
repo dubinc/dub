@@ -148,7 +148,7 @@ export default function IntegrationManagePageClient({
             searchParams.get("client_secret") ||
             null
           }
-          partialClientSecret={integration.partialClientSecret || null}
+          partialClientSecret={integration.partialClientSecret}
         />
         <hr />
         <AddEditIntegrationForm integration={integration} />

@@ -59,8 +59,7 @@ export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 export const oAuthAppSchema = z.object({
   id: z.string(),
   clientId: z.string(),
-  clientSecret: z.string().optional(),
-  partialClientSecret: z.string().optional(),
+  partialClientSecret: z.string(),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullish(),
