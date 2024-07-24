@@ -59,7 +59,7 @@ export const POST = withWorkspace(
     if (app) {
       throw new DubApiError({
         code: "conflict",
-        message: `The slug "${slug}" is already taken for another integration.`,
+        message: `The slug "${slug}" is already in use.`,
       });
     }
 
@@ -73,32 +73,46 @@ export const POST = withWorkspace(
       prefix: OAUTH_CONFIG.CLIENT_SECRET_PREFIX,
     });
 
-    const client = await prisma.oAuthApp.create({
-      data: {
-        projectId: workspace.id,
-        name,
-        slug,
-        developer,
-        website,
-        description,
-        readme,
-        redirectUris,
-        logo,
-        clientId,
-        hashedClientSecret: await hashToken(clientSecret),
-        partialClientSecret: `dub_app_secret_****${clientSecret.slice(-8)}`,
-        userId: session.user.id,
-        pkce,
-      },
-    });
+    try {
+      const client = await prisma.oAuthApp.create({
+        data: {
+          projectId: workspace.id,
+          name,
+          slug,
+          developer,
+          website,
+          description,
+          readme,
+          redirectUris,
+          logo,
+          clientId,
+          hashedClientSecret: await hashToken(clientSecret),
+          partialClientSecret: `dub_app_secret_****${clientSecret.slice(-8)}`,
+          userId: session.user.id,
+          pkce,
+        },
+      });
 
-    return NextResponse.json(
-      {
-        ...oAuthAppSchema.parse(client),
-        clientSecret,
-      },
-      { status: 201 },
-    );
+      return NextResponse.json(
+        {
+          ...oAuthAppSchema.parse(client),
+          clientSecret,
+        },
+        { status: 201 },
+      );
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: `The slug "${slug}" is already in use.`,
+        });
+      } else {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: error.message,
+        });
+      }
+    }
   },
   {
     requiredPermissions: ["oauth_apps.write"],
