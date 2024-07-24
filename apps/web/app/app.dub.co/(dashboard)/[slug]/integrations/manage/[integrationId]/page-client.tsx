@@ -140,7 +140,7 @@ export default function IntegrationManagePageClient({
         </div>
       </MaxWidthWrapper>
 
-      <MaxWidthWrapper className="max-w-screen-lg space-y-10">
+      <MaxWidthWrapper className="max-w-screen-lg space-y-6">
         <OAuthAppCredentials
           clientId={integration.clientId}
           clientSecret={
@@ -148,7 +148,9 @@ export default function IntegrationManagePageClient({
             searchParams.get("client_secret") ||
             null
           }
+          partialClientSecret={integration.partialClientSecret}
         />
+        <hr />
         <AddEditIntegrationForm integration={integration} />
       </MaxWidthWrapper>
     </>

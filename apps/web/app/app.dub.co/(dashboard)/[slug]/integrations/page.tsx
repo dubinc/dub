@@ -30,7 +30,6 @@ export default async function IntegrationsPage({
     <IntegrationsPageClient
       integrations={integrations.map((integration) => ({
         ...integration,
-        redirectUris: integration.redirectUris as string[],
         installations: integration._count.authorizedApps,
         installed: integration.authorizedApps.length > 0,
       }))}
