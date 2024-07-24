@@ -237,7 +237,7 @@ export function QRCodePicker({
                           src:
                             logo && plan !== "free"
                               ? logo
-                              : "https://dub.co/_static/logo.svg",
+                              : "https://assets.dub.co/logo.png",
                         },
                       }),
                     }),
