@@ -1,34 +1,91 @@
+import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { getDomainOrLink } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
-import z from "@/lib/zod";
-import { domainKeySchema } from "@/lib/zod/schemas/links";
+import {
+  analyticsPathParamsSchema,
+  analyticsQuerySchema,
+} from "@/lib/zod/schemas/analytics";
+import { Link } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-const updatePublicStatsSchema = z.object({
-  publicStats: z.boolean(),
-});
+// GET /api/analytics – get analytics
+export const GET = withWorkspace(
+  async ({ params, searchParams, workspace }) => {
+    throwIfClicksUsageExceeded(workspace);
 
-// GET /api/analytics – get the publicStats setting for a link
-export const GET = withWorkspace(async ({ searchParams }) => {
-  const { domain, key } = domainKeySchema.parse(searchParams);
-  const response = await getDomainOrLink({ domain, key });
-  return NextResponse.json(response);
-});
+    let { eventType: oldEvent, endpoint: oldType } =
+      analyticsPathParamsSchema.parse(params);
 
-// PUT /api/analytics – update the publicStats setting for a link
-export const PUT = withWorkspace(async ({ req, searchParams }) => {
-  const { domain, key } = domainKeySchema.parse(searchParams);
-  const { publicStats } = updatePublicStatsSchema.parse(await req.json());
-  const response =
-    key === "_root"
-      ? await prisma.domain.update({
-          where: { slug: domain },
-          data: { publicStats },
-        })
-      : await prisma.link.update({
-          where: { domain_key: { domain, key } },
-          data: { publicStats },
-        });
-  return NextResponse.json(response);
-});
+    // for backwards compatibility (we used to support /analytics/[endpoint] as well)
+    if (!oldType && oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent)) {
+      oldType = oldEvent;
+      oldEvent = undefined;
+    }
+
+    const parsedParams = analyticsQuerySchema.parse(searchParams);
+
+    let {
+      event,
+      groupBy,
+      interval,
+      start,
+      end,
+      linkId,
+      externalId,
+      domain,
+      key,
+    } = parsedParams;
+    let link: Link | null = null;
+
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
+
+    if (linkId || externalId || (domain && key)) {
+      link = await getLinkOrThrow({
+        workspace: workspace,
+        linkId,
+        externalId,
+        domain,
+        key,
+      });
+    }
+
+    event = oldEvent || event;
+    groupBy = oldType || groupBy;
+
+    validDateRangeForPlan({
+      plan: workspace.plan,
+      interval,
+      start,
+      end,
+      throwError: true,
+    });
+
+    // Identify the request is from deprecated clicks endpoint
+    // (/api/analytics/clicks)
+    // (/api/analytics/count)
+    // (/api/analytics/clicks/clicks)
+    // (/api/analytics/clicks/count)
+    const isDeprecatedClicksEndpoint =
+      oldEvent === "clicks" || oldType === "count";
+
+    const response = await getAnalytics({
+      ...parsedParams,
+      event,
+      groupBy,
+      ...(link && { linkId: link.id }),
+      workspaceId: workspace.id,
+      isDeprecatedClicksEndpoint,
+    });
+
+    return NextResponse.json(response);
+  },
+  {
+    requiredPermissions: ["analytics.read"],
+  },
+);

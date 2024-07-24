@@ -1,0 +1,28 @@
+NODE mv
+SQL >
+
+    SELECT
+        timestamp,
+        event_id,
+        event_name,
+        click_id,
+        link_id,
+        customer_id,
+        payment_processor,
+        invoice_id,
+        amount,
+        url,
+        country,
+        city,
+        device,
+        browser,
+        os,
+        referer,
+        qr,
+        ip
+    FROM dub_sale_events
+
+TYPE materialized
+DATASOURCE dub_sale_events_mv
+
+

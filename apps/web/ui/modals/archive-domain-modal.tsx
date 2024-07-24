@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
-import { Button, Modal, useToastWithUndo } from "@dub/ui";
+import { Button, LinkLogo, Modal, useToastWithUndo } from "@dub/ui";
 import {
   Dispatch,
   MouseEvent,
@@ -11,7 +11,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import LinkLogo from "../links/link-logo";
 
 const sendArchiveRequest = ({
   domain,
@@ -56,15 +55,19 @@ function ArchiveDomainModal({
       archive: !props.archived,
       workspaceId,
     });
-    setArchiving(false);
 
     if (!res.ok) {
       const { error } = await res.json();
+      setArchiving(false);
       toast.error(error.message);
       return;
     }
 
-    mutate(`/api/domains?workspaceId=${workspaceId}`);
+    await mutate(
+      (key) =>
+        typeof key === "string" &&
+        key.startsWith(`/api/domains?workspaceId=${workspaceId}`),
+    );
     setShowArchiveDomainModal(false);
     toastWithUndo({
       id: "domain-archive-undo-toast",
@@ -84,8 +87,12 @@ function ArchiveDomainModal({
       {
         loading: "Undo in progress...",
         error: "Failed to roll back changes. An error occurred.",
-        success: () => {
-          mutate(`/api/domains?workspaceId=${workspaceId}`);
+        success: async () => {
+          await mutate(
+            (key) =>
+              typeof key === "string" &&
+              key.startsWith(`/api/domains?workspaceId=${workspaceId}`),
+          );
           return "Undo successful! Changes reverted.";
         },
       },
@@ -104,8 +111,15 @@ function ArchiveDomainModal({
         </h3>
         <p className="text-sm text-gray-500">
           {props.archived
-            ? "By unarchiving this domain, it will show up in the link creation modal again."
-            : "Archived domains will still work, but they won't show up in the link creation modal."}
+            ? "By unarchiving this domain, it will show up in the link builder. "
+            : "Archiving a domain will hide it from the link builder. "}
+          <a
+            href="https://dub.co/help/article/archiving-domains"
+            target="_blank"
+            className="text-sm text-gray-500 underline"
+          >
+            Learn more
+          </a>
         </p>
       </div>
 

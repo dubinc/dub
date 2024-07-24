@@ -25,7 +25,7 @@ export const generateDomainFromName = (name: string) => {
     a.length < b.length ? a : b,
   );
 
-  return `${shortestString}.to`;
+  return `${shortestString}.link`;
 };
 
 // courtesy of ChatGPT: https://sharegpt.com/c/pUYXtRs

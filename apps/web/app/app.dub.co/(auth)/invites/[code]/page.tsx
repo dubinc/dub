@@ -11,9 +11,7 @@ const PageCopy = ({ title, message }: { title: string; message: string }) => {
   return (
     <>
       <h1 className="font-display text-3xl font-bold sm:text-4xl">{title}</h1>
-      <p className="max-w-lg text-gray-600 [text-wrap:balance] sm:text-lg">
-        {message}
-      </p>
+      <p className="max-w-lg text-pretty text-gray-600 sm:text-lg">{message}</p>
     </>
   );
 };
@@ -70,7 +68,13 @@ async function VerifyInvite({ code }: { code: string }) {
       },
       _count: {
         select: {
-          users: true,
+          users: {
+            where: {
+              user: {
+                isMachine: false,
+              },
+            },
+          },
         },
       },
     },
@@ -105,6 +109,9 @@ async function VerifyInvite({ code }: { code: string }) {
     data: {
       userId: session.user.id,
       projectId: workspace.id,
+      notificationPreference: {
+        create: {}, // by default, users are opted in to all notifications
+      },
     },
   });
 

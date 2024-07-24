@@ -15,7 +15,7 @@ export default function PlaceholderContent() {
   const onLoad = () => {
     setLoading(false);
   };
-  // workarouond to avoid the blinking effect when Spline loads
+  // workaround to avoid the blinking effect when Spline loads
   const [opacity] = useDebounce(loading ? 0 : 1, 200);
 
   const [showText] = useDebounce(loading ? false : true, 800);
@@ -34,7 +34,7 @@ export default function PlaceholderContent() {
         <Spline
           onLoad={onLoad}
           style={{ opacity: opacity }}
-          scene="https://prod.spline.design/cJkq6hsiUPNRHeMf/scene.splinecode"
+          scene="https://assets.dub.co/misc/scene.splinecode"
         />
       </div>
       <motion.div

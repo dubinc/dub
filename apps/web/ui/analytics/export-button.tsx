@@ -1,12 +1,15 @@
-import { LoadingSpinner, Tooltip, TooltipContent } from "@dub/ui";
-import { Download } from "lucide-react";
-import { useContext, useState } from "react";
+import { Button } from "@dub/ui/src/button";
+import { Download } from "@dub/ui/src/icons";
+import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { toast } from "sonner";
-import { AnalyticsContext } from ".";
+import { AnalyticsContext } from "./analytics-provider";
 
-export default function ExportButton() {
+export default function ExportButton({
+  setOpenPopover,
+}: {
+  setOpenPopover: Dispatch<SetStateAction<boolean>>;
+}) {
   const [loading, setLoading] = useState(false);
-  const { totalClicks } = useContext(AnalyticsContext);
   const { queryString } = useContext(AnalyticsContext);
 
   async function exportData() {
@@ -36,41 +39,21 @@ export default function ExportButton() {
     setLoading(false);
   }
 
-  // show a tooltip to make the user aware that there is no data to export if there is no data
-  return totalClicks === 0 || !totalClicks ? (
-    <Tooltip
-      content={
-        <TooltipContent
-          title="There's no data available for download. Try adjusting your filter or date range settings."
-          cta="Learn more"
-          href="https://dub.co/help/article/how-to-export-analytics"
-        />
-      }
-    >
-      <button
-        disabled={true}
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white transition-all disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
-      >
-        <Download className="h-4 w-4" />
-      </button>
-    </Tooltip>
-  ) : (
-    <button
-      disabled={loading}
-      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white transition-all focus:border-gray-500 focus:ring-4 focus:ring-gray-200 disabled:cursor-progress disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
+  return (
+    <Button
+      text="Download as CSV"
+      variant="outline"
+      icon={<Download className="h-4 w-4" />}
+      className="h-9 justify-start px-2 text-black"
       onClick={() => {
+        setOpenPopover(false);
         toast.promise(exportData(), {
           loading: "Exporting files...",
           success: "Exported successfully",
           error: (error) => error,
         });
       }}
-    >
-      {loading ? (
-        <LoadingSpinner className="h-4 w-4" />
-      ) : (
-        <Download className="h-4 w-4" />
-      )}
-    </button>
+      loading={loading}
+    />
   );
 }

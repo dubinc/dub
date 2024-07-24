@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import { Button, Modal, useToastWithUndo } from "@dub/ui";
+import { Button, LinkLogo, Modal, useToastWithUndo } from "@dub/ui";
 import { getApexDomain, linkConstructor } from "@dub/utils";
 import {
   Dispatch,
@@ -12,7 +12,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import LinkLogo from "../links/link-logo";
 
 const sendArchiveRequest = ({
   linkId,

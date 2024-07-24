@@ -1,0 +1,23 @@
+SCHEMA >
+    `timestamp` DateTime64(3),
+    `event_id` String,
+    `event_name` String,
+    `click_id` String,
+    `link_id` String,
+    `customer_id` String,
+    `payment_processor` LowCardinality(String),
+    `invoice_id` String,
+    `amount` UInt32,
+    `url` String,
+    `country` LowCardinality(String),
+    `city` String,
+    `device` LowCardinality(String),
+    `browser` LowCardinality(String),
+    `os` LowCardinality(String),
+    `referer` String,
+    `qr` UInt8,
+    `ip` String
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "link_id, timestamp"

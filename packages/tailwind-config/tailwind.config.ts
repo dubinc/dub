@@ -38,10 +38,10 @@ const config: Config = {
         "slide-down-fade": "slide-down-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-left-fade": "slide-left-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         // Navigation menu
-        "enter-from-right": "enter-from-right 0.25s ease",
-        "enter-from-left": "enter-from-left 0.25s ease",
-        "exit-to-right": "exit-to-right 0.25s ease",
-        "exit-to-left": "exit-to-left 0.25s ease",
+        "enter-from-right": "enter-from-right 0.15s ease",
+        "enter-from-left": "enter-from-left 0.15s ease",
+        "exit-to-right": "exit-to-right 0.15s ease",
+        "exit-to-left": "exit-to-left 0.15s ease",
         "scale-in-content": "scale-in-content 0.2s ease",
         "scale-out-content": "scale-out-content 0.2s ease",
         // Accordion
@@ -53,6 +53,8 @@ const config: Config = {
         spinner: "spinner 1.2s linear infinite",
         // Custom blink animation (for loading-dots)
         blink: "blink 1.4s infinite both",
+        // Custom pulse animation
+        pulse: "pulse 1s linear infinite alternate",
       },
       keyframes: {
         // Modal
@@ -146,6 +148,15 @@ const config: Config = {
           },
           "100%": {
             opacity: "0.2",
+          },
+        },
+        // Custom pulse animation
+        pulse: {
+          from: {
+            opacity: "0",
+          },
+          to: {
+            opacity: "1",
           },
         },
       },

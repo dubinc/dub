@@ -30,6 +30,7 @@ export async function generateMetadata({
     title: unescape(data.title || ""),
     description: unescape(data.description || ""),
     image: data.image,
+    video: data.video,
     icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
     noIndex: true,
   });

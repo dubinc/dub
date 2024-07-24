@@ -14,7 +14,7 @@ export const getUrlFromString = (str: string) => {
       return new URL(`https://${str}`).toString();
     }
   } catch (_) {}
-  return "";
+  return str;
 };
 
 export const getSearchParams = (url: string) => {
@@ -96,4 +96,8 @@ export const getUrlWithoutUTMParams = (url: string) => {
   } catch (e) {
     return url;
   }
+};
+
+export const getPrettyUrl = (url: string) => {
+  return url.replace(/(^\w+:|^)\/\//, "").replace("www.", "");
 };

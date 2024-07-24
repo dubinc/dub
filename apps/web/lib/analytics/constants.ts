@@ -1,5 +1,6 @@
+import { DUB_FOUNDING_DATE } from "@dub/utils";
+
 export const intervals = [
-  "1h",
   "24h",
   "7d",
   "30d",
@@ -7,13 +8,10 @@ export const intervals = [
   "ytd",
   "1y",
   "all",
+  "all_unfiltered",
 ] as const;
 
 export const INTERVAL_DISPLAYS = [
-  {
-    display: "Last hour",
-    value: "1h",
-  },
   {
     display: "Last 24 hours",
     value: "24h",
@@ -51,10 +49,6 @@ export const INTERVAL_DATA: Record<
     granularity: "minute" | "hour" | "day" | "month";
   }
 > = {
-  "1h": {
-    startDate: new Date(Date.now() - 3600000),
-    granularity: "minute",
-  },
   "24h": {
     startDate: new Date(Date.now() - 86400000),
     granularity: "hour",
@@ -81,7 +75,7 @@ export const INTERVAL_DATA: Record<
   },
   all: {
     // Dub.co founding date
-    startDate: new Date("2022-09-22"),
+    startDate: DUB_FOUNDING_DATE,
     granularity: "month",
   },
 };
@@ -89,39 +83,74 @@ export const INTERVAL_DATA: Record<
 export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
   "timeseries",
-  "country", // backwards compatibility
   "countries",
-  "city", // backwards compatibility
   "cities",
-  "device", // backwards compatibility
   "devices",
-  "browser", // backwards compatibility
   "browsers",
   "os",
-  "referer", // backwards compatibility
   "referers",
   "top_links",
   "top_urls",
+  "trigger",
 ] as const;
 
-export const DEPRECATED_ANALYTICS_ENDPOINTS = [
-  "country",
-  "city",
-  "device",
-  "browser",
-  "referer",
-];
+export const SINGULAR_ANALYTICS_ENDPOINTS = {
+  countries: "country",
+  cities: "city",
+  devices: "device",
+  browsers: "browser",
+  referers: "referer",
+  os: "os",
+};
 
 export const VALID_ANALYTICS_FILTERS = [
+  "domain",
+  "key",
+  "interval",
+  "start",
+  "end",
   "country",
   "city",
-  "url",
-  "alias",
   "device",
   "browser",
   "os",
   "referer",
+  "url",
   "tagId",
   "qr",
   "root",
 ];
+
+export const EVENT_TYPES = ["clicks", "leads", "sales", "composite"] as const;
+
+export const OLD_ANALYTICS_ENDPOINTS = [
+  "clicks",
+  "count",
+  "timeseries",
+  "countries",
+  "country",
+  "cities",
+  "city",
+  "devices",
+  "device",
+  "browsers",
+  "browser",
+  "os",
+  "referers",
+  "referer",
+  "top_links",
+  "top_urls",
+] as const;
+
+export const OLD_TO_NEW_ANALYTICS_ENDPOINTS = {
+  clicks: "count",
+  timeseries: "timeseries",
+  country: "countries",
+  city: "cities",
+  device: "devices",
+  browser: "browsers",
+  os: "os",
+  referer: "referers",
+  top_links: "top_links",
+  top_urls: "top_urls",
+} as const;

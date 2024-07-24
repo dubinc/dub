@@ -1,1 +1,1 @@
-export * from "../../../../analytics/clicks/[endpoint]/route";
+export * from "../../../../analytics/route";

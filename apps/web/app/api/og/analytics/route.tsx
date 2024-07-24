@@ -1,5 +1,5 @@
-import { getClicks } from "@/lib/analytics/clicks";
-import { getDomainOrLink } from "@/lib/planetscale";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { getLinkViaEdge } from "@/lib/planetscale";
 import {
   GOOGLE_FAVICON_URL,
   getApexDomain,
@@ -19,18 +19,19 @@ export async function GET(req: NextRequest) {
   const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
   const key = req.nextUrl.searchParams.get("key") || "github";
 
-  const link = await getDomainOrLink({ domain, key });
+  const link = await getLinkViaEdge(domain, key);
   if (!link?.publicStats) {
     return new Response(`Stats for this link are not public`, {
       status: 403,
     });
   }
 
-  const data = await getClicks({
+  const data = await getAnalytics({
+    event: "clicks",
+    groupBy: "timeseries",
     // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
     ...(link.projectId && { workspaceId: link.projectId }),
     linkId: link.id,
-    endpoint: "timeseries",
     interval: "24h",
   });
 

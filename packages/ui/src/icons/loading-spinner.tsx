@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 
-export default function LoadingSpinner({ className }: { className?: string }) {
+export function LoadingSpinner({ className }: { className?: string }) {
   return (
     <div className={cn("h-5 w-5", className)}>
       <div

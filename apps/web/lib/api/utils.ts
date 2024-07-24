@@ -1,3 +1,7 @@
+import { ipAddress } from "@vercel/edge";
+import { getToken } from "next-auth/jwt";
+import { NextRequest } from "next/server";
+import { ratelimit } from "../upstash";
 import { DubApiError } from "./errors";
 
 // TODO:
@@ -11,5 +15,28 @@ export const parseRequestBody = async (req: Request) => {
       message:
         "Invalid JSON format in request body. Please ensure the request body is a valid JSON object.",
     });
+  }
+};
+
+export const ratelimitOrThrow = async (
+  req: NextRequest,
+  identifier?: string,
+) => {
+  // Rate limit if user is not logged in
+  const session = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+  if (!session?.email) {
+    const ip = ipAddress(req);
+    const { success } = await ratelimit().limit(
+      `${identifier || "ratelimit"}:${ip}`,
+    );
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "Don't DDoS me pls 🥺",
+      });
+    }
   }
 };

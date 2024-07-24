@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { validDomainRegex } from "@dub/utils";
+import { DubApiError } from "../errors";
 
-export const validateDomain = async (domain: string) => {
+export const validateDomain = async (
+  domain: string,
+): Promise<{ error: string | null; code?: DubApiError["code"] }> => {
   if (!domain || typeof domain !== "string") {
-    return "Missing domain";
+    return { error: "Missing domain", code: "unprocessable_entity" };
   }
   const validDomain =
     validDomainRegex.test(domain) &&
@@ -13,17 +16,17 @@ export const validateDomain = async (domain: string) => {
     );
 
   if (!validDomain) {
-    return "Invalid domain";
+    return { error: "Invalid domain", code: "unprocessable_entity" };
   }
   const exists = await domainExists(domain);
   if (exists) {
-    return "Domain is already in use.";
+    return { error: "Domain is already in use.", code: "conflict" };
   }
-  return true;
+  return { error: null };
 };
 
 export const domainExists = async (domain: string) => {
-  const response = await prisma.domain.findUnique({
+  const response = await prisma.domain.findFirst({
     where: {
       slug: domain,
     },

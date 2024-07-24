@@ -13,7 +13,7 @@ export default function WorkspaceId() {
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">Workspace ID</h2>
             <p className="text-sm text-gray-500">
-              {`You'll need this ID to interact with the ${process.env.NEXT_PUBLIC_APP_NAME} API.`}
+              Unique ID of your workspace on Dub.
             </p>
           </div>
           {id ? (
@@ -31,7 +31,7 @@ export default function WorkspaceId() {
             target="_blank"
             className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
           >
-            Learn more about Workspace ID.
+            Learn more about Workspace ID
           </a>
         </div>
       </div>

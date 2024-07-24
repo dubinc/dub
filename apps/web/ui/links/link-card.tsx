@@ -1,18 +1,24 @@
-import useDomains from "@/lib/swr/use-domains";
+import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
+import {
+  DomainProps,
+  LinkWithTagsProps,
+  TagProps,
+  UserProps,
+} from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
-import { Chart, CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
+import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
   BadgeTooltip,
   Button,
   CopyButton,
   IconMenu,
+  LinkLogo,
   NumberTooltip,
   Popover,
   SimpleTooltipContent,
@@ -21,6 +27,7 @@ import {
   useIntersectionObserver,
   useRouterStuff,
 } from "@dub/ui";
+import { Crosshairs, CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
   cn,
@@ -29,6 +36,7 @@ import {
   isDubDomain,
   linkConstructor,
   nFormatter,
+  nanoid,
   punycode,
   timeAgo,
 } from "@dub/utils";
@@ -51,7 +59,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
-import LinkLogo from "./link-logo";
 
 export default function LinkCard({
   props,
@@ -65,6 +72,7 @@ export default function LinkCard({
     key,
     domain,
     url,
+    trackConversion,
     rewrite,
     password,
     expiresAt,
@@ -108,28 +116,36 @@ export default function LinkCard({
   const { slug } = params;
 
   const { id: workspaceId, exceededClicks } = useWorkspace();
-  const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
   const entry = useIntersectionObserver(linkRef, {});
   const isVisible = !!entry?.isIntersecting;
 
-  const { data: clicks } = useSWR<number>(
-    // only fetch clicks if the link is visible and there's a slug and the usage is not exceeded
+  const { data: totalEvents } = useSWR<{
+    [key in CompositeAnalyticsResponseOptions]?: number;
+  }>(
+    // only fetch data if the link is visible and there's a slug and the usage is not exceeded
     isVisible &&
       workspaceId &&
       !exceededClicks &&
-      `/api/analytics/clicks?workspaceId=${workspaceId}&linkId=${id}&interval=all&`,
-    (url) =>
-      fetcher(url, {
-        headers: {
-          "Request-Source": "app.dub.co",
-        },
-      }),
+      `/api/analytics?event=composite&workspaceId=${workspaceId}&linkId=${id}&interval=all_unfiltered`,
+    fetcher,
     {
-      fallbackData: props.clicks,
+      fallbackData: {
+        clicks: props.clicks,
+        leads: props.leads,
+        sales: props.sales,
+      },
       dedupingInterval: 60000,
     },
+  );
+
+  // only check domain verification status if not Dub default domain
+  const { data: { verified } = {} } = useSWR<DomainProps>(
+    workspaceId &&
+      !isDubDomain(domain) &&
+      `/api/domains/${domain}?workspaceId=${workspaceId}`,
+    fetcher,
   );
 
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
@@ -154,7 +170,7 @@ export default function LinkCard({
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: `${punycode(key)}-copy`,
+      key: key === "_root" ? nanoid(7) : `${punycode(key)}-copy`,
       clicks: 0,
     },
   });
@@ -181,7 +197,7 @@ export default function LinkCard({
     }
   }, [selected]);
 
-  const handlClickOnLinkCard = (e: any) => {
+  const handleClickOnLinkCard = (e: any) => {
     // Check if the clicked element is a linkRef or one of its descendants
     const isLinkCardClick =
       linkRef.current && linkRef.current.contains(e.target);
@@ -200,12 +216,12 @@ export default function LinkCard({
 
   useEffect(() => {
     if (isVisible) {
-      document.addEventListener("click", handlClickOnLinkCard);
+      document.addEventListener("click", handleClickOnLinkCard);
     }
     return () => {
-      document.removeEventListener("click", handlClickOnLinkCard);
+      document.removeEventListener("click", handleClickOnLinkCard);
     };
-  }, [handlClickOnLinkCard]);
+  }, [handleClickOnLinkCard]);
 
   const [copiedLinkId, setCopiedLinkId] = useState(false);
 
@@ -229,6 +245,7 @@ export default function LinkCard({
     ) {
       setSelected(false);
       e.preventDefault();
+      setOpenPopover(false);
       switch (key) {
         case "e":
           setShowAddEditLinkModal(true);
@@ -267,9 +284,10 @@ export default function LinkCard({
   return (
     <li
       ref={linkRef}
-      className={`${
-        selected ? "border-black" : "border-gray-50"
-      } relative rounded-lg border-2 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4`}
+      className={cn(
+        "relative rounded-lg border border-gray-200 bg-white p-3 pr-1 ring-2 ring-gray-50 transition-all sm:p-4",
+        selected && "ring-black",
+      )}
     >
       {isVisible && (
         <>
@@ -308,13 +326,13 @@ export default function LinkCard({
           */}
           <div className="ml-2 sm:ml-4">
             <div className="flex max-w-fit flex-wrap items-center gap-x-2">
-              {!verified && !loading ? (
+              {!isDubDomain(domain) && verified === false ? (
                 <Tooltip
                   content={
                     <TooltipContent
                       title="Your branded links won't work until you verify your domain."
                       cta="Verify your domain"
-                      href={`/${slug}/domains`}
+                      href={`/${slug}/settings/domains`}
                     />
                   }
                 >
@@ -388,7 +406,7 @@ export default function LinkCard({
                 </BadgeTooltip>
               )}
             </div>
-            <div className="flex max-w-fit items-center space-x-1">
+            <div className="flex max-w-fit items-center gap-x-1">
               <Tooltip
                 content={
                   <div className="w-full p-4">
@@ -456,160 +474,200 @@ export default function LinkCard({
                   <Lock className="xs:block hidden h-4 w-4 text-gray-500" />
                 </Tooltip>
               )}
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
-              >
-                {url}
-              </a>
+              {url ? (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
+                >
+                  {url}
+                </a>
+              ) : (
+                <p className="text-sm text-gray-400">No URL configured</p>
+              )}
             </div>
           </div>
         </div>
 
         <div className="flex items-center space-x-2">
-          <NumberTooltip value={clicks} lastClicked={lastClicked}>
+          {trackConversion ? (
             <Link
               href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-              className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
+              className="flex items-center space-x-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
             >
-              <Chart className="h-4 w-4" />
-              <p className="whitespace-nowrap text-sm text-gray-500">
-                {nFormatter(clicks)}
-                <span className="ml-1 hidden sm:inline-block">clicks</span>
-              </p>
+              <div className="flex items-center space-x-1">
+                <CursorRays className="h-4 w-4 text-gray-700" />
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {nFormatter(totalEvents?.clicks)}
+                </p>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Crosshairs className="h-4 w-4 text-gray-700" />
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {nFormatter(totalEvents?.leads)}
+                </p>
+              </div>
+              <div className="flex items-center space-x-1">
+                <InvoiceDollar className="h-4 w-4 text-gray-700" />
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {nFormatter(totalEvents?.sales)}
+                </p>
+              </div>
             </Link>
-          </NumberTooltip>
+          ) : (
+            <NumberTooltip
+              value={totalEvents?.clicks}
+              lastClicked={lastClicked}
+            >
+              <Link
+                href={`/${slug}/analytics?domain=${domain}&key=${key}`}
+                className="flex items-center space-x-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
+              >
+                <CursorRays className="h-4 w-4 text-gray-700" />
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {nFormatter(totalEvents?.clicks)}
+                  <span className="ml-1 hidden sm:inline-block">clicks</span>
+                </p>
+              </Link>
+            </NumberTooltip>
+          )}
           <Popover
             content={
-              <div className="grid w-full gap-px p-2 sm:w-48">
-                <Button
-                  text="Edit"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowAddEditLinkModal(true);
-                  }}
-                  icon={<Edit3 className="h-4 w-4" />}
-                  shortcut="E"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="Duplicate"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDuplicateLinkModal(true);
-                  }}
-                  icon={<CopyPlus className="h-4 w-4" />}
-                  shortcut="D"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="QR Code"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowLinkQRModal(true);
-                  }}
-                  icon={<QrCode className="h-4 w-4" />}
-                  shortcut="Q"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text={archived ? "Unarchive" : "Archive"}
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowArchiveLinkModal(true);
-                  }}
-                  icon={<Archive className="h-4 w-4" />}
-                  shortcut="A"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="Transfer"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowTransferLinkModal(true);
-                  }}
-                  icon={<FolderInput className="h-4 w-4" />}
-                  shortcut="T"
-                  className="h-9 px-2 font-medium"
-                  {...(!isDubDomain(domain) && {
-                    disabledTooltip: (
-                      <SimpleTooltipContent
-                        title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
-                        cta="Learn more."
-                        href="https://dub.co/help/article/how-to-transfer-domains"
-                      />
-                    ),
-                  })}
-                />
-                <Button
-                  text="Copy Link ID"
-                  variant="outline"
-                  onClick={() => copyLinkId()}
-                  icon={
-                    copiedLinkId ? (
-                      <CheckCircleFill className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )
-                  }
-                  shortcut="I"
-                  className="h-9 px-2 font-medium"
-                />
-                <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteLinkModal(true);
-                  }}
-                  icon={<Delete className="h-4 w-4" />}
-                  shortcut="X"
-                  className="h-9 px-2 font-medium"
-                />
-                {!slug && ( // this is only shown in admin mode (where there's no slug)
-                  <button
+              <div className="w-full sm:w-48">
+                <div className="grid gap-px p-2">
+                  <Button
+                    text="Edit"
+                    variant="outline"
                     onClick={() => {
-                      window.confirm(
-                        "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
-                      ) &&
-                        (setOpenPopover(false),
-                        toast.promise(
-                          fetch(`/api/admin/links/${id}/ban`, {
-                            method: "DELETE",
-                          }).then(async () => {
-                            await mutate(
-                              (key) =>
-                                typeof key === "string" &&
-                                key.startsWith("/api/admin/links"),
-                              undefined,
-                              { revalidate: true },
-                            );
-                          }),
-                          {
-                            loading: "Banning link...",
-                            success: "Link banned!",
-                            error: "Error banning link.",
-                          },
-                        ));
+                      setOpenPopover(false);
+                      setShowAddEditLinkModal(true);
                     }}
-                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-                  >
-                    <IconMenu
-                      text="Ban"
+                    icon={<Edit3 className="h-4 w-4" />}
+                    shortcut="E"
+                    className="h-9 px-2 font-medium"
+                  />
+                  <Button
+                    text="Duplicate"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowDuplicateLinkModal(true);
+                    }}
+                    icon={<CopyPlus className="h-4 w-4" />}
+                    shortcut="D"
+                    className="h-9 px-2 font-medium"
+                  />
+                  <Button
+                    text="QR Code"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowLinkQRModal(true);
+                    }}
+                    icon={<QrCode className="h-4 w-4" />}
+                    shortcut="Q"
+                    className="h-9 px-2 font-medium"
+                  />
+                  <Button
+                    text="Copy Link ID"
+                    variant="outline"
+                    onClick={() => copyLinkId()}
+                    icon={
+                      copiedLinkId ? (
+                        <CheckCircleFill className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )
+                    }
+                    shortcut="I"
+                    className="h-9 px-2 font-medium"
+                  />
+                </div>
+                <div className="border-t border-gray-200" />
+                <div className="grid gap-px p-2">
+                  <Button
+                    text={archived ? "Unarchive" : "Archive"}
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowArchiveLinkModal(true);
+                    }}
+                    icon={<Archive className="h-4 w-4" />}
+                    shortcut="A"
+                    className="h-9 px-2 font-medium"
+                  />
+                  <Button
+                    text="Transfer"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowTransferLinkModal(true);
+                    }}
+                    icon={<FolderInput className="h-4 w-4" />}
+                    shortcut="T"
+                    className="h-9 px-2 font-medium"
+                    {...(!isDubDomain(domain) && {
+                      disabledTooltip: (
+                        <SimpleTooltipContent
+                          title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
+                          cta="Learn more."
+                          href="https://dub.co/help/article/how-to-transfer-domains"
+                        />
+                      ),
+                    })}
+                  />
+                  {key !== "_root" && (
+                    <Button
+                      text="Delete"
+                      variant="danger-outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowDeleteLinkModal(true);
+                      }}
                       icon={<Delete className="h-4 w-4" />}
+                      shortcut="X"
+                      className="h-9 px-2 font-medium"
                     />
-                    <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
-                      B
-                    </kbd>
-                  </button>
-                )}
+                  )}
+                  {!slug && ( // this is only shown in admin mode (where there's no slug)
+                    <button
+                      onClick={() => {
+                        window.confirm(
+                          "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
+                        ) &&
+                          (setOpenPopover(false),
+                          toast.promise(
+                            fetch(`/api/admin/links/ban?key=${key}`, {
+                              method: "DELETE",
+                            }).then(async () => {
+                              await mutate(
+                                (key) =>
+                                  typeof key === "string" &&
+                                  key.startsWith("/api/admin/links/ban"),
+                                undefined,
+                                { revalidate: true },
+                              );
+                            }),
+                            {
+                              loading: "Banning link...",
+                              success: "Link banned!",
+                              error: "Error banning link.",
+                            },
+                          ));
+                      }}
+                      className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
+                    >
+                      <IconMenu
+                        text="Ban"
+                        icon={<Delete className="h-4 w-4" />}
+                      />
+                      <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
+                        B
+                      </kbd>
+                    </button>
+                  )}
+                </div>
               </div>
             }
             align="end"

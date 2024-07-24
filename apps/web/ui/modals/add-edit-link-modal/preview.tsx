@@ -1,5 +1,6 @@
 import { LinkProps } from "@/lib/types";
 import {
+  AnimatedSizeContainer,
   Facebook,
   FileUpload,
   LinkedIn,
@@ -9,11 +10,9 @@ import {
   Twitter,
   Unsplash,
   useMediaQuery,
-  useResizeObserver,
 } from "@dub/ui";
 import { Button } from "@dub/ui/src/button";
 import { getDomainWithoutWWW, resizeImage } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { Edit2, Link2, Upload } from "lucide-react";
 import {
   ChangeEvent,
@@ -25,6 +24,7 @@ import {
   useRef,
   useState,
 } from "react";
+import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { usePromptModal } from "../prompt-modal";
@@ -77,7 +77,7 @@ export default function Preview({
               onImageChange={onImageChange}
               generatingMetatags={generatingMetatags}
             />
-            {title && (
+            {(title || title === "") && (
               <div className="absolute bottom-2 left-2 rounded-md bg-[#414142] px-1.5 py-px">
                 <h3 className="max-w-sm truncate text-sm text-white">
                   {title}
@@ -120,17 +120,34 @@ export default function Preview({
               ) : (
                 <div className="mb-1 h-4 w-24 rounded-md bg-gray-200" />
               )}
-              {title ? (
-                <h3 className="truncate font-semibold text-[#1d2129]">
-                  {title}
-                </h3>
+              {title || title === "" ? (
+                <input
+                  className="truncate border-none bg-transparent p-0 font-semibold text-[#1d2129] outline-none focus:ring-0"
+                  value={title}
+                  onChange={(e) => {
+                    setData((prev) => ({
+                      ...prev,
+                      title: e.currentTarget.value,
+                      proxy: true,
+                    }));
+                  }}
+                />
               ) : (
                 <div className="mb-1 h-5 w-full rounded-md bg-gray-200" />
               )}
-              {description ? (
-                <p className="line-clamp-2 text-sm text-[#606770]">
-                  {description}
-                </p>
+              {description || description === "" ? (
+                <ReactTextareaAutosize
+                  className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-gray-200 bg-transparent p-0 text-sm text-[#606770] outline-none focus:ring-0"
+                  value={description}
+                  maxRows={2}
+                  onChange={(e) => {
+                    setData((prev) => ({
+                      ...prev,
+                      description: e.currentTarget.value,
+                      proxy: true,
+                    }));
+                  }}
+                />
               ) : (
                 <div className="grid gap-2">
                   <div className="h-4 w-full rounded-md bg-gray-200" />
@@ -164,10 +181,18 @@ export default function Preview({
               generatingMetatags={generatingMetatags}
             />
             <div className="grid gap-1 border-t border-gray-300 bg-white p-3">
-              {title ? (
-                <h3 className="truncate font-semibold text-[#000000E6]">
-                  {title}
-                </h3>
+              {title || title === "" ? (
+                <input
+                  className="truncate border-none bg-transparent p-0 font-semibold text-[#000000E6] outline-none focus:ring-0"
+                  value={title}
+                  onChange={(e) => {
+                    setData((prev) => ({
+                      ...prev,
+                      title: e.currentTarget.value,
+                      proxy: true,
+                    }));
+                  }}
+                />
               ) : (
                 <div className="mb-1 h-5 w-full rounded-md bg-gray-200" />
               )}
@@ -288,14 +313,12 @@ const ImagePreview = ({
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
-        <div className="absolute right-2 top-2">
-          <Button
-            variant="secondary"
-            onClick={() => setOpenPopover(!openPopover)}
-            icon={<Edit2 className="h-3 w-3" />}
-            className="h-8 w-8 rounded-md p-0 transition-all hover:bg-gray-100"
-          />
-        </div>
+        <Button
+          variant="secondary"
+          onClick={() => setOpenPopover(!openPopover)}
+          icon={<Edit2 className="h-3 w-3" />}
+          className="absolute right-2 top-2 h-8 w-8 rounded-md p-0 transition-all hover:bg-gray-100"
+        />
       </Popover>
       <input
         key={image}
@@ -321,68 +344,47 @@ const ImagePreviewPopoverContent = ({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
   setShowPromptModal: Dispatch<SetStateAction<boolean>>;
 }) => {
-  const contentWrapperRef = useRef<HTMLDivElement>(null);
-  const resizeObserverEntry = useResizeObserver(contentWrapperRef);
-
   const { isMobile } = useMediaQuery();
 
   const [state, setState] = useState<"default" | "unsplash">("default");
 
   return (
-    <motion.div
-      className="relative overflow-hidden"
-      animate={{
-        width: isMobile
-          ? "100%"
-          : resizeObserverEntry?.borderBoxSize[0].inlineSize ?? "auto",
-        height: resizeObserverEntry?.borderBoxSize[0].blockSize ?? "auto",
-      }}
-      transition={{ type: "spring", duration: 0.3, bounce: 0.15 }}
-    >
-      <div ref={contentWrapperRef} className="inline-block w-full sm:w-auto">
-        <AnimatePresence>
-          {state === "unsplash" && (
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <UnsplashSearch
-                onImageSelected={onImageChange}
-                setOpenPopover={setOpenPopover}
-              />
-            </motion.div>
-          )}
+    <AnimatedSizeContainer width={!isMobile} height>
+      {state === "unsplash" && (
+        <UnsplashSearch
+          onImageSelected={onImageChange}
+          setOpenPopover={setOpenPopover}
+        />
+      )}
 
-          {state === "default" && (
-            <div className="grid gap-px p-2">
-              <Button
-                text="Upload image"
-                variant="outline"
-                icon={<Upload className="h-4 w-4" />}
-                className="h-9 justify-start px-2 font-medium disabled:border-none disabled:bg-transparent"
-                onClick={() => {
-                  inputFileRef.current?.click();
-                  setOpenPopover(false);
-                }}
-              />
-              <Button
-                text="Use image from URL"
-                variant="outline"
-                icon={<Link2 className="h-4 w-4" />}
-                className="h-9 justify-start px-2 font-medium"
-                onClick={() => setShowPromptModal(true)}
-              />
-              <Button
-                text="Use image from Unsplash"
-                variant="outline"
-                icon={<Unsplash className="h-4 w-4 p-0.5" />}
-                className="h-9 justify-start px-2 font-medium"
-                onClick={() => setState("unsplash")}
-              />
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
+      {state === "default" && (
+        <div className="grid gap-px p-2">
+          <Button
+            text="Upload image"
+            variant="outline"
+            icon={<Upload className="h-4 w-4" />}
+            className="h-9 justify-start px-2 font-medium disabled:border-none disabled:bg-transparent"
+            onClick={() => {
+              inputFileRef.current?.click();
+              setOpenPopover(false);
+            }}
+          />
+          <Button
+            text="Use image from URL"
+            variant="outline"
+            icon={<Link2 className="h-4 w-4" />}
+            className="h-9 justify-start px-2 font-medium"
+            onClick={() => setShowPromptModal(true)}
+          />
+          <Button
+            text="Use image from Unsplash"
+            variant="outline"
+            icon={<Unsplash className="h-4 w-4 p-0.5" />}
+            className="h-9 justify-start px-2 font-medium"
+            onClick={() => setState("unsplash")}
+          />
+        </div>
+      )}
+    </AnimatedSizeContainer>
   );
 };

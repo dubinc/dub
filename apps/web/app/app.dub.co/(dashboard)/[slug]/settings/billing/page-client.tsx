@@ -82,7 +82,7 @@ export default function WorkspaceBillingClient() {
   return (
     <>
       <Confetti active={confetti} config={{ elementCount: 200, spread: 90 }} />
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="-mt-5 rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-start justify-between space-y-4 p-10 xl:flex-row xl:space-y-0">
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
@@ -137,7 +137,7 @@ export default function WorkspaceBillingClient() {
           <UsageCategory
             title="Link Clicks"
             unit="clicks"
-            tooltip="Number of billable link clicks for your current billing cycle."
+            tooltip="Number of billable link clicks for your current billing cycle. If you exceed your monthly limits, your existing links will still work and clicks will still be tracked, but you need to upgrade to view your analytics."
             usage={usage}
             usageLimit={usageLimit}
           />
@@ -171,7 +171,7 @@ export default function WorkspaceBillingClient() {
               title="Teammates"
               unit="users"
               tooltip="Number of users added to your workspace."
-              usage={users?.length}
+              usage={users?.filter((user) => !user.isMachine).length}
               usageLimit={usersLimit}
               numberOnly
             />

@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
-import { LinkProps, ProcessedLinkProps, RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { ProcessedLinkProps } from "@/lib/types";
 import { getParamsFromURL, truncate } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
+import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
+import { updateLinksUsage } from "./update-links-usage";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function bulkCreateLinks({
@@ -38,7 +39,7 @@ export async function bulkCreateLinks({
           ...(tagNames?.length &&
             link.projectId && {
               tags: {
-                create: tagNames.map((tagName) => ({
+                create: tagNames.filter(Boolean).map((tagName) => ({
                   tag: {
                     connect: {
                       name_projectId: {
@@ -56,7 +57,9 @@ export async function bulkCreateLinks({
             combinedTagIds.length > 0 && {
               tags: {
                 createMany: {
-                  data: combinedTagIds.map((tagId) => ({ tagId })),
+                  data: combinedTagIds
+                    .filter(Boolean)
+                    .map((tagId) => ({ tagId })),
                 },
               },
             }),
@@ -79,61 +82,15 @@ export async function bulkCreateLinks({
     }),
   );
 
-  await propagateBulkLinkChanges(createdLinks);
-
-  return createdLinks.map((link) => transformLink(link));
-}
-
-export async function propagateBulkLinkChanges(
-  links: (LinkProps & { tags: { tagId: string }[] })[],
-) {
-  const pipeline = redis.pipeline();
-
-  // split links into domains for better write effeciency in Redis
-  const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
-
-  await Promise.all(
-    links.map(async (link) => {
-      const { domain, key } = link;
-
-      if (!linksByDomain[domain]) {
-        linksByDomain[domain] = {};
-      }
-      // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
-      const formattedLink = await formatRedisLink(link);
-      linksByDomain[domain][key.toLowerCase()] = formattedLink;
-    }),
+  waitUntil(
+    Promise.all([
+      propagateBulkLinkChanges(createdLinks),
+      updateLinksUsage({
+        workspaceId: links[0].projectId!, // this will always be present
+        increment: links.length,
+      }),
+    ]),
   );
 
-  Object.entries(linksByDomain).forEach(([domain, links]) => {
-    pipeline.hset(domain.toLowerCase(), links);
-  });
-
-  await Promise.all([
-    // update Redis
-    pipeline.exec(),
-    // update Tinybird
-    recordLink(
-      links.map((link) => ({
-        link_id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        tag_ids: link.tags.map((tag) => tag.tagId),
-        workspace_id: link.projectId,
-        created_at: link.createdAt,
-      })),
-    ),
-    // update links usage for workspace
-    prisma.project.update({
-      where: {
-        id: links[0].projectId!, // this will always be present
-      },
-      data: {
-        linksUsage: {
-          increment: links.length,
-        },
-      },
-    }),
-  ]);
+  return createdLinks.map((link) => transformLink(link));
 }

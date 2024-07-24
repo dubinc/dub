@@ -1,47 +1,41 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
-import { isReservedKey } from "@/lib/edge-config";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
-import z from "@/lib/zod";
-import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
-import { DEFAULT_REDIRECTS, trim, validSlugRegex } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
+import {
+  WorkspaceSchema,
+  updateWorkspaceSchema,
+} from "@/lib/zod/schemas/workspaces";
 import { NextResponse } from "next/server";
 
-const updateWorkspaceSchema = z.object({
-  name: z.preprocess(trim, z.string().min(1).max(32)).optional(),
-  slug: z
-    .preprocess(
-      trim,
-      z
-        .string()
-        .min(3, "Slug must be at least 3 characters")
-        .max(48, "Slug must be less than 48 characters")
-        .transform((v) => slugify(v))
-        .refine((v) => validSlugRegex.test(v), {
-          message: "Invalid slug format",
-        })
-        .refine(
-          async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]),
-          {
-            message: "Cannot use reserved slugs",
-          },
-        ),
-    )
-    .optional(),
-});
-
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
-export const GET = withWorkspace(async ({ workspace, headers }) => {
-  return NextResponse.json(
-    WorkspaceSchema.parse({
-      ...workspace,
-      id: `ws_${workspace.id}`,
-    }),
-    { headers },
-  );
-});
+export const GET = withWorkspace(
+  async ({ workspace, headers }) => {
+    const domains = await prisma.domain.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        slug: true,
+        primary: true,
+      },
+    });
+
+    return NextResponse.json(
+      WorkspaceSchema.parse({
+        ...workspace,
+        id: `ws_${workspace.id}`,
+        domains,
+        flags: await getFeatureFlags(workspace.id),
+      }),
+      { headers },
+    );
+  },
+  {
+    requiredPermissions: ["workspaces.read"],
+  },
+);
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
@@ -59,6 +53,10 @@ export const PATCH = withWorkspace(
           ...(name && { name }),
           ...(slug && { slug }),
         },
+        include: {
+          domains: true,
+          users: true,
+        },
       });
 
       if (slug !== workspace.slug) {
@@ -72,7 +70,13 @@ export const PATCH = withWorkspace(
         });
       }
 
-      return NextResponse.json(response);
+      return NextResponse.json(
+        WorkspaceSchema.parse({
+          ...response,
+          id: `ws_${response.id}`,
+          flags: await getFeatureFlags(workspace.id),
+        }),
+      );
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -85,7 +89,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredRole: ["owner"],
+    requiredPermissions: ["workspaces.write"],
   },
 );
 
@@ -99,6 +103,6 @@ export const DELETE = withWorkspace(
     return NextResponse.json(workspace);
   },
   {
-    requiredRole: ["owner"],
+    requiredPermissions: ["workspaces.write"],
   },
 );

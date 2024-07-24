@@ -2,7 +2,6 @@
 
 export { default as Airplay } from "./airplay";
 export { default as AlertCircleFill } from "./alert-circle-fill";
-export { default as Archive } from "./archive";
 export { default as Chart } from "./chart";
 export { default as CheckCircleFill } from "./check-circle-fill";
 export { default as Clipboard } from "./clipboard";

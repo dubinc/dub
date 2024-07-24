@@ -190,7 +190,7 @@ function ImportBitlyModal({
                         />
                       </div>
                     ))}
-                    {tags.length > 0 && (
+                    {tags?.length > 0 && (
                       <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
                         <p className="text-xs text-gray-500">
                           {tags.length} tags found. Import all?
@@ -212,7 +212,7 @@ function ImportBitlyModal({
                   </div>
                 ))
               ) : (
-                <div className="flex flex-col items-center justify-center space-y-2 pb-2">
+                <div className="flex flex-col items-center justify-center gap-2 pb-2">
                   <ServerOff className="h-6 w-6 text-gray-500" />
                   <p className="text-center text-sm text-gray-500">
                     It looks like you don't have any Bitly groups with custom

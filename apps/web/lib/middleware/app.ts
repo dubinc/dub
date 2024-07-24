@@ -1,11 +1,13 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import NewLinkMiddleware from "./new-link";
+import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
-  const { path, fullPath } = parse(req);
+  const { path, fullPath, searchParamsString } = parse(req);
   const user = await getUserViaToken(req);
+  const isWorkspaceInvite = req.nextUrl.searchParams.get("invite");
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
@@ -33,18 +35,43 @@ export default async function AppMiddleware(req: NextRequest) {
       user.createdAt &&
       new Date(user.createdAt).getTime() > Date.now() - 10000 &&
       // here we include the root page + /new (since they're going through welcome flow already)
-      path === "/"
+      path !== "/welcome" &&
+      // if the user was invited to a workspace, don't show the welcome page – redirect straight to the workspace
+      !isWorkspaceInvite
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 
-      // if the path is /login or /register, redirect to "/"
-    } else if (path === "/login" || path === "/register") {
-      return NextResponse.redirect(new URL("/", req.url));
+      // if the path is / or /login or /register, redirect to the default workspace
+    } else if (
+      [
+        "/",
+        "/login",
+        "/register",
+        "/analytics",
+        "/events",
+        "/integrations",
+        "/domains",
+        "/settings",
+      ].includes(path) ||
+      path.startsWith("/settings/")
+    ) {
+      const defaultWorkspace = await getDefaultWorkspace(user);
+
+      if (defaultWorkspace) {
+        return NextResponse.redirect(
+          new URL(
+            `/${defaultWorkspace}${
+              ["/", "/login", "/register"].includes(path) ? "" : path
+            }${searchParamsString}`,
+            req.url,
+          ),
+        );
+      } else {
+        return NextResponse.redirect(new URL("/workspaces", req.url));
+      }
     }
   }
 
   // otherwise, rewrite the path to /app
-  return NextResponse.rewrite(
-    new URL(`/app.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),
-  );
+  return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
 }

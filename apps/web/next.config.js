@@ -9,8 +9,10 @@ const REDIRECT_SEGMENTS = [
   "_static",
 ];
 
+const { withAxiom } = require("next-axiom");
+
 /** @type {import('next').NextConfig} */
-module.exports = {
+module.exports = withAxiom({
   reactStrictMode: false,
   experimental: {
     serverComponentsExternalPackages: [
@@ -208,7 +210,7 @@ module.exports = {
       },
     ];
   },
-};
+});
 
 module.exports = withSentryConfig(
   module.exports,

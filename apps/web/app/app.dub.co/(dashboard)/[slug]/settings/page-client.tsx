@@ -1,18 +1,27 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
+import ConnectStripe from "@/ui/workspaces/connect-stripe";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, isOwner } = useWorkspace();
+  const { id, name, slug, role, flags } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+  }).error;
+
   const { update } = useSession();
 
   return (
@@ -27,10 +36,7 @@ export default function WorkspaceSettingsClient() {
           maxLength: 32,
         }}
         helpText="Max 32 characters."
-        {...(!isOwner && {
-          disabledTooltip:
-            "Only workspace owners can change the workspace name.",
-        })}
+        disabledTooltip={permissionsError || undefined}
         handleSubmit={(updateData) =>
           fetch(`/api/workspaces/${id}`, {
             method: "PATCH",
@@ -63,10 +69,7 @@ export default function WorkspaceSettingsClient() {
           maxLength: 48,
         }}
         helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
-        {...(!isOwner && {
-          disabledTooltip:
-            "Only workspace owners can change the workspace slug.",
-        })}
+        disabledTooltip={permissionsError || undefined}
         handleSubmit={(data) =>
           fetch(`/api/workspaces/${id}`, {
             method: "PATCH",
@@ -92,6 +95,11 @@ export default function WorkspaceSettingsClient() {
       />
       <WorkspaceId />
       <UploadLogo />
+      {flags?.conversions && (
+        <Suspense>
+          <ConnectStripe />
+        </Suspense>
+      )}
       <DeleteWorkspace />
     </>
   );

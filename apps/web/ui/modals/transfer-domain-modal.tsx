@@ -1,7 +1,13 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { DomainProps } from "@/lib/types";
-import { Button, InputSelect, InputSelectItemProps, Modal } from "@dub/ui";
+import {
+  Button,
+  InputSelect,
+  InputSelectItemProps,
+  LinkLogo,
+  Modal,
+} from "@dub/ui";
 import { APP_NAME, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import {
   Dispatch,
@@ -12,7 +18,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import LinkLogo from "../links/link-logo";
 
 function TransferDomainModal({
   showTransferDomainModal,
@@ -28,7 +33,7 @@ function TransferDomainModal({
   const currentWorkspace = useWorkspace();
   const { workspaces } = useWorkspaces();
   const [transferring, setTransferring] = useState(false);
-  const [selectedWorkspace, setselectedWorkspace] =
+  const [selectedWorkspace, setSelectedWorkspace] =
     useState<InputSelectItemProps | null>(null);
 
   const transferDomain = async (domain: string, newWorkspaceId: string) => {
@@ -97,7 +102,7 @@ function TransferDomainModal({
               label: workspace.id === currentWorkspace.id ? "Current" : "",
             }))}
             selectedItem={selectedWorkspace}
-            setSelectedItem={setselectedWorkspace}
+            setSelectedItem={setSelectedWorkspace}
             inputAttrs={{
               placeholder: "Select a workspace",
             }}

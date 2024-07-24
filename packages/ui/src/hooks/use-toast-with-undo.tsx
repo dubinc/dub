@@ -28,13 +28,13 @@ function ToastWithUndo({
   }, []);
 
   return (
-    <div className="flex w-full items-center justify-between">
+    <div className="flex w-full items-center justify-between space-x-2">
       <div className="flex items-center space-x-2">
         <Success />
         <p className="font-medium">{message}</p>
       </div>
       <button
-        className="rounded border border-black bg-black px-2 py-1 text-xs font-normal text-white transition-all duration-75 active:scale-95"
+        className="whitespace-nowrap rounded border border-black bg-black px-2 py-1 text-xs font-normal text-white transition-all duration-75 active:scale-95"
         onClick={undoAndDismiss}
       >
         Undo

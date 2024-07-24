@@ -40,6 +40,10 @@ export const WorkspaceSchema = z
       .describe(
         "The date and time when the billing cycle starts for the workspace.",
       ),
+    stripeConnectId: z
+      .string()
+      .nullable()
+      .describe("[BETA]: The Stripe Connect ID of the workspace."),
     createdAt: z
       .date()
       .describe("The date and time when the workspace was created."),
@@ -55,6 +59,7 @@ export const WorkspaceSchema = z
         DomainSchema.pick({
           slug: true,
           primary: true,
+          verified: true,
         }),
       )
       .describe("The domains of the workspace."),
@@ -62,6 +67,12 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The invite code of the workspace."),
+    flags: z
+      .record(z.boolean())
+      .optional()
+      .describe(
+        "The feature flags of the workspace, indicating which features are enabled.",
+      ),
   })
   .openapi({
     title: "Workspace",
@@ -85,3 +96,10 @@ export const createWorkspaceSchema = z.object({
     })
     .optional(),
 });
+
+export const updateWorkspaceSchema = createWorkspaceSchema
+  .pick({
+    name: true,
+    slug: true,
+  })
+  .partial();

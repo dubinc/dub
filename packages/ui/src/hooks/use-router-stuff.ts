@@ -7,7 +7,7 @@ export function useRouterStuff() {
   const searchParamsObj = Object.fromEntries(searchParams);
 
   const getQueryString = (
-    kv?: Record<string, string>,
+    kv?: Record<string, any>,
     opts?: {
       ignore?: string[];
     },

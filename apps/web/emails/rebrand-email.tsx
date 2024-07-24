@@ -1,4 +1,4 @@
-import { DUB_LOGO, DUB_THUMBNAIL } from "@dub/utils";
+import { DUB_THUMBNAIL, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
@@ -33,8 +33,7 @@ export default function RebrandEmail({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
-                width="40"
+                src={DUB_WORDMARK}
                 height="40"
                 alt="Dub"
                 className="mx-auto my-0"

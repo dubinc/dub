@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useDeleteWorkspaceModal } from "@/ui/modals/delete-workspace-modal";
 import { Button } from "@dub/ui";
@@ -9,11 +10,17 @@ export default function DeleteWorkspace() {
   const { setShowDeleteWorkspaceModal, DeleteWorkspaceModal } =
     useDeleteWorkspaceModal();
 
-  const { isOwner } = useWorkspace();
+  const { role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+  }).error;
+
   return (
     <div
       className={cn("rounded-lg border border-red-600 bg-white", {
-        "border-gray-200": !isOwner,
+        "border-gray-200": permissionsError,
       })}
     >
       <DeleteWorkspaceModal />
@@ -27,7 +34,7 @@ export default function DeleteWorkspace() {
       </div>
       <div
         className={cn("border-b border-red-600", {
-          "border-gray-200": !isOwner,
+          "border-gray-200": permissionsError,
         })}
       />
 
@@ -37,9 +44,7 @@ export default function DeleteWorkspace() {
             text="Delete Workspace"
             variant="danger"
             onClick={() => setShowDeleteWorkspaceModal(true)}
-            {...(!isOwner && {
-              disabledTooltip: "Only workspace owners can delete a workspace.",
-            })}
+            disabledTooltip={permissionsError || undefined}
           />
         </div>
       </div>

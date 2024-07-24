@@ -8,18 +8,16 @@ const { domain, url } = link;
 test("GET /links", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http, user } = await h.init();
-  const { workspaceId } = workspace;
+  const workspaceId = workspace.id;
   const projectId = workspaceId.replace("ws_", "");
 
   const { data: firstLink } = await http.post<Link>({
     path: "/links",
-    query: { workspaceId },
     body: { url, domain },
   });
 
   const { data: links, status } = await http.get<Link[]>({
     path: "/links",
-    query: { workspaceId },
   });
 
   const linkFound = links.find((l) => l.id === firstLink.id);

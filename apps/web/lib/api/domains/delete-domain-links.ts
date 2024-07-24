@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { storage } from "../../storage";
 import { recordLink } from "../../tinybird";
@@ -14,7 +15,6 @@ export async function deleteDomainAndLinks(domain: string) {
       },
       select: {
         id: true,
-        target: true,
         projectId: true,
         createdAt: true,
       },
@@ -35,6 +35,7 @@ export async function deleteDomainAndLinks(domain: string) {
       },
     }),
   ]);
+
   if (!domainData) {
     return null;
   }
@@ -47,20 +48,11 @@ export async function deleteDomainAndLinks(domain: string) {
 
   waitUntil(
     (async () => {
-      const res = await Promise.allSettled([
+      await Promise.allSettled([
         // delete all links from redis
         redis.del(domain.toLowerCase()),
         // record deletes in tinybird for domain & links
         recordLink([
-          {
-            link_id: domainData.id,
-            domain,
-            key: "_root",
-            url: domainData.target || "",
-            workspace_id: domainData.projectId,
-            created_at: domainData.createdAt,
-            deleted: true,
-          },
           ...allLinks.map((link) => ({
             link_id: link.id,
             domain: link.domain,
@@ -73,14 +65,16 @@ export async function deleteDomainAndLinks(domain: string) {
           })),
         ]),
         ...allLinks.map((link) => {
-          if (link.image?.startsWith(process.env.STORAGE_BASE_URL as string)) {
-            storage.delete(`images/${link.id}`);
+          if (
+            link.image &&
+            link.image.startsWith(`${R2_URL}/images/${link.id}`)
+          ) {
+            storage.delete(link.image.replace(`${R2_URL}/`, ""));
           }
         }),
         // remove the domain from Vercel
         removeDomainFromVercel(domain),
       ]);
-      console.log(res);
     })(),
   );
 

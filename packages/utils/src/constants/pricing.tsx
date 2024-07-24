@@ -36,6 +36,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     tags,
     users,
     ai: 1000,
+    api: 6000,
   },
   colors: {
     bg: "bg-sky-900",
@@ -57,15 +58,6 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: `${domains} custom domains` },
     { text: `${users} users` },
     {
-      text: `Unlimited AI credits`,
-      footnote: {
-        title:
-          "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
-        cta: "Learn more.",
-        href: "https://dub.co/blog/introducing-dub-ai",
-      },
-    },
-    {
       text: `${nFormatter(tags, { full: true })} tags`,
       footnote: {
         title: "Organize your links with tags.",
@@ -73,15 +65,8 @@ const BUSINESS_PLAN_MODIFIER = ({
         href: "https://dub.co/help/article/how-to-use-tags",
       },
     },
-    { text: "Elevated support", footnote: "Email and chat support." },
     {
-      text: "Custom branding",
-      footnote: {
-        title:
-          "Set custom QR code logos, password-protected links logos, and more.",
-        cta: "Learn more.",
-        href: "https://dub.co/help/article/custom-qr-codes",
-      },
+      text: "Priority support",
     },
   ],
 });
@@ -101,6 +86,7 @@ export const PLANS = [
       tags: 5,
       users: 1,
       ai: 10,
+      api: 600,
     },
     colors: {
       bg: "bg-black",
@@ -122,16 +108,15 @@ export const PLANS = [
       { text: "1 user" },
       { text: "10 AI credits/mo" },
       {
-        text: "Community support",
-        footnote: "Help center + GitHub discussions.",
-      },
-      {
         text: "API Access",
         footnote: {
           title: "Programatically manage your links using our REST API.",
           cta: "Learn more.",
           href: "https://dub.co/docs/api-reference/introduction",
         },
+      },
+      {
+        text: "Basic support",
       },
     ],
   },
@@ -158,6 +143,7 @@ export const PLANS = [
       tags: 25,
       users: 5,
       ai: 1000,
+      api: 3000,
     },
     colors: {
       bg: "bg-blue-500",
@@ -187,7 +173,6 @@ export const PLANS = [
           href: "https://dub.co/blog/introducing-dub-ai",
         },
       },
-      { text: "Basic support", footnote: "Basic email support." },
       {
         text: "Root domain redirect",
         footnote: {
@@ -202,6 +187,7 @@ export const PLANS = [
         footnote:
           "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
       },
+      { text: "Elevated support" },
     ],
   },
   BUSINESS_PLAN_MODIFIER({
@@ -281,9 +267,13 @@ export const PLANS = [
       yearly: null,
     },
     limits: {
-      links: null,
-      clicks: null,
-      domains: null,
+      links: 250000,
+      clicks: 5000000,
+      domains: 1000,
+      tags: 1000,
+      users: 500,
+      ai: 10000,
+      api: 10000,
     },
     colors: {
       bg: "bg-violet-600",
@@ -337,6 +327,12 @@ export const getPlanDetails = (plan: string) => {
   return SELF_SERVE_PAID_PLANS.find(
     (p) => p.name.toLowerCase() === plan.toLowerCase(),
   )!;
+};
+
+export const getCurrentPlan = (plan: string) => {
+  return (
+    PLANS.find((p) => p.name.toLowerCase() === plan.toLowerCase()) || FREE_PLAN
+  );
 };
 
 export const getNextPlan = (plan?: string | null) => {

@@ -1,4 +1,4 @@
-export default function LoadingDots() {
+export function LoadingDots() {
   return (
     <span className="inline-flex items-center">
       {[...Array(3)].map((_, i) => (

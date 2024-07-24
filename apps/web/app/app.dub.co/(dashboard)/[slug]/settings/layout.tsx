@@ -1,4 +1,13 @@
 import SettingsLayout from "@/ui/layout/settings-layout";
+import {
+  CircleInfo,
+  Gear2,
+  Globe,
+  Key,
+  Receipt2,
+  ShieldCheck,
+  Users6,
+} from "@dub/ui/src/icons";
 import { ReactNode } from "react";
 
 export default function WorkspaceSettingsLayout({
@@ -9,21 +18,51 @@ export default function WorkspaceSettingsLayout({
   const tabs = [
     {
       name: "General",
+      icon: Gear2,
       segment: null,
     },
     {
+      name: "Domains",
+      icon: Globe,
+      segment: "domains",
+    },
+    {
       name: "Billing",
+      icon: Receipt2,
       segment: "billing",
     },
     {
       name: "People",
+      icon: Users6,
       segment: "people",
     },
     {
+      name: "API Keys",
+      icon: Key,
+      segment: "tokens",
+    },
+    {
       name: "Security",
+      icon: ShieldCheck,
       segment: "security",
     },
   ];
 
-  return <SettingsLayout tabs={tabs}>{children}</SettingsLayout>;
+  const extraTabs = [
+    {
+      name: "Notifications",
+      icon: CircleInfo,
+      segment: "notifications",
+    },
+  ];
+
+  return (
+    <SettingsLayout
+      tabs={tabs}
+      extraTabs={extraTabs}
+      tabContainerClassName="top-16"
+    >
+      {children}
+    </SettingsLayout>
+  );
 }

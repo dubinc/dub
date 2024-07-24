@@ -1,45 +1,21 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps, UserProps } from "@/lib/types";
-import {
-  NumberTooltip,
-  Tooltip,
-  useIntersectionObserver,
-  useMediaQuery,
-  useRouterStuff,
-} from "@dub/ui";
+import { LinkProps } from "@/lib/types";
+import { NumberTooltip, Tooltip, useMediaQuery } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
-import {
-  cn,
-  fetcher,
-  getApexDomain,
-  linkConstructor,
-  nFormatter,
-  truncate,
-} from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import useSWR from "swr";
-import { AnalyticsContext } from ".";
-import LinkLogo from "../links/link-logo";
+import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
 import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
   tab,
   data,
   barBackground,
-  maxClicks,
+  hoverBackground,
+  maxValue,
   setShowModal,
   limit,
 }: {
@@ -48,17 +24,18 @@ export default function BarList({
     icon: ReactNode;
     title: string;
     href: string;
-    clicks: number;
+    value: number;
+    linkId?: string;
   }[];
-  maxClicks: number;
+  maxValue: number;
   barBackground: string;
+  hoverBackground: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   limit?: number;
 }) {
   const [search, setSearch] = useState("");
 
   // TODO: mock pagination for better perf in React
-  // TODO: fix for top links since it's technically link IDs
   const filteredData = useMemo(() => {
     if (limit) {
       return data.slice(0, limit);
@@ -74,15 +51,16 @@ export default function BarList({
   const { isMobile } = useMediaQuery();
 
   const bars = (
-    <div className="grid gap-1">
+    <div className="grid">
       {filteredData.map((data, idx) => (
         <LineItem
           key={idx}
           {...data}
-          maxClicks={maxClicks}
+          maxValue={maxValue}
           tab={tab}
           setShowModal={setShowModal}
           barBackground={barBackground}
+          hoverBackground={hoverBackground}
         />
       ))}
     </div>
@@ -93,29 +71,19 @@ export default function BarList({
   } else {
     return (
       <>
-        <div className="relative p-4">
+        <div className="relative px-4 py-3">
           <div className="pointer-events-none absolute inset-y-0 left-7 flex items-center">
             <Search className="h-4 w-4 text-gray-400" />
           </div>
           <input
             type="text"
             autoFocus={!isMobile}
-            className="w-full rounded-md border border-gray-300 py-2 pl-10 text-black placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-gray-600 sm:text-sm"
+            className="w-full rounded-md border border-gray-300 py-2 pl-10 text-black placeholder:text-gray-400 focus:border-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-200 sm:text-sm"
             placeholder={`Search ${tab}...`}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div>
-          <div className="flex justify-between px-4 pb-1 pt-0">
-            <p className="text-xs font-semibold uppercase text-gray-600">
-              {tab}
-            </p>
-            <p className="text-xs font-semibold uppercase text-gray-600">
-              Clicks
-            </p>
-          </div>
-          <div className="h-[50vh] overflow-auto p-4 md:h-[40vh]">{bars}</div>
-        </div>
+        <div className="h-[50vh] overflow-auto pb-4 md:h-[40vh]">{bars}</div>
       </>
     );
   }
@@ -125,118 +93,45 @@ export function LineItem({
   icon,
   title,
   href,
-  clicks,
-  maxClicks,
+  value,
+  maxValue,
   tab,
   setShowModal,
   barBackground,
+  hoverBackground,
+  linkData,
 }: {
-  icon?: ReactNode;
+  icon: ReactNode;
   title: string;
   href: string;
-  clicks: number;
-  maxClicks: number;
+  value: number;
+  maxValue: number;
   tab: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
+  hoverBackground: string;
+  linkData?: LinkProps;
 }) {
-  const itemRef = useRef<HTMLAnchorElement>(null);
-  const entry = useIntersectionObserver(itemRef, {});
-  const isVisible = !!entry?.isIntersecting;
-
-  const { id } = useWorkspace();
-
-  const { admin } = useContext(AnalyticsContext);
-
-  const { data } = useSWR<
-    LinkProps & {
-      user: UserProps;
-    }
-  >(
-    tab === "link" &&
-      isVisible &&
-      (admin
-        ? `/api/admin/links/${title}`
-        : `/api/links/${title}?workspaceId=${id}&checkDomain=true`),
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
-
-  const { queryParams } = useRouterStuff();
-
   const lineItem = useMemo(() => {
-    const apexDomain =
-      tab === "link"
-        ? data
-          ? getApexDomain(data.url)
-          : null
-        : getApexDomain(title);
     return (
-      <div className="z-10 flex items-center space-x-2 px-2">
-        {tab === "link" ? (
-          data ? (
-            <LinkLogo
-              apexDomain={apexDomain}
-              className="h-5 w-5 sm:h-5 sm:w-5"
-            />
-          ) : (
-            <div className="h-5 w-5 animate-pulse rounded-full bg-gray-100" />
-          )
-        ) : tab === "url" ? (
-          <LinkLogo apexDomain={apexDomain} className="h-5 w-5 sm:h-5 sm:w-5" />
-        ) : (
-          icon
-        )}
-        <div
-          className={cn(
-            "truncate text-sm text-gray-800",
-            href && "underline-offset-4 group-hover:underline",
-          )}
-        >
-          {tab === "link" ? (
-            data ? (
-              truncate(
-                linkConstructor({
-                  domain: data.domain,
-                  key: data.key,
-                  pretty: true,
-                }),
-                36,
-              )
-            ) : (
-              <div className="h-4 w-20 animate-pulse rounded bg-gray-100" />
-            )
-          ) : (
-            truncate(title, 36)
-          )}
-        </div>
+      <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
+        {icon}
+        <div className="truncate text-sm text-gray-800">{title}</div>
       </div>
     );
-  }, [data, icon, tab, title]);
+  }, [icon, tab, title]);
 
   return (
     <Link
-      ref={itemRef}
-      href={
-        tab === "link" && data
-          ? (queryParams({
-              set: {
-                domain: data.domain,
-                key: data.key,
-              },
-              getNewPath: true,
-            }) as string)
-          : href
-      }
+      href={href}
       scroll={false}
       onClick={() => setShowModal(false)}
+      className={`border-l-2 border-transparent px-4 py-1 ${hoverBackground} min-w-0 transition-all`}
     >
-      <div className="group flex items-center justify-between hover:bg-gray-50">
+      <div className="group flex items-center justify-between">
         <div className="relative z-10 flex h-8 w-full max-w-[calc(100%-2rem)] items-center">
-          {tab === "link" && data ? (
-            <Tooltip content={<LinkPreviewTooltip data={data} />}>
+          {tab === "link" && linkData ? (
+            <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
               {lineItem}
             </Tooltip>
           ) : tab === "url" ? (
@@ -250,10 +145,10 @@ export function LineItem({
           )}
           <motion.div
             style={{
-              width: `${(clicks / (maxClicks || 0)) * 100}%`,
+              width: `${(value / (maxValue || 0)) * 100}%`,
             }}
             className={cn(
-              "absolute h-full origin-left rounded-sm",
+              "absolute h-full origin-left rounded-md",
               barBackground,
             )}
             transition={{ ease: "easeOut", duration: 0.3 }}
@@ -261,10 +156,8 @@ export function LineItem({
             animate={{ transform: "scaleX(1)" }}
           />
         </div>
-        <NumberTooltip value={clicks}>
-          <p className="z-10 px-2 text-sm text-gray-600">
-            {nFormatter(clicks)}
-          </p>
+        <NumberTooltip value={value}>
+          <p className="z-10 px-2 text-sm text-gray-600">{nFormatter(value)}</p>
         </NumberTooltip>
       </div>
     </Link>

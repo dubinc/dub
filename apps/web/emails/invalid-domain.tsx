@@ -1,4 +1,4 @@
-import { DUB_LOGO } from "@dub/utils";
+import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
@@ -19,12 +19,16 @@ export default function InvalidDomain({
   domain = "dub.sh",
   workspaceSlug = "dub",
   invalidDays = 14,
+  appDomain = "dub.co",
 }: {
   email: string;
   domain: string;
   workspaceSlug: string;
   invalidDays: number;
+  appDomain: string;
 }): JSX.Element {
+  const notificationSettingsUrl = `https://app.${appDomain}/${workspaceSlug}/settings/notifications`;
+
   return (
     <Html>
       <Head />
@@ -34,8 +38,7 @@ export default function InvalidDomain({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
-                width="40"
+                src={DUB_WORDMARK}
                 height="40"
                 alt="Dub"
                 className="mx-auto my-0"
@@ -63,7 +66,7 @@ export default function InvalidDomain({
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${workspaceSlug}/domains`}
+                href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
               >
                 Configure domain
               </Link>
@@ -71,7 +74,7 @@ export default function InvalidDomain({
             <Text className="text-sm leading-6 text-black">
               If you do not want to keep this domain on Dub.co, you can{" "}
               <Link
-                href={`https://app.dub.co/${workspaceSlug}/domains`}
+                href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
                 className="font-medium text-blue-600 no-underline"
               >
                 delete it
@@ -83,7 +86,10 @@ export default function InvalidDomain({
                   } days.`
                 : "this will be the last time we will email you about this."}
             </Text>
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl={notificationSettingsUrl}
+            />
           </Container>
         </Body>
       </Tailwind>
