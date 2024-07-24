@@ -160,7 +160,7 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
   );
 }
 
-export function getQRAsSVGDataUri(props: QRProps) {
+export async function getQRAsSVGDataUri(props: QRProps) {
   const {
     value,
     size = DEFAULT_SIZE,
@@ -189,8 +189,11 @@ export function getQRAsSVGDataUri(props: QRProps) {
   if (imageSettings != null && calculatedImageSettings != null) {
     if (calculatedImageSettings.excavation != null)
       cells = excavateModules(cells, calculatedImageSettings.excavation);
+
+    const base64Image = await getBase64Image(imageSettings.src);
+
     image = [
-      `<image href="${imageSettings.src}"`,
+      `<image href="${base64Image}"`,
       `height="${calculatedImageSettings.h}"`,
       `width="${calculatedImageSettings.w}"`,
       `x="${calculatedImageSettings.x + margin}"`,
@@ -198,6 +201,7 @@ export function getQRAsSVGDataUri(props: QRProps) {
       'preserveAspectRatio="none"></image>',
     ].join(" ");
   }
+
   const fgPath = generatePath(cells, margin);
 
   const svgData = [
@@ -210,6 +214,31 @@ export function getQRAsSVGDataUri(props: QRProps) {
 
   return `data:image/svg+xml,${encodeURIComponent(svgData)}`;
 }
+
+const getBase64Image = (imgUrl: string) => {
+  return new Promise(function (resolve, reject) {
+    const img = new Image();
+    img.src = imgUrl;
+    img.setAttribute("crossOrigin", "anonymous");
+
+    img.onload = function () {
+      const canvas = document.createElement("canvas");
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(img, 0, 0);
+
+      const dataURL = canvas.toDataURL("image/png");
+      resolve(dataURL);
+    };
+
+    img.onerror = function () {
+      reject("The image could not be loaded.");
+    };
+  });
+};
 
 function waitUntilImageLoaded(img: HTMLImageElement, src: string) {
   return new Promise((resolve) => {
