@@ -13,5 +13,5 @@ export const isBlacklistedReferrer = async (referrer: string | null) => {
   } catch (e) {
     referrers = [];
   }
-  return !referrers.includes(hostname);
+  return referrers.includes(hostname);
 };
