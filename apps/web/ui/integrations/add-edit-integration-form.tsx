@@ -22,6 +22,7 @@ const defaultValues: NewIntegration = {
   readme: "",
   developer: "",
   website: "",
+  partialClientSecret: "",
   redirectUris: [],
   logo: "",
   pkce: false,
@@ -278,8 +279,8 @@ export default function AddEditIntegrationForm({
             </label>
             <Button
               text="Add Callback URL"
-              variant="primary"
-              className="h-[26px] w-fit px-2.5 py-1 text-xs"
+              variant="secondary"
+              className="h-7 w-fit px-2.5 py-1 text-xs"
               onClick={() => setUrls([...urls, { id: nanoid(), value: "" }])}
             />
           </div>
