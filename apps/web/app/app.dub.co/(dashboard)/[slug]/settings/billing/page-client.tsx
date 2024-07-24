@@ -137,7 +137,7 @@ export default function WorkspaceBillingClient() {
           <UsageCategory
             title="Link Clicks"
             unit="clicks"
-            tooltip="Number of billable link clicks for your current billing cycle."
+            tooltip="Number of billable link clicks for your current billing cycle. If you exceed your monthly limits, your existing links will still work and clicks will still be tracked, but you need to upgrade to view your analytics."
             usage={usage}
             usageLimit={usageLimit}
           />
