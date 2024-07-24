@@ -21,7 +21,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
 
 function AddWorkspaceModalHelper({
   showAddWorkspaceModal,
@@ -44,18 +43,6 @@ function AddWorkspaceModalHelper({
 
   const [slugError, setSlugError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  const [debouncedSlug] = useDebounce(slug, 500);
-  useEffect(() => {
-    if (debouncedSlug.length > 0 && !slugError) {
-      fetch(`/api/workspaces/${slug}/exists`).then(async (res) => {
-        if (res.status === 200) {
-          const exists = await res.json();
-          setSlugError(exists === 1 ? "Slug is already in use." : null);
-        }
-      });
-    }
-  }, [debouncedSlug, slugError]);
 
   useEffect(() => {
     setSlugError(null);
@@ -197,6 +184,18 @@ function AddWorkspaceModalHelper({
               onChange={(e) => {
                 setSlugError(null);
                 setData({ ...data, slug: e.target.value });
+              }}
+              onBlur={() => {
+                fetch(`/api/workspaces/${slug}/exists`).then(async (res) => {
+                  if (res.status === 200) {
+                    const exists = await res.json();
+                    setSlugError(
+                      exists === 1
+                        ? `The slug "${slug}" is already in use.`
+                        : null,
+                    );
+                  }
+                });
               }}
               aria-invalid="true"
             />

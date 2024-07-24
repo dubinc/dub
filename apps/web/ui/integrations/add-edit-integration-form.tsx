@@ -25,7 +25,7 @@ const defaultValues: NewIntegration = {
   partialClientSecret: "",
   redirectUris: [],
   logo: "",
-  pkce: false,
+  pkce: true,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
