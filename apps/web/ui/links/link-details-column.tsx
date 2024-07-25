@@ -10,7 +10,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { CursorRays, InvoiceDollar, LinesY } from "@dub/ui/src/icons";
+import { CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
 import { cn, fetcher, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -137,12 +137,14 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
 
   const { id: workspaceId, slug, exceededClicks } = useWorkspace();
   const { isMobile } = useMediaQuery();
+  const { variant } = useContext(CardList.Context);
 
   const { data: totalEvents } = useSWR<{
     [key in CompositeAnalyticsResponseOptions]?: number;
   }>(
     // Only fetch data if there's a slug and the usage is not exceeded
     workspaceId &&
+      variant === "loose" &&
       !exceededClicks &&
       `/api/analytics?event=composite&workspaceId=${workspaceId}&linkId=${id}&interval=all_unfiltered`,
     fetcher,
@@ -159,14 +161,12 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const [hoveredId, setHoveredId] = useState<string>("clicks");
   const hoveredValue = totalEvents?.[hoveredId];
 
-  const { variant } = useContext(CardList.Context);
-
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}`}
       className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800"
     >
-      <LinesY className="h-4 w-4 text-gray-600" />
+      <CursorRays className="h-4 w-4 text-gray-600" />
       {nFormatter(totalEvents?.clicks)}
     </Link>
   ) : (
