@@ -6,7 +6,12 @@ import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import { Button, CardList, Popover } from "@dub/ui";
-import { LoadingSpinner, PenWriting } from "@dub/ui/src/icons";
+import {
+  CircleCheck,
+  Copy,
+  LoadingSpinner,
+  PenWriting,
+} from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
@@ -30,6 +35,15 @@ export function TagCard({
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal({
     props: tag,
   });
+
+  const [copiedTagId, setCopiedTagId] = useState(false);
+
+  const copyTagId = () => {
+    navigator.clipboard.writeText(tag.id);
+    setCopiedTagId(true);
+    toast.success("Tag ID copied!");
+    setTimeout(() => setCopiedTagId(false), 3000);
+  };
 
   const handleDelete = async () => {
     setProcessing(true);
@@ -95,6 +109,20 @@ export function TagCard({
                   }}
                   icon={<PenWriting className="h-4 w-4" />}
                   shortcut="E"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Copy Tag ID"
+                  variant="outline"
+                  onClick={() => copyTagId()}
+                  icon={
+                    copiedTagId ? (
+                      <CircleCheck className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  shortcut="I"
                   className="h-9 px-2 font-medium"
                 />
                 <Button
