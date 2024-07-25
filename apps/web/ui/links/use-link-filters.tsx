@@ -4,14 +4,9 @@ import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
-import {
-  DUB_WORKSPACE_ID,
-  GOOGLE_FAVICON_URL,
-  cn,
-  nFormatter,
-} from "@dub/utils";
+import { DUB_WORKSPACE_ID, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
-import { COLORS_LIST } from "./tag-badge";
+import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
   const domains = useDomainFilterOptions();
@@ -51,29 +46,13 @@ export function useLinkFilters() {
             props.option?.data?.color ??
             tags?.find(({ id }) => id === value)?.color;
           return tagColor ? (
-            <div
-              className={cn(
-                "rounded-md p-1.5",
-                COLORS_LIST.find(({ color }) => color === tagColor)?.css,
-              )}
-            >
-              <Tag className="h-2.5 w-2.5" />
-            </div>
+            <TagBadge color={tagColor} withIcon className="sm:p-1.5" />
           ) : null;
         },
         options:
           tags?.map(({ id, name, color, count }) => ({
             value: id,
-            icon: (
-              <div
-                className={cn(
-                  "rounded-md p-1.5",
-                  COLORS_LIST.find((c) => c.color === color)?.css,
-                )}
-              >
-                <Tag className="h-2.5 w-2.5" />
-              </div>
-            ),
+            icon: <TagBadge color={color} withIcon className="sm:p-1.5" />,
             label: name,
             data: { color },
             right: count,

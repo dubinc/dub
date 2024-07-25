@@ -35,7 +35,7 @@ export default function NavTabs() {
   );
 
   const { loading: loadingDomains } = useDomains();
-  const { data: linksCount } = useLinksCount();
+  const { data: linksCount } = useLinksCount({ ignoreParams: true });
 
   const scrolled = useScroll(80);
 
@@ -83,7 +83,7 @@ export default function NavTabs() {
 const OnboardingChecklist = () => {
   const { setShowCompleteSetupModal } = useContext(ModalContext);
   const { data: domainsCount } = useDomainsCount();
-  const { data: links } = useLinksCount();
+  const { data: links } = useLinksCount({ ignoreParams: true });
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
 

@@ -2,11 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
-import { COLORS_LIST } from "@/ui/links/tag-badge";
+import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import { Button, CardList, Popover } from "@dub/ui";
-import { LoadingSpinner, PenWriting, Tag } from "@dub/ui/src/icons";
+import { LoadingSpinner, PenWriting } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
@@ -68,14 +68,7 @@ export function TagCard({
         )}
       >
         <div className="flex min-w-0 grow items-center gap-3">
-          <div
-            className={cn(
-              "shrink-0 rounded-md p-1.5",
-              COLORS_LIST.find(({ color }) => color === tag.color)?.css,
-            )}
-          >
-            <Tag className="h-2.5 w-2.5" />
-          </div>
+          <TagBadge color={tag.color} withIcon className="sm:p-1.5" />
           <span className="min-w-0 truncate whitespace-nowrap text-gray-800">
             {tag.name}
           </span>

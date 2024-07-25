@@ -106,8 +106,6 @@ function TagsTooltip({
 }
 
 function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
-  const { isMobile, isDesktop } = useMediaQuery();
-
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
 
@@ -129,7 +127,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
         });
       }}
     >
-      <TagBadge {...tag} withIcon={isMobile || isDesktop} plus={plus} />
+      <TagBadge {...tag} withIcon plus={plus} />
     </button>
   );
 }
@@ -166,9 +164,10 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-      className="rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800"
+      className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800"
     >
-      <LinesY className="m-1 h-4 w-4 text-gray-600" />
+      <LinesY className="h-4 w-4 text-gray-600" />
+      {nFormatter(totalEvents?.clicks)}
     </Link>
   ) : (
     <Tooltip

@@ -318,8 +318,7 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
       <div
         className={cn(
           "hidden shrink-0",
-          displayProperties.includes("createdAt") &&
-            "sm:group-data-[variant=loose]/card-list:block",
+          displayProperties.includes("createdAt") && "sm:block",
         )}
       >
         <Tooltip content={formatDateTime(createdAt)}>
