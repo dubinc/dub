@@ -12,6 +12,7 @@ export type Filter = {
   label: string;
   separatorAfter?: boolean;
   options: FilterOption[] | null;
+  multiple?: boolean;
   getOptionIcon?: (
     value: FilterOption["value"],
     props: { key: Filter["key"]; option?: FilterOption },
