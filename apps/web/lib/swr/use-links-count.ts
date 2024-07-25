@@ -43,7 +43,7 @@ export default function useLinksCount(
         : null,
     fetcher,
     {
-      dedupingInterval: 30000,
+      dedupingInterval: 60000,
       keepPreviousData: true,
     },
   );

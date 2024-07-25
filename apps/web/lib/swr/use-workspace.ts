@@ -15,7 +15,7 @@ export default function useWorkspace() {
     error,
     mutate,
   } = useSWR<WorkspaceProps>(slug && `/api/workspaces/${slug}`, fetcher, {
-    dedupingInterval: 30000,
+    dedupingInterval: 60000,
   });
 
   return {
