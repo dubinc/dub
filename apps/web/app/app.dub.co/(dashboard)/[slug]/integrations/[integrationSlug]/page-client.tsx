@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { IntegrationPageProps } from "@/lib/types";
+import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -22,7 +22,7 @@ import Markdown from "react-markdown";
 export default function IntegrationPageClient({
   integration,
 }: {
-  integration: IntegrationPageProps;
+  integration: InstalledIntegrationInfoProps;
 }) {
   const { slug } = useWorkspace();
 

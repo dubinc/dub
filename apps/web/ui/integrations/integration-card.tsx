@@ -1,11 +1,11 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { OAuthAppProps } from "@/lib/types";
+import { InstalledIntegrationProps } from "@/lib/types";
 import { BlurImage, TokenAvatar } from "@dub/ui";
 import { Download, OfficeBuilding } from "@dub/ui/src/icons";
 import Link from "next/link";
 
 export default function IntegrationCard(
-  integration: OAuthAppProps & { installations: number; installed: boolean },
+  integration: InstalledIntegrationProps,
 ) {
   const { slug } = useWorkspace();
 

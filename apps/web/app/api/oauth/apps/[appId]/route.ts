@@ -45,25 +45,38 @@ export const PATCH = withWorkspace(
       pkce,
     } = updateOAuthAppSchema.parse(await parseRequestBody(req));
 
-    const app = await prisma.oAuthApp.update({
-      where: {
-        id: params.appId,
-        projectId: workspace.id,
-      },
-      data: {
-        name,
-        slug,
-        developer,
-        website,
-        description,
-        readme,
-        redirectUris,
-        logo,
-        pkce,
-      },
-    });
-
-    return NextResponse.json(oAuthAppSchema.parse(app));
+    try {
+      const app = await prisma.oAuthApp.update({
+        where: {
+          id: params.appId,
+          projectId: workspace.id,
+        },
+        data: {
+          name,
+          slug,
+          developer,
+          website,
+          description,
+          readme,
+          redirectUris,
+          logo,
+          pkce,
+        },
+      });
+      return NextResponse.json(oAuthAppSchema.parse(app));
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: `The slug "${slug}" is already in use.`,
+        });
+      } else {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: error.message,
+        });
+      }
+    }
   },
   {
     requiredPermissions: ["oauth_apps.write"],

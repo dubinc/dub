@@ -3,7 +3,7 @@ import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
-import { oAuthAppSchema, oAuthAuthorizedAppSchema } from "./zod/schemas/oauth";
+import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
 
 export type LinkProps = Link;
@@ -203,28 +203,41 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type IntegrationPageProps = OAuthAppProps & {
-  installations: number;
-  installed: {
-    id: string;
-    by: {
-      id: string;
-      name: string | null;
-      image: string | null;
-    };
-    createdAt: Date;
-  } | null;
-};
-
-export type InstalledIntegrationProps = z.infer<
-  typeof oAuthAuthorizedAppSchema
-> & {
-  createdAt: string;
-};
-
 export type NewIntegration = Omit<
   OAuthAppProps,
   "id" | "clientId" | "verified" | "installations"
 >;
 
 export type ExistingIntegration = OAuthAppProps;
+
+export type InstalledIntegrationProps = Pick<
+  OAuthAppProps,
+  "clientId" | "slug" | "logo" | "name" | "developer" | "description"
+> & {
+  installations: number;
+  installed: boolean;
+};
+
+export type InstalledIntegrationInfoProps = Pick<
+  OAuthAppProps,
+  | "clientId"
+  | "slug"
+  | "logo"
+  | "name"
+  | "developer"
+  | "description"
+  | "readme"
+  | "website"
+> & {
+  createdAt: Date;
+  installations: number;
+  installed: {
+    id: string;
+    createdAt: Date;
+    by: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+  } | null;
+};
