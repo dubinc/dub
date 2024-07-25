@@ -6,6 +6,7 @@ import {
   Key,
   Receipt2,
   ShieldCheck,
+  Tag,
   Users6,
 } from "@dub/ui/src/icons";
 import { ReactNode } from "react";
@@ -25,6 +26,11 @@ export default function WorkspaceSettingsLayout({
       name: "Domains",
       icon: Globe,
       segment: "domains",
+    },
+    {
+      name: "Tags",
+      icon: Tag,
+      segment: "tags",
     },
     {
       name: "Billing",

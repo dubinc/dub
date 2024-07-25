@@ -1,6 +1,5 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import z from "../zod";
@@ -10,12 +9,10 @@ import useWorkspace from "./use-workspace";
 const partialQuerySchema = getLinksCountQuerySchema.partial();
 
 export default function useLinksCount(
-  opts: z.infer<typeof partialQuerySchema> = {},
+  opts: z.infer<typeof partialQuerySchema> & { ignoreParams?: boolean } = {},
 ) {
-  const { id, slug } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-  const pathname = usePathname();
-  const isLinksPage = pathname === `/${slug}`;
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -25,21 +22,20 @@ export default function useLinksCount(
   }, []);
 
   const { data, error } = useSWR<any>(
-    id
-      ? `/api/links/count${getQueryString(
-          {
-            workspaceId: id,
-            ...opts,
-          },
-          {
-            ignore: [
-              "import",
-              "upgrade",
-              "newLink",
-              ...(!isLinksPage ? ["search"] : []),
-            ],
-          },
-        )}`
+    workspaceId
+      ? `/api/links/count${
+          opts.ignoreParams
+            ? `?workspaceId=${workspaceId}`
+            : getQueryString(
+                {
+                  workspaceId,
+                  ...opts,
+                },
+                {
+                  ignore: ["import", "upgrade", "newLink"],
+                },
+              )
+        }`
       : admin
         ? `/api/admin/links/count${getQueryString({
             ...opts,

@@ -1,4 +1,4 @@
-import { fetchWithTimeout } from "@dub/utils";
+import { R2_URL, fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
 
 interface imageOptions {
@@ -46,7 +46,7 @@ class StorageClient {
       });
 
       return {
-        url: `${process.env.STORAGE_BASE_URL}/${key}`,
+        url: `${R2_URL}/${key}`,
       };
     } catch (error) {
       throw new Error(`Failed to upload file: ${error.message}`);
@@ -122,5 +122,5 @@ class StorageClient {
 export const storage = new StorageClient();
 
 export const isStored = (url: string) => {
-  return url.startsWith(process.env.STORAGE_BASE_URL || "");
+  return url.startsWith(R2_URL);
 };

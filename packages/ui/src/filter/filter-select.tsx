@@ -1,6 +1,6 @@
 import { cn, truncate } from "@dub/utils";
 import { Command, useCommandState } from "cmdk";
-import { Check, ChevronDown, ListFilter } from "lucide-react";
+import { ChevronDown, ListFilter } from "lucide-react";
 import {
   PropsWithChildren,
   ReactNode,
@@ -14,14 +14,14 @@ import {
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useMediaQuery, useResizeObserver } from "../hooks";
-import { LoadingSpinner, Magic } from "../icons";
+import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
 import { Filter, FilterOption } from "./types";
 
 type FilterSelectProps = {
   filters: Filter[];
-  onSelect: (key: string, value: string) => void;
-  onRemove: (key: string) => void;
+  onSelect: (key: string, value: FilterOption["value"]) => void;
+  onRemove: (key: string, value: FilterOption["value"]) => void;
   onOpenFilter?: (key: string) => void;
   activeFilters?: {
     key: Filter["key"];
@@ -29,6 +29,7 @@ type FilterSelectProps = {
   }[];
   askAI?: boolean;
   children?: ReactNode;
+  emptyState?: ReactNode | Record<string, ReactNode>;
   className?: string;
 };
 
@@ -40,6 +41,7 @@ export function FilterSelect({
   activeFilters,
   askAI,
   children,
+  emptyState,
   className,
 }: FilterSelectProps) {
   const { isMobile } = useMediaQuery();
@@ -85,16 +87,36 @@ export function FilterSelect({
     onOpenFilter?.(key);
   }, []);
 
+  const isOptionSelected = useCallback(
+    (value: FilterOption["value"]) => {
+      if (!selectedFilter || !activeFilters) return false;
+
+      const activeFilter = activeFilters.find(
+        ({ key }) => key === selectedFilterKey,
+      );
+
+      return (
+        activeFilter?.value === value ||
+        (activeFilter &&
+          selectedFilter.multiple &&
+          Array.isArray(activeFilter.value) &&
+          activeFilter.value.includes(value))
+      );
+    },
+    [selectedFilter],
+  );
+
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
       if (selectedFilter) {
-        activeFilters?.find(({ key }) => key === selectedFilterKey)?.value ===
-        value
-          ? onRemove(selectedFilter.key)
-          : onSelect(selectedFilter.key, value);
-      }
+        const isSelected = isOptionSelected(value);
 
-      setIsOpen(false);
+        isSelected
+          ? onRemove(selectedFilter.key, value)
+          : onSelect(selectedFilter.key, value);
+
+        if (!selectedFilter.multiple) setIsOpen(false);
+      }
     },
     [activeFilters, selectedFilter, askAI],
   );
@@ -166,10 +188,7 @@ export function FilterSelect({
                     ))
                   : // Filter options
                     selectedFilter.options?.map((option) => {
-                      const isSelected =
-                        activeFilters?.find(
-                          ({ key }) => key === selectedFilterKey,
-                        )?.value === option.value;
+                      const isSelected = isOptionSelected(option.value);
 
                       return (
                         <FilterButton
@@ -200,7 +219,14 @@ export function FilterSelect({
 
                 {/* Only render CommandEmpty if not loading */}
                 {(!selectedFilter || selectedFilter.options) && (
-                  <CommandEmpty search={search} askAI={askAI} />
+                  <CommandEmpty search={search} askAI={askAI}>
+                    {emptyState
+                      ? isEmptyStateObject(emptyState)
+                        ? emptyState?.[selectedFilterKey ?? "default"] ??
+                          "No matches"
+                        : emptyState
+                      : "No matches"}
+                  </CommandEmpty>
                 )}
               </Command.List>
             </FilterScroll>
@@ -234,6 +260,16 @@ export function FilterSelect({
         </div>
       </button>
     </Popover>
+  );
+}
+
+function isEmptyStateObject(
+  emptyState: ReactNode | Record<string, ReactNode>,
+): emptyState is Record<string, ReactNode> {
+  return (
+    typeof emptyState === "object" &&
+    emptyState !== null &&
+    !isValidElement(emptyState)
   );
 }
 
@@ -311,6 +347,8 @@ function FilterButton({
   right?: ReactNode;
   onSelect: () => void;
 }) {
+  const { isMobile } = useMediaQuery();
+
   const Icon = option
     ? option.icon ??
       filter.getOptionIcon?.(option.value, { key: filter.key, option }) ??
@@ -328,8 +366,17 @@ function FilterButton({
         "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
         "data-[selected=true]:bg-gray-100",
       )}
+      onPointerDown={(e) => {
+        e.preventDefault();
+      }}
+      onPointerUp={(e) => {
+        e.preventDefault();
+        // Mobile touches have some sort of delay that can cause the next page's option's
+        // onClick / onSelect to be triggered so we delay this by 100ms to account for it
+        isMobile ? setTimeout(onSelect, 100) : onSelect();
+      }}
       onSelect={onSelect}
-      value={label}
+      value={label + option?.value}
     >
       <span className="shrink-0 text-gray-600">
         {isReactNode(Icon) ? Icon : <Icon className="h-4 w-4" />}
@@ -345,10 +392,11 @@ function FilterButton({
 const CommandEmpty = ({
   search,
   askAI,
-}: {
+  children,
+}: PropsWithChildren<{
   search: string;
   askAI?: boolean;
-}) => {
+}>) => {
   if (askAI && search) {
     return (
       <Command.Empty className="flex min-w-[180px] items-center space-x-2 rounded-md bg-gray-100 px-3 py-2">
@@ -361,7 +409,7 @@ const CommandEmpty = ({
   } else {
     return (
       <Command.Empty className="p-2 text-center text-sm text-gray-400">
-        No matches
+        {children}
       </Command.Empty>
     );
   }

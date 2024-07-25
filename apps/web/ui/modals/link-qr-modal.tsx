@@ -91,7 +91,7 @@ export function QRCodePicker({
       ...(showLogo && {
         imageSettings: {
           src:
-            logo && plan !== "free" ? logo : "https://dub.co/_static/logo.svg",
+            logo && plan !== "free" ? logo : "https://assets.dub.co/logo.png",
           height: 256,
           width: 256,
           excavate: true,
@@ -227,9 +227,9 @@ export function QRCodePicker({
           >
             <>
               <button
-                onClick={() => {
+                onClick={async () => {
                   download(
-                    getQRAsSVGDataUri({
+                    await getQRAsSVGDataUri({
                       ...qrData,
                       ...(qrData.imageSettings && {
                         imageSettings: {
@@ -237,7 +237,7 @@ export function QRCodePicker({
                           src:
                             logo && plan !== "free"
                               ? logo
-                              : "https://dub.co/_static/logo.svg",
+                              : "https://assets.dub.co/logo.png",
                         },
                       }),
                     }),

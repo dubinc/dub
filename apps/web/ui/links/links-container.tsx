@@ -2,74 +2,130 @@
 
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
-import { MaxWidthWrapper } from "@dub/ui";
-import { Suspense } from "react";
-import { useLinkFiltersModal } from "../modals/link-filters-modal";
+import { LinkWithTagsProps, UserProps } from "@/lib/types";
+import { CardList, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
+import { useSearchParams } from "next/navigation";
+import {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useContext,
+  useState,
+} from "react";
 import ArchivedLinksHint from "./archived-links-hint";
-import LinkCard from "./link-card";
+import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
-import LinkFilters, { InputSearchBox } from "./link-filters";
-import LinkPagination from "./link-pagination";
-import LinkSort from "./link-sort";
+import LinkNotFound from "./link-not-found";
+import { LinksDisplayContext } from "./links-display-provider";
 import NoLinksPlaceholder from "./no-links-placeholder";
+
+export type ResponseLink = LinkWithTagsProps & {
+  user: UserProps;
+};
 
 export default function LinksContainer({
   AddEditLinkButton,
 }: {
   AddEditLinkButton: () => JSX.Element;
 }) {
-  const { links, isValidating } = useLinks();
+  const { viewMode, sort, showArchived } = useContext(LinksDisplayContext);
+
+  const { links, isValidating } = useLinks({ sort, showArchived });
   const { data: count } = useLinksCount();
-  const { LinkFiltersButton, LinkFiltersModal } = useLinkFiltersModal();
 
   return (
-    <>
-      <LinkFiltersModal />
-      <MaxWidthWrapper className="flex flex-col space-y-3 py-3">
-        <div className="flex h-10 w-full justify-center lg:justify-end">
-          <LinkFiltersButton />
-          <Suspense>
-            <LinkSort />
-          </Suspense>
-        </div>
-        <div className="block lg:hidden">
-          <InputSearchBox />
-        </div>
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
-          <div className="scrollbar-hide sticky top-14 col-span-2 hidden max-h-[calc(100vh-80px)] self-start overflow-auto rounded-lg border border-gray-200 bg-white lg:block">
-            <Suspense>
-              <LinkFilters />
-            </Suspense>
-          </div>
-          <div className="col-span-1 auto-rows-min grid-cols-1 lg:col-span-5">
-            <ul className="grid min-h-[66.5vh] auto-rows-min gap-3">
-              {links && !isValidating ? (
-                links.length > 0 ? (
-                  links.map((props) => (
-                    <Suspense key={props.id} fallback={<LinkCardPlaceholder />}>
-                      <LinkCard props={props} />
-                    </Suspense>
-                  ))
-                ) : (
-                  <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
-                )
-              ) : (
-                Array.from({ length: 10 }).map((_, i) => (
-                  <LinkCardPlaceholder key={i} />
-                ))
-              )}
-              <Suspense>
-                <ArchivedLinksHint />
-              </Suspense>
-            </ul>
-            {count && count > 0 ? (
-              <Suspense>
-                <LinkPagination />
-              </Suspense>
-            ) : null}
-          </div>
-        </div>
-      </MaxWidthWrapper>
-    </>
+    <MaxWidthWrapper className="grid gap-y-2">
+      <LinksList
+        AddEditLinkButton={AddEditLinkButton}
+        links={links}
+        count={count}
+        loading={isValidating}
+        compact={viewMode === "rows"}
+      />
+    </MaxWidthWrapper>
+  );
+}
+
+export const LinksListContext = createContext<{
+  openMenuLinkId: string | null;
+  setOpenMenuLinkId: Dispatch<SetStateAction<string | null>>;
+}>({
+  openMenuLinkId: null,
+  setOpenMenuLinkId: () => {},
+});
+
+function LinksList({
+  AddEditLinkButton,
+  links,
+  count,
+  loading,
+  compact,
+}: {
+  AddEditLinkButton: () => JSX.Element;
+  links?: ResponseLink[];
+  count?: number;
+  loading?: boolean;
+  compact: boolean;
+}) {
+  const { queryParams } = useRouterStuff();
+  const searchParams = useSearchParams();
+  const page = (parseInt(searchParams?.get("page") || "1") || 1) - 1;
+
+  const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
+
+  const isFiltered = [
+    "domain",
+    "tagId",
+    "userId",
+    "search",
+    "showArchived",
+  ].some((param) => searchParams.has(param));
+
+  return loading || links?.length ? (
+    <LinksListContext.Provider value={{ openMenuLinkId, setOpenMenuLinkId }}>
+      {/* Cards */}
+      <CardList variant={compact ? "compact" : "loose"} loading={loading}>
+        {links?.length
+          ? // Link cards
+            links.map((link) => <LinkCard link={link} />)
+          : // Loading placeholder cards
+            Array.from({ length: 6 }).map((_, idx) => (
+              <CardList.Card
+                key={idx}
+                outerClassName="pointer-events-none"
+                innerClassName="flex items-center gap-4"
+              >
+                <LinkCardPlaceholder />
+              </CardList.Card>
+            ))}
+      </CardList>
+
+      {/* Pagination */}
+      {!!links?.length && (
+        <CardList.Pagination
+          page={page}
+          onPageChange={(p) => {
+            const newPage = p(page);
+            queryParams(
+              newPage === 0
+                ? { del: "page" }
+                : {
+                    set: {
+                      page: (newPage + 1).toString(),
+                    },
+                  },
+            );
+          }}
+          totalCount={count ?? links.length}
+          resourceName={(plural) => `${plural ? "links" : "link"}`}
+        >
+          <ArchivedLinksHint />
+        </CardList.Pagination>
+      )}
+    </LinksListContext.Provider>
+  ) : isFiltered ? (
+    <LinkNotFound />
+  ) : (
+    <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
   );
 }

@@ -218,9 +218,9 @@ function AddTagButton({
   return (
     <div>
       <Button
-        variant="secondary"
-        text="Add"
-        className="h-7 px-2"
+        variant="primary"
+        text="Add Tag"
+        className="h-9 rounded-lg"
         disabledTooltip={
           exceededTags ? (
             <TooltipContent

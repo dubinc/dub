@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
-import { getParamsFromURL, truncate } from "@dub/utils";
+import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
@@ -29,6 +29,8 @@ export async function bulkUpdateLinks(
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
+  const imageUrlNonce = nanoid(7);
+
   const updatedLinks = await Promise.all(
     linkIds.map((linkId) =>
       prisma.link.update({
@@ -38,11 +40,12 @@ export async function bulkUpdateLinks(
         data: {
           ...rest,
           url,
+          proxy,
           title: truncate(title, 120),
           description: truncate(description, 240),
           image:
             proxy && image && !isStored(image)
-              ? `${process.env.STORAGE_BASE_URL}/images/${linkIds[0]}`
+              ? `${R2_URL}/images/${linkIds[0]}_${imageUrlNonce}`
               : image,
           expiresAt: expiresAt ? new Date(expiresAt) : null,
           geo: geo || Prisma.JsonNull,
@@ -101,7 +104,7 @@ export async function bulkUpdateLinks(
       proxy &&
         image &&
         !isStored(image) &&
-        storage.upload(`images/${linkIds[0]}`, image, {
+        storage.upload(`images/${linkIds[0]}_${imageUrlNonce}`, image, {
           width: 1200,
           height: 630,
         }),
