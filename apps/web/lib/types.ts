@@ -72,24 +72,8 @@ export type RoleProps = (typeof roles)[number];
 export type BetaFeatures = "conversions" | "integrations" | "dublink";
 
 export interface WorkspaceProps extends Project {
-  id: string;
-  name: string;
-  slug: string;
   logo: string | null;
-  usage: number;
-  usageLimit: number;
-  aiUsage: number;
-  aiLimit: number;
-  linksUsage: number;
-  linksLimit: number;
-  domainsLimit: number;
-  tagsLimit: number;
-  usersLimit: number;
   plan: PlanProps;
-  stripeId: string | null;
-  billingCycleStart: number;
-  stripeConnectId: string | null;
-  createdAt: Date;
   domains: {
     id: string;
     slug: string;
@@ -99,7 +83,6 @@ export interface WorkspaceProps extends Project {
   users: {
     role: RoleProps;
   }[];
-  inviteCode: string;
   flags?: {
     [key in BetaFeatures]: boolean;
   };
