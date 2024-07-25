@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { LinkProps } from "@/lib/types";
 
-export const sendToZapier = async (link) => {
+export const sendToZapier = async (link: LinkProps) => {
   if (!link.projectId) {
     return;
   }

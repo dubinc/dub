@@ -97,13 +97,9 @@ export const POST = withWorkspace(
     try {
       const response = await createLink(link);
 
-      waitUntil(
-        (async () => {
-          if (response.projectId) {
-            await sendToZapier(response);
-          }
-        })(),
-      );
+      if (workspace && workspace.zapierHookEnabled) {
+        waitUntil(sendToZapier(response));
+      }
 
       return NextResponse.json(response, { headers });
     } catch (error) {
