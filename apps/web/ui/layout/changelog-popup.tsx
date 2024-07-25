@@ -6,12 +6,13 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://dub.co/blog/announcing-dub-api";
-const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/dub-api.jpg";
-const CHANGELOG_TITLE = "Announcing the Dub API GA";
+const CHANGELOG_URL = "https://dub.co/blog/new-links-dashboard";
+const CHANGELOG_IMAGE_URL =
+  "https://assets.dub.co/blog/new-links-dashboard.jpg";
+const CHANGELOG_TITLE = "Introducing the new Dub links dashboard";
 const CHANGELOG_DESCRIPTION =
-  "We're excited to announce that the Dub API is now generally available, with native SDKs in the languages you love.";
-const CHANGELOG_ID = "hideChangelogPopup07092024";
+  "Today, we're launching our new links dashboard – redesigned from the ground up – to help you better manage your links.";
+const CHANGELOG_ID = "hideChangelogPopup07252024";
 
 export default function ChangelogPopup() {
   return (
@@ -50,12 +51,12 @@ export function ChangelogPopupInner() {
           <BlurImage
             src={CHANGELOG_IMAGE_URL}
             alt="Root Domain Links"
-            className="aspect-video object-cover"
-            width={1600}
-            height={900}
+            className="aspect-[1200/630] object-cover"
+            width={1200}
+            height={630}
           />
         </div>
-        <div className="grid max-w-xs gap-1.5 p-4 text-center">
+        <div className="grid max-w-sm gap-1.5 p-4 text-center">
           <p className="text-center font-semibold text-gray-800 underline-offset-4 group-hover:underline">
             {CHANGELOG_TITLE}
           </p>
