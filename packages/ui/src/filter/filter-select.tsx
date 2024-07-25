@@ -13,7 +13,11 @@ import {
   useState,
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
-import { useMediaQuery, useResizeObserver } from "../hooks";
+import {
+  useKeyboardShortcut,
+  useMediaQuery,
+  useResizeObserver,
+} from "../hooks";
 import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
 import { Filter, FilterOption } from "./types";
@@ -54,6 +58,11 @@ export function FilterSelect({
   }>();
 
   const [isOpen, setIsOpen] = useState(false);
+
+  useKeyboardShortcut("f", () => setIsOpen(true), {
+    enabled: !isOpen,
+  });
+
   const [search, setSearch] = useState("");
   const [selectedFilterKey, setSelectedFilterKey] = useState<
     Filter["key"] | null
