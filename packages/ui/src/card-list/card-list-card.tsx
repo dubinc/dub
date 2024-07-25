@@ -52,6 +52,7 @@ export function CardListCard({
                   target = target.parentElement as HTMLElement, i++
                 ) {
                   if (
+                    target &&
                     ["button", "a", "input", "textarea"].includes(
                       target.tagName.toLowerCase(),
                     )

@@ -88,6 +88,7 @@ export function QRCodePicker({
       fgColor,
       size: 1024,
       level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
+      includeMargin: true,
       ...(showLogo && {
         imageSettings: {
           src:
@@ -126,14 +127,13 @@ export function QRCodePicker({
       </div>
 
       <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left">
-        <div className="mx-auto rounded-lg border-2 border-gray-200 bg-white p-4">
+        <div className="mx-auto overflow-hidden rounded-lg border-2 border-gray-200 bg-white p-4">
           <QRCodeSVG
             value={qrData.value}
             size={qrData.size / 8}
             bgColor={qrData.bgColor}
             fgColor={qrData.fgColor}
             level={qrData.level}
-            includeMargin={false}
             {...(qrData.imageSettings && {
               imageSettings: {
                 ...qrData.imageSettings,
