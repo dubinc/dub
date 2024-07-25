@@ -1,4 +1,3 @@
-import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import {
@@ -11,7 +10,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
-import { cn, fetcher, nFormatter, timeAgo } from "@dub/utils";
+import { cn, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -21,7 +20,6 @@ import {
   useRef,
   useState,
 } from "react";
-import useSWR from "swr";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
@@ -139,27 +137,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
 
-  const { data: totalEvents } = useSWR<{
-    [key in CompositeAnalyticsResponseOptions]?: number;
-  }>(
-    // Only fetch data if there's a slug and the usage is not exceeded
-    workspaceId &&
-      variant === "loose" &&
-      !exceededClicks &&
-      `/api/analytics?event=composite&workspaceId=${workspaceId}&linkId=${id}&interval=all_unfiltered`,
-    fetcher,
-    {
-      fallbackData: {
-        clicks: link.clicks,
-        leads: link.leads,
-        sales: link.sales,
-      },
-      dedupingInterval: 60000,
-    },
-  );
-
   const [hoveredId, setHoveredId] = useState<string>("clicks");
-  const hoveredValue = totalEvents?.[hoveredId];
+  const hoveredValue = link[hoveredId];
 
   return isMobile ? (
     <Link
@@ -167,7 +146,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
       className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800"
     >
       <CursorRays className="h-4 w-4 text-gray-600" />
-      {nFormatter(totalEvents?.clicks)}
+      {nFormatter(hoveredValue)}
     </Link>
   ) : (
     <Tooltip
@@ -202,7 +181,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
             {
               id: "clicks",
               icon: CursorRays,
-              value: totalEvents?.clicks,
+              value: link.clicks,
               label: trackConversion ? undefined : "clicks",
             },
             ...(trackConversion
@@ -210,13 +189,13 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   {
                     id: "leads",
                     icon: Crosshairs,
-                    value: totalEvents?.leads,
+                    value: link.leads,
                     className: "hidden sm:flex",
                   },
                   {
                     id: "sales",
                     icon: InvoiceDollar,
-                    value: totalEvents?.sales,
+                    value: link.sales,
                     className: "hidden sm:flex",
                   },
                 ]
