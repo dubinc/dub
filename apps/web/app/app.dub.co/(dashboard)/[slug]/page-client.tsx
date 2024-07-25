@@ -22,8 +22,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { CloudUpload, Download, Tag } from "@dub/ui/src/icons";
-import { Sheet } from "lucide-react";
+import { CloudUpload, Download, Table, Tag } from "@dub/ui/src/icons";
 import { useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -242,16 +241,18 @@ const MoreLinkOptions = () => {
                         }
                       />
                     </ImportOption>
-                  </div>
-                  <div className="p-2">
-                    <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
-                      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
-                        <IconMenu
-                          text="Import from CSV"
-                          icon={<Sheet className="h-4 w-4" />}
-                        />
-                      </div>
-                    </Tooltip>
+                    <ImportOption
+                      onClick={() => {
+                        setOpenPopover(false);
+                        router.push(`/${slug}?import=csv`);
+                      }}
+                      setOpenPopover={setOpenPopover}
+                    >
+                      <IconMenu
+                        text="Import from CSV"
+                        icon={<Table className="h-4 w-4" />}
+                      />
+                    </ImportOption>
                   </div>
                 </>
               )}
