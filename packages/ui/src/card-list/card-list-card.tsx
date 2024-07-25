@@ -45,19 +45,27 @@ export function CardListCard({
         onClick={
           onClick
             ? (e) => {
+                const existingModalBackdrop =
+                  document.getElementById("modal-backdrop");
+
+                // Don't trigger onClick if there's already an open modal
+                if (existingModalBackdrop) {
+                  return;
+                }
+
                 // Traverse up the DOM tree to see if there's a clickable element between this card and the click
                 for (
                   let target = e.target as HTMLElement, i = 0;
-                  target !== e.currentTarget && i < 100; // Only go 100 levels deep
+                  target && target !== e.currentTarget && i < 100; // Only go 100 levels deep
                   target = target.parentElement as HTMLElement, i++
                 ) {
+                  // Don't trigger onClick if a clickable element inside the card was clicked
                   if (
-                    target &&
                     ["button", "a", "input", "textarea"].includes(
                       target.tagName.toLowerCase(),
                     )
                   )
-                    return; // Don't trigger onClick if a clickable element inside the card was clicked
+                    return;
                 }
 
                 onClick();
