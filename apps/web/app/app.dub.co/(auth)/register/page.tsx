@@ -2,6 +2,7 @@ import { BlurImage, Button, Logo } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { Suspense } from "react";
 import RegisterForm from "./form";
+import { SignUpWithEmailPassword } from "./signup-email-password";
 
 export const metadata = constructMetadata({
   title: `Create your ${process.env.NEXT_PUBLIC_APP_NAME} account`,
@@ -21,6 +22,8 @@ const logos = [
   "hashnode",
   "cal",
 ];
+
+export const runtime = "nodejs";
 
 export default function RegisterPage() {
   return (
@@ -53,17 +56,29 @@ export default function RegisterPage() {
               </a>
             </p>
           </div>
-          <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
-            <Suspense
-              fallback={
-                <>
-                  <Button disabled={true} text="" variant="secondary" />
-                  <div className="mx-auto h-5 w-3/4 rounded-lg bg-gray-100" />
-                </>
-              }
-            >
-              <RegisterForm />
-            </Suspense>
+          <div className="flex flex-col gap-5 bg-gray-50 px-4 py-8 sm:px-16">
+            <SignUpWithEmailPassword />
+
+            <div className="relative flex items-center">
+              <div className="border-subtle flex-grow border-t" />
+              <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal text-gray-700">
+                Or continue with
+              </span>
+              <div className="border-subtle flex-grow border-t" />
+            </div>
+
+            <div className="space-y-3">
+              <Suspense
+                fallback={
+                  <>
+                    <Button disabled={true} text="" variant="secondary" />
+                    <div className="mx-auto h-5 w-3/4 rounded-lg bg-gray-100" />
+                  </>
+                }
+              >
+                <RegisterForm />
+              </Suspense>
+            </div>
           </div>
         </div>
       </div>

@@ -87,7 +87,7 @@ export const SignInWithEmailPassword = () => {
             {...register("password")}
           />
           <Button
-            text="Sign in"
+            text="Sign In"
             type="submit"
             loading={isSubmitting}
             disabled={disabled}

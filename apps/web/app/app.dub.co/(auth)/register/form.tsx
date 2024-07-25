@@ -35,6 +35,7 @@ export default function RegisterForm() {
         icon={<Google className="h-4 w-4" />}
       />
       <Button
+        variant="secondary"
         text="Continue with GitHub"
         onClick={() => {
           setClickedGithub(true);
