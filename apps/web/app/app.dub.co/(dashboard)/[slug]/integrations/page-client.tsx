@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { OAuthAppProps } from "@/lib/types";
+import { InstalledIntegrationProps } from "@/lib/types";
 import IntegrationCard from "@/ui/integrations/integration-card";
 import { MaxWidthWrapper, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -11,10 +11,7 @@ import { redirect } from "next/navigation";
 export default function IntegrationsPageClient({
   integrations,
 }: {
-  integrations: (OAuthAppProps & {
-    installations: number;
-    installed: boolean;
-  })[];
+  integrations: InstalledIntegrationProps[];
 }) {
   const { slug, flags } = useWorkspace();
 

@@ -7,7 +7,7 @@ export default function useWorkspaces() {
     "/api/workspaces",
     fetcher,
     {
-      dedupingInterval: 30000,
+      dedupingInterval: 60000,
     },
   );
 

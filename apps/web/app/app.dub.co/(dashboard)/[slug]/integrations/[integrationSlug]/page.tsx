@@ -44,7 +44,6 @@ export default async function IntegrationPage({
     <IntegrationPageClient
       integration={{
         ...integration,
-        redirectUris: integration.redirectUris as string[],
         installations: integration._count.authorizedApps,
         installed:
           integration.authorizedApps.length > 0

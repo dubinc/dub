@@ -10,7 +10,7 @@ export default function useTags() {
     id && `/api/tags?workspaceId=${id}`,
     fetcher,
     {
-      dedupingInterval: 30000,
+      dedupingInterval: 60000,
     },
   );
 

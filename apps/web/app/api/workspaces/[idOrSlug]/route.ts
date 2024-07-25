@@ -40,11 +40,11 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    try {
-      const { name, slug } = await updateWorkspaceSchema.parseAsync(
-        await req.json(),
-      );
+    const { name, slug } = await updateWorkspaceSchema.parseAsync(
+      await req.json(),
+    );
 
+    try {
       const response = await prisma.project.update({
         where: {
           slug: workspace.slug,
@@ -81,11 +81,14 @@ export const PATCH = withWorkspace(
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
-          message: "Workspace slug already exists.",
+          message: `The slug "${slug}" is already in use.`,
+        });
+      } else {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: error.message,
         });
       }
-
-      throw error;
     }
   },
   {

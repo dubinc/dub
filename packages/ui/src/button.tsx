@@ -66,7 +66,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           >
             {icon}
             {text && (
-              <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>
+              <div className={cn(shortcut && "flex-1 text-left")}>{text}</div>
             )}
             {shortcut && (
               <kbd
@@ -90,7 +90,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
         type={props.onClick ? "button" : "submit"}
         className={cn(
-          "group flex h-10 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm",
+          "group flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border px-4 text-sm",
           props.disabled || loading
             ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
             : buttonVariants({ variant }),
@@ -100,7 +100,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? <LoadingSpinner /> : icon ? icon : null}
-        {text && <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>}
+        {text && (
+          <div className={cn(shortcut && "flex-1 text-left")}>{text}</div>
+        )}
         {shortcut && (
           <kbd
             className={cn(

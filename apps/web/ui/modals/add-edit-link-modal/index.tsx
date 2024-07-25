@@ -84,6 +84,7 @@ function AddEditLinkModal({
   const { slug } = params;
   const {
     id: workspaceId,
+    nextPlan,
     aiUsage,
     aiLimit,
     mutate: mutateWorkspace,
@@ -435,10 +436,10 @@ function AddEditLinkModal({
                 } else {
                   const { error } = await res.json();
                   if (error) {
-                    if (error.message.includes("Upgrade to Pro")) {
+                    if (error.message.includes("Upgrade to")) {
                       toast.custom(() => (
                         <UpgradeRequiredToast
-                          title="You've discovered a Pro feature!"
+                          title={`You've discovered a ${nextPlan.name} feature!`}
                           message={error.message}
                         />
                       ));
@@ -603,7 +604,7 @@ function AddEditLinkModal({
                           setData({ ...data, domain: e.target.value });
                         }}
                         className={cn(
-                          "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                          "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0 sm:text-sm",
                           props && lockKey && "cursor-not-allowed",
                           loading && "w-[6rem] text-transparent",
                         )}
@@ -714,18 +715,20 @@ function AddEditLinkModal({
                     )}
                   </div>
                   {keyError ? (
-                    keyError.includes("Upgrade to Pro") ? (
+                    keyError.includes("Upgrade to") ? (
                       <p className="mt-2 text-sm text-red-600" id="key-error">
-                        {keyError.split("Upgrade to Pro")[0]}
+                        {keyError.split(`Upgrade to ${nextPlan.name}`)[0]}
                         <span
                           className="cursor-pointer underline"
                           onClick={() =>
-                            queryParams({ set: { upgrade: "pro" } })
+                            queryParams({
+                              set: { upgrade: nextPlan.name.toLowerCase() },
+                            })
                           }
                         >
-                          Upgrade to Pro
+                          Upgrade to {nextPlan.name}
                         </span>
-                        {keyError.split("Upgrade to Pro")[1]}
+                        {keyError.split(`Upgrade to ${nextPlan.name}`)[1]}
                       </p>
                     ) : (
                       <p className="mt-2 text-sm text-red-600" id="key-error">
