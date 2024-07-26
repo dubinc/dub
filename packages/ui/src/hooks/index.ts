@@ -2,6 +2,7 @@ export * from "./use-cookies";
 export * from "./use-current-anchor";
 export * from "./use-enter-submit";
 export * from "./use-intersection-observer";
+export * from "./use-keyboard-shortcut";
 export * from "./use-local-storage";
 export * from "./use-media-query";
 export * from "./use-optimistic-update";
