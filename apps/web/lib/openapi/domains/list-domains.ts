@@ -14,6 +14,11 @@ export const listDomains: ZodOpenApiOperationObject = {
         in: "parameters",
         type: "page",
       },
+      {
+        name: "pageSize",
+        in: "parameters",
+        type: "limit",
+      },
     ],
     outputs: {
       results: "$",
