@@ -25,18 +25,25 @@ export default function UserDropdown() {
       <Popover
         content={
           <div className="flex w-full flex-col space-y-px rounded-md bg-white p-3 sm:w-56">
-            <Link
-              href="/"
-              className="p-2"
-              onClick={() => setOpenPopover(false)}
-            >
-              <p className="truncate text-sm font-medium text-gray-900">
-                {session?.user?.name || session?.user?.email?.split("@")[0]}
-              </p>
-              <p className="truncate text-sm text-gray-500">
-                {session?.user?.email}
-              </p>
-            </Link>
+            {session?.user ? (
+              <Link
+                href="/"
+                className="p-2"
+                onClick={() => setOpenPopover(false)}
+              >
+                <p className="truncate text-sm font-medium text-gray-900">
+                  {session.user.name || session.user.email?.split("@")[0]}
+                </p>
+                <p className="truncate text-sm text-gray-500">
+                  {session.user.email}
+                </p>
+              </Link>
+            ) : (
+              <div className="grid gap-2 px-2 py-3">
+                <div className="h-3 w-12 animate-pulse rounded-full bg-gray-200" />
+                <div className="h-3 w-20 animate-pulse rounded-full bg-gray-200" />
+              </div>
+            )}
             <Link
               href="https://dub.co/help"
               onClick={() => setOpenPopover(false)}
