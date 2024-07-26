@@ -1,19 +1,19 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
+import EmptyState from "@/ui/shared/empty-state";
+import { LinkLogo, Table, Tooltip, useRouterStuff, useTable } from "@dub/ui";
 import {
   CursorRays,
-  LinkLogo,
+  FilterBars,
+  Magnifier,
+  Menu3,
   QRCode,
-  Table,
-  Tooltip,
-  useRouterStuff,
-  useTable,
-} from "@dub/ui";
-import { FilterBars } from "@dub/ui/src/icons";
+} from "@dub/ui/src/icons";
 import {
   COUNTRIES,
   capitalize,
@@ -29,7 +29,6 @@ import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
-import EmptyState from "./empty-state";
 import ExportButton from "./export-button";
 import usePagination from "./use-pagination";
 
@@ -140,6 +139,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 };
 
 export default function EventsTable() {
+  const { id: workspaceId } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
   const tab = searchParams.get("tab") || "clicks";
 
@@ -410,13 +410,16 @@ export default function EventsTable() {
     fetcher,
     {
       keepPreviousData: true,
+      shouldRetryOnError: (err) => !err?.message?.includes("Need higher plan"),
     },
   );
+
+  const needsHigherPlan = Boolean(error?.message?.includes("Need higher plan"));
 
   const { table, ...tableProps } = useTable({
     data: data ?? defaultData,
     loading: isLoading,
-    error: error ? "Failed to fetch events." : undefined,
+    error: error && !needsHigherPlan ? "Failed to fetch events." : undefined,
     columns,
     pagination,
     onPaginationChange: setPagination,
@@ -441,7 +444,21 @@ export default function EventsTable() {
         </>
       );
     },
-    emptyState: <EmptyState />,
+    emptyState: needsHigherPlan ? (
+      <EmptyState
+        icon={Menu3}
+        title="Real-time Events Stream"
+        description={`Want more data on your ${tab === "clicks" ? "link clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
+        buttonText="Upgrade to Business"
+        buttonLink={`/${workspaceId}/settings/billing?upgrade=business`}
+      />
+    ) : (
+      <EmptyState
+        icon={Magnifier}
+        title="No events recorded"
+        description="Events will appear here when your links are clicked."
+      />
+    ),
     resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
