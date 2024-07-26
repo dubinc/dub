@@ -30,11 +30,9 @@ export default function UserDropdown() {
               className="p-2"
               onClick={() => setOpenPopover(false)}
             >
-              {session?.user?.name && (
-                <p className="truncate text-sm font-medium text-gray-900">
-                  {session?.user?.name}
-                </p>
-              )}
+              <p className="truncate text-sm font-medium text-gray-900">
+                {session?.user?.name || session?.user?.email?.split("@")[0]}
+              </p>
               <p className="truncate text-sm text-gray-500">
                 {session?.user?.email}
               </p>
