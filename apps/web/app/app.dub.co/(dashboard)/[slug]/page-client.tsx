@@ -22,7 +22,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { CloudUpload, Download, Table, Tag } from "@dub/ui/src/icons";
+import { CloudUpload, Download, TableIcon, Tag } from "@dub/ui/src/icons";
 import { useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -250,7 +250,7 @@ const MoreLinkOptions = () => {
                     >
                       <IconMenu
                         text="Import from CSV"
-                        icon={<Table className="h-4 w-4" />}
+                        icon={<TableIcon className="size-4" />}
                       />
                     </ImportOption>
                   </div>

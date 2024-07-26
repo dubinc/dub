@@ -6,7 +6,7 @@ import {
   Modal,
   useRouterStuff,
 } from "@dub/ui";
-import { Table } from "@dub/ui/src/icons";
+import { TableIcon } from "@dub/ui/src/icons";
 import { ArrowRight } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -116,7 +116,7 @@ function ImportCsvModal({
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <div className="flex size-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-50">
-            <Table className="size-5" />
+            <TableIcon className="size-5" />
           </div>
           <ArrowRight className="size-5 text-gray-600" />
           <Logo className="size-10" />

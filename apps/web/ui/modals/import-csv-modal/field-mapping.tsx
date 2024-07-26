@@ -1,5 +1,5 @@
 import { Button, IconMenu, Popover } from "@dub/ui";
-import { Check, Table } from "@dub/ui/src/icons";
+import { Check, TableIcon } from "@dub/ui/src/icons";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { Controller } from "react-hook-form";
@@ -53,7 +53,7 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
                     >
                       <IconMenu
                         text={column}
-                        icon={<Table className="h-4 w-4" />}
+                        icon={<TableIcon className="h-4 w-4" />}
                       />
                       {field.value === column && <Check className="h-4 w-4" />}
                     </button>

@@ -54,7 +54,7 @@ export * from "./robot";
 export * from "./shield-check";
 export * from "./sliders";
 export * from "./stars2";
-export * from "./table";
+export * from "./table-icon";
 export * from "./table-rows2";
 export * from "./tablet";
 export * from "./tag";
