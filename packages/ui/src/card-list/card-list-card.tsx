@@ -1,6 +1,13 @@
 import { cn } from "@dub/utils";
 import { cva } from "class-variance-authority";
-import { PropsWithChildren, createContext, useContext, useState } from "react";
+import {
+  PropsWithChildren,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { CardListContext } from "./card-list";
 
 const cardListCardVariants = cva("w-full group/card border-gray-200 bg-white", {
@@ -32,10 +39,25 @@ export function CardListCard({
 }>) {
   const { variant } = useContext(CardListContext);
 
+  const ref = useRef<HTMLLIElement>(null);
+
   const [hovered, setHovered] = useState(false);
+
+  // Detect when the card loses hover without an onPointerLeave (e.g. from a modal covering the element)
+  useEffect(() => {
+    if (!hovered || !ref.current) return;
+
+    // Check every second while the card is expected to still be hovered
+    const interval = setInterval(() => {
+      if (ref.current?.matches(":hover") === false) setHovered(false);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hovered]);
 
   return (
     <li
+      ref={ref}
       className={cn(cardListCardVariants({ variant }), outerClassName)}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}

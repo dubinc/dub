@@ -8,8 +8,17 @@ import EmptyState from "@/ui/shared/empty-state";
 import { CardList } from "@dub/ui";
 import { Tag } from "@dub/ui/src/icons";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
+import { Dispatch, SetStateAction, createContext, useState } from "react";
 import { TagCard } from "./tag-card";
 import { TagCardPlaceholder } from "./tag-card-placeholder";
+
+export const TagsListContext = createContext<{
+  openMenuTagId: string | null;
+  setOpenMenuTagId: Dispatch<SetStateAction<string | null>>;
+}>({
+  openMenuTagId: null,
+  setOpenMenuTagId: () => {},
+});
 
 export default function WorkspaceTagsClient() {
   const { id: workspaceId } = useWorkspace();
@@ -20,6 +29,8 @@ export default function WorkspaceTagsClient() {
   const { data: tagsCount } = useLinksCount({
     groupBy: "tagId",
   });
+
+  const [openMenuTagId, setOpenMenuTagId] = useState<string | null>(null);
 
   return (
     <>
@@ -47,15 +58,17 @@ export default function WorkspaceTagsClient() {
         {workspaceId && <AddEditTagModal />}
 
         {loading || tags?.length ? (
-          <CardList variant="compact" loading={loading}>
-            {tags?.length
-              ? tags.map((tag) => (
-                  <TagCard key={tag.id} tag={tag} tagsCount={tagsCount} />
-                ))
-              : Array.from({ length: 6 }).map((_, idx) => (
-                  <TagCardPlaceholder key={idx} />
-                ))}
-          </CardList>
+          <TagsListContext.Provider value={{ openMenuTagId, setOpenMenuTagId }}>
+            <CardList variant="compact" loading={loading}>
+              {tags?.length
+                ? tags.map((tag) => (
+                    <TagCard key={tag.id} tag={tag} tagsCount={tagsCount} />
+                  ))
+                : Array.from({ length: 6 }).map((_, idx) => (
+                    <TagCardPlaceholder key={idx} />
+                  ))}
+            </CardList>
+          </TagsListContext.Provider>
         ) : (
           <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
             <EmptyState icon={Tag} title="No tags found for this workspace" />

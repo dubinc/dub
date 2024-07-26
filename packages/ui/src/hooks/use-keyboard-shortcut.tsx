@@ -13,7 +13,7 @@ import {
 
 type KeyboardShortcutListener = {
   id: string;
-  key: string;
+  key: string | string[];
   callback: (e: KeyboardEvent) => void;
   enabled?: boolean;
   priority?: number;
@@ -51,7 +51,9 @@ export function KeyboardShortcutProvider({
 
       // Find enabled listeners that match the key
       const matchingListeners = listeners.filter(
-        (l) => l.key === e.key && l.enabled !== false,
+        (l) =>
+          l.enabled !== false &&
+          (Array.isArray(l.key) ? l.key.includes(e.key) : l.key === e.key),
       );
 
       if (!matchingListeners.length) return;
@@ -89,16 +91,21 @@ export function useKeyboardShortcut(
 
   const { setListeners } = useContext(KeyboardShortcutContext);
 
-  const { current: callback } = useRef(callbackArg);
+  // Use a ref rather than the callback directly in case it isn't stable
+  const callbackRef = useRef(callbackArg);
+
+  useEffect(() => {
+    callbackRef.current = callbackArg;
+  }, [callbackArg]);
 
   // Register/unregister the listener
   useEffect(() => {
     setListeners((prev) => [
       ...prev.filter((listener) => listener.id !== id),
-      { id, key, callback, ...options },
+      { id, key, callback: callbackRef.current, ...options },
     ]);
 
     return () =>
       setListeners((prev) => prev.filter((listener) => listener.id !== id));
-  }, [key, callback, options.enabled, options.priority]);
+  }, [JSON.stringify(key), options.enabled, options.priority]);
 }
