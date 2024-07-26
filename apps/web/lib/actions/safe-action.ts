@@ -14,6 +14,10 @@ export const actionClient = createSafeActionClient({
       serverError: "An unknown error occurred.",
     };
   },
+
+  handleServerErrorLog(originalError) {
+    console.error("Action error:", originalError.message);
+  },
 });
 
 export const authActionClient = actionClient.use(

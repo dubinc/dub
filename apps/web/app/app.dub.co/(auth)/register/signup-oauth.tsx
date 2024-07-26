@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function RegisterForm() {
+export default function SignupOAuth() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const [clickedGoogle, setClickedGoogle] = useState(false);

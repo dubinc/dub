@@ -7,32 +7,41 @@ import { Button, Input } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
-export const SignUpWithEmailPassword = () => {
+export default function SignUpEmail({
+  setAuthView,
+}: {
+  setAuthView: (view: "signup" | "otp") => void;
+}) {
   const router = useRouter();
   const { executeAsync, result, status, isExecuting } =
     useAction(createNewAccount);
 
   const {
+    reset,
     register,
     handleSubmit,
-    reset,
     formState: { errors, isDirty },
   } = useForm<z.infer<typeof signUpSchema>>({
-    // resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       email: "kiran@dub.co",
-      password: "1234aB#",
+      password: "12345678aB#",
     },
   });
+
+  useEffect(() => {
+    if (status === "hasSucceeded") {
+      setAuthView("otp");
+    }
+  }, [status]);
 
   const onSubmit = handleSubmit(async (data) => {
     await executeAsync(data);
 
     if (status === "hasSucceeded") {
-      toast.success("account created");
       reset();
     }
   });
@@ -82,4 +91,4 @@ export const SignUpWithEmailPassword = () => {
       </form>
     </>
   );
-};
+}
