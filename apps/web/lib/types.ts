@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link } from "@prisma/client";
+import { Link, Project } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
@@ -71,25 +71,9 @@ export type RoleProps = (typeof roles)[number];
 
 export type BetaFeatures = "conversions" | "integrations" | "dublink";
 
-export interface WorkspaceProps {
-  id: string;
-  name: string;
-  slug: string;
+export interface WorkspaceProps extends Project {
   logo: string | null;
-  usage: number;
-  usageLimit: number;
-  aiUsage: number;
-  aiLimit: number;
-  linksUsage: number;
-  linksLimit: number;
-  domainsLimit: number;
-  tagsLimit: number;
-  usersLimit: number;
   plan: PlanProps;
-  stripeId: string | null;
-  billingCycleStart: number;
-  stripeConnectId: string | null;
-  createdAt: Date;
   domains: {
     id: string;
     slug: string;
@@ -99,7 +83,6 @@ export interface WorkspaceProps {
   users: {
     role: RoleProps;
   }[];
-  inviteCode: string;
   flags?: {
     [key in BetaFeatures]: boolean;
   };
