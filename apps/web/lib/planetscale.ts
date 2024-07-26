@@ -64,6 +64,7 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
         title: string;
         description: string;
         image: string;
+        video: string;
         rewrite: number;
         password: string | null;
         expiresAt: string | null;

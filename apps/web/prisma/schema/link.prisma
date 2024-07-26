@@ -15,6 +15,7 @@ model Link {
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
+  video       String? @db.LongText // OG video for the link
 
   // UTM parameters
   utm_source   String? // UTM source for the link (e.g. youtube.com)

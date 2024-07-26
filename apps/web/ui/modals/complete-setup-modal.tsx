@@ -25,7 +25,7 @@ function CompleteSetupModal({
   const { slug } = useParams() as { slug: string };
 
   const { data: domainsCount } = useDomainsCount();
-  const { data: count } = useLinksCount();
+  const { data: count } = useLinksCount({ ignoreParams: true });
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
   const { setShowAddEditLinkModal } = useContext(ModalContext);

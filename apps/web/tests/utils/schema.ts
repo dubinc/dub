@@ -13,6 +13,7 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   title: null,
   description: null,
   image: null,
+  video: null,
   utm_source: null,
   utm_medium: null,
   utm_campaign: null,

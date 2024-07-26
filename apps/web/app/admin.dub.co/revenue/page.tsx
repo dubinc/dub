@@ -21,6 +21,7 @@ async function RevenueRSC() {
       headers: {
         Authorization: process.env.PROFITWELL_API_KEY as string,
       },
+      cache: "no-store",
     },
   )
     .then((res) => res.json())

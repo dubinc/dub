@@ -2,10 +2,16 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import { z } from "zod";
 import { LinkWithTagsProps, UserProps } from "../types";
+import { getLinksQuerySchema } from "../zod/schemas/links";
 import useWorkspace from "./use-workspace";
 
-export default function useLinks() {
+const partialQuerySchema = getLinksQuerySchema.partial();
+
+export default function useLinks(
+  opts: z.infer<typeof partialQuerySchema> = {},
+) {
   const { id } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
@@ -23,13 +29,13 @@ export default function useLinks() {
   >(
     id
       ? `/api/links${getQueryString(
-          { workspaceId: id, includeUser: "true" },
+          { workspaceId: id, includeUser: "true", ...opts },
           {
             ignore: ["import", "upgrade", "newLink"],
           },
         )}`
       : admin
-        ? `/api/admin/links${getQueryString()}`
+        ? `/api/admin/links${getQueryString(opts)}`
         : null,
     fetcher,
     {

@@ -16,6 +16,7 @@ export function LinkLogo({
       className={cn("h-8 w-8 rounded-full sm:h-10 sm:w-10", className)}
       width={20}
       height={20}
+      draggable={false}
     />
   ) : (
     <div

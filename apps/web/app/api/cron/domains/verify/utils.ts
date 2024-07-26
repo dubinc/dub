@@ -62,6 +62,9 @@ export const handleDomainUpdates = async ({
           user: {
             isMachine: false,
           },
+          notificationPreference: {
+            domainConfigurationUpdates: true,
+          },
         },
       },
     },
@@ -193,6 +196,7 @@ const sendDomainInvalidEmail = async ({
           subject: `Your domain ${domain} needs to be configured`,
           email,
           react: InvalidDomain({
+            appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
             email,
             domain,
             workspaceSlug,
