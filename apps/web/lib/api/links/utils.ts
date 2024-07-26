@@ -45,20 +45,13 @@ export async function keyChecks({
   key: string;
   workspace?: Pick<WorkspaceProps, "plan">;
 }): Promise<{ error: string | null; code?: DubApiError["code"] }> {
-  if (key.length === 0 || key === "_root") {
-    if (workspace?.plan === "free") {
-      return {
-        error:
-          "You can only set a redirect for your root domain on a Pro plan and above. Upgrade to Pro to unlock this feature.",
-        code: "forbidden",
-      };
-    } else {
-      return {
-        error:
-          "To set a redirect for your root domain, navigate to your Domains tab and click 'Edit' on the domain you want to update.",
-        code: "unprocessable_entity",
-      };
-    }
+  console.log({ domain, key });
+  if ((key.length === 0 || key === "_root") && workspace?.plan === "free") {
+    return {
+      error:
+        "You can only set a redirect for your root domain on a Pro plan and above. Upgrade to Pro to unlock this feature.",
+      code: "forbidden",
+    };
   }
 
   const link = await checkIfKeyExists(domain, key);
