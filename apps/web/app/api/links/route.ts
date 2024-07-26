@@ -1,6 +1,7 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
+import { sendToZapier } from "@/lib/api/links/send-to-zapier";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -10,6 +11,7 @@ import {
   getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas/links";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
@@ -94,6 +96,11 @@ export const POST = withWorkspace(
 
     try {
       const response = await createLink(link);
+
+      if (workspace && workspace.zapierHookEnabled) {
+        waitUntil(sendToZapier(response));
+      }
+
       return NextResponse.json(response, { headers });
     } catch (error) {
       if (error.code === "P2002") {
