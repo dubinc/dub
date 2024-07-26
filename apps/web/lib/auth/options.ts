@@ -18,6 +18,7 @@ import { dub } from "../dub";
 import { subscribe } from "../flodesk";
 import { isStored, storage } from "../storage";
 import { UserProps } from "../types";
+import { ratelimit } from "../upstash";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -208,8 +209,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
-        // TODO:
-        // Rate limit login attempts by IP address or email
+        const { success } = await ratelimit(5, "1 m").limit(
+          `login-attempts:${email}`,
+        );
+
+        if (!success) {
+          throw new Error("too-many-login-attempts");
+        }
 
         const user = await prisma.user.findUnique({
           where: { email },

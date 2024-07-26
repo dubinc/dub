@@ -14,6 +14,7 @@ const errorCodes = {
   "invalid-credentials": "Email or password is incorrect.",
   "exceeded-login-attempts":
     "Account has been locked due to too many login attempts. Please contact support to unlock your account.",
+  "too-many-login-attempts": "Too many login attempts. Please try again later.",
 };
 
 export const SignInWithEmailPassword = () => {
