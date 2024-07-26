@@ -148,32 +148,40 @@ export function FilterSelect({
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
         >
           <Command loop>
-            <CommandInput
-              placeholder={`${selectedFilter?.label || "Filter"}...`}
-              value={search}
-              onValueChange={setSearch}
-              onKeyDown={(e) => {
-                if (e.key === "Escape" || (e.key === "Backspace" && !search)) {
+            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">
+              <CommandInput
+                placeholder={`${selectedFilter?.label || "Filter"}...`}
+                value={search}
+                onValueChange={setSearch}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Escape" ||
+                    (e.key === "Backspace" && !search)
+                  ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectedFilterKey ? reset() : setIsOpen(false);
+                  }
+                }}
+                emptySubmit={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  selectedFilterKey ? reset() : setIsOpen(false);
-                }
-              }}
-              emptySubmit={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (askAI) {
-                  onSelect(
-                    "ai",
-                    // Prepend search with selected filter label for more context
-                    selectedFilter
-                      ? `${selectedFilter.label} ${search}`
-                      : search,
-                  );
-                  setIsOpen(false);
-                } else selectOption(search);
-              }}
-            />
+                  if (askAI) {
+                    onSelect(
+                      "ai",
+                      // Prepend search with selected filter label for more context
+                      selectedFilter
+                        ? `${selectedFilter.label} ${search}`
+                        : search,
+                    );
+                    setIsOpen(false);
+                  } else selectOption(search);
+                }}
+              />
+              <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                F
+              </kbd>
+            </div>
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
               <Command.List
                 className={cn(
@@ -256,9 +264,6 @@ export function FilterSelect({
         <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
           {children ?? "Filter"}
         </span>
-        <kbd className="hidden rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:inline-block">
-          F
-        </kbd>
         {activeFilters?.length ? (
           <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-black text-[0.625rem] text-white">
             {activeFilters.length}
@@ -293,7 +298,7 @@ const CommandInput = (
     <Command.Input
       {...props}
       size={1}
-      className="w-full rounded-t-lg border-0 border-b border-gray-200 px-4 py-3 text-sm ring-0 placeholder:text-gray-400 focus:border-gray-200 focus:ring-0"
+      className="grow border-0 py-3 pl-4 pr-2 text-sm outline-none placeholder:text-gray-400 focus:ring-0"
       onKeyDown={(e) => {
         props.onKeyDown?.(e);
 
