@@ -23,12 +23,25 @@ const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
-      sendVerificationRequest({ identifier, url }) {
+      async sendVerificationRequest({ identifier, url }) {
+        let link = url;
+        try {
+          const { shortLink } = await dub.links.create({
+            domain: "d.to",
+            url,
+            archived: true,
+            tagIds: ["clz20tm1f0003onht3q6f11me"],
+          });
+          link = shortLink;
+        } catch (error) {
+          console.error(error);
+        }
+
         if (process.env.NODE_ENV === "development") {
-          console.log(`Login link: ${url}`);
+          console.log(`Login link: ${link}`);
           return;
         } else {
-          sendEmail({
+          await sendEmail({
             email: identifier,
             subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
             react: LoginLink({ url, email: identifier }),
