@@ -37,7 +37,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
 });
 
 // DELETE /api/zapier/unsubscribe - Unsubscribe from a Zapier hook
-export const DELETE = withWorkspace(async ({ workspace, req, searchParams }) => {
+export const DELETE = withWorkspace(async ({ workspace, searchParams }) => {
   const { id } = unsubscribeSchema.parse(searchParams);
 
   const hook = await prisma.zapierHook.delete({
