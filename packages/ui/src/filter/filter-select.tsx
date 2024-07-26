@@ -252,21 +252,22 @@ export function FilterSelect({
           className,
         )}
       >
-        <ListFilter className="h-4 w-4 shrink-0" />
+        <ListFilter className="size-4 shrink-0" />
         <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
           {children ?? "Filter"}
         </span>
-        <div className="ml-1">
-          {activeFilters?.length ? (
-            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-black text-[0.625rem] text-white">
-              {activeFilters.length}
-            </div>
-          ) : (
-            <ChevronDown
-              className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
-            />
-          )}
-        </div>
+        <kbd className="hidden rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:inline-block">
+          F
+        </kbd>
+        {activeFilters?.length ? (
+          <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-black text-[0.625rem] text-white">
+            {activeFilters.length}
+          </div>
+        ) : (
+          <ChevronDown
+            className={`size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+          />
+        )}
       </button>
     </Popover>
   );
