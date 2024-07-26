@@ -5,7 +5,7 @@ import { TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
-import { Button, CardList, Popover } from "@dub/ui";
+import { Button, CardList, Popover, useKeyboardShortcut } from "@dub/ui";
 import {
   CircleCheck,
   Copy,
@@ -14,9 +14,10 @@ import {
 } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { TagsListContext } from "./page-client";
 
 export function TagCard({
   tag,
@@ -29,7 +30,12 @@ export function TagCard({
 
   const linksCount = tagsCount?.find(({ tagId }) => tagId === tag.id)?._count;
 
-  const [openPopover, setOpenPopover] = useState(false);
+  const { openMenuTagId, setOpenMenuTagId } = useContext(TagsListContext);
+  const openPopover = openMenuTagId === tag.id;
+  const setOpenPopover = (open: boolean) => {
+    setOpenMenuTagId(open ? tag.id : null);
+  };
+
   const [processing, setProcessing] = useState(false);
 
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal({
@@ -46,6 +52,13 @@ export function TagCard({
   };
 
   const handleDelete = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this tag? All tagged links will be untagged, but they won't be deleted.",
+      )
+    )
+      return;
+
     setProcessing(true);
     fetch(`/api/tags/${tag.id}?workspaceId=${id}`, {
       method: "DELETE",
@@ -128,12 +141,7 @@ export function TagCard({
                 <Button
                   text="Delete"
                   variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    confirm(
-                      "Are you sure you want to delete this tag? All tagged links will be untagged, but they won't be deleted.",
-                    ) && handleDelete();
-                  }}
+                  onClick={handleDelete}
                   icon={<Delete className="h-4 w-4" />}
                   shortcut="X"
                   className="h-9 px-2 font-medium"
@@ -163,7 +171,44 @@ export function TagCard({
             />
           </Popover>
         </div>
+
+        {/* Use consumer + separate component to use hovered state from CardList.Card context */}
+        <CardList.Card.Context.Consumer>
+          {({ hovered }) => (
+            <TagCardKeyboardShortcuts
+              enabled={openPopover || (hovered && openMenuTagId === null)}
+              onKeyDown={(e) => {
+                setOpenPopover(false);
+                switch (e.key) {
+                  case "e":
+                    setShowAddEditTagModal(true);
+                    break;
+                  case "i":
+                    copyTagId();
+                    break;
+                  case "x":
+                    handleDelete();
+                    break;
+                }
+              }}
+            />
+          )}
+        </CardList.Card.Context.Consumer>
       </CardList.Card>
     </>
   );
+}
+
+function TagCardKeyboardShortcuts({
+  enabled,
+  onKeyDown,
+}: {
+  enabled: boolean;
+  onKeyDown: (e: KeyboardEvent) => void;
+}) {
+  useKeyboardShortcut(["e", "i", "x"], onKeyDown, {
+    enabled,
+  });
+
+  return null;
 }
