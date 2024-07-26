@@ -5,7 +5,7 @@ import {
   formatDate,
   validDomainRegex,
 } from "@dub/utils";
-import { booleanQuerySchema } from "./misc";
+import { booleanQuerySchema, paginationQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
 import {
   parseDateSchema,
@@ -80,16 +80,8 @@ export const getLinksQuerySchema = LinksQuerySchema.merge(
       .describe(
         "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
       ),
-    page: z.coerce
-      .number()
-      .int()
-      .nonnegative()
-      .optional()
-      .describe(
-        "The page number for pagination (each page contains 100 links).",
-      ),
   }),
-);
+).merge(paginationQuerySchema);
 
 export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   z.object({
@@ -101,7 +93,7 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
 );
 
 export const linksExportQuerySchema = getLinksQuerySchema
-  .omit({ page: true })
+  .omit({ page: true, pageSize: true })
   .merge(
     z.object({
       columns: z
