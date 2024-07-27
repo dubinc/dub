@@ -49,7 +49,6 @@ export const PUT = withWorkspace(
         ggllink: defaultDomains.includes("ggl.link"),
         figpage: defaultDomains.includes("fig.page"),
         loooooooong: defaultDomains.includes("loooooooo.ng"),
-        dublocalhost: defaultDomains.includes("dub.localhost"),
       },
     });
 
