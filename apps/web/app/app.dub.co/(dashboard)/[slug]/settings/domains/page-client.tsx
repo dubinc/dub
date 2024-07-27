@@ -105,7 +105,7 @@ export default function WorkspaceDomainsClient() {
             )
           ) : (
             <ul className="grid grid-cols-1 gap-3">
-              {Array.from({ length: 6 }).map((_, idx) => (
+              {Array.from({ length: 10 }).map((_, idx) => (
                 <li key={idx}>
                   <DomainCardPlaceholder />
                 </li>

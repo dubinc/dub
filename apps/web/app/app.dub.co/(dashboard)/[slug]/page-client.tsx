@@ -33,6 +33,14 @@ import {
 } from "react";
 
 export default function WorkspaceLinksClient() {
+  return (
+    <LinksDisplayProvider>
+      <WorkspaceLinks />
+    </LinksDisplayProvider>
+  );
+}
+
+function WorkspaceLinks() {
   const router = useRouter();
 
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
@@ -46,7 +54,7 @@ export default function WorkspaceLinksClient() {
   const { isValidating } = useLinks();
 
   return (
-    <LinksDisplayProvider>
+    <>
       <AddEditLinkModal />
       <AddEditTagModal />
       <div className="mt-10 flex w-full items-center pt-3">
@@ -137,7 +145,7 @@ export default function WorkspaceLinksClient() {
       <div className="mt-3">
         <LinksContainer AddEditLinkButton={AddEditLinkButton} />
       </div>
-    </LinksDisplayProvider>
+    </>
   );
 }
 
