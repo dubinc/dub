@@ -4,6 +4,7 @@ import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
 import { CardList, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui/src/icons";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -31,7 +32,7 @@ export default function LinksContainer({
   const { viewMode, sort, showArchived } = useContext(LinksDisplayContext);
 
   const { links, isValidating } = useLinks({ sort, showArchived });
-  const { data: count } = useLinksCount();
+  const { data: count } = useLinksCount({ showArchived });
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">
@@ -81,51 +82,59 @@ function LinksList({
     "showArchived",
   ].some((param) => searchParams.has(param));
 
-  return !links || links.length ? (
-    <LinksListContext.Provider value={{ openMenuLinkId, setOpenMenuLinkId }}>
-      {/* Cards */}
-      <CardList variant={compact ? "compact" : "loose"} loading={loading}>
-        {links?.length
-          ? // Link cards
-            links.map((link) => <LinkCard link={link} />)
-          : // Loading placeholder cards
-            Array.from({ length: 12 }).map((_, idx) => (
-              <CardList.Card
-                key={idx}
-                outerClassName="pointer-events-none"
-                innerClassName="flex items-center gap-4"
-              >
-                <LinkCardPlaceholder />
-              </CardList.Card>
-            ))}
-      </CardList>
+  return (
+    <>
+      {!links || links.length ? (
+        <LinksListContext.Provider
+          value={{ openMenuLinkId, setOpenMenuLinkId }}
+        >
+          {/* Cards */}
+          <CardList variant={compact ? "compact" : "loose"} loading={loading}>
+            {links?.length
+              ? // Link cards
+                links.map((link) => <LinkCard link={link} />)
+              : // Loading placeholder cards
+                Array.from({ length: 12 }).map((_, idx) => (
+                  <CardList.Card
+                    key={idx}
+                    outerClassName="pointer-events-none"
+                    innerClassName="flex items-center gap-4"
+                  >
+                    <LinkCardPlaceholder />
+                  </CardList.Card>
+                ))}
+          </CardList>
+        </LinksListContext.Provider>
+      ) : isFiltered ? (
+        <LinkNotFound />
+      ) : (
+        <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
+      )}
 
       {/* Pagination */}
-      {!!links?.length && (
-        <CardList.Pagination
-          page={page}
-          onPageChange={(p) => {
-            const newPage = p(page);
-            queryParams(
-              newPage === 0
-                ? { del: "page" }
-                : {
-                    set: {
-                      page: (newPage + 1).toString(),
-                    },
+      <CardList.Pagination
+        page={page}
+        onPageChange={(p) => {
+          const newPage = p(page);
+          queryParams(
+            newPage === 0
+              ? { del: "page" }
+              : {
+                  set: {
+                    page: (newPage + 1).toString(),
                   },
-            );
-          }}
-          totalCount={count ?? links.length}
-          resourceName={(plural) => `${plural ? "links" : "link"}`}
-        >
+                },
+          );
+        }}
+        totalCount={count ?? links?.length ?? 0}
+        resourceName={(plural) => `${plural ? "links" : "link"}`}
+      >
+        {loading ? (
+          <LoadingSpinner className="size-3.5" />
+        ) : (
           <ArchivedLinksHint />
-        </CardList.Pagination>
-      )}
-    </LinksListContext.Provider>
-  ) : isFiltered ? (
-    <LinkNotFound />
-  ) : (
-    <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
+        )}
+      </CardList.Pagination>
+    </>
   );
 }
