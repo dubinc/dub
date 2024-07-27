@@ -29,7 +29,12 @@ export function FilterList({
       className="w-full"
       transition={{ type: "tween", duration: 0.3 }}
     >
-      <div className={cn("flex w-full flex-wrap items-start gap-4", className)}>
+      <div
+        className={cn(
+          "flex w-full flex-wrap items-start gap-4 sm:flex-nowrap sm:items-center",
+          className,
+        )}
+      >
         <div className="flex grow flex-wrap gap-x-4 gap-y-2">
           <AnimatePresence>
             {activeFilters?.map(({ key, value: filterValue }) => {
