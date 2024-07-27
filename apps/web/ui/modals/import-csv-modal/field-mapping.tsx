@@ -53,7 +53,7 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
                     >
                       <IconMenu
                         text={column}
-                        icon={<TableIcon className="h-4 w-4" />}
+                        icon={<TableIcon className="h-4 w-4 flex-none" />}
                       />
                       {field.value === column && <Check className="h-4 w-4" />}
                     </button>
