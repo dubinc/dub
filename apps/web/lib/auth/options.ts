@@ -2,6 +2,7 @@ import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
@@ -17,6 +18,7 @@ import { dub } from "../dub";
 import { subscribe } from "../flodesk";
 import { isStored, storage } from "../storage";
 import { UserProps } from "../types";
+import { ratelimit } from "../upstash";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -28,17 +30,33 @@ const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
-      sendVerificationRequest({ identifier, url }) {
-        if (process.env.NODE_ENV === "development") {
-          console.log(`Login link: ${url}`);
-          return;
-        } else {
-          sendEmail({
-            email: identifier,
-            subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-            react: LoginLink({ url, email: identifier }),
-          });
-        }
+      async sendVerificationRequest({ identifier, url }) {
+        waitUntil(
+          (async () => {
+            let link = url;
+            try {
+              const { shortLink } = await dub.links.create({
+                domain: "d.to",
+                url,
+                archived: true,
+                tagIds: ["clz20tm1f0003onht3q6f11me"],
+              });
+              link = shortLink;
+            } catch (error) {
+              console.error(error);
+            }
+            if (process.env.NODE_ENV === "development") {
+              console.log(`Login link: ${link}`);
+              return;
+            } else {
+              await sendEmail({
+                email: identifier,
+                subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+                react: LoginLink({ url: link, email: identifier }),
+              });
+            }
+          })(),
+        );
       },
     }),
     GoogleProvider({
@@ -191,8 +209,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
-        // TODO:
-        // Rate limit login attempts by IP address or email
+        const { success } = await ratelimit(5, "1 m").limit(
+          `login-attempts:${email}`,
+        );
+
+        if (!success) {
+          throw new Error("too-many-login-attempts");
+        }
 
         const user = await prisma.user.findUnique({
           where: { email },
