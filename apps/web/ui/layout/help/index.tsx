@@ -21,6 +21,11 @@ export default function HelpPortal() {
 async function HelpPortalRSC() {
   const { popularHelpArticles, allHelpArticles } = await fetch(
     "https://dub.co/api/content",
+    {
+      next: {
+        revalidate: 60 * 60 * 24, // cache for 24 hours
+      },
+    },
   ).then((res) => res.json());
 
   return (
