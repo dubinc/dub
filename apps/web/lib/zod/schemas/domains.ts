@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { booleanQuerySchema } from "./misc";
+import { booleanQuerySchema, paginationQuerySchema } from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const DomainSchema = z.object({
@@ -38,26 +38,36 @@ export const DomainSchema = z.object({
   updatedAt: z.date().describe("The date the domain was last updated."),
 });
 
-export const getDomainsQuerySchema = z.object({
-  archived: booleanQuerySchema
-    .optional()
-    .default("false")
-    .describe(
-      "Whether to include archived domains in the response. Defaults to `false` if not provided.",
-    ),
-  search: z
-    .string()
-    .optional()
-    .describe("The search term to filter the domains by."),
-  page: z.coerce
-    .number()
-    .int()
-    .nonnegative()
-    .optional()
-    .describe(
-      "The page number for pagination (each page contains 50 domains).",
-    ),
-});
+export const getDomainsQuerySchema = z
+  .object({
+    archived: booleanQuerySchema
+      .optional()
+      .default("false")
+      .describe(
+        "Whether to include archived domains in the response. Defaults to `false` if not provided.",
+      ),
+    search: z
+      .string()
+      .optional()
+      .describe("The search term to filter the domains by."),
+  })
+  .merge(paginationQuerySchema)
+  .merge(
+    z.object({
+      pageSize: z.coerce
+        .number({ invalid_type_error: "Page size must be a number." })
+        .positive({ message: "Page size must be greater than 0." })
+        .max(50, {
+          message: "Max page size is 50.",
+        })
+        .optional()
+        .default(50)
+        .describe("The number of items per page.")
+        .openapi({
+          example: 50,
+        }),
+    }),
+  );
 
 export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
   page: true,
