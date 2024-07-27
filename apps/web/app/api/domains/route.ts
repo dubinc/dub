@@ -16,7 +16,7 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ req, workspace }) => {
     const searchParams = getSearchParams(req.url);
-    const { search, archived, page } =
+    const { search, archived, page, pageSize } =
       getDomainsQuerySchema.parse(searchParams);
 
     const domains = await prisma.domain.findMany({
@@ -29,8 +29,8 @@ export const GET = withWorkspace(
           },
         }),
       },
-      take: 50,
-      skip: page ? page * 100 : 0,
+      take: pageSize,
+      skip: (page - 1) * pageSize,
     });
 
     return NextResponse.json(z.array(DomainSchema).parse(domains));

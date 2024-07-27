@@ -9,12 +9,13 @@ import {
   PenWriting,
   Popover,
   SimpleTooltipContent,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import { BoxArchive, CircleCheck, Copy, QRCode } from "@dub/ui/src/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
@@ -77,22 +78,11 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     },
   });
 
-  const onKeyDown = (e: any) => {
-    const key = e.key.toLowerCase();
-    const existingModalBackdrop = document.getElementById("modal-backdrop");
-    // only run shortcut logic if:
-    // - there's no active opened modal
-    // - the 3 dots menu is open
-    // - the link card is hovered and
-    // - the key pressed is one of the shortcuts
-    if (
-      !existingModalBackdrop &&
-      (openPopover || (hovered && openMenuLinkId === null)) &&
-      ["e", "d", "q", "a", "t", "i", "x"].includes(key)
-    ) {
-      e.preventDefault();
+  useKeyboardShortcut(
+    ["e", "d", "q", "a", "t", "i", "x"],
+    (e) => {
       setOpenPopover(false);
-      switch (key) {
+      switch (e.key) {
         case "e":
           setShowAddEditLinkModal(true);
           break;
@@ -106,9 +96,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           setShowArchiveLinkModal(true);
           break;
         case "t":
-          if (isDubDomain(link.domain)) {
-            setShowTransferLinkModal(true);
-          }
+          if (isDubDomain(link.domain)) setShowTransferLinkModal(true);
           break;
         case "i":
           copyLinkId();
@@ -117,15 +105,11 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           setShowDeleteLinkModal(true);
           break;
       }
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [onKeyDown]);
+    },
+    {
+      enabled: openPopover || (hovered && openMenuLinkId === null),
+    },
+  );
 
   return (
     <div className="flex justify-end">

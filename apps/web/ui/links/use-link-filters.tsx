@@ -5,7 +5,8 @@ import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
 import { DUB_WORKSPACE_ID, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
+import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
@@ -46,13 +47,13 @@ export function useLinkFilters() {
             props.option?.data?.color ??
             tags?.find(({ id }) => id === value)?.color;
           return tagColor ? (
-            <TagBadge color={tagColor} withIcon className="sm:p-1.5" />
+            <TagBadge color={tagColor} withIcon className="sm:p-1" />
           ) : null;
         },
         options:
           tags?.map(({ id, name, color, count }) => ({
             value: id,
-            icon: <TagBadge color={color} withIcon className="sm:p-1.5" />,
+            icon: <TagBadge color={color} withIcon className="sm:p-1" />,
             label: name,
             data: { color },
             right: count,
@@ -140,7 +141,9 @@ export function useLinkFilters() {
 
 function useDomainFilterOptions() {
   const { id: workspaceId } = useWorkspace();
-  const { data: domains } = useLinksCount({ groupBy: "domain" });
+  const { showArchived } = useContext(LinksDisplayContext);
+
+  const { data: domains } = useLinksCount({ groupBy: "domain", showArchived });
   const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
 
   return useMemo(() => {
@@ -174,7 +177,9 @@ function useDomainFilterOptions() {
 
 function useTagFilterOptions() {
   const { tags } = useTags();
-  const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
+  const { showArchived } = useContext(LinksDisplayContext);
+
+  const { data: tagsCount } = useLinksCount({ groupBy: "tagId", showArchived });
 
   return useMemo(
     () =>
@@ -190,7 +195,12 @@ function useTagFilterOptions() {
 
 function useUserFilterOptions() {
   const { users } = useUsers();
-  const { data: usersCount } = useLinksCount({ groupBy: "userId" });
+  const { showArchived } = useContext(LinksDisplayContext);
+
+  const { data: usersCount } = useLinksCount({
+    groupBy: "userId",
+    showArchived,
+  });
 
   return useMemo(
     () =>

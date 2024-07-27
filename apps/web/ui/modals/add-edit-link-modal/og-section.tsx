@@ -16,7 +16,7 @@ import { FADE_IN_ANIMATION_SETTINGS, resizeImage, truncate } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useCompletion } from "ai/react";
 import { motion } from "framer-motion";
-import { Link2 } from "lucide-react";
+import { Link2, X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -215,7 +215,18 @@ export default function OGSection({
                 </Popover>
               </div>
             </div>
-            <div className="mt-1">
+            <div className="relative mt-1">
+              {image && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-2 z-[5] rounded-full bg-gray-100 p-1 transition-all hover:bg-gray-200"
+                  onClick={() => {
+                    setData((prev) => ({ ...prev, image: null }));
+                  }}
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
               <FileUpload
                 accept="images"
                 imageSrc={image}

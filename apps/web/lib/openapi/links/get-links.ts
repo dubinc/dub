@@ -6,6 +6,24 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const getLinks: ZodOpenApiOperationObject = {
   operationId: "getLinks",
   "x-speakeasy-name-override": "list",
+  "x-speakeasy-pagination": {
+    type: "offsetLimit",
+    inputs: [
+      {
+        name: "page",
+        in: "parameters",
+        type: "page",
+      },
+      {
+        name: "pageSize",
+        in: "parameters",
+        type: "limit",
+      },
+    ],
+    outputs: {
+      results: "$",
+    },
+  },
   summary: "Retrieve a list of links",
   description:
     "Retrieve a paginated list of links for the authenticated workspace.",

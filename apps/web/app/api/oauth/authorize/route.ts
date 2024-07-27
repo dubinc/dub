@@ -58,13 +58,17 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
     },
   });
 
-  const searchParams = new URLSearchParams({
-    code,
-    ...(state && { state }),
-  });
+  // Generate the callback URL
+  const callbackUrl = new URL(redirectUri);
+
+  callbackUrl.searchParams.set("code", code);
+
+  if (state) {
+    callbackUrl.searchParams.set("state", state);
+  }
 
   const response = {
-    callbackUrl: `${redirectUri}?${searchParams.toString()}`,
+    callbackUrl: callbackUrl.toString(),
   };
 
   return NextResponse.json(response);
