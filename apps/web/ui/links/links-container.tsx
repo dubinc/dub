@@ -81,7 +81,7 @@ function LinksList({
     "showArchived",
   ].some((param) => searchParams.has(param));
 
-  return loading || links?.length ? (
+  return !links || links.length ? (
     <LinksListContext.Provider value={{ openMenuLinkId, setOpenMenuLinkId }}>
       {/* Cards */}
       <CardList variant={compact ? "compact" : "loose"} loading={loading}>
@@ -89,7 +89,7 @@ function LinksList({
           ? // Link cards
             links.map((link) => <LinkCard link={link} />)
           : // Loading placeholder cards
-            Array.from({ length: 6 }).map((_, idx) => (
+            Array.from({ length: 12 }).map((_, idx) => (
               <CardList.Card
                 key={idx}
                 outerClassName="pointer-events-none"
