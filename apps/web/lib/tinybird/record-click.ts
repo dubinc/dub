@@ -34,6 +34,10 @@ export async function recordClick({
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
+
+  const continent = req.headers.get("x-vercel-ip-continent");
+  console.log({ continent });
+
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
   // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
