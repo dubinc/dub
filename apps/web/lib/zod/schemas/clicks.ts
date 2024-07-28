@@ -5,6 +5,7 @@ export const clickEventSchemaTB = z.object({
   click_id: z.string(),
   link_id: z.string(),
   url: z.string(),
+  continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
   region: z.string().nullable(),
