@@ -1,4 +1,5 @@
 export * from "./cctlds";
+export * from "./continents";
 export * from "./countries";
 export * from "./domains";
 export * from "./dub-domains";
