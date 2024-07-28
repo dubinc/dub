@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { COUNTRY_CODES } from "@dub/utils";
+import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
 
 export const leadAnalyticsResponse = {
   count: z
@@ -15,16 +15,16 @@ export const leadAnalyticsResponse = {
     })
     .openapi({ ref: "LeadsTimeseries" }),
 
-  // continents: z
-  //   .object({
-  //     continent: z
-  //       .enum(CONTINENT_CODES)
-  //       .describe(
-  //         "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
-  //       ),
-  //     leads: z.number().describe("The number of leads from this continent"),
-  //   })
-  //   .openapi({ ref: "LeadsContinents" }),
+  continents: z
+    .object({
+      continent: z
+        .enum(CONTINENT_CODES)
+        .describe(
+          "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
+        ),
+      leads: z.number().describe("The number of leads from this continent"),
+    })
+    .openapi({ ref: "LeadsContinents" }),
 
   countries: z
     .object({

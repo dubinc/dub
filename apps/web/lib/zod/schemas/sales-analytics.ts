@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { COUNTRY_CODES } from "@dub/utils";
+import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
 
 export const saleAnalyticsResponse = {
   count: z
@@ -17,16 +17,16 @@ export const saleAnalyticsResponse = {
     })
     .openapi({ ref: "SalesTimeseries" }),
 
-  // continents: z
-  //   .object({
-  //     continent: z
-  //       .enum(CONTINENT_CODES)
-  //       .describe(
-  //         "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
-  //       ),
-  //     sales: z.number().describe("The number of sales from this continent"),
-  //   })
-  //   .openapi({ ref: "SalesContinents" }),
+  continents: z
+    .object({
+      continent: z
+        .enum(CONTINENT_CODES)
+        .describe(
+          "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
+        ),
+      sales: z.number().describe("The number of sales from this continent"),
+    })
+    .openapi({ ref: "SalesContinents" }),
 
   countries: z
     .object({
