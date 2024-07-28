@@ -12,7 +12,7 @@ export default function Locations() {
   const { queryParams } = useRouterStuff();
 
   const [tab, setTab] = useState<"countries" | "cities" | "continents">(
-    "continents",
+    "countries",
   );
   const data = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
