@@ -83,7 +83,7 @@ export const INTERVAL_DATA: Record<
 export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
   "timeseries",
-  "continents",
+  // "continents",
   "countries",
   "cities",
   "devices",
@@ -96,7 +96,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
-  continents: "continent",
+  // continents: "continent",
   countries: "country",
   cities: "city",
   devices: "device",
