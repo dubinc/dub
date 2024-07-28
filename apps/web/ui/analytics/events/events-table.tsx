@@ -15,6 +15,7 @@ import {
 } from "@dub/ui";
 import { FilterBars } from "@dub/ui/src/icons";
 import {
+  CONTINENTS,
   COUNTRIES,
   capitalize,
   fetcher,
@@ -27,6 +28,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
+import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
 import EmptyState from "./empty-state";
@@ -54,6 +56,7 @@ const eventColumns: Record<
     all: [
       "trigger",
       "link",
+      "continent",
       "country",
       "city",
       "device",
@@ -68,6 +71,7 @@ const eventColumns: Record<
       "event",
       "link",
       "customer",
+      "continent",
       "country",
       "city",
       "device",
@@ -90,6 +94,7 @@ const eventColumns: Record<
       "customer",
       "invoiceId",
       "link",
+      "continent",
       "country",
       "city",
       "device",
@@ -246,6 +251,22 @@ export default function EventsTable() {
               </div>
             );
           },
+        },
+        {
+          id: "continent",
+          header: "Continent",
+          accessorKey: "continent",
+          meta: {
+            filterParams: ({ getValue }) => ({ continent: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              <span className="truncate">
+                {CONTINENTS[getValue()] ?? "Unknown"}
+              </span>
+            </div>
+          ),
         },
         {
           id: "country",
