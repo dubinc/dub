@@ -38,7 +38,7 @@ export default function LoginForm() {
 
   return (
     <>
-      <div className="flex space-x-2">
+      <div className="flex flex-col gap-3">
         <Button
           variant="secondary"
           onClick={() => {
