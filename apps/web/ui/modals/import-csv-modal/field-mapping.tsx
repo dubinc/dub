@@ -28,7 +28,7 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div key={field} className="flex items-center justify-between">
+    <div key={field} className="flex items-center justify-between gap-6">
       <span className="text-sm font-medium text-gray-950">
         {label} {required && <span className="text-red-700">*</span>}
       </span>
@@ -37,7 +37,7 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
         name={field}
         rules={{ required }}
         render={({ field }) => (
-          <div>
+          <div className="min-w-0">
             <Popover
               align="end"
               content={
@@ -69,15 +69,15 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
                 onClick={() => setIsOpen((o) => !o)}
                 text={
                   <div className="flex items-center gap-1">
-                    <span className="flex-1 truncate whitespace-nowrap text-left text-gray-800">
+                    <span className="min-w-12 flex-1 truncate whitespace-nowrap text-left text-gray-800">
                       {field.value || (
                         <span className="text-gray-600">Select column...</span>
                       )}
                     </span>
-                    <ChevronDown className="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                    <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
                   </div>
                 }
-              ></Button>
+              />
             </Popover>
           </div>
         )}
