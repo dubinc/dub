@@ -1,11 +1,17 @@
 "use client";
 
+import {
+  AuthMethod,
+  getLastUsedAuthMethod,
+  LastUsedAuthMethodTooltip,
+  setLastUsedAuthMethod,
+} from "@/lib/auth/last-used-method";
 import z from "@/lib/zod";
 import { signInSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -21,6 +27,14 @@ export const SignInWithEmailPassword = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+
+  const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    setAuthMethod(getLastUsedAuthMethod());
+  }, []);
 
   const {
     register,
@@ -47,6 +61,7 @@ export const SignInWithEmailPassword = () => {
       }
 
       if (response.url) {
+        setLastUsedAuthMethod("password");
         toast.success("Redirecting...");
         router.replace(response.url);
         return;
@@ -87,12 +102,16 @@ export const SignInWithEmailPassword = () => {
             required
             {...register("password")}
           />
-          <Button
-            text="Sign in"
-            type="submit"
-            loading={isSubmitting}
-            disabled={disabled}
-          />
+
+          <div className="relative">
+            <Button
+              text="Sign in"
+              type="submit"
+              loading={isSubmitting}
+              disabled={disabled}
+            />
+            {authMethod === "password" && <LastUsedAuthMethodTooltip />}
+          </div>
         </div>
       </form>
     </>
