@@ -1,7 +1,7 @@
 "use client";
 
 import { generateCsvMapping } from "@/lib/ai/generate-csv-mapping";
-import { Button, IconMenu, Popover, Tooltip } from "@dub/ui";
+import { Button, IconMenu, InfoTooltip, Popover, Tooltip } from "@dub/ui";
 import { Check, LoadingSpinner, Magnifier, TableIcon } from "@dub/ui/src/icons";
 import { truncate } from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
@@ -94,8 +94,15 @@ function FieldRow({
 
   return (
     <div key={field} className="flex items-center justify-between gap-6">
-      <span className="text-sm font-medium text-gray-950">
-        {label} {required && <span className="text-red-700">*</span>}
+      <span className="flex items-center gap-1">
+        <span className="text-sm font-medium text-gray-950">
+          {label} {required && <span className="text-red-700">*</span>}
+        </span>
+        {["domain", "key"].includes(field) && (
+          <InfoTooltip
+            content={`If your file doesn't have an independent ${field} column, you can map this to the full URL instead.`}
+          />
+        )}
       </span>
       <div className="flex min-w-0 items-center">
         <Controller
