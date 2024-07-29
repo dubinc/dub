@@ -1,7 +1,8 @@
-import { Button, IconMenu, Popover } from "@dub/ui";
-import { Check, TableIcon } from "@dub/ui/src/icons";
+import { Button, IconMenu, Popover, Tooltip } from "@dub/ui";
+import { Check, Magnifier, TableIcon } from "@dub/ui/src/icons";
+import { truncate } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller } from "react-hook-form";
 import { mappableFields, useCsvContext } from ".";
 
@@ -23,21 +24,45 @@ export function FieldMapping() {
 function FieldRow({ field }: { field: keyof typeof mappableFields }) {
   const { label, required } = mappableFields[field];
 
-  const { control, fileColumns } = useCsvContext();
+  const { control, watch, fileColumns, firstRows } = useCsvContext();
+
+  const value = watch(field);
 
   const [isOpen, setIsOpen] = useState(false);
+
+  const examples = useMemo(() => {
+    if (!firstRows) return [];
+
+    let values = firstRows?.map((row) => row[value]).filter(Boolean);
+
+    // Special split handling for domains and keys (should match backend)
+    if (field === "domain")
+      values = values.map((e) => e.replace(/^https?:\/\//, "").split("/")[0]);
+    if (field === "key")
+      values = values.map(
+        (e) =>
+          e
+            .replace(/^https?:\/\//, "")
+            .split("/")
+            .at(-1) as string,
+      );
+
+    values = values.map((e) => truncate(e, 16) as string);
+
+    return values;
+  }, [firstRows, value]);
 
   return (
     <div key={field} className="flex items-center justify-between gap-6">
       <span className="text-sm font-medium text-gray-950">
         {label} {required && <span className="text-red-700">*</span>}
       </span>
-      <Controller
-        control={control}
-        name={field}
-        rules={{ required }}
-        render={({ field }) => (
-          <div className="min-w-0">
+      <div className="flex min-w-0 items-center">
+        <Controller
+          control={control}
+          name={field}
+          rules={{ required }}
+          render={({ field }) => (
             <Popover
               align="end"
               content={
@@ -65,11 +90,11 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
             >
               <Button
                 variant="secondary"
-                className="px-3"
+                className="min-w-16 px-3"
                 onClick={() => setIsOpen((o) => !o)}
                 text={
                   <div className="flex items-center gap-1">
-                    <span className="min-w-12 flex-1 truncate whitespace-nowrap text-left text-gray-800">
+                    <span className="flex-1 truncate whitespace-nowrap text-left text-gray-800">
                       {field.value || (
                         <span className="text-gray-600">Select column...</span>
                       )}
@@ -79,9 +104,25 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
                 }
               />
             </Popover>
+          )}
+        />
+        {Boolean(examples?.length) && (
+          <div className="-mr-6 ml-2 shrink-0">
+            <Tooltip
+              content={
+                <div className="block px-3 py-2 text-sm">
+                  <span className="font-medium text-gray-950">Examples: </span>
+                  <span className="text-gray-500">{examples?.join(", ")}</span>
+                </div>
+              }
+            >
+              <div>
+                <Magnifier className="h-4 w-4 text-gray-400 transition-colors hover:text-gray-500" />
+              </div>
+            </Tooltip>
           </div>
         )}
-      />
+      </div>
     </div>
   );
 }

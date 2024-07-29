@@ -82,8 +82,12 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       processLink({
         payload: createLinkBodySchema.parse({
           url: row[mapping.url],
-          domain: row[mapping.domain],
-          key: row[mapping.key],
+          // Special splitting for domains/keys so they can map from a full URL
+          domain: row[mapping.domain].replace(/^https?:\/\//, "").split("/")[0],
+          key: row[mapping.key]
+            .replace(/^https?:\/\//, "")
+            .split("/")
+            .at(-1),
           title: mapping.title ? row[mapping.title] : undefined,
           description: mapping.description
             ? row[mapping.description]
