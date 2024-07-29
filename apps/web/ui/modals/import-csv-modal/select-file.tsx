@@ -69,7 +69,7 @@ export function SelectFile() {
           return (
             <FileUpload
               accept="csv"
-              maxFileSizeMB={10}
+              maxFileSizeMB={4.5}
               onChange={({ file }) => onChange(file)}
               content={
                 value
