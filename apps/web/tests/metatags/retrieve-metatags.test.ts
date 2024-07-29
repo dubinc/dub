@@ -9,15 +9,15 @@ test("GET /metatags", async (ctx) => {
   const { status, data: metatags } = await http.get<MetaTag>({
     path: `/metatags`,
     query: {
-      url: "https://twitter.com",
+      url: "https://dub.co",
     },
   });
 
   expect(status).toEqual(200);
   expect(metatags).toStrictEqual({
-    title: "X. It’s what’s happening",
+    title: "Dub.co - Link Management for Modern Marketing Teams",
     description:
-      "From breaking news and entertainment to sports and politics, get the full story with all the live commentary.",
-    image: "https://abs.twimg.com/favicons/twitter.3.ico",
+      "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
+    image: "https://assets.dub.co/thumbnail.jpg",
   });
 });
