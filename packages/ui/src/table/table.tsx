@@ -12,6 +12,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Dispatch,
+  PropsWithChildren,
   ReactNode,
   SetStateAction,
   useEffect,
@@ -57,9 +58,10 @@ type UseTableProps<T> = {
   | { pagination?: never; onPaginationChange?: never; rowCount?: never }
 );
 
-type TableProps<T> = UseTableProps<T> & {
-  table: TableType<T>;
-};
+type TableProps<T> = UseTableProps<T> &
+  PropsWithChildren<{
+    table: TableType<T>;
+  }>;
 
 export function useTable<T extends any>(
   props: UseTableProps<T>,
@@ -133,6 +135,8 @@ export function Table<T>({
   table,
   pagination,
   resourceName,
+  rowCount,
+  children,
 }: TableProps<T>) {
   // Memoize column sizes to pass to table as CSS variables
   const columnSizeVars = useMemo(() => {
@@ -154,7 +158,7 @@ export function Table<T>({
   return (
     <div className="relative border border-gray-200 bg-white sm:rounded-xl">
       {(!error && !!data?.length) || loading ? (
-        <div className="min-h-[400px] overflow-x-auto rounded-[inherit]">
+        <div className="relative min-h-[400px] overflow-x-auto rounded-[inherit]">
           <table
             className={cn(
               [
@@ -270,6 +274,7 @@ export function Table<T>({
               ))}
             </tbody>
           </table>
+          {children}
         </div>
       ) : (
         <div className="flex h-96 w-full items-center justify-center text-sm text-gray-500">
@@ -278,7 +283,7 @@ export function Table<T>({
             `No ${resourceName?.(true) || "items"} found.`}
         </div>
       )}
-      {pagination && !error && !!data?.length && (
+      {pagination && !error && !!data?.length && !!rowCount && (
         <div className="sticky bottom-0 mx-auto -mt-px flex w-full max-w-full items-center justify-between rounded-b-[inherit] border-t border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600">
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}

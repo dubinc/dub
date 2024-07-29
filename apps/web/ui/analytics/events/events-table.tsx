@@ -29,6 +29,7 @@ import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
+import { exampleData } from "./example-data";
 import ExportButton from "./export-button";
 import usePagination from "./use-pagination";
 
@@ -417,7 +418,7 @@ export default function EventsTable() {
   const needsHigherPlan = Boolean(error?.message?.includes("Need higher plan"));
 
   const { table, ...tableProps } = useTable({
-    data: data ?? defaultData,
+    data: data ?? (needsHigherPlan ? exampleData[tab] : defaultData),
     loading: isLoading,
     error: error && !needsHigherPlan ? "Failed to fetch events." : undefined,
     columns,
@@ -444,15 +445,7 @@ export default function EventsTable() {
         </>
       );
     },
-    emptyState: needsHigherPlan ? (
-      <EmptyState
-        icon={Menu3}
-        title="Real-time Events Stream"
-        description={`Want more data on your ${tab === "clicks" ? "link clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
-        buttonText="Upgrade to Business"
-        buttonLink={`/${workspaceId}/settings/billing?upgrade=business`}
-      />
-    ) : (
+    emptyState: (
       <EmptyState
         icon={Magnifier}
         title="No events recorded"
@@ -489,7 +482,22 @@ export default function EventsTable() {
         </div>
       </div>
       <div className="mt-3">
-        <Table {...tableProps} table={table} />
+        <Table {...tableProps} table={table}>
+          {needsHigherPlan && (
+            <>
+              <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
+                <EmptyState
+                  icon={Menu3}
+                  title="Real-time Events Stream"
+                  description={`Want more data on your ${tab === "clicks" ? "link clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
+                  buttonText="Upgrade to Business"
+                  buttonLink={`/${workspaceId}/settings/billing?upgrade=business`}
+                />
+              </div>
+              <div className="h-[400px]" />
+            </>
+          )}
+        </Table>
       </div>
     </div>
   );
