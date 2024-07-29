@@ -45,7 +45,6 @@ export async function keyChecks({
   key: string;
   workspace?: Pick<WorkspaceProps, "plan">;
 }): Promise<{ error: string | null; code?: DubApiError["code"] }> {
-  console.log({ domain, key });
   if ((key.length === 0 || key === "_root") && workspace?.plan === "free") {
     return {
       error:
