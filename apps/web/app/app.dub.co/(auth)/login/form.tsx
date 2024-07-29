@@ -1,6 +1,13 @@
 "use client";
 
+import {
+  AuthMethod,
+  getLastUsedAuthMethod,
+  LastUsedAuthMethodTooltip,
+  setLastUsedAuthMethod,
+} from "@/lib/auth/last-used-method";
 import { Button, Github, Google, InfoTooltip, useMediaQuery } from "@dub/ui";
+import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -18,6 +25,14 @@ export default function LoginForm() {
   const [clickedGithub, setClickedGithub] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
   const [clickedSSO, setClickedSSO] = useState(false);
+
+  const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    setAuthMethod(getLastUsedAuthMethod());
+  }, []);
 
   useEffect(() => {
     const error = searchParams?.get("error");
@@ -38,36 +53,49 @@ export default function LoginForm() {
 
   return (
     <>
-      <div className="flex space-x-2">
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setClickedGoogle(true);
-            signIn("google", {
-              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-            });
-          }}
-          loading={clickedGoogle}
-          disabled={clickedEmail || clickedSSO}
-          icon={<Google className="h-5 w-5" />}
-        />
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setClickedGithub(true);
-            signIn("github", {
-              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-            });
-          }}
-          loading={clickedGithub}
-          disabled={clickedEmail || clickedSSO}
-          icon={<Github className="h-5 w-5 text-black" />}
-        />
+      <div className="flex flex-col gap-3">
+        <div className="relative">
+          <Button
+            text="Continue with Google"
+            variant="secondary"
+            onClick={() => {
+              setClickedGoogle(true);
+              setLastUsedAuthMethod("google");
+              signIn("google", {
+                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+              });
+            }}
+            loading={clickedGoogle}
+            disabled={clickedEmail || clickedSSO}
+            icon={<Google className="h-5 w-5" />}
+          />
+          {authMethod === "google" && <LastUsedAuthMethodTooltip />}
+        </div>
+
+        <div className="relative">
+          <Button
+            text="Continue with Github"
+            variant="secondary"
+            onClick={() => {
+              setClickedGithub(true);
+              setLastUsedAuthMethod("github");
+              signIn("github", {
+                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+              });
+            }}
+            loading={clickedGithub}
+            disabled={clickedEmail || clickedSSO}
+            icon={<Github className="h-5 w-5 text-black" />}
+          />
+          {authMethod === "github" && <LastUsedAuthMethodTooltip />}
+        </div>
       </div>
+
       <form
         onSubmit={async (e) => {
           e.preventDefault();
           setClickedEmail(true);
+          setLastUsedAuthMethod("email");
           fetch("/api/auth/account-exists", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -122,25 +150,32 @@ export default function LoginForm() {
             />
           </div>
         )}
-        <Button
-          text="Continue with Email"
-          variant="secondary"
-          {...(!showEmailOption && {
-            type: "button",
-            onClick: (e) => {
-              e.preventDefault();
-              setShowSSOOption(false);
-              setShowEmailOption(true);
-            },
-          })}
-          loading={clickedEmail}
-          disabled={clickedGoogle || clickedSSO}
-        />
+
+        <div className="relative">
+          <Button
+            text="Continue with Email"
+            variant="secondary"
+            icon={<Mail className="h-4 w-4" />}
+            {...(!showEmailOption && {
+              type: "button",
+              onClick: (e) => {
+                e.preventDefault();
+                setLastUsedAuthMethod("email");
+                setShowSSOOption(false);
+                setShowEmailOption(true);
+              },
+            })}
+            loading={clickedEmail}
+            disabled={clickedGoogle || clickedSSO}
+          />
+          {authMethod === "email" && <LastUsedAuthMethodTooltip />}
+        </div>
       </form>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
           setClickedSSO(true);
+          setLastUsedAuthMethod("saml");
           fetch("/api/auth/saml/verify", {
             method: "POST",
             body: JSON.stringify({ slug: e.currentTarget.slug.value }),
@@ -182,20 +217,25 @@ export default function LoginForm() {
             />
           </div>
         )}
-        <Button
-          text="Continue with SAML SSO"
-          variant="secondary"
-          {...(!showSSOOption && {
-            type: "button",
-            onClick: (e) => {
-              e.preventDefault();
-              setShowEmailOption(false);
-              setShowSSOOption(true);
-            },
-          })}
-          loading={clickedSSO}
-          disabled={clickedGoogle || clickedEmail}
-        />
+
+        <div className="relative">
+          <Button
+            text="Continue with SAML SSO"
+            variant="secondary"
+            icon={<Lock className="h-4 w-4" />}
+            {...(!showSSOOption && {
+              type: "button",
+              onClick: (e) => {
+                e.preventDefault();
+                setShowEmailOption(false);
+                setShowSSOOption(true);
+              },
+            })}
+            loading={clickedSSO}
+            disabled={clickedGoogle || clickedEmail}
+          />
+          {authMethod === "saml" && <LastUsedAuthMethodTooltip />}
+        </div>
       </form>
       {noSuchAccount ? (
         <p className="text-center text-sm text-red-500">
