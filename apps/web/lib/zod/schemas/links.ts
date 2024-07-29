@@ -273,6 +273,36 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Allow search engines to index your short link. Defaults to `false` if not provided. Learn more: https://d.to/noindex",
     ),
+  utm_source: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM source of the short link. If set, this will populate or override the UTM source in the destination URL.",
+    ),
+  utm_medium: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM medium of the short link. If set, this will populate or override the UTM medium in the destination URL.",
+    ),
+  utm_campaign: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM campaign of the short link. If set, this will populate or override the UTM campaign in the destination URL.",
+    ),
+  utm_term: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM term of the short link. If set, this will populate or override the UTM term in the destination URL.",
+    ),
+  utm_content: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM content of the short link. If set, this will populate or override the UTM content in the destination URL.",
+    ),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
