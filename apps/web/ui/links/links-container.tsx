@@ -112,29 +112,31 @@ function LinksList({
       )}
 
       {/* Pagination */}
-      <CardList.Pagination
-        page={page}
-        onPageChange={(p) => {
-          const newPage = p(page);
-          queryParams(
-            newPage === 0
-              ? { del: "page" }
-              : {
-                  set: {
-                    page: (newPage + 1).toString(),
+      {links && (
+        <CardList.Pagination
+          page={page}
+          onPageChange={(p) => {
+            const newPage = p(page);
+            queryParams(
+              newPage === 0
+                ? { del: "page" }
+                : {
+                    set: {
+                      page: (newPage + 1).toString(),
+                    },
                   },
-                },
-          );
-        }}
-        totalCount={count ?? links?.length ?? 0}
-        resourceName={(plural) => `${plural ? "links" : "link"}`}
-      >
-        {loading ? (
-          <LoadingSpinner className="size-3.5" />
-        ) : (
-          <ArchivedLinksHint />
-        )}
-      </CardList.Pagination>
+            );
+          }}
+          totalCount={count ?? links?.length ?? 0}
+          resourceName={(plural) => `${plural ? "links" : "link"}`}
+        >
+          {loading ? (
+            <LoadingSpinner className="size-3.5" />
+          ) : (
+            <ArchivedLinksHint />
+          )}
+        </CardList.Pagination>
+      )}
     </>
   );
 }
