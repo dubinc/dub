@@ -1,3 +1,5 @@
+"use client";
+
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -19,7 +21,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Control, UseFormWatch, useForm } from "react-hook-form";
+import {
+  Control,
+  UseFormSetValue,
+  UseFormWatch,
+  useForm,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { FieldMapping } from "./field-mapping";
@@ -59,6 +66,7 @@ const ImportCsvContext = createContext<{
   setFirstRows: (rows: Record<string, string>[] | null) => void;
   control: Control<ImportCsvFormData>;
   watch: UseFormWatch<ImportCsvFormData>;
+  setValue: UseFormSetValue<ImportCsvFormData>;
 } | null>(null);
 
 export function useCsvContext() {
@@ -94,6 +102,7 @@ function ImportCsvModal({
   const {
     control,
     watch,
+    setValue,
     handleSubmit,
     formState: { isLoading, isValid },
   } = useForm<ImportCsvFormData>({
@@ -142,6 +151,7 @@ function ImportCsvModal({
             setFirstRows,
             control,
             watch,
+            setValue,
           }}
         >
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">

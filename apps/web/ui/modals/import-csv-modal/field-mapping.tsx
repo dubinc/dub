@@ -1,12 +1,45 @@
+"use client";
+
+import { generateCsvMapping } from "@/lib/ai/generate-csv-mapping";
 import { Button, IconMenu, Popover, Tooltip } from "@dub/ui";
-import { Check, Magnifier, TableIcon } from "@dub/ui/src/icons";
+import { Check, LoadingSpinner, Magnifier, TableIcon } from "@dub/ui/src/icons";
 import { truncate } from "@dub/utils";
+import { readStreamableValue } from "ai/rsc";
 import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller } from "react-hook-form";
 import { mappableFields, useCsvContext } from ".";
 
 export function FieldMapping() {
+  const { fileColumns, firstRows, setValue } = useCsvContext();
+
+  const [isStreaming, setIsStreaming] = useState(true);
+
+  useEffect(() => {
+    if (!fileColumns || !firstRows) return;
+
+    generateCsvMapping(fileColumns, firstRows)
+      .then(async ({ object }) => {
+        setIsStreaming(true);
+        for await (const partialObject of readStreamableValue(object)) {
+          if (partialObject) {
+            Object.entries(partialObject).forEach((entry) => {
+              const [field, value] = entry as string[];
+              if (
+                Object.keys(mappableFields).includes(field) &&
+                fileColumns.includes(value)
+              ) {
+                setValue(field as keyof typeof mappableFields, value, {
+                  shouldValidate: true,
+                });
+              }
+            });
+          }
+        }
+      })
+      .finally(() => setIsStreaming(false));
+  }, [fileColumns, firstRows]);
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-gray-600">
@@ -14,20 +47,27 @@ export function FieldMapping() {
       </p>
       {(Object.keys(mappableFields) as (keyof typeof mappableFields)[]).map(
         (field) => (
-          <FieldRow key={field} field={field} />
+          <FieldRow key={field} field={field} isStreaming={isStreaming} />
         ),
       )}
     </div>
   );
 }
 
-function FieldRow({ field }: { field: keyof typeof mappableFields }) {
+function FieldRow({
+  field,
+  isStreaming,
+}: {
+  field: keyof typeof mappableFields;
+  isStreaming: boolean;
+}) {
   const { label, required } = mappableFields[field];
 
   const { control, watch, fileColumns, firstRows } = useCsvContext();
 
   const value = watch(field);
 
+  const isLoading = isStreaming && !value;
   const [isOpen, setIsOpen] = useState(false);
 
   const examples = useMemo(() => {
@@ -92,6 +132,7 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
                 variant="secondary"
                 className="min-w-16 px-3"
                 onClick={() => setIsOpen((o) => !o)}
+                disabled={isLoading}
                 text={
                   <div className="flex items-center gap-1">
                     <span className="flex-1 truncate whitespace-nowrap text-left text-gray-800">
@@ -99,7 +140,11 @@ function FieldRow({ field }: { field: keyof typeof mappableFields }) {
                         <span className="text-gray-600">Select column...</span>
                       )}
                     </span>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                    {isLoading ? (
+                      <LoadingSpinner className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                    )}
                   </div>
                 }
               />
