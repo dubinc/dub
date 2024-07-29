@@ -9,6 +9,7 @@ SCHEMA >
     `invoice_id` String,
     `amount` UInt32,
     `url` String,
+    `continent` LowCardinality(String),
     `country` LowCardinality(String),
     `city` String,
     `device` LowCardinality(String),

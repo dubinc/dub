@@ -5,8 +5,8 @@ SCHEMA >
     `link_id` String,
     `customer_id` String,
     `event_name` LowCardinality(String),
-    `metadata` String,
     `url` String,
+    `continent` LowCardinality(String),
     `country` LowCardinality(String),
     `city` String,
     `device` LowCardinality(String),
@@ -14,7 +14,8 @@ SCHEMA >
     `os` LowCardinality(String),
     `referer` String,
     `qr` UInt8,
-    `ip` String
+    `ip` String,
+    `metadata` String
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
