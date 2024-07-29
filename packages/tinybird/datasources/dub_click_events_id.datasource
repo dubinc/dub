@@ -6,6 +6,7 @@ SCHEMA >
     `link_id` String,
     `alias_link_id` String,
     `url` String,
+    `continent` LowCardinality(String),
     `country` LowCardinality(String),
     `city` String,
     `region` String,

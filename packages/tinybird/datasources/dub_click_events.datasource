@@ -5,6 +5,7 @@ SCHEMA >
     `link_id` String `json:$.link_id`,
     `alias_link_id` String `json:$.alias_link_id`,
     `url` String `json:$.url`,
+    `continent` LowCardinality(String) `json:$.continent`,
     `country` LowCardinality(String) `json:$.country`,
     `city` String `json:$.city`,
     `region` String `json:$.region`,

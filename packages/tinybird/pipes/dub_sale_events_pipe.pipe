@@ -12,6 +12,7 @@ SQL >
         invoice_id,
         amount,
         url,
+        continent,
         country,
         city,
         device,
