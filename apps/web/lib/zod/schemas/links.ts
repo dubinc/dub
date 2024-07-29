@@ -5,7 +5,7 @@ import {
   formatDate,
   validDomainRegex,
 } from "@dub/utils";
-import { booleanQuerySchema, paginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
 import {
   parseDateSchema,
@@ -81,7 +81,7 @@ export const getLinksQuerySchema = LinksQuerySchema.merge(
         "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
       ),
   }),
-).merge(paginationQuerySchema);
+).merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   z.object({

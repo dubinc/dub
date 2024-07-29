@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { booleanQuerySchema, paginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const DomainSchema = z.object({
@@ -51,23 +51,7 @@ export const getDomainsQuerySchema = z
       .optional()
       .describe("The search term to filter the domains by."),
   })
-  .merge(paginationQuerySchema)
-  .merge(
-    z.object({
-      pageSize: z.coerce
-        .number({ invalid_type_error: "Page size must be a number." })
-        .positive({ message: "Page size must be greater than 0." })
-        .max(50, {
-          message: "Max page size is 50.",
-        })
-        .optional()
-        .default(50)
-        .describe("The number of items per page.")
-        .openapi({
-          example: 50,
-        }),
-    }),
-  );
+  .merge(getPaginationQuerySchema({ pageSize: 50 }));
 
 export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
   page: true,
