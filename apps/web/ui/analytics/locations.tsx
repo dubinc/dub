@@ -1,16 +1,19 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { useRouterStuff } from "@dub/ui";
-import { COUNTRIES } from "@dub/utils";
+import { CONTINENTS, COUNTRIES } from "@dub/utils";
 import { useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import BarList from "./bar-list";
+import ContinentIcon from "./continent-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
   const { queryParams } = useRouterStuff();
 
-  const [tab, setTab] = useState<"countries" | "cities">("countries");
+  const [tab, setTab] = useState<"countries" | "cities" | "continents">(
+    "countries",
+  );
   const data = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
@@ -19,6 +22,7 @@ export default function Locations() {
       tabs={[
         { id: "countries", label: "Countries" },
         { id: "cities", label: "Cities" },
+        { id: "continents", label: "Continents" },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
@@ -32,14 +36,22 @@ export default function Locations() {
               tab={singularTabName}
               data={
                 data?.map((d) => ({
-                  icon: (
-                    <img
-                      alt={d.country}
-                      src={`https://flag.vercel.app/m/${d.country}.svg`}
-                      className="h-3 w-5"
-                    />
-                  ),
-                  title: tab === "countries" ? COUNTRIES[d.country] : d.city,
+                  icon:
+                    tab === "continents" ? (
+                      <ContinentIcon display={d.continent} className="size-3" />
+                    ) : (
+                      <img
+                        alt={d.country}
+                        src={`https://flag.vercel.app/m/${d.country}.svg`}
+                        className="h-3 w-5"
+                      />
+                    ),
+                  title:
+                    tab === "continents"
+                      ? CONTINENTS[d.continent]
+                      : tab === "countries"
+                        ? COUNTRIES[d.country]
+                        : d.city,
                   href: queryParams({
                     set: {
                       [singularTabName]: d[singularTabName],

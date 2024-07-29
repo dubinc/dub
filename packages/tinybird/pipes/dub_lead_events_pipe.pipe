@@ -10,6 +10,7 @@ SQL >
         event_name,
         metadata,
         url,
+        continent,
         country,
         city,
         device,
