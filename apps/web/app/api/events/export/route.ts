@@ -37,7 +37,7 @@ const columnAccessors = {
   amount: (r: SaleEvent) => "$" + (r.amount / 100).toFixed(2),
 };
 
-// GET /api/analytics/events/export – get export data for analytics
+// GET /api/events/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace }) => {
     throwIfClicksUsageExceeded(workspace);

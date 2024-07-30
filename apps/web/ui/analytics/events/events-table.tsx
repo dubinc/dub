@@ -358,7 +358,7 @@ export default function EventsTable() {
   );
 
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    `/api/analytics/events?${queryString}`,
+    `/api/events?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,

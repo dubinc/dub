@@ -7,15 +7,12 @@ export default function ExportButton({ onClick }: { onClick?: () => void }) {
   const { exportQueryString } = useContext(EventsContext);
 
   async function exportData() {
-    const response = await fetch(
-      `/api/analytics/events/export?${exportQueryString}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await fetch(`/api/events/export?${exportQueryString}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     if (!response.ok) {
       throw new Error(response.statusText);

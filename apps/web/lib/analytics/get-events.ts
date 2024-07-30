@@ -9,7 +9,7 @@ import { saleEventEnrichedSchema } from "../zod/schemas/sales";
 import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
 
-// Fetch data for /api/analytics/events
+// Fetch data for /api/events
 export const getEvents = async (
   params: EventsFilters,
 ): Promise<
