@@ -13,6 +13,7 @@ import LinkPreviewTooltip from "./link-preview";
 export default function BarList({
   tab,
   data,
+  isCurrency,
   barBackground,
   hoverBackground,
   maxValue,
@@ -27,6 +28,7 @@ export default function BarList({
     value: number;
     linkId?: string;
   }[];
+  isCurrency?: boolean;
   maxValue: number;
   barBackground: string;
   hoverBackground: string;
@@ -61,6 +63,7 @@ export default function BarList({
           setShowModal={setShowModal}
           barBackground={barBackground}
           hoverBackground={hoverBackground}
+          isCurrency={isCurrency}
         />
       ))}
     </div>
@@ -100,6 +103,7 @@ export function LineItem({
   barBackground,
   hoverBackground,
   linkData,
+  isCurrency,
 }: {
   icon: ReactNode;
   title: string;
@@ -111,6 +115,7 @@ export function LineItem({
   barBackground: string;
   hoverBackground: string;
   linkData?: LinkProps;
+  isCurrency?: boolean;
 }) {
   const lineItem = useMemo(() => {
     return (
@@ -157,7 +162,10 @@ export function LineItem({
           />
         </div>
         <NumberTooltip value={value}>
-          <p className="z-10 px-2 text-sm text-gray-600">{nFormatter(value)}</p>
+          <p className="z-10 px-2 text-sm text-gray-600">
+            {isCurrency && "$"}
+            {nFormatter(isCurrency ? value / 100 : value)}
+          </p>
         </NumberTooltip>
       </div>
     </Link>

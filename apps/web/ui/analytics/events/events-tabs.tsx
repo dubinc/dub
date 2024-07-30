@@ -20,6 +20,7 @@ type TimeseriesData = {
   clicks: number;
   leads: number;
   sales: number;
+  amount: number;
 }[];
 
 export default function EventsTabs() {
@@ -110,8 +111,12 @@ export default function EventsTabs() {
                     "text-2xl transition-opacity",
                     isLoadingTotalEvents && "opacity-40",
                   )}
+                  prefix={event === "sales" && "$"}
+                  {...(event === "sales" && { fullNumber: true })}
                 >
-                  {totalEvents?.[event] ?? 0}
+                  {event === "sales"
+                    ? (totalEvents?.amount ?? 0) / 100
+                    : totalEvents?.[event] ?? 0}
                 </CountingNumbers>
               ) : (
                 <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
@@ -160,7 +165,10 @@ function ChartInner({
     () =>
       data.map((d) => ({
         date: new Date(d.start),
-        value: (d?.[event] as number | undefined) ?? 0,
+        value:
+          ((event === "sales" ? d?.amount : d?.[event]) as
+            | number
+            | undefined) ?? 0,
       })) ?? null,
     [data, event],
   );

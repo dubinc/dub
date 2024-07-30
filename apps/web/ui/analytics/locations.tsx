@@ -1,14 +1,18 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { useRouterStuff } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
+import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Locations() {
   const { queryParams } = useRouterStuff();
+
+  const { selectedTab } = useContext(AnalyticsContext);
+  const dataKey = selectedTab === "sales" ? "amount" : "count";
 
   const [tab, setTab] = useState<"countries" | "cities">("countries");
   const data = useAnalyticsFilterOption(tab);
@@ -46,10 +50,11 @@ export default function Locations() {
                     },
                     getNewPath: true,
                   }) as string,
-                  value: d.count || 0,
+                  value: d[dataKey] || 0,
                 })) || []
               }
-              maxValue={(data && data[0]?.count) || 0}
+              isCurrency={dataKey === "amount"}
+              maxValue={(data && data[0]?.[dataKey]) || 0}
               barBackground="bg-blue-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent hover:border-blue-500"
               setShowModal={setShowModal}

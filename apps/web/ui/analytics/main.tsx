@@ -1,3 +1,4 @@
+import { EventType } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -8,10 +9,9 @@ import AnalyticsAreaChart from "./analytics-area-chart";
 import { AnalyticsContext } from "./analytics-provider";
 
 type Tab = {
-  id: string;
+  id: EventType;
   label: string;
   colorClassName: string;
-  show: ("clicks" | "leads" | "sales")[];
 };
 
 export default function Main() {
@@ -27,7 +27,6 @@ export default function Main() {
           id: "clicks",
           label: "Clicks",
           colorClassName: "text-blue-500/50",
-          show: ["clicks"],
         },
         ...(flags?.conversions || demoPage
           ? [
@@ -35,13 +34,11 @@ export default function Main() {
                 id: "leads",
                 label: "Leads",
                 colorClassName: "text-violet-600/50",
-                show: ["leads"],
               },
               {
                 id: "sales",
                 label: "Sales",
                 colorClassName: "text-teal-400/50",
-                show: ["sales"],
               },
             ]
           : []),
@@ -49,10 +46,7 @@ export default function Main() {
     [flags],
   );
 
-  const tab = tabs.find(({ id }) => id === selectedTab) || {
-    id: "clicks",
-    show: ["clicks"],
-  };
+  const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
   return (
     <div className="w-full overflow-hidden border border-gray-200 bg-white sm:rounded-xl">
@@ -141,7 +135,7 @@ export default function Main() {
         })}
       </div>
       <div className="p-5 sm:p-10">
-        <AnalyticsAreaChart show={tab.show} />
+        <AnalyticsAreaChart resource={tab.id} />
       </div>
     </div>
   );

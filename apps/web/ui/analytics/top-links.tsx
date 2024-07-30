@@ -10,7 +10,8 @@ import { useAnalyticsFilterOption } from "./utils";
 export default function TopLinks() {
   const { queryParams } = useRouterStuff();
 
-  const { domain, key } = useContext(AnalyticsContext);
+  const { selectedTab, domain, key } = useContext(AnalyticsContext);
+  const dataKey = selectedTab === "sales" ? "amount" : "count";
   const showUrls = domain && key;
 
   const data = useAnalyticsFilterOption({
@@ -55,11 +56,12 @@ export default function TopLinks() {
                     },
                     getNewPath: true,
                   }) as string,
-                  value: d.count || 0,
+                  value: d[dataKey] || 0,
                   ...(!showUrls && { linkData: d }),
                 })) || []
               }
-              maxValue={(data && data[0]?.count) || 0}
+              isCurrency={dataKey === "amount"}
+              maxValue={(data && data[0]?.[dataKey]) || 0}
               barBackground="bg-orange-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
               setShowModal={setShowModal}

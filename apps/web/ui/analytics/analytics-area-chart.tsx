@@ -1,3 +1,4 @@
+import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { cn, fetcher, getDaysDifference, nFormatter } from "@dub/utils";
 import { Fragment, useCallback, useContext, useMemo } from "react";
@@ -10,15 +11,21 @@ import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
 
 export default function AnalyticsAreaChart({
-  show,
+  resource,
 }: {
-  show: ("clicks" | "leads" | "sales")[];
+  resource: EventType;
 }) {
   const { baseApiPath, queryString, start, end, interval, requiresUpgrade } =
     useContext(AnalyticsContext);
 
   const { data } = useSWR<
-    { start: Date; clicks: number; leads: number; sales: number }[]
+    {
+      start: Date;
+      clicks: number;
+      leads: number;
+      sales: number;
+      amount: number;
+    }[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
       groupBy: "timeseries",
@@ -32,12 +39,13 @@ export default function AnalyticsAreaChart({
 
   const chartData = useMemo(
     () =>
-      data?.map(({ start, clicks, leads, sales }) => ({
+      data?.map(({ start, clicks, leads, sales, amount }) => ({
         date: new Date(start),
         values: {
           clicks,
           leads,
           sales,
+          amount: (amount ?? 0) / 100,
         },
       })) ?? null,
     [data],
@@ -90,22 +98,24 @@ export default function AnalyticsAreaChart({
     {
       id: "clicks",
       valueAccessor: (d) => d.values.clicks,
-      isActive: show.includes("clicks"),
+      isActive: resource === "clicks",
       colorClassName: "text-blue-500",
     },
     {
       id: "leads",
       valueAccessor: (d) => d.values.leads,
-      isActive: show.includes("leads"),
+      isActive: resource === "leads",
       colorClassName: "text-violet-600",
     },
     {
       id: "sales",
-      valueAccessor: (d) => d.values.sales,
-      isActive: show.includes("sales"),
+      valueAccessor: (d) => d.values.amount,
+      isActive: resource === "sales",
       colorClassName: "text-teal-400",
     },
   ];
+
+  const activeSeries = series.find(({ id }) => id === resource);
 
   return (
     <div className="flex h-96 w-full items-center justify-center">
@@ -115,41 +125,44 @@ export default function AnalyticsAreaChart({
           data={chartData}
           series={series}
           tooltipClassName="p-0"
-          tooltipContent={(d) => (
-            <>
-              <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
-                {formatDate(d.date)}
-              </p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
-                {show.map((resource) => {
-                  const s = series.find(({ id }) => id === resource);
-                  const value = d.values[resource];
-                  return (
-                    <Fragment key={resource}>
-                      <div className="flex items-center gap-2">
-                        {s && (
-                          <div
-                            className={cn(
-                              s.colorClassName,
-                              "h-2 w-2 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
-                            )}
-                          />
-                        )}
-                        <p className="capitalize text-gray-600">{resource}</p>
-                      </div>
-                      <p className="text-right font-medium text-gray-900">
-                        {nFormatter(value, { full: true })}
-                      </p>
-                    </Fragment>
-                  );
-                })}
-              </div>
-            </>
-          )}
+          tooltipContent={(d) => {
+            const value = d.values[resource === "sales" ? "amount" : resource];
+            return (
+              <>
+                <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                  {formatDate(d.date)}
+                </p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
+                  <Fragment key={resource}>
+                    <div className="flex items-center gap-2">
+                      {activeSeries && (
+                        <div
+                          className={cn(
+                            activeSeries.colorClassName,
+                            "h-2 w-2 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                          )}
+                        />
+                      )}
+                      <p className="capitalize text-gray-600">{resource}</p>
+                    </div>
+                    <p className="text-right font-medium text-gray-900">
+                      {resource === "sales" && "$"}
+                      {nFormatter(value, { full: true })}
+                    </p>
+                  </Fragment>
+                </div>
+              </>
+            );
+          }}
         >
           <Areas />
           <XAxis tickFormat={formatDate} />
-          <YAxis showGridLines tickFormat={nFormatter} />
+          <YAxis
+            showGridLines
+            tickFormat={
+              resource === "sales" ? (v) => `$${nFormatter(v)}` : nFormatter
+            }
+          />
         </TimeSeriesChart>
       ) : (
         <AnalyticsLoadingSpinner />

@@ -1,13 +1,18 @@
 import { BlurImage, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
+import { useContext } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
+import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Referer() {
   const { queryParams } = useRouterStuff();
+
+  const { selectedTab } = useContext(AnalyticsContext);
+  const dataKey = selectedTab === "sales" ? "amount" : "count";
 
   const data = useAnalyticsFilterOption("referers");
 
@@ -44,10 +49,11 @@ export default function Referer() {
                     },
                     getNewPath: true,
                   }) as string,
-                  value: d.count || 0,
+                  value: d[dataKey] || 0,
                 })) || []
               }
-              maxValue={(data && data[0]?.count) || 0}
+              isCurrency={dataKey === "amount"}
+              maxValue={(data && data[0]?.[dataKey]) || 0}
               barBackground="bg-red-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-red-50 hover:to-transparent hover:border-red-500"
               setShowModal={setShowModal}

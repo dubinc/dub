@@ -340,21 +340,22 @@ export default function EventsTable() {
   );
 
   // Update export query string
-  useEffect(() => {
-    console.log("setting export query string with", setExportQueryString);
-    setExportQueryString?.(
-      editQueryString(
-        queryString,
-        {
-          columns: Object.entries(columnVisibility[tab])
-            .filter(([, visible]) => visible)
-            .map(([id]) => id)
-            .join(","),
-        },
-        ["page"],
+  useEffect(
+    () =>
+      setExportQueryString?.(
+        editQueryString(
+          queryString,
+          {
+            columns: Object.entries(columnVisibility[tab])
+              .filter(([, visible]) => visible)
+              .map(([id]) => id)
+              .join(","),
+          },
+          ["page"],
+        ),
       ),
-    );
-  }, [setExportQueryString, queryString, columnVisibility, tab]);
+    [setExportQueryString, queryString, columnVisibility, tab],
+  );
 
   const { data, isLoading, error } = useSWR<EventDatum[]>(
     `/api/analytics/events?${queryString}`,
