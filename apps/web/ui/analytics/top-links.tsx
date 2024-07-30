@@ -35,33 +35,35 @@ export default function TopLinks() {
             <BarList
               tab={showUrls ? "url" : "link"}
               data={
-                data?.map((d) => ({
-                  icon: (
-                    <LinkLogo
-                      apexDomain={getApexDomain(d.url)}
-                      className="h-5 w-5 sm:h-5 sm:w-5"
-                    />
-                  ),
-                  title:
-                    !showUrls && d["shortLink"]
-                      ? d["shortLink"].replace(/^https?:\/\//, "")
-                      : d.url?.replace(/^https?:\/\//, ""),
-                  href: queryParams({
-                    set: {
-                      ...(!showUrls
-                        ? { domain: d.domain, key: d.key || "_root" }
-                        : {
-                            url: d.url,
-                          }),
-                    },
-                    getNewPath: true,
-                  }) as string,
-                  value: d[dataKey] || 0,
-                  ...(!showUrls && { linkData: d }),
-                })) || []
+                data
+                  ?.map((d) => ({
+                    icon: (
+                      <LinkLogo
+                        apexDomain={getApexDomain(d.url)}
+                        className="h-5 w-5 sm:h-5 sm:w-5"
+                      />
+                    ),
+                    title:
+                      !showUrls && d["shortLink"]
+                        ? d["shortLink"].replace(/^https?:\/\//, "")
+                        : d.url?.replace(/^https?:\/\//, ""),
+                    href: queryParams({
+                      set: {
+                        ...(!showUrls
+                          ? { domain: d.domain, key: d.key || "_root" }
+                          : {
+                              url: d.url,
+                            }),
+                      },
+                      getNewPath: true,
+                    }) as string,
+                    value: d[dataKey] || 0,
+                    ...(!showUrls && { linkData: d }),
+                  }))
+                  ?.sort((a, b) => b.value - a.value) || []
               }
               isCurrency={dataKey === "amount"}
-              maxValue={(data && data[0]?.[dataKey]) || 0}
+              maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
               barBackground="bg-orange-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
               setShowModal={setShowModal}

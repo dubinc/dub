@@ -37,26 +37,28 @@ export default function Devices() {
             <BarList
               tab={singularTabName}
               data={
-                data?.map((d) => ({
-                  icon: (
-                    <DeviceIcon
-                      display={d[singularTabName]}
-                      tab={tab}
-                      className="h-4 w-4"
-                    />
-                  ),
-                  title: d[singularTabName],
-                  href: queryParams({
-                    set: {
-                      [singularTabName]: d[singularTabName],
-                    },
-                    getNewPath: true,
-                  }) as string,
-                  value: d[dataKey] || 0,
-                })) || []
+                data
+                  ?.map((d) => ({
+                    icon: (
+                      <DeviceIcon
+                        display={d[singularTabName]}
+                        tab={tab}
+                        className="h-4 w-4"
+                      />
+                    ),
+                    title: d[singularTabName],
+                    href: queryParams({
+                      set: {
+                        [singularTabName]: d[singularTabName],
+                      },
+                      getNewPath: true,
+                    }) as string,
+                    value: d[dataKey] || 0,
+                  }))
+                  ?.sort((a, b) => b.value - a.value) || []
               }
               isCurrency={dataKey === "amount"}
-              maxValue={(data && data[0]?.[dataKey]) || 0}
+              maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
               barBackground="bg-green-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-green-50 hover:to-transparent hover:border-green-500"
               setShowModal={setShowModal}

@@ -29,31 +29,33 @@ export default function Referer() {
             <BarList
               tab="Referrer"
               data={
-                data?.map((d) => ({
-                  icon:
-                    d.referer === "(direct)" ? (
-                      <Link2 className="h-4 w-4" />
-                    ) : (
-                      <BlurImage
-                        src={`${GOOGLE_FAVICON_URL}${d.referer}`}
-                        alt={d.referer}
-                        width={20}
-                        height={20}
-                        className="h-4 w-4 rounded-full"
-                      />
-                    ),
-                  title: d.referer,
-                  href: queryParams({
-                    set: {
-                      referer: d.referer,
-                    },
-                    getNewPath: true,
-                  }) as string,
-                  value: d[dataKey] || 0,
-                })) || []
+                data
+                  ?.map((d) => ({
+                    icon:
+                      d.referer === "(direct)" ? (
+                        <Link2 className="h-4 w-4" />
+                      ) : (
+                        <BlurImage
+                          src={`${GOOGLE_FAVICON_URL}${d.referer}`}
+                          alt={d.referer}
+                          width={20}
+                          height={20}
+                          className="h-4 w-4 rounded-full"
+                        />
+                      ),
+                    title: d.referer,
+                    href: queryParams({
+                      set: {
+                        referer: d.referer,
+                      },
+                      getNewPath: true,
+                    }) as string,
+                    value: d[dataKey] || 0,
+                  }))
+                  ?.sort((a, b) => b.value - a.value) || []
               }
               isCurrency={dataKey === "amount"}
-              maxValue={(data && data[0]?.[dataKey]) || 0}
+              maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
               barBackground="bg-red-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-red-50 hover:to-transparent hover:border-red-500"
               setShowModal={setShowModal}
