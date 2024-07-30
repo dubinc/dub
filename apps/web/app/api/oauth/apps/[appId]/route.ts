@@ -2,7 +2,9 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
+import { nanoid, R2_URL } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/oauth/apps/[appId] – get an OAuth app created by the workspace
@@ -46,6 +48,17 @@ export const PATCH = withWorkspace(
     } = updateOAuthAppSchema.parse(await parseRequestBody(req));
 
     try {
+      let logoUrl: string | undefined;
+
+      if (logo && !logo.startsWith(R2_URL)) {
+        const result = await storage.upload(
+          `integrations/${params.appId}_${nanoid(7)}`,
+          logo,
+        );
+
+        logoUrl = result.url;
+      }
+
       const app = await prisma.oAuthApp.update({
         where: {
           id: params.appId,
@@ -59,10 +72,11 @@ export const PATCH = withWorkspace(
           description,
           readme,
           redirectUris,
-          logo,
           pkce,
+          ...(logoUrl && { logo: logoUrl }),
         },
       });
+
       return NextResponse.json(oAuthAppSchema.parse(app));
     } catch (error) {
       if (error.code === "P2002") {
