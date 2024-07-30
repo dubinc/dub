@@ -21,9 +21,9 @@ import {
   getApexDomain,
   nFormatter,
 } from "@dub/utils";
-import { Cell, ColumnDef, VisibilityState } from "@tanstack/react-table";
+import { Cell, ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
@@ -31,9 +31,8 @@ import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
 import { exampleData } from "./example-data";
 import ExportButton from "./export-button";
+import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 import usePagination from "./use-pagination";
-
-type EventType = "clicks" | "leads" | "sales";
 
 type Datum =
   | z.infer<typeof clickEventEnrichedSchema>
@@ -45,77 +44,6 @@ type ColumnMeta = {
     args: Pick<Cell<Datum, any>, "getValue">,
   ) => Record<string, any>;
 };
-
-const eventColumns: Record<
-  EventType,
-  { all: string[]; defaultVisible: string[] }
-> = {
-  clicks: {
-    all: [
-      "trigger",
-      "link",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-    ],
-    defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
-  },
-  leads: {
-    all: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-    ],
-    defaultVisible: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "device",
-      "timestamp",
-    ],
-  },
-  sales: {
-    all: [
-      "event",
-      "customer",
-      "invoiceId",
-      "link",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-      "amount",
-    ],
-    defaultVisible: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "amount",
-      "timestamp",
-    ],
-  },
-};
-
-const getDefaultColumnVisibility = (event: EventType) =>
-  Object.fromEntries(
-    eventColumns[event].all.map((id) => [
-      id,
-      eventColumns[event].defaultVisible.includes(id),
-    ]),
-  );
 
 const FilterButton = ({ set }: { set: Record<string, any> }) => {
   const { queryParams } = useRouterStuff();
@@ -142,7 +70,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 export default function EventsTable() {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
-  const tab = searchParams.get("tab") || "clicks";
+  const { tab, columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
@@ -380,14 +308,6 @@ export default function EventsTable() {
     [tab],
   );
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    getDefaultColumnVisibility(tab as EventType),
-  );
-
-  useEffect(() => {
-    setColumnVisibility(getDefaultColumnVisibility(tab as EventType));
-  }, [tab]);
-
   const defaultData = useMemo(() => [], []);
 
   const { pagination, setPagination } = usePagination();
@@ -425,7 +345,8 @@ export default function EventsTable() {
     pagination,
     onPaginationChange: setPagination,
     rowCount: totalEvents?.[tab] ?? 0,
-    columnVisibility,
+    columnVisibility: columnVisibility[tab],
+    onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
     sortableColumns: ["timestamp", "amount"],
     sortBy: sortBy,
     sortOrder: order,

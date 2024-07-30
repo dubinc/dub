@@ -1,4 +1,4 @@
-import { cn } from "@dub/utils";
+import { cn, deepEqual } from "@dub/utils";
 import {
   Cell,
   ColumnDef,
@@ -43,6 +43,7 @@ type UseTableProps<T> = {
   }) => void;
   sortableColumns?: string[];
   columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
   resizeColumns?: boolean;
   resourceName?: (plural: boolean) => string;
 
@@ -82,8 +83,17 @@ export function useTable<T extends any>(
 
   // Update internal columnVisibility when prop value changes
   useEffect(() => {
-    setColumnVisibility(props.columnVisibility ?? {});
+    if (
+      props.columnVisibility &&
+      !deepEqual(props.columnVisibility, columnVisibility)
+    )
+      setColumnVisibility(props.columnVisibility ?? {});
   }, [props.columnVisibility]);
+
+  // Call onColumnVisibilityChange when internal columnVisibility changes
+  useEffect(() => {
+    props.onColumnVisibilityChange?.(columnVisibility);
+  }, [columnVisibility]);
 
   const table = useReactTable({
     data,
@@ -98,7 +108,7 @@ export function useTable<T extends any>(
     columnResizeMode: resizeColumns ? "onChange" : undefined,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange,
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: (visibility) => setColumnVisibility(visibility),
     state: {
       pagination: pagination,
       columnVisibility,
