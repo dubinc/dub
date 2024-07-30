@@ -4,7 +4,6 @@ import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
-import { HexadecagonStar } from "@dub/ui/src/icons";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
