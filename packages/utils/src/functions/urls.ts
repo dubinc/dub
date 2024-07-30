@@ -59,6 +59,14 @@ export const getParamsFromURL = (url: string) => {
   }
 };
 
+export const UTMTags = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+];
+
 export const constructURLFromUTMParams = (
   url: string,
   utmParams: Record<string, string>,
