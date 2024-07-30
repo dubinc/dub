@@ -21,6 +21,7 @@ export * from "./crosshairs";
 export * from "./cube";
 export * from "./cursor-rays";
 export * from "./desktop";
+export * from "./dots";
 export * from "./download";
 export * from "./earth-position";
 export * from "./eye-slash";

@@ -23,25 +23,29 @@ import {
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import { useContext, useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
+import { EventsContext } from "./events-provider";
 import { exampleData } from "./example-data";
-import ExportButton from "./export-button";
+import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 import usePagination from "./use-pagination";
 
-type Datum =
+export const eventTypes = ["clicks", "leads", "sales"] as const;
+export type EventType = (typeof eventTypes)[number];
+
+export type EventDatum =
   | z.infer<typeof clickEventEnrichedSchema>
   | z.infer<typeof leadEventEnrichedSchema>
   | z.infer<typeof saleEventEnrichedSchema>;
 
 type ColumnMeta = {
   filterParams?: (
-    args: Pick<Cell<Datum, any>, "getValue">,
+    args: Pick<Cell<EventDatum, any>, "getValue">,
   ) => Record<string, any>;
 };
 
@@ -49,7 +53,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
   const { queryParams } = useRouterStuff();
 
   return (
-    <div className="relative h-[1.25rem] w-0 shrink-0 opacity-0 transition-all group-hover:w-[1.25rem] group-hover:opacity-100">
+    <div className="absolute right-1 top-0 flex h-full shrink-0 translate-x-3 items-center justify-center bg-[linear-gradient(to_right,transparent,white_10%)] p-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100">
       <Link
         href={
           queryParams({
@@ -58,7 +62,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
             getNewPath: true,
           }) as string
         }
-        className="absolute left-0 top-0 rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
+        className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
       >
         <span className="sr-only">Filter</span>
         <FilterBars className="h-3.5 w-3.5" />
@@ -70,12 +74,13 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 export default function EventsTable() {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
+  const { setExportQueryString } = useContext(EventsContext);
   const { tab, columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
-  const columns = useMemo<ColumnDef<Datum, any>[]>(
+  const columns = useMemo<ColumnDef<EventDatum, any>[]>(
     () =>
       [
         // Click trigger
@@ -84,7 +89,6 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "qr",
           enableHiding: false,
-          size: 130,
           meta: {
             filterParams: ({ getValue }) => ({
               qr: !!getValue(),
@@ -112,7 +116,6 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "event_name",
           enableHiding: false,
-          size: 120,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -121,7 +124,7 @@ export default function EventsTable() {
           id: "invoiceId",
           header: "Invoice ID",
           accessorKey: "invoice_id",
-          size: 120,
+          maxSize: 200,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -129,7 +132,8 @@ export default function EventsTable() {
           id: "link",
           header: "Link",
           accessorKey: "link",
-          size: 200,
+          minSize: 250,
+          maxSize: 200,
           meta: {
             filterParams: ({ getValue }) => ({
               domain: getValue().domain,
@@ -200,6 +204,7 @@ export default function EventsTable() {
           id: "city",
           header: "City",
           accessorKey: "city",
+          minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3">
               <img
@@ -304,7 +309,17 @@ export default function EventsTable() {
             </div>
           ),
         },
-      ].filter((c) => eventColumns[tab].all.includes(c.id)),
+        // Menu
+        {
+          id: "menu",
+          enableHiding: false,
+          minSize: 43,
+          size: 43,
+          maxSize: 43,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: ({ row }) => <RowMenuButton row={row} />,
+        },
+      ].filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id)),
     [tab],
   );
 
@@ -326,7 +341,24 @@ export default function EventsTable() {
     [originalQueryString, tab, pagination, sortBy, order],
   );
 
-  const { data, isLoading, error } = useSWR<Datum[]>(
+  // Update export query string
+  useEffect(() => {
+    console.log("setting export query string with", setExportQueryString);
+    setExportQueryString?.(
+      editQueryString(
+        queryString,
+        {
+          columns: Object.entries(columnVisibility[tab])
+            .filter(([, visible]) => visible)
+            .map(([id]) => id)
+            .join(","),
+        },
+        ["page"],
+      ),
+    );
+  }, [setExportQueryString, queryString, columnVisibility, tab]);
+
+  const { data, isLoading, error } = useSWR<EventDatum[]>(
     `/api/analytics/events?${queryString}`,
     fetcher,
     {
@@ -357,6 +389,7 @@ export default function EventsTable() {
           ...(sortOrder && { order: sortOrder }),
         },
       }),
+    columnPinning: { right: ["menu"] },
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
 
@@ -376,50 +409,22 @@ export default function EventsTable() {
     resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
-  const exportQueryString = useMemo(
-    () =>
-      editQueryString(
-        queryString,
-        {
-          columns: table
-            .getVisibleFlatColumns()
-            .map((c) => c.id)
-            .join(","),
-        },
-        ["page"],
-      ),
-    [queryString, table.getVisibleFlatColumns()],
-  );
-
   return (
-    <div>
-      <div className="flex justify-end">
-        <div className="flex gap-1">
-          <ExportButton
-            queryString={exportQueryString}
-            disabled={error || !data?.length}
-          />
-          <EditColumnsButton table={table} />
-        </div>
-      </div>
-      <div className="mt-3">
-        <Table {...tableProps} table={table}>
-          {needsHigherPlan && (
-            <>
-              <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
-                <EmptyState
-                  icon={Menu3}
-                  title="Real-time Events Stream"
-                  description={`Want more data on your ${tab === "clicks" ? "link clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
-                  buttonText="Upgrade to Business"
-                  buttonLink={`/${workspaceId}/settings/billing?upgrade=business`}
-                />
-              </div>
-              <div className="h-[400px]" />
-            </>
-          )}
-        </Table>
-      </div>
-    </div>
+    <Table {...tableProps} table={table}>
+      {needsHigherPlan && (
+        <>
+          <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
+            <EmptyState
+              icon={Menu3}
+              title="Real-time Events Stream"
+              description={`Want more data on your ${tab === "clicks" ? "link clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
+              buttonText="Upgrade to Business"
+              buttonLink={`/${workspaceId}/settings/billing?upgrade=business`}
+            />
+          </div>
+          <div className="h-[400px]" />
+        </>
+      )}
+    </Table>
   );
 }

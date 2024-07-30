@@ -1,8 +1,6 @@
 import { useLocalStorage, useRouterStuff } from "@dub/ui";
 import { VisibilityState } from "@tanstack/react-table";
-
-const eventTypes = ["clicks", "leads", "sales"] as const;
-type EventType = (typeof eventTypes)[number];
+import { EventType, eventTypes } from "./events-table";
 
 export const eventColumns: Record<
   EventType,

@@ -42,10 +42,9 @@ export default function EditColumnsButton({ table }: { table: Table<any> }) {
     >
       <Button
         type="button"
-        className="h-8 whitespace-nowrap px-3"
-        variant="secondary"
+        className="h-8 whitespace-nowrap px-2"
+        variant="outline"
         icon={<Gear className="h-4 w-4 shrink-0" />}
-        text="Edit columns"
       />
     </Popover>
   );
