@@ -18,12 +18,17 @@ export const verifyEmailAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email, code } = parsedInput;
 
-    const { success } = await ratelimit(3, "1 m").limit(
+    const { success, reset } = await ratelimit(3, "1 m").limit(
       `verifyEmail:${getIP()}`,
     );
 
     if (!success) {
-      throw new Error("Too many requests. Please try again later.");
+      const millis = reset - Date.now();
+      const timeToWait = Math.floor(millis / 1000);
+
+      throw new Error(
+        `You have been rate limited. Please try again in ${timeToWait} seconds.`,
+      );
     }
 
     const verificationToken = await prisma.verificationToken.findUnique({
