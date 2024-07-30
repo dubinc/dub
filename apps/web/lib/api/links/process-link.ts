@@ -10,7 +10,9 @@ import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
+  UTMTags,
   combineWords,
+  constructURLFromUTMParams,
   getApexDomain,
   getDomainWithoutWWW,
   getUrlFromString,
@@ -77,6 +79,15 @@ export async function processLink<T extends Record<string, any>>({
         error: "Invalid destination URL",
         code: "unprocessable_entity",
       };
+    }
+    if (UTMTags.some((tag) => payload[tag])) {
+      const utmParams = UTMTags.reduce((acc, tag) => {
+        if (payload[tag]) {
+          acc[tag] = payload[tag];
+        }
+        return acc;
+      }, {});
+      url = constructURLFromUTMParams(url, utmParams);
     }
     // only root domain links can have empty desintation URL
   } else if (key !== "_root") {
@@ -350,6 +361,9 @@ export async function processLink<T extends Record<string, any>>({
   delete payload["shortLink"];
   delete payload["qrCode"];
   delete payload["prefix"];
+  UTMTags.forEach((tag) => {
+    delete payload[tag];
+  });
 
   return {
     link: {
