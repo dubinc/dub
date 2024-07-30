@@ -1,6 +1,6 @@
 "use client";
 
-import { createNewAccount } from "@/lib/actions/create-new-account";
+import { createNewAccountAction } from "@/lib/actions/create-new-account";
 import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input } from "@dub/ui";
@@ -8,32 +8,39 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function SignUpEmail() {
   const router = useRouter();
-  const { executeAsync, result, status, isExecuting } =
-    useAction(createNewAccount);
 
   const {
-    reset,
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isDirty },
   } = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      email: "kiran@dub.co",
+      email: "kiran@dub.com",
       password: "12345678aB#",
     },
   });
 
-  const onSubmit = handleSubmit(async (data) => {
-    await executeAsync(data);
-
-    if (status === "hasSucceeded") {
-      reset();
-    }
-  });
+  const { executeAsync, result, status, isExecuting } = useAction(
+    createNewAccountAction,
+    {
+      onSuccess: () => {
+        toast.success(
+          "Account created successfully. Please verify your email to login.",
+        );
+        router.push(
+          `/register/verify-email?email=${encodeURIComponent(
+            getValues("email"),
+          )}`,
+        );
+      },
+    },
+  );
 
   return (
     <>
@@ -51,7 +58,11 @@ export default function SignUpEmail() {
         </div>
       )}
 
-      <form onSubmit={onSubmit}>
+      <form
+        onSubmit={handleSubmit(async (data) => {
+          await executeAsync(data);
+        })}
+      >
         <div className="flex flex-col space-y-4">
           <Input
             type="email"
@@ -59,16 +70,14 @@ export default function SignUpEmail() {
             autoComplete="email"
             required
             {...register("email")}
-            error={result.validationErrors?.email?.[0] || errors.email?.message}
+            error={errors.email?.message}
           />
           <Input
             type="password"
             placeholder="Password"
             required
             {...register("password")}
-            error={
-              result.validationErrors?.password?.[0] || errors.password?.message
-            }
+            error={errors.password?.message}
           />
           <Button
             text={status === "executing" ? "Signing Up..." : "Sign Up"}

@@ -12,7 +12,7 @@ import { throwIfAuthenticated } from "./middlewares/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
 // Sign up a new user using email and password
-export const createNewAccount = actionClient
+export const createNewAccountAction = actionClient
   .schema(signUpSchema, {
     handleValidationErrorsShape: (ve) =>
       flattenValidationErrors(ve).fieldErrors,

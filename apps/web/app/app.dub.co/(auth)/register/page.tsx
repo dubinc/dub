@@ -22,6 +22,8 @@ const logos = [
   "cal",
 ];
 
+export const runtime = "nodejs";
+
 export default function RegisterPage() {
   return (
     <div className="grid w-full grid-cols-1 md:grid-cols-5">

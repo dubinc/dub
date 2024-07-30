@@ -1,13 +1,11 @@
-import { constructMetadata, HOME_DOMAIN } from "@dub/utils";
-import VerifyOTPForm from "./form";
 import { BlurImage, Button, Logo } from "@dub/ui";
+import { constructMetadata, HOME_DOMAIN } from "@dub/utils";
 import { Suspense } from "react";
+import VerifyEmailForm from "./form";
 
 export const metadata = constructMetadata({
   title: `Create your ${process.env.NEXT_PUBLIC_APP_NAME} account`,
 });
-
-
 
 const logos = [
   "vercel",
@@ -24,7 +22,9 @@ const logos = [
   "cal",
 ];
 
-export default function VerifyOTPPage() {
+export const runtime = "nodejs";
+
+export default function VerifyEmailPage() {
   return (
     <div className="grid w-full grid-cols-1 md:grid-cols-5">
       <div className="col-span-1 flex items-center justify-center md:col-span-3">
@@ -33,26 +33,9 @@ export default function VerifyOTPPage() {
             <a href={HOME_DOMAIN}>
               <Logo className="h-10 w-10" />
             </a>
-            <h3 className="text-xl font-semibold">
-              Create your {process.env.NEXT_PUBLIC_APP_NAME} account
-            </h3>
+            <h3 className="text-xl font-semibold">Verify your email</h3>
             <p className="text-sm text-gray-500">
-              By signing up, you agree to our <br />
-              <a
-                href="https://dub.co/terms"
-                target="_blank"
-                className="font-medium underline underline-offset-4 hover:text-gray-700"
-              >
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://dub.co/privacy"
-                target="_blank"
-                className="font-medium underline underline-offset-4 hover:text-gray-700"
-              >
-                Privacy Policy
-              </a>
+              Enter the 6 digits verification code sent to your email address.
             </p>
           </div>
           <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
@@ -64,7 +47,7 @@ export default function VerifyOTPPage() {
                 </>
               }
             >
-              <VerifyOTPForm />
+              <VerifyEmailForm />
             </Suspense>
           </div>
         </div>
