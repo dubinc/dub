@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import { sendEmail } from "emails";
 import VerifyEmail from "emails/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
@@ -12,7 +13,7 @@ import { throwIfAuthenticated } from "./middlewares/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
 // Sign up a new user using email and password
-export const createNewAccountAction = actionClient
+export const createUserAccountAction = actionClient
   .schema(signUpSchema, {
     handleValidationErrorsShape: (ve) =>
       flattenValidationErrors(ve).fieldErrors,
@@ -30,6 +31,12 @@ export const createNewAccountAction = actionClient
 
     if (user) {
       throw new Error("An user with this email already exists.");
+    }
+
+    if (await redis.sismember("disposableEmailDomains", email.split("@")[1])) {
+      throw new Error(
+        "This email domain is not allowed to sign up. If you think this is a mistake, please contact us at support@dub.co",
+      );
     }
 
     // Create an account
@@ -65,7 +72,5 @@ export const createNewAccountAction = actionClient
       }),
     });
 
-    return {
-      status: "ok",
-    };
+    return { ok: true };
   });

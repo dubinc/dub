@@ -47,7 +47,5 @@ export const verifyEmailAction = actionClient
       }),
     ]);
 
-    return {
-      status: "ok",
-    };
+    return { ok: true };
   });

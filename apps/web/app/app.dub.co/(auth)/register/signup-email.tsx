@@ -1,6 +1,6 @@
 "use client";
 
-import { createNewAccountAction } from "@/lib/actions/create-new-account";
+import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input } from "@dub/ui";
@@ -23,7 +23,7 @@ export default function SignUpEmail() {
   });
 
   const { executeAsync, result, status, isExecuting } = useAction(
-    createNewAccountAction,
+    createUserAccountAction,
     {
       onSuccess: () => {
         toast.success(
