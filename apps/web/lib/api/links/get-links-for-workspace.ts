@@ -12,6 +12,7 @@ export async function getLinksForWorkspace({
   search,
   sort = "createdAt",
   page,
+  pageSize,
   userId,
   showArchived,
   withTags,
@@ -77,9 +78,9 @@ export async function getLinksForWorkspace({
     orderBy: {
       [sort]: "desc",
     },
-    take: 100,
+    take: pageSize,
     ...(page && {
-      skip: (page - 1) * 100,
+      skip: (page - 1) * pageSize,
     }),
   });
 

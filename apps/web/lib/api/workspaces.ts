@@ -11,7 +11,7 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { recordLink } from "../tinybird";
 import { WorkspaceProps } from "../types";
-import { redis } from "../upstash";
+import { formatRedisLink, redis } from "../upstash";
 
 export async function deleteWorkspace(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
@@ -131,7 +131,7 @@ export async function deleteWorkspace(
 export async function deleteWorkspaceAdmin(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
 ) {
-  const [customDomains, _] = await Promise.all([
+  const [customDomains, defaultDomainLinks] = await Promise.all([
     prisma.domain.findMany({
       where: {
         projectId: workspace.id,
@@ -140,19 +140,42 @@ export async function deleteWorkspaceAdmin(
         slug: true,
       },
     }),
-    prisma.link.updateMany({
+    prisma.link.findMany({
       where: {
         projectId: workspace.id,
         domain: {
           in: DUB_DOMAINS_ARRAY,
         },
       },
-      data: {
-        userId: LEGAL_USER_ID,
-        projectId: LEGAL_WORKSPACE_ID,
-      },
     }),
   ]);
+
+  const updateLinkRedisResponse = await Promise.allSettled(
+    defaultDomainLinks.map(async (link) => {
+      return redis.hset(link.domain.toLowerCase(), {
+        [link.key.toLowerCase()]: {
+          ...(await formatRedisLink(link)),
+          projectId: LEGAL_WORKSPACE_ID,
+        },
+      });
+    }),
+  );
+
+  // update all default domain links to the legal workspace
+  const updateLinkPrismaResponse = await prisma.link.updateMany({
+    where: {
+      projectId: workspace.id,
+      domain: {
+        in: DUB_DOMAINS_ARRAY,
+      },
+    },
+    data: {
+      userId: LEGAL_USER_ID,
+      projectId: LEGAL_WORKSPACE_ID,
+    },
+  });
+
+  console.log({ updateLinkRedisResponse, updateLinkPrismaResponse });
 
   // delete all domains, links, and uploaded images associated with the workspace
   const deleteDomainsLinksResponse = await Promise.allSettled([
@@ -175,6 +198,8 @@ export async function deleteWorkspaceAdmin(
   ]);
 
   return {
+    updateLinkRedisResponse,
+    updateLinkPrismaResponse,
     deleteDomainsLinksResponse,
     deleteWorkspaceResponse,
   };

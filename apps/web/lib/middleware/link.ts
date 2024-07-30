@@ -1,4 +1,5 @@
 import {
+  createResponseWithCookie,
   detectBot,
   getFinalUrl,
   isSupportedDeeplinkProtocol,
@@ -15,6 +16,7 @@ import {
   nanoid,
   punyEncode,
 } from "@dub/utils";
+import { cookies } from "next/headers";
 import {
   NextFetchEvent,
   NextRequest,
@@ -176,7 +178,12 @@ export default async function LinkMiddleware(
       });
     }
   }
-  const clickId = nanoid(16);
+
+  const cookieStore = cookies();
+  let clickId = cookieStore.get("dclid")?.value;
+  if (!clickId) {
+    clickId = nanoid(16);
+  }
 
   const searchParams = req.nextUrl.searchParams;
   // only track the click when there is no `dub-no-track` header or query param
@@ -198,13 +205,16 @@ export default async function LinkMiddleware(
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
-    return NextResponse.rewrite(new URL(`/${domain}`, req.url), {
-      headers: {
-        ...DUB_HEADERS,
-        // we only index root domain links if they're not subdomains
-        ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
-      },
-    });
+    return createResponseWithCookie(
+      NextResponse.rewrite(new URL(`/${domain}`, req.url), {
+        headers: {
+          ...DUB_HEADERS,
+          // we only index root domain links if they're not subdomains
+          ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+        },
+      }),
+      { clickId, path: `/${key}` },
+    );
   }
 
   const isBot = detectBot(req);
@@ -214,42 +224,25 @@ export default async function LinkMiddleware(
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
-    return NextResponse.rewrite(
-      new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
-      {
-        headers: {
-          ...DUB_HEADERS,
-          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+    return createResponseWithCookie(
+      NextResponse.rewrite(
+        new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
         },
-      },
+      ),
+      { clickId, path: `/${key}` },
     );
 
     // rewrite to deeplink page if the link is a mailto: or tel:
   } else if (isSupportedDeeplinkProtocol(url)) {
-    return NextResponse.rewrite(
-      new URL(
-        `/deeplink/${encodeURIComponent(
-          getFinalUrl(url, {
-            req,
-            clickId: trackConversion ? clickId : undefined,
-          }),
-        )}`,
-        req.url,
-      ),
-      {
-        headers: {
-          ...DUB_HEADERS,
-          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
-        },
-      },
-    );
-
-    // rewrite to target URL if link cloaking is enabled
-  } else if (rewrite) {
-    if (iframeable) {
-      return NextResponse.rewrite(
+    return createResponseWithCookie(
+      NextResponse.rewrite(
         new URL(
-          `/cloaked/${encodeURIComponent(
+          `/deeplink/${encodeURIComponent(
             getFinalUrl(url, {
               req,
               clickId: trackConversion ? clickId : undefined,
@@ -260,84 +253,125 @@ export default async function LinkMiddleware(
         {
           headers: {
             ...DUB_HEADERS,
-            ...(!shouldIndex && {
-              "X-Robots-Tag": "googlebot: noindex",
-            }),
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
           },
         },
+      ),
+      { clickId, path: `/${key}` },
+    );
+
+    // rewrite to target URL if link cloaking is enabled
+  } else if (rewrite) {
+    if (iframeable) {
+      return createResponseWithCookie(
+        NextResponse.rewrite(
+          new URL(
+            `/cloaked/${encodeURIComponent(
+              getFinalUrl(url, {
+                req,
+                clickId: trackConversion ? clickId : undefined,
+              }),
+            )}`,
+            req.url,
+          ),
+          {
+            headers: {
+              ...DUB_HEADERS,
+              ...(!shouldIndex && {
+                "X-Robots-Tag": "googlebot: noindex",
+              }),
+            },
+          },
+        ),
+        { clickId, path: `/${key}` },
       );
     } else {
       // if link is not iframeable, use Next.js rewrite instead
-      return NextResponse.rewrite(url, {
-        headers: {
-          ...DUB_HEADERS,
-          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
-        },
-      });
+      return createResponseWithCookie(
+        NextResponse.rewrite(url, {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+        }),
+        { clickId, path: `/${key}` },
+      );
     }
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
-    return NextResponse.redirect(
-      getFinalUrl(ios, {
-        req,
-        clickId: trackConversion ? clickId : undefined,
-      }),
-      {
-        headers: {
-          ...DUB_HEADERS,
-          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+    return createResponseWithCookie(
+      NextResponse.redirect(
+        getFinalUrl(ios, {
+          req,
+          clickId: trackConversion ? clickId : undefined,
+        }),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+          status: key === "_root" ? 301 : 302,
         },
-        status: key === "_root" ? 301 : 302,
-      },
+      ),
+      { clickId, path: `/${key}` },
     );
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
-    return NextResponse.redirect(
-      getFinalUrl(android, {
-        req,
-        clickId: trackConversion ? clickId : undefined,
-      }),
-      {
-        headers: {
-          ...DUB_HEADERS,
-          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+    return createResponseWithCookie(
+      NextResponse.redirect(
+        getFinalUrl(android, {
+          req,
+          clickId: trackConversion ? clickId : undefined,
+        }),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+          status: key === "_root" ? 301 : 302,
         },
-        status: key === "_root" ? 301 : 302,
-      },
+      ),
+      { clickId, path: `/${key}` },
     );
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
-    return NextResponse.redirect(
-      getFinalUrl(geo[country], {
-        req,
-        clickId: trackConversion ? clickId : undefined,
-      }),
-      {
-        headers: {
-          ...DUB_HEADERS,
-          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+    return createResponseWithCookie(
+      NextResponse.redirect(
+        getFinalUrl(geo[country], {
+          req,
+          clickId: trackConversion ? clickId : undefined,
+        }),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+          status: key === "_root" ? 301 : 302,
         },
-        status: key === "_root" ? 301 : 302,
-      },
+      ),
+      { clickId, path: `/${key}` },
     );
 
     // regular redirect
   } else {
-    return NextResponse.redirect(
-      getFinalUrl(url, {
-        req,
-        clickId: trackConversion ? clickId : undefined,
-      }),
-      {
-        headers: {
-          ...DUB_HEADERS,
-          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+    return createResponseWithCookie(
+      NextResponse.redirect(
+        getFinalUrl(url, {
+          req,
+          clickId: trackConversion ? clickId : undefined,
+        }),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+          status: key === "_root" ? 301 : 302,
         },
-        status: key === "_root" ? 301 : 302,
-      },
+      ),
+      { clickId, path: `/${key}` },
     );
   }
 }

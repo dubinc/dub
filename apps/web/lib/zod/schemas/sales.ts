@@ -87,6 +87,7 @@ export const saleEventEnrichedSchema = z.object({
   domain: z.string(),
   key: z.string(),
   url: z.string(),
+  continent: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
   device: z.string().nullable(),
