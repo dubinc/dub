@@ -6,7 +6,7 @@ import {
   NewIntegration,
   OAuthAppProps,
 } from "@/lib/types";
-import { Button, InfoTooltip, Switch } from "@dub/ui";
+import { Button, FileUpload, InfoTooltip, Switch } from "@dub/ui";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { redirect, useRouter } from "next/navigation";
@@ -24,7 +24,7 @@ const defaultValues: NewIntegration = {
   website: "",
   partialClientSecret: "",
   redirectUris: [],
-  logo: "",
+  logo: null,
   pkce: true,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -137,6 +137,23 @@ export default function AddEditIntegrationForm({
         className="flex flex-col space-y-5 pb-20 text-left"
       >
         <div>
+          <FileUpload
+            accept="images"
+            className="h-24 w-24 rounded-full border border-gray-300"
+            iconClassName="w-5 h-5"
+            variant="plain"
+            readFile
+            imageSrc={
+              logo ||
+              `https://api.dicebear.com/7.x/shapes/svg?seed=${integration?.clientId}`
+            }
+            onChange={({ src }) => setData({ ...data, logo: src })}
+            content={null}
+            maxFileSizeMB={2}
+          />
+        </div>
+
+        <div>
           <label htmlFor="name" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">
               Application name
@@ -187,7 +204,7 @@ export default function AddEditIntegrationForm({
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="Add a description"
               value={description || ""}
-              maxLength={50}
+              maxLength={120}
               onChange={(e) => {
                 setData({ ...data, description: e.target.value });
               }}
@@ -246,22 +263,6 @@ export default function AddEditIntegrationForm({
               value={website}
               onChange={(e) => setData({ ...data, website: e.target.value })}
               placeholder="https://acme.com"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="logo" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Logo URL</h2>
-            <InfoTooltip content="URL to your application's logo" />
-          </label>
-          <div className="relative mt-2 rounded-md shadow-sm">
-            <input
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              type="url"
-              value={logo || ""}
-              onChange={(e) => setData({ ...data, logo: e.target.value })}
-              placeholder="https://acme.com/logo.png"
             />
           </div>
         </div>

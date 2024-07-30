@@ -4,7 +4,9 @@ import { createToken } from "@/lib/api/oauth/utils";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
+import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -74,8 +76,21 @@ export const POST = withWorkspace(
     });
 
     try {
-      const client = await prisma.oAuthApp.create({
+      let logoUrl: string | undefined;
+      const appId = nanoid(25);
+
+      if (logo) {
+        const result = await storage.upload(
+          `integrations/${appId}_${nanoid(7)}`,
+          logo,
+        );
+
+        logoUrl = result.url;
+      }
+
+      const app = await prisma.oAuthApp.create({
         data: {
+          id: appId,
           projectId: workspace.id,
           name,
           slug,
@@ -84,18 +99,18 @@ export const POST = withWorkspace(
           description,
           readme,
           redirectUris,
-          logo,
           clientId,
           hashedClientSecret: await hashToken(clientSecret),
           partialClientSecret: `dub_app_secret_****${clientSecret.slice(-8)}`,
           userId: session.user.id,
           pkce,
+          ...(logoUrl && { logo: logoUrl }),
         },
       });
 
       return NextResponse.json(
         {
-          ...oAuthAppSchema.parse(client),
+          ...oAuthAppSchema.parse(app),
           clientSecret,
         },
         { status: 201 },
