@@ -7,14 +7,9 @@ import { Button, Input } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
-export default function SignUpEmail({
-  setAuthView,
-}: {
-  setAuthView: (view: "signup" | "otp") => void;
-}) {
+export default function SignUpEmail() {
   const router = useRouter();
   const { executeAsync, result, status, isExecuting } =
     useAction(createNewAccount);
@@ -31,12 +26,6 @@ export default function SignUpEmail({
       password: "12345678aB#",
     },
   });
-
-  useEffect(() => {
-    if (status === "hasSucceeded") {
-      setAuthView("otp");
-    }
-  }, [status]);
 
   const onSubmit = handleSubmit(async (data) => {
     await executeAsync(data);

@@ -7,7 +7,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export const VerifyOTP = () => {
+export default function VerifyOTPForm() {
   const router = useRouter();
   const [code, setCode] = useState("");
   const { executeAsync, result, status, isExecuting } =
@@ -72,4 +72,4 @@ export const VerifyOTP = () => {
       </div>
     </div>
   );
-};
+}
