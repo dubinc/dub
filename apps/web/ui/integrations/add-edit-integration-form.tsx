@@ -204,7 +204,7 @@ export default function AddEditIntegrationForm({
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="Add a description"
               value={description || ""}
-              maxLength={50}
+              maxLength={120}
               onChange={(e) => {
                 setData({ ...data, description: e.target.value });
               }}
