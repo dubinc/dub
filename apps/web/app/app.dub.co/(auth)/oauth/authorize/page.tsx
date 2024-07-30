@@ -2,7 +2,9 @@ import { vaidateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
+import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
+import { HexadecagonStar } from "@dub/ui/src/icons";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -34,10 +36,8 @@ export default async function Authorize({
 
   if (error || !oAuthApp) {
     return (
-      <div className="relative z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden border-y sm:rounded-2xl sm:border sm:shadow-xl">
-        <div className="flex flex-col items-center justify-center space-y-6 bg-white px-4 py-6 pt-8 text-center sm:px-16">
-          <p>{error}</p>
-        </div>
+      <div className="relative z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden sm:rounded-2xl">
+        <EmptyState icon={Logo} title={error} />
       </div>
     );
   }
