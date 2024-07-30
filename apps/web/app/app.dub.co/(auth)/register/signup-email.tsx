@@ -20,10 +20,6 @@ export default function SignUpEmail() {
     formState: { errors, isDirty },
   } = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      email: "kiran@dub.com",
-      password: "12345678aB#",
-    },
   });
 
   const { executeAsync, result, status, isExecuting } = useAction(
