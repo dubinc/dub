@@ -1,10 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { sendEmail } from "emails";
 import VerifyEmail from "emails/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
+import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import { hashPassword } from "../auth/password";
@@ -19,8 +20,14 @@ export const createUserAccountAction = actionClient
       flattenValidationErrors(ve).fieldErrors,
   })
   .use(throwIfAuthenticated)
-  .action(async ({ parsedInput }) => {
+  .action(async ({ parsedInput, ctx }) => {
     const { email, password } = parsedInput;
+
+    const { success } = await ratelimit(1, "1 m").limit(`signup:${getIP()}`);
+
+    if (!success) {
+      throw new Error("Too many requests. Please try again later.");
+    }
 
     // Check user with email exists
     const user = await prisma.user.findUnique({

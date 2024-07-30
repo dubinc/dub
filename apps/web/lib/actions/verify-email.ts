@@ -1,7 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { ratelimit } from "@/lib/upstash";
 import { flattenValidationErrors } from "next-safe-action";
+import { getIP } from "../api/utils";
 import { verifyEmailSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./middlewares/throw-if-authenticated";
 import { actionClient } from "./safe-action";
@@ -15,6 +17,14 @@ export const verifyEmailAction = actionClient
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
     const { email, code } = parsedInput;
+
+    const { success } = await ratelimit(3, "1 m").limit(
+      `verifyEmail:${getIP()}`,
+    );
+
+    if (!success) {
+      throw new Error("Too many requests. Please try again later.");
+    }
 
     const verificationToken = await prisma.verificationToken.findUnique({
       where: {
