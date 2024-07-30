@@ -48,7 +48,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
         {props.error && (
           <span
-            className="block text-sm text-red-500 mt-2"
+            className="mt-2 block text-sm text-red-500"
             role="alert"
             aria-live="assertive"
           >

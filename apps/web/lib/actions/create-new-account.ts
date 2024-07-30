@@ -1,8 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "emails";
-import VerifyEmail from "emails/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
