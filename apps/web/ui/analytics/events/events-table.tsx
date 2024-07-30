@@ -35,9 +35,6 @@ import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 import usePagination from "./use-pagination";
 
-export const eventTypes = ["clicks", "leads", "sales"] as const;
-export type EventType = (typeof eventTypes)[number];
-
 export type EventDatum =
   | z.infer<typeof clickEventEnrichedSchema>
   | z.infer<typeof leadEventEnrichedSchema>
@@ -75,7 +72,8 @@ export default function EventsTable() {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
-  const { tab, columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const { selectedTab: tab } = useContext(AnalyticsContext);
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";

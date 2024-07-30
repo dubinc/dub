@@ -50,8 +50,8 @@ export default function Main() {
   );
 
   const tab = tabs.find(({ id }) => id === selectedTab) || {
-    id: "composite",
-    show: ["clicks", "leads", "sales"],
+    id: "clicks",
+    show: ["clicks"],
   };
 
   return (

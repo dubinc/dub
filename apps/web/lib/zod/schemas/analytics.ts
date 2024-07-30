@@ -17,7 +17,7 @@ import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
 const analyticsEvents = z
-  .enum(EVENT_TYPES, {
+  .enum([...EVENT_TYPES, "composite"], {
     errorMap: (_issue, _ctx) => {
       return {
         message:

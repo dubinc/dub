@@ -1,6 +1,8 @@
-import { useLocalStorage, useRouterStuff } from "@dub/ui";
+import { EventType } from "@/lib/analytics/types";
+import { useLocalStorage } from "@dub/ui";
 import { VisibilityState } from "@tanstack/react-table";
-import { EventType, eventTypes } from "./events-table";
+import { useContext } from "react";
+import { AnalyticsContext } from "../analytics-provider";
 
 export const eventColumns: Record<
   EventType,
@@ -74,8 +76,7 @@ const getDefaultColumnVisibility = (tab: EventType) =>
   );
 
 export function useColumnVisibility() {
-  const { searchParams } = useRouterStuff();
-  const tab = eventTypes.find((t) => t === searchParams.get("tab")) || "clicks";
+  const { selectedTab } = useContext(AnalyticsContext);
 
   const [columnVisibility, setColumnVisibility] = useLocalStorage<
     Record<EventType, VisibilityState>
@@ -86,7 +87,6 @@ export function useColumnVisibility() {
   });
 
   return {
-    tab,
     columnVisibility,
     setColumnVisibility: (tab, visibility) =>
       setColumnVisibility({ ...columnVisibility, [tab]: visibility }),
