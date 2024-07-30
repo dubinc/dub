@@ -5,6 +5,8 @@ import { Suspense } from "react";
 import IntegrationsPageClient from "./page-client";
 import PageHeader from "./page-header";
 
+export const dynamic = "force-dynamic";
+
 export default async function IntegrationsPage({
   params,
 }: {

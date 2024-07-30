@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function IntegrationPage({
   params,
 }: {
