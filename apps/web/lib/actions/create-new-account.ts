@@ -1,6 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "emails";
+import VerifyEmail from "emails/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
@@ -54,19 +56,16 @@ export const createNewAccountAction = actionClient
     });
 
     // Send email with generated OTP
-    // await sendEmail({
-    //   subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
-    //   email,
-    //   react: VerifyEmail({
-    //     email,
-    //     code,
-    //   }),
-    // });
+    await sendEmail({
+      subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
+      email,
+      react: VerifyEmail({
+        email,
+        code,
+      }),
+    });
 
     return {
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-      },
+      status: "ok",
     };
   });

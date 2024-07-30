@@ -8,6 +8,12 @@ export const passwordSchema = z
     "Password must contain at least one number, one uppercase, and one lowercase letter",
   );
 
+const emailSchema = z
+  .string()
+  .email()
+  .min(1)
+  .transform((email) => email.toLowerCase());
+
 export const resetPasswordSchema = z
   .object({
     token: z.string().min(1),
@@ -30,16 +36,16 @@ export const updatePasswordSchema = z
   });
 
 export const signInSchema = z.object({
-  email: z.string().email().min(1),
+  email: emailSchema,
   password: z.string().min(1),
 });
 
 export const signUpSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   password: passwordSchema,
 });
 
 export const verifyEmailSchema = z.object({
-  email: z.string().email().min(1),
+  email: emailSchema,
   code: z.string().min(6),
 });
