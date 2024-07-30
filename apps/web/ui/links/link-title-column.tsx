@@ -33,9 +33,9 @@ import {
   getPrettyUrl,
   isDubDomain,
   linkConstructor,
+  timeAgo,
 } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
-import { formatDate } from "date-fns";
 import { Mail } from "lucide-react";
 import { PropsWithChildren, useContext, useRef, useState } from "react";
 import useSWR from "swr";
@@ -322,9 +322,7 @@ function Details({ link, compact }: { link: ResponseLink; compact?: boolean }) {
         )}
       >
         <Tooltip content={formatDateTime(createdAt)}>
-          <span className="text-gray-400">
-            {formatDate(createdAt, "MMM d")}
-          </span>
+          <span className="text-gray-400">{timeAgo(createdAt)}</span>
         </Tooltip>
       </div>
     </div>
@@ -361,7 +359,6 @@ function UserAvatar({
           </div>
           <div className="flex flex-col gap-1 text-xs text-gray-500">
             {user?.name && user.email && <p>{user.email}</p>}
-            {compact && <p>Created {formatDate(link.createdAt, "MMM d")}</p>}
           </div>
         </div>
       }
