@@ -2,7 +2,6 @@ import { Button, Logo } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { Suspense } from "react";
 import LoginForm from "./form";
-import { SignInWithEmailPassword } from "./signin-email-password";
 
 export const metadata = constructMetadata({
   title: `Sign in to ${process.env.NEXT_PUBLIC_APP_NAME}`,
@@ -23,8 +22,6 @@ export default function LoginPage() {
         </p>
       </div>
       <div className="flex flex-col bg-gray-50 px-4 py-8 sm:px-16">
-        <SignInWithEmailPassword />
-        <div className="my-8 border-t border-gray-300 bg-red-300" />
         <div className="space-y-3">
           <Suspense
             fallback={

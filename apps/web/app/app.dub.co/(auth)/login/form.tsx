@@ -6,7 +6,14 @@ import {
   LastUsedAuthMethodTooltip,
   setLastUsedAuthMethod,
 } from "@/lib/auth/last-used-method";
-import { Button, Github, Google, InfoTooltip, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  Github,
+  Google,
+  InfoTooltip,
+  Input,
+  useMediaQuery,
+} from "@dub/ui";
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -18,9 +25,11 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const [showEmailOption, setShowEmailOption] = useState(false);
+  const [showPasswordField, setShowPasswordField] = useState(false);
   const [showSSOOption, setShowSSOOption] = useState(false);
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedGithub, setClickedGithub] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
@@ -151,6 +160,12 @@ export default function LoginForm() {
           </div>
         )}
 
+        {showPasswordField && (
+          <div>
+            <Input type="password" placeholder="Password" value={password} />
+          </div>
+        )}
+
         <div className="relative">
           <Button
             text="Continue with Email"
@@ -171,6 +186,7 @@ export default function LoginForm() {
           {authMethod === "email" && <LastUsedAuthMethodTooltip />}
         </div>
       </form>
+
       <form
         onSubmit={async (e) => {
           e.preventDefault();
