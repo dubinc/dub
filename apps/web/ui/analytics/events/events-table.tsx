@@ -71,7 +71,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 };
 
 export default function EventsTable() {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { plan } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
   const { selectedTab: tab } = useContext(AnalyticsContext);
@@ -375,16 +375,15 @@ export default function EventsTable() {
     [setExportQueryString, queryString, columnVisibility, tab],
   );
 
+  const needsHigherPlan = plan === "free" || plan === "pro";
+
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    `/api/events?${queryString}`,
+    !needsHigherPlan && `/api/events?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,
-      shouldRetryOnError: (err) => !err?.message?.includes("Need higher plan"),
     },
   );
-
-  const needsHigherPlan = Boolean(error?.message?.includes("Need higher plan"));
 
   const { table, ...tableProps } = useTable({
     data: data ?? (needsHigherPlan ? exampleData[tab] : defaultData),
@@ -420,7 +419,7 @@ export default function EventsTable() {
       <EmptyState
         icon={Magnifier}
         title="No events recorded"
-        description="Events will appear here when your links are clicked."
+        description={`Events will appear here when your links ${tab === "clicks" ? "are clicked on" : `convert to ${tab}`}`}
       />
     ),
     resourceName: (plural) => `event${plural ? "s" : ""}`,

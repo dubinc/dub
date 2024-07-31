@@ -9,12 +9,12 @@ const common = {
 
 const dubLink = {
   link_id: "1",
-  domain: "dub.link",
+  domain: "dub.sh", // TODO: update to dub.link
   key: "uxUrVCz",
   url: "https://dub.co/",
   link: {
     id: "1",
-    domain: "dub.link",
+    domain: "dub.sh", // TODO: update to dub.link
     key: "uxUrVCz",
     url: "https://dub.co/",
   },

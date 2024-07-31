@@ -95,7 +95,7 @@ export default function EventsTabs() {
           key={event}
           className={cn(
             "flex justify-between gap-4 rounded-xl border bg-white px-5 py-4 text-left transition-[box-shadow] focus:outline-none",
-            tab === event
+            tab === event && flags?.conversions
               ? "border-black shadow-[0_0_0_1px_black_inset]"
               : "border-gray-200 focus-visible:border-black",
           )}
