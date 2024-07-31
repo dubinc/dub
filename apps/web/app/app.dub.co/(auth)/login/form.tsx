@@ -15,6 +15,7 @@ import {
   Input,
   useMediaQuery,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -45,7 +46,6 @@ export default function LoginForm() {
   const [clickedEmail, setClickedEmail] = useState(false);
   const [clickedSSO, setClickedSSO] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
     undefined,
   );
@@ -71,46 +71,46 @@ export default function LoginForm() {
     };
   }, []);
 
-  return (
-    <>
-      <div className="flex flex-col gap-3">
-        <div className="relative">
-          <Button
-            text="Continue with Google"
-            variant="secondary"
-            onClick={() => {
-              setClickedGoogle(true);
-              setLastUsedAuthMethod("google");
-              signIn("google", {
-                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-              });
-            }}
-            loading={clickedGoogle}
-            disabled={clickedEmail || clickedSSO}
-            icon={<Google className="h-5 w-5" />}
-          />
-          {authMethod === "google" && <LastUsedAuthMethodTooltip />}
-        </div>
+  const GoogleButton = () => {
+    return (
+      <Button
+        text="Continue with Google"
+        variant="secondary"
+        onClick={() => {
+          setClickedGoogle(true);
+          setLastUsedAuthMethod("google");
+          signIn("google", {
+            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+          });
+        }}
+        loading={clickedGoogle}
+        disabled={clickedEmail || clickedSSO}
+        icon={<Google className="h-5 w-5" />}
+      />
+    );
+  };
 
-        <div className="relative">
-          <Button
-            text="Continue with Github"
-            variant="secondary"
-            onClick={() => {
-              setClickedGithub(true);
-              setLastUsedAuthMethod("github");
-              signIn("github", {
-                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-              });
-            }}
-            loading={clickedGithub}
-            disabled={clickedEmail || clickedSSO}
-            icon={<Github className="h-5 w-5 text-black" />}
-          />
-          {authMethod === "github" && <LastUsedAuthMethodTooltip />}
-        </div>
-      </div>
+  const GitHubButton = () => {
+    return (
+      <Button
+        text="Continue with Github"
+        variant="secondary"
+        onClick={() => {
+          setClickedGithub(true);
+          setLastUsedAuthMethod("github");
+          signIn("github", {
+            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+          });
+        }}
+        loading={clickedGithub}
+        disabled={clickedEmail || clickedSSO}
+        icon={<Github className="h-5 w-5 text-black" />}
+      />
+    );
+  };
 
+  const SignInWithEmail = () => {
+    return (
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -178,7 +178,11 @@ export default function LoginForm() {
       >
         {showEmailOption && (
           <div>
-            <div className="mb-4 mt-1 border-t border-gray-300" />
+            <div
+              className={cn("mb-4", {
+                "mt-1 border-t border-gray-300": authMethod != "email",
+              })}
+            />
             <input
               id="email"
               name="email"
@@ -225,27 +229,28 @@ export default function LoginForm() {
           </div>
         )}
 
-        <div className="relative">
-          <Button
-            text="Continue with Email"
-            variant="secondary"
-            icon={<Mail className="h-4 w-4" />}
-            {...(!showEmailOption && {
-              type: "button",
-              onClick: (e) => {
-                e.preventDefault();
-                setLastUsedAuthMethod("email");
-                setShowSSOOption(false);
-                setShowEmailOption(true);
-              },
-            })}
-            loading={clickedEmail || loading}
-            disabled={clickedGoogle || clickedSSO}
-          />
-          {authMethod === "email" && <LastUsedAuthMethodTooltip />}
-        </div>
+        <Button
+          text="Continue with Email"
+          variant="secondary"
+          icon={<Mail className="h-4 w-4" />}
+          {...(!showEmailOption && {
+            type: "button",
+            onClick: (e) => {
+              e.preventDefault();
+              setLastUsedAuthMethod("email");
+              setShowSSOOption(false);
+              setShowEmailOption(true);
+            },
+          })}
+          loading={clickedEmail || loading}
+          disabled={clickedGoogle || clickedSSO}
+        />
       </form>
+    );
+  };
 
+  const SignInWithSSO = () => {
+    return (
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -293,25 +298,64 @@ export default function LoginForm() {
           </div>
         )}
 
-        <div className="relative">
-          <Button
-            text="Continue with SAML SSO"
-            variant="secondary"
-            icon={<Lock className="h-4 w-4" />}
-            {...(!showSSOOption && {
-              type: "button",
-              onClick: (e) => {
-                e.preventDefault();
-                setShowEmailOption(false);
-                setShowSSOOption(true);
-              },
-            })}
-            loading={clickedSSO}
-            disabled={clickedGoogle || clickedEmail}
-          />
-          {authMethod === "saml" && <LastUsedAuthMethodTooltip />}
-        </div>
+        <Button
+          text="Continue with SAML SSO"
+          variant="secondary"
+          icon={<Lock className="h-4 w-4" />}
+          {...(!showSSOOption && {
+            type: "button",
+            onClick: (e) => {
+              e.preventDefault();
+              setShowEmailOption(false);
+              setShowSSOOption(true);
+            },
+          })}
+          loading={clickedSSO}
+          disabled={clickedGoogle || clickedEmail}
+        />
       </form>
+    );
+  };
+
+  const authProviders = [
+    {
+      method: "google",
+      component: <GoogleButton />,
+    },
+    {
+      method: "github",
+      component: <GitHubButton />,
+    },
+    {
+      method: "email",
+      component: <SignInWithEmail />,
+    },
+    {
+      method: "saml",
+      component: <SignInWithSSO />,
+    },
+  ];
+
+  if (authMethod === undefined) {
+    return null;
+  }
+
+  const lastUsedAuthMethodComponent = authProviders.find(
+    (provider) => provider.method === authMethod,
+  )?.component;
+
+  return (
+    <>
+      <div className="flex flex-col gap-3">
+        {lastUsedAuthMethodComponent}
+        <LastUsedAuthMethodTooltip />
+        {authProviders
+          .filter((provider) => provider.method !== authMethod)
+          .map((provider) => (
+            <div key={provider.method}>{provider.component}</div>
+          ))}
+      </div>
+
       {noSuchAccount ? (
         <p className="text-center text-sm text-red-500">
           No such account.{" "}
