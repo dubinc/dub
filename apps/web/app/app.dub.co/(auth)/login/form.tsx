@@ -6,6 +6,7 @@ import {
   LastUsedAuthMethodTooltip,
   setLastUsedAuthMethod,
 } from "@/lib/auth/last-used-method";
+import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
   Button,
   Github,
@@ -17,13 +18,22 @@ import {
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+const errorCodes = {
+  "no-credentials": "Please provide an email and password.",
+  "invalid-credentials": "Email or password is incorrect.",
+  "exceeded-login-attempts":
+    "Account has been locked due to too many login attempts. Please contact support to unlock your account.",
+  "too-many-login-attempts": "Too many login attempts. Please try again later.",
+};
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
+  const router = useRouter();
   const [showEmailOption, setShowEmailOption] = useState(false);
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [showSSOOption, setShowSSOOption] = useState(false);
@@ -34,6 +44,7 @@ export default function LoginForm() {
   const [clickedGithub, setClickedGithub] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
   const [clickedSSO, setClickedSSO] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
     undefined,
@@ -105,25 +116,51 @@ export default function LoginForm() {
           e.preventDefault();
           setClickedEmail(true);
           setLastUsedAuthMethod("email");
+
+          if (!password) {
+            setShowPasswordField(false);
+          }
+
           fetch("/api/auth/account-exists", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email }),
           })
             .then(async (res) => {
-              const { exists } = await res.json();
-              if (exists) {
-                signIn("email", {
+              const { accountExists, hasPassword } = await res.json();
+              if (accountExists) {
+                const provider =
+                  hasPassword && password ? "credentials" : "email";
+
+                signIn(provider, {
                   email,
+                  ...(password && { password }),
                   redirect: false,
                   ...(next && next.length > 0 ? { callbackUrl: next } : {}),
                 }).then((res) => {
                   setClickedEmail(false);
-                  if (res?.ok && !res?.error) {
+
+                  if (!res) {
+                    return;
+                  }
+
+                  // Handle errors
+                  if (!res.ok && res.error) {
+                    if (provider === "email") {
+                      toast.error("Error sending email - try again?");
+                    } else if (provider === "credentials") {
+                      toast.error(errorCodes[res?.error]);
+                    }
+
+                    return;
+                  }
+
+                  // Handle success
+                  if (provider === "email") {
                     setEmail("");
                     toast.success("Email sent - check your inbox!");
-                  } else {
-                    toast.error("Error sending email - try again?");
+                  } else if (provider === "credentials") {
+                    router.replace(res.url ?? "/");
                   }
                 });
               } else {
@@ -154,6 +191,23 @@ export default function LoginForm() {
               onChange={(e) => {
                 setNoSuchAccount(false);
                 setEmail(e.target.value);
+
+                const { success } = emailSchema.safeParse(e.target.value);
+
+                if (success) {
+                  setLoading(true);
+                  fetch("/api/auth/account-exists", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: e.target.value }),
+                  }).then(async (res) => {
+                    setLoading(false);
+                    const { accountExists, hasPassword } = await res.json();
+                    if (accountExists && hasPassword) {
+                      setShowPasswordField(true);
+                    }
+                  });
+                }
               }}
               className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
             />
@@ -162,7 +216,12 @@ export default function LoginForm() {
 
         {showPasswordField && (
           <div>
-            <Input type="password" placeholder="Password" value={password} />
+            <Input
+              type="password"
+              value={password}
+              placeholder="Password (optional)"
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
         )}
 
@@ -180,7 +239,7 @@ export default function LoginForm() {
                 setShowEmailOption(true);
               },
             })}
-            loading={clickedEmail}
+            loading={clickedEmail || loading}
             disabled={clickedGoogle || clickedSSO}
           />
           {authMethod === "email" && <LastUsedAuthMethodTooltip />}
