@@ -12,7 +12,7 @@ export default function LoginPage() {
   return (
     <ClientOnly className="relative z-10 my-10 flex min-h-full w-full flex-col items-center justify-center">
       <a href={HOME_DOMAIN}>
-        <Wordmark className="h-10" />
+        <Wordmark className="h-12" />
       </a>
       <div className="mt-5 w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
         <div className="flex flex-col items-center justify-center gap-4 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
