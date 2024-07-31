@@ -42,7 +42,6 @@ export default function LoginForm() {
   const router = useRouter();
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [showSSOOption, setShowSSOOption] = useState(false);
-  const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [clickedMethod, setClickedMethod] = useState<AuthMethod | undefined>(
@@ -134,18 +133,18 @@ export default function LoginForm() {
 
                 signIn(provider, {
                   email,
-                  ...(password && { password }),
                   redirect: false,
-                  ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+                  ...(password && { password }),
+                  ...(next ? { callbackUrl: next } : {}),
                 }).then((res) => {
-                  setClickedMethod(undefined);
-
                   if (!res) {
+                    setClickedMethod(undefined);
                     return;
                   }
 
                   // Handle errors
                   if (!res.ok && res.error) {
+                    setClickedMethod(undefined);
                     if (provider === "email") {
                       toast.error("Error sending email - try again?");
                     } else if (provider === "credentials") {
@@ -158,16 +157,15 @@ export default function LoginForm() {
                   // Handle success
                   setLastUsedAuthMethod("email");
                   if (provider === "email") {
-                    setEmail("");
                     toast.success("Email sent - check your inbox!");
+                    setEmail("");
                   } else if (provider === "credentials") {
-                    router.replace(res.url ?? "/");
+                    router.push(next ?? "/");
                   }
                 });
               } else {
-                toast.error("No account found with that email address.");
-                setNoSuchAccount(true);
                 setClickedMethod(undefined);
+                toast.error("No account found with that email address.");
               }
             })
             .catch(() => {
@@ -189,7 +187,6 @@ export default function LoginForm() {
               required
               value={email}
               onChange={(e) => {
-                setNoSuchAccount(false);
                 setEmail(e.target.value);
                 const { success } = emailSchema.safeParse(e.target.value);
 
@@ -352,54 +349,52 @@ export default function LoginForm() {
   const showEmailPasswordOnly = authMethod === "email" && showPasswordField;
 
   return (
-    <>
-      <AnimatedSizeContainer height>
-        <div className="flex flex-col gap-3">
-          {authMethod && (
-            <div className="flex flex-col gap-2">
-              {authMethodComponent}
+    <AnimatedSizeContainer height>
+      <div className="grid gap-3 p-1">
+        {authMethod && (
+          <div className="flex flex-col gap-2">
+            {authMethodComponent}
 
-              {!showEmailPasswordOnly && authMethod === lastUsedAuthMethod && (
-                <div className="text-center text-xs">
-                  <span className="text-gray-500">
-                    You signed in with{" "}
-                    {lastUsedAuthMethod.charAt(0).toUpperCase() +
-                      lastUsedAuthMethod.slice(1)}{" "}
-                    last time
-                  </span>
-                </div>
-              )}
-              <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-                <div className="grow basis-0 border-b border-gray-300" />
-                <span className="text-xs font-normal uppercase leading-none text-gray-500">
-                  or
+            {!showEmailPasswordOnly && authMethod === lastUsedAuthMethod && (
+              <div className="text-center text-xs">
+                <span className="text-gray-500">
+                  You signed in with{" "}
+                  {lastUsedAuthMethod.charAt(0).toUpperCase() +
+                    lastUsedAuthMethod.slice(1)}{" "}
+                  last time
                 </span>
-                <div className="grow basis-0 border-b border-gray-300" />
               </div>
+            )}
+            <div className="my-2 flex flex-shrink items-center justify-center gap-2">
+              <div className="grow basis-0 border-b border-gray-300" />
+              <span className="text-xs font-normal uppercase leading-none text-gray-500">
+                or
+              </span>
+              <div className="grow basis-0 border-b border-gray-300" />
             </div>
-          )}
-          {showEmailPasswordOnly ? (
-            <div className="mt-2 text-center text-sm text-gray-500">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("");
-                  setShowPasswordField(false);
-                }}
-                className="font-semibold text-gray-500 transition-colors hover:text-black"
-              >
-                Continue with another method
-              </button>
-            </div>
-          ) : (
-            authProviders
-              .filter((provider) => provider.method !== authMethod)
-              .map((provider) => (
-                <div key={provider.method}>{provider.component}</div>
-              ))
-          )}
-        </div>
-      </AnimatedSizeContainer>
-    </>
+          </div>
+        )}
+        {showEmailPasswordOnly ? (
+          <div className="mt-2 text-center text-sm text-gray-500">
+            <button
+              type="button"
+              onClick={() => {
+                setEmail("");
+                setShowPasswordField(false);
+              }}
+              className="font-semibold text-gray-500 transition-colors hover:text-black"
+            >
+              Continue with another method
+            </button>
+          </div>
+        ) : (
+          authProviders
+            .filter((provider) => provider.method !== authMethod)
+            .map((provider) => (
+              <div key={provider.method}>{provider.component}</div>
+            ))
+        )}
+      </div>
+    </AnimatedSizeContainer>
   );
 }

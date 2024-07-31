@@ -1,6 +1,5 @@
-import { BlurImage, Button, ClientOnly, Wordmark } from "@dub/ui";
+import { BlurImage, ClientOnly, Wordmark } from "@dub/ui";
 import Link from "next/link";
-import { Suspense } from "react";
 
 const logos = [
   "vercel",
@@ -39,21 +38,8 @@ export default function AuthLayout({
                     : "Get started with Dub"}
                 </h3>
               </div>
-              <div className="flex flex-col bg-gray-50 px-4 py-8 sm:px-16">
-                <div className="space-y-3">
-                  <Suspense
-                    fallback={
-                      <>
-                        <Button disabled={true} variant="secondary" />
-                        <Button disabled={true} variant="secondary" />
-                        <Button disabled={true} variant="secondary" />
-                        <div className="mx-auto h-5 w-3/4 rounded-lg bg-gray-100" />
-                      </>
-                    }
-                  >
-                    {children}
-                  </Suspense>
-                </div>
+              <div className="grid gap-3 bg-gray-50 px-4 py-8 sm:px-16">
+                {children}
               </div>
             </div>
             <p className="mt-4 text-center text-sm text-gray-500">
