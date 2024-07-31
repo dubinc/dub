@@ -15,6 +15,7 @@ import {
   Input,
   useMediaQuery,
 } from "@dub/ui";
+import { InputPassword, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
@@ -45,7 +46,7 @@ export default function LoginForm() {
   const [clickedGithub, setClickedGithub] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
   const [clickedSSO, setClickedSSO] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [checkingEmailPassword, setCheckingEmailPassword] = useState(false);
   const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
     undefined,
   );
@@ -177,12 +178,7 @@ export default function LoginForm() {
         className="flex flex-col space-y-3"
       >
         {showEmailOption && (
-          <div>
-            <div
-              className={cn("mb-4", {
-                "mt-1 border-t border-gray-300": authMethod != "email",
-              })}
-            />
+          <div className="relative">
             <input
               id="email"
               name="email"
@@ -195,17 +191,16 @@ export default function LoginForm() {
               onChange={(e) => {
                 setNoSuchAccount(false);
                 setEmail(e.target.value);
-
                 const { success } = emailSchema.safeParse(e.target.value);
 
                 if (success) {
-                  setLoading(true);
+                  setCheckingEmailPassword(true);
                   fetch("/api/auth/account-exists", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email: e.target.value }),
                   }).then(async (res) => {
-                    setLoading(false);
+                    setCheckingEmailPassword(false);
                     const { accountExists, hasPassword } = await res.json();
                     if (accountExists && hasPassword) {
                       setShowPasswordField(true);
@@ -213,8 +208,18 @@ export default function LoginForm() {
                   });
                 }
               }}
-              className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+              className={cn(
+                "block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
+                {
+                  "pr-10": checkingEmailPassword,
+                },
+              )}
             />
+            {checkingEmailPassword && (
+              <div className="absolute inset-y-0 right-0 flex h-full items-center pr-3">
+                <LoadingSpinner className="size-5" />
+              </div>
+            )}
           </div>
         )}
 
@@ -230,9 +235,15 @@ export default function LoginForm() {
         )}
 
         <Button
-          text="Continue with Email"
+          text={`Continue with ${password ? "Password" : "Email"}`}
           variant="secondary"
-          icon={<Mail className="h-4 w-4" />}
+          icon={
+            password ? (
+              <InputPassword className="size-4" />
+            ) : (
+              <Mail className="size-4" />
+            )
+          }
           {...(!showEmailOption && {
             type: "button",
             onClick: (e) => {
@@ -242,7 +253,7 @@ export default function LoginForm() {
               setShowEmailOption(true);
             },
           })}
-          loading={clickedEmail || loading}
+          loading={clickedEmail}
           disabled={clickedGoogle || clickedSSO}
         />
       </form>
@@ -301,7 +312,7 @@ export default function LoginForm() {
         <Button
           text="Continue with SAML SSO"
           variant="secondary"
-          icon={<Lock className="h-4 w-4" />}
+          icon={<Lock className="size-4" />}
           {...(!showSSOOption && {
             type: "button",
             onClick: (e) => {
