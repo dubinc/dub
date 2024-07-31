@@ -1,5 +1,5 @@
 {
-  "name": "dub-monorepo",
+  "name": "thinkthank-monorepo",
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {

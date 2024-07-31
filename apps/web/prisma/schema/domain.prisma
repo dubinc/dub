@@ -22,7 +22,7 @@ model Domain {
 model DefaultDomains {
   id          String  @id @default(cuid())
   dublink     Boolean @default(false)
-  dubsh       Boolean @default(true)
+  thinkthankio       Boolean @default(true)
   chatgpt     Boolean @default(true)
   sptifi      Boolean @default(true)
   gitnew      Boolean @default(true)
