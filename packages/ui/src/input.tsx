@@ -37,12 +37,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           >
             {isPasswordVisible ? (
               <EyeIcon
-                className="h-5 w-5 flex-none text-gray-500 transition hover:text-gray-700"
+                className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
                 aria-hidden
               />
             ) : (
               <EyeOffIcon
-                className="h-5 w-5 flex-none text-gray-500 transition hover:text-gray-700"
+                className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
                 aria-hidden
               />
             )}
