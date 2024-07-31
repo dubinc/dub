@@ -3,7 +3,7 @@
 import { LinkProps } from "@/lib/types";
 import { NumberTooltip, Tooltip, useMediaQuery } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
-import { cn, nFormatter } from "@dub/utils";
+import { cn, getPrettyUrl, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -116,7 +116,9 @@ export function LineItem({
     return (
       <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
         {icon}
-        <div className="truncate text-sm text-gray-800">{title}</div>
+        <div className="truncate text-sm text-gray-800">
+          {getPrettyUrl(title)}
+        </div>
       </div>
     );
   }, [icon, tab, title]);
@@ -136,7 +138,11 @@ export function LineItem({
             </Tooltip>
           ) : tab === "url" ? (
             <Tooltip
-              content={<LinkifyTooltipContent>{title}</LinkifyTooltipContent>}
+              content={
+                <div className="overflow-auto px-4 py-2">
+                  <LinkifyTooltipContent>{title}</LinkifyTooltipContent>
+                </div>
+              }
             >
               {lineItem}
             </Tooltip>

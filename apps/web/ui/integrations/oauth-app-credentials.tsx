@@ -27,7 +27,7 @@ export default function OAuthAppCredentials({
         </div>
       </div>
 
-      {clientSecret ? (
+      {clientSecret && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-500">
             Client Secret
@@ -45,7 +45,9 @@ export default function OAuthAppCredentials({
             again.
           </span>
         </div>
-      ) : (
+      )}
+
+      {!clientSecret && partialClientSecret && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-500">
             Client Secret
