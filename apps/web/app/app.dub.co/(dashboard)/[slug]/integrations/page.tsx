@@ -5,6 +5,8 @@ import { Suspense } from "react";
 import IntegrationsPageClient from "./page-client";
 import PageHeader from "./page-header";
 
+export const revalidate = 300; // 5 minutes
+
 export default async function IntegrationsPage({
   params,
 }: {
@@ -35,13 +37,6 @@ const Integrations = async ({ slug }: { slug: string }) => {
           authorizedApps: true,
         },
       },
-      authorizedApps: {
-        where: {
-          project: {
-            slug,
-          },
-        },
-      },
     },
   });
 
@@ -50,7 +45,6 @@ const Integrations = async ({ slug }: { slug: string }) => {
       integrations={integrations.map((integration) => ({
         ...integration,
         installations: integration._count.authorizedApps,
-        installed: integration.authorizedApps.length > 0,
       }))}
     />
   );
