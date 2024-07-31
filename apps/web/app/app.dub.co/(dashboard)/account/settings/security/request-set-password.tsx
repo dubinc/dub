@@ -1,7 +1,7 @@
 "use client";
 
 import useUser from "@/lib/swr/use-user";
-import { Button, LoadingSpinner } from "@dub/ui";
+import { Button } from "@dub/ui";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -37,29 +37,22 @@ export const RequestSetPassword = () => {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
-      <div className="flex flex-col space-y-3 p-5 sm:p-10">
+      <div className="flex flex-col gap-3 border-b border-gray-200 p-5 sm:p-10">
         <h2 className="text-xl font-medium">Password</h2>
-        {!loading ? (
-          <>
-            <p className="text-sm text-gray-500">
-              Your account is managed by{" "}
-              <span className="capitalize">{user?.provider}</span>. You can set
-              a password to use with your Dub account.
-            </p>
-            <div className="flex">
-              <div>
-                <Button
-                  text="Create account password"
-                  onClick={sendPasswordSetRequest}
-                  loading={sending}
-                  disabled={sending}
-                />
-              </div>
-            </div>
-          </>
-        ) : (
-          <LoadingSpinner />
-        )}
+        <p className="pb-2 text-sm text-gray-500">
+          Your account is managed by{" "}
+          <span className="uppercase">{user?.provider}</span>. You can set a
+          password to use with your Dub account.
+        </p>
+      </div>
+      <div className="p-5 sm:p-10">
+        <Button
+          text="Create account password"
+          onClick={sendPasswordSetRequest}
+          loading={sending}
+          disabled={sending}
+          className="w-fit"
+        />
       </div>
     </div>
   );
