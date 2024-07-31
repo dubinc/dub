@@ -1,3 +1,4 @@
+export * from "./create-response-with-cookie";
 export * from "./detect-bot";
 export * from "./detect-qr";
 export * from "./get-final-url";

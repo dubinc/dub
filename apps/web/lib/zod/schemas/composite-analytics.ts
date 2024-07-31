@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { COUNTRY_CODES } from "@dub/utils";
+import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
 
 export const compositeAnalyticsResponse = {
   count: z.object({
@@ -17,11 +17,27 @@ export const compositeAnalyticsResponse = {
     amount: z.number().describe("The total amount of sales in the interval"),
   }),
 
+  continents: z.object({
+    continent: z
+      .enum(CONTINENT_CODES)
+      .describe(
+        "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
+      ),
+    clicks: z.number().describe("The number of clicks from this continent"),
+    leads: z.number().describe("The number of leads from this continent"),
+    sales: z.number().describe("The number of sales from this continent"),
+    amount: z
+      .number()
+      .describe("The total amount of sales from this continent"),
+  }),
+
   countries: z
     .object({
       country: z
         .enum(COUNTRY_CODES)
-        .describe("The 2-letter country code: https://d.to/geo"),
+        .describe(
+          "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
+        ),
       clicks: z.number().describe("The number of clicks from this country"),
       leads: z.number().describe("The number of leads from this country"),
       sales: z.number().describe("The number of sales from this country"),

@@ -16,7 +16,6 @@ export const createOAuthAppSchema = z.object({
     .url({
       message: "Please provide a valid URL for the logo",
     })
-    .max(190)
     .nullable(),
   redirectUris: z
     .string()

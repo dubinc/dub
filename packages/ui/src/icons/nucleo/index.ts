@@ -42,6 +42,7 @@ export * from "./invoice-dollar";
 export * from "./key";
 export * from "./lines-y";
 export * from "./magnifier";
+export * from "./map-position";
 export * from "./menu3";
 export * from "./mobile-phone";
 export * from "./office-building";

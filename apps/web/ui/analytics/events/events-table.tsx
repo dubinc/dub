@@ -15,6 +15,7 @@ import {
   QRCode,
 } from "@dub/ui/src/icons";
 import {
+  CONTINENTS,
   COUNTRIES,
   capitalize,
   fetcher,
@@ -27,6 +28,7 @@ import { useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
+import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
@@ -177,6 +179,22 @@ export default function EventsTable() {
               </div>
             );
           },
+        },
+        {
+          id: "continent",
+          header: "Continent",
+          accessorKey: "continent",
+          meta: {
+            filterParams: ({ getValue }) => ({ continent: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              <span className="truncate">
+                {CONTINENTS[getValue()] ?? "Unknown"}
+              </span>
+            </div>
+          ),
         },
         {
           id: "country",

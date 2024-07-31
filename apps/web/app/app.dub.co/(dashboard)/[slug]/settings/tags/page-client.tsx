@@ -28,6 +28,7 @@ export default function WorkspaceTagsClient() {
   const { tags, loading } = useTags();
   const { data: tagsCount } = useLinksCount({
     groupBy: "tagId",
+    showArchived: true,
   });
 
   const [openMenuTagId, setOpenMenuTagId] = useState<string | null>(null);

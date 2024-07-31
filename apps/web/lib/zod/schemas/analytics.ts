@@ -7,6 +7,7 @@ import {
 } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import {
+  CONTINENT_CODES,
   COUNTRY_CODES,
   DUB_FOUNDING_DATE,
   PAGINATION_LIMIT,
@@ -102,6 +103,11 @@ export const analyticsQuerySchema = z.object({
       "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
     )
     .openapi({ example: "America/New_York", default: "UTC" }),
+  continent: z
+    .enum(CONTINENT_CODES)
+    .optional()
+    .describe("The continent to retrieve analytics for.")
+    .openapi({ ref: "continentCode" }),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
@@ -178,6 +184,7 @@ export const analyticsFilterTB = z
       browser: true,
       city: true,
       country: true,
+      continent: true,
       device: true,
       domain: true,
       linkId: true,

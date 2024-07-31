@@ -28,6 +28,7 @@ import {
   Globe2,
   Hyperlink,
   Magic,
+  MapPosition,
   MobilePhone,
   OfficeBuilding,
   QRCode,
@@ -37,6 +38,7 @@ import {
 } from "@dub/ui/src/icons";
 import {
   APP_DOMAIN,
+  CONTINENTS,
   COUNTRIES,
   DUB_DEMO_LINKS,
   DUB_LOGO,
@@ -62,6 +64,7 @@ import useSWR from "swr";
 import { COLORS_LIST } from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
+import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
@@ -101,6 +104,7 @@ export default function Toggle({
       key,
       tagId,
       qr,
+      continent,
       country,
       city,
       device,
@@ -121,6 +125,7 @@ export default function Toggle({
         : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
       ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
+      ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
       ...(device ? [{ key: "device", value: device }] : []),
@@ -146,6 +151,9 @@ export default function Toggle({
   });
   const cities = useAnalyticsFilterOption("cities", {
     cacheOnly: !isRequested("city"),
+  });
+  const continents = useAnalyticsFilterOption("continents", {
+    cacheOnly: !isRequested("continent"),
   });
   const devices = useAnalyticsFilterOption("devices", {
     cacheOnly: !isRequested("device"),
@@ -364,6 +372,21 @@ export default function Toggle({
           })) ?? null,
       },
       {
+        key: "continent",
+        icon: MapPosition,
+        label: "Continent",
+        getOptionIcon: (value) => (
+          <ContinentIcon display={value} className="size-2.5" />
+        ),
+        getOptionLabel: (value) => CONTINENTS[value],
+        options:
+          continents?.map(({ continent, count }) => ({
+            value: continent,
+            label: CONTINENTS[continent],
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
+      {
         key: "device",
         icon: MobilePhone,
         label: "Device",
@@ -441,7 +464,7 @@ export default function Toggle({
   return (
     <>
       <div
-        className={cn("sticky top-11 z-10 bg-gray-50/80 py-3 md:py-3", {
+        className={cn("sticky top-11 z-10 bg-gray-50 py-3 md:py-3", {
           "top-14": isPublicStatsPage,
           "top-0": adminPage,
           "top-16": demoPage,

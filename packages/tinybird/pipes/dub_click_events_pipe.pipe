@@ -6,6 +6,7 @@ SQL >
         click_id,
         link_id,
         url,
+        continent,
         country,
         city,
         device,
