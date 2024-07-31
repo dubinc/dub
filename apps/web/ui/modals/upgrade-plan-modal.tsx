@@ -110,7 +110,7 @@ function UpgradePlanModal({
           className="text-center text-sm text-gray-500"
           variants={STAGGER_CHILD_VARIANTS}
         >
-          Enjoy higher limits and extra features <br /> with Dub.co{" "}
+          Enjoy higher limits and extra features <br /> with {process.env.NEXT_PUBLIC_APP_NAME}{" "}
           {selectedPlan.name}
         </motion.p>
       </motion.div>
