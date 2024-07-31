@@ -63,11 +63,11 @@ export async function updateLink({
         proxy && image && !isStored(image)
           ? `${R2_URL}/images/${id}_${imageUrlNonce}`
           : image,
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_term,
-      utm_content,
+      utm_source: utm_source || null,
+      utm_medium: utm_medium || null,
+      utm_campaign: utm_campaign || null,
+      utm_term: utm_term || null,
+      utm_content: utm_content || null,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
 
