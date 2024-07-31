@@ -72,6 +72,7 @@ export const oAuthAppSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   installations: z.number().default(0),
+  screenshots: z.array(z.string()).nullable(),
 });
 
 // Schema for OAuth2.0 Authorization request

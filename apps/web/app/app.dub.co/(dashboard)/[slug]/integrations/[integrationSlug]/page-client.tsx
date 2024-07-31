@@ -137,30 +137,29 @@ export default function IntegrationPageClient({
         </div>
       </div>
 
-      <Carousel autoplay={{ delay: 5000 }} className="w-full bg-gray-100 rounded-lg">
-        <CarouselContent>
-          {[
-            "https://assets.dub.co/brand/screenshot-01.jpg",
-            "https://assets.dub.co/brand/screenshot-02.jpg",
-          ].map((src, idx) => (
-            <CarouselItem key={idx}>
-              <div className="group relative">
-                <AssetImage
-                  image={{
-                    src,
-                    alt: "Screenshot",
-                    fill: true,
-                    style: { objectFit: "cover" },
-                  }}
-                  className="static mx-auto mt-10 aspect-[2880/1640] w-5/6 overflow-hidden rounded-t-2xl border border-gray-200"
-                />
-                {/* <div className="absolute bottom-0 h-32 w-full bg-gradient-to-t from-white via-white/75 to-transparent" /> */}
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselNavBar variant="floating" />
-      </Carousel>
+      {integration.screenshots?.length && (
+        <Carousel autoplay={{ delay: 5000 }} className="bg-white">
+          <CarouselContent>
+            {integration.screenshots.map((src, idx) => (
+              <CarouselItem key={idx} className="bg-gray-100">
+                <div className="group relative">
+                  <AssetImage
+                    image={{
+                      src,
+                      alt: "Screenshot",
+                      fill: true,
+                      style: { objectFit: "cover" },
+                    }}
+                    className="static mx-auto mt-10 aspect-[2880/1640] w-5/6 overflow-hidden rounded-t-2xl border border-gray-200"
+                  />
+                  {/* <div className="absolute bottom-0 h-32 w-full bg-gradient-to-t from-white via-white/75 to-transparent" /> */}
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselNavBar variant="floating" />
+        </Carousel>
+      )}
 
       {integration.readme && (
         <div className="w-full rounded-lg border border-gray-200 bg-white">
