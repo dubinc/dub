@@ -40,13 +40,10 @@ export default function TopLinks() {
                     icon: (
                       <LinkLogo
                         apexDomain={getApexDomain(d.url)}
-                        className="h-5 w-5 sm:h-5 sm:w-5"
+                        className="size-5 sm:size-5"
                       />
                     ),
-                    title:
-                      !showUrls && d["shortLink"]
-                        ? d["shortLink"].replace(/^https?:\/\//, "")
-                        : d.url?.replace(/^https?:\/\//, ""),
+                    title: !showUrls && d["shortLink"] ? d["shortLink"] : d.url,
                     href: queryParams({
                       set: {
                         ...(!showUrls
