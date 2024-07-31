@@ -1,12 +1,12 @@
 "use client";
 
-import useUser from "@/lib/swr/use-user";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { OAuthApp } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -23,7 +23,7 @@ export const AuthorizeForm = ({
   code_challenge,
   code_challenge_method,
 }: AuthorizeFormProps) => {
-  const { user } = useUser();
+  const { data: session } = useSession();
   const { workspaces } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] =
@@ -41,10 +41,11 @@ export const AuthorizeForm = ({
 
   useEffect(() => {
     setSelectedWorkspace(
-      selectOptions.find((option) => option.id === user?.defaultWorkspace) ||
-        null,
+      selectOptions.find(
+        (option) => option.id === session?.user?.["defaultWorkspace"],
+      ) || null,
     );
-  }, [selectOptions, user]);
+  }, [selectOptions, session]);
 
   // Decline the request
   const onDecline = () => {
