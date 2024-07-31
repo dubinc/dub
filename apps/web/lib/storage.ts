@@ -61,6 +61,20 @@ class StorageClient {
     return { success: true };
   }
 
+  async createPresignedUrl(key: string) {
+    const result = await this.client.sign(
+      `${process.env.STORAGE_ENDPOINT}/${key}`,
+      {
+        method: "GET",
+        aws: {
+          signQuery: true,
+        },
+      },
+    );
+
+    return result;
+  }
+
   private base64ToArrayBuffer(base64: string, opts?: imageOptions) {
     const base64Data = base64.replace(/^data:.+;base64,/, "");
     const paddedBase64Data = base64Data.padEnd(

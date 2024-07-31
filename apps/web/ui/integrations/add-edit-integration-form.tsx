@@ -6,9 +6,16 @@ import {
   NewIntegration,
   OAuthAppProps,
 } from "@/lib/types";
-import { Button, FileUpload, InfoTooltip, Switch } from "@dub/ui";
+import {
+  Button,
+  FileUpload,
+  InfoTooltip,
+  LoadingSpinner,
+  Switch,
+} from "@dub/ui";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import { Paperclip, Trash2 } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
@@ -40,6 +47,14 @@ export default function AddEditIntegrationForm({
   const [urls, setUrls] = useState<{ id: string; value: string }[]>([
     { id: nanoid(), value: "" },
   ]);
+
+  const [screenshots, setScreenshots] = useState<
+    {
+      file: File;
+      uploading: boolean;
+      attachmentId?: string;
+    }[]
+  >([]);
 
   if (!flags?.integrations) {
     redirect(`/${workspaceSlug}`);
@@ -116,6 +131,55 @@ export default function AddEditIntegrationForm({
       toast.error(result.error.message);
     }
   };
+
+  // Handle screenshots upload
+  const handleUpload = async (file: File) => {
+    setScreenshots((prev) => [...prev, { file, uploading: true }]);
+
+    const {
+      attachment: { id: attachmentId },
+      uploadFormUrl,
+      uploadFormData,
+    } = await fetch(
+      `/api/oauth/apps/upload?name=${file.name}&size=${file.size}&workspaceId=${workspaceId}`,
+      {
+        method: "GET",
+      },
+    ).then((res) => res.json());
+
+    const form = new FormData();
+    uploadFormData.forEach(({ key, value }) => {
+      form.append(key, value);
+    });
+    form.append("file", file);
+
+    fetch(uploadFormUrl, {
+      method: "POST",
+      body: form,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          toast.error(res.statusText);
+        }
+      })
+      .catch((err) => {
+        console.error("Error uploading file:", err.message ? err.message : err);
+      });
+
+    setScreenshots((prev) =>
+      prev.map((screenshot) =>
+        screenshot.file === file
+          ? { ...screenshot, uploading: false, attachmentId }
+          : screenshot,
+      ),
+    );
+    setData((prev) => ({
+      ...prev,
+      // attachmentIds: [...prev.attachmentIds, attachmentId],
+    }));
+  };
+
+  console.log(screenshots);
 
   const {
     name,
@@ -232,6 +296,56 @@ export default function AddEditIntegrationForm({
               }}
             />
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="slug" className="flex items-center space-x-2">
+            <h2 className="text-sm font-medium text-gray-900">Screenshots</h2>
+            <InfoTooltip content="Upload screenshots that will be displayed on the integration page." />
+          </label>
+          <div className="mt-2 grid w-full gap-2">
+            {screenshots.map((screenshot) => (
+              <div
+                key={screenshot.attachmentId}
+                className="flex w-full items-center justify-between rounded-md border border-gray-200"
+              >
+                <div className="flex flex-1 items-center space-x-2 p-2">
+                  {screenshot.uploading ? (
+                    <LoadingSpinner className="h-4 w-4" />
+                  ) : (
+                    <Paperclip className="h-4 w-4 text-gray-500" />
+                  )}
+                  <p className="text-center text-sm text-gray-500">
+                    {screenshot.file.name}
+                  </p>
+                </div>
+                <button
+                  className="h-full rounded-r-md border-l border-gray-200 p-2"
+                  onClick={() => {
+                    setScreenshots((prev) =>
+                      prev.filter((i) => i.file.name !== screenshot.file.name),
+                    );
+                    setData((prev) => ({
+                      ...prev,
+                      // attachmentIds: prev.attachmentIds.filter(
+                      //   (id) => id !== screenshot.attachmentId,
+                      // ),
+                    }));
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 text-gray-500" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <FileUpload
+            accept="any"
+            className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
+            iconClassName="w-5 h-5"
+            variant="plain"
+            onChange={async ({ file }) => await handleUpload(file)}
+            content="Drag and drop or click to upload."
+          />
         </div>
 
         <div>

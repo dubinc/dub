@@ -188,7 +188,7 @@ export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
 export type NewIntegration = Omit<
   OAuthAppProps,
-  "id" | "clientId" | "verified" | "installations"
+  "id" | "clientId" | "verified" | "installations" | "screenshots"
 >;
 
 export type ExistingIntegration = OAuthAppProps;
