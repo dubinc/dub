@@ -2,6 +2,7 @@
 
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
+  AnimatedSizeContainer,
   Button,
   Github,
   Google,
@@ -14,7 +15,6 @@ import { InputPassword, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -86,7 +86,7 @@ export default function LoginForm() {
         }}
         loading={clickedMethod === "google"}
         disabled={clickedMethod && clickedMethod !== "google"}
-        icon={<Google className="h-5 w-5" />}
+        icon={<Google className="size-4" />}
       />
     );
   };
@@ -105,7 +105,7 @@ export default function LoginForm() {
         }}
         loading={clickedMethod === "github"}
         disabled={clickedMethod && clickedMethod !== "github"}
-        icon={<Github className="h-5 w-5 text-black" />}
+        icon={<Github className="size-4 text-black" />}
       />
     );
   };
@@ -239,9 +239,9 @@ export default function LoginForm() {
           variant="secondary"
           icon={
             password ? (
-              <InputPassword className="size-4" />
+              <InputPassword className="size-4 text-gray-600" />
             ) : (
-              <Mail className="size-4" />
+              <Mail className="size-4 text-gray-600" />
             )
           }
           {...(authMethod !== "email" && {
@@ -353,71 +353,53 @@ export default function LoginForm() {
 
   return (
     <>
-      <div className="flex flex-col gap-3">
-        {authMethod && (
-          <div className="flex flex-col gap-2">
-            {authMethodComponent}
+      <AnimatedSizeContainer height>
+        <div className="flex flex-col gap-3">
+          {authMethod && (
+            <div className="flex flex-col gap-2">
+              {authMethodComponent}
 
-            {!showEmailPasswordOnly && authMethod === lastUsedAuthMethod && (
-              <div className="text-center text-xs">
-                <span className="text-gray-500">
-                  You signed in with{" "}
-                  {lastUsedAuthMethod.charAt(0).toUpperCase() +
-                    lastUsedAuthMethod.slice(1)}{" "}
-                  last time
+              {!showEmailPasswordOnly && authMethod === lastUsedAuthMethod && (
+                <div className="text-center text-xs">
+                  <span className="text-gray-500">
+                    You signed in with{" "}
+                    {lastUsedAuthMethod.charAt(0).toUpperCase() +
+                      lastUsedAuthMethod.slice(1)}{" "}
+                    last time
+                  </span>
+                </div>
+              )}
+              <div className="my-2 flex flex-shrink items-center justify-center gap-2">
+                <div className="grow basis-0 border-b border-gray-300" />
+                <span className="text-xs font-normal uppercase leading-none text-gray-500">
+                  or
                 </span>
+                <div className="grow basis-0 border-b border-gray-300" />
               </div>
-            )}
-            <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-              <div className="grow basis-0 border-b border-gray-300" />
-              <span className="text-xs font-normal uppercase leading-none text-gray-500">
-                or
-              </span>
-              <div className="grow basis-0 border-b border-gray-300" />
             </div>
-          </div>
-        )}
-        {showEmailPasswordOnly ? (
-          <p className="text-center text-sm text-gray-500">
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("");
-                setShowPasswordField(false);
-              }}
-              className="font-semibold text-gray-500 transition-colors hover:text-black"
-            >
-              Continue with another method
-            </button>
-          </p>
-        ) : (
-          authProviders
-            .filter((provider) => provider.method !== authMethod)
-            .map((provider) => (
-              <div key={provider.method}>{provider.component}</div>
-            ))
-        )}
-      </div>
-
-      {noSuchAccount ? (
-        <p className="text-center text-sm text-red-500">
-          No such account.{" "}
-          <Link href="/register" className="font-semibold text-red-600">
-            Sign up
-          </Link>{" "}
-          instead?
-        </p>
-      ) : (
-        <p className="text-center text-sm text-gray-500">
-          Don't have an account?{" "}
-          <Link
-            href="/register"
-            className="font-semibold text-gray-500 transition-colors hover:text-black"
-          >
-            Sign up
-          </Link>
-        </p>
-      )}
+          )}
+          {showEmailPasswordOnly ? (
+            <div className="mt-2 text-center text-sm text-gray-500">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("");
+                  setShowPasswordField(false);
+                }}
+                className="font-semibold text-gray-500 transition-colors hover:text-black"
+              >
+                Continue with another method
+              </button>
+            </div>
+          ) : (
+            authProviders
+              .filter((provider) => provider.method !== authMethod)
+              .map((provider) => (
+                <div key={provider.method}>{provider.component}</div>
+              ))
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </>
   );
 }
