@@ -106,9 +106,11 @@ export default function AddEditIntegrationForm({
       toast.success(endpoint.successMessage);
 
       if (endpoint.method === "POST") {
-        router.push(
-          `/${workspaceSlug}/integrations/manage/${result.id}?client_secret=${result.clientSecret}`,
-        );
+        const url = `/${workspaceSlug}/integrations/manage/${result.id}${
+          result.clientSecret ? `?client_secret=${result.clientSecret}` : ""
+        }`;
+
+        router.push(url);
       }
     } else {
       toast.error(result.error.message);
