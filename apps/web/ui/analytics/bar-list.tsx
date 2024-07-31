@@ -12,8 +12,8 @@ import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
   tab,
+  unit,
   data,
-  isCurrency,
   barBackground,
   hoverBackground,
   maxValue,
@@ -21,6 +21,7 @@ export default function BarList({
   limit,
 }: {
   tab: string;
+  unit: string;
   data: {
     icon: ReactNode;
     title: string;
@@ -28,7 +29,6 @@ export default function BarList({
     value: number;
     linkId?: string;
   }[];
-  isCurrency?: boolean;
   maxValue: number;
   barBackground: string;
   hoverBackground: string;
@@ -60,10 +60,10 @@ export default function BarList({
           {...data}
           maxValue={maxValue}
           tab={tab}
+          unit={unit}
           setShowModal={setShowModal}
           barBackground={barBackground}
           hoverBackground={hoverBackground}
-          isCurrency={isCurrency}
         />
       ))}
     </div>
@@ -99,11 +99,11 @@ export function LineItem({
   value,
   maxValue,
   tab,
+  unit,
   setShowModal,
   barBackground,
   hoverBackground,
   linkData,
-  isCurrency,
 }: {
   icon: ReactNode;
   title: string;
@@ -111,11 +111,11 @@ export function LineItem({
   value: number;
   maxValue: number;
   tab: string;
+  unit: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
   hoverBackground: string;
   linkData?: LinkProps;
-  isCurrency?: boolean;
 }) {
   const lineItem = useMemo(() => {
     return (
@@ -161,10 +161,14 @@ export function LineItem({
             animate={{ transform: "scaleX(1)" }}
           />
         </div>
-        <NumberTooltip value={value}>
+        <NumberTooltip
+          value={unit === "sales" ? value / 100 : value}
+          unit={`total ${unit}`}
+          prefix={unit === "sales" ? "$" : undefined}
+        >
           <p className="z-10 px-2 text-sm text-gray-600">
-            {isCurrency && "$"}
-            {nFormatter(isCurrency ? value / 100 : value)}
+            {unit === "sales" && "$"}
+            {nFormatter(unit === "sales" ? value / 100 : value)}
           </p>
         </NumberTooltip>
       </div>

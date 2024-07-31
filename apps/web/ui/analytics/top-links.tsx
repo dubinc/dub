@@ -62,7 +62,7 @@ export default function TopLinks() {
                   }))
                   ?.sort((a, b) => b.value - a.value) || []
               }
-              isCurrency={dataKey === "amount"}
+              unit={selectedTab}
               maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
               barBackground="bg-orange-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
