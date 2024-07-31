@@ -1,18 +1,18 @@
 export const DEFAULT_REDIRECTS = {
-  home: "https://dub.co",
-  dub: "https://dub.co",
-  signin: "https://app.dub.co/login",
-  login: "https://app.dub.co/login",
-  register: "https://app.dub.co/register",
-  signup: "https://app.dub.co/register",
-  app: "https://app.dub.co",
-  dashboard: "https://app.dub.co",
-  links: "https://app.dub.co/links",
-  settings: "https://app.dub.co/settings",
-  welcome: "https://app.dub.co/welcome",
+  home: "https://thinkthank.io",
+  dub: "https://thinkthank.io",
+  signin: "https://app.thinkthank.io/login",
+  login: "https://app.thinkthank.io/login",
+  register: "https://app.thinkthank.io/register",
+  signup: "https://app.thinkthank.io/register",
+  app: "https://app.thinkthank.io",
+  dashboard: "https://app.thinkthank.io",
+  links: "https://app.thinkthank.io/links",
+  settings: "https://app.thinkthank.io/settings",
+  welcome: "https://app.thinkthank.io/welcome",
   discord: "https://twitter.com/dubdotco", // placeholder for now
 };
 
 export const DUB_HEADERS = {
-  "x-powered-by": "Dub.co - Link management for modern marketing teams",
+  "x-powered-by": "ThinkThank - Helping fintech companies ship faster",
 };
