@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 // Displayed when the user doesn't have a password set for their account
 export const RequestSetPassword = () => {
-  const { user, loading } = useUser();
+  const { user } = useUser();
   const [sending, setSending] = useState(false);
 
   // Send an email to the user with instructions to set their password
