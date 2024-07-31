@@ -29,7 +29,7 @@ export default function EmptyState({
       {buttonText && buttonLink && (
         <Link
           href={buttonLink}
-          target="_blank"
+          {...(buttonLink.startsWith("http") ? { target: "_blank" } : {})}
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm",

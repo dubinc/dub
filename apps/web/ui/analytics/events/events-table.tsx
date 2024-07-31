@@ -71,7 +71,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 };
 
 export default function EventsTable() {
-  const { id: workspaceId } = useWorkspace();
+  const { slug: workspaceSlug } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
   const { selectedTab: tab } = useContext(AnalyticsContext);
@@ -436,7 +436,12 @@ export default function EventsTable() {
               title="Real-time Events Stream"
               description={`Want more data on your ${tab === "clicks" ? "link clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
               buttonText="Upgrade to Business"
-              buttonLink={`/${workspaceId}/settings/billing?upgrade=business`}
+              buttonLink={queryParams({
+                set: {
+                  upgrade: "business",
+                },
+                getNewPath: true,
+              })}
             />
           </div>
           <div className="h-[400px]" />

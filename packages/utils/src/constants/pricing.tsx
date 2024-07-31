@@ -58,11 +58,12 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: `${domains} custom domains` },
     { text: `${users} users` },
     {
-      text: `${nFormatter(tags, { full: true })} tags`,
+      text: "Real-time events stream",
       footnote: {
-        title: "Organize your links with tags.",
+        title:
+          "Get more data on your link clicks and QR code scans with a detailed, real-time stream of events in your workspace",
         cta: "Learn more.",
-        href: "https://dub.co/help/article/how-to-use-tags",
+        href: "https://dub.co/help/category/analytics",
       },
     },
     {
