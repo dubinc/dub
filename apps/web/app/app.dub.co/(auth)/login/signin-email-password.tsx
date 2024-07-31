@@ -13,7 +13,6 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 const errorCodes = {
   "no-credentials": "Please provide an email and password.",
@@ -62,7 +61,6 @@ export const SignInWithEmailPassword = () => {
 
       if (response.url) {
         setLastUsedAuthMethod("password");
-        toast.success("Redirecting...");
         router.replace(response.url);
         return;
       }
