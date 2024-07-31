@@ -63,8 +63,8 @@ importers:
         specifier: ^1.18.0
         version: 1.18.0
       '@prisma/adapter-planetscale':
-        specifier: ^5.13.0
-        version: 5.13.0(@planetscale/database@1.18.0)
+        specifier: ^5.17.0
+        version: 5.17.0(@planetscale/database@1.18.0)
       '@prisma/client':
         specifier: ^5.15.1
         version: 5.15.1(prisma@5.15.1)
@@ -4724,13 +4724,13 @@ packages:
     engines: {node: '>=16'}
     dev: false
 
-  /@prisma/adapter-planetscale@5.13.0(@planetscale/database@1.18.0):
-    resolution: {integrity: sha512-ygQ1BNDS7IBJxfAAJzcuM8LSmtY6dS6vGbtp4peI7QQpgeFW7j+y86oodmC1oGvE3yqbVJpvX6JaD05fBJgiWQ==}
+  /@prisma/adapter-planetscale@5.17.0(@planetscale/database@1.18.0):
+    resolution: {integrity: sha512-NHEaZEKse6Xx0e6i649VoDcKUwn+cklbJ9T12E253F7kFC8ycFkXnLCJZ/daVVSMjqY72QLcfzcKXYa+19Upjw==}
     peerDependencies:
       '@planetscale/database': ^1.15.0
     dependencies:
       '@planetscale/database': 1.18.0
-      '@prisma/driver-adapter-utils': 5.13.0
+      '@prisma/driver-adapter-utils': 5.17.0
     dev: false
 
   /@prisma/client@5.15.1(prisma@5.15.1):
@@ -4746,17 +4746,17 @@ packages:
       prisma: 5.15.1
     dev: false
 
-  /@prisma/debug@5.13.0:
-    resolution: {integrity: sha512-699iqlEvzyCj9ETrXhs8o8wQc/eVW+FigSsHpiskSFydhjVuwTJEfj/nIYqTaWFYuxiWQRfm3r01meuW97SZaQ==}
-    dev: false
-
   /@prisma/debug@5.15.1:
     resolution: {integrity: sha512-NQjdEplhXEcPvf84ghxExC+LD+iTimbg3sZvA3BhybVQIocBEBxFf9GTHhmRVPmjrWoBaYJBVgEEBXZT27JTbQ==}
 
-  /@prisma/driver-adapter-utils@5.13.0:
-    resolution: {integrity: sha512-SaimwvGuvXJTsWH+FOfl7PlkZZlPiRGeMEchC0kvB08Xw9B3CLYo/Q7zaY5Fp+u5D8asrpcFQmCjXEgDvOmPkg==}
+  /@prisma/debug@5.17.0:
+    resolution: {integrity: sha512-l7+AteR3P8FXiYyo496zkuoiJ5r9jLQEdUuxIxNCN1ud8rdbH3GTxm+f+dCyaSv9l9WY+29L9czaVRXz9mULfg==}
+    dev: false
+
+  /@prisma/driver-adapter-utils@5.17.0:
+    resolution: {integrity: sha512-ivelC8JJg88krvuf3rGF82J3CYwYFmLhhAUdNnkr9LTjS30U5r8AYDhV12/TdmnwzgWZNqHA+icg2Vm+vmRBLw==}
     dependencies:
-      '@prisma/debug': 5.13.0
+      '@prisma/debug': 5.17.0
     dev: false
 
   /@prisma/engines-version@5.15.1-1.5675a3182f972f1a8f31d16eee6abf4fd54910e3:
