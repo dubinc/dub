@@ -56,6 +56,7 @@ export * from "./refresh2";
 export * from "./robot";
 export * from "./shield-check";
 export * from "./sliders";
+export * from "./square-layout-grid6";
 export * from "./stars2";
 export * from "./table-rows2";
 export * from "./tablet";
