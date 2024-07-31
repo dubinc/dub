@@ -433,7 +433,7 @@ export default function EventsTable() {
             <EmptyState
               icon={Menu3}
               title="Real-time Events Stream"
-              description={`Want more data on your ${tab === "clicks" ? "link clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
+              description={`Want more data on your link ${tab === "clicks" ? "clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
               buttonText="Upgrade to Business"
               buttonLink={queryParams({
                 set: {
