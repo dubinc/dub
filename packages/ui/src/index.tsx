@@ -4,10 +4,12 @@ import "./styles.css";
 // components
 export * from "./accordion";
 export * from "./alert";
+export * from "./asset-image";
 export * from "./avatar";
 export * from "./badge";
 export * from "./button";
 export * from "./card-list";
+export * from "./carousel";
 export * from "./checkbox";
 export * from "./date-picker";
 export * from "./file-upload";
