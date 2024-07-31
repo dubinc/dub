@@ -70,10 +70,12 @@ export const POST = withWorkspace(
       prefix: OAUTH_CONFIG.CLIENT_ID_PREFIX,
     });
 
-    const clientSecret = createToken({
-      length: OAUTH_CONFIG.CLIENT_SECRET_LENGTH,
-      prefix: OAUTH_CONFIG.CLIENT_SECRET_PREFIX,
-    });
+    const clientSecret = !pkce
+      ? createToken({
+          length: OAUTH_CONFIG.CLIENT_SECRET_LENGTH,
+          prefix: OAUTH_CONFIG.CLIENT_SECRET_PREFIX,
+        })
+      : undefined;
 
     try {
       let logoUrl: string | undefined;
@@ -100,8 +102,10 @@ export const POST = withWorkspace(
           readme,
           redirectUris,
           clientId,
-          hashedClientSecret: await hashToken(clientSecret),
-          partialClientSecret: `dub_app_secret_****${clientSecret.slice(-8)}`,
+          hashedClientSecret: clientSecret ? await hashToken(clientSecret) : "",
+          partialClientSecret: clientSecret
+            ? `dub_app_secret_****${clientSecret.slice(-8)}`
+            : "",
           userId: session.user.id,
           pkce,
           ...(logoUrl && { logo: logoUrl }),
@@ -111,7 +115,7 @@ export const POST = withWorkspace(
       return NextResponse.json(
         {
           ...oAuthAppSchema.parse(app),
-          clientSecret,
+          ...(clientSecret && { clientSecret }),
         },
         { status: 201 },
       );
