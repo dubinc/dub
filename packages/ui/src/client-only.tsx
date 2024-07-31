@@ -5,10 +5,12 @@ export const ClientOnly = ({
   children,
   fallback,
   fadeInDuration = 0.5,
+  className,
 }: {
   children: ReactNode;
   fallback?: ReactNode;
   fadeInDuration?: number;
+  className?: string;
 }) => {
   const [clientReady, setClientReady] = useState<boolean>(false);
 
@@ -29,6 +31,7 @@ export const ClientOnly = ({
                 transition: { duration: fadeInDuration },
               }
             : {})}
+          className={className}
         >
           {children}
         </Comp>

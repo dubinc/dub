@@ -14,7 +14,7 @@ export const UpdatePassword = () => {
     register,
     handleSubmit,
     setError,
-    formState: { isSubmitting, disabled, errors },
+    formState: { isSubmitting, isDirty, errors },
     reset,
   } = useForm<z.infer<typeof updatePasswordSchema>>({
     resolver: zodResolver(updatePasswordSchema),
@@ -55,20 +55,13 @@ export const UpdatePassword = () => {
             Manage your account password on {process.env.NEXT_PUBLIC_APP_NAME}.
           </p>
         </div>
-        <div className="flex flex-wrap justify-between gap-y-4 p-5 sm:gap-x-4 sm:gap-y-0 sm:p-10">
+        <div className="flex flex-wrap justify-between gap-4 p-5 sm:p-10">
           <div className="grid w-full max-w-sm items-center gap-2">
             <Label htmlFor="currentPassword">Current Password</Label>
-            <Input type="password" {...register("currentPassword")} required />
-          </div>
-
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="newPassword">New Password</Label>
-            <Input type="password" {...register("newPassword")} required />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap justify-between">
-          <div className="grid w-full max-w-sm items-center gap-2">
+            <Input
+              type="password"
+              {...register("currentPassword", { required: true })}
+            />
             <span
               className="block text-sm text-red-500"
               role="alert"
@@ -79,6 +72,11 @@ export const UpdatePassword = () => {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-2">
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input
+              type="password"
+              {...register("newPassword", { required: true })}
+            />
             <span
               className="block text-sm text-red-500"
               role="alert"
@@ -100,7 +98,7 @@ export const UpdatePassword = () => {
           <Button
             text="Update Password"
             loading={isSubmitting}
-            disabled={disabled}
+            disabled={!isDirty}
             type="submit"
           />
         </div>

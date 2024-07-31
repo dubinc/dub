@@ -46,5 +46,12 @@ export const POST = withSession(async ({ session }) => {
     }),
   });
 
+  if (process.env.NODE_ENV === "development") {
+    console.info(
+      "Password reset URL:",
+      `${process.env.NEXTAUTH_URL}/auth/reset-password/${token}`,
+    );
+  }
+
   return NextResponse.json({ ok: true });
 });

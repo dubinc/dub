@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  AuthMethod,
-  getLastUsedAuthMethod,
-  LastUsedAuthMethodTooltip,
-  setLastUsedAuthMethod,
-} from "@/lib/auth/last-used-method";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
   Button,
@@ -13,6 +7,7 @@ import {
   Google,
   InfoTooltip,
   Input,
+  useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { InputPassword, LoadingSpinner } from "@dub/ui/src/icons";
@@ -21,8 +16,17 @@ import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+
+export const authMethods = [
+  "google",
+  "github",
+  "email",
+  "saml",
+  "password",
+] as const;
+export type AuthMethod = (typeof authMethods)[number];
 
 const errorCodes = {
   "no-credentials": "Please provide an email and password.",
@@ -36,24 +40,25 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const router = useRouter();
-  const [showEmailOption, setShowEmailOption] = useState(false);
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [showSSOOption, setShowSSOOption] = useState(false);
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [clickedGoogle, setClickedGoogle] = useState(false);
-  const [clickedGithub, setClickedGithub] = useState(false);
-  const [clickedEmail, setClickedEmail] = useState(false);
-  const [clickedSSO, setClickedSSO] = useState(false);
-  const [checkingEmailPassword, setCheckingEmailPassword] = useState(false);
-  const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
+  const [clickedMethod, setClickedMethod] = useState<AuthMethod | undefined>(
     undefined,
   );
+  const [checkingEmailPassword, setCheckingEmailPassword] = useState(false);
+  const [lastUsedAuthMethodLive, setLastUsedAuthMethod] = useLocalStorage<
+    AuthMethod | undefined
+  >("last-used-auth-method", undefined);
+  const { current: lastUsedAuthMethod } = useRef<AuthMethod | undefined>(
+    lastUsedAuthMethodLive,
+  );
 
-  useEffect(() => {
-    setAuthMethod(getLastUsedAuthMethod());
-  }, []);
+  const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
+    authMethods.find((m) => m === lastUsedAuthMethodLive) ?? "email",
+  );
 
   useEffect(() => {
     const error = searchParams?.get("error");
@@ -64,12 +69,7 @@ export default function LoginForm() {
 
   useEffect(() => {
     // when leave page, reset state
-    return () => {
-      setClickedGoogle(false);
-      setClickedGithub(false);
-      setClickedEmail(false);
-      setClickedSSO(false);
-    };
+    return () => setClickedMethod(undefined);
   }, []);
 
   const GoogleButton = () => {
@@ -78,14 +78,14 @@ export default function LoginForm() {
         text="Continue with Google"
         variant="secondary"
         onClick={() => {
-          setClickedGoogle(true);
+          setClickedMethod("google");
           setLastUsedAuthMethod("google");
           signIn("google", {
             ...(next && next.length > 0 ? { callbackUrl: next } : {}),
           });
         }}
-        loading={clickedGoogle}
-        disabled={clickedEmail || clickedSSO}
+        loading={clickedMethod === "google"}
+        disabled={clickedMethod && clickedMethod !== "google"}
         icon={<Google className="h-5 w-5" />}
       />
     );
@@ -97,14 +97,14 @@ export default function LoginForm() {
         text="Continue with Github"
         variant="secondary"
         onClick={() => {
-          setClickedGithub(true);
+          setClickedMethod("github");
           setLastUsedAuthMethod("github");
           signIn("github", {
             ...(next && next.length > 0 ? { callbackUrl: next } : {}),
           });
         }}
-        loading={clickedGithub}
-        disabled={clickedEmail || clickedSSO}
+        loading={clickedMethod === "github"}
+        disabled={clickedMethod && clickedMethod !== "github"}
         icon={<Github className="h-5 w-5 text-black" />}
       />
     );
@@ -115,8 +115,7 @@ export default function LoginForm() {
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          setClickedEmail(true);
-          setLastUsedAuthMethod("email");
+          setClickedMethod("email");
 
           if (!password) {
             setShowPasswordField(false);
@@ -139,7 +138,7 @@ export default function LoginForm() {
                   redirect: false,
                   ...(next && next.length > 0 ? { callbackUrl: next } : {}),
                 }).then((res) => {
-                  setClickedEmail(false);
+                  setClickedMethod(undefined);
 
                   if (!res) {
                     return;
@@ -157,6 +156,7 @@ export default function LoginForm() {
                   }
 
                   // Handle success
+                  setLastUsedAuthMethod("email");
                   if (provider === "email") {
                     setEmail("");
                     toast.success("Email sent - check your inbox!");
@@ -167,17 +167,17 @@ export default function LoginForm() {
               } else {
                 toast.error("No account found with that email address.");
                 setNoSuchAccount(true);
-                setClickedEmail(false);
+                setClickedMethod(undefined);
               }
             })
             .catch(() => {
-              setClickedEmail(false);
+              setClickedMethod(undefined);
               toast.error("Error sending email - try again?");
             });
         }}
         className="flex flex-col space-y-3"
       >
-        {showEmailOption && (
+        {authMethod === "email" && (
           <div className="relative">
             <input
               id="email"
@@ -244,17 +244,16 @@ export default function LoginForm() {
               <Mail className="size-4" />
             )
           }
-          {...(!showEmailOption && {
+          {...(authMethod !== "email" && {
             type: "button",
             onClick: (e) => {
               e.preventDefault();
-              setLastUsedAuthMethod("email");
               setShowSSOOption(false);
-              setShowEmailOption(true);
+              setAuthMethod("email");
             },
           })}
-          loading={clickedEmail}
-          disabled={clickedGoogle || clickedSSO}
+          loading={clickedMethod === "email"}
+          disabled={clickedMethod && clickedMethod !== "email"}
         />
       </form>
     );
@@ -265,8 +264,7 @@ export default function LoginForm() {
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          setClickedSSO(true);
-          setLastUsedAuthMethod("saml");
+          setClickedMethod("saml");
           fetch("/api/auth/saml/verify", {
             method: "POST",
             body: JSON.stringify({ slug: e.currentTarget.slug.value }),
@@ -274,9 +272,10 @@ export default function LoginForm() {
             const { data, error } = await res.json();
             if (error) {
               toast.error(error);
-              setClickedSSO(false);
+              setClickedMethod(undefined);
               return;
             }
+            setLastUsedAuthMethod("saml");
             await signIn("saml", undefined, {
               tenant: data.workspaceId,
               product: "Dub",
@@ -317,12 +316,11 @@ export default function LoginForm() {
             type: "button",
             onClick: (e) => {
               e.preventDefault();
-              setShowEmailOption(false);
               setShowSSOOption(true);
             },
           })}
-          loading={clickedSSO}
-          disabled={clickedGoogle || clickedEmail}
+          loading={clickedMethod === "saml"}
+          disabled={clickedMethod && clickedMethod !== "saml"}
         />
       </form>
     );
@@ -347,24 +345,58 @@ export default function LoginForm() {
     },
   ];
 
-  if (authMethod === undefined) {
-    return null;
-  }
-
-  const lastUsedAuthMethodComponent = authProviders.find(
+  const authMethodComponent = authProviders.find(
     (provider) => provider.method === authMethod,
   )?.component;
+
+  const showEmailPasswordOnly = authMethod === "email" && showPasswordField;
 
   return (
     <>
       <div className="flex flex-col gap-3">
-        {lastUsedAuthMethodComponent}
-        <LastUsedAuthMethodTooltip />
-        {authProviders
-          .filter((provider) => provider.method !== authMethod)
-          .map((provider) => (
-            <div key={provider.method}>{provider.component}</div>
-          ))}
+        {authMethod && (
+          <div className="flex flex-col gap-2">
+            {authMethodComponent}
+
+            {!showEmailPasswordOnly && authMethod === lastUsedAuthMethod && (
+              <div className="text-center text-xs">
+                <span className="text-gray-500">
+                  You signed in with{" "}
+                  {lastUsedAuthMethod.charAt(0).toUpperCase() +
+                    lastUsedAuthMethod.slice(1)}{" "}
+                  last time
+                </span>
+              </div>
+            )}
+            <div className="my-2 flex flex-shrink items-center justify-center gap-2">
+              <div className="grow basis-0 border-b border-gray-300" />
+              <span className="text-xs font-normal uppercase leading-none text-gray-500">
+                or
+              </span>
+              <div className="grow basis-0 border-b border-gray-300" />
+            </div>
+          </div>
+        )}
+        {showEmailPasswordOnly ? (
+          <p className="text-center text-sm text-gray-500">
+            <button
+              type="button"
+              onClick={() => {
+                setEmail("");
+                setShowPasswordField(false);
+              }}
+              className="font-semibold text-gray-500 transition-colors hover:text-black"
+            >
+              Continue with another method
+            </button>
+          </p>
+        ) : (
+          authProviders
+            .filter((provider) => provider.method !== authMethod)
+            .map((provider) => (
+              <div key={provider.method}>{provider.component}</div>
+            ))
+        )}
       </div>
 
       {noSuchAccount ? (
