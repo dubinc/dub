@@ -12,6 +12,7 @@ export const eventColumns: Record<
     all: [
       "trigger",
       "link",
+      "continent",
       "country",
       "city",
       "device",
@@ -26,6 +27,7 @@ export const eventColumns: Record<
       "event",
       "link",
       "customer",
+      "continent",
       "country",
       "city",
       "device",
@@ -48,6 +50,7 @@ export const eventColumns: Record<
       "customer",
       "invoiceId",
       "link",
+      "continent",
       "country",
       "city",
       "device",
