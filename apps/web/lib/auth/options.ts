@@ -209,11 +209,16 @@ export const authOptions: NextAuthOptions = {
             email: true,
             image: true,
             invalidLoginAttempts: true,
+            emailVerified: true,
           },
         });
 
         if (!user || !user.passwordHash) {
           throw new Error("invalid-credentials");
+        }
+
+        if (!user.emailVerified) {
+          throw new Error("email-not-verified");
         }
 
         if (exceededLoginAttemptsThreshold(user)) {

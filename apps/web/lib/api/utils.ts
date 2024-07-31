@@ -1,11 +1,10 @@
 import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";
+import { headers } from "next/headers";
 import { NextRequest } from "next/server";
 import { ratelimit } from "../upstash";
 import { DubApiError } from "./errors";
 
-// TODO:
-// Move this to a proper place
 export const parseRequestBody = async (req: Request) => {
   try {
     return await req.json();
@@ -39,4 +38,15 @@ export const ratelimitOrThrow = async (
       });
     }
   }
+};
+
+export const getIP = () => {
+  const FALLBACK_IP_ADDRESS = "0.0.0.0";
+  const forwardedFor = headers().get("x-forwarded-for");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0] ?? FALLBACK_IP_ADDRESS;
+  }
+
+  return headers().get("x-real-ip") ?? FALLBACK_IP_ADDRESS;
 };

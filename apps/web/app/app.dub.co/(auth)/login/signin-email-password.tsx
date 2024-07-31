@@ -21,6 +21,7 @@ const errorCodes = {
   "exceeded-login-attempts":
     "Account has been locked due to too many login attempts. Please contact support to unlock your account.",
   "too-many-login-attempts": "Too many login attempts. Please try again later.",
+  "email-not-verified": "Please verify your email to sign in.",
 };
 
 export const SignInWithEmailPassword = () => {
