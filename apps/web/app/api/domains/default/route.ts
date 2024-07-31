@@ -13,7 +13,7 @@ export const GET = withWorkspace(
         projectId: workspace.id,
       },
       select: {
-        dubsh: true,
+        thinkthankio: true,
         dublink: true,
         chatgpt: true,
         sptifi: true,
@@ -66,7 +66,7 @@ export const PUT = withWorkspace(
         projectId: workspace.id,
       },
       data: {
-        dubsh: defaultDomains.includes("dub.sh"),
+        thinkthankio: defaultDomains.includes("thinkthankio"),
         dublink: defaultDomains.includes("dub.link"),
         chatgpt: defaultDomains.includes("chatg.pt"),
         sptifi: defaultDomains.includes("spti.fi"),
