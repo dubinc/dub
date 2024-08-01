@@ -33,9 +33,8 @@ export const getEvents = async (
     end = new Date(Date.now());
   }
 
-  // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: `v1_events`,
+    pipe: "v1_events",
     parameters: eventsFilterTB,
     data:
       {
