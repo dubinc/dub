@@ -64,14 +64,7 @@ export default function UpgradeEmail({
               !
             </Text>
             <Text className="text-sm leading-6 text-black">
-              As you might already know, we are a{" "}
-              <Link
-                href="https://d.to/mission"
-                className="font-medium text-blue-600 no-underline"
-              >
-                100% bootstrapped
-              </Link>{" "}
-              and{" "}
+              As you might already know, we are fully{" "}
               <Link
                 href="https://d.to/github"
                 className="font-medium text-blue-600 no-underline"
@@ -86,7 +79,12 @@ export default function UpgradeEmail({
             </Text>
             {planDetails.features.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
-                ◆ {feature.text}
+                ◆{" "}
+                {feature.footnote?.href ? (
+                  <Link href={feature.footnote.href}>{feature.text}</Link>
+                ) : (
+                  feature.text
+                )}
               </Text>
             ))}
             <Text className="text-sm leading-6 text-black">
