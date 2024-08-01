@@ -22,18 +22,18 @@ export function CardListPagination({
       <div className="h-[90px]" />
       <div className="fixed bottom-4 left-1/2 w-full max-w-[768px] -translate-x-1/2 px-2.5 max-[920px]:bottom-5 max-[920px]:pr-20">
         <nav className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600 [filter:drop-shadow(0_5px_8px_#222A351d)]">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <div>
               <span className="hidden sm:inline-block">Viewing</span>{" "}
               <span className="font-medium">
-                {page * pageSize + 1}-
+                {page * pageSize + (totalCount ? 1 : 0)}-
                 {Math.min(page * pageSize + pageSize, totalCount)}
               </span>{" "}
               of{" "}
               <span className="font-medium">{totalCount.toLocaleString()}</span>{" "}
               {resourceName?.(totalCount !== 1) || "items"}
             </div>
-            {children && <div>{children}</div>}
+            {children}
           </div>
           <div className="flex items-center gap-2">
             <Button

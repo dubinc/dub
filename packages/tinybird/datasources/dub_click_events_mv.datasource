@@ -5,6 +5,7 @@ SCHEMA >
     `click_id` String,
     `link_id` String,
     `url` String,
+    `continent` LowCardinality(String),
     `country` LowCardinality(String),
     `city` String,
     `device` LowCardinality(String),

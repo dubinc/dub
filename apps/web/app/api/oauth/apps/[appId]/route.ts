@@ -2,7 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
+import { nanoid, R2_URL } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/oauth/apps/[appId] – get an OAuth app created by the workspace
@@ -46,7 +49,30 @@ export const PATCH = withWorkspace(
     } = updateOAuthAppSchema.parse(await parseRequestBody(req));
 
     try {
-      const app = await prisma.oAuthApp.update({
+      const app = await prisma.oAuthApp.findUniqueOrThrow({
+        where: {
+          id: params.appId,
+          projectId: workspace.id,
+        },
+        select: {
+          logo: true,
+        },
+      });
+
+      let logoUrl: string | undefined;
+      const logoUpdated = logo && app.logo !== logo;
+
+      // Logo has been changed
+      if (logoUpdated) {
+        const result = await storage.upload(
+          `integrations/${params.appId}_${nanoid(7)}`,
+          logo,
+        );
+
+        logoUrl = result.url;
+      }
+
+      const updatedApp = await prisma.oAuthApp.update({
         where: {
           id: params.appId,
           projectId: workspace.id,
@@ -59,11 +85,24 @@ export const PATCH = withWorkspace(
           description,
           readme,
           redirectUris,
-          logo,
           pkce,
+          ...(logoUrl && { logo: logoUrl }),
         },
       });
-      return NextResponse.json(oAuthAppSchema.parse(app));
+
+      waitUntil(
+        (async () => {
+          if (
+            logoUpdated &&
+            app.logo &&
+            app.logo.startsWith(`${R2_URL}/integrations`)
+          ) {
+            await storage.delete(app.logo.replace(`${R2_URL}/`, ""));
+          }
+        })(),
+      );
+
+      return NextResponse.json(oAuthAppSchema.parse(updatedApp));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -106,6 +145,14 @@ export const DELETE = withWorkspace(
         id: params.appId,
       },
     });
+
+    waitUntil(
+      (async () => {
+        if (app.logo && app.logo.startsWith(`${R2_URL}/integrations`)) {
+          await storage.delete(app.logo.replace(`${R2_URL}/`, ""));
+        }
+      })(),
+    );
 
     return NextResponse.json({ id: params.appId });
   },

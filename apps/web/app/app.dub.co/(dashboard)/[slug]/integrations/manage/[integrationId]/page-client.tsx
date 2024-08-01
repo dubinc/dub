@@ -10,7 +10,6 @@ import { ThreeDots } from "@/ui/shared/icons";
 import {
   BlurImage,
   Button,
-  LoadingSpinner,
   MaxWidthWrapper,
   Popover,
   TokenAvatar,
@@ -43,11 +42,7 @@ export default function IntegrationManagePageClient({
       integration,
     });
 
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (!integration) {
+  if (!isLoading && !integration) {
     return notFound();
   }
 
@@ -63,25 +58,41 @@ export default function IntegrationManagePageClient({
           <p className="text-sm font-medium text-gray-500">My Integrations</p>
         </Link>
         <div className="flex justify-between">
-          <div className="flex items-center gap-x-3">
-            <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-              {integration.logo ? (
-                <BlurImage
-                  src={integration.logo}
-                  alt={`Logo for ${integration.name}`}
-                  className="size-8 rounded-full border border-gray-200"
-                  width={20}
-                  height={20}
-                />
-              ) : (
-                <TokenAvatar id={integration.clientId} className="size-8" />
-              )}
+          {isLoading ? (
+            <div className="flex items-center gap-x-3">
+              <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+                <TokenAvatar id="integration" className="size-8" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="h-3 w-20 rounded-full bg-gray-100"></div>
+                <div className="h-3 w-80 rounded-full bg-gray-100"></div>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-gray-700">{integration.name}</p>
-              <p className="text-sm text-gray-500">{integration.description}</p>
+          ) : (
+            <div className="flex items-center gap-x-3">
+              <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+                {integration?.logo ? (
+                  <BlurImage
+                    src={integration.logo}
+                    alt={`Logo for ${integration.name}`}
+                    className="size-8 rounded-full border border-gray-200"
+                    width={20}
+                    height={20}
+                  />
+                ) : (
+                  <TokenAvatar id={integration?.clientId!} className="size-8" />
+                )}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-700">
+                  {integration?.name}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {integration?.description}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           <Popover
             align="end"
@@ -141,17 +152,21 @@ export default function IntegrationManagePageClient({
       </MaxWidthWrapper>
 
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        <OAuthAppCredentials
-          clientId={integration.clientId}
-          clientSecret={
-            result.data?.clientSecret ||
-            searchParams.get("client_secret") ||
-            null
-          }
-          partialClientSecret={integration.partialClientSecret}
-        />
-        <hr />
-        <AddEditIntegrationForm integration={integration} />
+        {integration && (
+          <>
+            <OAuthAppCredentials
+              clientId={integration.clientId}
+              clientSecret={
+                result.data?.clientSecret ||
+                searchParams.get("client_secret") ||
+                null
+              }
+              partialClientSecret={integration.partialClientSecret}
+            />
+            <hr />
+            <AddEditIntegrationForm integration={integration} />
+          </>
+        )}
       </MaxWidthWrapper>
     </>
   );

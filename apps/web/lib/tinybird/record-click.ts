@@ -1,5 +1,4 @@
 import {
-  EU_COUNTRY_CODES,
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
   capitalize,
@@ -31,12 +30,20 @@ export async function recordClick({
     return null; // don't record clicks from bots
   }
   const isQr = detectQr(req);
+
+  // get continent & geolocation data
+  const continent =
+    process.env.VERCEL === "1"
+      ? req.headers.get("x-vercel-ip-continent")
+      : LOCALHOST_GEO_DATA.continent;
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
+
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
+
+  // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
-  // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
   const { success } = await ratelimit(1, "1 h").limit(
     `recordClick:${ip}:${linkId}`,
   );
@@ -61,12 +68,10 @@ export async function recordClick({
           url: url || "",
           ip:
             // only record IP if it's a valid IP and not from EU
-            typeof ip === "string" &&
-            ip.trim().length > 0 &&
-            (!geo?.country ||
-              (geo?.country && !EU_COUNTRY_CODES.includes(geo.country)))
+            typeof ip === "string" && ip.trim().length > 0 && continent !== "EU"
               ? ip
               : "",
+          continent: continent || "",
           country: geo?.country || "Unknown",
           city: geo?.city || "Unknown",
           region: geo?.region || "Unknown",

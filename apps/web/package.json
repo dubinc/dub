@@ -22,7 +22,7 @@
     "@dub/utils": "workspace:*",
     "@next-auth/prisma-adapter": "^1.0.5",
     "@planetscale/database": "^1.18.0",
-    "@prisma/adapter-planetscale": "^5.13.0",
+    "@prisma/adapter-planetscale": "^5.17.0",
     "@prisma/client": "^5.15.1",
     "@radix-ui/react-hover-card": "^1.1.1",
     "@react-email/components": "^0.0.14",

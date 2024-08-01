@@ -23,9 +23,7 @@ export default function NavTabs() {
     () => [
       { name: "Links", href: `/${slug}` },
       { name: "Analytics", href: `/${slug}/analytics` },
-      ...(flags?.conversions
-        ? [{ name: "Events", href: `/${slug}/events` }]
-        : []),
+      { name: "Events", href: `/${slug}/events` },
       ...(flags?.integrations
         ? [{ name: "Integrations", href: `/${slug}/integrations` }]
         : []),
