@@ -63,7 +63,7 @@ const BUSINESS_PLAN_MODIFIER = ({
         title:
           "Get more data on your link clicks and QR code scans with a detailed, real-time stream of events in your workspace",
         cta: "Learn more.",
-        href: "https://dub.co/help/category/analytics",
+        href: "https://d.to/events",
       },
     },
     {
