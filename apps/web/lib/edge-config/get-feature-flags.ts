@@ -6,7 +6,7 @@ type BetaFeaturesRecord = Record<BetaFeatures, string[]>;
 export const getFeatureFlags = async (workspaceId: string) => {
   const workspaceFeatures: Record<BetaFeatures, boolean> = {
     conversions: false,
-    integrations: true,
+    integrations: false,
     dublink: false,
   };
 
