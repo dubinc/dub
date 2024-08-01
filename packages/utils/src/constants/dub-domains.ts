@@ -96,6 +96,7 @@ export const DUB_DOMAINS = [
             "google.fr",
             "docs.google.com",
             "drive.google.com",
+            "calendar.google.com",
             "maps.google.com",
             "googleblog.com",
             "developers.googleblog.com",
