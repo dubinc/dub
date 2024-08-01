@@ -8,7 +8,7 @@ export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   const ip = ipAddress(req);
-  const { success } = await ratelimit(10, "1 m").limit(`account-exists:${ip}`);
+  const { success } = await ratelimit(5, "1 m").limit(`account-exists:${ip}`);
   if (!success) {
     return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }
