@@ -198,7 +198,7 @@ export type InstalledIntegrationProps = Pick<
   "clientId" | "slug" | "logo" | "name" | "developer" | "description"
 > & {
   installations: number;
-  installed: boolean;
+  installed?: boolean;
 };
 
 export type InstalledIntegrationInfoProps = Pick<
