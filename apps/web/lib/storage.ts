@@ -53,6 +53,22 @@ class StorageClient {
     }
   }
 
+  async getSignedUrl({ key }: { key: string }) {
+    const url = new URL(`${process.env.STORAGE_ENDPOINT}/${key}`);
+
+    // 10 minutes expiration
+    url.searchParams.set("X-Amz-Expires", "600");
+
+    const signed = await this.client.sign(url.toString(), {
+      method: "PUT",
+      aws: {
+        signQuery: true,
+      },
+    });
+
+    return signed.url;
+  }
+
   async delete(key: string) {
     await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
       method: "DELETE",

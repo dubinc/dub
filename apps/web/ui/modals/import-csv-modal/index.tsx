@@ -164,6 +164,33 @@ function ImportCsvModal({
                   }
                 }
 
+                const res = await fetch(
+                  `/api/workspaces/${workspaceId}/import/csv/upload`,
+                );
+
+                if (!res.ok) {
+                  toast.error("Error getting signed upload URL");
+                  return;
+                }
+
+                const { url } = await res.json();
+
+                const fileFormData = new FormData();
+                fileFormData.append("file", data.file!);
+
+                const uploadRes = await fetch(url, {
+                  method: "PUT",
+                  body: fileFormData,
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                });
+
+                console.log(uploadRes);
+                console.log(await uploadRes.json());
+
+                return;
+
                 toast.promise(
                   fetch(`/api/workspaces/${workspaceId}/import/csv`, {
                     method: "POST",
