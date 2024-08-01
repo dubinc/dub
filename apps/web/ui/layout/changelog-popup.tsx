@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://dub.co/blog/introducing-events-stream";
+const CHANGELOG_URL = "https://d.to/events";
 const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/events-stream.jpg";
 const CHANGELOG_TITLE = "Introducing Real-time Events Stream";
 const CHANGELOG_DESCRIPTION =
