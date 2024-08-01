@@ -5,7 +5,6 @@ import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
-  AssetImage,
   Avatar,
   BlurImage,
   Button,
@@ -137,36 +136,32 @@ export default function IntegrationPageClient({
         </div>
       </div>
 
-      {integration.screenshots?.length && (
-        <Carousel autoplay={{ delay: 5000 }} className="bg-white">
-          <CarouselContent>
-            {integration.screenshots.map((src, idx) => (
-              <CarouselItem key={idx} className="bg-gray-100">
-                <div className="group relative">
-                  <AssetImage
-                    image={{
-                      src,
-                      alt: "Screenshot",
-                      fill: true,
-                      style: { objectFit: "cover" },
-                    }}
-                    className="static mx-auto mt-10 aspect-[2880/1640] w-5/6 overflow-hidden rounded-t-2xl border border-gray-200"
-                  />
-                  {/* <div className="absolute bottom-0 h-32 w-full bg-gradient-to-t from-white via-white/75 to-transparent" /> */}
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselNavBar variant="floating" />
-        </Carousel>
-      )}
+      <div className="w-full rounded-lg border border-gray-200 bg-white">
+        <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
+          <BookOpenText className="size-4" />
+          <p className="text-sm font-medium text-gray-700">README</p>
+        </div>
 
-      {integration.readme && (
-        <div className="w-full rounded-lg border border-gray-200 bg-white">
-          <div className="flex items-center gap-x-2 border-b border-gray-200 px-6 py-4">
-            <BookOpenText className="size-4" />
-            <p className="text-sm font-medium text-gray-700">README</p>
-          </div>
+        {integration.screenshots?.length && (
+          <Carousel autoplay={{ delay: 5000 }} className="bg-white p-8">
+            <CarouselContent>
+              {integration.screenshots.map((src, idx) => (
+                <CarouselItem key={idx}>
+                  <BlurImage
+                    src={src}
+                    alt={`Screenshot of ${integration.name}`}
+                    width={2880}
+                    height={1640}
+                    className="aspect-[2880/1640] w-[5/6] overflow-hidden rounded-t-2xl border border-gray-200 object-cover"
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselNavBar variant="floating" />
+          </Carousel>
+        )}
+
+        {integration.readme && (
           <Markdown
             className={cn(
               "prose prose-sm prose-gray max-w-none p-6 transition-all",
@@ -176,8 +171,8 @@ export default function IntegrationPageClient({
           >
             {integration.readme}
           </Markdown>
-        </div>
-      )}
+        )}
+      </div>
     </MaxWidthWrapper>
   );
 }
