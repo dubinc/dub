@@ -21,7 +21,7 @@ export default function EditColumnsButton({ table }: { table: Table<any> }) {
                 <Command.Item
                   key={column.id}
                   className={cn(
-                    "flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5",
+                    "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5",
                     "data-[selected=true]:bg-gray-100",
                   )}
                   onSelect={() => column.toggleVisibility()}
@@ -42,10 +42,9 @@ export default function EditColumnsButton({ table }: { table: Table<any> }) {
     >
       <Button
         type="button"
-        className="h-8 whitespace-nowrap px-3"
-        variant="secondary"
+        className="h-8 whitespace-nowrap px-2"
+        variant="outline"
         icon={<Gear className="h-4 w-4 shrink-0" />}
-        text="Edit columns"
       />
     </Popover>
   );

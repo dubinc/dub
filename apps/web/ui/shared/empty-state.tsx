@@ -22,14 +22,14 @@ export default function EmptyState({
       </div>
       <p className="text-center text-base font-medium text-gray-950">{title}</p>
       {description && (
-        <p className="max-w-md text-center text-sm text-gray-500">
+        <p className="max-w-sm text-center text-sm text-gray-500">
           {description}
         </p>
       )}
       {buttonText && buttonLink && (
         <Link
           href={buttonLink}
-          target="_blank"
+          {...(buttonLink.startsWith("http") ? { target: "_blank" } : {})}
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm",

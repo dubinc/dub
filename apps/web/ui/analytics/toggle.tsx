@@ -66,6 +66,7 @@ import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
+import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
@@ -657,6 +658,7 @@ export default function Toggle({
                 {!isPublicStatsPage && page === "analytics" && (
                   <AnalyticsOptions />
                 )}
+                {page === "events" && <EventsOptions />}
               </div>
             </div>
           </div>

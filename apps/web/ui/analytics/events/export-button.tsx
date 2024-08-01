@@ -1,61 +1,45 @@
 import { Button, Download } from "@dub/ui";
-import { useState } from "react";
+import { useContext } from "react";
 import { toast } from "sonner";
+import { EventsContext } from "./events-provider";
 
-export default function ExportButton({
-  queryString,
-  disabled = false,
-}: {
-  queryString: string;
-  disabled?: boolean;
-}) {
-  const [loading, setLoading] = useState(false);
+export default function ExportButton({ onClick }: { onClick?: () => void }) {
+  const { exportQueryString } = useContext(EventsContext);
 
   async function exportData() {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `/api/analytics/events/export?${queryString}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
+    const response = await fetch(`/api/events/export?${exportQueryString}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-      if (!response.ok) {
-        setLoading(false);
-        throw new Error(response.statusText);
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Dub Events Export - ${new Date().toISOString()}.csv`;
-      a.click();
-    } catch (error) {
-      throw new Error(error);
+    if (!response.ok) {
+      throw new Error(response.statusText);
     }
-    setLoading(false);
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Dub Events Export - ${new Date().toISOString()}.csv`;
+    a.click();
   }
 
   return (
     <Button
-      className="h-8 whitespace-nowrap px-3"
-      variant="secondary"
+      variant="outline"
       icon={<Download className="h-4 w-4 shrink-0" />}
-      text="Export"
+      className="h-9 justify-start px-2 text-black"
+      text="Download as CSV"
       onClick={() => {
         toast.promise(exportData(), {
           loading: "Exporting file...",
           success: "Exported successfully",
           error: (error) => error,
         });
+        onClick?.();
       }}
-      disabled={disabled}
-      loading={loading}
     />
   );
 }

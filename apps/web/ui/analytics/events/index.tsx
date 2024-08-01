@@ -1,8 +1,6 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
-import { redirect } from "next/navigation";
 import AnalyticsProvider from "../analytics-provider";
 import Toggle from "../toggle";
 import EventsTable from "./events-table";
@@ -19,13 +17,8 @@ export default function AnalyticsEvents({
   adminPage?: boolean;
   demoPage?: boolean;
 }) {
-  const { slug, flags } = useWorkspace();
   const { searchParams } = useRouterStuff();
   const tab = searchParams.get("tab");
-
-  if (!flags?.conversions) {
-    redirect(`/${slug}/analytics`);
-  }
 
   return (
     <AnalyticsProvider
