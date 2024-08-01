@@ -6,12 +6,14 @@ export default function EmptyState({
   icon: Icon,
   title,
   description,
+  learnMore,
   buttonText,
   buttonLink,
 }: {
   icon: React.ElementType;
   title: string;
   description?: string;
+  learnMore?: string;
   buttonText?: string;
   buttonLink?: string;
 }) {
@@ -23,7 +25,16 @@ export default function EmptyState({
       <p className="text-center text-base font-medium text-gray-950">{title}</p>
       {description && (
         <p className="max-w-sm text-center text-sm text-gray-500">
-          {description}
+          {description}{" "}
+          {learnMore && (
+            <a
+              href={learnMore}
+              target="_blank"
+              className="underline underline-offset-2 hover:text-gray-800"
+            >
+              Learn more ↗
+            </a>
+          )}
         </p>
       )}
       {buttonText && buttonLink && (

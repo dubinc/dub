@@ -6,13 +6,12 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://dub.co/blog/new-links-dashboard";
-const CHANGELOG_IMAGE_URL =
-  "https://assets.dub.co/blog/new-links-dashboard.jpg";
-const CHANGELOG_TITLE = "Introducing the new Dub links dashboard";
+const CHANGELOG_URL = "https://dub.co/blog/introducing-events-stream";
+const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/events-stream.jpg";
+const CHANGELOG_TITLE = "Introducing Real-time Events Stream";
 const CHANGELOG_DESCRIPTION =
-  "Today, we're launching our new links dashboard – redesigned from the ground up – to help you better manage your links.";
-const CHANGELOG_ID = "hideChangelogPopup07252024";
+  "Gain deeper insights into your clicks with a detailed, real-time stream of events across your entire Dub workspace.";
+const CHANGELOG_ID = "hideChangelogPopup08012024";
 
 export default function ChangelogPopup() {
   return (
@@ -60,7 +59,9 @@ export function ChangelogPopupInner() {
           <p className="text-center font-semibold text-gray-800 underline-offset-4 group-hover:underline">
             {CHANGELOG_TITLE}
           </p>
-          <p className="text-sm text-gray-500">{CHANGELOG_DESCRIPTION}</p>
+          <p className="text-pretty text-sm text-gray-500">
+            {CHANGELOG_DESCRIPTION}
+          </p>
         </div>
       </Link>
     </motion.div>
