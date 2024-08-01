@@ -12,6 +12,7 @@ import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
   tab,
+  unit,
   data,
   barBackground,
   hoverBackground,
@@ -20,6 +21,7 @@ export default function BarList({
   limit,
 }: {
   tab: string;
+  unit: string;
   data: {
     icon: ReactNode;
     title: string;
@@ -58,6 +60,7 @@ export default function BarList({
           {...data}
           maxValue={maxValue}
           tab={tab}
+          unit={unit}
           setShowModal={setShowModal}
           barBackground={barBackground}
           hoverBackground={hoverBackground}
@@ -96,6 +99,7 @@ export function LineItem({
   value,
   maxValue,
   tab,
+  unit,
   setShowModal,
   barBackground,
   hoverBackground,
@@ -107,6 +111,7 @@ export function LineItem({
   value: number;
   maxValue: number;
   tab: string;
+  unit: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
   hoverBackground: string;
@@ -162,8 +167,15 @@ export function LineItem({
             animate={{ transform: "scaleX(1)" }}
           />
         </div>
-        <NumberTooltip value={value}>
-          <p className="z-10 px-2 text-sm text-gray-600">{nFormatter(value)}</p>
+        <NumberTooltip
+          value={unit === "sales" ? value / 100 : value}
+          unit={`total ${unit}`}
+          prefix={unit === "sales" ? "$" : undefined}
+        >
+          <p className="z-10 px-2 text-sm text-gray-600">
+            {unit === "sales" && "$"}
+            {nFormatter(unit === "sales" ? value / 100 : value)}
+          </p>
         </NumberTooltip>
       </div>
     </Link>

@@ -1,3 +1,4 @@
+import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
 import { BlurImage, TokenAvatar } from "@dub/ui";
@@ -8,13 +9,18 @@ export default function IntegrationCard(
   integration: InstalledIntegrationProps,
 ) {
   const { slug } = useWorkspace();
+  const { integrations: activeIntegrations } = useIntegrations();
+
+  const installed = activeIntegrations?.some(
+    (i) => i.clientId === integration.clientId,
+  );
 
   return (
     <Link
       href={`/${slug}/integrations/${integration.slug}`}
       className="relative rounded-xl border border-gray-200 bg-white px-5 py-4 transition-[filter] hover:[filter:drop-shadow(0_8px_12px_#222A350d)_drop-shadow(0_32px_80px_#2f30370f)]"
     >
-      {integration.installed && (
+      {installed && (
         <p className="absolute right-4 top-4 text-xs text-gray-500">
           INSTALLED
         </p>

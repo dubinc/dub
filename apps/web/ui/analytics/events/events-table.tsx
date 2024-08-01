@@ -1,19 +1,20 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
+import EmptyState from "@/ui/shared/empty-state";
+import { LinkLogo, Table, Tooltip, useRouterStuff, useTable } from "@dub/ui";
 import {
   CursorRays,
-  LinkLogo,
+  FilterBars,
+  Globe,
+  Magnifier,
+  Menu3,
   QRCode,
-  Table,
-  Tooltip,
-  useRouterStuff,
-  useTable,
-} from "@dub/ui";
-import { FilterBars } from "@dub/ui/src/icons";
+} from "@dub/ui/src/icons";
 import {
   CONTINENTS,
   COUNTRIES,
@@ -22,111 +23,37 @@ import {
   getApexDomain,
   nFormatter,
 } from "@dub/utils";
-import { Cell, ColumnDef, VisibilityState } from "@tanstack/react-table";
+import { Cell, ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
-import EmptyState from "./empty-state";
-import ExportButton from "./export-button";
+import { EventsContext } from "./events-provider";
+import { exampleData } from "./example-data";
+import { RowMenuButton } from "./row-menu-button";
+import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 import usePagination from "./use-pagination";
 
-type EventType = "clicks" | "leads" | "sales";
-
-type Datum =
+export type EventDatum =
   | z.infer<typeof clickEventEnrichedSchema>
   | z.infer<typeof leadEventEnrichedSchema>
   | z.infer<typeof saleEventEnrichedSchema>;
 
 type ColumnMeta = {
   filterParams?: (
-    args: Pick<Cell<Datum, any>, "getValue">,
+    args: Pick<Cell<EventDatum, any>, "getValue">,
   ) => Record<string, any>;
 };
-
-const eventColumns: Record<
-  EventType,
-  { all: string[]; defaultVisible: string[] }
-> = {
-  clicks: {
-    all: [
-      "trigger",
-      "link",
-      "continent",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-    ],
-    defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
-  },
-  leads: {
-    all: [
-      "event",
-      "link",
-      "customer",
-      "continent",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-    ],
-    defaultVisible: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "device",
-      "timestamp",
-    ],
-  },
-  sales: {
-    all: [
-      "event",
-      "customer",
-      "invoiceId",
-      "link",
-      "continent",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-      "amount",
-    ],
-    defaultVisible: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "amount",
-      "timestamp",
-    ],
-  },
-};
-
-const getDefaultColumnVisibility = (event: EventType) =>
-  Object.fromEntries(
-    eventColumns[event].all.map((id) => [
-      id,
-      eventColumns[event].defaultVisible.includes(id),
-    ]),
-  );
 
 const FilterButton = ({ set }: { set: Record<string, any> }) => {
   const { queryParams } = useRouterStuff();
 
   return (
-    <div className="relative h-[1.25rem] w-0 shrink-0 opacity-0 transition-all group-hover:w-[1.25rem] group-hover:opacity-100">
+    <div className="absolute right-1 top-0 flex h-full shrink-0 translate-x-3 items-center justify-center bg-[linear-gradient(to_right,transparent,white_10%)] p-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100">
       <Link
         href={
           queryParams({
@@ -135,7 +62,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
             getNewPath: true,
           }) as string
         }
-        className="absolute left-0 top-0 rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
+        className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
       >
         <span className="sr-only">Filter</span>
         <FilterBars className="h-3.5 w-3.5" />
@@ -145,13 +72,16 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 };
 
 export default function EventsTable() {
+  const { plan } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
-  const tab = searchParams.get("tab") || "clicks";
+  const { setExportQueryString } = useContext(EventsContext);
+  const { selectedTab: tab } = useContext(AnalyticsContext);
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
-  const columns = useMemo<ColumnDef<Datum, any>[]>(
+  const columns = useMemo<ColumnDef<EventDatum, any>[]>(
     () =>
       [
         // Click trigger
@@ -160,7 +90,6 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "qr",
           enableHiding: false,
-          size: 130,
           meta: {
             filterParams: ({ getValue }) => ({
               qr: !!getValue(),
@@ -170,12 +99,12 @@ export default function EventsTable() {
             <div className="flex items-center gap-3">
               {getValue() ? (
                 <>
-                  <QRCode className="h-4 w-4 shrink-0" />
+                  <QRCode className="size-4 shrink-0" />
                   <span className="truncate">QR scan</span>
                 </>
               ) : (
                 <>
-                  <CursorRays className="h-4 w-4 shrink-0" />
+                  <CursorRays className="size-4 shrink-0" />
                   <span className="truncate">Link click</span>
                 </>
               )}
@@ -188,7 +117,6 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "event_name",
           enableHiding: false,
-          size: 120,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -197,7 +125,7 @@ export default function EventsTable() {
           id: "invoiceId",
           header: "Invoice ID",
           accessorKey: "invoice_id",
-          size: 120,
+          maxSize: 200,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -205,7 +133,8 @@ export default function EventsTable() {
           id: "link",
           header: "Link",
           accessorKey: "link",
-          size: 200,
+          minSize: 250,
+          maxSize: 200,
           meta: {
             filterParams: ({ getValue }) => ({
               domain: getValue().domain,
@@ -219,7 +148,7 @@ export default function EventsTable() {
               <div className="flex items-center gap-3">
                 <LinkLogo
                   apexDomain={getApexDomain(getValue().url)}
-                  className="h-4 w-4 sm:h-4 sm:w-4"
+                  className="size-4 sm:h-4 sm:w-4"
                 />
                 <span
                   className="truncate"
@@ -245,7 +174,7 @@ export default function EventsTable() {
                 <img
                   alt={display}
                   src={getValue().avatar}
-                  className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
+                  className="size-4 shrink-0 rounded-full border border-gray-200"
                 />
                 <span className="truncate">{display}</span>
               </div>
@@ -277,11 +206,15 @@ export default function EventsTable() {
           },
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3">
-              <img
-                alt={getValue()}
-                src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                className="h-4 w-4 shrink-0"
-              />
+              {getValue() === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={getValue()}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
               <span className="truncate">
                 {COUNTRIES[getValue()] ?? getValue()}
               </span>
@@ -292,13 +225,18 @@ export default function EventsTable() {
           id: "city",
           header: "City",
           accessorKey: "city",
+          minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3">
-              <img
-                alt={row.original.country}
-                src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                className="h-4 w-4 shrink-0"
-              />
+              {row.original.country === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={row.original.country}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
               <span className="truncate">{getValue()}</span>
             </div>
           ),
@@ -315,7 +253,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="devices"
-                className="h-4 w-4 shrink-0"
+                className="size-4 shrink-0"
               />
               <span className="truncate">{getValue()}</span>
             </div>
@@ -330,7 +268,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="browsers"
-                className="h-4 w-4 shrink-0 rounded-full"
+                className="size-4 shrink-0 rounded-full"
               />
               <span className="truncate">{getValue()}</span>
             </div>
@@ -345,7 +283,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="os"
-                className="h-4 w-4 shrink-0"
+                className="size-4 shrink-0"
               />
               <span className="truncate">{getValue()}</span>
             </div>
@@ -396,17 +334,19 @@ export default function EventsTable() {
             </div>
           ),
         },
-      ].filter((c) => eventColumns[tab].all.includes(c.id)),
+        // Menu
+        {
+          id: "menu",
+          enableHiding: false,
+          minSize: 43,
+          size: 43,
+          maxSize: 43,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: ({ row }) => <RowMenuButton row={row} />,
+        },
+      ].filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id)),
     [tab],
   );
-
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    getDefaultColumnVisibility(tab as EventType),
-  );
-
-  useEffect(() => {
-    setColumnVisibility(getDefaultColumnVisibility(tab as EventType));
-  }, [tab]);
 
   const defaultData = useMemo(() => [], []);
 
@@ -426,8 +366,28 @@ export default function EventsTable() {
     [originalQueryString, tab, pagination, sortBy, order],
   );
 
-  const { data, isLoading, error } = useSWR<Datum[]>(
-    `/api/analytics/events?${queryString}`,
+  // Update export query string
+  useEffect(
+    () =>
+      setExportQueryString?.(
+        editQueryString(
+          queryString,
+          {
+            columns: Object.entries(columnVisibility[tab])
+              .filter(([, visible]) => visible)
+              .map(([id]) => id)
+              .join(","),
+          },
+          ["page"],
+        ),
+      ),
+    [setExportQueryString, queryString, columnVisibility, tab],
+  );
+
+  const needsHigherPlan = plan === "free" || plan === "pro";
+
+  const { data, isLoading, error } = useSWR<EventDatum[]>(
+    !needsHigherPlan && `/api/events?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -435,14 +395,15 @@ export default function EventsTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: data ?? defaultData,
+    data: data ?? (needsHigherPlan ? exampleData[tab] : defaultData),
     loading: isLoading,
-    error: error ? "Failed to fetch events." : undefined,
+    error: error && !needsHigherPlan ? "Failed to fetch events." : undefined,
     columns,
     pagination,
     onPaginationChange: setPagination,
-    rowCount: totalEvents?.[tab] ?? 0,
-    columnVisibility,
+    rowCount: needsHigherPlan ? 0 : totalEvents?.[tab] ?? 0,
+    columnVisibility: columnVisibility[tab],
+    onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
     sortableColumns: ["timestamp", "amount"],
     sortBy: sortBy,
     sortOrder: order,
@@ -453,6 +414,7 @@ export default function EventsTable() {
           ...(sortOrder && { order: sortOrder }),
         },
       }),
+    columnPinning: { right: ["menu"] },
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
 
@@ -462,39 +424,38 @@ export default function EventsTable() {
         </>
       );
     },
-    emptyState: <EmptyState />,
+    emptyState: (
+      <EmptyState
+        icon={Magnifier}
+        title="No events recorded"
+        description={`Events will appear here when your links ${tab === "clicks" ? "are clicked on" : `convert to ${tab}`}`}
+      />
+    ),
     resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
-  const exportQueryString = useMemo(
-    () =>
-      editQueryString(
-        queryString,
-        {
-          columns: table
-            .getVisibleFlatColumns()
-            .map((c) => c.id)
-            .join(","),
-        },
-        ["page"],
-      ),
-    [queryString, table.getVisibleFlatColumns()],
-  );
-
   return (
-    <div>
-      <div className="flex justify-end">
-        <div className="flex gap-1">
-          <ExportButton
-            queryString={exportQueryString}
-            disabled={error || !data?.length}
-          />
-          <EditColumnsButton table={table} />
-        </div>
-      </div>
-      <div className="mt-3">
-        <Table {...tableProps} table={table} />
-      </div>
-    </div>
+    <Table {...tableProps} table={table}>
+      {needsHigherPlan && (
+        <>
+          <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
+            <EmptyState
+              icon={Menu3}
+              title="Real-time Events Stream"
+              description={`Want more data on your link ${tab === "clicks" ? "clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
+              learnMore="https://d.to/events"
+              buttonText="Upgrade to Business"
+              buttonLink={queryParams({
+                set: {
+                  upgrade: "business",
+                },
+                getNewPath: true,
+              })}
+            />
+          </div>
+          <div className="h-[400px]" />
+        </>
+      )}
+    </Table>
   );
 }

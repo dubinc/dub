@@ -124,7 +124,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "root",
 ];
 
-export const EVENT_TYPES = ["clicks", "leads", "sales", "composite"] as const;
+export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
 
 export const OLD_ANALYTICS_ENDPOINTS = [
   "clicks",

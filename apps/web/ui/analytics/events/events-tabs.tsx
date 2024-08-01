@@ -20,6 +20,7 @@ type TimeseriesData = {
   clicks: number;
   leads: number;
   sales: number;
+  amount: number;
 }[];
 
 export default function EventsTabs() {
@@ -94,7 +95,7 @@ export default function EventsTabs() {
           key={event}
           className={cn(
             "flex justify-between gap-4 rounded-xl border bg-white px-5 py-4 text-left transition-[box-shadow] focus:outline-none",
-            tab === event
+            tab === event && flags?.conversions
               ? "border-black shadow-[0_0_0_1px_black_inset]"
               : "border-gray-200 focus-visible:border-black",
           )}
@@ -110,8 +111,12 @@ export default function EventsTabs() {
                     "text-2xl transition-opacity",
                     isLoadingTotalEvents && "opacity-40",
                   )}
+                  prefix={event === "sales" && "$"}
+                  {...(event === "sales" && { fullNumber: true })}
                 >
-                  {totalEvents?.[event] ?? 0}
+                  {event === "sales"
+                    ? (totalEvents?.amount ?? 0) / 100
+                    : totalEvents?.[event] ?? 0}
                 </CountingNumbers>
               ) : (
                 <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
@@ -160,7 +165,10 @@ function ChartInner({
     () =>
       data.map((d) => ({
         date: new Date(d.start),
-        value: (d?.[event] as number | undefined) ?? 0,
+        value:
+          ((event === "sales" ? d?.amount : d?.[event]) as
+            | number
+            | undefined) ?? 0,
       })) ?? null,
     [data, event],
   );
