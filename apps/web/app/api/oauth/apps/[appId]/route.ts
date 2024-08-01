@@ -46,6 +46,7 @@ export const PATCH = withWorkspace(
       redirectUris,
       logo,
       pkce,
+      screenshots,
     } = updateOAuthAppSchema.parse(await parseRequestBody(req));
 
     try {
@@ -86,6 +87,7 @@ export const PATCH = withWorkspace(
           readme,
           redirectUris,
           pkce,
+          screenshots,
           ...(logoUrl && { logo: logoUrl }),
         },
       });

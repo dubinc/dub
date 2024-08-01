@@ -43,16 +43,16 @@ export default function AddEditIntegrationForm({
   integration: OAuthAppProps | null;
 }) {
   const router = useRouter();
+  const [saving, setSaving] = useState(false);
   const { slug: workspaceSlug, id: workspaceId, flags } = useWorkspace();
   const [urls, setUrls] = useState<{ id: string; value: string }[]>([
     { id: nanoid(), value: "" },
   ]);
-
   const [screenshots, setScreenshots] = useState<
     {
-      file: File;
+      file?: File;
+      key?: string;
       uploading: boolean;
-      attachmentId?: string;
     }[]
   >([]);
 
@@ -60,7 +60,6 @@ export default function AddEditIntegrationForm({
     redirect(`/${workspaceSlug}`);
   }
 
-  const [saving, setSaving] = useState(false);
   const [data, setData] = useState<NewIntegration | ExistingIntegration>(
     integration || defaultValues,
   );
@@ -76,6 +75,13 @@ export default function AddEditIntegrationForm({
     if (integration) {
       setUrls(
         integration.redirectUris.map((u) => ({ id: nanoid(), value: u })),
+      );
+
+      setScreenshots(
+        (integration.screenshots || []).map((s) => ({
+          uploading: false,
+          key: s,
+        })),
       );
     }
   }, [integration]);
@@ -109,6 +115,7 @@ export default function AddEditIntegrationForm({
       },
       body: JSON.stringify({
         ...data,
+        screenshots: screenshots.map((s) => s.key),
         redirectUris: urls.map((u) => u.value),
       }),
     });
@@ -136,50 +143,51 @@ export default function AddEditIntegrationForm({
   const handleUpload = async (file: File) => {
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
-    const {
-      attachment: { id: attachmentId },
-      uploadFormUrl,
-      uploadFormData,
-    } = await fetch(
+    const response = await fetch(
       `/api/oauth/apps/upload?name=${file.name}&size=${file.size}&workspaceId=${workspaceId}`,
       {
         method: "GET",
       },
-    ).then((res) => res.json());
+    );
+
+    const { signedUrl, key } = await response.json();
 
     const form = new FormData();
-    uploadFormData.forEach(({ key, value }) => {
-      form.append(key, value);
-    });
+
     form.append("file", file);
 
-    fetch(uploadFormUrl, {
-      method: "POST",
-      body: form,
-    })
-      .then((res) => {
-        if (!res.ok) {
-          toast.error(res.statusText);
-        }
-      })
-      .catch((err) => {
-        console.error("Error uploading file:", err.message ? err.message : err);
-      });
-
+    // Fake the upload
     setScreenshots((prev) =>
       prev.map((screenshot) =>
         screenshot.file === file
-          ? { ...screenshot, uploading: false, attachmentId }
+          ? { ...screenshot, uploading: false, key: key }
           : screenshot,
       ),
     );
-    setData((prev) => ({
-      ...prev,
-      // attachmentIds: [...prev.attachmentIds, attachmentId],
-    }));
-  };
 
-  console.log(screenshots);
+    const uploadResponse = await fetch(signedUrl, {
+      method: "POST",
+      body: form,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (uploadResponse.ok) {
+      toast.success("Screenshot uploaded!");
+
+      setScreenshots((prev) =>
+        prev.map((screenshot) =>
+          screenshot.file === file
+            ? { ...screenshot, uploading: false, key: key }
+            : screenshot,
+        ),
+      );
+    } else {
+      const result = await uploadResponse.json();
+      toast.error(result.error.message || "Failed to upload screenshot.");
+    }
+  };
 
   const {
     name,
@@ -301,12 +309,12 @@ export default function AddEditIntegrationForm({
         <div>
           <label htmlFor="slug" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">Screenshots</h2>
-            <InfoTooltip content="Upload screenshots that will be displayed on the integration page." />
+            <InfoTooltip content="You can upload up to 4 screenshots that will be displayed on the integration page." />
           </label>
           <div className="mt-2 grid w-full gap-2">
             {screenshots.map((screenshot) => (
               <div
-                key={screenshot.attachmentId}
+                key={screenshot.key}
                 className="flex w-full items-center justify-between rounded-md border border-gray-200"
               >
                 <div className="flex flex-1 items-center space-x-2 p-2">
@@ -316,21 +324,15 @@ export default function AddEditIntegrationForm({
                     <Paperclip className="h-4 w-4 text-gray-500" />
                   )}
                   <p className="text-center text-sm text-gray-500">
-                    {screenshot.file.name}
+                    {screenshot.file?.name || screenshot.key}
                   </p>
                 </div>
                 <button
                   className="h-full rounded-r-md border-l border-gray-200 p-2"
                   onClick={() => {
                     setScreenshots((prev) =>
-                      prev.filter((i) => i.file.name !== screenshot.file.name),
+                      prev.filter((s) => s.key !== screenshot.key),
                     );
-                    setData((prev) => ({
-                      ...prev,
-                      // attachmentIds: prev.attachmentIds.filter(
-                      //   (id) => id !== screenshot.attachmentId,
-                      // ),
-                    }));
                   }}
                 >
                   <Trash2 className="h-4 w-4 text-gray-500" />
@@ -338,14 +340,17 @@ export default function AddEditIntegrationForm({
               </div>
             ))}
           </div>
-          <FileUpload
-            accept="any"
-            className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
-            iconClassName="w-5 h-5"
-            variant="plain"
-            onChange={async ({ file }) => await handleUpload(file)}
-            content="Drag and drop or click to upload."
-          />
+
+          {screenshots.length < 4 && (
+            <FileUpload
+              accept="any"
+              className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
+              iconClassName="w-5 h-5"
+              variant="plain"
+              onChange={async ({ file }) => await handleUpload(file)}
+              content="Drag and drop or click to upload screenshots"
+            />
+          )}
         </div>
 
         <div>

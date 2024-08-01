@@ -162,8 +162,8 @@ importers:
         specifier: ^3.1.22
         version: 3.1.22(react@18.2.0)(solid-js@1.8.16)(svelte@4.2.14)(vue@3.4.21)(zod@3.22.4)
       aws4fetch:
-        specifier: ^1.0.18
-        version: 1.0.18
+        specifier: ^1.0.19
+        version: 1.0.19
       bottleneck:
         specifier: ^2.19.5
         version: 2.19.5
@@ -9710,8 +9710,8 @@ packages:
       possible-typed-array-names: 1.0.0
     dev: true
 
-  /aws4fetch@1.0.18:
-    resolution: {integrity: sha512-3Cf+YaUl07p24MoQ46rFwulAmiyCwH2+1zw1ZyPAX5OtJ34Hh185DwB8y/qRLb6cYYYtSFJ9pthyLc0MD4e8sQ==}
+  /aws4fetch@1.0.19:
+    resolution: {integrity: sha512-N+F8pZ9hVjckkHODDyalITRNxBJxAGX5ShkVoAgHwqERXsW8Iu5ziFx3SCjGlxx/YStWBTZx4HI/GCMvTBu5kQ==}
     dev: false
 
   /axios@1.6.7:

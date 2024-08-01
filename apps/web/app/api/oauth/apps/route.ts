@@ -50,6 +50,7 @@ export const POST = withWorkspace(
       redirectUris,
       logo,
       pkce,
+      screenshots,
     } = createOAuthAppSchema.parse(await parseRequestBody(req));
 
     const app = await prisma.oAuthApp.findUnique({
@@ -108,6 +109,7 @@ export const POST = withWorkspace(
             : "",
           userId: session.user.id,
           pkce,
+          screenshots,
           ...(logoUrl && { logo: logoUrl }),
         },
       });

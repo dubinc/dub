@@ -61,18 +61,20 @@ class StorageClient {
     return { success: true };
   }
 
-  async createPresignedUrl(key: string) {
-    const result = await this.client.sign(
-      `${process.env.STORAGE_ENDPOINT}/${key}`,
-      {
-        method: "GET",
-        aws: {
-          signQuery: true,
-        },
-      },
-    );
+  async getSignedUrl({ key }: { key: string }) {
+    const url = new URL(`${process.env.STORAGE_ENDPOINT}/${key}`);
 
-    return result;
+    // 10 minutes expiration
+    url.searchParams.set("X-Amz-Expires", "600");
+
+    const signed = await this.client.sign(url, {
+      method: "PUT",
+      aws: {
+        signQuery: true,
+      },
+    });
+
+    return signed.url;
   }
 
   private base64ToArrayBuffer(base64: string, opts?: imageOptions) {
