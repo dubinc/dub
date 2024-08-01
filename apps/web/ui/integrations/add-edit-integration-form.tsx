@@ -144,49 +144,42 @@ export default function AddEditIntegrationForm({
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
     const response = await fetch(
-      `/api/oauth/apps/upload-screenshot?name=${file.name}&size=${file.size}&workspaceId=${workspaceId}`,
+      `/api/oauth/apps/screenshots/upload?workspaceId=${workspaceId}&name=${file.name}`,
       {
         method: "GET",
       },
     );
 
+    if (!response.ok) {
+      toast.error("Failed to get signed URL for screenshot upload.");
+      return;
+    }
+
     const { signedUrl, key } = await response.json();
-
-    const form = new FormData();
-
-    form.append("file", file);
-
-    // Fake the upload
-    setScreenshots((prev) =>
-      prev.map((screenshot) =>
-        screenshot.file === file
-          ? { ...screenshot, uploading: false, key: key }
-          : screenshot,
-      ),
-    );
 
     const uploadResponse = await fetch(signedUrl, {
       method: "PUT",
-      body: form,
+      body: file,
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": file.type,
+        "Content-Length": file.size.toString(),
       },
     });
 
-    if (uploadResponse.ok) {
-      toast.success("Screenshot uploaded!");
-
-      setScreenshots((prev) =>
-        prev.map((screenshot) =>
-          screenshot.file === file
-            ? { ...screenshot, uploading: false, key: key }
-            : screenshot,
-        ),
-      );
-    } else {
+    if (!uploadResponse.ok) {
       const result = await uploadResponse.json();
       toast.error(result.error.message || "Failed to upload screenshot.");
+      return;
     }
+
+    toast.success(`${file.name} uploaded!`);
+    setScreenshots((prev) =>
+      prev.map((screenshot) =>
+        screenshot.file === file
+          ? { ...screenshot, uploading: false, key }
+          : screenshot,
+      ),
+    );
   };
 
   const {
@@ -203,6 +196,8 @@ export default function AddEditIntegrationForm({
 
   const buttonDisabled =
     !name || !slug || !developer || !website || !redirectUris;
+
+  const uploading = screenshots.some((s) => s.uploading);
 
   return (
     <>
@@ -477,7 +472,7 @@ export default function AddEditIntegrationForm({
 
         <Button
           text={integration ? "Save changes" : "Create"}
-          disabled={buttonDisabled}
+          disabled={buttonDisabled || uploading}
           loading={saving}
           type="submit"
         />

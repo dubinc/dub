@@ -71,6 +71,7 @@ class StorageClient {
       method: "PUT",
       aws: {
         signQuery: true,
+        allHeaders: true,
       },
     });
 
