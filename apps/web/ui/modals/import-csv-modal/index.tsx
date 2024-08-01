@@ -157,39 +157,33 @@ function ImportCsvModal({
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
             <form
               onSubmit={handleSubmit(async (data) => {
-                const formData = new FormData();
-                for (const key in data) {
-                  if (data[key] !== null) {
-                    formData.append(key, data[key]);
-                  }
-                }
-
+                // Get signed upload URL
                 const res = await fetch(
                   `/api/workspaces/${workspaceId}/import/csv/upload`,
                 );
 
-                if (!res.ok) {
+                if (!res.ok || !data.file) {
                   toast.error("Error getting signed upload URL");
                   return;
                 }
 
-                const { url } = await res.json();
-
-                const fileFormData = new FormData();
-                fileFormData.append("file", data.file!);
+                const { url, id } = await res.json();
 
                 const uploadRes = await fetch(url, {
                   method: "PUT",
-                  body: fileFormData,
+                  body: data.file,
                   headers: {
                     "Content-Type": "multipart/form-data",
                   },
                 });
 
-                console.log(uploadRes);
-                console.log(await uploadRes.json());
-
-                return;
+                const formData = new FormData();
+                for (const key in data) {
+                  if (key !== "file" && data[key] !== null) {
+                    formData.append(key, data[key]);
+                  }
+                }
+                formData.append("id", id);
 
                 toast.promise(
                   fetch(`/api/workspaces/${workspaceId}/import/csv`, {
@@ -209,9 +203,10 @@ function ImportCsvModal({
                     }
                   }),
                   {
-                    loading: "Importing links...",
-                    success: "Successfully imported links!",
-                    error: "Error importing links.",
+                    loading: "Adding links to import queue...",
+                    success:
+                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                    error: "Error adding links to import queue",
                   },
                 );
               })}
