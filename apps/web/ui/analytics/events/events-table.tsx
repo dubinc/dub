@@ -443,6 +443,7 @@ export default function EventsTable() {
               icon={Menu3}
               title="Real-time Events Stream"
               description={`Want more data on your link ${tab === "clicks" ? "clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
+              learnMore="https://d.to/events"
               buttonText="Upgrade to Business"
               buttonLink={queryParams({
                 set: {
