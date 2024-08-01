@@ -10,6 +10,7 @@ import { LinkLogo, Table, Tooltip, useRouterStuff, useTable } from "@dub/ui";
 import {
   CursorRays,
   FilterBars,
+  Globe,
   Magnifier,
   Menu3,
   QRCode,
@@ -98,12 +99,12 @@ export default function EventsTable() {
             <div className="flex items-center gap-3">
               {getValue() ? (
                 <>
-                  <QRCode className="h-4 w-4 shrink-0" />
+                  <QRCode className="size-4 shrink-0" />
                   <span className="truncate">QR scan</span>
                 </>
               ) : (
                 <>
-                  <CursorRays className="h-4 w-4 shrink-0" />
+                  <CursorRays className="size-4 shrink-0" />
                   <span className="truncate">Link click</span>
                 </>
               )}
@@ -147,7 +148,7 @@ export default function EventsTable() {
               <div className="flex items-center gap-3">
                 <LinkLogo
                   apexDomain={getApexDomain(getValue().url)}
-                  className="h-4 w-4 sm:h-4 sm:w-4"
+                  className="size-4 sm:h-4 sm:w-4"
                 />
                 <span
                   className="truncate"
@@ -173,7 +174,7 @@ export default function EventsTable() {
                 <img
                   alt={display}
                   src={getValue().avatar}
-                  className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
+                  className="size-4 shrink-0 rounded-full border border-gray-200"
                 />
                 <span className="truncate">{display}</span>
               </div>
@@ -205,11 +206,15 @@ export default function EventsTable() {
           },
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3">
-              <img
-                alt={getValue()}
-                src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                className="h-4 w-4 shrink-0"
-              />
+              {getValue() === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={getValue()}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
               <span className="truncate">
                 {COUNTRIES[getValue()] ?? getValue()}
               </span>
@@ -223,11 +228,15 @@ export default function EventsTable() {
           minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3">
-              <img
-                alt={row.original.country}
-                src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                className="h-4 w-4 shrink-0"
-              />
+              {row.original.country === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={row.original.country}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
               <span className="truncate">{getValue()}</span>
             </div>
           ),
@@ -244,7 +253,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="devices"
-                className="h-4 w-4 shrink-0"
+                className="size-4 shrink-0"
               />
               <span className="truncate">{getValue()}</span>
             </div>
@@ -259,7 +268,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="browsers"
-                className="h-4 w-4 shrink-0 rounded-full"
+                className="size-4 shrink-0 rounded-full"
               />
               <span className="truncate">{getValue()}</span>
             </div>
@@ -274,7 +283,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="os"
-                className="h-4 w-4 shrink-0"
+                className="size-4 shrink-0"
               />
               <span className="truncate">{getValue()}</span>
             </div>
