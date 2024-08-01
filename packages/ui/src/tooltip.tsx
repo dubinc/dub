@@ -155,11 +155,13 @@ export function InfoTooltip(props: Omit<TooltipProps, "children">) {
 export function NumberTooltip({
   value,
   unit = "total clicks",
+  prefix,
   children,
   lastClicked,
 }: {
   value?: number | null;
   unit?: string;
+  prefix?: string;
   children: ReactNode;
   lastClicked?: Date | null;
 }) {
@@ -171,6 +173,7 @@ export function NumberTooltip({
       content={
         <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
           <p className="text-sm font-semibold text-gray-700">
+            {prefix}
             {nFormatter(value || 0, { full: true })} {unit}
           </p>
           {lastClicked && (

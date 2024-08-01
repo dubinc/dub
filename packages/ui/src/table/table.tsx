@@ -1,7 +1,9 @@
-import { cn } from "@dub/utils";
+import { cn, deepEqual } from "@dub/utils";
 import {
   Cell,
+  Column,
   ColumnDef,
+  ColumnPinningState,
   PaginationState,
   Table as TableType,
   VisibilityState,
@@ -11,20 +13,23 @@ import {
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  CSSProperties,
   Dispatch,
+  PropsWithChildren,
   ReactNode,
   SetStateAction,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { Button } from "../button";
 import { LoadingSpinner, SortOrder } from "../icons";
 
-const tableCellClassName = cn([
-  "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-gray-200 px-4 relative",
-  "border-r border-b", // Right and left borders, removed from outer columns above
-]);
+const tableCellClassName = (columnId: string) =>
+  cn([
+    "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-gray-200 px-4 relative",
+    "border-l border-b",
+    columnId === "menu" && "bg-white border-l-transparent py-0 px-1",
+  ]);
 
 type UseTableProps<T> = {
   columns: ColumnDef<T, any>[];
@@ -42,7 +47,8 @@ type UseTableProps<T> = {
   }) => void;
   sortableColumns?: string[];
   columnVisibility?: VisibilityState;
-  resizeColumns?: boolean;
+  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
+  columnPinning?: ColumnPinningState;
   resourceName?: (plural: boolean) => string;
 
   className?: string;
@@ -57,9 +63,10 @@ type UseTableProps<T> = {
   | { pagination?: never; onPaginationChange?: never; rowCount?: never }
 );
 
-type TableProps<T> = UseTableProps<T> & {
-  table: TableType<T>;
-};
+type TableProps<T> = UseTableProps<T> &
+  PropsWithChildren<{
+    table: TableType<T>;
+  }>;
 
 export function useTable<T extends any>(
   props: UseTableProps<T>,
@@ -69,7 +76,7 @@ export function useTable<T extends any>(
     rowCount,
     columns,
     defaultColumn,
-    resizeColumns = true,
+    columnPinning,
     pagination,
     onPaginationChange,
   } = props;
@@ -80,26 +87,35 @@ export function useTable<T extends any>(
 
   // Update internal columnVisibility when prop value changes
   useEffect(() => {
-    setColumnVisibility(props.columnVisibility ?? {});
+    if (
+      props.columnVisibility &&
+      !deepEqual(props.columnVisibility, columnVisibility)
+    )
+      setColumnVisibility(props.columnVisibility ?? {});
   }, [props.columnVisibility]);
+
+  // Call onColumnVisibilityChange when internal columnVisibility changes
+  useEffect(() => {
+    props.onColumnVisibilityChange?.(columnVisibility);
+  }, [columnVisibility]);
 
   const table = useReactTable({
     data,
     rowCount,
     columns,
     defaultColumn: {
-      minSize: 60,
-      size: 150,
-      maxSize: 250,
+      minSize: 120,
+      size: 0,
+      maxSize: 300,
       ...defaultColumn,
     },
-    columnResizeMode: resizeColumns ? "onChange" : undefined,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange,
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: (visibility) => setColumnVisibility(visibility),
     state: {
       pagination: pagination,
       columnVisibility,
+      columnPinning: { left: [], right: [], ...columnPinning },
     },
     manualPagination: true,
     autoResetPageIndex: false,
@@ -109,7 +125,6 @@ export function useTable<T extends any>(
   return {
     ...props,
     columnVisibility,
-    resizeColumns,
     table,
   };
 }
@@ -125,47 +140,29 @@ export function Table<T>({
   sortOrder,
   onSortChange,
   sortableColumns = [],
-  resizeColumns,
-  columnVisibility = {},
   className,
   thClassName,
   tdClassName,
   table,
   pagination,
   resourceName,
+  rowCount,
+  children,
 }: TableProps<T>) {
-  // Memoize column sizes to pass to table as CSS variables
-  const columnSizeVars = useMemo(() => {
-    const headers = table.getFlatHeaders();
-    const colSizes: { [key: string]: number } = {};
-    for (let i = 0; i < headers.length; i++) {
-      const header = headers[i]!;
-      colSizes[`--header-${header.id}-size`] = header.getSize();
-      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
-    }
-    return colSizes;
-  }, [
-    columns,
-    columnVisibility,
-    table.getState().columnSizingInfo,
-    table.getState().columnSizing,
-  ]);
-
   return (
     <div className="relative border border-gray-200 bg-white sm:rounded-xl">
       {(!error && !!data?.length) || loading ? (
-        <div className="min-h-[400px] overflow-x-auto rounded-[inherit]">
+        <div className="relative min-h-[400px] overflow-x-auto rounded-[inherit]">
           <table
             className={cn(
               [
-                "group/table w-full table-fixed border-separate border-spacing-0 transition-[border-spacing,margin-top]",
+                "group/table w-full border-separate border-spacing-0 transition-[border-spacing,margin-top]",
                 // Remove side borders from table to avoid interfering with outer border
                 "[&_tr>*:first-child]:border-l-transparent", // Left column
                 "[&_tr>*:last-child]:border-r-transparent", // Right column
               ],
               className,
             )}
-            style={columnSizeVars}
           >
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -174,35 +171,45 @@ export function Table<T>({
                     const isSortableColumn = sortableColumns.includes(
                       header.column.id,
                     );
+                    const ButtonOrDiv = isSortableColumn ? "button" : "div";
+
                     return (
                       <th
                         key={header.id}
                         className={cn(
-                          tableCellClassName,
+                          tableCellClassName(header.id),
                           "select-none font-medium",
+                          getCommonPinningClassNames(
+                            header.column,
+                            !table.getRowModel().rows.length,
+                          ),
                           thClassName,
                         )}
                         style={{
-                          width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                          minWidth: header.column.columnDef.minSize,
+                          maxWidth: header.column.columnDef.maxSize,
+                          width: header.column.columnDef.size || "auto",
+                          ...getCommonPinningStyles(header.column),
                         }}
                       >
                         <div className="flex items-center justify-between gap-6 !pr-0">
-                          <button
-                            type="button"
+                          <ButtonOrDiv
                             className="flex items-center gap-2"
-                            disabled={!isSortableColumn}
-                            onClick={() =>
-                              onSortChange?.({
-                                sortBy: header.column.id,
-                                sortOrder:
-                                  sortBy !== header.column.id
-                                    ? "desc"
-                                    : sortOrder === "asc"
+                            {...(isSortableColumn && {
+                              type: "button",
+                              disabled: !isSortableColumn,
+                              "aria-label": "Sort by column",
+                              onClick: () =>
+                                onSortChange?.({
+                                  sortBy: header.column.id,
+                                  sortOrder:
+                                    sortBy !== header.column.id
                                       ? "desc"
-                                      : "asc",
-                              })
-                            }
-                            aria-label="Sort by column"
+                                      : sortOrder === "asc"
+                                        ? "desc"
+                                        : "asc",
+                                }),
+                            })}
                           >
                             <span>
                               {header.isPlaceholder
@@ -221,19 +228,8 @@ export function Table<T>({
                                 }
                               />
                             )}
-                          </button>
+                          </ButtonOrDiv>
                         </div>
-                        {resizeColumns &&
-                          header.index < headerGroup.headers.length - 1 && (
-                            <div
-                              className="absolute -right-[4px] top-0 z-[1] h-full w-[7px] cursor-col-resize"
-                              {...{
-                                onDoubleClick: () => header.column.resetSize(),
-                                onMouseDown: header.getResizeHandler(),
-                                onTouchStart: header.getResizeHandler(),
-                              }}
-                            />
-                          )}
                       </th>
                     );
                   })}
@@ -247,12 +243,19 @@ export function Table<T>({
                     <td
                       key={cell.id}
                       className={cn(
-                        tableCellClassName,
+                        tableCellClassName(cell.column.id),
                         "group text-gray-600",
+                        getCommonPinningClassNames(
+                          cell.column,
+                          row.index === table.getRowModel().rows.length - 1,
+                        ),
                         tdClassName,
                       )}
                       style={{
-                        width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                        minWidth: cell.column.columnDef.minSize,
+                        maxWidth: cell.column.columnDef.maxSize,
+                        width: cell.column.columnDef.size || "auto",
+                        ...getCommonPinningStyles(cell.column),
                       }}
                     >
                       <div className="flex w-full items-center justify-between overflow-hidden truncate">
@@ -270,6 +273,7 @@ export function Table<T>({
               ))}
             </tbody>
           </table>
+          {children}
         </div>
       ) : (
         <div className="flex h-96 w-full items-center justify-center text-sm text-gray-500">
@@ -278,7 +282,7 @@ export function Table<T>({
             `No ${resourceName?.(true) || "items"} found.`}
         </div>
       )}
-      {pagination && !error && !!data?.length && (
+      {pagination && !error && !!data?.length && !!rowCount && (
         <div className="sticky bottom-0 mx-auto -mt-px flex w-full max-w-full items-center justify-between rounded-b-[inherit] border-t border-gray-200 bg-white px-4 py-3.5 text-sm leading-6 text-gray-600">
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
@@ -330,3 +334,25 @@ export function Table<T>({
     </div>
   );
 }
+
+const getCommonPinningClassNames = (
+  column: Column<any>,
+  isLastRow: boolean,
+): string => {
+  const isPinned = column.getIsPinned();
+  return cn(
+    isPinned &&
+      !isLastRow &&
+      "animate-table-pinned-shadow [animation-timeline:scroll(inline)]",
+  );
+};
+
+const getCommonPinningStyles = (column: Column<any>): CSSProperties => {
+  const isPinned = column.getIsPinned();
+
+  return {
+    left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
+    right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
+    position: isPinned ? "sticky" : "relative",
+  };
+};

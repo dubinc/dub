@@ -72,9 +72,7 @@ export function AnalyticsCard<T extends string>({
             ) : (
               <CursorRays className="h-4 w-4" />
             )}
-            <p className="text-xs uppercase">
-              {event === "composite" ? "clicks" : event}
-            </p>
+            <p className="text-xs uppercase">{event}</p>
           </div>
         </div>
         <div className="py-4">
