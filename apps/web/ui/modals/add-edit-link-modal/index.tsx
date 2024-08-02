@@ -363,7 +363,7 @@ function AddEditLinkModal({
         }
       }}
     >
-      <div className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
+      <div className="scrollbar-hide grid max-h-[95dvh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
         {!homepageDemo && (
           <button
             onClick={() => {
