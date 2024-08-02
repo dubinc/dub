@@ -1,11 +1,10 @@
-import { Button, Popover, useMediaQuery } from "@dub/ui";
+import { Button, Popover } from "@dub/ui";
 import { useContext, useState } from "react";
 import { ThreeDots } from "../../shared/icons";
 import { EventsContext } from "./events-provider";
 import ExportButton from "./export-button";
 
 export default function EventsOptions() {
-  const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
   const { exportQueryString } = useContext(EventsContext);
 

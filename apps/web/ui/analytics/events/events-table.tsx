@@ -24,6 +24,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
+import { Link2 } from "lucide-react";
 import Link from "next/link";
 import { useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
@@ -148,7 +149,7 @@ export default function EventsTable() {
               <div className="flex items-center gap-3">
                 <LinkLogo
                   apexDomain={getApexDomain(getValue().url)}
-                  className="size-4 sm:h-4 sm:w-4"
+                  className="size-4 shrink-0 sm:size-4"
                 />
                 <span
                   className="truncate"
@@ -288,6 +289,39 @@ export default function EventsTable() {
               <span className="truncate">{getValue()}</span>
             </div>
           ),
+        },
+        {
+          id: "referer",
+          header: "Referer",
+          accessorKey: "referer",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getValue()}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
+              <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "ip",
+          header: "IP Address",
+          accessorKey: "ip",
+          cell: ({ getValue }) =>
+            getValue() ? (
+              <span className="truncate">{getValue()}</span>
+            ) : (
+              <Tooltip content="We do not record IP addresses for EU users.">
+                <span className="cursor-default truncate underline decoration-dotted">
+                  Unknown
+                </span>
+              </Tooltip>
+            ),
         },
         // Date
         {
