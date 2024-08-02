@@ -133,7 +133,9 @@ function LinksList({
           {loading ? (
             <LoadingSpinner className="size-3.5" />
           ) : (
-            <ArchivedLinksHint />
+            <div className="hidden sm:block">
+              <ArchivedLinksHint />
+            </div>
           )}
         </CardList.Pagination>
       )}
