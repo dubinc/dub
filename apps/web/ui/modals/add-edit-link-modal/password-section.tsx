@@ -1,8 +1,9 @@
 import { LinkProps } from "@/lib/types";
-import { Eye, EyeOff } from "@/ui/shared/icons";
+import { Eye, EyeOff, Random } from "@/ui/shared/icons";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { SimpleTooltipContent, Switch } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
+import { ButtonTooltip } from "@dub/ui/src/tooltip";
+import { FADE_IN_ANIMATION_SETTINGS, nanoid } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -35,7 +36,7 @@ export default function PasswordSection({
   return (
     <div className="relative border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center justify-between space-x-2">
+        <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-medium text-gray-900">
             Password Protection
           </h2>
@@ -49,7 +50,20 @@ export default function PasswordSection({
             }
           />
         </div>
-        <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
+        <div className="flex items-center gap-2">
+          {enabled && (
+            <ButtonTooltip
+              tooltipContent="Generate a random password"
+              onClick={() => {
+                setData({ ...data, password: nanoid(24) });
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+            >
+              <Random className="h-3 w-3" />
+            </ButtonTooltip>
+          )}
+          <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
+        </div>
       </div>
       {enabled && (
         <motion.div
