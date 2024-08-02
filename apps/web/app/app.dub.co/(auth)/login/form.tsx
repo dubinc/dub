@@ -347,6 +347,12 @@ const SignInWithEmail = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         }).then(async (res) => {
+          if (!res.ok) {
+            const error = await res.text();
+            toast.error(error);
+            setClickedMethod(undefined);
+            return;
+          }
           const { accountExists, hasPassword } = await res.json();
           if (accountExists) {
             const provider = hasPassword && password ? "credentials" : "email";
@@ -382,6 +388,7 @@ const SignInWithEmail = () => {
               }
             });
           } else {
+            setClickedMethod(undefined);
             toast.error("No account found with that email address.");
           }
         });
