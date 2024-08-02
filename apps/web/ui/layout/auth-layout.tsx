@@ -78,11 +78,7 @@ export default function AuthLayout({
         </div>
       </div>
       <div className="hidden h-full flex-col justify-center space-y-12 overflow-hidden md:col-span-2 md:flex">
-        <a
-          href="https://dub.co/features/analytics"
-          target="_blank"
-          className="ml-12 h-1/2 w-[112%] rounded-xl border border-gray-200 p-2 shadow-xl"
-        >
+        <div className="ml-12 h-1/2 w-[112%] rounded-xl border border-gray-200 p-2 shadow-xl">
           <BlurImage
             alt="Dub.co Analytics"
             src="https://assets.dub.co/compare/dub-analytics.png"
@@ -90,7 +86,7 @@ export default function AuthLayout({
             height={1618}
             className="h-full rounded-lg border border-gray-200 object-cover"
           />
-        </a>
+        </div>
         <a
           href="https://dub.co/customers"
           target="_blank"
