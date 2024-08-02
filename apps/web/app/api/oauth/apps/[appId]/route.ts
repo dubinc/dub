@@ -180,8 +180,6 @@ export const DELETE = withWorkspace(
 );
 
 const deleteScreenshots = async (screenshots: Prisma.JsonValue | null) => {
-  console.log("To delete screenshots", screenshots);
-
   const images = screenshots as string[];
 
   if (!images || images.length === 0) {
