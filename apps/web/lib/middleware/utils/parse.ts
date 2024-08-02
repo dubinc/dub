@@ -1,3 +1,4 @@
+import { SHORT_DOMAIN } from "@dub/utils";
 import { NextRequest } from "next/server";
 
 export const parse = (req: NextRequest) => {
@@ -6,7 +7,7 @@ export const parse = (req: NextRequest) => {
   domain = domain.replace("www.", "").toLowerCase();
   if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
     // for local development and preview URLs
-    domain = "link.steventey.com";
+    domain = SHORT_DOMAIN;
   }
 
   // path is the path of the URL (e.g. dub.sh/stats/github -> /stats/github)
