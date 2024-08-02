@@ -165,7 +165,7 @@ export default function Toggle({
     cacheOnly: !isRequested("os"),
   });
   const referers = useAnalyticsFilterOption("referers", {
-    cacheOnly: !isRequested("referers"),
+    cacheOnly: !isRequested("referer"),
   });
 
   // Some suggestions will only appear if previously requested (see isRequested above)

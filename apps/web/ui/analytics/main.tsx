@@ -22,9 +22,10 @@ type Tab = {
 
 export default function Main() {
   const { flags, slug } = useWorkspace();
-  const { totalEvents, requiresUpgrade, demoPage, selectedTab } =
+  const { basePath, totalEvents, requiresUpgrade, demoPage, selectedTab } =
     useContext(AnalyticsContext);
   const { router, queryParams, getQueryString } = useRouterStuff();
+  const isPublicStatsPage = basePath.startsWith("/stats");
 
   const tabs = useMemo(
     () =>
@@ -141,17 +142,35 @@ export default function Main() {
             );
           })}
         </div>
-        <div className="shrink-0 pr-2 pt-2 sm:pr-6 sm:pt-6">
+        <div className="hidden shrink-0 pr-2 pt-2 sm:block sm:pr-6 sm:pt-6">
           <Button
             variant="secondary"
             className="h-9 border-transparent px-2 hover:border-gray-200"
             icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
             text="View Events"
-            onClick={() => router.push(`/${slug}/events${getQueryString()}`)}
+            onClick={() => {
+              if (isPublicStatsPage) {
+                window.open("https://d.to/events");
+              } else {
+                router.push(`/${slug}/events${getQueryString()}`);
+              }
+            }}
           />
         </div>
       </div>
-      <div className="mt-5 p-5 sm:p-10">
+      <div className="relative p-5 pt-10 sm:p-10">
+        <Button
+          variant="outline"
+          icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
+          onClick={() => {
+            if (isPublicStatsPage) {
+              window.open("https://d.to/events");
+            } else {
+              router.push(`/${slug}/events${getQueryString()}`);
+            }
+          }}
+          className="absolute right-3 top-3 h-8 w-fit p-2 sm:hidden"
+        />
         <AnalyticsAreaChart resource={tab.id} />
       </div>
     </div>
