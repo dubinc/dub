@@ -2,7 +2,7 @@
 /* 
   This Analytics component lives in 2 different places:
   1. Workspace analytics page, e.g. app.dub.co/dub/analytics
-  2. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
+  2. Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
 */
 
 import AnalyticsProvider, { AnalyticsContext } from "./analytics-provider";
