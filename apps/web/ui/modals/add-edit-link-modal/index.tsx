@@ -400,7 +400,7 @@ function AddEditLinkModal({
               const bodyData = {
                 ...rest,
                 // Map tags to tagIds
-                tagIds: tags.map(({ id }) => id),
+                tagIds: tags?.map(({ id }) => id),
               };
               fetch(endpoint.url, {
                 method: endpoint.method,

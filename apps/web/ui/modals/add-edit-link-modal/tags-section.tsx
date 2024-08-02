@@ -72,7 +72,7 @@ export default function TagsSection({
       title &&
       description &&
       !exceededAI &&
-      tags.length === 0 &&
+      tags?.length === 0 &&
       suggestedTags.length === 0 &&
       availableTags &&
       availableTags.length > 0
@@ -199,11 +199,9 @@ export default function TagsSection({
             )}
           </div>
           <div className="flex flex-wrap space-x-1.5 px-8">
-            {tags.map((tag) => (
-              <TagBadge key={tag.id} {...tag} />
-            ))}
+            {tags?.map((tag) => <TagBadge key={tag.id} {...tag} />)}
             <CommandInput />
-            {tags.length ? (
+            {tags?.length ? (
               <button
                 type="button"
                 onClick={() => {
@@ -259,7 +257,7 @@ export default function TagsSection({
                 className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
               >
                 <TagBadge {...tag} />
-                {tags.map(({ id }) => id).includes(tag.id) && (
+                {tags?.map(({ id }) => id).includes(tag.id) && (
                   <Check className="h-5 w-5 text-gray-500" />
                 )}
               </Command.Item>
