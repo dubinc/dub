@@ -91,7 +91,7 @@ export const POST = withWorkspace(
       return new Response(vercelResponse.error.message, { status: 422 });
     }
 
-    const [domainRecord, res] = await Promise.all([
+    const [domainRecord, _] = await Promise.all([
       prisma.domain.create({
         data: {
           slug: slug,
@@ -108,12 +108,11 @@ export const POST = withWorkspace(
         domain: slug,
         key: "_root",
         url: "",
+        tags: undefined,
         userId: session.user.id,
         projectId: workspace.id,
       }),
     ]);
-
-    console.log({ res });
 
     return NextResponse.json(DomainSchema.parse(domainRecord), {
       status: 201,
