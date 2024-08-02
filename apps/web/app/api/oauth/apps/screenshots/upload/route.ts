@@ -17,9 +17,7 @@ export const GET = withWorkspace(async ({ searchParams }) => {
 
   const key = `integration-screenshots/${nanoid(7)}/${name}`;
 
-  const signedUrl = await storage.getSignedUrl({
-    key,
-  });
+  const signedUrl = await storage.getSignedUrl(key);
 
   return NextResponse.json({ key, signedUrl });
 });

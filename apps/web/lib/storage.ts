@@ -61,7 +61,7 @@ class StorageClient {
     return { success: true };
   }
 
-  async getSignedUrl({ key }: { key: string }) {
+  async getSignedUrl(key: string) {
     const url = new URL(`${process.env.STORAGE_ENDPOINT}/${key}`);
 
     // 10 minutes expiration

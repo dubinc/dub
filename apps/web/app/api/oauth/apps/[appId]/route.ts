@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -57,6 +58,7 @@ export const PATCH = withWorkspace(
         },
         select: {
           logo: true,
+          screenshots: true,
         },
       });
 
@@ -101,6 +103,17 @@ export const PATCH = withWorkspace(
           ) {
             await storage.delete(app.logo.replace(`${R2_URL}/`, ""));
           }
+
+          // Remove old screenshots
+          const oldScreenshots = app.screenshots
+            ? (app.screenshots as string[])
+            : [];
+
+          const removedScreenshots = oldScreenshots?.filter(
+            (s) => !screenshots?.includes(s),
+          );
+
+          await deleteScreenshots(removedScreenshots);
         })(),
       );
 
@@ -153,6 +166,8 @@ export const DELETE = withWorkspace(
         if (app.logo && app.logo.startsWith(`${R2_URL}/integrations`)) {
           await storage.delete(app.logo.replace(`${R2_URL}/`, ""));
         }
+
+        await deleteScreenshots(app.screenshots);
       })(),
     );
 
@@ -163,3 +178,21 @@ export const DELETE = withWorkspace(
     featureFlag: "integrations",
   },
 );
+
+const deleteScreenshots = async (screenshots: Prisma.JsonValue | null) => {
+  console.log("To delete screenshots", screenshots);
+
+  const images = screenshots as string[];
+
+  if (!images || images.length === 0) {
+    return;
+  }
+
+  await Promise.all(
+    images.map(async (image: string) => {
+      if (image.startsWith(`${R2_URL}/integration-screenshots`)) {
+        return storage.delete(image.replace(`${R2_URL}/`, ""));
+      }
+    }),
+  );
+};
