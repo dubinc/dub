@@ -25,7 +25,6 @@ model OAuthApp {
 
   @@index(projectId)
   @@index([userId])
-  @@index([slug])
 }
 
 model OAuthCode {
