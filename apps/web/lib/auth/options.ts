@@ -17,6 +17,12 @@ import { dub } from "../dub";
 import { subscribe } from "../flodesk";
 import { isStored, storage } from "../storage";
 import { UserProps } from "../types";
+import { ratelimit } from "../upstash";
+import {
+  exceededLoginAttemptsThreshold,
+  incrementLoginAttempts,
+} from "./lock-account";
+import { validatePassword } from "./password";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -165,7 +171,90 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+
+    // Sign in with email and password
+    CredentialsProvider({
+      id: "credentials",
+      name: "Dub.co",
+      type: "credentials",
+      credentials: {
+        email: { type: "email" },
+        password: { type: "password" },
+      },
+      async authorize(credentials, req) {
+        if (!credentials) {
+          throw new Error("no-credentials");
+        }
+
+        const { email, password } = credentials;
+
+        if (!email || !password) {
+          throw new Error("no-credentials");
+        }
+
+        const { success } = await ratelimit(5, "1 m").limit(
+          `login-attempts:${email}`,
+        );
+
+        if (!success) {
+          throw new Error("too-many-login-attempts");
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: {
+            id: true,
+            passwordHash: true,
+            name: true,
+            email: true,
+            image: true,
+            invalidLoginAttempts: true,
+          },
+        });
+
+        if (!user || !user.passwordHash) {
+          throw new Error("invalid-credentials");
+        }
+
+        if (exceededLoginAttemptsThreshold(user)) {
+          throw new Error("exceeded-login-attempts");
+        }
+
+        const passwordMatch = await validatePassword({
+          password,
+          passwordHash: user.passwordHash,
+        });
+
+        if (!passwordMatch) {
+          const exceededLoginAttempts = exceededLoginAttemptsThreshold(
+            await incrementLoginAttempts(user),
+          );
+
+          if (exceededLoginAttempts) {
+            throw new Error("exceeded-login-attempts");
+          } else {
+            throw new Error("invalid-credentials");
+          }
+        }
+
+        // Reset invalid login attempts
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            invalidLoginAttempts: 0,
+          },
+        });
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        };
+      },
+    }),
   ],
+  // @ts-ignore
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   cookies: {
@@ -192,6 +281,11 @@ export const authOptions: NextAuthOptions = {
       if (!user.email || (await isBlacklistedEmail(user.email))) {
         return false;
       }
+
+      if (user?.lockedAt) {
+        return false;
+      }
+
       if (account?.provider === "google" || account?.provider === "github") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },

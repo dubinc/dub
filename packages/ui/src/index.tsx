@@ -13,6 +13,7 @@ export * from "./date-picker";
 export * from "./file-upload";
 export * from "./filter";
 export * from "./form";
+export * from "./input";
 export * from "./input-select";
 export * from "./label";
 export * from "./modal";
