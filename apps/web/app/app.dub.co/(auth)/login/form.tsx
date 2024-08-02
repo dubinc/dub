@@ -340,8 +340,6 @@ const SignInWithEmail = () => {
 
         setClickedMethod("email");
 
-        if (!password) setShowPasswordField(false);
-
         fetch("/api/auth/account-exists", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
