@@ -31,7 +31,7 @@ export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  let { domain, fullKey: key } = parse(req);
+  let { domain, fullKey: originalKey } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
@@ -39,7 +39,7 @@ export default async function LinkMiddleware(
 
   // encode the key to ascii
   // links on Dub are case insensitive by default
-  key = punyEncode(key.toLowerCase());
+  let key = punyEncode(originalKey.toLowerCase());
 
   const demoLink = DUB_DEMO_LINKS.find(
     (l) => l.domain === domain && l.key === key,
@@ -213,7 +213,7 @@ export default async function LinkMiddleware(
           ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       }),
-      { clickId, path: `/${key}` },
+      { clickId, path: `/${originalKey}` },
     );
   }
 
@@ -234,7 +234,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${key}` },
+      { clickId, path: `/${originalKey}` },
     );
 
     // rewrite to deeplink page if the link is a mailto: or tel:
@@ -257,7 +257,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${key}` },
+      { clickId, path: `/${originalKey}` },
     );
 
     // rewrite to target URL if link cloaking is enabled
@@ -283,7 +283,7 @@ export default async function LinkMiddleware(
             },
           },
         ),
-        { clickId, path: `/${key}` },
+        { clickId, path: `/${originalKey}` },
       );
     } else {
       // if link is not iframeable, use Next.js rewrite instead
@@ -294,7 +294,7 @@ export default async function LinkMiddleware(
             ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
           },
         }),
-        { clickId, path: `/${key}` },
+        { clickId, path: `/${originalKey}` },
       );
     }
 
@@ -314,7 +314,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${key}` },
+      { clickId, path: `/${originalKey}` },
     );
 
     // redirect to Android link if it is specified and the user is on an Android device
@@ -333,7 +333,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${key}` },
+      { clickId, path: `/${originalKey}` },
     );
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
@@ -352,7 +352,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${key}` },
+      { clickId, path: `/${originalKey}` },
     );
 
     // regular redirect
@@ -371,7 +371,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${key}` },
+      { clickId, path: `/${originalKey}` },
     );
   }
 }

@@ -20,6 +20,7 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import { CloudUpload, Download, Tag } from "@dub/ui/src/icons";
@@ -153,6 +154,7 @@ function WorkspaceLinks() {
 const MoreLinkOptions = () => {
   const router = useRouter();
   const { slug } = useWorkspace();
+  const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
   const [state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
@@ -166,7 +168,11 @@ const MoreLinkOptions = () => {
       <ExportLinksModal />
       <Popover
         content={
-          <AnimatedSizeContainer width height>
+          <AnimatedSizeContainer
+            width={!isMobile}
+            height
+            className="max-sm:!w-full"
+          >
             <div className="w-full divide-y divide-gray-200 md:w-52">
               {state === "default" && (
                 <div className="p-2">
