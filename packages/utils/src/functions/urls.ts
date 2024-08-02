@@ -65,7 +65,7 @@ export const UTMTags = [
   "utm_campaign",
   "utm_term",
   "utm_content",
-];
+] as const;
 
 export const constructURLFromUTMParams = (
   url: string,
@@ -108,4 +108,20 @@ export const getUrlWithoutUTMParams = (url: string) => {
 
 export const getPrettyUrl = (url: string) => {
   return url.replace(/(^\w+:|^)\/\//, "").replace("www.", "");
+};
+
+export const createHref = (
+  href: string,
+  domain: string,
+  // any params, doesn't have to be all of them
+  utmParams?: Partial<Record<(typeof UTMTags)[number], string>>,
+) => {
+  if (domain === "dub.co") return href;
+  const url = new URL(href.startsWith("/") ? `https://dub.co${href}` : href);
+  if (utmParams) {
+    Object.entries(utmParams).forEach(([key, value]) => {
+      url.searchParams.set(key, value);
+    });
+  }
+  return url.toString();
 };
