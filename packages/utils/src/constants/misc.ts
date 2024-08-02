@@ -3,7 +3,6 @@ export const DEFAULT_LINK_PROPS: any = {
   url: "",
   domain: "",
   archived: false,
-  tags: [],
 
   title: null,
   description: null,
