@@ -43,7 +43,9 @@ export default function TopLinks() {
                         className="size-5 sm:size-5"
                       />
                     ),
-                    title: !showUrls && d["shortLink"] ? d["shortLink"] : d.url,
+                    title:
+                      (!showUrls && d["shortLink"] ? d["shortLink"] : d.url) ??
+                      "Unknown",
                     href: queryParams({
                       set: {
                         ...(!showUrls
