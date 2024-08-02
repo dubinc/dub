@@ -11,7 +11,7 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { InputPassword, LoadingSpinner } from "@dub/ui/src/icons";
+import { InputPassword } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
@@ -346,79 +346,66 @@ const SignInWithEmail = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
-        })
-          .then(async (res) => {
-            const { accountExists, hasPassword } = await res.json();
-            if (accountExists) {
-              const provider =
-                hasPassword && password ? "credentials" : "email";
+        }).then(async (res) => {
+          const { accountExists, hasPassword } = await res.json();
+          if (accountExists) {
+            const provider = hasPassword && password ? "credentials" : "email";
 
-              signIn(provider, {
-                email,
-                redirect: false,
-                ...(password && { password }),
-                ...(next ? { callbackUrl: next } : {}),
-              }).then((res) => {
-                if (!res) return;
+            signIn(provider, {
+              email,
+              redirect: false,
+              ...(password && { password }),
+              ...(next ? { callbackUrl: next } : {}),
+            }).then((res) => {
+              if (!res) return;
 
-                // Handle errors
-                if (!res.ok && res.error) {
-                  if (provider === "email") {
-                    toast.error("Error sending email - try again?");
-                  } else if (provider === "credentials") {
-                    toast.error(errorCodes[res?.error]);
-                  }
-
-                  return;
+              // Handle errors
+              if (!res.ok && res.error) {
+                if (errorCodes[res.error]) {
+                  toast.error(errorCodes[res.error]);
+                } else {
+                  toast.error(res.error);
                 }
+                setClickedMethod(undefined);
 
-                // Handle success
-                setLastUsedAuthMethod("email");
-                if (provider === "email") {
-                  toast.success("Email sent - check your inbox!");
-                  setEmail("");
-                } else if (provider === "credentials") {
-                  router.push(next ?? "/");
-                }
-              });
-            } else {
-              toast.error("No account found with that email address.");
-            }
-          })
-          .catch(() => {
-            toast.error("Error sending email - try again?");
-          })
-          .finally(() => {
-            setClickedMethod(undefined);
-          });
+                return;
+              }
+
+              // Handle success
+              setLastUsedAuthMethod("email");
+              if (provider === "email") {
+                toast.success("Email sent - check your inbox!");
+                setEmail("");
+                setClickedMethod(undefined);
+              } else if (provider === "credentials") {
+                router.push(next ?? "/");
+              }
+            });
+          } else {
+            toast.error("No account found with that email address.");
+          }
+        });
       }}
       className="flex flex-col space-y-3"
     >
       {authMethod === "email" && (
-        <div className="relative">
-          <input
-            id="email"
-            name="email"
-            autoFocus={!isMobile && !showPasswordField}
-            type="email"
-            placeholder="panic@thedis.co"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={cn(
-              "block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
-              {
-                "pr-10": checkingEmailPassword,
-              },
-            )}
-          />
-          {checkingEmailPassword && (
-            <div className="absolute inset-y-0 right-0 flex h-full items-center pr-3">
-              <LoadingSpinner className="size-5" />
-            </div>
+        <input
+          id="email"
+          name="email"
+          autoFocus={!isMobile && !showPasswordField}
+          type="email"
+          placeholder="panic@thedis.co"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={cn(
+            "block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
+            {
+              "pr-10": checkingEmailPassword,
+            },
           )}
-        </div>
+        />
       )}
 
       {showPasswordField && (
@@ -451,7 +438,7 @@ const SignInWithEmail = () => {
             setAuthMethod("email");
           },
         })}
-        loading={clickedMethod === "email"}
+        loading={checkingEmailPassword || clickedMethod === "email"}
         disabled={clickedMethod && clickedMethod !== "email"}
       />
     </form>
