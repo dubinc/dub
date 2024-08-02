@@ -1,16 +1,8 @@
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const linkMappingSchema = z.object({
-  domain: z.string(),
-  url: z.string(),
-  key: z.string(),
-  title: z.string().optional(),
-  description: z.string().optional(),
-});
 
 // POST /api/workspaces/[idOrSlug]/import/csv - create job to import links from CSV file
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
@@ -27,6 +19,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     body: {
       workspaceId: workspace.id,
       userId: session?.user?.id,
+      id,
       url: `workspaces/${workspace.id}/import/csv/${id}.csv`,
       mapping,
     },

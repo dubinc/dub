@@ -5,6 +5,8 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
+import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { log } from "@dub/utils";
 import { sendEmail } from "emails";
@@ -19,7 +21,14 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     await verifyQstashSignature(req, body);
-    const { workspaceId, userId, url, mapping } = body;
+    const { workspaceId, userId, id, url } = body;
+    const mapping = linkMappingSchema.parse(body.mapping);
+
+    if (!id || !url) throw new Error("Missing ID or URL for the import file");
+
+    let cursor = parseInt(
+      (await redis.get(`import:csv:${workspaceId}:${id}:cursor`)) ?? "0",
+    );
 
     const workspace = (await prisma.project.findUniqueOrThrow({
       where: { id: workspaceId },
@@ -54,108 +63,153 @@ export async function POST(req: Request) {
     const addedDomains: string[] = [];
     let count = 0;
 
-    (await Papa.parse(Readable.fromWeb(response.body as any), {
-      header: true,
-      skipEmptyLines: true,
-      worker: false,
-      chunk: async (chunk: {
-        data?: Record<string, string>[];
-        errors: { message: string }[];
-      }) => {
-        const { data } = chunk;
-        if (!data?.length) {
-          console.warn("No data in CSV import chunk", chunk.errors);
-          return;
-        }
+    await new Promise((resolve, reject) => {
+      Papa.parse(Readable.fromWeb(response.body as any), {
+        header: true,
+        skipEmptyLines: true,
+        skipFirstNLines: cursor,
+        worker: false,
+        complete: resolve,
+        error: reject,
+        chunk: async (
+          chunk: {
+            data?: Record<string, string>[];
+            errors: { message: string }[];
+          },
+          parser,
+        ) => {
+          parser.pause(); // Pause parsing until we finish processing this chunk
 
-        const selectedDomains = [
-          ...new Set(data.map((row) => row[mapping.domain])),
-        ];
+          const { data } = chunk;
+          if (!data?.length) {
+            console.warn("No data in CSV import chunk", chunk.errors);
+            return;
+          }
 
-        // Find domains that need to be added to the workspace
-        const domainsNotInWorkspace = selectedDomains.filter(
-          (domain) =>
-            !domains?.find((d) => d.slug === domain) &&
-            !defaultDomains.find((d) => d === domain) &&
-            !addedDomains.includes(domain),
-        );
+          // Find links that already exist in the workspace (we still need to double check matching both domain and key)
+          const alreadyCreatedLinks = await prisma.link.findMany({
+            where: {
+              domain: {
+                in: domains.map((domain) => domain.slug),
+              },
+              key: {
+                in: data.map((row) => row[mapping.key]),
+              },
+            },
+            select: {
+              domain: true,
+              key: true,
+            },
+          });
 
-        if (domainsNotInWorkspace.length > 0) {
-          await Promise.allSettled([
-            prisma.domain.createMany({
-              data: domainsNotInWorkspace.map((domain) => ({
-                slug: domain,
-                projectId: workspace.id,
-                primary: false,
-              })),
-              skipDuplicates: true,
-            }),
-            domainsNotInWorkspace.flatMap((domain) =>
-              addDomainToVercel(domain),
+          const linksToCreate = data
+            .filter(
+              (row) =>
+                !alreadyCreatedLinks.some(
+                  (l) =>
+                    l.domain === row[mapping.domain] &&
+                    l.key === row[mapping.key],
+                ),
+            )
+            .map((row) =>
+              Object.fromEntries(
+                Object.entries(mapping).map(([key, value]) => [
+                  key,
+                  row[value],
+                ]),
+              ),
+            );
+
+          const selectedDomains = [
+            ...new Set(linksToCreate.map(({ domain }) => domain)),
+          ];
+
+          // Find domains that need to be added to the workspace
+          const domainsNotInWorkspace = selectedDomains.filter(
+            (domain) =>
+              !domains?.find((d) => d.slug === domain) &&
+              !defaultDomains.find((d) => d === domain) &&
+              !addedDomains.includes(domain),
+          );
+
+          if (domainsNotInWorkspace.length > 0) {
+            await Promise.allSettled([
+              prisma.domain.createMany({
+                data: domainsNotInWorkspace.map((domain) => ({
+                  slug: domain,
+                  projectId: workspace.id,
+                  primary: false,
+                })),
+                skipDuplicates: true,
+              }),
+              domainsNotInWorkspace.flatMap((domain) =>
+                addDomainToVercel(domain),
+              ),
+            ]);
+          }
+
+          addedDomains.push(...domainsNotInWorkspace);
+
+          const processedLinks = await Promise.all([
+            ...domainsNotInWorkspace.map((domain) =>
+              processLink({
+                payload: createLinkBodySchema.parse({
+                  domain,
+                  key: "_root",
+                  url: "",
+                }),
+                workspace: workspace as WorkspaceProps,
+                userId,
+                bulk: true,
+              }),
+            ),
+            ...linksToCreate.map((link) =>
+              processLink({
+                payload: createLinkBodySchema.parse({
+                  ...link,
+                  // Special splitting for domains/keys so they can map from a full URL
+                  domain: link.domain.replace(/^https?:\/\//, "").split("/")[0],
+                  key: link.key
+                    .replace(/^https?:\/\//, "")
+                    .split("/")
+                    .at(-1),
+                }),
+                workspace: workspace as WorkspaceProps,
+                userId,
+                bulk: true,
+              }),
             ),
           ]);
-        }
 
-        addedDomains.push(...domainsNotInWorkspace);
+          let validLinks = processedLinks
+            .filter(({ error }) => error == null)
+            .map(({ link }) => link) as ProcessedLinkProps[];
 
-        const processedLinks = await Promise.all([
-          ...domainsNotInWorkspace.map((domain) =>
-            processLink({
-              payload: createLinkBodySchema.parse({
-                domain,
-                key: "_root",
-                url: "",
-              }),
-              workspace: workspace as WorkspaceProps,
-              userId,
-              bulk: true,
-            }),
-          ),
-          ...data.map((row) =>
-            processLink({
-              payload: createLinkBodySchema.parse({
-                url: row[mapping.url],
-                // Special splitting for domains/keys so they can map from a full URL
-                domain: row[mapping.domain]
-                  .replace(/^https?:\/\//, "")
-                  .split("/")[0],
-                key: row[mapping.key]
-                  .replace(/^https?:\/\//, "")
-                  .split("/")
-                  .at(-1),
-                title: mapping.title ? row[mapping.title] : undefined,
-                description: mapping.description
-                  ? row[mapping.description]
-                  : undefined,
-              }),
-              workspace: workspace as WorkspaceProps,
-              userId,
-              bulk: true,
-            }),
-          ),
-        ]);
+          let errorLinks = processedLinks
+            .filter(({ error }) => error != null)
+            .map(({ link, error, code }) => ({
+              link,
+              error,
+              code,
+            }));
 
-        let validLinks = processedLinks
-          .filter(({ error }) => error == null)
-          .map(({ link }) => link) as ProcessedLinkProps[];
+          // TODO: Use errorLinks
 
-        let errorLinks = processedLinks
-          .filter(({ error }) => error != null)
-          .map(({ link, error, code }) => ({
-            link,
-            error,
-            code,
-          }));
+          await bulkCreateLinks({
+            links: validLinks,
+          });
 
-        // TODO: Use errorLinks
+          count += validLinks.length;
 
-        await bulkCreateLinks({
-          links: validLinks,
-        });
+          cursor += data.length;
+          await redis.set(`import:csv:${workspaceId}:${id}:cursor`, cursor);
 
-        count += validLinks.length;
-      },
-    })) as { data: Record<string, string>[] };
+          parser.resume();
+        },
+      });
+    });
+
+    await redis.del(`import:csv:${workspaceId}:${id}:cursor`);
 
     sendEmail({
       subject: `Your CSV links have been imported!`,
