@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { booleanQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const DomainSchema = z.object({
@@ -38,26 +38,20 @@ export const DomainSchema = z.object({
   updatedAt: z.date().describe("The date the domain was last updated."),
 });
 
-export const getDomainsQuerySchema = z.object({
-  archived: booleanQuerySchema
-    .optional()
-    .default("false")
-    .describe(
-      "Whether to include archived domains in the response. Defaults to `false` if not provided.",
-    ),
-  search: z
-    .string()
-    .optional()
-    .describe("The search term to filter the domains by."),
-  page: z.coerce
-    .number()
-    .int()
-    .nonnegative()
-    .optional()
-    .describe(
-      "The page number for pagination (each page contains 50 domains).",
-    ),
-});
+export const getDomainsQuerySchema = z
+  .object({
+    archived: booleanQuerySchema
+      .optional()
+      .default("false")
+      .describe(
+        "Whether to include archived domains in the response. Defaults to `false` if not provided.",
+      ),
+    search: z
+      .string()
+      .optional()
+      .describe("The search term to filter the domains by."),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: 50 }));
 
 export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
   page: true,

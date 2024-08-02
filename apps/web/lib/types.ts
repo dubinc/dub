@@ -1,8 +1,9 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link } from "@prisma/client";
+import { Link, Project } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
+import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
 
 export type LinkProps = Link;
@@ -70,25 +71,9 @@ export type RoleProps = (typeof roles)[number];
 
 export type BetaFeatures = "conversions" | "integrations" | "dublink";
 
-export interface WorkspaceProps {
-  id: string;
-  name: string;
-  slug: string;
+export interface WorkspaceProps extends Project {
   logo: string | null;
-  usage: number;
-  usageLimit: number;
-  aiUsage: number;
-  aiLimit: number;
-  linksUsage: number;
-  linksLimit: number;
-  domainsLimit: number;
-  tagsLimit: number;
-  usersLimit: number;
   plan: PlanProps;
-  stripeId: string | null;
-  billingCycleStart: number;
-  stripeConnectId: string | null;
-  createdAt: Date;
   domains: {
     id: string;
     slug: string;
@@ -98,7 +83,6 @@ export interface WorkspaceProps {
   users: {
     role: RoleProps;
   }[];
-  inviteCode: string;
   flags?: {
     [key in BetaFeatures]: boolean;
   };
@@ -199,3 +183,44 @@ export const tagColors = [
 export type MetaTag = z.infer<typeof metaTagsSchema>;
 
 export type TokenProps = z.infer<typeof tokenSchema>;
+
+export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
+
+export type NewIntegration = Omit<
+  OAuthAppProps,
+  "id" | "clientId" | "verified" | "installations"
+>;
+
+export type ExistingIntegration = OAuthAppProps;
+
+export type InstalledIntegrationProps = Pick<
+  OAuthAppProps,
+  "clientId" | "slug" | "logo" | "name" | "developer" | "description"
+> & {
+  installations: number;
+  installed?: boolean;
+};
+
+export type InstalledIntegrationInfoProps = Pick<
+  OAuthAppProps,
+  | "clientId"
+  | "slug"
+  | "logo"
+  | "name"
+  | "developer"
+  | "description"
+  | "readme"
+  | "website"
+> & {
+  createdAt: Date;
+  installations: number;
+  installed: {
+    id: string;
+    createdAt: Date;
+    by: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+  } | null;
+};

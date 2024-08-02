@@ -3,7 +3,6 @@ import { useRouterStuff } from "@dub/ui";
 import {
   DUB_DOMAINS,
   DUB_WORKSPACE_ID,
-  PREMIUM_SHORT_DOMAIN,
   SHORT_DOMAIN,
   fetcher,
 } from "@dub/utils";
@@ -59,10 +58,8 @@ export default function useDomains({
         activeWorkspaceDomains.find(({ primary }) => primary)?.slug ||
         activeWorkspaceDomains[0].slug
       );
-    } else if (
-      activeDefaultDomains.find(({ slug }) => slug === PREMIUM_SHORT_DOMAIN)
-    ) {
-      return PREMIUM_SHORT_DOMAIN;
+    } else if (activeDefaultDomains.find(({ slug }) => slug === "dub.link")) {
+      return "dub.link";
     }
     return SHORT_DOMAIN;
   }, [activeDefaultDomains, activeWorkspaceDomains]);

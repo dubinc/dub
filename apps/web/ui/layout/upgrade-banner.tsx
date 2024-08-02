@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useRouterStuff } from "@dub/ui";
+import { useMediaQuery, useRouterStuff } from "@dub/ui";
 import Cookies from "js-cookie";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,6 +12,8 @@ export default function UpgradeBanner() {
 
   const { id, name, plan, stripeId, createdAt } = useWorkspace();
   const [showProBanner, setShowProBanner] = useState<boolean | null>(null);
+
+  const { isMobile } = useMediaQuery();
 
   useEffect(() => {
     if (plan) {
@@ -39,8 +41,10 @@ export default function UpgradeBanner() {
 
   return (
     <>
-      {showProBanner && <ProBanner setShowProBanner={setShowProBanner} />}
-      {plan === "free" && showProBanner === false && (
+      {!isMobile && showProBanner && (
+        <ProBanner setShowProBanner={setShowProBanner} />
+      )}
+      {plan === "free" && (isMobile || showProBanner === false) && (
         <button
           onClick={() =>
             queryParams({
@@ -49,7 +53,7 @@ export default function UpgradeBanner() {
               },
             })
           }
-          className="hidden transition-all duration-75 active:scale-95 sm:block"
+          className="transition-all duration-75 active:scale-95"
         >
           <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-sm text-transparent">
             Upgrade

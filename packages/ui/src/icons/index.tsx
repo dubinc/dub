@@ -34,6 +34,9 @@ export * from "./typescript";
 export * from "./unsplash";
 export * from "./youtube";
 
+// continent icons
+export * from "./continents";
+
 // dub default domains logos
 export * from "./default-domains/amazon";
 export * from "./default-domains/chatgpt";

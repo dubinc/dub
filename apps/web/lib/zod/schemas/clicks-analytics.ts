@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { COUNTRY_CODES } from "@dub/utils";
+import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
 
 // Click analytics response schemas
 export const clickAnalyticsResponse = {
@@ -16,11 +16,24 @@ export const clickAnalyticsResponse = {
     })
     .openapi({ ref: "ClicksTimeseries" }),
 
+  continents: z
+    .object({
+      continent: z
+        .enum(CONTINENT_CODES)
+        .describe(
+          "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
+        ),
+      clicks: z.number().describe("The number of clicks from this continent"),
+    })
+    .openapi({ ref: "ClicksContinents" }),
+
   countries: z
     .object({
       country: z
         .enum(COUNTRY_CODES)
-        .describe("The 2-letter country code: https://d.to/geo"),
+        .describe(
+          "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
+        ),
       clicks: z.number().describe("The number of clicks from this country"),
     })
     .openapi({ ref: "ClicksCountries" }),

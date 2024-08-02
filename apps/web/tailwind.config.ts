@@ -20,6 +20,9 @@ const config: Pick<Config, "presets"> = {
             "infinite-scroll": "infinite-scroll 22s linear infinite",
             // Text appear animation
             "text-appear": "text-appear 0.15s ease",
+            // Table pinned column shadow animation
+            "table-pinned-shadow":
+              "table-pinned-shadow cubic-bezier(0, 0, 1, 0)",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -38,6 +41,11 @@ const config: Pick<Config, "presets"> = {
                 opacity: "1",
                 transform: "rotateX(0deg) scale(1)",
               },
+            },
+            // Table pinned column shadow animation
+            "table-pinned-shadow": {
+              "0%": { filter: "drop-shadow(rgba(0, 0, 0, 0.1) -2px 10px 6px)" },
+              "100%": { filter: "drop-shadow(rgba(0, 0, 0, 0) -2px 10px 6px)" },
             },
           },
         },

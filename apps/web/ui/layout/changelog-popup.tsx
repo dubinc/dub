@@ -6,12 +6,12 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://dub.co/blog/announcing-dub-api";
-const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/dub-api.jpg";
-const CHANGELOG_TITLE = "Announcing the Dub API GA";
+const CHANGELOG_URL = "https://d.to/events";
+const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/events-stream.jpg";
+const CHANGELOG_TITLE = "Introducing Real-time Events Stream";
 const CHANGELOG_DESCRIPTION =
-  "We're excited to announce that the Dub API is now generally available, with native SDKs in the languages you love.";
-const CHANGELOG_ID = "hideChangelogPopup07092024";
+  "Gain deeper insights into your clicks with a detailed, real-time stream of events across your entire Dub workspace.";
+const CHANGELOG_ID = "hideChangelogPopup08012024";
 
 export default function ChangelogPopup() {
   return (
@@ -50,16 +50,18 @@ export function ChangelogPopupInner() {
           <BlurImage
             src={CHANGELOG_IMAGE_URL}
             alt="Root Domain Links"
-            className="aspect-video object-cover"
-            width={1600}
-            height={900}
+            className="aspect-[1200/630] object-cover"
+            width={1200}
+            height={630}
           />
         </div>
-        <div className="grid max-w-xs gap-1.5 p-4 text-center">
+        <div className="grid max-w-sm gap-1.5 p-4 text-center">
           <p className="text-center font-semibold text-gray-800 underline-offset-4 group-hover:underline">
             {CHANGELOG_TITLE}
           </p>
-          <p className="text-sm text-gray-500">{CHANGELOG_DESCRIPTION}</p>
+          <p className="text-pretty text-sm text-gray-500">
+            {CHANGELOG_DESCRIPTION}
+          </p>
         </div>
       </Link>
     </motion.div>

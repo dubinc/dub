@@ -1,8 +1,13 @@
 "use client";
 
-import { APP_DOMAIN, HIDE_BACKGROUND_SEGMENTS, cn, fetcher } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  HIDE_BACKGROUND_SEGMENTS,
+  cn,
+  createHref,
+  fetcher,
+} from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import va from "@vercel/analytics";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
@@ -15,7 +20,6 @@ import { NavLogo } from "../nav-logo";
 import { ProductContent } from "./content/product-content";
 import { ResourcesContent } from "./content/resources-content";
 import { SolutionsContent } from "./content/solutions-content";
-import { createHref } from "./shared";
 
 export type NavTheme = "light" | "dark";
 
@@ -101,14 +105,11 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
           <div className="flex h-14 items-center justify-between">
             <Link
               className="grow basis-0"
-              href={createHref("/", domain)}
-              {...(domain !== "dub.co" && {
-                onClick: () => {
-                  va.track("Referred from custom domain", {
-                    domain,
-                    medium: "logo",
-                  });
-                },
+              href={createHref("/", domain, {
+                utm_source: "Custom Domain",
+                utm_medium: "Navbar",
+                utm_campaign: domain,
+                utm_content: "Logo",
               })}
             >
               <NavLogo />
@@ -141,16 +142,13 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                         {href !== undefined ? (
                           <Link
                             id={`nav-${href}`}
-                            href={createHref(href, domain) ?? "/test"}
-                            className={navItemStyles({ isActive })}
-                            {...(domain !== "dub.co" && {
-                              onClick: () => {
-                                va.track("Referred from custom domain", {
-                                  domain,
-                                  medium: `navbar item (${href})`,
-                                });
-                              },
+                            href={createHref(href, domain, {
+                              utm_source: "Custom Domain",
+                              utm_medium: "Navbar",
+                              utm_campaign: domain,
+                              utm_content: name,
                             })}
+                            className={navItemStyles({ isActive })}
                           >
                             {name}
                           </Link>
@@ -198,28 +196,22 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
               ) : !isLoading ? (
                 <>
                   <Link
-                    href={`${APP_DOMAIN}/login`}
-                    {...(domain !== "dub.co" && {
-                      onClick: () => {
-                        va.track("Referred from custom domain", {
-                          domain,
-                          medium: `navbar item (login)`,
-                        });
-                      },
+                    href={createHref(`${APP_DOMAIN}/login`, domain, {
+                      utm_source: "Custom Domain",
+                      utm_medium: "Navbar",
+                      utm_campaign: domain,
+                      utm_content: "Login",
                     })}
                     className="animate-fade-in rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black dark:text-white dark:hover:text-white/70"
                   >
                     Log in
                   </Link>
                   <Link
-                    href={`${APP_DOMAIN}/register`}
-                    {...(domain !== "dub.co" && {
-                      onClick: () => {
-                        va.track("Referred from custom domain", {
-                          domain,
-                          medium: `navbar item (signup)`,
-                        });
-                      },
+                    href={createHref(`${APP_DOMAIN}/register`, domain, {
+                      utm_source: "Custom Domain",
+                      utm_medium: "Navbar",
+                      utm_campaign: domain,
+                      utm_content: "Sign Up",
                     })}
                     className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-gray-800 hover:ring-4 hover:ring-gray-200 dark:border-white dark:bg-white dark:text-gray-600 dark:hover:bg-white dark:hover:text-gray-800 dark:hover:hover:shadow-[0_0_25px_5px_rgba(256,256,256,0.2)] dark:hover:ring-0"
                   >

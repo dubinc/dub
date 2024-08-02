@@ -33,6 +33,9 @@ export const updateUsage = async () => {
           user: {
             isMachine: false,
           },
+          notificationPreference: {
+            linkUsageSummary: true,
+          },
         },
         orderBy: {
           createdAt: "asc",

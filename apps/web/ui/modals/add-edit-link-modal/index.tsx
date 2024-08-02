@@ -52,7 +52,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce, useDebouncedCallback } from "use-debounce";
+import { useDebounce } from "use-debounce";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -84,6 +84,7 @@ function AddEditLinkModal({
   const { slug } = params;
   const {
     id: workspaceId,
+    nextPlan,
     aiUsage,
     aiLimit,
     mutate: mutateWorkspace,
@@ -131,27 +132,16 @@ function AddEditLinkModal({
 
   const { domain, key, url, password, proxy } = data;
 
-  const generateRandomKey = useDebouncedCallback(async () => {
-    if (generatingRandomKey) return;
-
-    if (domain && workspaceId) {
-      setKeyError(null);
-      setGeneratingRandomKey(true);
-      const res = await fetch(
-        `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
-      );
-      const key = await res.json();
-      setData((prev) => ({ ...prev, key }));
-      setGeneratingRandomKey(false);
-    }
-  }, 500);
-
-  useEffect(() => {
-    // if there's no key, generate a random key
-    if (showAddEditLinkModal && url.length > 0 && !key) {
-      generateRandomKey();
-    }
-  }, [showAddEditLinkModal, url]);
+  const generateRandomKey = async () => {
+    setKeyError(null);
+    setGeneratingRandomKey(true);
+    const res = await fetch(
+      `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
+    );
+    const key = await res.json();
+    setData((prev) => ({ ...prev, key }));
+    setGeneratingRandomKey(false);
+  };
 
   const runKeyChecks = async (value: string) => {
     const res = await fetch(
@@ -373,7 +363,7 @@ function AddEditLinkModal({
         }
       }}
     >
-      <div className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
+      <div className="scrollbar-hide grid max-h-[95dvh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
         {!homepageDemo && (
           <button
             onClick={() => {
@@ -405,7 +395,6 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
-              generateRandomKey.cancel();
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
               const bodyData = {
@@ -447,10 +436,10 @@ function AddEditLinkModal({
                 } else {
                   const { error } = await res.json();
                   if (error) {
-                    if (error.message.includes("Upgrade to Pro")) {
+                    if (error.message.includes("Upgrade to")) {
                       toast.custom(() => (
                         <UpgradeRequiredToast
-                          title="You've discovered a Pro feature!"
+                          title={`You've discovered a ${nextPlan.name} feature!`}
                           message={error.message}
                         />
                       ));
@@ -571,6 +560,7 @@ function AddEditLinkModal({
                     ) : (
                       <div className="flex items-center">
                         <ButtonTooltip
+                          tabIndex={-1}
                           tooltipContent="Generate a random key"
                           onClick={generateRandomKey}
                           disabled={generatingRandomKey || generatingAIKey}
@@ -583,6 +573,7 @@ function AddEditLinkModal({
                           )}
                         </ButtonTooltip>
                         <ButtonTooltip
+                          tabIndex={-1}
                           tooltipContent="Generate a key using AI"
                           onClick={generateAIKey}
                           disabled={
@@ -605,6 +596,7 @@ function AddEditLinkModal({
                   <div className="relative mt-1 flex rounded-md shadow-sm">
                     <div>
                       <select
+                        tabIndex={-1}
                         disabled={props && lockKey}
                         value={domain}
                         onChange={(e) => {
@@ -612,7 +604,7 @@ function AddEditLinkModal({
                           setData({ ...data, domain: e.target.value });
                         }}
                         className={cn(
-                          "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                          "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0 sm:text-sm",
                           props && lockKey && "cursor-not-allowed",
                           loading && "w-[6rem] text-transparent",
                         )}
@@ -640,6 +632,13 @@ function AddEditLinkModal({
                         // if the key is changed, check if key exists
                         if (e.target.value && props?.key !== e.target.value) {
                           runKeyChecks(e.target.value);
+                        } else if (
+                          domain &&
+                          workspaceId &&
+                          url.length > 0 &&
+                          !saving
+                        ) {
+                          generateRandomKey();
                         }
                       }}
                       disabled={props && lockKey}
@@ -716,18 +715,20 @@ function AddEditLinkModal({
                     )}
                   </div>
                   {keyError ? (
-                    keyError.includes("Upgrade to Pro") ? (
+                    keyError.includes("Upgrade to") ? (
                       <p className="mt-2 text-sm text-red-600" id="key-error">
-                        {keyError.split("Upgrade to Pro")[0]}
+                        {keyError.split(`Upgrade to ${nextPlan.name}`)[0]}
                         <span
                           className="cursor-pointer underline"
                           onClick={() =>
-                            queryParams({ set: { upgrade: "pro" } })
+                            queryParams({
+                              set: { upgrade: nextPlan.name.toLowerCase() },
+                            })
                           }
                         >
-                          Upgrade to Pro
+                          Upgrade to {nextPlan.name}
                         </span>
-                        {keyError.split("Upgrade to Pro")[1]}
+                        {keyError.split(`Upgrade to ${nextPlan.name}`)[1]}
                       </p>
                     ) : (
                       <p className="mt-2 text-sm text-red-600" id="key-error">

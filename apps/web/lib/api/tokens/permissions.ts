@@ -1,7 +1,7 @@
 import { combineWords } from "@dub/utils";
 import { Role } from "@prisma/client";
 import { DubApiError } from "../errors";
-import { PERMISSIONS, PermissionAction } from "./scopes";
+import { PermissionAction, ROLE_PERMISSIONS } from "../rbac/permissions";
 
 // Check if the required scope is in the list of user scopes
 export const throwIfNoAccess = ({
@@ -40,7 +40,7 @@ export const clientAccessCheck = ({
   role: Role;
   customPermissionDescription?: string;
 }) => {
-  const permission = PERMISSIONS.find((p) => p.action === action)!;
+  const permission = ROLE_PERMISSIONS.find((p) => p.action === action)!;
   const allowedRoles = permission.roles;
 
   if (allowedRoles.includes(role)) {

@@ -110,9 +110,7 @@ export default function AnalyticsProvider({
 
     const tab = searchParams.get("tab");
 
-    return tab && (EVENT_TYPES as ReadonlyArray<string>).includes(tab)
-      ? (tab as EventType)
-      : "composite";
+    return EVENT_TYPES.find((t) => t === tab) ?? "clicks";
   }, [searchParams.get("tab")]);
 
   const root = searchParams.get("root")
@@ -139,7 +137,7 @@ export default function AnalyticsProvider({
         domain: domainSlug,
       };
     } else {
-      // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
+      // Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
         baseApiPath: `/api/analytics/edge`,

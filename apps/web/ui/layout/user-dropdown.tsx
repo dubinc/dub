@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
-import va from "@vercel/analytics";
 import Cookies from "js-cookie";
 import { Edit3, HelpCircle, LogOut, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -25,20 +24,25 @@ export default function UserDropdown() {
       <Popover
         content={
           <div className="flex w-full flex-col space-y-px rounded-md bg-white p-3 sm:w-56">
-            <Link
-              href="/"
-              className="p-2"
-              onClick={() => setOpenPopover(false)}
-            >
-              {session?.user?.name && (
+            {session?.user ? (
+              <Link
+                href="/"
+                className="p-2"
+                onClick={() => setOpenPopover(false)}
+              >
                 <p className="truncate text-sm font-medium text-gray-900">
-                  {session?.user?.name}
+                  {session.user.name || session.user.email?.split("@")[0]}
                 </p>
-              )}
-              <p className="truncate text-sm text-gray-500">
-                {session?.user?.email}
-              </p>
-            </Link>
+                <p className="truncate text-sm text-gray-500">
+                  {session.user.email}
+                </p>
+              </Link>
+            ) : (
+              <div className="grid gap-2 px-2 py-3">
+                <div className="h-3 w-12 animate-pulse rounded-full bg-gray-200" />
+                <div className="h-3 w-20 animate-pulse rounded-full bg-gray-200" />
+              </div>
+            )}
             <Link
               href="https://dub.co/help"
               onClick={() => setOpenPopover(false)}
@@ -51,7 +55,7 @@ export default function UserDropdown() {
               />
             </Link>
             <Link
-              href="/settings"
+              href="/account/settings"
               onClick={() => setOpenPopover(false)}
               className="block w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
@@ -81,8 +85,6 @@ export default function UserDropdown() {
                 signOut({
                   callbackUrl: "/login",
                 });
-                // track logout event
-                va.track("Logout");
               }}
             >
               <IconMenu text="Logout" icon={<LogOut className="h-4 w-4" />} />

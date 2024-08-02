@@ -2,6 +2,7 @@ import { LinkProps } from "@/lib/types";
 import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 import {
   FADE_IN_ANIMATION_SETTINGS,
+  UTMTags,
   constructURLFromUTMParams,
   getParamsFromURL,
   getUrlWithoutUTMParams,
@@ -50,7 +51,14 @@ export default function UTMSection({
       });
     } else {
       // if disabling, remove all UTM params
-      setData({ ...data, url: getUrlWithoutUTMParams(url) });
+      setData({
+        ...data,
+        ...UTMTags.reduce((acc, tag) => {
+          acc[tag] = null;
+          return acc;
+        }, {}),
+        url: getUrlWithoutUTMParams(url),
+      });
     }
   }, [enabled]);
 
@@ -91,6 +99,7 @@ export default function UTMSection({
                 onChange={(e) => {
                   setData({
                     ...data,
+                    [key]: e.target.value,
                     url: constructURLFromUTMParams(url, {
                       ...params,
                       [key]: e.target.value,

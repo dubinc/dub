@@ -1,140 +1,60 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
-import Pagination from "@/ui/shared/pagination";
+import EmptyState from "@/ui/shared/empty-state";
+import { LinkLogo, Table, Tooltip, useRouterStuff, useTable } from "@dub/ui";
 import {
   CursorRays,
-  LinkLogo,
-  LoadingSpinner,
+  FilterBars,
+  Globe,
+  Magnifier,
+  Menu3,
   QRCode,
-  Tooltip,
-  useRouterStuff,
-} from "@dub/ui";
-import { FilterBars, SortOrder } from "@dub/ui/src/icons";
+} from "@dub/ui/src/icons";
 import {
+  CONTINENTS,
   COUNTRIES,
-  PAGINATION_LIMIT,
   capitalize,
-  cn,
   fetcher,
   getApexDomain,
   nFormatter,
 } from "@dub/utils";
-import {
-  Cell,
-  ColumnDef,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { AnimatePresence, motion } from "framer-motion";
+import { Cell, ColumnDef } from "@tanstack/react-table";
+import { Link2 } from "lucide-react";
 import Link from "next/link";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import z from "zod";
 import { AnalyticsContext } from "../analytics-provider";
+import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
 import EditColumnsButton from "./edit-columns-button";
-import EmptyState from "./empty-state";
-import ExportButton from "./export-button";
+import { EventsContext } from "./events-provider";
+import { exampleData } from "./example-data";
+import { RowMenuButton } from "./row-menu-button";
+import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 import usePagination from "./use-pagination";
 
-const tableCellClassName =
-  "border-r border-b border-gray-200 px-4 py-2.5 text-left text-sm leading-6 whitespace-nowrap";
-
-type EventType = "clicks" | "leads" | "sales";
-
-type Datum =
+export type EventDatum =
   | z.infer<typeof clickEventEnrichedSchema>
   | z.infer<typeof leadEventEnrichedSchema>
   | z.infer<typeof saleEventEnrichedSchema>;
 
 type ColumnMeta = {
   filterParams?: (
-    args: Pick<Cell<Datum, any>, "getValue">,
+    args: Pick<Cell<EventDatum, any>, "getValue">,
   ) => Record<string, any>;
 };
-
-const eventColumns: Record<
-  EventType,
-  { all: string[]; defaultVisible: string[] }
-> = {
-  clicks: {
-    all: [
-      "trigger",
-      "link",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-    ],
-    defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
-  },
-  leads: {
-    all: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-    ],
-    defaultVisible: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "device",
-      "timestamp",
-    ],
-  },
-  sales: {
-    all: [
-      "event",
-      "customer",
-      "invoiceId",
-      "link",
-      "country",
-      "city",
-      "device",
-      "browser",
-      "os",
-      "timestamp",
-      "amount",
-    ],
-    defaultVisible: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "amount",
-      "timestamp",
-    ],
-  },
-};
-
-const getDefaultColumnVisibility = (event: EventType) =>
-  Object.fromEntries(
-    eventColumns[event].all.map((id) => [
-      id,
-      eventColumns[event].defaultVisible.includes(id),
-    ]),
-  );
 
 const FilterButton = ({ set }: { set: Record<string, any> }) => {
   const { queryParams } = useRouterStuff();
 
   return (
-    <div className="relative h-[1.25rem] w-0 shrink-0 opacity-0 transition-all group-hover:w-[1.25rem] group-hover:opacity-100">
+    <div className="absolute right-1 top-0 flex h-full shrink-0 translate-x-3 items-center justify-center bg-[linear-gradient(to_right,transparent,white_10%)] p-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100">
       <Link
         href={
           queryParams({
@@ -143,7 +63,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
             getNewPath: true,
           }) as string
         }
-        className="absolute left-0 top-0 rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
+        className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
       >
         <span className="sr-only">Filter</span>
         <FilterBars className="h-3.5 w-3.5" />
@@ -153,17 +73,16 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 };
 
 export default function EventsTable() {
+  const { plan } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
-  const tab = searchParams.get("tab") || "clicks";
+  const { setExportQueryString } = useContext(EventsContext);
+  const { selectedTab: tab } = useContext(AnalyticsContext);
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sort") || "timestamp";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
-  const { pagination, setPagination } = usePagination(PAGINATION_LIMIT);
-
-  const scrollContainer = useRef<HTMLDivElement>(null);
-
-  const columns = useMemo<ColumnDef<Datum, any>[]>(
+  const columns = useMemo<ColumnDef<EventDatum, any>[]>(
     () =>
       [
         // Click trigger
@@ -172,7 +91,6 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "qr",
           enableHiding: false,
-          size: 130,
           meta: {
             filterParams: ({ getValue }) => ({
               qr: !!getValue(),
@@ -182,12 +100,12 @@ export default function EventsTable() {
             <div className="flex items-center gap-3">
               {getValue() ? (
                 <>
-                  <QRCode className="h-4 w-4 shrink-0" />
+                  <QRCode className="size-4 shrink-0" />
                   <span className="truncate">QR scan</span>
                 </>
               ) : (
                 <>
-                  <CursorRays className="h-4 w-4 shrink-0" />
+                  <CursorRays className="size-4 shrink-0" />
                   <span className="truncate">Link click</span>
                 </>
               )}
@@ -200,7 +118,6 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "event_name",
           enableHiding: false,
-          size: 120,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -209,7 +126,7 @@ export default function EventsTable() {
           id: "invoiceId",
           header: "Invoice ID",
           accessorKey: "invoice_id",
-          size: 120,
+          maxSize: 200,
           cell: ({ getValue }) =>
             getValue() || <span className="text-gray-400">-</span>,
         },
@@ -217,7 +134,8 @@ export default function EventsTable() {
           id: "link",
           header: "Link",
           accessorKey: "link",
-          size: 200,
+          minSize: 250,
+          maxSize: 200,
           meta: {
             filterParams: ({ getValue }) => ({
               domain: getValue().domain,
@@ -231,7 +149,7 @@ export default function EventsTable() {
               <div className="flex items-center gap-3">
                 <LinkLogo
                   apexDomain={getApexDomain(getValue().url)}
-                  className="h-4 w-4 sm:h-4 sm:w-4"
+                  className="size-4 shrink-0 sm:size-4"
                 />
                 <span
                   className="truncate"
@@ -257,12 +175,28 @@ export default function EventsTable() {
                 <img
                   alt={display}
                   src={getValue().avatar}
-                  className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
+                  className="size-4 shrink-0 rounded-full border border-gray-200"
                 />
                 <span className="truncate">{display}</span>
               </div>
             );
           },
+        },
+        {
+          id: "continent",
+          header: "Continent",
+          accessorKey: "continent",
+          meta: {
+            filterParams: ({ getValue }) => ({ continent: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              <span className="truncate">
+                {CONTINENTS[getValue()] ?? "Unknown"}
+              </span>
+            </div>
+          ),
         },
         {
           id: "country",
@@ -273,11 +207,15 @@ export default function EventsTable() {
           },
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3">
-              <img
-                alt={getValue()}
-                src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                className="h-4 w-4 shrink-0"
-              />
+              {getValue() === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={getValue()}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
               <span className="truncate">
                 {COUNTRIES[getValue()] ?? getValue()}
               </span>
@@ -288,13 +226,18 @@ export default function EventsTable() {
           id: "city",
           header: "City",
           accessorKey: "city",
+          minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3">
-              <img
-                alt={row.original.country}
-                src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                className="h-4 w-4 shrink-0"
-              />
+              {row.original.country === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={row.original.country}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
               <span className="truncate">{getValue()}</span>
             </div>
           ),
@@ -311,7 +254,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="devices"
-                className="h-4 w-4 shrink-0"
+                className="size-4 shrink-0"
               />
               <span className="truncate">{getValue()}</span>
             </div>
@@ -326,7 +269,7 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="browsers"
-                className="h-4 w-4 shrink-0 rounded-full"
+                className="size-4 shrink-0 rounded-full"
               />
               <span className="truncate">{getValue()}</span>
             </div>
@@ -341,11 +284,44 @@ export default function EventsTable() {
               <DeviceIcon
                 display={capitalize(getValue()) ?? getValue()}
                 tab="os"
-                className="h-4 w-4 shrink-0"
+                className="size-4 shrink-0"
               />
               <span className="truncate">{getValue()}</span>
             </div>
           ),
+        },
+        {
+          id: "referer",
+          header: "Referer",
+          accessorKey: "referer",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getValue()}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
+              <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "ip",
+          header: "IP Address",
+          accessorKey: "ip",
+          cell: ({ getValue }) =>
+            getValue() ? (
+              <span className="truncate">{getValue()}</span>
+            ) : (
+              <Tooltip content="We do not record IP addresses for EU users.">
+                <span className="cursor-default truncate underline decoration-dotted">
+                  Unknown
+                </span>
+              </Tooltip>
+            ),
         },
         // Date
         {
@@ -392,19 +368,23 @@ export default function EventsTable() {
             </div>
           ),
         },
-      ].filter((c) => eventColumns[tab].all.includes(c.id)),
+        // Menu
+        {
+          id: "menu",
+          enableHiding: false,
+          minSize: 43,
+          size: 43,
+          maxSize: 43,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: ({ row }) => <RowMenuButton row={row} />,
+        },
+      ].filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id)),
     [tab],
   );
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    getDefaultColumnVisibility(tab as EventType),
-  );
-
-  useEffect(() => {
-    setColumnVisibility(getDefaultColumnVisibility(tab as EventType));
-  }, [tab]);
-
   const defaultData = useMemo(() => [], []);
+
+  const { pagination, setPagination } = usePagination();
 
   const { queryString: originalQueryString, totalEvents } =
     useContext(AnalyticsContext);
@@ -420,236 +400,96 @@ export default function EventsTable() {
     [originalQueryString, tab, pagination, sortBy, order],
   );
 
-  const { data, isLoading, error } = useSWR<Datum[]>(
-    `/api/analytics/events?${queryString}`,
+  // Update export query string
+  useEffect(
+    () =>
+      setExportQueryString?.(
+        editQueryString(
+          queryString,
+          {
+            columns: Object.entries(columnVisibility[tab])
+              .filter(([, visible]) => visible)
+              .map(([id]) => id)
+              .join(","),
+          },
+          ["page"],
+        ),
+      ),
+    [setExportQueryString, queryString, columnVisibility, tab],
+  );
+
+  const needsHigherPlan = plan === "free" || plan === "pro";
+
+  const { data, isLoading, error } = useSWR<EventDatum[]>(
+    !needsHigherPlan && `/api/events?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,
     },
   );
 
-  const table = useReactTable({
-    data: data ?? defaultData,
-    rowCount: totalEvents?.[tab] ?? 0,
+  const { table, ...tableProps } = useTable({
+    data: data ?? (needsHigherPlan ? exampleData[tab] : defaultData),
+    loading: isLoading,
+    error: error && !needsHigherPlan ? "Failed to fetch events." : undefined,
     columns,
-    defaultColumn: {
-      minSize: 60,
-      size: 150,
-      maxSize: 250,
-    },
-    columnResizeMode: "onChange",
-    getCoreRowModel: getCoreRowModel(),
+    pagination,
     onPaginationChange: setPagination,
-    onColumnVisibilityChange: setColumnVisibility,
-    state: {
-      pagination,
-      columnVisibility,
+    rowCount: needsHigherPlan ? 0 : totalEvents?.[tab] ?? 0,
+    columnVisibility: columnVisibility[tab],
+    onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
+    sortableColumns: ["timestamp", "amount"],
+    sortBy: sortBy,
+    sortOrder: order,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sort: sortBy }),
+          ...(sortOrder && { order: sortOrder }),
+        },
+      }),
+    columnPinning: { right: ["menu"] },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
+
+      return (
+        <>
+          {meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />}
+        </>
+      );
     },
-    manualPagination: true,
-    autoResetPageIndex: false,
-    manualSorting: true,
+    emptyState: (
+      <EmptyState
+        icon={Magnifier}
+        title="No events recorded"
+        description={`Events will appear here when your links ${tab === "clicks" ? "are clicked on" : `convert to ${tab}`}`}
+      />
+    ),
+    resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
-  const exportQueryString = useMemo(
-    () =>
-      editQueryString(
-        queryString,
-        {
-          columns: table
-            .getVisibleFlatColumns()
-            .map((c) => c.id)
-            .join(","),
-        },
-        ["page"],
-      ),
-    [queryString, table.getVisibleFlatColumns()],
-  );
-
-  // Memoize column sizes to pass to table as CSS variables
-  const columnSizeVars = useMemo(() => {
-    const headers = table.getFlatHeaders();
-    const colSizes: { [key: string]: number } = {};
-    for (let i = 0; i < headers.length; i++) {
-      const header = headers[i]!;
-      colSizes[`--header-${header.id}-size`] = header.getSize();
-      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
-    }
-    return colSizes;
-  }, [
-    columns,
-    columnVisibility,
-    table.getState().columnSizingInfo,
-    table.getState().columnSizing,
-  ]);
-
   return (
-    <div>
-      <div className="flex justify-end">
-        <div className="flex gap-1">
-          <ExportButton
-            queryString={exportQueryString}
-            disabled={error || !data?.length}
-          />
-          <EditColumnsButton table={table} />
-        </div>
-      </div>
-      <div className="mt-3 border border-gray-200 bg-white sm:rounded-xl">
-        <div className="relative rounded-[inherit]">
-          {(!error && !!data?.length) || isLoading ? (
-            <div
-              ref={scrollContainer}
-              className="min-h-[400px] overflow-x-auto rounded-[inherit]"
-            >
-              <table
-                className={cn(
-                  "w-full table-fixed border-separate border-spacing-0",
-
-                  // Remove side borders from table to avoid interfering with outer border
-                  "[&_thead_tr:first-child>*]:border-t-0", // Top row
-                  "[&_tr>*:first-child]:border-l-0", // Left column
-                  "[&_tr>*:last-child]:border-r-0", // Right column
-                )}
-                style={columnSizeVars}
-              >
-                <thead>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                      {headerGroup.headers.map((header, columnIdx) => {
-                        const isSortableColumn = [
-                          "timestamp",
-                          "amount",
-                        ].includes(header.column.id);
-                        return (
-                          <th
-                            key={`${tab}-${header.id}`}
-                            className={cn(
-                              tableCellClassName,
-                              "relative select-none font-medium",
-                            )}
-                            style={{
-                              width: `calc(var(--header-${header?.id}-size) * 1px)`,
-                            }}
-                          >
-                            <div className="flex items-center justify-between gap-6 !pr-0">
-                              <button
-                                type="button"
-                                className="flex items-center gap-2"
-                                disabled={!isSortableColumn}
-                                onClick={() =>
-                                  queryParams({
-                                    set: {
-                                      sort: header.column.id,
-                                      order:
-                                        sortBy !== header.column.id
-                                          ? "desc"
-                                          : order === "asc"
-                                            ? "desc"
-                                            : "asc",
-                                    },
-                                  })
-                                }
-                                aria-label="Sort by column"
-                              >
-                                <span>
-                                  {header.isPlaceholder
-                                    ? null
-                                    : flexRender(
-                                        header.column.columnDef.header,
-                                        header.getContext(),
-                                      )}
-                                </span>
-                                {isSortableColumn && (
-                                  <SortOrder
-                                    order={
-                                      sortBy === header.column.id ? order : null
-                                    }
-                                  />
-                                )}
-                              </button>
-                            </div>
-                            <div
-                              className="absolute -right-[4px] top-0 z-[1] h-full w-[7px] cursor-col-resize"
-                              {...{
-                                onDoubleClick: () => header.column.resetSize(),
-                                onMouseDown: header.getResizeHandler(),
-                                onTouchStart: header.getResizeHandler(),
-                              }}
-                            />
-                          </th>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </thead>
-                <tbody>
-                  {table.getRowModel().rows.map((row) => (
-                    <tr key={row.id}>
-                      {row.getVisibleCells().map((cell) => {
-                        const meta = cell.column.columnDef.meta as
-                          | ColumnMeta
-                          | undefined;
-
-                        return (
-                          <td
-                            key={`${tab}-${cell.id}`}
-                            className={cn(
-                              tableCellClassName,
-                              "group relative text-gray-600",
-                            )}
-                            style={{
-                              width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
-                            }}
-                          >
-                            <div className="flex w-full items-center justify-between overflow-hidden truncate">
-                              <div className="min-w-0 shrink">
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext(),
-                                )}
-                              </div>
-                              {meta?.filterParams && (
-                                <FilterButton set={meta.filterParams(cell)} />
-                              )}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="flex h-96 w-full items-center justify-center text-sm text-gray-500">
-              {error ? (
-                "Failed to fetch data"
-              ) : tab === "clicks" ? (
-                "No data available"
-              ) : (
-                <EmptyState />
-              )}
-            </div>
-          )}
-          <Pagination
-            pageSize={PAGINATION_LIMIT}
-            totalCount={totalEvents?.[tab] ?? 0}
-            unit="events"
-          />
-
-          {/* Loading/error overlay */}
-          <AnimatePresence>
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="absolute inset-0 flex items-center justify-center bg-white/50"
-              >
-                <LoadingSpinner />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </div>
+    <Table {...tableProps} table={table}>
+      {needsHigherPlan && (
+        <>
+          <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
+            <EmptyState
+              icon={Menu3}
+              title="Real-time Events Stream"
+              description={`Want more data on your link ${tab === "clicks" ? "clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
+              learnMore="https://d.to/events"
+              buttonText="Upgrade to Business"
+              buttonLink={queryParams({
+                set: {
+                  upgrade: "business",
+                },
+                getNewPath: true,
+              })}
+            />
+          </div>
+          <div className="h-[400px]" />
+        </>
+      )}
+    </Table>
   );
 }

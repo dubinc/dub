@@ -7,6 +7,7 @@ export * from "./alert";
 export * from "./avatar";
 export * from "./badge";
 export * from "./button";
+export * from "./card-list";
 export * from "./checkbox";
 export * from "./date-picker";
 export * from "./file-upload";
@@ -19,6 +20,7 @@ export * from "./popover";
 export * from "./radio-group";
 export * from "./status-badge";
 export * from "./switch";
+export * from "./table";
 export * from "./tooltip";
 
 // hooks
