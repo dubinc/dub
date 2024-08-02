@@ -133,19 +133,6 @@ function AddEditDomainModal({
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.ok) {
-              if (endpoint.method === "POST") {
-                await fetch(`/api/links?workspaceId=${workspaceId}`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    domain: data.slug,
-                    key: "_root",
-                    url: "",
-                  }),
-                });
-              }
               await Promise.all([
                 mutate(
                   (key) =>
