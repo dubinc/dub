@@ -11,6 +11,7 @@ model OAuthApp {
   partialClientSecret String
   redirectUris        Json
   logo                String?
+  screenshots         Json?
   pkce                Boolean  @default(false)
   verified            Boolean  @default(false)
   createdAt           DateTime @default(now())

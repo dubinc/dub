@@ -1,4 +1,5 @@
 import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
+import { R2_URL } from "@dub/utils";
 import { z } from "zod";
 
 export const createOAuthAppSchema = z.object({
@@ -51,6 +52,17 @@ export const createOAuthAppSchema = z.object({
     })
     .nullable(),
   pkce: z.boolean().default(false),
+  screenshots: z
+    .array(z.string())
+    .max(4, {
+      message: "only 4 screenshots are allowed",
+    })
+    .transform((screenshots) =>
+      screenshots.map((screenshot) =>
+        screenshot.startsWith(R2_URL) ? screenshot : `${R2_URL}/${screenshot}`,
+      ),
+    )
+    .default([]),
 });
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();
@@ -72,6 +84,7 @@ export const oAuthAppSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   installations: z.number().default(0),
+  screenshots: z.array(z.string()).nullable(),
 });
 
 // Schema for OAuth2.0 Authorization request

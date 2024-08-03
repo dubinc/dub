@@ -53,6 +53,8 @@
     "class-variance-authority": "^0.7.0",
     "cmdk": "^0.2.0",
     "date-fns": "^3.6.0",
+    "embla-carousel-autoplay": "^8.1.7",
+    "embla-carousel-react": "^8.1.7",
     "framer-motion": "^10.16.16",
     "js-cookie": "^3.0.5",
     "linkify-react": "^4.1.3",

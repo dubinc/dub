@@ -57,7 +57,7 @@
     "@visx/text": "^3.3.0",
     "@visx/tooltip": "^2.16.0",
     "ai": "^3.1.22",
-    "aws4fetch": "^1.0.18",
+    "aws4fetch": "^1.0.19",
     "bcryptjs": "^2.4.3",
     "bottleneck": "^2.19.5",
     "cmdk": "^0.2.0",

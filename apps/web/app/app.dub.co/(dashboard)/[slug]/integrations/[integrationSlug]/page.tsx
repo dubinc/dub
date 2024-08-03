@@ -46,6 +46,7 @@ export default async function IntegrationPage({
     <IntegrationPageClient
       integration={{
         ...integration,
+        screenshots: integration.screenshots as string[],
         installations: integration._count.authorizedApps,
         installed:
           integration.authorizedApps.length > 0

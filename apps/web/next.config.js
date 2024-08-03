@@ -46,6 +46,9 @@ module.exports = withAxiom({
         hostname: "dubassets.com", // for Dub's user generated images
       },
       {
+        hostname: "dev.dubassets.com", // dev bucket
+      },
+      {
         hostname: "www.google.com",
       },
       {

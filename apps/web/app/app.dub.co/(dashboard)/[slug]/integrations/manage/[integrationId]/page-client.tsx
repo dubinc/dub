@@ -61,7 +61,7 @@ export default function IntegrationManagePageClient({
           {isLoading ? (
             <div className="flex items-center gap-x-3">
               <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-                <TokenAvatar id="integration" className="size-8" />
+                <TokenAvatar id="placeholder-integration" className="size-8" />
               </div>
               <div className="flex flex-col gap-2">
                 <div className="h-3 w-20 rounded-full bg-gray-100"></div>
