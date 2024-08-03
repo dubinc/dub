@@ -308,6 +308,7 @@ export default function AddEditIntegrationForm({
             <InfoTooltip content="You can upload up to 4 screenshots that will be displayed on the integration page." />
           </label>
           <Reorder.Group
+            axis="y"
             values={screenshots}
             onReorder={setScreenshots}
             className="mt-2 grid w-full gap-2"
@@ -316,9 +317,6 @@ export default function AddEditIntegrationForm({
               <Reorder.Item
                 key={screenshot.key}
                 value={screenshot}
-                drag="y"
-                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragMomentum={false}
                 className="group flex w-full items-center justify-between rounded-md border border-gray-200 bg-white transition-shadow hover:cursor-grab active:cursor-grabbing active:shadow-lg"
               >
                 <div className="flex flex-1 items-center space-x-2 p-2">
