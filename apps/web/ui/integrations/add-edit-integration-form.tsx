@@ -15,6 +15,7 @@ import {
 } from "@dub/ui";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -144,9 +145,9 @@ export default function AddEditIntegrationForm({
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
     const response = await fetch(
-      `/api/oauth/apps/screenshots/upload?workspaceId=${workspaceId}`,
+      `/api/oauth/apps/upload-url?workspaceId=${workspaceId}`,
       {
-        method: "GET",
+        method: "POST",
       },
     );
 
@@ -306,11 +307,19 @@ export default function AddEditIntegrationForm({
             <h2 className="text-sm font-medium text-gray-900">Screenshots</h2>
             <InfoTooltip content="You can upload up to 4 screenshots that will be displayed on the integration page." />
           </label>
-          <div className="mt-2 grid w-full gap-2">
+          <Reorder.Group
+            values={screenshots}
+            onReorder={setScreenshots}
+            className="mt-2 grid w-full gap-2"
+          >
             {screenshots.map((screenshot) => (
-              <div
+              <Reorder.Item
                 key={screenshot.key}
-                className="flex w-full items-center justify-between rounded-md border border-gray-200"
+                value={screenshot}
+                drag="y"
+                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                dragMomentum={false}
+                className="group flex w-full items-center justify-between rounded-md border border-gray-200 bg-white transition-shadow hover:cursor-grab active:cursor-grabbing active:shadow-lg"
               >
                 <div className="flex flex-1 items-center space-x-2 p-2">
                   {screenshot.uploading ? (
@@ -332,9 +341,9 @@ export default function AddEditIntegrationForm({
                 >
                   <Trash2 className="h-4 w-4 text-gray-500" />
                 </button>
-              </div>
+              </Reorder.Item>
             ))}
-          </div>
+          </Reorder.Group>
 
           {screenshots.length < 4 && (
             <FileUpload

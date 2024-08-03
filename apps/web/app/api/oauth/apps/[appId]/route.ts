@@ -186,11 +186,13 @@ const deleteScreenshots = async (screenshots: Prisma.JsonValue | null) => {
     return;
   }
 
-  await Promise.all(
+  const res = await Promise.all(
     images.map(async (image: string) => {
       if (image.startsWith(`${R2_URL}/integration-screenshots`)) {
         return storage.delete(image.replace(`${R2_URL}/`, ""));
       }
     }),
   );
+
+  console.log({ res });
 };
