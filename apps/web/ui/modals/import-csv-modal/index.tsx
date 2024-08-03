@@ -104,7 +104,7 @@ function ImportCsvModal({
     watch,
     setValue,
     handleSubmit,
-    formState: { isLoading, isValid },
+    formState: { isSubmitting, isValid },
   } = useForm<ImportCsvFormData>({
     defaultValues: {},
   });
@@ -157,58 +157,62 @@ function ImportCsvModal({
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
             <form
               onSubmit={handleSubmit(async (data) => {
-                // Get signed upload URL
-                const res = await fetch(
-                  `/api/workspaces/${workspaceId}/import/csv/upload`,
-                );
+                try {
+                  toast.loading("Adding links to import queue...");
 
-                if (!res.ok || !data.file) {
-                  toast.error("Error getting signed upload URL");
-                  return;
-                }
+                  // Get signed upload URL
+                  const uploadRes = await fetch(
+                    `/api/workspaces/${workspaceId}/import/csv/upload`,
+                  );
 
-                const { url, id } = await res.json();
-
-                const uploadRes = await fetch(url, {
-                  method: "PUT",
-                  body: data.file,
-                  headers: {
-                    "Content-Type": "multipart/form-data",
-                  },
-                });
-
-                const formData = new FormData();
-                for (const key in data) {
-                  if (key !== "file" && data[key] !== null) {
-                    formData.append(key, data[key]);
+                  if (!uploadRes.ok || !data.file) {
+                    toast.error("Error getting signed upload URL");
+                    return;
                   }
-                }
-                formData.append("id", id);
 
-                toast.promise(
-                  fetch(`/api/workspaces/${workspaceId}/import/csv`, {
-                    method: "POST",
-                    body: formData,
-                  }).then(async (res) => {
-                    if (res.ok) {
-                      router.push(`/${slug}`);
-                      mutate(
-                        (key) =>
-                          typeof key === "string" &&
-                          (key.startsWith("/api/links") ||
-                            key.startsWith("/api/domains")),
-                      );
-                    } else {
-                      throw new Error();
+                  const { url, id } = await uploadRes.json();
+
+                  // Upload the file
+                  await fetch(url, {
+                    method: "PUT",
+                    body: data.file,
+                    headers: {
+                      "Content-Type": "multipart/form-data",
+                    },
+                  });
+
+                  const formData = new FormData();
+                  for (const key in data) {
+                    if (key !== "file" && data[key] !== null) {
+                      formData.append(key, data[key]);
                     }
-                  }),
-                  {
-                    loading: "Adding links to import queue...",
-                    success:
-                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
-                    error: "Error adding links to import queue",
-                  },
-                );
+                  }
+                  formData.append("id", id);
+
+                  const res = await fetch(
+                    `/api/workspaces/${workspaceId}/import/csv`,
+                    {
+                      method: "POST",
+                      body: formData,
+                    },
+                  );
+
+                  if (!res.ok) throw new Error();
+
+                  router.push(`/${slug}`);
+                  mutate(
+                    (key) =>
+                      typeof key === "string" &&
+                      (key.startsWith("/api/links") ||
+                        key.startsWith("/api/domains")),
+                  );
+
+                  toast.success(
+                    "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                  );
+                } catch (error) {
+                  toast.error("Error adding links to import queue");
+                }
               })}
               className="flex flex-col space-y-4"
             >
@@ -218,7 +222,6 @@ function ImportCsvModal({
                   <Button
                     type="button"
                     text="Continue"
-                    loading={isLoading}
                     disabled={!fileColumns}
                     onClick={() => setPageNumber((n) => n + 1)}
                   />
@@ -230,7 +233,7 @@ function ImportCsvModal({
                   <FieldMapping />
                   <Button
                     text="Confirm import"
-                    loading={isLoading}
+                    loading={isSubmitting}
                     disabled={!isValid}
                   />
                 </>
