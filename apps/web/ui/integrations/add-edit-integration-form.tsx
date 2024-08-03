@@ -144,7 +144,7 @@ export default function AddEditIntegrationForm({
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
     const response = await fetch(
-      `/api/oauth/apps/screenshots/upload?workspaceId=${workspaceId}&name=${file.name}`,
+      `/api/oauth/apps/screenshots/upload?workspaceId=${workspaceId}`,
       {
         method: "GET",
       },
