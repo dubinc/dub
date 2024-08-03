@@ -8,7 +8,6 @@ export const POST = withWorkspace(async () => {
   const key = `integration-screenshots/${nanoid(16)}`;
 
   const signedUrl = await storage.getSignedUrl(key);
-  console.log({ key, signedUrl });
 
   return NextResponse.json({ key, signedUrl });
 });
