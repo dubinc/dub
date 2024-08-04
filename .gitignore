@@ -9,7 +9,7 @@ dist/
 /out/
 
 # Prisma
-/prisma/
+prisma/
 
 # production
 /build
