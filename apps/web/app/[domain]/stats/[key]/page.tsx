@@ -1,4 +1,4 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/db/edge";
 import Analytics from "@/ui/analytics";
 import { constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";

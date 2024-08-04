@@ -2,8 +2,8 @@ import { parse } from "@/lib/middleware/utils";
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { conn } from "../planetscale";
 import { UserProps } from "../types";
+import { getEdgeClient } from "../db";
 
 export default async function AdminMiddleware(req: NextRequest) {
   const { path } = parse(req);
@@ -18,11 +18,16 @@ export default async function AdminMiddleware(req: NextRequest) {
     user?: UserProps;
   };
 
-  const response = await conn
-    .execute("SELECT projectId FROM ProjectUsers WHERE userId = ?", [
-      session?.user?.id,
-    ])
-    .then((res) => res.rows[0] as { projectId: string } | undefined);
+  const client = getEdgeClient();
+
+  const response = await client.projectUsers.findFirst({
+    where: {
+      userId: session?.user?.id,
+    },
+    select: {
+      projectId: true,
+    },
+  });
 
   if (response?.projectId === DUB_WORKSPACE_ID) {
     isAdmin = true;

@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimitOrThrow } from "@/lib/api/utils";
-import { getRandomKey } from "@/lib/planetscale";
+import { getRandomKey } from "@/lib/db/edge";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
 import { getSearchParams } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";

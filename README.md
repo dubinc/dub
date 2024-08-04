@@ -48,7 +48,7 @@ Dub.co is the open-source link management infrastructure for modern marketing te
 - [Tailwind](https://tailwindcss.com/) – CSS
 - [Upstash](https://upstash.com/) – redis
 - [Tinybird](https://tinybird.com/) – analytics
-- [PlanetScale](https://planetscale.com/) – database
+- [PlanetScale](https://planetscale.com/) or [Neon](https://neon.tech/home) – database
 - [NextAuth.js](https://next-auth.js.org/) – auth
 - [BoxyHQ](https://boxyhq.com/enterprise-sso) – SSO/SAML
 - [Turborepo](https://turbo.build/repo) – monorepo
