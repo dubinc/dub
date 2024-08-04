@@ -1,7 +1,7 @@
 "use client";
 
 import { PosthogPageview } from "@/ui/layout/posthog-pageview";
-import ModalProvider from "@/ui/modals/provider";
+import { ModalProvider } from "@/ui/modals/modal-provider";
 import { KeyboardShortcutProvider } from "@dub/ui";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import { SessionProvider } from "next-auth/react";
