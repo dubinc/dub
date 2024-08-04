@@ -3,7 +3,6 @@ import "@/styles/globals.css";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { TooltipProvider } from "@dub/ui/src/tooltip";
 import { cn, constructMetadata } from "@dub/utils";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AxiomWebVitals } from "next-axiom";
 import { Toaster } from "sonner";
 
@@ -28,7 +27,6 @@ export default function RootLayout({
                 : undefined,
             }}
           />
-          <SpeedInsights />
         </TooltipProvider>
       </body>
     </html>

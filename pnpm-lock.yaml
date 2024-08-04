@@ -125,9 +125,6 @@ importers:
       '@vercel/og':
         specifier: ^0.6.2
         version: 0.6.2
-      '@vercel/speed-insights':
-        specifier: ^1.0.1
-        version: 1.0.1
       '@visx/axis':
         specifier: ^2.14.0
         version: 2.14.0(react@18.2.0)
@@ -8773,11 +8770,6 @@ packages:
       '@resvg/resvg-wasm': 2.4.0
       satori: 0.10.9
       yoga-wasm-web: 0.3.3
-    dev: false
-
-  /@vercel/speed-insights@1.0.1:
-    resolution: {integrity: sha512-cm8KTTsDgS1AbWsgIEZuMoyPUjclzeqJihyLp0tnA21B/x9iTE8hu2S5zM+/DBzihuHxWL1dx9pCWk22ctMFWQ==}
-    requiresBuild: true
     dev: false
 
   /@visx/axis@2.14.0(react@18.2.0):

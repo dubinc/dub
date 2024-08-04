@@ -43,7 +43,6 @@
     "@vercel/edge-config": "^0.4.1",
     "@vercel/functions": "^1.0.1",
     "@vercel/og": "^0.6.2",
-    "@vercel/speed-insights": "^1.0.1",
     "@visx/axis": "^2.14.0",
     "@visx/curve": "^3.3.0",
     "@visx/event": "^2.6.0",
