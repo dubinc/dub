@@ -1,5 +1,6 @@
 import { MaxWidthWrapper, NavLogo } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
+import Providers from "app/providers";
 import Link from "next/link";
 import { ReactNode } from "react";
 
@@ -27,7 +28,7 @@ export default async function AdminLayout({
   children: ReactNode;
 }) {
   return (
-    <>
+    <Providers>
       <div className="min-h-screen w-full bg-gray-50">
         <div className="sticky left-0 right-0 top-0 z-20 border-b border-gray-200 bg-white">
           <MaxWidthWrapper>
@@ -49,6 +50,6 @@ export default async function AdminLayout({
         </div>
         {children}
       </div>
-    </>
+    </Providers>
   );
 }
