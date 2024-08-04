@@ -1,6 +1,6 @@
 import { inviteUser } from "@/lib/api/users";
 import jackson from "@/lib/jackson";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import type {
   DirectorySyncEvent,

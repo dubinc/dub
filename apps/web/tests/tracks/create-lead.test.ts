@@ -1,5 +1,5 @@
 import { trackLeadResponseSchema } from "@/lib/zod/schemas/leads";
-import { Tag } from "@prisma/client";
+import { Tag } from "@dub/prisma";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 

@@ -1,6 +1,6 @@
 import { Client } from "@planetscale/database";
 import { PrismaPlanetScale } from "@prisma/adapter-planetscale";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "./generated/client";
 
 const client = new Client({ url: process.env.DATABASE_URL });
 

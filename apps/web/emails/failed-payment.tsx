@@ -1,5 +1,5 @@
 import { DUB_WORDMARK } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { Project } from "@dub/prisma";
 import {
   Body,
   Container,

@@ -2,7 +2,7 @@ import { addDomainToVercel } from "@/lib/api/domains";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { BitlyGroupProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";

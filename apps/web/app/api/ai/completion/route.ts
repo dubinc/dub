@@ -1,7 +1,7 @@
 import { anthropic } from "@/lib/anthropic";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
-import { prismaEdge } from "@/lib/prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import z from "@/lib/zod";
 import { waitUntil } from "@vercel/functions";
 import { AnthropicStream, StreamingTextResponse } from "ai";

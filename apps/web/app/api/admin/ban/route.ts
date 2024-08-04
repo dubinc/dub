@@ -2,7 +2,7 @@ import { deleteWorkspaceAdmin } from "@/lib/api/workspaces";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
 import { unsubscribe } from "@/lib/flodesk";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";

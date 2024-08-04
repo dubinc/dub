@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { FREE_PLAN, log } from "@dub/utils";

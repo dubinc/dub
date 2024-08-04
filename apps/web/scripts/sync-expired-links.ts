@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { RedisLinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { chunk } from "@dub/utils";

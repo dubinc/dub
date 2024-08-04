@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { DubApiError, handleAndReturnErrorResponse } from "../api/errors";
 import { ratelimit } from "../upstash";

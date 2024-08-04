@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import z from "@/lib/zod";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
 import { getCurrentPlan } from "@dub/utils";

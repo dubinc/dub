@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";

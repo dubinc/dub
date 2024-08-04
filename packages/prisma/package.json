@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "prisma:generate": "npx prisma generate --schema=./schema",
-    "prisma:push": "npx prisma db push --schema=./schema"
+    "prisma:push": "npx prisma db push --schema=./schema",
+    "prisma:studio": "npx prisma studio --schema=./schema --browser none"
   },
   "dependencies": {
     "@prisma/adapter-planetscale": "^5.17.0",
@@ -19,6 +20,7 @@
     "typescript": "5.2.2"
   },
   "exports": {
-    ".": "./index.ts"
+    ".": "./index.ts",
+    "./edge": "./edge.ts"
   }
 }

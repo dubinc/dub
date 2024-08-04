@@ -5,7 +5,7 @@ import {
 } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { handleDomainUpdates } from "./utils";

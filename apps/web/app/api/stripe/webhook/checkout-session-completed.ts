@@ -1,5 +1,5 @@
 import { limiter } from "@/lib/cron/limiter";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { stripe } from "@/lib/stripe";
 import { getPlanFromPriceId, log } from "@dub/utils";
 import { sendEmail } from "emails";

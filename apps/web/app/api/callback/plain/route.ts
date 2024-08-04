@@ -1,5 +1,5 @@
 import { plain } from "@/lib/plain";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 import {

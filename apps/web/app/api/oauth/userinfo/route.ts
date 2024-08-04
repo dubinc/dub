@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/oauth/userinfo - get user info by access token

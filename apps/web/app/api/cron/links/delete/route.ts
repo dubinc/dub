@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { deleteLink } from "@/lib/api/links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 
 export const dynamic = "force-dynamic";
 

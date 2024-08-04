@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import { ResetPasswordForm } from "./form";

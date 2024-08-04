@@ -1,4 +1,4 @@
-import { prismaEdge } from "@/lib/prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { APP_DOMAIN, getSearchParams } from "@dub/utils";

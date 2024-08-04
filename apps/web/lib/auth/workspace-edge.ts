@@ -18,7 +18,7 @@ import {
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { getFeatureFlags } from "../edge-config";
-import { prismaEdge } from "../prisma/edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { hashToken } from "./hash-token";
 import type { Session } from "./utils";
 

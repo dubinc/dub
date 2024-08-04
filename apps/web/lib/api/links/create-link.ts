@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
@@ -10,7 +10,7 @@ import {
   getParamsFromURL,
   truncate,
 } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { updateLinksUsage } from "./update-links-usage";
 import { combineTagIds, transformLink } from "./utils";

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
 import { getParamsFromURL, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
