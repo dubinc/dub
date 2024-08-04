@@ -3,8 +3,6 @@ import { Background } from "@dub/ui";
 import { ReactNode } from "react";
 import Providers from "../(dashboard)/providers";
 
-export const runtime = "edge";
-
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <Providers>
