@@ -1,4 +1,4 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/db/edge";
 import { Background, Footer, Nav, NavMobile } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { TimerOff } from "lucide-react";

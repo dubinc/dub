@@ -1,5 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/db/edge";
 import {
   GOOGLE_FAVICON_URL,
   getApexDomain,

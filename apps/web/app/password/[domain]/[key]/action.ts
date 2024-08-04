@@ -1,6 +1,6 @@
 "use server";
 
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/db/edge";
 import { linkConstructor } from "@dub/utils";
 
 export async function verifyPassword(_prevState: any, data: FormData) {

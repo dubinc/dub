@@ -24,7 +24,7 @@ import {
   userAgent,
 } from "next/server";
 import { isBlacklistedReferrer } from "../edge-config";
-import { getLinkViaEdge } from "../planetscale";
+import { getLinkViaEdge } from "@/lib/db/edge";
 import { RedisLinkProps } from "../types";
 
 export default async function LinkMiddleware(

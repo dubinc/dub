@@ -1,6 +1,6 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/db/edge";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { domainKeySchema } from "@/lib/zod/schemas/links";

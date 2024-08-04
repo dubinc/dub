@@ -1,5 +1,5 @@
 import { isWhitelistedEmail } from "@/lib/edge-config";
-import { DATABASE_URL, conn } from "@/lib/planetscale";
+import { DATABASE_URL, getEdgeClient } from "@/lib/db";
 import { ratelimit } from "@/lib/upstash";
 import { ipAddress } from "@vercel/edge";
 import { NextRequest, NextResponse } from "next/server";
@@ -25,9 +25,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ accountExists: true, hasPassword: true });
   }
 
-  const user = await conn
-    .execute("SELECT email, passwordHash FROM User WHERE email = ?", [email])
-    .then((res) => res.rows[0]);
+  const client = getEdgeClient();
+
+  const user = await client.user.findUnique({
+    where: {
+      email: email
+    },
+    select: {
+      email: true,
+      passwordHash: true,
+    }
+  });
 
   if (user) {
     return NextResponse.json({

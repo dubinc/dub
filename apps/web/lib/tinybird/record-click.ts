@@ -8,8 +8,8 @@ import { ipAddress } from "@vercel/edge";
 import { nanoid } from "ai";
 import { NextRequest, userAgent } from "next/server";
 import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
-import { conn } from "../planetscale";
 import { ratelimit } from "../upstash";
+import { getEdgeClient } from "../db";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -50,6 +50,8 @@ export async function recordClick({
   if (!success) {
     return null;
   }
+
+  const client = getEdgeClient();
 
   return await Promise.allSettled([
     fetch(
@@ -99,16 +101,35 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // increment the click count for the link (based on their ID)
-    conn.execute(
-      "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-      [linkId],
-    ),
+    client.link.update({
+      where: {
+        id: linkId,
+      },
+      data: {
+        clicks: {
+          increment: 1,
+        },
+        lastClicked: new Date(),
+      },
+    }),
     // if the link has a destination URL, increment the usage count for the workspace
     // and then we have a cron that will reset it at the start of new billing cycle
     url &&
-      conn.execute(
-        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
-        [linkId],
-      ),
+    client.link.update({
+      where: {
+        id: linkId,
+      },
+      data: {
+        project: {
+          update: {
+            data: {
+              usage: {
+                increment: 1,
+              },
+            },
+          },
+        },
+      },
+    }),
   ]);
 }

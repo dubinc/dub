@@ -3,7 +3,7 @@ import {
   isReservedKey,
   isReservedUsername,
 } from "@/lib/edge-config";
-import { checkIfKeyExists } from "@/lib/planetscale";
+import { checkIfKeyExists } from "@/lib/db/edge";
 import { WorkspaceProps } from "@/lib/types";
 import {
   DEFAULT_REDIRECTS,
@@ -43,7 +43,8 @@ export async function keyChecks({
 }: {
   domain: string;
   key: string;
-  workspace?: Pick<WorkspaceProps, "plan">;
+  // TODO: Fix types
+  workspace?: any;
 }): Promise<{ error: string | null; code?: DubApiError["code"] }> {
   if ((key.length === 0 || key === "_root") && workspace?.plan === "free") {
     return {

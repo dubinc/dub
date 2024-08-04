@@ -1,6 +1,6 @@
 import { tb } from "@/lib/tinybird";
 import { getDaysDifference, linkConstructor } from "@dub/utils";
-import { conn } from "../planetscale";
+import { getEdgeClient } from "@/lib/db";
 import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
@@ -42,12 +42,19 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   if (linkId && groupBy === "count" && interval === "all_unfiltered") {
     const columns = event === "composite" ? `clicks, leads, sales` : `${event}`;
 
-    let response = await conn.execute(
-      `SELECT ${columns} FROM Link WHERE id = ?`,
-      [linkId],
-    );
+    const client = getEdgeClient();
 
-    return response.rows[0];
+    const link = await client.link.findUnique({
+      where: {
+        id: linkId
+      },
+      select: columns.replace(/^\s*/, "").replace(/\s*$/, "").split(",").reduce((acc, value) => {
+        acc[value] = true;
+        return acc;
+      }, {})
+    });
+
+    return link;
   }
 
   let granularity: "minute" | "hour" | "day" | "month" = "day";
