@@ -8,6 +8,9 @@ dist/
 .next/
 /out/
 
+# Prisma
+/prisma/
+
 # production
 /build
 
