@@ -418,6 +418,10 @@ function AddEditLinkModal({
                     { revalidate: true },
                   );
                   const data = await res.json();
+                  posthog.capture(
+                    props ? "link_updated" : "link_created",
+                    data,
+                  );
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
                     try {
