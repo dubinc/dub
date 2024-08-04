@@ -100,6 +100,8 @@ export interface UserProps {
   migratedWorkspace: string | null;
   defaultWorkspace?: string;
   isMachine: boolean;
+  hasPassword: boolean;
+  provider: string | null;
 }
 
 export interface WorkspaceUserProps extends UserProps {
@@ -188,7 +190,7 @@ export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
 export type NewIntegration = Omit<
   OAuthAppProps,
-  "id" | "clientId" | "verified" | "installations"
+  "id" | "clientId" | "verified" | "installations" | "screenshots"
 >;
 
 export type ExistingIntegration = OAuthAppProps;
@@ -211,6 +213,7 @@ export type InstalledIntegrationInfoProps = Pick<
   | "description"
   | "readme"
   | "website"
+  | "screenshots"
 > & {
   createdAt: Date;
   installations: number;

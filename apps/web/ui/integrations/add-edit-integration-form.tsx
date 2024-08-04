@@ -6,9 +6,17 @@ import {
   NewIntegration,
   OAuthAppProps,
 } from "@/lib/types";
-import { Button, FileUpload, InfoTooltip, Switch } from "@dub/ui";
+import {
+  Button,
+  FileUpload,
+  InfoTooltip,
+  LoadingSpinner,
+  Switch,
+} from "@dub/ui";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import { Reorder } from "framer-motion";
+import { Paperclip, Trash2 } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
@@ -36,16 +44,23 @@ export default function AddEditIntegrationForm({
   integration: OAuthAppProps | null;
 }) {
   const router = useRouter();
+  const [saving, setSaving] = useState(false);
   const { slug: workspaceSlug, id: workspaceId, flags } = useWorkspace();
   const [urls, setUrls] = useState<{ id: string; value: string }[]>([
     { id: nanoid(), value: "" },
   ]);
+  const [screenshots, setScreenshots] = useState<
+    {
+      file?: File;
+      key?: string;
+      uploading: boolean;
+    }[]
+  >([]);
 
   if (!flags?.integrations) {
     redirect(`/${workspaceSlug}`);
   }
 
-  const [saving, setSaving] = useState(false);
   const [data, setData] = useState<NewIntegration | ExistingIntegration>(
     integration || defaultValues,
   );
@@ -61,6 +76,13 @@ export default function AddEditIntegrationForm({
     if (integration) {
       setUrls(
         integration.redirectUris.map((u) => ({ id: nanoid(), value: u })),
+      );
+
+      setScreenshots(
+        (integration.screenshots || []).map((s) => ({
+          uploading: false,
+          key: s,
+        })),
       );
     }
   }, [integration]);
@@ -94,6 +116,7 @@ export default function AddEditIntegrationForm({
       },
       body: JSON.stringify({
         ...data,
+        screenshots: screenshots.map((s) => s.key),
         redirectUris: urls.map((u) => u.value),
       }),
     });
@@ -117,6 +140,49 @@ export default function AddEditIntegrationForm({
     }
   };
 
+  // Handle screenshots upload
+  const handleUpload = async (file: File) => {
+    setScreenshots((prev) => [...prev, { file, uploading: true }]);
+
+    const response = await fetch(
+      `/api/oauth/apps/upload-url?workspaceId=${workspaceId}`,
+      {
+        method: "POST",
+      },
+    );
+
+    if (!response.ok) {
+      toast.error("Failed to get signed URL for screenshot upload.");
+      return;
+    }
+
+    const { signedUrl, key } = await response.json();
+
+    const uploadResponse = await fetch(signedUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+        "Content-Length": file.size.toString(),
+      },
+    });
+
+    if (!uploadResponse.ok) {
+      const result = await uploadResponse.json();
+      toast.error(result.error.message || "Failed to upload screenshot.");
+      return;
+    }
+
+    toast.success(`${file.name} uploaded!`);
+    setScreenshots((prev) =>
+      prev.map((screenshot) =>
+        screenshot.file === file
+          ? { ...screenshot, uploading: false, key }
+          : screenshot,
+      ),
+    );
+  };
+
   const {
     name,
     slug,
@@ -131,6 +197,8 @@ export default function AddEditIntegrationForm({
 
   const buttonDisabled =
     !name || !slug || !developer || !website || !redirectUris;
+
+  const uploading = screenshots.some((s) => s.uploading);
 
   return (
     <>
@@ -232,6 +300,59 @@ export default function AddEditIntegrationForm({
               }}
             />
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="slug" className="flex items-center space-x-2">
+            <h2 className="text-sm font-medium text-gray-900">Screenshots</h2>
+            <InfoTooltip content="You can upload up to 4 screenshots that will be displayed on the integration page." />
+          </label>
+          <Reorder.Group
+            axis="y"
+            values={screenshots}
+            onReorder={setScreenshots}
+            className="mt-2 grid w-full gap-2"
+          >
+            {screenshots.map((screenshot) => (
+              <Reorder.Item
+                key={screenshot.key}
+                value={screenshot}
+                className="group flex w-full items-center justify-between rounded-md border border-gray-200 bg-white transition-shadow hover:cursor-grab active:cursor-grabbing active:shadow-lg"
+              >
+                <div className="flex flex-1 items-center space-x-2 p-2">
+                  {screenshot.uploading ? (
+                    <LoadingSpinner className="h-4 w-4" />
+                  ) : (
+                    <Paperclip className="h-4 w-4 text-gray-500" />
+                  )}
+                  <p className="text-center text-sm text-gray-500">
+                    {screenshot.file?.name || screenshot.key}
+                  </p>
+                </div>
+                <button
+                  className="h-full rounded-r-md border-l border-gray-200 p-2"
+                  onClick={() => {
+                    setScreenshots((prev) =>
+                      prev.filter((s) => s.key !== screenshot.key),
+                    );
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 text-gray-500" />
+                </button>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
+
+          {screenshots.length < 4 && (
+            <FileUpload
+              accept="any"
+              className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
+              iconClassName="w-5 h-5"
+              variant="plain"
+              onChange={async ({ file }) => await handleUpload(file)}
+              content="Drag and drop or click to upload screenshots"
+            />
+          )}
         </div>
 
         <div>
@@ -358,7 +479,7 @@ export default function AddEditIntegrationForm({
 
         <Button
           text={integration ? "Save changes" : "Create"}
-          disabled={buttonDisabled}
+          disabled={buttonDisabled || uploading}
           loading={saving}
           type="submit"
         />

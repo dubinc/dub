@@ -14,7 +14,8 @@ export default async function AppMiddleware(req: NextRequest) {
     !user &&
     path !== "/login" &&
     path !== "/register" &&
-    path !== "/auth/saml"
+    path !== "/auth/saml" &&
+    !path.startsWith("/auth/reset-password/")
   ) {
     return NextResponse.redirect(
       new URL(
