@@ -5,7 +5,7 @@ import NavTabs from "@/ui/layout/nav-tabs";
 import { MaxWidthWrapper } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode, Suspense } from "react";
-import Providers from "./providers";
+import Providers from "../../providers";
 
 export const dynamic = "force-static";
 export const metadata = constructMetadata();

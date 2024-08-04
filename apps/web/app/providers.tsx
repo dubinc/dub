@@ -1,5 +1,6 @@
 "use client";
 
+import { PosthogPageview } from "@/ui/layout/posthog-pageview";
 import ModalProvider from "@/ui/modals/provider";
 import { KeyboardShortcutProvider } from "@dub/ui";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
@@ -22,7 +23,10 @@ export default function Providers({ children }: { children: ReactNode }) {
     <PostHogProvider client={posthog}>
       <SessionProvider>
         <ModalProvider>
-          <KeyboardShortcutProvider>{children}</KeyboardShortcutProvider>
+          <KeyboardShortcutProvider>
+            <PosthogPageview />
+            {children}
+          </KeyboardShortcutProvider>
         </ModalProvider>
         <VercelAnalytics />
       </SessionProvider>
