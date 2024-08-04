@@ -1,0 +1,7 @@
+# Database
+
+## Add Migration
+pnpm dlx prisma migrate dev --name <Message> --schema <Schema>
+
+Example:
+`pnpm dlx prisma migrate dev --name init --schema .\db\postgresql\schema\`
