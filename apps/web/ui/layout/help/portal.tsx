@@ -1,12 +1,10 @@
 "use client";
 
 import { Popover, useResizeObserver } from "@dub/ui";
-import { fetcher } from "@dub/utils";
 import va from "@vercel/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { createContext, useEffect, useRef, useState } from "react";
+import { createContext, useRef, useState } from "react";
 import { HelpArticle } from ".";
 import { ContactForm } from "./contact-form";
 import { HelpArticles } from "./help-articles";
@@ -27,12 +25,6 @@ export function HelpButton({
   allHelpArticles: HelpArticle[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const { data: session } = useSession();
-
-  useEffect(() => {
-    session && fetcher("/api/support");
-  }, [session]);
 
   return (
     <HelpContext.Provider value={{ popularHelpArticles, allHelpArticles }}>

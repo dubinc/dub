@@ -3,13 +3,6 @@ import { plain, upsertPlainCustomer } from "@/lib/plain";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-export const GET = withSession(async ({ session }) => {
-  const res = await upsertPlainCustomer(session);
-  return NextResponse.json({
-    data: res.data?.customer,
-  });
-});
-
 const supportRequestQuerySchema = z.object({
   message: z.string().min(1),
   attachmentIds: z.array(z.string()),
@@ -21,9 +14,30 @@ export const POST = withSession(async ({ req, session }) => {
     await req.json(),
   );
 
+  let plainCustomerId: string | null = null;
+
+  const plainCustomer = await plain.getCustomerByEmail({
+    email: session.user.email,
+  });
+
+  if (plainCustomer.data) {
+    plainCustomerId = plainCustomer.data.id;
+  } else {
+    const { data } = await upsertPlainCustomer(session);
+    if (data) {
+      plainCustomerId = data.customer.id;
+    }
+  }
+
+  if (!plainCustomerId) {
+    return NextResponse.json({
+      error: "Plain customer not found",
+    });
+  }
+
   const res = await plain.createThread({
     customerIdentifier: {
-      externalId: session.user.id,
+      customerId: plainCustomerId,
     },
     components: [
       {
@@ -34,6 +48,8 @@ export const POST = withSession(async ({ req, session }) => {
     ],
     attachmentIds,
   });
+
+  console.log({ res });
 
   return NextResponse.json(res);
 });
