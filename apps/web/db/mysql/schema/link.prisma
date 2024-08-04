@@ -2,10 +2,10 @@ model Link {
   id         String    @id @default(cuid())
   domain     String // domain of the link (e.g. dub.sh) – also stored on Redis
   key        String // key of the link (e.g. /github) – also stored on Redis
-  url        String // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
+  url        String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
   archived   Boolean   @default(false) // whether the link is archived or not
   expiresAt  DateTime? // when the link expires – stored on Redis via ttl
-  expiredUrl String? // URL to redirect the user to when the link is expired
+  expiredUrl String?   @db.LongText // URL to redirect the user to when the link is expired
   password   String? // password to access the link
   externalId String?
 
@@ -14,8 +14,8 @@ model Link {
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
-  image       String? // OG image for the link (e.g. https://d.to/og)
-  video       String? // OG video for the link
+  image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
+  video       String? @db.LongText // OG video for the link
 
   // UTM parameters
   utm_source   String? // UTM source for the link (e.g. youtube.com)
@@ -30,8 +30,8 @@ model Link {
   doIndex Boolean @default(false) // we don't index short links by default
 
   // Custom device targeting
-  ios     String? // custom link for iOS devices
-  android String? // custom link for Android devices
+  ios     String? @db.LongText // custom link for iOS devices
+  android String? @db.LongText // custom link for Android devices
   geo     Json?   @db.Json // custom link for specific countries
 
   // User who created the link
@@ -56,7 +56,7 @@ model Link {
   tags LinkTag[]
 
   // Comments on the particular shortlink
-  comments String?
+  comments String? @db.LongText
 
   @@unique([domain, key])
   @@unique([projectId, externalId])
@@ -70,4 +70,5 @@ model Link {
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
   @@index(userId)
+  @@fulltext([key, url])
 }

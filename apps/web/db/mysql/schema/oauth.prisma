@@ -4,7 +4,7 @@ model OAuthApp {
   name                String
   slug                String   @unique
   description         String?
-  readme              String?
+  readme              String?  @db.LongText
   developer           String
   website             String
   hashedClientSecret  String

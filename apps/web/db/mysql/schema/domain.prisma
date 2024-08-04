@@ -3,7 +3,7 @@ model Domain {
   slug        String   @unique
   verified    Boolean  @default(false)
   placeholder String   @default("https://dub.co/help/article/what-is-dub")
-  expiredUrl  String?  // URL to redirect to for expired links
+  expiredUrl  String?  @db.LongText // URL to redirect to for expired links
   primary     Boolean  @default(false)
   archived    Boolean  @default(false)
   lastChecked DateTime @default(now())
