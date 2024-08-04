@@ -215,11 +215,11 @@ module.exports = withAxiom({
     return [
       // for posthog proxy
       {
-        source: "/_proxy/ingest/static/:path*",
+        source: "/_posthog/ingest/static/:path*",
         destination: "https://us-assets.i.posthog.com/static/:path*",
       },
       {
-        source: "/_proxy/ingest/:path*",
+        source: "/_posthog/ingest/:path*",
         destination: "https://us.i.posthog.com/:path*",
       },
     ];
