@@ -1,6 +1,6 @@
 "use client";
 
-import { ModalContext } from "@/ui/modals/provider";
+import { ModalContext } from "@/ui/modals/modal-provider";
 import { useContext } from "react";
 
 export default function NoWorkspacesPlaceholder() {
