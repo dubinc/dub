@@ -12,11 +12,11 @@ import {
   Switch,
   Unsplash,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, resizeImage, truncate } from "@dub/utils";
-import va from "@vercel/analytics";
+import { FADE_IN_ANIMATION_SETTINGS, resizeImage } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import { motion } from "framer-motion";
 import { Link2, X } from "lucide-react";
+import posthog from "posthog-js";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -70,8 +70,9 @@ export default function OGSection({
     },
     onFinish: (_, completion) => {
       mutate();
-      va.track("Generated AI Meta Title", {
-        metadata: `Title: ${truncate(completion, 255 - (18 + data.url.length))} | URL: ${data.url}`,
+      posthog.capture("ai_meta_title_generated", {
+        title: completion,
+        url: data.url,
       });
     },
   });
@@ -116,8 +117,9 @@ export default function OGSection({
     },
     onFinish: (_, completion) => {
       mutate();
-      va.track("Generated AI Meta Description", {
-        metadata: `Description: ${truncate(completion, 255 - (25 + data.url.length))} | URL: ${data.url}`,
+      posthog.capture("ai_meta_description_generated", {
+        description: completion,
+        url: data.url,
       });
     },
   });

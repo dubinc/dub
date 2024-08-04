@@ -19,6 +19,7 @@ import { FADE_IN_ANIMATION_SETTINGS, capitalize } from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -146,6 +147,11 @@ function AddEditDomainModal({
                   { revalidate: true },
                 ),
               ]);
+              const data = await res.json();
+              posthog.capture(
+                props ? "domain_updated" : "domain_created",
+                data,
+              );
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
             } else {

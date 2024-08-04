@@ -1,5 +1,6 @@
 import { BlurImage, ClientOnly, Wordmark } from "@dub/ui";
 import Link from "next/link";
+import { Suspense } from "react";
 
 const logos = [
   "vercel",
@@ -39,7 +40,7 @@ export default function AuthLayout({
                 </h3>
               </div>
               <div className="grid gap-3 bg-gray-50 px-4 py-8 sm:px-16">
-                {children}
+                <Suspense>{children}</Suspense>
               </div>
             </div>
             <p className="mt-4 text-center text-sm text-gray-500">

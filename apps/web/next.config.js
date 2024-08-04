@@ -211,4 +211,17 @@ module.exports = withAxiom({
       },
     ];
   },
+  async rewrites() {
+    return [
+      // for posthog proxy
+      {
+        source: "/_posthog/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/_posthog/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+  },
 });
