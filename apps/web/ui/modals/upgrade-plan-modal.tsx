@@ -29,6 +29,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -313,6 +314,10 @@ function UpgradePlanModal({
                 }),
               })
                 .then(async (res) => {
+                  posthog.capture("checkout_opened", {
+                    currentPlan: capitalize(currentPlan),
+                    newPlan: selectedPlan.name,
+                  });
                   if (currentPlan === "free") {
                     const data = await res.json();
                     const { id: sessionId } = data;

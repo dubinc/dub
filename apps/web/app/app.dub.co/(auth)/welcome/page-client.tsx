@@ -3,10 +3,11 @@
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import Intro from "@/ui/welcome/intro";
-import va from "@vercel/analytics";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect } from "react";
 
 export default function WelcomePageClient() {
@@ -17,9 +18,17 @@ export default function WelcomePageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const { data: session } = useSession();
+
   useEffect(() => {
-    va.track("Sign Up");
-  }, []);
+    if (session?.user) {
+      posthog.identify(session.user["id"], {
+        email: session.user.email,
+        name: session.user.name,
+      });
+      posthog.capture("user_signed_up");
+    }
+  }, [session?.user]);
 
   useEffect(() => {
     if (searchParams.get("step") === "workspace") {

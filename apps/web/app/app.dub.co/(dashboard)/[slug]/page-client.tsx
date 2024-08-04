@@ -25,7 +25,9 @@ import {
 } from "@dub/ui";
 import { CloudUpload, Download, Tag } from "@dub/ui/src/icons";
 import { Sheet } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   ReactNode,
@@ -35,6 +37,17 @@ import {
 } from "react";
 
 export default function WorkspaceLinksClient() {
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session?.user) {
+      posthog.identify(session.user["id"], {
+        email: session.user.email,
+        name: session.user.name,
+      });
+    }
+  }, [session?.user]);
+
   return (
     <LinksDisplayProvider>
       <WorkspaceLinks />

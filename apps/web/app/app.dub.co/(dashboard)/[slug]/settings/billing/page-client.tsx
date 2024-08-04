@@ -13,8 +13,8 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { getFirstAndLastDay, nFormatter } from "@dub/utils";
-import va from "@vercel/analytics";
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useMemo, useState } from "react";
 import Confetti from "react-dom-confetti";
 import { toast } from "sonner";
@@ -71,10 +71,11 @@ export default function WorkspaceBillingClient() {
       setTimeout(() => {
         mutate(`/api/workspaces/${id}`);
         // track upgrade event
-        plan &&
-          va.track("Upgraded Plan", {
+        if (plan) {
+          posthog.capture("plan_upgraded", {
             plan,
           });
+        }
       }, 1000);
     }
   }, [searchParams, plan]);

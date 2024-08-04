@@ -8,8 +8,8 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import slugify from "@sindresorhus/slugify";
-import va from "@vercel/analytics";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   FormEvent,
@@ -98,9 +98,13 @@ function AddWorkspaceModalHelper({
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
-              const { workspaceId } = await res.json();
+              const { id: workspaceId } = await res.json();
               // track workspace creation event
-              va.track("Created Workspace");
+              posthog.capture("workspace_created", {
+                workspace_id: workspaceId,
+                workspace_name: data.name,
+                workspace_slug: data.slug,
+              });
               await mutate("/api/workspaces");
               if (welcomeFlow) {
                 router.push(`/welcome?step=upgrade&slug=${slug}`);

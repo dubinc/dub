@@ -1,9 +1,9 @@
 "use client";
 
 import { Popover, useResizeObserver } from "@dub/ui";
-import va from "@vercel/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
+import posthog from "posthog-js";
 import { createContext, useRef, useState } from "react";
 import { HelpArticle } from ".";
 import { ContactForm } from "./contact-form";
@@ -38,7 +38,7 @@ export function HelpButton({
           type="button"
           onClick={() => {
             if (!isOpen) {
-              va.track("Open help portal");
+              posthog.capture("help_portal_opened");
             }
             setIsOpen((o) => !o);
           }}
