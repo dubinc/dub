@@ -1,7 +1,7 @@
 import HelpPortal from "@/ui/layout/help";
 import { Background } from "@dub/ui";
 import { ReactNode } from "react";
-import Providers from "./providers";
+import Providers from "../(dashboard)/providers";
 
 export const runtime = "edge";
 
