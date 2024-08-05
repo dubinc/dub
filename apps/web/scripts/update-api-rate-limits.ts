@@ -12,9 +12,8 @@ async function main() {
         },
       },
     },
-    take: 500
+    take: 500,
   });
-
 
   for (const token of tokens) {
     const plan = getCurrentPlan(token.project.plan);
