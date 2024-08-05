@@ -1,6 +1,8 @@
 import SettingsLayout from "@/ui/layout/settings-layout";
 import {
   CircleInfo,
+  Cube,
+  Dots,
   Gear2,
   Globe,
   Key,
@@ -17,57 +19,80 @@ export default function WorkspaceSettingsLayout({
   children: ReactNode;
 }) {
   const tabs = [
+    // Workspace Settings
     {
-      name: "General",
-      icon: Gear2,
-      segment: null,
+      group: "Workspace Settings",
+      tabs: [
+        {
+          name: "General",
+          icon: Gear2,
+          segment: null,
+        },
+        {
+          name: "Domains",
+          icon: Globe,
+          segment: "domains",
+        },
+        {
+          name: "Tags",
+          icon: Tag,
+          segment: "tags",
+        },
+        {
+          name: "Billing",
+          icon: Receipt2,
+          segment: "billing",
+        },
+        {
+          name: "People",
+          icon: Users6,
+          segment: "people",
+        },
+        {
+          name: "Integrations",
+          icon: Dots,
+          segment: "integrations",
+        },
+        {
+          name: "Security",
+          icon: ShieldCheck,
+          segment: "security",
+        },
+      ],
     },
-    {
-      name: "Domains",
-      icon: Globe,
-      segment: "domains",
-    },
-    {
-      name: "Tags",
-      icon: Tag,
-      segment: "tags",
-    },
-    {
-      name: "Billing",
-      icon: Receipt2,
-      segment: "billing",
-    },
-    {
-      name: "People",
-      icon: Users6,
-      segment: "people",
-    },
-    {
-      name: "API Keys",
-      icon: Key,
-      segment: "tokens",
-    },
-    {
-      name: "Security",
-      icon: ShieldCheck,
-      segment: "security",
-    },
-  ];
 
-  const extraTabs = [
+    // Developer Settings
     {
-      name: "Notifications",
-      icon: CircleInfo,
-      segment: "notifications",
+      group: "Developer Settings",
+      tabs: [
+        {
+          name: "API Keys",
+          icon: Key,
+          segment: "tokens",
+        },
+        {
+          name: "OAuth Apps",
+          icon: Cube,
+          segment: "oauth-apps",
+        },
+      ],
+    },
+
+    // Account Settings
+    {
+      group: "Account Settings",
+      tabs: [
+        {
+          name: "Notifications",
+          icon: CircleInfo,
+          segment: "notifications",
+        },
+      ],
     },
   ];
 
   return (
-    <SettingsLayout
-      tabs={tabs}
-      extraTabs={extraTabs}
-      tabContainerClassName="top-16"
-    >
+    <SettingsLayout tabs={tabs} tabContainerClassName="top-16">
       {children}
     </SettingsLayout>
   );
