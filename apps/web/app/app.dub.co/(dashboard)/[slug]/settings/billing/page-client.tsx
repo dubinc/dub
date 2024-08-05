@@ -76,7 +76,7 @@ export default function WorkspaceBillingClient() {
         if (plan) {
           const planDetails = getPlanDetails(plan)!;
           // track upgrade event
-          plausible("Upgraded Plan TEST", {
+          plausible("Upgraded Plan", {
             props: {
               revenue: {
                 currency: "USD",
