@@ -20,6 +20,7 @@ import {
   capitalize,
   cn,
 } from "@dub/utils";
+import { trackEvent } from "fathom-client";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { usePlausible } from "next-plausible";
@@ -317,6 +318,7 @@ function UpgradePlanModal({
                 }),
               })
                 .then(async (res) => {
+                  trackEvent("Opened Checkout");
                   plausible("Opened Checkout");
                   posthog.capture("checkout_opened", {
                     currentPlan: capitalize(currentPlan),

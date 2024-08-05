@@ -3,6 +3,7 @@
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import Intro from "@/ui/welcome/intro";
+import { trackEvent } from "fathom-client";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -24,6 +25,7 @@ export default function WelcomePageClient() {
   const { data: session } = useSession();
 
   useEffect(() => {
+    trackEvent("Signed Up");
     plausible("Signed Up");
     if (session?.user) {
       posthog.identify(session.user["id"], {

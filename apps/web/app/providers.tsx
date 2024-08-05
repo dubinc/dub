@@ -1,5 +1,6 @@
 "use client";
 
+import { Fathom } from "@/ui/layout/fathom";
 import { PosthogPageview } from "@/ui/layout/posthog-pageview";
 import { ModalProvider } from "@/ui/modals/modal-provider";
 import { KeyboardShortcutProvider } from "@dub/ui";
@@ -34,6 +35,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       <SessionProvider>
         <ModalProvider>
           <KeyboardShortcutProvider>
+            <Fathom />
             <PosthogPageview />
             {children}
           </KeyboardShortcutProvider>
