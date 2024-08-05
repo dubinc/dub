@@ -9,7 +9,7 @@ import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
-import { log } from "@dub/utils";
+import { getPrettyUrl, log, parseDateTime } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Papa from "papaparse";
 import { Readable } from "stream";
@@ -26,23 +26,19 @@ export async function POST(req: Request) {
 
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
 
-    const map = (row: Record<string, string>) => {
-      const createdAt = mapping.createdAt
-        ? new Date(row[mapping.createdAt])
-        : undefined;
-
+    const mapper = (row: Record<string, string>) => {
       return {
         ...Object.fromEntries(
           Object.entries(mapping).map(([key, value]) => [key, row[value]]),
         ),
-        domain: row[mapping.domain]?.replace(/^https?:\/\//, "").split("/")[0],
+        domain: getPrettyUrl(row[mapping.domain]).split("/")[0],
+        // domain.com/path/to/page => path/to/page
         key:
-          row[mapping.key]
-            ?.replace(/^https?:\/\//, "")
-            .split("/")
-            .at(-1) ?? "",
-        createdAt:
-          createdAt && !isNaN(createdAt.getTime()) ? createdAt : undefined,
+          getPrettyUrl(row[mapping.key]).split("/").slice(1).join("/") ??
+          "_root",
+        createdAt: mapping.createdAt
+          ? parseDateTime(row[mapping.createdAt])
+          : undefined,
         tags: mapping.tags
           ? row[mapping.tags]?.split(",").map((tag) => tag.trim())
           : undefined,
@@ -106,7 +102,7 @@ export async function POST(req: Request) {
                 in: domains.map((domain) => domain.slug),
               },
               key: {
-                in: data.map((row) => map(row).key),
+                in: data.map((row) => mapper(row).key),
               },
             },
             select: {
@@ -117,7 +113,7 @@ export async function POST(req: Request) {
 
           // Find which links still need to be created
           const linksToCreate = data
-            .map((row) => map(row))
+            .map((row) => mapper(row))
             .filter(
               (link) =>
                 !alreadyCreatedLinks.some(
