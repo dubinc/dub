@@ -12,7 +12,8 @@ import {
   ProgressBar,
   useRouterStuff,
 } from "@dub/ui";
-import { getFirstAndLastDay, nFormatter } from "@dub/utils";
+import { getFirstAndLastDay, getPlanDetails, nFormatter } from "@dub/utils";
+import { usePlausible } from "next-plausible";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useMemo, useState } from "react";
@@ -64,16 +65,27 @@ export default function WorkspaceBillingClient() {
   const { queryParams } = useRouterStuff();
   const [confetti, setConfetti] = useState(false);
 
+  const plausible = usePlausible();
+
   useEffect(() => {
     if (searchParams?.get("success")) {
       toast.success("Upgrade success!");
       setConfetti(true);
-      setTimeout(() => {
-        mutate(`/api/workspaces/${id}`);
-        // track upgrade event
-        if (plan) {
+      setTimeout(async () => {
+        await mutate(`/api/workspaces/${id}`);
+        const currentPlan = plan ? getPlanDetails(plan) : undefined;
+        if (currentPlan && currentPlan.price.monthly) {
+          // track upgrade event
+          plausible("Upgraded Plan", {
+            props: {},
+            revenue: {
+              currency: "USD",
+              amount: currentPlan.price.monthly,
+            },
+          });
           posthog.capture("plan_upgraded", {
-            plan,
+            plan: currentPlan.name,
+            revenue: currentPlan.price.monthly,
           });
         }
       }, 1000);

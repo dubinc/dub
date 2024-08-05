@@ -6,11 +6,14 @@ import Intro from "@/ui/welcome/intro";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { usePlausible } from "next-plausible";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect } from "react";
 
 export default function WelcomePageClient() {
+  const plausible = usePlausible();
+
   const { setShowAddWorkspaceModal, AddWorkspaceModal } =
     useAddWorkspaceModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
@@ -21,6 +24,7 @@ export default function WelcomePageClient() {
   const { data: session } = useSession();
 
   useEffect(() => {
+    plausible("Signed Up");
     if (session?.user) {
       posthog.identify(session.user["id"], {
         email: session.user.email,

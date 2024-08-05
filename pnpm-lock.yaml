@@ -230,6 +230,9 @@ importers:
       next-axiom:
         specifier: ^1.3.0
         version: 1.3.0(@types/node@18.11.9)(next@14.3.0-canary.42)(react@18.2.0)
+      next-plausible:
+        specifier: ^3.12.0
+        version: 3.12.0(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)
       next-safe-action:
         specifier: 7.1.4-experimental.1
         version: 7.1.4-experimental.1(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)(zod@3.22.4)
@@ -15945,6 +15948,18 @@ packages:
       - sugarss
       - supports-color
       - terser
+    dev: false
+
+  /next-plausible@3.12.0(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-SSkEqKQ6PgR8fx3sYfIAT69k2xuCUXO5ngkSS19CjxY97lAoZxsfZpYednxB4zo0mHYv87JzhPynrdBPlCBVHg==}
+    peerDependencies:
+      next: ^11.1.0 || ^12.0.0 || ^13.0.0 || ^14.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      next: 14.3.0-canary.42(@babel/core@7.23.0)(@opentelemetry/api@1.8.0)(react-dom@18.2.0)(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
     dev: false
 
   /next-safe-action@7.1.4-experimental.1(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)(zod@3.22.4):

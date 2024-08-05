@@ -8,6 +8,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import slugify from "@sindresorhus/slugify";
+import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -31,6 +32,7 @@ function AddWorkspaceModalHelper({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const plausible = usePlausible();
 
   const [data, setData] = useState<{
     name: string;
@@ -99,6 +101,7 @@ function AddWorkspaceModalHelper({
           }).then(async (res) => {
             if (res.status === 200) {
               const { id: workspaceId } = await res.json();
+              plausible("Created Workspace");
               // track workspace creation event
               posthog.capture("workspace_created", {
                 workspace_id: workspaceId,

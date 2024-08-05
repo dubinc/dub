@@ -22,6 +22,7 @@ import {
 } from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { usePlausible } from "next-plausible";
 import Link from "next/link";
 import {
   useParams,
@@ -69,6 +70,8 @@ function UpgradePlanModal({
   const [clicked, setClicked] = useState(false);
   const [clickedCompare, setClickedCompare] = useState(false);
   const { queryParams } = useRouterStuff();
+
+  const plausible = usePlausible();
 
   return (
     <Modal

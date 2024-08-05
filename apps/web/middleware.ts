@@ -22,13 +22,12 @@ export const config = {
      * Match all paths except for:
      * 1. /api/ routes
      * 2. /_next/ (Next.js internals)
-     * 3. /_proxy/ (special page for OG tags proxying)
+     * 3. /_proxy/ (proxies for third-party services)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
-     * 6. /_posthog (PostHog proxy)
-     * 7. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
+     * 6. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
      */
-    "/((?!api/|_next/|_proxy/|_static|_vercel|_posthog|[\\w-]+\\.\\w+).*)",
+    "/((?!api/|_next/|_proxy/|_static|_vercel|[\\w-]+\\.\\w+).*)",
   ],
 };
 
