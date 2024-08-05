@@ -22,7 +22,7 @@ export const config = {
      * Match all paths except for:
      * 1. /api/ routes
      * 2. /_next/ (Next.js internals)
-     * 3. /_proxy/ (special page for OG tags proxying)
+     * 3. /_proxy/ (proxies for third-party services)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
      * 6. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
