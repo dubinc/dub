@@ -37,6 +37,9 @@ export async function POST(req: Request) {
             ?.replace(/^https?:\/\//, "")
             .split("/")
             .at(-1) ?? "",
+        createdAt: mapping.createdAt
+          ? new Date(row[mapping.createdAt])
+          : undefined,
         tags: mapping.tags
           ? row[mapping.tags]?.split(",").map((tag) => tag.trim())
           : undefined,
@@ -192,10 +195,11 @@ export async function POST(req: Request) {
                 bulk: true,
               }),
             ),
-            ...linksToCreate.map(({ tags, ...link }) =>
+            ...linksToCreate.map(({ createdAt, tags, ...link }) =>
               processLink({
                 payload: createLinkBodySchema.parse({
                   ...link,
+                  createdAt: createdAt?.toISOString(),
                   tagNames: tags || undefined,
                 }),
                 workspace: workspace as WorkspaceProps,

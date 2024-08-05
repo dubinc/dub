@@ -9,7 +9,7 @@ import {
   TableIcon,
   Xmark,
 } from "@dub/ui/src/icons";
-import { cn, truncate } from "@dub/utils";
+import { cn, formatDate, truncate } from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -47,7 +47,7 @@ export function FieldMapping() {
   }, [fileColumns, firstRows]);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <p className="text-sm text-gray-600">
         Please select the column that corresponds to each field:
       </p>
@@ -104,6 +104,11 @@ function FieldRow({
             .map((e) => e.trim())
             .join(" & "),
         );
+      case "createdAt":
+        // Convert to date
+        values = values.map((e) =>
+          formatDate(new Date(e), { month: "short", year: undefined }),
+        );
         break;
     }
 
@@ -115,7 +120,7 @@ function FieldRow({
   return (
     <div key={field} className="flex items-center justify-between gap-6">
       <span className="flex items-center gap-1">
-        <span className="text-sm font-medium text-gray-950">
+        <span className="whitespace-nowrap text-sm font-medium text-gray-950">
           {label} {required && <span className="text-red-700">*</span>}
         </span>
         {["domain", "key"].includes(field) && (
@@ -173,7 +178,7 @@ function FieldRow({
             >
               <Button
                 variant="secondary"
-                className="min-w-16 px-3"
+                className="h-9 min-w-16 px-3"
                 onClick={() => setIsOpen((o) => !o)}
                 disabled={isLoading}
                 text={
