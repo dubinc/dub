@@ -130,6 +130,7 @@ function ImportCsvModal({
           del: "import",
         })
       }
+      className="h-fit max-h-[95dvh] overflow-y-auto"
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">

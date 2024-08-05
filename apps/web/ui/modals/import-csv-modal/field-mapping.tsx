@@ -176,7 +176,7 @@ function FieldRow({
           )}
         />
         {Boolean(examples?.length) && (
-          <div className="-mr-6 ml-2 shrink-0">
+          <div className="-mr-6 ml-2 hidden shrink-0 sm:block">
             <Tooltip
               content={
                 <div className="block px-3 py-2 text-sm">
