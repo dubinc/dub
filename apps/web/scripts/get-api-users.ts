@@ -4,12 +4,27 @@ import "dotenv-flow/config";
 async function main() {
   const users = await prisma.user.findMany({
     where: {
-      tokens: {
-        some: {},
-      },
+      OR: [
+        {
+          tokens: {
+            some: {},
+          },
+        },
+        {
+          restrictedTokens: {
+            some: {},
+          },
+        },
+      ],
     },
   });
-  console.log(users.map((user) => user.email).join(", "));
+
+  console.log(
+    users
+      .filter((user) => user.email)
+      .map((user) => user.email)
+      .join(", "),
+  );
 }
 
 main();
