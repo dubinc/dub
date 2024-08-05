@@ -27,7 +27,17 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
   const searchParams = useSearchParams();
   const { slug, id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
-  const { executeAsync, result, status } = useAction(generateClientSecret);
+  const { executeAsync, result, isExecuting } = useAction(
+    generateClientSecret,
+    {
+      onSuccess: () => {
+        toast.success("New client secret generated.");
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError?.serverError);
+      },
+    },
+  );
 
   const { data: oAuthApp, isLoading } = useSWR<OAuthAppProps>(
     `/api/oauth/apps/${appId}?workspaceId=${workspaceId}`,
@@ -94,26 +104,16 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
                 <Button
-                  text={
-                    status === "executing"
-                      ? "Regenerating..."
-                      : "Regenerate secret"
-                  }
+                  text={isExecuting ? "Regenerating..." : "Regenerate secret"}
                   variant="outline"
                   icon={<RefreshCcw className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
-                  disabled={status === "executing"}
+                  disabled={isExecuting}
                   onClick={async () => {
                     await executeAsync({
                       workspaceId: workspaceId!,
-                      integrationId: appId,
+                      appId,
                     });
-
-                    if (status === "hasSucceeded") {
-                      toast.success("New client secret generated.");
-                    } else if (status === "hasErrored") {
-                      toast.error(result.serverError?.serverError);
-                    }
 
                     setOpenPopover(false);
                   }}
