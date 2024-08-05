@@ -16,7 +16,7 @@ export default function OAuthAppCredentials({
   }
 
   return (
-    <div className="flex flex-col space-y-3 bg-gray-50 text-left">
+    <div className="flex flex-col space-y-3 text-left">
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-500">Client ID</label>
         <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-3">

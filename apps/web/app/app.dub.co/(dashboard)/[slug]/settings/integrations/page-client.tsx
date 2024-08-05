@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
-import IntegrationCard from "@/ui/integrations/integration-card";
+import IntegrationCard from "@/ui/oauth-apps/integration-card";
 import { redirect } from "next/navigation";
 
 export default function IntegrationsPageClient({
@@ -13,11 +13,11 @@ export default function IntegrationsPageClient({
   const { slug, flags } = useWorkspace();
 
   if (!flags?.integrations) {
-    redirect(`/${slug}`);
+    redirect(`/${slug}/settings`);
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2">
       {integrations.map((integration) => (
         <IntegrationCard key={integration.clientId} {...integration} />
       ))}
