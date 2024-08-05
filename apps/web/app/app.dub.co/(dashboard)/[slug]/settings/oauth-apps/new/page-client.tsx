@@ -8,7 +8,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default function NewOAuthAppPageClient() {
-  const { slug, flags } = useWorkspace();
+  const { slug, flags, role } = useWorkspace();
 
   if (!flags?.integrations) {
     redirect(`/${slug}/settings`);
