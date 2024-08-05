@@ -1,32 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
-import { MaxWidthWrapper } from "@dub/ui";
 import { Suspense } from "react";
 import IntegrationsPageClient from "./page-client";
-import PageHeader from "./page-header";
 
 export const revalidate = 300; // 5 minutes
 
-export default async function IntegrationsPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const { slug } = params;
-
+export default async function IntegrationsPage() {
   return (
     <>
-      <PageHeader slug={slug} />
-      <MaxWidthWrapper className="flex flex-col gap-3 py-4">
-        <Suspense fallback={<Loader />}>
-          <Integrations slug={slug} />
-        </Suspense>
-      </MaxWidthWrapper>
+      <Suspense fallback={<Loader />}>
+        <Integrations />
+      </Suspense>
     </>
   );
 }
 
-const Integrations = async ({ slug }: { slug: string }) => {
+const Integrations = async () => {
   const integrations = await prisma.oAuthApp.findMany({
     where: {
       verified: true,
@@ -52,8 +41,8 @@ const Integrations = async ({ slug }: { slug: string }) => {
 
 const Loader = () => {
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      {Array.from({ length: 3 }).map((_, i) => (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {Array.from({ length: 4 }).map((_, i) => (
         <OAuthAppPlaceholder key={i} />
       ))}
     </div>

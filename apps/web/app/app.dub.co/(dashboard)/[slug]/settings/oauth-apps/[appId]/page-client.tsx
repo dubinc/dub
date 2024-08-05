@@ -66,7 +66,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
             Back to OAuth Apps
           </p>
         </Link>
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-2">
           {isLoading ? (
             <div className="flex items-center gap-x-3">
               <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
