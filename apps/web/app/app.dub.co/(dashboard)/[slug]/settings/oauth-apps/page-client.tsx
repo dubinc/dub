@@ -34,8 +34,8 @@ export default function OAuthAppsPageClient() {
           <InfoTooltip
             content={
               <TooltipContent
-                title="Learn more about how to manage OAuth applications on Dub."
-                href="https://dub.co/help/category/custom-domains"
+                title="Learn how to use OAuth applications to build integrations with Dub."
+                href="https://dub.co/docs/integrations/quickstart"
                 target="_blank"
                 cta="Learn more"
               />
