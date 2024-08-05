@@ -10,7 +10,7 @@ export default function IntegrationsPageHeader() {
   const { slug, flags } = useWorkspace();
 
   if (!flags?.integrations) {
-    redirect(`/${slug}`);
+    redirect(`/${slug}/settings`);
   }
 
   return (

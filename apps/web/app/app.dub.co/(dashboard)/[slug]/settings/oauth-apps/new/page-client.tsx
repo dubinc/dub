@@ -11,7 +11,7 @@ export default function NewOAuthAppPageClient() {
   const { slug, flags } = useWorkspace();
 
   if (!flags?.integrations) {
-    redirect(`/${slug}`);
+    redirect(`/${slug}/settings`);
   }
 
   return (

@@ -16,7 +16,7 @@ export default function OAuthAppsPageClient() {
   const { slug, id: workspaceId, flags } = useWorkspace();
 
   if (!flags?.integrations) {
-    redirect(`/${slug}`);
+    redirect(`/${slug}/settings`);
   }
 
   const { data: oAuthApps, isLoading } = useSWR<OAuthAppProps[]>(
