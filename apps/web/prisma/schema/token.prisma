@@ -21,7 +21,7 @@ model RestrictedToken {
   scopes         String? // space separated (Eg: "links:write", "domains:read")
   expires        DateTime?
   lastUsed       DateTime?
-  rateLimit      Int       @default(600) // rate limit per minute
+  rateLimit      Int       @default(60) // rate limit per minute
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   userId         String
