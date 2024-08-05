@@ -288,7 +288,7 @@ export function InputSelect({
               ref={floatingRefs.setFloating}
               style={floatingStyles}
               {...getFloatingProps()}
-              className="z-20 flex w-full min-w-[160px] flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-md transition-all duration-75"
+              className="z-20 flex w-full min-w-[160px] flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-md"
             >
               <div
                 ref={scrollRef}
