@@ -20,7 +20,6 @@ import posthog from "posthog-js";
 import { useEffect, useMemo, useState } from "react";
 import Confetti from "react-dom-confetti";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 export default function WorkspaceBillingClient() {
   const router = useRouter();
@@ -70,29 +69,38 @@ export default function WorkspaceBillingClient() {
 
   useEffect(() => {
     if (searchParams?.get("success")) {
-      toast.success("Upgrade success!");
       setConfetti(true);
-      setTimeout(async () => {
-        await mutate(`/api/workspaces/${id}`);
-        const currentPlan = plan ? getPlanDetails(plan) : undefined;
-        if (currentPlan && currentPlan.price.monthly) {
-          // track upgrade event
-          trackEvent(`Upgraded to ${currentPlan.name}`, {
-            _value: currentPlan.price.monthly * 100, // in cents
-          });
-          plausible("Upgraded Plan", {
-            props: {},
-            revenue: {
-              currency: "USD",
-              amount: currentPlan.price.monthly,
-            },
-          });
-          posthog.capture("plan_upgraded", {
+      const plan = searchParams.get("plan");
+      const period = searchParams.get("period");
+      const currentPlan = plan ? getPlanDetails(plan) : undefined;
+      toast.success(`Successfully upgraded to ${currentPlan?.name || plan}!`);
+      if (currentPlan && period) {
+        // track upgrade event
+        trackEvent(`Upgraded to ${currentPlan.name}`, {
+          _value: currentPlan.price[period] * 100, // in cents
+        });
+        plausible("Upgraded Plan", {
+          props: {
             plan: currentPlan.name,
-            revenue: currentPlan.price.monthly,
-          });
-        }
-      }, 1000);
+            period,
+          },
+          revenue: {
+            currency: "USD",
+            amount: currentPlan.price[period],
+          },
+        });
+        plausible(`Upgraded to ${currentPlan.name}`, {
+          revenue: {
+            currency: "USD",
+            amount: currentPlan.price[period],
+          },
+        });
+        posthog.capture("plan_upgraded", {
+          plan: currentPlan.name,
+          period,
+          revenue: currentPlan.price[period],
+        });
+      }
     }
   }, [searchParams, plan]);
 
