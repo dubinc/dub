@@ -2,12 +2,14 @@ import { prisma } from "@/lib/prisma";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import { Suspense } from "react";
 import IntegrationsPageClient from "./page-client";
+import IntegrationsPageHeader from "./page-header";
 
 export const revalidate = 300; // 5 minutes
 
 export default async function IntegrationsPage() {
   return (
     <>
+      <IntegrationsPageHeader />
       <Suspense fallback={<Loader />}>
         <Integrations />
       </Suspense>
