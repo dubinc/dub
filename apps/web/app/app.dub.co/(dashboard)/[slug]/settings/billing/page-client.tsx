@@ -73,20 +73,19 @@ export default function WorkspaceBillingClient() {
       setConfetti(true);
       setTimeout(async () => {
         await mutate(`/api/workspaces/${id}`);
-        if (plan) {
-          const planDetails = getPlanDetails(plan)!;
+        const currentPlan = plan ? getPlanDetails(plan) : undefined;
+        if (currentPlan && currentPlan.price.monthly) {
           // track upgrade event
           plausible("Upgraded Plan", {
-            props: {
-              revenue: {
-                currency: "USD",
-                amount: planDetails.price.monthly,
-              },
+            props: {},
+            revenue: {
+              currency: "USD",
+              amount: currentPlan.price.monthly,
             },
           });
           posthog.capture("plan_upgraded", {
-            plan,
-            revenue: planDetails.price.monthly,
+            plan: currentPlan.name,
+            revenue: currentPlan.price.monthly,
           });
         }
       }, 1000);
