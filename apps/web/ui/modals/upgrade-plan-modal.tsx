@@ -317,6 +317,7 @@ function UpgradePlanModal({
                 }),
               })
                 .then(async (res) => {
+                  plausible("Opened Checkout");
                   posthog.capture("checkout_opened", {
                     currentPlan: capitalize(currentPlan),
                     newPlan: selectedPlan.name,
