@@ -54,7 +54,7 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    let machineUser: User | null = null;
+    let machineUser: Pick<User, "id"> | null = null;
 
     const { role } = await prisma.projectUsers.findUniqueOrThrow({
       where: {
@@ -90,6 +90,9 @@ export const POST = withWorkspace(
         data: {
           name: `${randomName} (Machine User)`,
           isMachine: true,
+        },
+        select: {
+          id: true,
         },
       });
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
-import va from "@vercel/analytics";
 import Cookies from "js-cookie";
 import { Edit3, HelpCircle, LogOut, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -86,8 +85,6 @@ export default function UserDropdown() {
                 signOut({
                   callbackUrl: "/login",
                 });
-                // track logout event
-                va.track("Logout");
               }}
             >
               <IconMenu text="Logout" icon={<LogOut className="h-4 w-4" />} />

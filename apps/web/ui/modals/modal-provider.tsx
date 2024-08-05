@@ -20,6 +20,7 @@ import {
   Dispatch,
   ReactNode,
   SetStateAction,
+  Suspense,
   createContext,
   useEffect,
   useMemo,
@@ -53,7 +54,15 @@ export const ModalContext = createContext<{
   setShowImportCsvModal: () => {},
 });
 
-export default function ModalProvider({ children }: { children: ReactNode }) {
+export function ModalProvider({ children }: { children: ReactNode }) {
+  return (
+    <Suspense>
+      <ModalProviderClient>{children}</ModalProviderClient>
+    </Suspense>
+  );
+}
+
+function ModalProviderClient({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const newLinkValues = useMemo(() => {
     const newLink = searchParams.get("newLink");

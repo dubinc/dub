@@ -51,8 +51,8 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
-import va from "@vercel/analytics";
 import { readStreamableValue } from "ai/rsc";
+import posthog from "posthog-js";
 import {
   ComponentProps,
   useCallback,
@@ -165,7 +165,7 @@ export default function Toggle({
     cacheOnly: !isRequested("os"),
   });
   const referers = useAnalyticsFilterOption("referers", {
-    cacheOnly: !isRequested("referers"),
+    cacheOnly: !isRequested("referer"),
   });
 
   // Some suggestions will only appear if previously requested (see isRequested above)
@@ -546,8 +546,9 @@ export default function Toggle({
                         });
                       }
                     }
-                    va.track("Generated AI filters", {
+                    posthog.capture("ai_filters_generated", {
                       prompt,
+                      filters: activeFilters,
                     });
                     setStreaming(false);
                   } else {

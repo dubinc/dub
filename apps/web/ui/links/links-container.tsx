@@ -92,7 +92,7 @@ function LinksList({
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>
             {links?.length
               ? // Link cards
-                links.map((link) => <LinkCard link={link} />)
+                links.map((link) => <LinkCard key={link.id} link={link} />)
               : // Loading placeholder cards
                 Array.from({ length: 12 }).map((_, idx) => (
                   <CardList.Card
@@ -133,7 +133,9 @@ function LinksList({
           {loading ? (
             <LoadingSpinner className="size-3.5" />
           ) : (
-            <ArchivedLinksHint />
+            <div className="hidden sm:block">
+              <ArchivedLinksHint />
+            </div>
           )}
         </CardList.Pagination>
       )}

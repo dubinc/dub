@@ -137,7 +137,7 @@ export default function AnalyticsProvider({
         domain: domainSlug,
       };
     } else {
-      // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
+      // Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
         baseApiPath: `/api/analytics/edge`,

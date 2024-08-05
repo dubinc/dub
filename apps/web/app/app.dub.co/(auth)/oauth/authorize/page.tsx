@@ -83,7 +83,7 @@ export default async function Authorize({
         <ScopesRequested scopes={requestParams.scope} />
       </div>
       <div className="flex flex-col space-y-2 border-t border-gray-200 bg-white px-2 py-6 sm:rounded-b-2xl sm:px-10">
-        <Suspense fallback={<></>}>
+        <Suspense>
           <AuthorizeForm oAuthApp={oAuthApp} {...requestParams} />
         </Suspense>
       </div>

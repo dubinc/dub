@@ -5,7 +5,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ModalContext } from "@/ui/modals/provider";
+import { ModalContext } from "@/ui/modals/modal-provider";
 import { Badge, useScroll } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
