@@ -196,11 +196,14 @@ export async function POST(req: Request) {
             ),
             ...linksToCreate.map(({ createdAt, tags, ...link }) =>
               processLink({
-                payload: createLinkBodySchema.parse({
-                  ...link,
+                payload: {
+                  ...createLinkBodySchema.parse({
+                    ...link,
+                    tagNames: tags || undefined,
+                  }),
+                  // 'createdAt' is not a valid field in createLinkBodySchema – but is valid for CSV imports
                   createdAt: createdAt?.toISOString(),
-                  tagNames: tags || undefined,
-                }),
+                },
                 workspace: workspace as WorkspaceProps,
                 userId,
                 bulk: true,
