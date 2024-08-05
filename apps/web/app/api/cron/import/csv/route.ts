@@ -27,6 +27,10 @@ export async function POST(req: Request) {
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
 
     const map = (row: Record<string, string>) => {
+      const createdAt = mapping.createdAt
+        ? new Date(row[mapping.createdAt])
+        : undefined;
+
       return {
         ...Object.fromEntries(
           Object.entries(mapping).map(([key, value]) => [key, row[value]]),
@@ -37,9 +41,8 @@ export async function POST(req: Request) {
             ?.replace(/^https?:\/\//, "")
             .split("/")
             .at(-1) ?? "",
-        createdAt: mapping.createdAt
-          ? new Date(row[mapping.createdAt])
-          : undefined,
+        createdAt:
+          createdAt && !isNaN(createdAt.getTime()) ? createdAt : undefined,
         tags: mapping.tags
           ? row[mapping.tags]?.split(",").map((tag) => tag.trim())
           : undefined,
