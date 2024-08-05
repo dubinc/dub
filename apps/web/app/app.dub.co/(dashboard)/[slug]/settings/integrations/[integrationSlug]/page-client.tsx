@@ -30,7 +30,6 @@ export default function IntegrationPageClient({
   integration: InstalledIntegrationInfoProps;
 }) {
   const { slug } = useWorkspace();
-
   const [openPopover, setOpenPopover] = useState(false);
 
   const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
@@ -39,16 +38,16 @@ export default function IntegrationPageClient({
     });
 
   return (
-    <MaxWidthWrapper className="my-10 grid max-w-screen-lg gap-8">
+    <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
       {integration.installed && <UninstallIntegrationModal />}
       <Link
-        href={`/${slug}/integrations`}
+        href={`/${slug}/settings/integrations`}
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />
         <p className="text-sm font-medium text-gray-500">Integrations</p>
       </Link>
-      <div className="flex justify-between">
+      <div className="flex justify-between gap-2">
         <div className="flex items-center gap-x-3">
           <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
             {integration.logo ? (
@@ -68,6 +67,7 @@ export default function IntegrationPageClient({
             <p className="text-sm text-gray-500">{integration.description}</p>
           </div>
         </div>
+
         {integration.installed && (
           <Popover
             align="end"
@@ -105,7 +105,7 @@ export default function IntegrationPageClient({
         {integration.installed && (
           <div className="flex items-center gap-2">
             <Avatar user={integration.installed.by} className="size-8" />
-            <div>
+            <div className="flex flex-col gap-1">
               <p className="text-xs text-gray-500">INSTALLED BY</p>
               <p className="text-sm font-medium text-gray-700">
                 {integration.installed.by.name}
@@ -118,20 +118,24 @@ export default function IntegrationPageClient({
             </div>
           </div>
         )}
-        <div>
+
+        <div className="flex flex-col gap-1">
           <p className="text-xs text-gray-500">DEVELOPER</p>
           <div className="flex items-center gap-x-1 text-sm font-medium text-gray-700">
-            <OfficeBuilding className="size-4" />
+            <OfficeBuilding className="size-3" />
             {integration.developer}
           </div>
         </div>
-        <div>
+
+        <div className="flex flex-col gap-1">
           <p className="text-xs text-gray-500">WEBSITE</p>
           <a
             href={integration.website}
             className="flex items-center gap-x-1 text-sm font-medium text-gray-700"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Globe className="size-4" />
+            <Globe className="size-3" />
             {getPrettyUrl(integration.website)}
           </a>
         </div>
@@ -143,7 +147,7 @@ export default function IntegrationPageClient({
           <p className="text-sm font-medium text-gray-700">Overview</p>
         </div>
 
-        {integration.screenshots?.length && (
+        {integration.screenshots && integration.screenshots.length > 0 ? (
           <Carousel autoplay={{ delay: 5000 }} className="bg-white p-8">
             <CarouselContent>
               {integration.screenshots.map((src, idx) => (
@@ -160,7 +164,7 @@ export default function IntegrationPageClient({
             </CarouselContent>
             <CarouselNavBar variant="floating" />
           </Carousel>
-        )}
+        ) : null}
 
         {integration.readme && (
           <Markdown
