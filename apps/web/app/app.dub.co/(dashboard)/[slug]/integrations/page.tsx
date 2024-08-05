@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import OAuthAppPlaceholder from "@/ui/integrations/oauth-app-placeholder";
+import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import { MaxWidthWrapper } from "@dub/ui";
 import { Suspense } from "react";
 import IntegrationsPageClient from "./page-client";

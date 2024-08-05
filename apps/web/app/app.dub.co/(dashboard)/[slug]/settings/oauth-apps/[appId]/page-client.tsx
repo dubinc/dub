@@ -3,9 +3,9 @@
 import { generateClientSecret } from "@/lib/actions/generate-client-secret";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
-import AddEditIntegrationForm from "@/ui/integrations/add-edit-integration-form";
-import OAuthAppCredentials from "@/ui/integrations/oauth-app-credentials";
-import { useRemoveIntegrationModal } from "@/ui/modals/remove-integration-modal";
+import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";
+import AddOAuthAppForm from "@/ui/oauth-apps/add-edit-app-form";
+import OAuthAppCredentials from "@/ui/oauth-apps/oauth-app-credentials";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   BlurImage,
@@ -23,45 +23,44 @@ import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-export default function IntegrationManagePageClient({
-  integrationId,
-}: {
-  integrationId: string;
-}) {
+export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
   const searchParams = useSearchParams();
   const { slug, id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const { executeAsync, result, status } = useAction(generateClientSecret);
-  const { data: integration, isLoading } = useSWR<OAuthAppProps>(
-    `/api/oauth/apps/${integrationId}?workspaceId=${workspaceId}`,
+
+  const { data: oAuthApp, isLoading } = useSWR<OAuthAppProps>(
+    `/api/oauth/apps/${appId}?workspaceId=${workspaceId}`,
     fetcher,
   );
 
-  const { RemoveIntegrationModal, setShowRemoveIntegrationModal } =
-    useRemoveIntegrationModal({
-      integration,
+  const { RemoveOAuthAppModal, setShowRemoveOAuthAppModal } =
+    useRemoveOAuthAppModal({
+      oAuthApp,
     });
 
-  if (!isLoading && !integration) {
+  if (!isLoading && !oAuthApp) {
     return notFound();
   }
 
   return (
     <>
-      <MaxWidthWrapper className="my-10 grid max-w-screen-lg gap-8">
-        <RemoveIntegrationModal />
+      <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
+        <RemoveOAuthAppModal />
         <Link
-          href={`/${slug}/integrations/manage`}
+          href={`/${slug}/settings/oauth-apps`}
           className="flex items-center gap-x-1"
         >
           <ChevronLeft className="size-4" />
-          <p className="text-sm font-medium text-gray-500">My Integrations</p>
+          <p className="text-sm font-medium text-gray-500">
+            Back to OAuth Apps
+          </p>
         </Link>
         <div className="flex justify-between">
           {isLoading ? (
             <div className="flex items-center gap-x-3">
               <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-                <TokenAvatar id="placeholder-integration" className="size-8" />
+                <TokenAvatar id="placeholder-oauth-app" className="size-8" />
               </div>
               <div className="flex flex-col gap-2">
                 <div className="h-3 w-20 rounded-full bg-gray-100"></div>
@@ -71,25 +70,21 @@ export default function IntegrationManagePageClient({
           ) : (
             <div className="flex items-center gap-x-3">
               <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-                {integration?.logo ? (
+                {oAuthApp?.logo ? (
                   <BlurImage
-                    src={integration.logo}
-                    alt={`Logo for ${integration.name}`}
+                    src={oAuthApp.logo}
+                    alt={`Logo for ${oAuthApp.name}`}
                     className="size-8 rounded-full border border-gray-200"
                     width={20}
                     height={20}
                   />
                 ) : (
-                  <TokenAvatar id={integration?.clientId!} className="size-8" />
+                  <TokenAvatar id={oAuthApp?.clientId!} className="size-8" />
                 )}
               </div>
               <div>
-                <p className="font-semibold text-gray-700">
-                  {integration?.name}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {integration?.description}
-                </p>
+                <p className="font-semibold text-gray-700">{oAuthApp?.name}</p>
+                <p className="text-sm text-gray-500">{oAuthApp?.description}</p>
               </div>
             </div>
           )}
@@ -111,7 +106,7 @@ export default function IntegrationManagePageClient({
                   onClick={async () => {
                     await executeAsync({
                       workspaceId: workspaceId!,
-                      integrationId,
+                      integrationId: appId,
                     });
 
                     if (status === "hasSucceeded") {
@@ -124,12 +119,12 @@ export default function IntegrationManagePageClient({
                   }}
                 />
                 <Button
-                  text="Remove Integration"
+                  text="Remove application"
                   variant="danger-outline"
                   icon={<Trash className="h-4 w-4" />}
                   className="h-9 justify-start px-2"
                   onClick={() => {
-                    setShowRemoveIntegrationModal(true);
+                    setShowRemoveOAuthAppModal(true);
                   }}
                 />
               </div>
@@ -152,19 +147,19 @@ export default function IntegrationManagePageClient({
       </MaxWidthWrapper>
 
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        {integration && (
+        {oAuthApp && (
           <>
             <OAuthAppCredentials
-              clientId={integration.clientId}
+              clientId={oAuthApp.clientId}
               clientSecret={
                 result.data?.clientSecret ||
                 searchParams.get("client_secret") ||
                 null
               }
-              partialClientSecret={integration.partialClientSecret}
+              partialClientSecret={oAuthApp.partialClientSecret}
             />
             <hr />
-            <AddEditIntegrationForm integration={integration} />
+            <AddOAuthAppForm oAuthApp={oAuthApp} />
           </>
         )}
       </MaxWidthWrapper>

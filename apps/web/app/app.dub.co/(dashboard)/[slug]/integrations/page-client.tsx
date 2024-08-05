@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
-import IntegrationCard from "@/ui/integrations/integration-card";
+import IntegrationCard from "@/ui/oauth-apps/integration-card";
 import { redirect } from "next/navigation";
 
 export default function IntegrationsPageClient({

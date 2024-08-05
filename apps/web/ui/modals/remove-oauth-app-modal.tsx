@@ -11,14 +11,14 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-function RemoveIntegrationModal({
-  showRemoveIntegrationModal,
-  setShowRemoveIntegrationModal,
-  integration,
+function RemoveOAuthAppModal({
+  showRemoveOAuthAppModal,
+  setShowRemoveOAuthAppModal,
+  oAuthApp,
 }: {
-  showRemoveIntegrationModal: boolean;
-  setShowRemoveIntegrationModal: Dispatch<SetStateAction<boolean>>;
-  integration:
+  showRemoveOAuthAppModal: boolean;
+  setShowRemoveOAuthAppModal: Dispatch<SetStateAction<boolean>>;
+  oAuthApp:
     | Pick<
         OAuthAppProps,
         "id" | "name" | "description" | "logo" | "installations"
@@ -30,11 +30,11 @@ function RemoveIntegrationModal({
   const [deleting, setDeleting] = useState(false);
   const { id: workspaceId, slug: workspaceSlug, logo } = useWorkspace();
 
-  const deleteIntegration = async () => {
+  const deleteOAuthApp = async () => {
     setDeleting(true);
 
     const response = await fetch(
-      `/api/oauth/apps/${integration?.id}?workspaceId=${workspaceId}`,
+      `/api/oauth/apps/${oAuthApp?.id}?workspaceId=${workspaceId}`,
       {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -48,18 +48,18 @@ function RemoveIntegrationModal({
       throw new Error(error.message);
     }
 
-    setShowRemoveIntegrationModal(false);
-    router.push(`/${workspaceSlug}/integrations/manage`);
+    setShowRemoveOAuthAppModal(false);
+    router.push(`/${workspaceSlug}/settings/oauth-apps`);
   };
 
-  if (!integration) {
+  if (!oAuthApp) {
     return null;
   }
 
   return (
     <Modal
-      showModal={showRemoveIntegrationModal}
-      setShowModal={setShowRemoveIntegrationModal}
+      showModal={showRemoveOAuthAppModal}
+      setShowModal={setShowRemoveOAuthAppModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
@@ -73,9 +73,9 @@ function RemoveIntegrationModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">Delete {integration.name}</h3>
+        <h3 className="text-lg font-medium">Delete {oAuthApp.name}</h3>
         <p className="text-center text-sm text-gray-500">
-          Deleting this integration will invalidate any access tokens authorized
+          Deleting this application will invalidate any access tokens authorized
           by users. Are you sure you want to continue?
         </p>
       </div>
@@ -84,9 +84,9 @@ function RemoveIntegrationModal({
         onSubmit={async (e) => {
           e.preventDefault();
 
-          toast.promise(deleteIntegration(), {
-            loading: "Deleting integration...",
-            success: "Integration deleted successfully!",
+          toast.promise(deleteOAuthApp(), {
+            loading: "Deleting application...",
+            success: "Application deleted successfully!",
             error: (err) => err,
           });
         }}
@@ -95,7 +95,7 @@ function RemoveIntegrationModal({
         <div>
           <label htmlFor="verification" className="block text-sm text-gray-700">
             To verify, type{" "}
-            <span className="font-semibold text-black">{integration.name}</span>{" "}
+            <span className="font-semibold text-black">{oAuthApp.name}</span>{" "}
             below
           </label>
           <div className="relative mt-1 rounded-md shadow-sm">
@@ -103,7 +103,7 @@ function RemoveIntegrationModal({
               type="text"
               name="verification"
               id="verification"
-              pattern={integration.name}
+              pattern={oAuthApp.name}
               required
               autoFocus={false}
               autoComplete="off"
@@ -124,34 +124,33 @@ function RemoveIntegrationModal({
   );
 }
 
-export function useRemoveIntegrationModal({
-  integration,
+export function useRemoveOAuthAppModal({
+  oAuthApp,
 }: {
-  integration:
+  oAuthApp:
     | Pick<
         OAuthAppProps,
         "id" | "name" | "description" | "logo" | "installations"
       >
     | undefined;
 }) {
-  const [showRemoveIntegrationModal, setShowRemoveIntegrationModal] =
-    useState(false);
+  const [showRemoveOAuthAppModal, setShowRemoveOAuthAppModal] = useState(false);
 
-  const RemoveIntegrationModalCallback = useCallback(() => {
+  const RemoveOAuthAppModalCallback = useCallback(() => {
     return (
-      <RemoveIntegrationModal
-        showRemoveIntegrationModal={showRemoveIntegrationModal}
-        setShowRemoveIntegrationModal={setShowRemoveIntegrationModal}
-        integration={integration}
+      <RemoveOAuthAppModal
+        showRemoveOAuthAppModal={showRemoveOAuthAppModal}
+        setShowRemoveOAuthAppModal={setShowRemoveOAuthAppModal}
+        oAuthApp={oAuthApp}
       />
     );
-  }, [showRemoveIntegrationModal, setShowRemoveIntegrationModal]);
+  }, [showRemoveOAuthAppModal, setShowRemoveOAuthAppModal]);
 
   return useMemo(
     () => ({
-      setShowRemoveIntegrationModal,
-      RemoveIntegrationModal: RemoveIntegrationModalCallback,
+      setShowRemoveOAuthAppModal,
+      RemoveOAuthAppModal: RemoveOAuthAppModalCallback,
     }),
-    [setShowRemoveIntegrationModal, RemoveIntegrationModalCallback],
+    [setShowRemoveOAuthAppModal, RemoveOAuthAppModalCallback],
   );
 }
