@@ -18,10 +18,7 @@
     "strict": true
   },
   "include": [
-    "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    "tsup.config.ts"
   ],
   "exclude": [
     "node_modules"

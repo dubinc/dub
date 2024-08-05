@@ -4,7 +4,7 @@ import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
-import { Prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { combineTagIds, transformLink } from "./utils";
 

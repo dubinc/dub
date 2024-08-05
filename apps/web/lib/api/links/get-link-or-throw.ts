@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
-import { Link } from "@dub/prisma";
+import type { Link } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 interface GetLinkParams {

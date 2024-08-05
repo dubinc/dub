@@ -10,7 +10,7 @@ import {
   getParamsFromURL,
   truncate,
 } from "@dub/utils";
-import { Prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { updateLinksUsage } from "./update-links-usage";
 import { combineTagIds, transformLink } from "./utils";

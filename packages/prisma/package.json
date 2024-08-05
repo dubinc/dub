@@ -18,9 +18,5 @@
     "prisma": "5.16.2",
     "tsx": "^4.11.0",
     "typescript": "5.2.2"
-  },
-  "exports": {
-    ".": "./index.ts",
-    "./edge": "./edge.ts"
   }
 }

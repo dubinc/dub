@@ -12,7 +12,7 @@ import {
   punyEncode,
   validKeyRegex,
 } from "@dub/utils";
-import { Link, Tag } from "@dub/prisma";
+import type { Link, Tag } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 export type LinkWithTags = Link & {

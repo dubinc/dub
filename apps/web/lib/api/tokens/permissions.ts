@@ -1,5 +1,5 @@
 import { combineWords } from "@dub/utils";
-import { Role } from "@dub/prisma";
+import type { Role } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 import { PermissionAction, ROLE_PERMISSIONS } from "../rbac/permissions";
 
