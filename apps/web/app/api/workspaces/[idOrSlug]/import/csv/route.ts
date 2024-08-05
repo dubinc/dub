@@ -20,7 +20,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       workspaceId: workspace.id,
       userId: session?.user?.id,
       id,
-      url: `workspaces/${workspace.id}/import/csv/${id}.csv`,
+      url: `csv-uploads/${id}.csv`,
       mapping,
     },
   });

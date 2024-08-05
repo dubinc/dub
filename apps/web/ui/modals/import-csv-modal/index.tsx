@@ -168,7 +168,10 @@ function ImportCsvModal({
                 try {
                   // Get signed upload URL
                   const uploadRes = await fetch(
-                    `/api/workspaces/${workspaceId}/import/csv/upload`,
+                    `/api/workspaces/${workspaceId}/import/csv/upload-url`,
+                    {
+                      method: "POST",
+                    },
                   );
 
                   if (!uploadRes.ok || !data.file) {
@@ -176,10 +179,10 @@ function ImportCsvModal({
                     return;
                   }
 
-                  const { url, id } = await uploadRes.json();
+                  const { id, signedUrl } = await uploadRes.json();
 
                   // Upload the file
-                  await fetch(url, {
+                  await fetch(signedUrl, {
                     method: "PUT",
                     body: data.file,
                     headers: {
