@@ -1,11 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  ExistingIntegration,
-  NewIntegration,
-  OAuthAppProps,
-} from "@/lib/types";
+import { ExistingOAuthApp, NewOAuthApp, OAuthAppProps } from "@/lib/types";
 import {
   Button,
   FileUpload,
@@ -23,7 +19,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-const defaultValues: NewIntegration = {
+const defaultValues: NewOAuthApp = {
   name: "",
   slug: "",
   description: "",
@@ -38,10 +34,10 @@ const defaultValues: NewIntegration = {
   updatedAt: new Date(),
 };
 
-export default function AddEditIntegrationForm({
-  integration,
+export default function AddOAuthAppForm({
+  oAuthApp,
 }: {
-  integration: OAuthAppProps | null;
+  oAuthApp: OAuthAppProps | null;
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -61,8 +57,8 @@ export default function AddEditIntegrationForm({
     redirect(`/${workspaceSlug}`);
   }
 
-  const [data, setData] = useState<NewIntegration | ExistingIntegration>(
-    integration || defaultValues,
+  const [data, setData] = useState<NewOAuthApp | ExistingOAuthApp>(
+    oAuthApp || defaultValues,
   );
 
   useEffect(() => {
@@ -73,36 +69,34 @@ export default function AddEditIntegrationForm({
   }, [data.name]);
 
   useEffect(() => {
-    if (integration) {
-      setUrls(
-        integration.redirectUris.map((u) => ({ id: nanoid(), value: u })),
-      );
+    if (oAuthApp) {
+      setUrls(oAuthApp.redirectUris.map((u) => ({ id: nanoid(), value: u })));
 
       setScreenshots(
-        (integration.screenshots || []).map((s) => ({
+        (oAuthApp.screenshots || []).map((s) => ({
           uploading: false,
           key: s,
         })),
       );
     }
-  }, [integration]);
+  }, [oAuthApp]);
 
   // Determine the endpoint
   const endpoint = useMemo(() => {
-    if (integration) {
+    if (oAuthApp) {
       return {
         method: "PATCH",
-        url: `/api/oauth/apps/${integration.id}?workspaceId=${workspaceId}`,
-        successMessage: "Integration updated!",
+        url: `/api/oauth/apps/${oAuthApp.id}?workspaceId=${workspaceId}`,
+        successMessage: "Application updated!",
       };
     } else {
       return {
         method: "POST",
         url: `/api/oauth/apps?workspaceId=${workspaceId}`,
-        successMessage: "Integration created!",
+        successMessage: "Application created!",
       };
     }
-  }, [integration]);
+  }, [oAuthApp]);
 
   // Save the form data
   const onSubmit = async (e: FormEvent) => {
@@ -129,7 +123,7 @@ export default function AddEditIntegrationForm({
       toast.success(endpoint.successMessage);
 
       if (endpoint.method === "POST") {
-        const url = `/${workspaceSlug}/integrations/manage/${result.id}${
+        const url = `/${workspaceSlug}/settings/oauth-apps/${result.id}${
           result.clientSecret ? `?client_secret=${result.clientSecret}` : ""
         }`;
 
@@ -215,7 +209,7 @@ export default function AddEditIntegrationForm({
             readFile
             imageSrc={
               logo ||
-              `https://api.dicebear.com/7.x/shapes/svg?seed=${integration?.clientId}`
+              `https://api.dicebear.com/7.x/shapes/svg?seed=${oAuthApp?.clientId}`
             }
             onChange={({ src }) => setData({ ...data, logo: src })}
             content={null}
@@ -478,7 +472,7 @@ export default function AddEditIntegrationForm({
         </div>
 
         <Button
-          text={integration ? "Save changes" : "Create"}
+          text={oAuthApp ? "Save changes" : "Create"}
           disabled={buttonDisabled || uploading}
           loading={saving}
           type="submit"
