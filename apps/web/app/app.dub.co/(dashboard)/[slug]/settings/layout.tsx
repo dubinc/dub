@@ -1,3 +1,4 @@
+import { getFeatureFlags } from "@/lib/edge-config";
 import SettingsLayout from "@/ui/layout/settings-layout";
 import {
   CircleInfo,
@@ -13,11 +14,16 @@ import {
 } from "@dub/ui/src/icons";
 import { ReactNode } from "react";
 
-export default function WorkspaceSettingsLayout({
+export default async function WorkspaceSettingsLayout({
   children,
+  params,
 }: {
   children: ReactNode;
+  params: { slug: string };
 }) {
+  const { slug } = params;
+  const flags = await getFeatureFlags(slug);
+
   const tabs = [
     // Workspace Settings
     {
@@ -48,11 +54,9 @@ export default function WorkspaceSettingsLayout({
           icon: Users6,
           segment: "people",
         },
-        {
-          name: "Integrations",
-          icon: Dots,
-          segment: "integrations",
-        },
+        ...(flags?.integrations
+          ? [{ name: "Integrations", icon: Dots, segment: "integrations" }]
+          : []),
         {
           name: "Security",
           icon: ShieldCheck,
@@ -70,11 +74,9 @@ export default function WorkspaceSettingsLayout({
           icon: Key,
           segment: "tokens",
         },
-        {
-          name: "OAuth Apps",
-          icon: Cube,
-          segment: "oauth-apps",
-        },
+        ...(flags?.integrations
+          ? [{ name: "OAuth Apps", icon: Cube, segment: "oauth-apps" }]
+          : []),
       ],
     },
 
