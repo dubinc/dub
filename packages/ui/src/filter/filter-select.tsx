@@ -13,11 +13,8 @@ import {
   useState,
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
-import {
-  useKeyboardShortcut,
-  useMediaQuery,
-  useResizeObserver,
-} from "../hooks";
+import { useKeyboardShortcut, useMediaQuery } from "../hooks";
+import { useScrollProgress } from "../hooks/use-scroll-progress";
 import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
 import { Filter, FilterOption } from "./types";
@@ -315,22 +312,7 @@ const FilterScroll = forwardRef(
     const ref = useRef<HTMLDivElement>(null);
     useImperativeHandle(forwardedRef, () => ref.current);
 
-    const [scrollProgress, setScrollProgress] = useState(1);
-
-    const updateScrollProgress = useCallback(() => {
-      if (!ref.current) return;
-      const { scrollTop, scrollHeight, clientHeight } = ref.current;
-
-      setScrollProgress(
-        scrollHeight === clientHeight
-          ? 1
-          : scrollTop / (scrollHeight - clientHeight),
-      );
-    }, []);
-
-    const resizeObserverEntry = useResizeObserver(ref);
-
-    useEffect(updateScrollProgress, [resizeObserverEntry]);
+    const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
 
     return (
       <>
