@@ -36,6 +36,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.26.20",
     "@internationalized/date": "^3.5.3",
     "@radix-ui/react-accordion": "^1.0.1",
     "@radix-ui/react-checkbox": "^1.0.4",
