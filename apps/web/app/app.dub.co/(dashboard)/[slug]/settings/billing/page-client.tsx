@@ -13,6 +13,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { getFirstAndLastDay, getPlanDetails, nFormatter } from "@dub/utils";
+import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -76,6 +77,9 @@ export default function WorkspaceBillingClient() {
         const currentPlan = plan ? getPlanDetails(plan) : undefined;
         if (currentPlan && currentPlan.price.monthly) {
           // track upgrade event
+          trackEvent(`Upgraded to ${currentPlan.name}`, {
+            _value: currentPlan.price.monthly * 100, // in cents
+          });
           plausible("Upgraded Plan", {
             props: {},
             revenue: {

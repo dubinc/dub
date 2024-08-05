@@ -8,6 +8,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import slugify from "@sindresorhus/slugify";
+import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -101,6 +102,7 @@ function AddWorkspaceModalHelper({
           }).then(async (res) => {
             if (res.status === 200) {
               const { id: workspaceId } = await res.json();
+              trackEvent("Created Workspace");
               plausible("Created Workspace");
               // track workspace creation event
               posthog.capture("workspace_created", {
