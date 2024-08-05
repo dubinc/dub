@@ -10,11 +10,10 @@ import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { log } from "@dub/utils";
-import { sendEmail } from "emails";
-import LinksImported from "emails/links-imported";
 import { NextResponse } from "next/server";
 import Papa from "papaparse";
 import { Readable } from "stream";
+import { sendCsvImportEmails } from "./utils";
 
 export const dynamic = "force-dynamic";
 
@@ -27,29 +26,32 @@ export async function POST(req: Request) {
 
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
 
+    const map = (row: Record<string, string>) => {
+      return {
+        ...Object.fromEntries(
+          Object.entries(mapping).map(([key, value]) => [key, row[value]]),
+        ),
+        domain: row[mapping.domain]?.replace(/^https?:\/\//, "").split("/")[0],
+        key:
+          row[mapping.key]
+            ?.replace(/^https?:\/\//, "")
+            .split("/")
+            .at(-1) ?? "",
+        tags: mapping.tags
+          ? row[mapping.tags]?.split(",").map((tag) => tag.trim())
+          : undefined,
+      };
+    };
+
     let cursor = parseInt(
       (await redis.get(`import:csv:${workspaceId}:${id}:cursor`)) ?? "0",
     );
 
+    let count = cursor; // Count the total number of links added
+
     const workspace = (await prisma.project.findUniqueOrThrow({
       where: { id: workspaceId },
-      include: {
-        users: {
-          where: {
-            role: "owner",
-          },
-          select: {
-            user: {
-              select: {
-                email: true,
-              },
-            },
-          },
-        },
-      },
-    })) as WorkspaceProps & { users: { user: { email: string } }[] };
-
-    const ownerEmail = workspace?.users[0].user.email ?? "";
+    })) as WorkspaceProps;
 
     const response = await storage.fetch(url);
 
@@ -67,8 +69,6 @@ export async function POST(req: Request) {
 
     const addedTags: string[] = [];
     const addedDomains: string[] = [];
-
-    let count = 0;
 
     await new Promise((resolve, reject) => {
       Papa.parse(Readable.fromWeb(response.body as any), {
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
                 in: domains.map((domain) => domain.slug),
               },
               key: {
-                in: data.map((row) => row[mapping.key]),
+                in: data.map((row) => map(row).key),
               },
             },
             select: {
@@ -111,32 +111,22 @@ export async function POST(req: Request) {
 
           // Find which links still need to be created
           const linksToCreate = data
+            .map((row) => map(row))
             .filter(
-              (row) =>
+              (link) =>
                 !alreadyCreatedLinks.some(
-                  (l) =>
-                    l.domain === row[mapping.domain] &&
-                    l.key === row[mapping.key],
+                  (l) => l.domain === link.domain && l.key === link.key,
                 ),
-            )
-            .map((row) =>
-              Object.fromEntries(
-                Object.entries(mapping).map(([key, value]) => [
-                  key,
-                  row[value],
-                ]),
-              ),
             );
 
           const selectedTags = [
             ...new Set(
               linksToCreate
-                .map(
-                  ({ tags }) => tags?.split(",").map((tag) => tag.trim()) ?? [],
-                )
-                .flat(),
+                .map(({ tags }) => tags)
+                .flat()
+                .filter(Boolean),
             ),
-          ];
+          ] as string[];
 
           // Find tags that need to be added to the workspace
           const tagsNotInWorkspace = selectedTags.filter(
@@ -206,12 +196,6 @@ export async function POST(req: Request) {
               processLink({
                 payload: createLinkBodySchema.parse({
                   ...link,
-                  // Special splitting for domains/keys so they can map from a full URL
-                  domain: link.domain.replace(/^https?:\/\//, "").split("/")[0],
-                  key: link.key
-                    .replace(/^https?:\/\//, "")
-                    .split("/")
-                    .at(-1),
                   tagNames: tags || undefined,
                 }),
                 workspace: workspace as WorkspaceProps,
@@ -227,14 +211,21 @@ export async function POST(req: Request) {
 
           let errorLinks = processedLinks
             .filter(({ error }) => error != null)
-            .map(({ link, error, code }) => ({
-              link,
+            .map(({ link: { domain, key }, error }) => ({
+              domain,
+              key,
               error,
-              code,
             }));
-          // TODO: Use errorLinks
 
-          // Creat all links
+          // Keep track of error links
+          if (errorLinks.length > 0) {
+            await redis.rpush(
+              `import:csv:${workspaceId}:${id}:failed`,
+              ...errorLinks,
+            );
+          }
+
+          // Create all links
           await bulkCreateLinks({
             links: validLinks,
           });
@@ -249,20 +240,30 @@ export async function POST(req: Request) {
       });
     });
 
-    await redis.del(`import:csv:${workspaceId}:${id}:cursor`);
+    const errorLinks = (await redis.lrange(
+      `import:csv:${workspaceId}:${id}:failed`,
+      0,
+      -1,
+    )) as any;
 
-    sendEmail({
-      subject: `Your CSV links have been imported!`,
-      email: ownerEmail,
-      react: LinksImported({
-        email: ownerEmail,
-        provider: "CSV",
-        count,
-        links: [],
-        domains: addedDomains,
-        workspaceName: workspace?.name ?? "",
-        workspaceSlug: workspace?.slug ?? "",
-      }),
+    sendCsvImportEmails({
+      workspaceId,
+      count,
+      domains: addedDomains,
+      errorLinks:
+        Array.isArray(errorLinks) && errorLinks.length > 0 ? errorLinks : [],
+    });
+
+    // Clear out storage file and redis keys
+    const clearResults = await Promise.allSettled([
+      storage.delete(url),
+      redis.del(`import:csv:${workspaceId}:${id}:cursor`),
+      redis.del(`import:csv:${workspaceId}:${id}:failed`),
+    ]);
+    clearResults.forEach((result, idx) => {
+      if (result.status === "rejected") {
+        console.error(`Error clearing CSV import data (${idx})`, result.reason);
+      }
     });
 
     return NextResponse.json({

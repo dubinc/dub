@@ -128,7 +128,7 @@ export default function LinksImported({
                 ))}
               </Section>
             )}
-            {links.length > 5 && (
+            {count > 5 && (
               <Section className="my-8 text-center">
                 <Link
                   className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"

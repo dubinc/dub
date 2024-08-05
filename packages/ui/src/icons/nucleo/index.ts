@@ -70,3 +70,4 @@ export * from "./users6";
 export * from "./watch";
 export * from "./window";
 export * from "./window-settings";
+export * from "./xmark";

@@ -2,8 +2,14 @@
 
 import { generateCsvMapping } from "@/lib/ai/generate-csv-mapping";
 import { Button, IconMenu, InfoTooltip, Popover, Tooltip } from "@dub/ui";
-import { Check, LoadingSpinner, Magnifier, TableIcon } from "@dub/ui/src/icons";
-import { truncate } from "@dub/utils";
+import {
+  Check,
+  LoadingSpinner,
+  Magnifier,
+  TableIcon,
+  Xmark,
+} from "@dub/ui/src/icons";
+import { cn, truncate } from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -131,22 +137,35 @@ function FieldRow({
               align="end"
               content={
                 <div className="w-full p-2 md:w-48">
-                  {fileColumns?.map((column) => (
-                    <button
-                      key={column}
-                      onClick={() => {
-                        field.onChange(column);
-                        setIsOpen(false);
-                      }}
-                      className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200"
-                    >
-                      <IconMenu
-                        text={column}
-                        icon={<TableIcon className="h-4 w-4 flex-none" />}
-                      />
-                      {field.value === column && <Check className="h-4 w-4" />}
-                    </button>
-                  ))}
+                  {[
+                    ...(fileColumns || []),
+                    ...(field.value ? ["None"] : []),
+                  ]?.map((column) => {
+                    const Icon = column !== "None" ? TableIcon : Xmark;
+                    return (
+                      <button
+                        key={column}
+                        onClick={() => {
+                          field.onChange(
+                            column !== "None" ? column : undefined,
+                          );
+                          setIsOpen(false);
+                        }}
+                        className={cn(
+                          "flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200",
+                          column === "None" && "text-gray-400",
+                        )}
+                      >
+                        <IconMenu
+                          text={column}
+                          icon={<Icon className="h-4 w-4 flex-none" />}
+                        />
+                        {field.value === column && (
+                          <Check className="h-4 w-4" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               }
               openPopover={isOpen}
