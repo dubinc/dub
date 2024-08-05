@@ -1,18 +1,13 @@
 import { FileUpload, LoadingSpinner } from "@dub/ui";
 import { truncate } from "@dub/utils";
+import Papa from "papaparse";
 import { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { useCsvContext } from ".";
 
 export function SelectFile() {
-  const {
-    watch,
-    control,
-    fileColumns,
-    setFileColumns,
-    firstRows,
-    setFirstRows,
-  } = useCsvContext();
+  const { watch, control, fileColumns, setFileColumns, setFirstRows } =
+    useCsvContext();
 
   const file = watch("file");
   const [error, setError] = useState<string | null>(null);
@@ -25,33 +20,28 @@ export function SelectFile() {
 
     readLines(file, 4)
       .then((lines) => {
-        if (lines.length < 2) {
+        const { data, meta } = Papa.parse(lines, {
+          worker: false,
+          skipEmptyLines: true,
+          header: true,
+        });
+
+        if (!data || data.length < 2) {
           setError("CSV file must have at least 2 rows.");
           setFileColumns(null);
           setFirstRows(null);
           return;
         }
 
-        const split = lines[0].split(",");
-        if (split.length <= 1) {
+        if (!meta || !meta.fields || meta.fields.length <= 1) {
           setError("Failed to retrieve CSV column data.");
           setFileColumns(null);
           setFirstRows(null);
           return;
         }
 
-        setFileColumns(split);
-        setFirstRows(
-          lines
-            .slice(1)
-            .map((line) =>
-              Object.fromEntries(
-                line
-                  .split(",")
-                  .map((value, idx) => [split[idx] ?? "unknown", value]),
-              ),
-            ),
-        );
+        setFileColumns(meta.fields);
+        setFirstRows(data);
       })
       .catch(() => {
         setError("Failed to read CSV file.");
@@ -110,7 +100,7 @@ const listColumns = (columns: string[]) => {
   return allTruncated.join(", ");
 };
 
-const readLines = async (file: File, count = 4): Promise<string[]> => {
+const readLines = async (file: File, count = 4): Promise<string> => {
   const reader = file.stream().getReader();
   const decoder = new TextDecoder("utf-8");
   let { value: chunk, done: readerDone } = await reader.read();
@@ -121,9 +111,9 @@ const readLines = async (file: File, count = 4): Promise<string[]> => {
     const lines = content.split("\n");
     if (lines.length >= count) {
       reader.cancel();
-      return lines.slice(0, count);
+      return lines.slice(0, count).join("\n");
     }
     ({ value: chunk, done: readerDone } = await reader.read());
   }
-  return result;
+  return result.join("\n");
 };

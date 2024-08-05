@@ -75,17 +75,31 @@ function FieldRow({
 
     let values = firstRows?.map((row) => row[value]).filter(Boolean);
 
-    // Special split handling for domains and keys (should match backend)
-    if (field === "domain")
-      values = values.map((e) => e.replace(/^https?:\/\//, "").split("/")[0]);
-    if (field === "key")
-      values = values.map(
-        (e) =>
+    switch (field) {
+      case "domain":
+        // Split by "/" and take the first part (excluding protocol)
+        values = values.map((e) => e.replace(/^https?:\/\//, "").split("/")[0]);
+        break;
+      case "key":
+        // Split by "/" and take the last part
+        values = values.map(
+          (e) =>
+            e
+              .replace(/^https?:\/\//, "")
+              .split("/")
+              .at(-1) as string,
+        );
+        break;
+      case "tags":
+        // Split by commas
+        values = values.map((e) =>
           e
-            .replace(/^https?:\/\//, "")
-            .split("/")
-            .at(-1) as string,
-      );
+            .split(",")
+            .map((e) => e.trim())
+            .join(" & "),
+        );
+        break;
+    }
 
     values = values.map((e) => truncate(e, 16) as string);
 
@@ -102,6 +116,9 @@ function FieldRow({
           <InfoTooltip
             content={`If your file doesn't have an independent ${field} column, you can map this to the full URL instead.`}
           />
+        )}
+        {field === "tags" && (
+          <InfoTooltip content="Tags may be comma-separated as long as they're escaped properly in the CSV file." />
         )}
       </span>
       <div className="flex min-w-0 items-center">

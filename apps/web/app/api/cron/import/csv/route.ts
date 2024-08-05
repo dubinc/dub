@@ -8,6 +8,7 @@ import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { log } from "@dub/utils";
 import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
@@ -52,7 +53,11 @@ export async function POST(req: Request) {
 
     const response = await storage.fetch(url);
 
-    const [domains, defaultDomains] = await Promise.all([
+    const [tags, domains, defaultDomains] = await Promise.all([
+      prisma.tag.findMany({
+        where: { projectId: workspace.id },
+        select: { name: true },
+      }),
       prisma.domain.findMany({
         where: { projectId: workspace.id },
         select: { slug: true },
@@ -60,7 +65,9 @@ export async function POST(req: Request) {
       getDefaultDomains(workspace.id),
     ]);
 
+    const addedTags: string[] = [];
     const addedDomains: string[] = [];
+
     let count = 0;
 
     await new Promise((resolve, reject) => {
@@ -86,7 +93,7 @@ export async function POST(req: Request) {
             return;
           }
 
-          // Find links that already exist in the workspace (we still need to double check matching both domain and key)
+          // Find links that already exist in the workspace (we check matching of *both* domain and key below)
           const alreadyCreatedLinks = await prisma.link.findMany({
             where: {
               domain: {
@@ -102,6 +109,7 @@ export async function POST(req: Request) {
             },
           });
 
+          // Find which links still need to be created
           const linksToCreate = data
             .filter(
               (row) =>
@@ -120,6 +128,35 @@ export async function POST(req: Request) {
               ),
             );
 
+          const selectedTags = [
+            ...new Set(
+              linksToCreate
+                .map(
+                  ({ tags }) => tags?.split(",").map((tag) => tag.trim()) ?? [],
+                )
+                .flat(),
+            ),
+          ];
+
+          // Find tags that need to be added to the workspace
+          const tagsNotInWorkspace = selectedTags.filter(
+            (tag) =>
+              !tags.find((t) => t.name === tag) && !addedTags.includes(tag),
+          );
+
+          // Add missing tags to the workspace
+          if (tagsNotInWorkspace.length > 0) {
+            await prisma.tag.createMany({
+              data: tagsNotInWorkspace.map((tag) => ({
+                name: tag,
+                color: randomBadgeColor(),
+                projectId: workspace.id,
+              })),
+            });
+          }
+
+          addedTags.push(...tagsNotInWorkspace);
+
           const selectedDomains = [
             ...new Set(linksToCreate.map(({ domain }) => domain)),
           ];
@@ -132,6 +169,7 @@ export async function POST(req: Request) {
               !addedDomains.includes(domain),
           );
 
+          // Add missing domains to the workspace
           if (domainsNotInWorkspace.length > 0) {
             await Promise.allSettled([
               prisma.domain.createMany({
@@ -150,6 +188,7 @@ export async function POST(req: Request) {
 
           addedDomains.push(...domainsNotInWorkspace);
 
+          // Process all links, including domain links
           const processedLinks = await Promise.all([
             ...domainsNotInWorkspace.map((domain) =>
               processLink({
@@ -163,7 +202,7 @@ export async function POST(req: Request) {
                 bulk: true,
               }),
             ),
-            ...linksToCreate.map((link) =>
+            ...linksToCreate.map(({ tags, ...link }) =>
               processLink({
                 payload: createLinkBodySchema.parse({
                   ...link,
@@ -173,6 +212,7 @@ export async function POST(req: Request) {
                     .replace(/^https?:\/\//, "")
                     .split("/")
                     .at(-1),
+                  tagNames: tags || undefined,
                 }),
                 workspace: workspace as WorkspaceProps,
                 userId,
@@ -192,9 +232,9 @@ export async function POST(req: Request) {
               error,
               code,
             }));
-
           // TODO: Use errorLinks
 
+          // Creat all links
           await bulkCreateLinks({
             links: validLinks,
           });

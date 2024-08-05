@@ -45,6 +45,10 @@ export const mappableFields = {
     label: "URL",
     required: true,
   },
+  tags: {
+    label: "Tags",
+    required: false,
+  },
   title: {
     label: "Title",
     required: false,
@@ -157,9 +161,10 @@ function ImportCsvModal({
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
             <form
               onSubmit={handleSubmit(async (data) => {
+                const loadingId = toast.loading(
+                  "Adding links to import queue...",
+                );
                 try {
-                  toast.loading("Adding links to import queue...");
-
                   // Get signed upload URL
                   const uploadRes = await fetch(
                     `/api/workspaces/${workspaceId}/import/csv/upload`,
@@ -212,6 +217,8 @@ function ImportCsvModal({
                   );
                 } catch (error) {
                   toast.error("Error adding links to import queue");
+                } finally {
+                  toast.dismiss(loadingId);
                 }
               })}
               className="flex flex-col space-y-4"
