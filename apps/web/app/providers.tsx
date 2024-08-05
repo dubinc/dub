@@ -3,7 +3,6 @@
 import { PosthogPageview } from "@/ui/layout/posthog-pageview";
 import { ModalProvider } from "@/ui/modals/modal-provider";
 import { KeyboardShortcutProvider } from "@dub/ui";
-import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import { SessionProvider } from "next-auth/react";
 import PlausibleProvider from "next-plausible";
 import posthog from "posthog-js";
@@ -39,7 +38,6 @@ export default function Providers({ children }: { children: ReactNode }) {
             {children}
           </KeyboardShortcutProvider>
         </ModalProvider>
-        <VercelAnalytics />
       </SessionProvider>
     </PostHogProvider>
   );

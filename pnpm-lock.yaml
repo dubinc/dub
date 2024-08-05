@@ -110,9 +110,6 @@ importers:
       '@upstash/redis':
         specifier: ^1.25.1
         version: 1.25.1
-      '@vercel/analytics':
-        specifier: ^1.3.1
-        version: 1.3.1(next@14.3.0-canary.42)(react@18.2.0)
       '@vercel/edge':
         specifier: ^0.3.1
         version: 0.3.1
@@ -8732,22 +8729,6 @@ packages:
     resolution: {integrity: sha512-bkxl2n7qls27hONXNyItM6ccRT0NBJ8c6zl83wx+TlODpYXehgeiUJTkcTaXLp7hk+zy6Mqpzpeo3GX+wZSvBw==}
     dependencies:
       crypto-js: 4.2.0
-    dev: false
-
-  /@vercel/analytics@1.3.1(next@14.3.0-canary.42)(react@18.2.0):
-    resolution: {integrity: sha512-xhSlYgAuJ6Q4WQGkzYTLmXwhYl39sWjoMA3nHxfkvG+WdBT25c563a7QhwwKivEOZtPJXifYHR1m2ihoisbWyA==}
-    peerDependencies:
-      next: '>= 13'
-      react: ^18 || ^19
-    peerDependenciesMeta:
-      next:
-        optional: true
-      react:
-        optional: true
-    dependencies:
-      next: 14.3.0-canary.42(@babel/core@7.23.0)(@opentelemetry/api@1.8.0)(react-dom@18.2.0)(react@18.2.0)
-      react: 18.2.0
-      server-only: 0.0.1
     dev: false
 
   /@vercel/edge-config-fs@0.1.0:
