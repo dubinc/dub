@@ -45,6 +45,10 @@ export const mappableFields = {
     label: "URL",
     required: true,
   },
+  createdAt: {
+    label: "Created",
+    required: false,
+  },
   tags: {
     label: "Tags",
     required: false,

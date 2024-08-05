@@ -62,7 +62,6 @@ export async function sendCsvImportEmails({
     sendEmail({
       subject: `Your CSV links have been imported!`,
       email: ownerEmail,
-      from: "tmp@walkthrough.dev", // TODO: REMOVE THIS!!!!
       react: LinksImported({
         email: ownerEmail,
         provider: "CSV",
@@ -79,7 +78,6 @@ export async function sendCsvImportEmails({
     sendEmail({
       subject: `Some CSV links failed to import`,
       email: ownerEmail,
-      from: "tmp@walkthrough.dev", // TODO: REMOVE THIS!!!!
       react: LinksImportErrors({
         email: ownerEmail,
         provider: "CSV",

@@ -374,6 +374,7 @@ export async function processLink<T extends Record<string, any>>({
       key,
       // we're redefining these fields because they're processed in the function
       url,
+      createdAt: createdAt ? new Date(createdAt) : undefined,
       expiresAt,
       expiredUrl,
       // make sure projectId is set to the current workspace

@@ -202,6 +202,10 @@ export const createLinkBodySchema = z.object({
       "The unique name of the tags assigned to the short link (case insensitive).",
     ),
   comments: z.string().nullish().describe("The comments for the short link."),
+  createdAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the short link was created."),
   expiresAt: z
     .string()
     .nullish()

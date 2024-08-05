@@ -27,6 +27,10 @@ export async function generateCsvMapping(
           .describe(
             "The key/slug of the shortlink (a shortlink is: https://[domain]/[key]). Can be mapped to a full URL if there is not a separate key column",
           ),
+        createdAt: z
+          .string()
+          .optional()
+          .describe("The date and time the shortlink was created"),
         tags: z
           .string()
           .optional()
