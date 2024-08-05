@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LoadingDots, Logo, Modal } from "@dub/ui";
 import { useSession } from "next-auth/react";
+import { usePlausible } from "next-plausible";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -25,6 +26,7 @@ function AcceptInviteModal({
   const [accepting, setAccepting] = useState(false);
   const { error } = useWorkspace();
   const { data: session } = useSession();
+  const plausible = usePlausible();
 
   return (
     <Modal
