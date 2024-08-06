@@ -1,4 +1,11 @@
-import { ApiMiddleware, AppMiddleware, LinkMiddleware } from "@/lib/middleware";
+import {
+  AdminMiddleware,
+  ApiMiddleware,
+  AppMiddleware,
+  AxiomMiddleware,
+  CreateLinkMiddleware,
+  LinkMiddleware,
+} from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
 import {
   ADMIN_HOSTNAMES,
@@ -8,8 +15,6 @@ import {
   isValidUrl,
 } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import AdminMiddleware from "./lib/middleware/admin";
-import CreateLinkMiddleware from "./lib/middleware/create-link";
 
 export const config = {
   matcher: [
@@ -17,7 +22,7 @@ export const config = {
      * Match all paths except for:
      * 1. /api/ routes
      * 2. /_next/ (Next.js internals)
-     * 3. /_proxy/ (special page for OG tags proxying)
+     * 3. /_proxy/ (proxies for third-party services)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
      * 6. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
@@ -28,6 +33,8 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key, fullKey } = parse(req);
+
+  AxiomMiddleware(req, ev);
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {

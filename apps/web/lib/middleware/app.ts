@@ -14,7 +14,8 @@ export default async function AppMiddleware(req: NextRequest) {
     !user &&
     path !== "/login" &&
     path !== "/register" &&
-    path !== "/auth/saml"
+    path !== "/auth/saml" &&
+    !path.startsWith("/auth/reset-password/")
   ) {
     return NextResponse.redirect(
       new URL(
@@ -42,12 +43,37 @@ export default async function AppMiddleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 
       // if the path is / or /login or /register, redirect to the default workspace
-    } else if (path === "/" || path === "/login" || path === "/register") {
+    } else if (
+      [
+        "/",
+        "/login",
+        "/register",
+        "/analytics",
+        "/events",
+        "/integrations",
+        "/domains",
+        "/settings",
+      ].includes(path) ||
+      path.startsWith("/integrations/") ||
+      path.startsWith("/settings/")
+    ) {
       const defaultWorkspace = await getDefaultWorkspace(user);
 
       if (defaultWorkspace) {
+        let redirectPath = path;
+        if (["/", "/login", "/register"].includes(path)) {
+          redirectPath = "";
+        } else if (
+          path === "/integrations" ||
+          path.startsWith("/integrations/")
+        ) {
+          redirectPath = `/settings/${path}`;
+        }
         return NextResponse.redirect(
-          new URL(`/${defaultWorkspace}${searchParamsString}`, req.url),
+          new URL(
+            `/${defaultWorkspace}${redirectPath}${searchParamsString}`,
+            req.url,
+          ),
         );
       } else {
         return NextResponse.redirect(new URL("/workspaces", req.url));

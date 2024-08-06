@@ -1,4 +1,4 @@
-import { fetchWithTimeout } from "@dub/utils";
+import { R2_URL, fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
 
 interface imageOptions {
@@ -46,7 +46,7 @@ class StorageClient {
       });
 
       return {
-        url: `${process.env.STORAGE_BASE_URL}/${key}`,
+        url: `${R2_URL}/${key}`,
       };
     } catch (error) {
       throw new Error(`Failed to upload file: ${error.message}`);
@@ -59,6 +59,23 @@ class StorageClient {
     });
 
     return { success: true };
+  }
+
+  async getSignedUrl(key: string) {
+    const url = new URL(`${process.env.STORAGE_ENDPOINT}/${key}`);
+
+    // 10 minutes expiration
+    url.searchParams.set("X-Amz-Expires", "600");
+
+    const signed = await this.client.sign(url, {
+      method: "PUT",
+      aws: {
+        signQuery: true,
+        allHeaders: true,
+      },
+    });
+
+    return signed.url;
   }
 
   private base64ToArrayBuffer(base64: string, opts?: imageOptions) {
@@ -122,5 +139,5 @@ class StorageClient {
 export const storage = new StorageClient();
 
 export const isStored = (url: string) => {
-  return url.startsWith(process.env.STORAGE_BASE_URL || "");
+  return url.startsWith(R2_URL);
 };

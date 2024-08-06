@@ -7,8 +7,10 @@ const REDIRECT_SEGMENTS = [
   "_static",
 ];
 
+const { withAxiom } = require("next-axiom");
+
 /** @type {import('next').NextConfig} */
-module.exports = {
+module.exports = withAxiom({
   reactStrictMode: false,
   experimental: {
     serverComponentsExternalPackages: [
@@ -42,6 +44,9 @@ module.exports = {
       },
       {
         hostname: "dubassets.com", // for Dub's user generated images
+      },
+      {
+        hostname: "dev.dubassets.com", // dev bucket
       },
       {
         hostname: "www.google.com",
@@ -206,4 +211,26 @@ module.exports = {
       },
     ];
   },
-};
+  async rewrites() {
+    return [
+      // for posthog proxy
+      {
+        source: "/_proxy/posthog/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/_proxy/posthog/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+      // for plausible proxy
+      {
+        source: "/_proxy/plausible/script.js",
+        destination: "https://plausible.io/js/script.js",
+      },
+      {
+        source: "/_proxy/plausible/event",
+        destination: "https://plausible.io/api/event",
+      },
+    ];
+  },
+});

@@ -36,7 +36,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     tags,
     users,
     ai: 1000,
-    api: 6000,
+    api: 3000,
   },
   colors: {
     bg: "bg-sky-900",
@@ -58,11 +58,12 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: `${domains} custom domains` },
     { text: `${users} users` },
     {
-      text: `${nFormatter(tags, { full: true })} tags`,
+      text: "Real-time events stream",
       footnote: {
-        title: "Organize your links with tags.",
+        title:
+          "Get more data on your link clicks and QR code scans with a detailed, real-time stream of events in your workspace",
         cta: "Learn more.",
-        href: "https://dub.co/help/article/how-to-use-tags",
+        href: "https://d.to/events",
       },
     },
     {
@@ -86,7 +87,7 @@ export const PLANS = [
       tags: 5,
       users: 1,
       ai: 10,
-      api: 600,
+      api: 60,
     },
     colors: {
       bg: "bg-black",
@@ -143,7 +144,7 @@ export const PLANS = [
       tags: 25,
       users: 5,
       ai: 1000,
-      api: 3000,
+      api: 600,
     },
     colors: {
       bg: "bg-blue-500",

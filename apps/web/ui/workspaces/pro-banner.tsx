@@ -1,7 +1,7 @@
 import { useRouterStuff } from "@dub/ui";
-import va from "@vercel/analytics";
 import Cookies from "js-cookie";
 import { useParams } from "next/navigation";
+import posthog from "posthog-js";
 import { Dispatch, SetStateAction } from "react";
 
 export default function ProBanner({
@@ -23,7 +23,9 @@ export default function ProBanner({
         <button
           onClick={() => {
             setShowProBanner(false);
-            va.track("Hid Pro Banner");
+            posthog.capture("pro_banner_hidden", {
+              workspace: slug,
+            });
             Cookies.set("hideProBanner", slug, { expires: 7 });
           }}
           className="w-full rounded-md border border-gray-300 p-2 text-center text-sm font-medium text-gray-500 transition-all hover:border-gray-700 hover:text-gray-600"
@@ -32,7 +34,9 @@ export default function ProBanner({
         </button>
         <button
           onClick={() => {
-            va.track("Clicked on Pro Banner");
+            posthog.capture("pro_banner_clicked", {
+              workspace: slug,
+            });
             queryParams({
               set: {
                 upgrade: "pro",

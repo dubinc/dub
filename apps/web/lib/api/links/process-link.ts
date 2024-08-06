@@ -10,8 +10,9 @@ import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
-  SHORT_DOMAIN,
+  UTMTags,
   combineWords,
+  constructURLFromUTMParams,
   getApexDomain,
   getDomainWithoutWWW,
   getUrlFromString,
@@ -79,6 +80,15 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
+    if (UTMTags.some((tag) => payload[tag])) {
+      const utmParams = UTMTags.reduce((acc, tag) => {
+        if (payload[tag]) {
+          acc[tag] = payload[tag];
+        }
+        return acc;
+      }, {});
+      url = constructURLFromUTMParams(url, utmParams);
+    }
     // only root domain links can have empty desintation URL
   } else if (key !== "_root") {
     return {
@@ -141,7 +151,7 @@ export async function processLink<T extends Record<string, any>>({
 
   // if domain is not defined, set it to the workspace's primary domain
   if (!domain) {
-    domain = domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+    domain = domains?.find((d) => d.primary)?.slug || "dub.sh";
   }
 
   // checks for dub.sh links
@@ -175,7 +185,9 @@ export async function processLink<T extends Record<string, any>>({
         code: "forbidden",
       };
     }
-    const flags = await getFeatureFlags(workspace.id);
+    const flags = await getFeatureFlags({
+      workspaceId: workspace.id,
+    });
     if (!flags.dublink) {
       return {
         link: payload,
@@ -237,7 +249,7 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (trackConversion && workspace) {
-    const flags = await getFeatureFlags(workspace?.id);
+    const flags = await getFeatureFlags({ workspaceId: workspace.id });
 
     if (!flags.conversions) {
       return {
@@ -351,6 +363,9 @@ export async function processLink<T extends Record<string, any>>({
   delete payload["shortLink"];
   delete payload["qrCode"];
   delete payload["prefix"];
+  UTMTags.forEach((tag) => {
+    delete payload[tag];
+  });
 
   return {
     link: {

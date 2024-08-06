@@ -1,15 +1,19 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { DeviceTabs } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
+import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import DeviceIcon from "./device-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Devices() {
   const { queryParams } = useRouterStuff();
+
+  const { selectedTab } = useContext(AnalyticsContext);
+  const dataKey = selectedTab === "sales" ? "amount" : "count";
 
   const [tab, setTab] = useState<DeviceTabs>("devices");
   const data = useAnalyticsFilterOption(tab);
@@ -33,25 +37,28 @@ export default function Devices() {
             <BarList
               tab={singularTabName}
               data={
-                data?.map((d) => ({
-                  icon: (
-                    <DeviceIcon
-                      display={d[singularTabName]}
-                      tab={tab}
-                      className="h-4 w-4"
-                    />
-                  ),
-                  title: d[singularTabName],
-                  href: queryParams({
-                    set: {
-                      [singularTabName]: d[singularTabName],
-                    },
-                    getNewPath: true,
-                  }) as string,
-                  value: d.count || 0,
-                })) || []
+                data
+                  ?.map((d) => ({
+                    icon: (
+                      <DeviceIcon
+                        display={d[singularTabName]}
+                        tab={tab}
+                        className="h-4 w-4"
+                      />
+                    ),
+                    title: d[singularTabName],
+                    href: queryParams({
+                      set: {
+                        [singularTabName]: d[singularTabName],
+                      },
+                      getNewPath: true,
+                    }) as string,
+                    value: d[dataKey] || 0,
+                  }))
+                  ?.sort((a, b) => b.value - a.value) || []
               }
-              maxValue={(data && data[0]?.count) || 0}
+              unit={selectedTab}
+              maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
               barBackground="bg-green-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-green-50 hover:to-transparent hover:border-green-500"
               setShowModal={setShowModal}

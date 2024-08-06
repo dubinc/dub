@@ -21,6 +21,7 @@ SQL >
             )
         }}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
@@ -52,6 +53,7 @@ SQL >
             )
         }}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
@@ -83,6 +85,7 @@ SQL >
             )
         }}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}

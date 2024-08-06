@@ -5,7 +5,7 @@ import {
   formatDate,
   validDomainRegex,
 } from "@dub/utils";
-import { booleanQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { TagSchema } from "./tags";
 import {
   parseDateSchema,
@@ -80,28 +80,20 @@ export const getLinksQuerySchema = LinksQuerySchema.merge(
       .describe(
         "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
       ),
-    page: z.coerce
-      .number()
-      .int()
-      .nonnegative()
-      .optional()
-      .describe(
-        "The page number for pagination (each page contains 100 links).",
-      ),
   }),
-);
+).merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   z.object({
     groupBy: z
-      .union([z.literal("domain"), z.literal("tagId")])
+      .union([z.literal("domain"), z.literal("tagId"), z.literal("userId")])
       .optional()
       .describe("The field to group the links by."),
   }),
 );
 
 export const linksExportQuerySchema = getLinksQuerySchema
-  .omit({ page: true })
+  .omit({ page: true, pageSize: true })
   .merge(
     z.object({
       columns: z
@@ -232,19 +224,25 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe(
-      "The title of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+      "The custom link preview title (og:title). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
     ),
   description: z
     .string()
     .nullish()
     .describe(
-      "The description of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+      "The custom link preview description (og:description). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
     ),
   image: z
     .string()
     .nullish()
     .describe(
-      "The image of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+      "The custom link preview image (og:image). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+    ),
+  video: z
+    .string()
+    .nullish()
+    .describe(
+      "The custom link preview video (og:video). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
     ),
   rewrite: z
     .boolean()
@@ -274,6 +272,36 @@ export const createLinkBodySchema = z.object({
     .default(false)
     .describe(
       "Allow search engines to index your short link. Defaults to `false` if not provided. Learn more: https://d.to/noindex",
+    ),
+  utm_source: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM source of the short link. If set, this will populate or override the UTM source in the destination URL.",
+    ),
+  utm_medium: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM medium of the short link. If set, this will populate or override the UTM medium in the destination URL.",
+    ),
+  utm_campaign: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM campaign of the short link. If set, this will populate or override the UTM campaign in the destination URL.",
+    ),
+  utm_term: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM term of the short link. If set, this will populate or override the UTM term in the destination URL.",
+    ),
+  utm_content: z
+    .string()
+    .nullish()
+    .describe(
+      "The UTM content of the short link. If set, this will populate or override the UTM content in the destination URL.",
     ),
 });
 
@@ -377,6 +405,12 @@ export const LinkSchema = z
       .nullable()
       .describe(
         "The image of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+      ),
+    video: z
+      .string()
+      .nullable()
+      .describe(
+        "The custom link preview video (og:video). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
       ),
     rewrite: z
       .boolean()

@@ -5,7 +5,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ModalContext } from "@/ui/modals/provider";
+import { ModalContext } from "@/ui/modals/modal-provider";
 import { Badge, useScroll } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
@@ -23,16 +23,14 @@ export default function NavTabs() {
     () => [
       { name: "Links", href: `/${slug}` },
       { name: "Analytics", href: `/${slug}/analytics` },
-      ...(flags?.conversions
-        ? [{ name: "Events", href: `/${slug}/events` }]
-        : []),
+      { name: "Events", href: `/${slug}/events` },
       { name: "Settings", href: `/${slug}/settings` },
     ],
     [flags],
   );
 
   const { loading: loadingDomains } = useDomains();
-  const { data: linksCount } = useLinksCount();
+  const { data: linksCount } = useLinksCount({ ignoreParams: true });
 
   const scrolled = useScroll(80);
 
@@ -45,25 +43,29 @@ export default function NavTabs() {
         scrolled && "sm:translate-x-9",
       )}
     >
-      {tabs.map(({ name, href }) => (
-        <Link key={href} href={href} className="relative">
-          <div className="mx-1 my-1.5 rounded-md px-3 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200">
-            <p className="text-sm text-gray-600 hover:text-black">{name}</p>
-          </div>
-          {(pathname === href ||
-            (href.endsWith("/settings") && pathname?.startsWith(href))) && (
-            <motion.div
-              layoutId="indicator"
-              transition={{
-                duration: 0.25,
-              }}
-              className="absolute bottom-0 w-full px-1.5"
-            >
-              <div className="h-0.5 bg-black" />
-            </motion.div>
-          )}
-        </Link>
-      ))}
+      {tabs.map(({ name, href }) => {
+        const isActive =
+          href === `/${slug}` ? pathname === href : pathname.startsWith(href);
+
+        return (
+          <Link key={href} href={href} className="relative">
+            <div className="mx-1 my-1.5 rounded-md px-3 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200">
+              <p className="text-sm text-gray-600 hover:text-black">{name}</p>
+            </div>
+            {isActive && (
+              <motion.div
+                layoutId="indicator"
+                transition={{
+                  duration: 0.25,
+                }}
+                className="absolute bottom-0 w-full px-1.5"
+              >
+                <div className="h-0.5 bg-black" />
+              </motion.div>
+            )}
+          </Link>
+        );
+      })}
       {slug &&
         !loading &&
         !error &&
@@ -76,7 +78,7 @@ export default function NavTabs() {
 const OnboardingChecklist = () => {
   const { setShowCompleteSetupModal } = useContext(ModalContext);
   const { data: domainsCount } = useDomainsCount();
-  const { data: links } = useLinksCount();
+  const { data: links } = useLinksCount({ ignoreParams: true });
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
 

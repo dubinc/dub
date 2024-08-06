@@ -1,11 +1,13 @@
-import { Hr, Tailwind, Text } from "@react-email/components";
+import { Hr, Link, Tailwind, Text } from "@react-email/components";
 
 export default function Footer({
   email,
   marketing,
+  notificationSettingsUrl,
 }: {
   email: string;
   marketing?: boolean;
+  notificationSettingsUrl?: string;
 }) {
   if (marketing) {
     return null;
@@ -20,6 +22,18 @@ export default function Footer({
         are concerned about your account's safety, please reply to this email to
         get in touch with us.
       </Text>
+
+      {notificationSettingsUrl && (
+        <Text className="text-[12px] leading-6 text-gray-500">
+          Don’t want to get these emails?{" "}
+          <Link
+            className="text-gray-700 underline"
+            href={notificationSettingsUrl}
+          >
+            Adjust your notification settings
+          </Link>
+        </Text>
+      )}
     </Tailwind>
   );
 }

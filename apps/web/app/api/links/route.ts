@@ -24,6 +24,7 @@ export const GET = withWorkspace(
       search,
       sort,
       page,
+      pageSize,
       userId,
       showArchived,
       withTags,
@@ -42,6 +43,7 @@ export const GET = withWorkspace(
       search,
       sort,
       page,
+      pageSize,
       userId,
       showArchived,
       withTags,
@@ -94,6 +96,7 @@ export const POST = withWorkspace(
 
     try {
       const response = await createLink(link);
+
       return NextResponse.json(response, { headers });
     } catch (error) {
       if (error.code === "P2002") {

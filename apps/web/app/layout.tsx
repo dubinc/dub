@@ -3,8 +3,6 @@ import "@/styles/globals.css";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { TooltipProvider } from "@dub/ui/src/tooltip";
 import { cn, constructMetadata } from "@dub/utils";
-import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 
 export const metadata = constructMetadata();
@@ -27,8 +25,6 @@ export default function RootLayout({
                 : undefined,
             }}
           />
-          <VercelAnalytics />
-          <SpeedInsights />
         </TooltipProvider>
       </body>
     </html>

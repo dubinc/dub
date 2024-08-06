@@ -22,9 +22,13 @@ export const isBlacklistedDomain = async ({
       whitelistedDomains,
     } = await getAll(["domains", "terms", "whitelistedDomains"]);
 
+    if (whitelistedDomains.includes(apexDomain)) {
+      return "whitelisted";
+    }
+
     const blacklistedTermsRegex = new RegExp(
       blacklistedTerms
-        .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
         .join("|"),
     );
 
@@ -33,10 +37,6 @@ export const isBlacklistedDomain = async ({
 
     if (isBlacklisted) {
       return true;
-    }
-
-    if (whitelistedDomains.includes(apexDomain)) {
-      return "whitelisted";
     }
 
     return false;

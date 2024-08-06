@@ -2,11 +2,11 @@ SCHEMA >
   `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
   `event_id` String `json:$.event_id`,
   `event_name` String `json:$.event_name`,
-  `metadata` String `json:$.metadata`,
   `customer_id` String `json:$.customer_id`,   
   `click_id` String `json:$.click_id`,
   `link_id` String `json:$.link_id`,    
   `url` String `json:$.url`,     
+  `continent` LowCardinality(String) `json:$.continent`,
   `country` LowCardinality(String) `json:$.country`,
   `city` String `json:$.city`,
   `region` String `json:$.region`,
@@ -27,7 +27,8 @@ SCHEMA >
   `referer` String `json:$.referer`,
   `referer_url` String `json:$.referer_url`,
   `ip` String `json:$.ip`,
-  `qr` UInt8 `json:$.qr`
+  `qr` UInt8 `json:$.qr`,
+  `metadata` String `json:$.metadata`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

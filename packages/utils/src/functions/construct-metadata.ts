@@ -5,6 +5,7 @@ export function constructMetadata({
   title = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`,
   description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.`,
   image = "https://assets.dub.co/thumbnail.jpg",
+  video,
   icons = [
     {
       rel: "apple-touch-icon",
@@ -29,6 +30,7 @@ export function constructMetadata({
   title?: string;
   description?: string;
   image?: string | null;
+  video?: string | null;
   icons?: Metadata["icons"];
   noIndex?: boolean;
 } = {}): Metadata {
@@ -39,11 +41,10 @@ export function constructMetadata({
       title,
       description,
       ...(image && {
-        images: [
-          {
-            url: image,
-          },
-        ],
+        images: image,
+      }),
+      ...(video && {
+        videos: video,
       }),
     },
     twitter: {
@@ -52,6 +53,9 @@ export function constructMetadata({
       ...(image && {
         card: "summary_large_image",
         images: [image],
+      }),
+      ...(video && {
+        player: video,
       }),
       creator: "@dubdotco",
     },

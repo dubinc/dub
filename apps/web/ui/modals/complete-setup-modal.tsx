@@ -1,7 +1,7 @@
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
-import { ModalContext } from "@/ui/modals/provider";
+import { ModalContext } from "@/ui/modals/modal-provider";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { ExpandingArrow, Logo, Modal } from "@dub/ui";
 import Link from "next/link";
@@ -25,7 +25,7 @@ function CompleteSetupModal({
   const { slug } = useParams() as { slug: string };
 
   const { data: domainsCount } = useDomainsCount();
-  const { data: count } = useLinksCount();
+  const { data: count } = useLinksCount({ ignoreParams: true });
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
   const { setShowAddEditLinkModal } = useContext(ModalContext);

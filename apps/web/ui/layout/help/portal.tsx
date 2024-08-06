@@ -1,12 +1,10 @@
 "use client";
 
 import { Popover, useResizeObserver } from "@dub/ui";
-import { fetcher } from "@dub/utils";
-import va from "@vercel/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { createContext, useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
+import { createContext, useRef, useState } from "react";
 import { HelpArticle } from ".";
 import { ContactForm } from "./contact-form";
 import { HelpArticles } from "./help-articles";
@@ -28,12 +26,6 @@ export function HelpButton({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: session } = useSession();
-
-  useEffect(() => {
-    session && fetcher("/api/support");
-  }, [session]);
-
   return (
     <HelpContext.Provider value={{ popularHelpArticles, allHelpArticles }}>
       <Popover
@@ -46,7 +38,7 @@ export function HelpButton({
           type="button"
           onClick={() => {
             if (!isOpen) {
-              va.track("Open help portal");
+              posthog.capture("help_portal_opened");
             }
             setIsOpen((o) => !o);
           }}

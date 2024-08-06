@@ -8,8 +8,10 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import slugify from "@sindresorhus/slugify";
-import va from "@vercel/analytics";
+import { trackEvent } from "fathom-client";
+import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   FormEvent,
@@ -21,7 +23,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
 
 function AddWorkspaceModalHelper({
   showAddWorkspaceModal,
@@ -32,6 +33,7 @@ function AddWorkspaceModalHelper({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const plausible = usePlausible();
 
   const [data, setData] = useState<{
     name: string;
@@ -44,18 +46,6 @@ function AddWorkspaceModalHelper({
 
   const [slugError, setSlugError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  const [debouncedSlug] = useDebounce(slug, 500);
-  useEffect(() => {
-    if (debouncedSlug.length > 0 && !slugError) {
-      fetch(`/api/workspaces/${slug}/exists`).then(async (res) => {
-        if (res.status === 200) {
-          const exists = await res.json();
-          setSlugError(exists === 1 ? "Slug is already in use." : null);
-        }
-      });
-    }
-  }, [debouncedSlug, slugError]);
 
   useEffect(() => {
     setSlugError(null);
@@ -111,9 +101,15 @@ function AddWorkspaceModalHelper({
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
-              const { workspaceId } = await res.json();
+              const { id: workspaceId } = await res.json();
+              trackEvent("Created Workspace");
+              plausible("Created Workspace");
               // track workspace creation event
-              va.track("Created Workspace");
+              posthog.capture("workspace_created", {
+                workspace_id: workspaceId,
+                workspace_name: data.name,
+                workspace_slug: data.slug,
+              });
               await mutate("/api/workspaces");
               if (welcomeFlow) {
                 router.push(`/welcome?step=upgrade&slug=${slug}`);
@@ -197,6 +193,18 @@ function AddWorkspaceModalHelper({
               onChange={(e) => {
                 setSlugError(null);
                 setData({ ...data, slug: e.target.value });
+              }}
+              onBlur={() => {
+                fetch(`/api/workspaces/${slug}/exists`).then(async (res) => {
+                  if (res.status === 200) {
+                    const exists = await res.json();
+                    setSlugError(
+                      exists === 1
+                        ? `The slug "${slug}" is already in use.`
+                        : null,
+                    );
+                  }
+                });
               }}
               aria-invalid="true"
             />

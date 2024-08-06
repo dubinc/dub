@@ -52,7 +52,7 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
     return;
   }
 
-  await Promise.all(
+  await Promise.allSettled(
     workspace.users.map(({ user }) =>
       sendEmail({
         email: user.email as string,

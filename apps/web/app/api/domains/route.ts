@@ -1,5 +1,6 @@
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { createLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +9,7 @@ import {
   createDomainBodySchema,
   getDomainsQuerySchema,
 } from "@/lib/zod/schemas/domains";
-import { getSearchParams } from "@dub/utils";
+import { DEFAULT_LINK_PROPS, getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -16,7 +17,7 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ req, workspace }) => {
     const searchParams = getSearchParams(req.url);
-    const { search, archived, page } =
+    const { search, archived, page, pageSize } =
       getDomainsQuerySchema.parse(searchParams);
 
     const domains = await prisma.domain.findMany({
@@ -29,8 +30,8 @@ export const GET = withWorkspace(
           },
         }),
       },
-      take: 50,
-      skip: page ? page * 100 : 0,
+      take: pageSize,
+      skip: (page - 1) * pageSize,
     });
 
     return NextResponse.json(z.array(DomainSchema).parse(domains));
@@ -42,7 +43,7 @@ export const GET = withWorkspace(
 
 // POST /api/domains - add a domain
 export const POST = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
     const { slug, placeholder, expiredUrl } =
       createDomainBodySchema.parse(body);
@@ -90,17 +91,28 @@ export const POST = withWorkspace(
       return new Response(vercelResponse.error.message, { status: 422 });
     }
 
-    const domainRecord = await prisma.domain.create({
-      data: {
-        slug: slug,
+    const [domainRecord, _] = await Promise.all([
+      prisma.domain.create({
+        data: {
+          slug: slug,
+          projectId: workspace.id,
+          primary: totalDomains === 0,
+          ...(placeholder && { placeholder }),
+          ...(workspace.plan !== "free" && {
+            expiredUrl,
+          }),
+        },
+      }),
+      createLink({
+        ...DEFAULT_LINK_PROPS,
+        domain: slug,
+        key: "_root",
+        url: "",
+        tags: undefined,
+        userId: session.user.id,
         projectId: workspace.id,
-        primary: totalDomains === 0,
-        ...(placeholder && { placeholder }),
-        ...(workspace.plan !== "free" && {
-          expiredUrl,
-        }),
-      },
-    });
+      }),
+    ]);
 
     return NextResponse.json(DomainSchema.parse(domainRecord), {
       status: 201,

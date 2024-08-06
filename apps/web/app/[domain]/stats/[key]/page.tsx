@@ -21,6 +21,7 @@ export async function generateMetadata({
   return constructMetadata({
     title: `Analytics for ${params.domain}/${params.key} – ${process.env.NEXT_PUBLIC_APP_NAME}`,
     image: `https://${params.domain}/api/og/analytics?domain=${params.domain}&key=${params.key}`,
+    noIndex: true,
   });
 }
 

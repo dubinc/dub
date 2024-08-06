@@ -78,75 +78,76 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  const slugExist = await prisma.project.findUnique({
-    where: {
-      slug,
-    },
-    select: {
-      slug: true,
-    },
-  });
-
-  if (slugExist) {
-    throw new DubApiError({
-      code: "conflict",
-      message: "Slug is already in use.",
-    });
-  }
-
-  const workspaceResponse = await prisma.project.create({
-    data: {
-      name,
-      slug,
-      users: {
-        create: {
-          userId: session.user.id,
-          role: "owner",
+  try {
+    const workspaceResponse = await prisma.project.create({
+      data: {
+        name,
+        slug,
+        users: {
+          create: {
+            userId: session.user.id,
+            role: "owner",
+            notificationPreference: {
+              create: {},
+            },
+          },
+        },
+        billingCycleStart: new Date().getDate(),
+        inviteCode: nanoid(24),
+        defaultDomains: {
+          create: {}, // by default, we give users all the default domains when they create a project
         },
       },
-      billingCycleStart: new Date().getDate(),
-      inviteCode: nanoid(24),
-      defaultDomains: {
-        create: {}, // by default, we give users all the default domains when they create a project
-      },
-    },
-    include: {
-      users: {
-        where: {
-          userId: session.user.id,
-        },
-        select: {
-          role: true,
-        },
-      },
-      domains: {
-        select: {
-          slug: true,
-          primary: true,
-        },
-      },
-    },
-  });
-
-  waitUntil(
-    (async () => {
-      if (session.user["defaultWorkspace"] === null) {
-        await prisma.user.update({
+      include: {
+        users: {
           where: {
-            id: session.user.id,
+            userId: session.user.id,
           },
-          data: {
-            defaultWorkspace: workspaceResponse.slug,
+          select: {
+            role: true,
           },
-        });
-      }
-    })(),
-  );
+        },
+        domains: {
+          select: {
+            slug: true,
+            primary: true,
+          },
+        },
+      },
+    });
 
-  return NextResponse.json(
-    WorkspaceSchema.parse({
-      ...workspaceResponse,
-      id: `ws_${workspaceResponse.id}`,
-    }),
-  );
+    waitUntil(
+      (async () => {
+        if (session.user["defaultWorkspace"] === null) {
+          await prisma.user.update({
+            where: {
+              id: session.user.id,
+            },
+            data: {
+              defaultWorkspace: workspaceResponse.slug,
+            },
+          });
+        }
+      })(),
+    );
+
+    return NextResponse.json(
+      WorkspaceSchema.parse({
+        ...workspaceResponse,
+        id: `ws_${workspaceResponse.id}`,
+      }),
+    );
+  } catch (error) {
+    if (error.code === "P2002") {
+      throw new DubApiError({
+        code: "conflict",
+        message: `The slug "${slug}" is already in use.`,
+      });
+    } else {
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: error.message,
+      });
+    }
+  }
 });

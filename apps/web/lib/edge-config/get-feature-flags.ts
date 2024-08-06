@@ -3,16 +3,24 @@ import { BetaFeatures } from "../types";
 
 type BetaFeaturesRecord = Record<BetaFeatures, string[]>;
 
-export const getFeatureFlags = async (workspaceId: string) => {
+export const getFeatureFlags = async ({
+  workspaceId,
+  workspaceSlug,
+}: {
+  workspaceId?: string;
+  workspaceSlug?: string;
+}) => {
+  if (workspaceId) {
+    workspaceId = workspaceId.startsWith("ws_")
+      ? workspaceId
+      : `ws_${workspaceId}`;
+  }
+
   const workspaceFeatures: Record<BetaFeatures, boolean> = {
     conversions: false,
     integrations: false,
     dublink: false,
   };
-
-  workspaceId = workspaceId.startsWith("ws_")
-    ? workspaceId
-    : `ws_${workspaceId}`;
 
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
     return workspaceFeatures;
@@ -24,12 +32,16 @@ export const getFeatureFlags = async (workspaceId: string) => {
     betaFeatures = await get("betaFeatures");
   } catch (e) {
     console.error(`Error getting beta features: ${e}`);
-    betaFeatures = undefined;
   }
 
   if (betaFeatures) {
-    for (const [featureFlag, workspaceIds] of Object.entries(betaFeatures)) {
-      if (workspaceIds.includes(workspaceId)) {
+    for (const [featureFlag, workspaceIdsOrSlugs] of Object.entries(
+      betaFeatures,
+    )) {
+      if (
+        (workspaceId && workspaceIdsOrSlugs.includes(workspaceId)) ||
+        (workspaceSlug && workspaceIdsOrSlugs.includes(workspaceSlug))
+      ) {
         workspaceFeatures[featureFlag] = true;
       }
     }
