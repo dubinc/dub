@@ -369,16 +369,15 @@ export default function AddOAuthAppForm({
             ))}
           </Reorder.Group>
 
-          {canManageApp && screenshots.length < 4 && (
-            <FileUpload
-              accept="any"
-              className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
-              iconClassName="w-5 h-5"
-              variant="plain"
-              onChange={async ({ file }) => await handleUpload(file)}
-              content="Drag and drop or click to upload screenshots"
-            />
-          )}
+          <FileUpload
+            accept="any"
+            className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
+            iconClassName="w-5 h-5"
+            variant="plain"
+            onChange={async ({ file }) => await handleUpload(file)}
+            content="Drag and drop or click to upload screenshots"
+            disabled={!canManageApp || screenshots.length >= 4}
+          />
         </div>
 
         <div>

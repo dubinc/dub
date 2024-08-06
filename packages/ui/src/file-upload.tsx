@@ -156,7 +156,9 @@ export function FileUpload({
     <label
       className={cn(
         imageUploadVariants({ variant }),
-        clickToUpload && "cursor-pointer",
+        !disabled
+          ? cn(clickToUpload && "cursor-pointer")
+          : "cursor-not-allowed",
         className,
       )}
     >
@@ -192,22 +194,37 @@ export function FileUpload({
       <div
         className={cn(
           "absolute inset-0 z-[3] flex flex-col items-center justify-center rounded-[inherit] bg-white transition-all",
+          disabled && "bg-gray-50",
           dragActive &&
+            !disabled &&
             "cursor-copy border-2 border-black bg-gray-50 opacity-100",
           imageSrc
-            ? cn("opacity-0", showHoverOverlay && "group-hover:opacity-100")
-            : "group-hover:bg-gray-50",
+            ? cn(
+                "opacity-0",
+                showHoverOverlay && !disabled && "group-hover:opacity-100",
+              )
+            : cn(!disabled && "group-hover:bg-gray-50"),
         )}
       >
         <UploadCloud
           className={cn(
-            "h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95",
-            dragActive ? "scale-110" : "scale-100",
+            "h-7 w-7 transition-all duration-75",
+            !disabled
+              ? cn(
+                  "text-gray-500 group-hover:scale-110 group-active:scale-95",
+                  dragActive ? "scale-110" : "scale-100",
+                )
+              : "text-gray-400",
             iconClassName,
           )}
         />
         {content !== null && (
-          <div className="mt-2 text-center text-sm text-gray-500">
+          <div
+            className={cn(
+              "mt-2 text-center text-sm text-gray-500",
+              disabled && "text-gray-400",
+            )}
+          >
             {content ?? (
               <>
                 <p>Drag and drop {clickToUpload && "or click"} to upload.</p>
