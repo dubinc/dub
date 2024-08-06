@@ -1,9 +1,7 @@
 import HelpPortal from "@/ui/layout/help";
 import { Background } from "@dub/ui";
+import Providers from "app/providers";
 import { ReactNode } from "react";
-import Providers from "./providers";
-
-export const runtime = "edge";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (

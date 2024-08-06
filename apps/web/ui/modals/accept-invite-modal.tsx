@@ -1,8 +1,10 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LoadingDots, Logo, Modal } from "@dub/ui";
-import va from "@vercel/analytics";
+import { useSession } from "next-auth/react";
+import { usePlausible } from "next-plausible";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -23,6 +25,8 @@ function AcceptInviteModal({
   const { slug } = useParams() as { slug: string };
   const [accepting, setAccepting] = useState(false);
   const { error } = useWorkspace();
+  const { data: session } = useSession();
+  const plausible = usePlausible();
 
   return (
     <Modal
@@ -51,11 +55,15 @@ function AcceptInviteModal({
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                 }).then(async () => {
-                  if (slug) {
-                    va.track("User accepted workspace invite", {
-                      workspace: slug,
+                  if (session?.user) {
+                    posthog.identify(session.user["id"], {
+                      email: session.user.email,
+                      name: session.user.name,
                     });
                   }
+                  posthog.capture("accepted_workspace_invite", {
+                    workspace: slug,
+                  });
                   await Promise.all([
                     mutate("/api/workspaces"),
                     mutate(`/api/workspaces/${slug}`),

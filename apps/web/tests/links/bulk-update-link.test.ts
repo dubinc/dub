@@ -96,8 +96,8 @@ test("PATCH /links/bulk", async (ctx) => {
 
   afterAll(async () => {
     await Promise.all([
-      h.deleteLink(links[0].id),
-      h.deleteLink(links[1].id),
+      h.deleteLink(createdLinks[0].id),
+      h.deleteLink(createdLinks[1].id),
       h.deleteTag(tag.id),
     ]);
   });

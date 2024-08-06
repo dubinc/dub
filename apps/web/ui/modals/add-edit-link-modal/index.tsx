@@ -36,10 +36,10 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
-import va from "@vercel/analytics";
 import { useCompletion } from "ai/react";
 import { TriangleAlert } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -181,8 +181,9 @@ function AddEditLinkModal({
       setGeneratedKeys((prev) => [...prev, completion]);
       mutateWorkspace();
       runKeyChecks(completion);
-      va.track("Generated AI key", {
-        metadata: `Key: ${completion} | URL: ${data.url}`,
+      posthog.capture("ai_key_generated", {
+        key: completion,
+        url: data.url,
       });
     },
   });
@@ -417,6 +418,10 @@ function AddEditLinkModal({
                     { revalidate: true },
                   );
                   const data = await res.json();
+                  posthog.capture(
+                    props ? "link_updated" : "link_created",
+                    data,
+                  );
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
                     try {

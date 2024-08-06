@@ -57,7 +57,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
       billing_address_collection: "required",
-      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing?success=true`,
+      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing?success=true&plan=${plan}&period=${period}`,
       cancel_url: `${baseUrl}?upgrade=${plan}`,
       line_items: [{ price: prices.data[0].id, quantity: 1 }],
       automatic_tax: {

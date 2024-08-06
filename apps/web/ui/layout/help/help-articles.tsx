@@ -1,9 +1,9 @@
 import { ExpandingArrow } from "@dub/ui";
-import va from "@vercel/analytics";
 import { Command, useCommandState } from "cmdk";
 import Fuse from "fuse.js";
 import { ExternalLink, MessageSquareText } from "lucide-react";
 import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
 import { Dispatch, SetStateAction, useContext, useMemo, useRef } from "react";
 import Highlighter from "react-highlight-words";
 import { useDebouncedCallback } from "use-debounce";
@@ -17,7 +17,7 @@ export function HelpArticles({
   const { data: session } = useSession();
   const commandListRef = useRef<HTMLDivElement>(null);
   const debouncedTrackSearch = useDebouncedCallback((query: string) => {
-    va.track("CMDK Search", {
+    posthog.capture("help_articles_searched", {
       query,
     });
   }, 1000);
@@ -119,7 +119,7 @@ const CommandResults = () => {
       key={slug}
       value={title}
       onSelect={() => {
-        va.track("CMDK Search Selected", {
+        posthog.capture("help_article_selected", {
           query: search,
           slug,
         });

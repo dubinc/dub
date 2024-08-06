@@ -188,12 +188,12 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type NewIntegration = Omit<
+export type NewOAuthApp = Omit<
   OAuthAppProps,
   "id" | "clientId" | "verified" | "installations" | "screenshots"
 >;
 
-export type ExistingIntegration = OAuthAppProps;
+export type ExistingOAuthApp = OAuthAppProps;
 
 export type InstalledIntegrationProps = Pick<
   OAuthAppProps,

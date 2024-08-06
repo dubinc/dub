@@ -8,8 +8,10 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import slugify from "@sindresorhus/slugify";
-import va from "@vercel/analytics";
+import { trackEvent } from "fathom-client";
+import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   FormEvent,
@@ -31,6 +33,7 @@ function AddWorkspaceModalHelper({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const plausible = usePlausible();
 
   const [data, setData] = useState<{
     name: string;
@@ -98,9 +101,15 @@ function AddWorkspaceModalHelper({
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
-              const { workspaceId } = await res.json();
+              const { id: workspaceId } = await res.json();
+              trackEvent("Created Workspace");
+              plausible("Created Workspace");
               // track workspace creation event
-              va.track("Created Workspace");
+              posthog.capture("workspace_created", {
+                workspace_id: workspaceId,
+                workspace_name: data.name,
+                workspace_slug: data.slug,
+              });
               await mutate("/api/workspaces");
               if (welcomeFlow) {
                 router.push(`/welcome?step=upgrade&slug=${slug}`);

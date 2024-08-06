@@ -212,4 +212,26 @@ module.exports = withAxiom({
       },
     ];
   },
+  async rewrites() {
+    return [
+      // for posthog proxy
+      {
+        source: "/_proxy/posthog/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/_proxy/posthog/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+      // for plausible proxy
+      {
+        source: "/_proxy/plausible/script.js",
+        destination: "https://plausible.io/js/script.js",
+      },
+      {
+        source: "/_proxy/plausible/event",
+        destination: "https://plausible.io/api/event",
+      },
+    ];
+  },
 });

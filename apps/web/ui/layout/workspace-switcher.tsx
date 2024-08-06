@@ -2,7 +2,7 @@
 
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
+import { ModalContext } from "@/ui/modals/modal-provider";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import { BlurImage, Popover, Tick } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";

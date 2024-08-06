@@ -185,7 +185,9 @@ export async function processLink<T extends Record<string, any>>({
         code: "forbidden",
       };
     }
-    const flags = await getFeatureFlags(workspace.id);
+    const flags = await getFeatureFlags({
+      workspaceId: workspace.id,
+    });
     if (!flags.dublink) {
       return {
         link: payload,
@@ -247,7 +249,7 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (trackConversion && workspace) {
-    const flags = await getFeatureFlags(workspace?.id);
+    const flags = await getFeatureFlags({ workspaceId: workspace.id });
 
     if (!flags.conversions) {
       return {
