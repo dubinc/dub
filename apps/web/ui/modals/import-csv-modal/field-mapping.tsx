@@ -9,7 +9,7 @@ import {
   TableIcon,
   Xmark,
 } from "@dub/ui/src/icons";
-import { cn, formatDate, truncate } from "@dub/utils";
+import { cn, formatDate, getPrettyUrl, truncate } from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -82,19 +82,8 @@ function FieldRow({
     let values = firstRows?.map((row) => row[value]).filter(Boolean);
 
     switch (field) {
-      case "domain":
-        // Split by "/" and take the first part (excluding protocol)
-        values = values.map((e) => e.replace(/^https?:\/\//, "").split("/")[0]);
-        break;
-      case "key":
-        // Split by "/" and take the last part
-        values = values.map(
-          (e) =>
-            e
-              .replace(/^https?:\/\//, "")
-              .split("/")
-              .at(-1) as string,
-        );
+      case "link":
+        values = values.map(getPrettyUrl);
         break;
       case "tags":
         // Split by commas
@@ -104,6 +93,7 @@ function FieldRow({
             .map((e) => e.trim())
             .join(" & "),
         );
+        break;
       case "createdAt":
         // Convert to date
         values = values.map((e) =>
@@ -112,7 +102,7 @@ function FieldRow({
         break;
     }
 
-    values = values.map((e) => truncate(e, 16) as string);
+    values = values.map((e) => truncate(e, 24) as string);
 
     return values;
   }, [firstRows, value]);
@@ -123,11 +113,6 @@ function FieldRow({
         <span className="whitespace-nowrap text-sm font-medium text-gray-950">
           {label} {required && <span className="text-red-700">*</span>}
         </span>
-        {["domain", "key"].includes(field) && (
-          <InfoTooltip
-            content={`If your file doesn't have an independent ${field} column, you can map this to the full URL instead.`}
-          />
-        )}
         {field === "tags" && (
           <InfoTooltip content="Tags may be comma-separated as long as they're escaped properly in the CSV file." />
         )}

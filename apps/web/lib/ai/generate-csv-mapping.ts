@@ -18,26 +18,18 @@ export async function generateCsvMapping(
         domain: z
           .string()
           .optional()
-          .describe(
-            "The domain of the shortlink. Can be mapped to a full URL if there is not a separate domain column",
-          ),
-        key: z
-          .string()
-          .optional()
-          .describe(
-            "The key/slug of the shortlink (a shortlink is: https://[domain]/[key]). Can be mapped to a full URL if there is not a separate key column",
-          ),
+          .describe("The shortlink (link), including the domain and path."),
+        url: z.string().optional().describe("The full URL of the shortlink"),
         createdAt: z
           .string()
           .optional()
-          .describe("The date and time the shortlink was created"),
+          .describe("The date and time the shortlink was created (createdAt)"),
         tags: z
           .string()
           .optional()
           .describe(
             "A comma-separated list of tags for shortlink organization (NOT to be mapped to a description).",
           ),
-        url: z.string().optional().describe("The full URL of the shortlink"),
         title: z.string().optional().describe("The title of the shortlink"),
         description: z
           .string()

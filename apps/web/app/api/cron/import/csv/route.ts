@@ -27,15 +27,15 @@ export async function POST(req: Request) {
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
 
     const mapper = (row: Record<string, string>) => {
+      const linkUrl = getPrettyUrl(row[mapping.link]);
+
       return {
         ...Object.fromEntries(
           Object.entries(mapping).map(([key, value]) => [key, row[value]]),
         ),
-        domain: getPrettyUrl(row[mapping.domain]).split("/")[0],
+        domain: linkUrl.split("/")[0],
         // domain.com/path/to/page => path/to/page
-        key:
-          getPrettyUrl(row[mapping.key]).split("/").slice(1).join("/") ??
-          "_root",
+        key: linkUrl.split("/").slice(1).join("/") || "_root",
         createdAt: mapping.createdAt
           ? parseDateTime(row[mapping.createdAt])
           : undefined,

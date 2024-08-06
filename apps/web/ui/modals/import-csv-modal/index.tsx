@@ -33,16 +33,12 @@ import { FieldMapping } from "./field-mapping";
 import { SelectFile } from "./select-file";
 
 export const mappableFields = {
-  domain: {
-    label: "Domain",
-    required: true,
-  },
-  key: {
-    label: "Key",
+  link: {
+    label: "Short Link",
     required: true,
   },
   url: {
-    label: "URL",
+    label: "Destination URL",
     required: true,
   },
   createdAt: {
