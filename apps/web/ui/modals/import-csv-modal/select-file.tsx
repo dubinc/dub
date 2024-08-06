@@ -66,14 +66,14 @@ export function SelectFile() {
                   ? truncate(value.name, 25)
                   : "Click or drag and drop a CSV file."
               }
-              className="aspect-auto h-20"
+              className="aspect-auto h-24"
               iconClassName="size-6"
             />
           );
         }}
       />
       {error ? (
-        <div>{error}</div>
+        <p className="text-center text-sm text-red-600">{error}</p>
       ) : fileColumns ? (
         <p className="text-sm text-gray-600">
           Columns found: {listColumns(fileColumns)}

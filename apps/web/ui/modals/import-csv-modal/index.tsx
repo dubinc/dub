@@ -9,7 +9,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { TableIcon } from "@dub/ui/src/icons";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -108,6 +108,7 @@ function ImportCsvModal({
     watch,
     setValue,
     handleSubmit,
+    reset,
     formState: { isSubmitting, isValid },
   } = useForm<ImportCsvFormData>({
     defaultValues: {},
@@ -120,6 +121,15 @@ function ImportCsvModal({
   const [firstRows, setFirstRows] = useState<Record<string, string>[] | null>(
     null,
   );
+
+  const file = watch("file");
+
+  // Go to second page if file looks good
+  useEffect(() => {
+    if (file && fileColumns && pageNumber === 0) {
+      setPageNumber(1);
+    }
+  }, [file, fileColumns, pageNumber]);
 
   return (
     <Modal
@@ -227,17 +237,7 @@ function ImportCsvModal({
               })}
               className="flex flex-col space-y-4"
             >
-              {page === "select-file" && (
-                <>
-                  <SelectFile />
-                  <Button
-                    type="button"
-                    text="Continue"
-                    disabled={!fileColumns}
-                    onClick={() => setPageNumber((n) => n + 1)}
-                  />
-                </>
-              )}
+              {page === "select-file" && <SelectFile />}
 
               {page === "confirm-import" && (
                 <>
@@ -247,6 +247,19 @@ function ImportCsvModal({
                     loading={isSubmitting}
                     disabled={!isValid}
                   />
+                  <button
+                    type="button"
+                    className="flex w-fit items-center gap-1 text-xs text-gray-600 transition-colors hover:text-gray-950"
+                    onClick={() => {
+                      setPageNumber(0);
+                      reset();
+                      setFileColumns(null);
+                      setFirstRows(null);
+                    }}
+                  >
+                    <ChevronLeft className="size-3.5" />
+                    Choose another file
+                  </button>
                 </>
               )}
             </form>
