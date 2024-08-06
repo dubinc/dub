@@ -88,22 +88,22 @@ export const ROLE_PERMISSIONS: {
   },
   {
     action: "oauth_apps.read",
-    description: "Read OAuth apps",
+    description: "read OAuth apps",
     roles: ["owner", "member"],
   },
   {
     action: "oauth_apps.write",
-    description: "Create, update, or delete OAuth apps",
+    description: "create, update, or delete OAuth apps",
     roles: ["owner"],
   },
   {
     action: "integrations.read",
-    description: "Read authorized OAuth apps",
+    description: "read authorized OAuth apps",
     roles: ["owner", "member"],
   },
   {
     action: "integrations.write",
-    description: "Disconnect authorized OAuth apps",
+    description: "disconnect authorized OAuth apps",
     roles: ["owner", "member"],
   },
 ];

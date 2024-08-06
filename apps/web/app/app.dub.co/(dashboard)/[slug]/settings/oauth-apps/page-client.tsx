@@ -1,19 +1,20 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import OAuthAppCard from "@/ui/oauth-apps/oauth-app-card";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import EmptyState from "@/ui/shared/empty-state";
-import { buttonVariants, Cube, TooltipContent } from "@dub/ui";
+import { Button, Cube, TooltipContent } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
-import { cn, fetcher } from "@dub/utils";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { fetcher } from "@dub/utils";
+import { redirect, useRouter } from "next/navigation";
 import useSWR from "swr";
 
 export default function OAuthAppsPageClient() {
-  const { slug, id: workspaceId, flags } = useWorkspace();
+  const router = useRouter();
+  const { slug, id: workspaceId, flags, role } = useWorkspace();
 
   if (!flags?.integrations) {
     redirect(`/${slug}/settings`);
@@ -23,6 +24,11 @@ export default function OAuthAppsPageClient() {
     `/api/oauth/apps?workspaceId=${workspaceId}`,
     fetcher,
   );
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "oauth_apps.write",
+    role,
+  });
 
   return (
     <div className="grid gap-5">
@@ -43,15 +49,12 @@ export default function OAuthAppsPageClient() {
           />
         </div>
         <div className="flex w-full items-center gap-3 sm:w-auto">
-          <Link
-            href={`/${slug}/settings/oauth-apps/new`}
-            className={cn(
-              buttonVariants({ variant: "primary" }),
-              "flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
-            )}
-          >
-            Add OAuth App
-          </Link>
+          <Button
+            className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm"
+            text="Add OAuth App"
+            onClick={() => router.push(`/${slug}/settings/oauth-apps/new`)}
+            disabledTooltip={permissionsError}
+          />
         </div>
       </div>
 
