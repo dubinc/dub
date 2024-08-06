@@ -9,7 +9,13 @@ import {
   TableIcon,
   Xmark,
 } from "@dub/ui/src/icons";
-import { cn, formatDate, getPrettyUrl, truncate } from "@dub/utils";
+import {
+  cn,
+  formatDate,
+  getPrettyUrl,
+  parseDateTime,
+  truncate,
+} from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -98,9 +104,14 @@ function FieldRow({
         break;
       case "createdAt":
         // Convert to date
-        values = values.map((e) =>
-          formatDate(new Date(e), { month: "short", year: undefined }),
-        );
+        values = values.map((e) => {
+          const date = parseDateTime(e);
+          if (!date) return e;
+
+          return formatDate(date, {
+            month: "short",
+          });
+        });
         break;
     }
 
