@@ -14,7 +14,6 @@ export default function NewOAuthAppPageClient() {
   const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
     role,
-    customPermissionDescription: "manage OAuth applications",
   });
 
   if (!flags?.integrations || permissionsError) {

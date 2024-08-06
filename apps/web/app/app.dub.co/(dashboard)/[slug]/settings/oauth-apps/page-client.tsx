@@ -25,11 +25,10 @@ export default function OAuthAppsPageClient() {
     fetcher,
   );
 
-  const permissionsError = clientAccessCheck({
+  const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
     role,
-    customPermissionDescription: "manage OAuth applications",
-  }).error;
+  });
 
   return (
     <div className="grid gap-5">

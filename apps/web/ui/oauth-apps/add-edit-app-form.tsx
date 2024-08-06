@@ -65,7 +65,6 @@ export default function AddOAuthAppForm({
   const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
     role,
-    customPermissionDescription: "manage OAuth applications",
   });
 
   useEffect(() => {
