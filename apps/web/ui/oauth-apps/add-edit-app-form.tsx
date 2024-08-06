@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExistingOAuthApp, NewOAuthApp, OAuthAppProps } from "@/lib/types";
 import {
@@ -41,7 +42,7 @@ export default function AddOAuthAppForm({
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const { slug: workspaceSlug, id: workspaceId, flags } = useWorkspace();
+  const { slug: workspaceSlug, id: workspaceId, flags, role } = useWorkspace();
   const [urls, setUrls] = useState<{ id: string; value: string }[]>([
     { id: nanoid(), value: "" },
   ]);
@@ -60,6 +61,12 @@ export default function AddOAuthAppForm({
   const [data, setData] = useState<NewOAuthApp | ExistingOAuthApp>(
     oAuthApp || defaultValues,
   );
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "oauth_apps.write",
+    role,
+    customPermissionDescription: "manage OAuth applications",
+  });
 
   useEffect(() => {
     setData((prev) => ({
@@ -191,8 +198,8 @@ export default function AddOAuthAppForm({
 
   const buttonDisabled =
     !name || !slug || !developer || !website || !redirectUris;
-
   const uploading = screenshots.some((s) => s.uploading);
+  const canManageApp = !permissionsError;
 
   return (
     <>
@@ -233,6 +240,7 @@ export default function AddOAuthAppForm({
               autoFocus
               autoComplete="off"
               placeholder="My App"
+              disabled={!canManageApp}
             />
           </div>
         </div>
@@ -252,6 +260,7 @@ export default function AddOAuthAppForm({
               onChange={(e) => setData({ ...data, slug: e.target.value })}
               autoComplete="off"
               placeholder="my-app"
+              disabled={!canManageApp}
             />
           </div>
         </div>
@@ -272,6 +281,7 @@ export default function AddOAuthAppForm({
               onChange={(e) => {
                 setData({ ...data, description: e.target.value });
               }}
+              disabled={!canManageApp}
             />
           </div>
         </div>
@@ -292,6 +302,7 @@ export default function AddOAuthAppForm({
               onChange={(e) => {
                 setData({ ...data, readme: e.target.value });
               }}
+              disabled={!canManageApp}
             />
           </div>
         </div>
@@ -324,6 +335,7 @@ export default function AddOAuthAppForm({
                   </p>
                 </div>
                 <button
+                  disabled={!canManageApp}
                   className="h-full rounded-r-md border-l border-gray-200 p-2"
                   onClick={() => {
                     setScreenshots((prev) =>
@@ -337,7 +349,7 @@ export default function AddOAuthAppForm({
             ))}
           </Reorder.Group>
 
-          {screenshots.length < 4 && (
+          {canManageApp && screenshots.length < 4 && (
             <FileUpload
               accept="any"
               className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-gray-300"
@@ -363,6 +375,7 @@ export default function AddOAuthAppForm({
               value={developer}
               onChange={(e) => setData({ ...data, developer: e.target.value })}
               placeholder="Acme Inc."
+              disabled={!canManageApp}
             />
           </div>
         </div>
@@ -380,6 +393,7 @@ export default function AddOAuthAppForm({
               value={website}
               onChange={(e) => setData({ ...data, website: e.target.value })}
               placeholder="https://acme.com"
+              disabled={!canManageApp}
             />
           </div>
         </div>
@@ -400,6 +414,7 @@ export default function AddOAuthAppForm({
               variant="secondary"
               className="h-7 w-fit px-2.5 py-1 text-xs"
               onClick={() => setUrls([...urls, { id: nanoid(), value: "" }])}
+              disabled={!canManageApp}
             />
           </div>
 
@@ -445,6 +460,7 @@ export default function AddOAuthAppForm({
                                   setUrls(newUrls);
                                 }}
                                 className="h-[26px] border-gray-300 px-2.5 py-1 text-xs text-red-500 hover:bg-gray-50"
+                                disabled={!canManageApp}
                               />
                             </div>
                           )}
@@ -468,6 +484,7 @@ export default function AddOAuthAppForm({
             fn={(value: boolean) => {
               setData({ ...data, pkce: value });
             }}
+            disabled={!canManageApp}
           />
         </div>
 
@@ -476,6 +493,9 @@ export default function AddOAuthAppForm({
           disabled={buttonDisabled || uploading}
           loading={saving}
           type="submit"
+          {...(permissionsError && {
+            disabledTooltip: permissionsError,
+          })}
         />
       </form>
     </>

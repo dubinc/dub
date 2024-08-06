@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import AddOAuthAppForm from "@/ui/oauth-apps/add-edit-app-form";
 import { MaxWidthWrapper } from "@dub/ui";
@@ -10,7 +11,13 @@ import { redirect } from "next/navigation";
 export default function NewOAuthAppPageClient() {
   const { slug, flags, role } = useWorkspace();
 
-  if (!flags?.integrations) {
+  const { error: permissionsError } = clientAccessCheck({
+    action: "oauth_apps.write",
+    role,
+    customPermissionDescription: "manage OAuth applications",
+  });
+
+  if (!flags?.integrations || permissionsError) {
     redirect(`/${slug}/settings`);
   }
 
