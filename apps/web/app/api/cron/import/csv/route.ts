@@ -252,7 +252,7 @@ export async function POST(req: Request) {
       -1,
     )) as any;
 
-    sendCsvImportEmails({
+    await sendCsvImportEmails({
       workspaceId,
       count,
       domains: addedDomains,
