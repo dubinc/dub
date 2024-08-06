@@ -10,7 +10,7 @@ import {
   LoadingSpinner,
   Switch,
 } from "@dub/ui";
-import { nanoid } from "@dub/utils";
+import { cn, nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
@@ -220,6 +220,7 @@ export default function AddOAuthAppForm({
             onChange={({ src }) => setData({ ...data, logo: src })}
             content={null}
             maxFileSizeMB={2}
+            disabled={!canManageApp}
           />
         </div>
 
@@ -232,7 +233,12 @@ export default function AddOAuthAppForm({
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
             <input
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-50": !canManageApp,
+                },
+              )}
               required
               value={name}
               onChange={(e) => setData({ ...data, name: e.target.value })}
@@ -253,7 +259,12 @@ export default function AddOAuthAppForm({
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
             <input
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-50": !canManageApp,
+                },
+              )}
               required
               value={slug}
               onChange={(e) => setData({ ...data, slug: e.target.value })}
@@ -273,7 +284,12 @@ export default function AddOAuthAppForm({
             <TextareaAutosize
               name="description"
               minRows={2}
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-50": !canManageApp,
+                },
+              )}
               placeholder="Add a description"
               value={description || ""}
               maxLength={120}
@@ -294,7 +310,12 @@ export default function AddOAuthAppForm({
             <TextareaAutosize
               name="readme"
               minRows={10}
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-50": !canManageApp,
+                },
+              )}
               placeholder="## My Awesome Integration"
               value={readme || ""}
               maxLength={1000}
@@ -369,7 +390,12 @@ export default function AddOAuthAppForm({
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
             <input
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-50": !canManageApp,
+                },
+              )}
               required
               value={developer}
               onChange={(e) => setData({ ...data, developer: e.target.value })}
@@ -386,7 +412,12 @@ export default function AddOAuthAppForm({
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
             <input
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-50": !canManageApp,
+                },
+              )}
               type="url"
               required
               value={website}
@@ -438,7 +469,13 @@ export default function AddOAuthAppForm({
                                 ),
                               );
                             }}
-                            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                            className={cn(
+                              "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                              {
+                                "cursor-not-allowed bg-gray-50": !canManageApp,
+                              },
+                            )}
+                            disabled={!canManageApp}
                           />
 
                           {urls.length > 1 && (

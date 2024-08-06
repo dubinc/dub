@@ -92,6 +92,8 @@ export type FileUploadProps = FileUploadReadFileProps & {
    * Accessibility label for screen readers
    */
   accessibilityLabel?: string;
+
+  disabled?: boolean;
 } & VariantProps<typeof imageUploadVariants>;
 
 export function FileUpload({
@@ -108,6 +110,7 @@ export function FileUpload({
   content,
   maxFileSizeMB = 0,
   accessibilityLabel = "File upload",
+  disabled = false,
 }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -228,6 +231,7 @@ export function FileUpload({
             type="file"
             accept={acceptFileTypes[accept].types.join(",")}
             onChange={onFileChange}
+            disabled={disabled}
           />
         </div>
       )}
