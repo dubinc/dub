@@ -47,15 +47,17 @@ export function FieldMapping() {
   }, [fileColumns, firstRows]);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div>
       <p className="text-sm text-gray-600">
         Please select the column that corresponds to each field:
       </p>
-      {(Object.keys(mappableFields) as (keyof typeof mappableFields)[]).map(
-        (field) => (
-          <FieldRow key={field} field={field} isStreaming={isStreaming} />
-        ),
-      )}
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {(Object.keys(mappableFields) as (keyof typeof mappableFields)[]).map(
+          (field) => (
+            <FieldRow key={field} field={field} isStreaming={isStreaming} />
+          ),
+        )}
+      </div>
     </div>
   );
 }
@@ -102,13 +104,13 @@ function FieldRow({
         break;
     }
 
-    values = values.map((e) => truncate(e, 24) as string);
+    values = values.map((e) => truncate(e, 32) as string);
 
     return values;
   }, [firstRows, value]);
 
   return (
-    <div key={field} className="flex items-center justify-between gap-6">
+    <>
       <span className="flex items-center gap-1">
         <span className="whitespace-nowrap text-sm font-medium text-gray-950">
           {label} {required && <span className="text-red-700">*</span>}
@@ -129,16 +131,14 @@ function FieldRow({
                 <div className="w-full p-2 md:w-48">
                   {[
                     ...(fileColumns || []),
-                    ...(field.value ? ["None"] : []),
+                    ...(field.value && !required ? ["None"] : []),
                   ]?.map((column) => {
                     const Icon = column !== "None" ? TableIcon : Xmark;
                     return (
                       <button
                         key={column}
                         onClick={() => {
-                          field.onChange(
-                            column !== "None" ? column : undefined,
-                          );
+                          field.onChange(column !== "None" ? column : null);
                           setIsOpen(false);
                         }}
                         className={cn(
@@ -151,7 +151,7 @@ function FieldRow({
                           icon={<Icon className="h-4 w-4 flex-none" />}
                         />
                         {field.value === column && (
-                          <Check className="h-4 w-4" />
+                          <Check className="h-4 w-4 shrink-0" />
                         )}
                       </button>
                     );
@@ -163,11 +163,11 @@ function FieldRow({
             >
               <Button
                 variant="secondary"
-                className="h-9 min-w-16 px-3"
+                className="h-9 px-3"
                 onClick={() => setIsOpen((o) => !o)}
                 disabled={isLoading}
                 text={
-                  <div className="flex items-center gap-1">
+                  <div className="flex w-full grow items-center justify-between gap-1">
                     <span className="flex-1 truncate whitespace-nowrap text-left text-gray-800">
                       {field.value || (
                         <span className="text-gray-600">Select column...</span>
@@ -188,9 +188,23 @@ function FieldRow({
           <div className="-mr-6 ml-2 hidden shrink-0 sm:block">
             <Tooltip
               content={
-                <div className="block px-3 py-2 text-sm">
-                  <span className="font-medium text-gray-950">Examples: </span>
-                  <span className="text-gray-500">{examples?.join(", ")}</span>
+                <div className="block px-4 py-3 text-sm">
+                  <span className="font-medium text-gray-950">
+                    Example values:
+                  </span>
+                  <ul className="mt-0.5">
+                    {examples?.map((example, idx) => (
+                      <li
+                        key={example + idx}
+                        className="block text-xs leading-tight text-gray-500"
+                      >
+                        <span className="translate-y-1 text-base text-gray-600">
+                          &bull;
+                        </span>{" "}
+                        {example}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               }
             >
@@ -201,6 +215,6 @@ function FieldRow({
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
