@@ -79,22 +79,7 @@ export default function WorkspaceBillingClient() {
         trackEvent(`Upgraded to ${currentPlan.name}`, {
           _value: currentPlan.price[period] * 100, // in cents
         });
-        plausible("Upgraded Plan", {
-          props: {
-            plan: currentPlan.name,
-            period,
-          },
-          revenue: {
-            currency: "USD",
-            amount: currentPlan.price[period],
-          },
-        });
-        plausible(`Upgraded to ${currentPlan.name}`, {
-          revenue: {
-            currency: "USD",
-            amount: currentPlan.price[period],
-          },
-        });
+        plausible(`Upgraded to ${currentPlan.name}`);
         posthog.capture("plan_upgraded", {
           plan: currentPlan.name,
           period,
