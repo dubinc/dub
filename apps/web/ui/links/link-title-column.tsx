@@ -62,7 +62,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   // Use intersection observer for basic "virtualization" to improve transition performance
   const entry = useIntersectionObserver(ref, {});
-  const isVisible = !!entry?.isIntersecting;
+  const isVisible = entry?.isIntersecting ?? true;
 
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
