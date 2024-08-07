@@ -110,18 +110,17 @@ const Presets = <TPreset extends Preset, TValue>({
               )}
             >
               <span>{preset.label}</span>
-              {preset.requiresUpgrade && (
+              {preset.requiresUpgrade ? (
                 <Lock className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
+              ) : preset.shortcut ? (
+                <kbd className="text-gray-4000 rounded bg-gray-100 px-2 py-0.5 text-xs font-light group-data-[selected=true]:bg-gray-200">
+                  {preset.shortcut}
+                </kbd>
+              ) : null}
               {preset.requiresUpgrade && preset.tooltipContent && (
                 <Tooltip side="bottom" content={preset.tooltipContent}>
                   <div className="absolute inset-0 cursor-not-allowed"></div>
                 </Tooltip>
-              )}
-              {preset.shortcut && (
-                <kbd className="rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-400 group-data-[selected=true]:bg-gray-200">
-                  {preset.shortcut}
-                </kbd>
               )}
             </Command.Item>
           );
