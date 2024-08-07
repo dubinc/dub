@@ -1,0 +1,41 @@
+model Integration {
+  id          String   @id @default(cuid())
+  userId      String?
+  projectId   String
+  name        String
+  slug        String   @unique
+  description String?
+  readme      String?  @db.LongText
+  developer   String
+  website     String
+  logo        String?
+  screenshots Json?
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user          User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  project       Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  oAuthApp      OAuthApp?
+  installations InstalledIntegration[]
+
+  @@index([projectId])
+  @@index([userId])
+}
+
+model InstalledIntegration {
+  id            String   @id @default(cuid())
+  userId        String // user who installed the integration
+  integrationId String // integration that was installed
+  projectId     String // workspace where integration was installed
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, integrationId, projectId])
+  @@index([projectId])
+  @@index([integrationId])
+}
