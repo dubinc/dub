@@ -175,9 +175,11 @@ export function FilterSelect({
                   } else selectOption(search);
                 }}
               />
-              <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
-                F
-              </kbd>
+              {!selectedFilter && (
+                <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                  F
+                </kbd>
+              )}
             </div>
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
               <Command.List

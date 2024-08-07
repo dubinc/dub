@@ -163,6 +163,7 @@ function FieldRow({
               <Button
                 variant="secondary"
                 className="h-9 min-w-0 px-3"
+                textWrapperClassName="grow text-left"
                 onClick={() => setIsOpen((o) => !o)}
                 disabled={isLoading}
                 text={

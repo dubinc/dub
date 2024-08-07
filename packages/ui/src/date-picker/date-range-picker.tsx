@@ -126,7 +126,7 @@ const DateRangePickerInner = ({
               {presets && presets.length > 0 && (
                 <div
                   className={cn(
-                    "relative flex h-16 w-full items-center sm:h-full sm:w-44",
+                    "relative flex h-16 w-full items-center sm:h-full sm:w-48",
                     "border-b border-gray-200 sm:border-b-0 sm:border-l",
                     "scrollbar-hide overflow-auto",
                   )}
