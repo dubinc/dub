@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken, generateCodeChallengeHash } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
+import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
@@ -49,7 +50,6 @@ export const exchangeAuthCodeForToken = async (
       clientId,
     },
     select: {
-      name: true,
       pkce: true,
       hashedClientSecret: true,
     },
@@ -208,7 +208,7 @@ export const exchangeAuthCodeForToken = async (
     // Create the access token and refresh token
     prisma.restrictedToken.create({
       data: {
-        name: `Access token for ${app.name}`,
+        name: generateRandomName(),
         hashedKey: await hashToken(accessToken),
         partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
         scopes,
