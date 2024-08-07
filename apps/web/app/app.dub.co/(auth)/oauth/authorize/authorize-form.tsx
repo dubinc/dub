@@ -5,13 +5,12 @@ import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { OAuthApp } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
-  oAuthApp: Pick<OAuthApp, "name">;
+  //
 }
 
 export const AuthorizeForm = ({
