@@ -230,3 +230,10 @@ export type InstalledIntegrationInfoProps = Pick<
 };
 
 export type WebhookTrigger = (typeof webhookTrigger)[number];
+
+export type WebhookEventPayload = {
+  id: string;
+  event: WebhookTrigger;
+  createdAt: string;
+  data: any; // FIXME: add type
+};

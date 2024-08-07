@@ -1,5 +1,7 @@
 import { webhookTrigger } from "@/lib/webhook/constants";
 import { z } from "zod";
+import { clickEventSchemaTB } from "./clicks";
+import { LinkSchema } from "./links";
 
 export const webhookSchema = z.object({
   id: z.string(),
@@ -26,7 +28,5 @@ export const webhookEventSchema = z.object({
   id: z.string(),
   event: z.string(),
   createdAt: z.string(),
-  data: z.object({
-    //
-  }),
+  data: z.union([LinkSchema, clickEventSchemaTB]),
 });
