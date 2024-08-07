@@ -97,7 +97,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     <>
       <div
         ref={domainRef}
-        className="group rounded-xl border border-gray-200 bg-white p-4 transition-[filter] hover:[filter:drop-shadow(0_8px_12px_#222A350d)_drop-shadow(0_32px_80px_#2f30370f)] sm:p-5"
+        className="hover:drop-shadow-card-hover group rounded-xl border border-gray-200 bg-white p-4 transition-[filter] sm:p-5"
         onPointerEnter={() => setGroupHover(true)}
         onPointerLeave={() => setGroupHover(false)}
       >
