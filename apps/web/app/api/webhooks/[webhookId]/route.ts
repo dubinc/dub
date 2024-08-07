@@ -1,0 +1,73 @@
+import { parseRequestBody } from "@/lib/api/utils";
+import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { NextResponse } from "next/server";
+
+// GET /api/webhooks/[webhookId] - get info about a specific webhook
+export const GET = withWorkspace(
+  async ({ workspace, params }) => {
+    const { webhookId } = params;
+
+    const webhook = await prisma.webhook.findUniqueOrThrow({
+      where: {
+        id: webhookId,
+        projectId: workspace.id,
+      },
+    });
+
+    return NextResponse.json(webhook);
+  },
+  {
+    requiredPermissions: ["webhooks.read"],
+  },
+);
+
+// PATCH /api/webhooks/[webhookId] - update a specific webhook
+export const PATCH = withWorkspace(
+  async ({ workspace, params, req }) => {
+    const { webhookId } = params;
+
+    const { name, url, triggers } = updateWebhookSchema.parse(
+      await parseRequestBody(req),
+    );
+
+    const webhook = await prisma.webhook.update({
+      where: {
+        id: webhookId,
+        projectId: workspace.id,
+      },
+      data: {
+        ...(name && { name }),
+        ...(url && { url }),
+        ...(triggers && { triggers }),
+      },
+    });
+
+    return NextResponse.json(webhook);
+  },
+  {
+    requiredPermissions: ["webhooks.write"],
+  },
+);
+
+// DELETE /api/webhooks/[webhookId] - delete a specific webhook
+export const DELETE = withWorkspace(
+  async ({ workspace, params }) => {
+    const { webhookId } = params;
+
+    await prisma.webhook.delete({
+      where: {
+        id: webhookId,
+        projectId: workspace.id,
+      },
+    });
+
+    return NextResponse.json({
+      id: webhookId,
+    });
+  },
+  {
+    requiredPermissions: ["webhooks.write"],
+  },
+);

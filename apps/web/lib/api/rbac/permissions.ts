@@ -17,6 +17,8 @@ export const PERMISSION_ACTIONS = [
   "oauth_apps.write",
   "integrations.read",
   "integrations.write",
+  "webhooks.read",
+  "webhooks.write",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -105,6 +107,16 @@ export const ROLE_PERMISSIONS: {
     action: "integrations.write",
     description: "disconnect authorized OAuth apps",
     roles: ["owner", "member"],
+  },
+  {
+    action: "webhooks.read",
+    description: "read webhooks",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "webhooks.write",
+    description: "create, update, or delete webhooks",
+    roles: ["owner"],
   },
 ];
 

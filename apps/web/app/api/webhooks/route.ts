@@ -16,7 +16,7 @@ export const GET = withWorkspace(
     return NextResponse.json(webhooks);
   },
   {
-    requiredPermissions: ["oauth_apps.read"],
+    requiredPermissions: ["webhooks.read"],
     featureFlag: "integrations",
   },
 );
@@ -24,7 +24,7 @@ export const GET = withWorkspace(
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const { name, url, secret, source, triggers } = createWebhookSchema.parse(
+    const { name, url, secret, triggers } = createWebhookSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -33,16 +33,16 @@ export const POST = withWorkspace(
         name,
         url,
         secret,
-        source,
         triggers,
         projectId: workspace.id,
+        source: "user",
       },
     });
 
     return NextResponse.json(webhook, { status: 201 });
   },
   {
-    requiredPermissions: ["oauth_apps.write"],
+    requiredPermissions: ["webhooks.write"],
     featureFlag: "integrations",
   },
 );

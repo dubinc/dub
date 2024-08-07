@@ -12,6 +12,7 @@ import {
   Tag,
   Users6,
 } from "@dub/ui/src/icons";
+// import { Webhook } from "lucide-react";
 import { ReactNode } from "react";
 
 export default async function WorkspaceSettingsLayout({
@@ -78,6 +79,11 @@ export default async function WorkspaceSettingsLayout({
           name: "API Keys",
           icon: Key,
           segment: "tokens",
+        },
+        {
+          name: "Webhooks",
+          icon: Key,
+          segment: "webhooks",
         },
         ...(flags.integrations
           ? [{ name: "OAuth Apps", icon: CubeSettings, segment: "oauth-apps" }]
