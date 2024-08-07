@@ -1,7 +1,6 @@
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
 import { Lock } from "lucide-react";
-import { useKeyboardShortcut } from "../hooks";
 import { Tooltip } from "../tooltip";
 import { DatePreset, DateRange, DateRangePreset, Preset } from "./types";
 
@@ -68,16 +67,6 @@ const Presets = <TPreset extends Preset, TValue>({
 
     return false;
   };
-
-  useKeyboardShortcut(
-    presets
-      .filter((preset) => preset.shortcut)
-      .map((preset) => preset.shortcut) as string[],
-    (e) => {
-      const preset = presets.find((preset) => preset.shortcut === e.key);
-      if (preset) onSelect(preset);
-    },
-  );
 
   return (
     <Command
