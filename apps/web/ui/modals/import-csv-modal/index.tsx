@@ -140,10 +140,10 @@ function ImportCsvModal({
           del: "import",
         })
       }
-      className="h-fit max-h-[95dvh] overflow-y-auto"
+      className="h-fit max-h-[95dvh] max-w-lg overflow-y-auto"
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
-        <div className="flex items-center space-x-3 py-4">
+        <div className="flex items-center gap-x-3 py-4">
           <div className="flex size-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-50">
             <TableIcon className="size-5" />
           </div>
@@ -169,7 +169,7 @@ function ImportCsvModal({
             setValue,
           }}
         >
-          <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
+          <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-12">
             <form
               onSubmit={handleSubmit(async (data) => {
                 const loadingId = toast.loading(

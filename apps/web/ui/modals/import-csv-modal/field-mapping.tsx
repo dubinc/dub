@@ -3,6 +3,7 @@
 import { generateCsvMapping } from "@/lib/ai/generate-csv-mapping";
 import { Button, IconMenu, InfoTooltip, Popover, Tooltip } from "@dub/ui";
 import {
+  ArrowRight,
   Check,
   LoadingSpinner,
   Magnifier,
@@ -57,7 +58,7 @@ export function FieldMapping() {
       <p className="text-sm text-gray-600">
         Please select the column that corresponds to each field:
       </p>
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-4 grid grid-cols-[1fr_min-content_1fr] gap-x-4 gap-y-2">
         {(Object.keys(mappableFields) as (keyof typeof mappableFields)[]).map(
           (field) => (
             <FieldRow key={field} field={field} isStreaming={isStreaming} />
@@ -122,15 +123,7 @@ function FieldRow({
 
   return (
     <>
-      <span className="flex items-center gap-1">
-        <span className="whitespace-nowrap text-sm font-medium text-gray-950">
-          {label} {required && <span className="text-red-700">*</span>}
-        </span>
-        {field === "tags" && (
-          <InfoTooltip content="Tags may be comma-separated as long as they're escaped properly in the CSV file." />
-        )}
-      </span>
-      <div className="flex min-w-0 items-center">
+      <div className="relative flex min-w-0 items-center gap-2">
         <Controller
           control={control}
           name={field}
@@ -174,7 +167,7 @@ function FieldRow({
             >
               <Button
                 variant="secondary"
-                className="h-9 px-3"
+                className="h-9 min-w-0 px-3"
                 onClick={() => setIsOpen((o) => !o)}
                 disabled={isLoading}
                 text={
@@ -195,8 +188,8 @@ function FieldRow({
             </Popover>
           )}
         />
-        {Boolean(examples?.length) && (
-          <div className="-mr-6 ml-2 hidden shrink-0 sm:block">
+        {Boolean(examples?.length) ? (
+          <div className="hidden shrink-0 sm:block">
             <Tooltip
               content={
                 <div className="block px-4 py-3 text-sm">
@@ -224,8 +217,21 @@ function FieldRow({
               </div>
             </Tooltip>
           </div>
+        ) : (
+          <div className="w-4 shrink-0" />
         )}
       </div>
+      <div className="flex items-center justify-end">
+        <ArrowRight className="h-4 w-4 text-gray-500" />
+      </div>
+      <span className="flex h-9 items-center gap-1 rounded-md border border-gray-200 bg-gray-100 px-3">
+        <span className="grow whitespace-nowrap text-sm font-normal text-gray-700">
+          {label} {required && <span className="text-red-700">*</span>}
+        </span>
+        {field === "tags" && (
+          <InfoTooltip content="Tags may be comma-separated as long as they're escaped properly in the CSV file." />
+        )}
+      </span>
     </>
   );
 }
