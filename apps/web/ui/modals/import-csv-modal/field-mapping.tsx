@@ -9,6 +9,7 @@ import {
   TableIcon,
   Xmark,
 } from "@dub/ui/src/icons";
+import { Tooltip } from "@dub/ui/src/tooltip";
 import {
   cn,
   formatDate,
@@ -182,42 +183,37 @@ function FieldRow({
             </Popover>
           )}
         />
-        {/* {Boolean(examples?.length) ? (
-          <div className="hidden shrink-0 sm:block">
-            <Tooltip
-              content={
-                <div className="block px-4 py-3 text-sm">
-                  <span className="font-medium text-gray-950">
-                    Example values:
-                  </span>
-                  <ul className="mt-0.5">
-                    {examples?.map((example, idx) => (
-                      <li
-                        key={example + idx}
-                        className="block text-xs leading-tight text-gray-500"
-                      >
-                        <span className="translate-y-1 text-base text-gray-600">
-                          &bull;
-                        </span>{" "}
-                        {example}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              }
-            >
-              <div>
-                <Magnifier className="size-4 text-gray-400 transition-colors hover:text-gray-500" />
-              </div>
-            </Tooltip>
+      </div>
+      {Boolean(examples?.length) ? (
+        <Tooltip
+          content={
+            <div className="block px-4 py-3 text-sm">
+              <span className="font-medium text-gray-950">Example values:</span>
+              <ul className="mt-0.5">
+                {examples?.map((example, idx) => (
+                  <li
+                    key={example + idx}
+                    className="block text-xs leading-tight text-gray-500"
+                  >
+                    <span className="translate-y-1 text-base text-gray-600">
+                      &bull;
+                    </span>{" "}
+                    {example}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          }
+        >
+          <div className="flex items-center justify-end">
+            <ArrowRight className="size-4 text-gray-500" />
           </div>
-        ) : (
-          <div className="w-4 shrink-0" />
-        )} */}
-      </div>
-      <div className="flex items-center justify-end">
-        <ArrowRight className="size-4 text-gray-500" />
-      </div>
+        </Tooltip>
+      ) : (
+        <div className="flex items-center justify-end">
+          <ArrowRight className="size-4 text-gray-500" />
+        </div>
+      )}
       <span className="flex h-9 items-center gap-1 rounded-md border border-gray-200 bg-gray-100 px-3">
         <span className="grow whitespace-nowrap text-sm font-normal text-gray-700">
           {label} {required && <span className="text-red-700">*</span>}
