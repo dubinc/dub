@@ -56,7 +56,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         <Tooltip content={disabledTooltip}>
           <div
             className={cn(
-              "flex h-10 w-full cursor-not-allowed items-center justify-center gap-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none",
+              "flex h-10 w-full cursor-not-allowed items-center justify-center gap-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-left text-sm text-gray-400 transition-all focus:outline-none",
               {
                 "border-transparent bg-transparent":
                   variant?.endsWith("outline"),
@@ -67,10 +67,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             {icon}
             {text && (
               <div
-                className={cn(
-                  "min-w-0 grow truncate text-left",
-                  shortcut && "flex-1",
-                )}
+                className={cn("min-w-0 grow truncate", shortcut && "flex-1")}
               >
                 {text}
               </div>
@@ -97,7 +94,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
         type={props.onClick ? "button" : "submit"}
         className={cn(
-          "group flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border px-4 text-sm",
+          "group flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border px-4 text-left text-sm",
           props.disabled || loading
             ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
             : buttonVariants({ variant }),
@@ -108,12 +105,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading ? <LoadingSpinner /> : icon ? icon : null}
         {text && (
-          <div
-            className={cn(
-              "min-w-0 grow truncate text-left",
-              shortcut && "flex-1",
-            )}
-          >
+          <div className={cn("min-w-0 grow truncate", shortcut && "flex-1")}>
             {text}
           </div>
         )}
