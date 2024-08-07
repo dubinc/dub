@@ -1,6 +1,7 @@
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
 import { Lock } from "lucide-react";
+import { useKeyboardShortcut } from "../hooks";
 import { Tooltip } from "../tooltip";
 import { DatePreset, DateRange, DateRangePreset, Preset } from "./types";
 
@@ -68,6 +69,22 @@ const Presets = <TPreset extends Preset, TValue>({
     return false;
   };
 
+  useKeyboardShortcut(
+    presets
+      .filter((preset) => preset.shortcut)
+      .map((preset) => preset.shortcut) as string[],
+    (e) => {
+      console.log("shortcut", e.key);
+      const preset = presets.find((preset) => preset.shortcut === e.key);
+      if (preset) {
+        onSelect(preset);
+      }
+    },
+    {
+      enabled: true,
+    },
+  );
+
   return (
     <Command
       className="w-full rounded ring-gray-200 ring-offset-2 focus:outline-none"
@@ -85,7 +102,7 @@ const Presets = <TPreset extends Preset, TValue>({
               title={preset.label}
               value={preset.id}
               className={cn(
-                "relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-gray-200",
+                "group relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-gray-200",
                 "px-2.5 py-1.5 text-left text-sm text-gray-700 shadow-sm outline-none sm:w-full sm:border-none sm:py-2 sm:shadow-none",
                 "disabled:pointer-events-none disabled:opacity-50",
                 "sm:data-[selected=true]:bg-gray-100",
@@ -100,6 +117,11 @@ const Presets = <TPreset extends Preset, TValue>({
                 <Tooltip side="bottom" content={preset.tooltipContent}>
                   <div className="absolute inset-0 cursor-not-allowed"></div>
                 </Tooltip>
+              )}
+              {preset.shortcut && (
+                <kbd className="rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-400 group-data-[selected=true]:bg-gray-200">
+                  {preset.shortcut}
+                </kbd>
               )}
             </Command.Item>
           );

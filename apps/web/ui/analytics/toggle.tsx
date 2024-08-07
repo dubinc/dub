@@ -621,40 +621,43 @@ export default function Toggle({
                       },
                     });
                   }}
-                  presets={INTERVAL_DISPLAYS.map(({ display, value }) => {
-                    const start = INTERVAL_DATA[value].startDate;
-                    const end = new Date();
+                  presets={INTERVAL_DISPLAYS.map(
+                    ({ display, value, shortcut }) => {
+                      const start = INTERVAL_DATA[value].startDate;
+                      const end = new Date();
 
-                    const requiresUpgrade =
-                      adminPage ||
-                      demoPage ||
-                      DUB_DEMO_LINKS.find(
-                        (l) => l.domain === domain && l.key === key,
-                      )
-                        ? false
-                        : !validDateRangeForPlan({
-                            plan,
-                            start,
-                            end,
-                          });
+                      const requiresUpgrade =
+                        adminPage ||
+                        demoPage ||
+                        DUB_DEMO_LINKS.find(
+                          (l) => l.domain === domain && l.key === key,
+                        )
+                          ? false
+                          : !validDateRangeForPlan({
+                              plan,
+                              start,
+                              end,
+                            });
 
-                    return {
-                      id: value,
-                      label: display,
-                      dateRange: {
-                        from: start,
-                        to: end,
-                      },
-                      requiresUpgrade,
-                      tooltipContent: requiresUpgrade ? (
-                        <UpgradeTooltip
-                          rangeLabel={display}
-                          plan={plan}
-                          isPublicStatsPage={isPublicStatsPage}
-                        />
-                      ) : undefined,
-                    };
-                  })}
+                      return {
+                        id: value,
+                        label: display,
+                        dateRange: {
+                          from: start,
+                          to: end,
+                        },
+                        requiresUpgrade,
+                        tooltipContent: requiresUpgrade ? (
+                          <UpgradeTooltip
+                            rangeLabel={display}
+                            plan={plan}
+                            isPublicStatsPage={isPublicStatsPage}
+                          />
+                        ) : undefined,
+                        shortcut,
+                      };
+                    },
+                  )}
                 />
                 {!isPublicStatsPage && page === "analytics" && (
                   <AnalyticsOptions />
