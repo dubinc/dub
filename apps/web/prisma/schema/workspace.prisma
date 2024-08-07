@@ -36,6 +36,7 @@ model Project {
   oAuthCodes          OAuthCode[]
   oAuthApps           OAuthApp[] // OAuth apps workspace published
   oAuthAuthorizedApps OAuthAuthorizedApp[] // OAuth apps workspace authorized
+  webhooks            Webhook[]
 
   @@index(usageLastChecked(sort: Asc))
 }

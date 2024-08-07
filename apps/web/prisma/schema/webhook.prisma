@@ -1,0 +1,30 @@
+enum WebhookSource {
+  zapier
+  make
+  user
+}
+
+enum WebhookEventTrigger {
+  LINK_CLICKED
+  LINK_CREATED
+}
+
+model Webhook {
+  id            String        @id @default(cuid())
+  projectId     String
+  linkId        String?
+  name          String
+  url           String
+  secret        String?
+  active        Boolean       @default(true)
+  source        WebhookSource
+  eventTriggers Json
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  Project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Link    Link?   @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([linkId])
+}

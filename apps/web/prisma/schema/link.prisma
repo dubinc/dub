@@ -56,7 +56,8 @@ model Link {
   tags LinkTag[]
 
   // Comments on the particular shortlink
-  comments String? @db.LongText
+  comments String?   @db.LongText
+  webhooks Webhook[]
 
   @@unique([domain, key])
   @@unique([projectId, externalId])
