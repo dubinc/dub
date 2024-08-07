@@ -45,7 +45,7 @@ export const INTERVAL_DISPLAYS = [
   {
     display: "All Time",
     value: "all",
-    shortcut: "A",
+    shortcut: "a",
   },
 ];
 
