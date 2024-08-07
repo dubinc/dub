@@ -2,6 +2,9 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { waitUntil } from "@vercel/functions";
+import { sendEmail } from "emails";
+import WebhookAdded from "emails/webhook-added";
 import { NextResponse } from "next/server";
 
 // GET /api/webhooks - get all webhooks for the given workspace
@@ -23,7 +26,7 @@ export const GET = withWorkspace(
 
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const { name, url, secret, triggers } = createWebhookSchema.parse(
       await parseRequestBody(req),
     );
@@ -38,6 +41,23 @@ export const POST = withWorkspace(
         source: "user",
       },
     });
+
+    waitUntil(
+      sendEmail({
+        email: session.user.email,
+        subject: "New webhook added",
+        react: WebhookAdded({
+          email: session.user.email,
+          workspace: {
+            name: workspace.name,
+            slug: workspace.slug,
+          },
+          webhook: {
+            name,
+          },
+        }),
+      }),
+    );
 
     return NextResponse.json(webhook, { status: 201 });
   },

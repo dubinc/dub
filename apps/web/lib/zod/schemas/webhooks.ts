@@ -21,3 +21,12 @@ export const createWebhookSchema = z.object({
 });
 
 export const updateWebhookSchema = createWebhookSchema.partial();
+
+export const webhookEventSchema = z.object({
+  id: z.string(),
+  event: z.string(),
+  createdAt: z.string(),
+  data: z.object({
+    //
+  }),
+});

@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project } from "@prisma/client";
+import { webhookTrigger } from "./webhook/constants";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
@@ -227,3 +228,5 @@ export type InstalledIntegrationInfoProps = Pick<
     };
   } | null;
 };
+
+export type WebhookTrigger = (typeof webhookTrigger)[number];
