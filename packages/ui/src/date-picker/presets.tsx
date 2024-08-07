@@ -74,14 +74,8 @@ const Presets = <TPreset extends Preset, TValue>({
       .filter((preset) => preset.shortcut)
       .map((preset) => preset.shortcut) as string[],
     (e) => {
-      console.log("shortcut", e.key);
       const preset = presets.find((preset) => preset.shortcut === e.key);
-      if (preset) {
-        onSelect(preset);
-      }
-    },
-    {
-      enabled: true,
+      if (preset) onSelect(preset);
     },
   );
 
@@ -114,7 +108,7 @@ const Presets = <TPreset extends Preset, TValue>({
                 <Lock className="h-3.5 w-3.5" aria-hidden="true" />
               ) : preset.shortcut ? (
                 <kbd className="text-gray-4000 rounded bg-gray-100 px-2 py-0.5 text-xs font-light group-data-[selected=true]:bg-gray-200">
-                  {preset.shortcut}
+                  {preset.shortcut.toUpperCase()}
                 </kbd>
               ) : null}
               {preset.requiresUpgrade && preset.tooltipContent && (

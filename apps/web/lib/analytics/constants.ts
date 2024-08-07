@@ -15,32 +15,32 @@ export const INTERVAL_DISPLAYS = [
   {
     display: "Last 24 hours",
     value: "24h",
-    shortcut: "D",
+    shortcut: "d",
   },
   {
     display: "Last 7 days",
     value: "7d",
-    shortcut: "W",
+    shortcut: "w",
   },
   {
     display: "Last 30 days",
     value: "30d",
-    shortcut: "M",
+    shortcut: "m",
   },
   {
     display: "Last 3 months",
     value: "90d",
-    shortcut: "T",
+    shortcut: "t",
   },
   {
     display: "Year to Date",
     value: "ytd",
-    shortcut: "Y",
+    shortcut: "y",
   },
   {
     display: "Last 12 months",
     value: "1y",
-    shortcut: "L",
+    shortcut: "l",
   },
   {
     display: "All Time",
