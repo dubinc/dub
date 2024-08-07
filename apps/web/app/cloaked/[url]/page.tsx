@@ -6,6 +6,7 @@ import {
 import { getMetaTags } from "app/api/metatags/utils";
 
 export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
