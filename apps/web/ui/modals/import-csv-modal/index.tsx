@@ -9,7 +9,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { TableIcon } from "@dub/ui/src/icons";
-import { ArrowRight, ChevronLeft } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -41,20 +41,20 @@ export const mappableFields = {
     label: "Destination URL",
     required: true,
   },
-  createdAt: {
-    label: "Created",
-    required: false,
-  },
-  tags: {
-    label: "Tags",
-    required: false,
-  },
   title: {
     label: "Title",
     required: false,
   },
   description: {
     label: "Description",
+    required: false,
+  },
+  tags: {
+    label: "Tags",
+    required: false,
+  },
+  createdAt: {
+    label: "Created At",
     required: false,
   },
 } as const;
@@ -151,121 +151,130 @@ function ImportCsvModal({
           <Logo className="size-10" />
         </div>
         <h3 className="text-lg font-medium">Import Links From a CSV File</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-balance text-center text-sm text-gray-500">
           Easily import all your links into {process.env.NEXT_PUBLIC_APP_NAME}{" "}
           with just a few clicks.
         </p>
       </div>
 
-      <AnimatedSizeContainer height>
-        <ImportCsvContext.Provider
-          value={{
-            fileColumns,
-            setFileColumns,
-            firstRows,
-            setFirstRows,
-            control,
-            watch,
-            setValue,
-          }}
-        >
-          <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-12">
-            <form
-              onSubmit={handleSubmit(async (data) => {
-                const loadingId = toast.loading(
-                  "Adding links to import queue...",
-                );
-                try {
-                  // Get signed upload URL
-                  const uploadRes = await fetch(
-                    `/api/workspaces/${workspaceId}/import/csv/upload-url`,
-                    {
-                      method: "POST",
-                    },
-                  );
-
-                  if (!uploadRes.ok || !data.file) {
-                    toast.error("Error getting signed upload URL");
-                    return;
-                  }
-
-                  const { id, signedUrl } = await uploadRes.json();
-
-                  // Upload the file
-                  await fetch(signedUrl, {
-                    method: "PUT",
-                    body: data.file,
-                    headers: {
-                      "Content-Type": "multipart/form-data",
-                    },
-                  });
-
-                  const formData = new FormData();
-                  for (const key in data) {
-                    if (key !== "file" && data[key] !== null) {
-                      formData.append(key, data[key]);
-                    }
-                  }
-                  formData.append("id", id);
-
-                  const res = await fetch(
-                    `/api/workspaces/${workspaceId}/import/csv`,
-                    {
-                      method: "POST",
-                      body: formData,
-                    },
-                  );
-
-                  if (!res.ok) throw new Error();
-
-                  router.push(`/${slug}`);
-                  mutate(
-                    (key) =>
-                      typeof key === "string" &&
-                      (key.startsWith("/api/links") ||
-                        key.startsWith("/api/domains")),
-                  );
-
-                  toast.success(
-                    "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
-                  );
-                } catch (error) {
-                  toast.error("Error adding links to import queue");
-                } finally {
-                  toast.dismiss(loadingId);
-                }
-              })}
-              className="flex flex-col space-y-4"
-            >
-              {page === "select-file" && <SelectFile />}
-
-              {page === "confirm-import" && (
-                <>
-                  <FieldMapping />
-                  <Button
-                    text="Confirm import"
-                    loading={isSubmitting}
-                    disabled={!isValid}
-                  />
-                  <button
-                    type="button"
-                    className="flex w-fit items-center gap-1 text-xs text-gray-600 transition-colors hover:text-gray-950"
-                    onClick={() => {
-                      setPageNumber(0);
-                      reset();
-                      setFileColumns(null);
-                      setFirstRows(null);
-                    }}
-                  >
-                    <ChevronLeft className="size-3.5" />
-                    Choose another file
-                  </button>
-                </>
-              )}
-            </form>
+      <div className="relative">
+        {page === "confirm-import" && (
+          <div className="absolute inset-x-0 -top-6 mx-4 grid grid-cols-[1fr_min-content_1fr] items-center gap-x-4 gap-y-2 rounded-md border border-gray-200 bg-white p-2 text-center text-sm font-medium uppercase text-gray-600 sm:mx-12">
+            <p>CSV data column</p>
+            <ArrowRight className="size-4 text-gray-500" />
+            <p>Dub data field</p>
           </div>
-        </ImportCsvContext.Provider>
-      </AnimatedSizeContainer>
+        )}
+
+        <AnimatedSizeContainer height>
+          <ImportCsvContext.Provider
+            value={{
+              fileColumns,
+              setFileColumns,
+              firstRows,
+              setFirstRows,
+              control,
+              watch,
+              setValue,
+            }}
+          >
+            <div className="flex flex-col gap-y-6 bg-gray-50 px-4 py-8 text-left sm:px-12">
+              <form
+                onSubmit={handleSubmit(async (data) => {
+                  const loadingId = toast.loading(
+                    "Adding links to import queue...",
+                  );
+                  try {
+                    // Get signed upload URL
+                    const uploadRes = await fetch(
+                      `/api/workspaces/${workspaceId}/import/csv/upload-url`,
+                      {
+                        method: "POST",
+                      },
+                    );
+
+                    if (!uploadRes.ok || !data.file) {
+                      toast.error("Error getting signed upload URL");
+                      return;
+                    }
+
+                    const { id, signedUrl } = await uploadRes.json();
+
+                    // Upload the file
+                    await fetch(signedUrl, {
+                      method: "PUT",
+                      body: data.file,
+                      headers: {
+                        "Content-Type": "multipart/form-data",
+                      },
+                    });
+
+                    const formData = new FormData();
+                    for (const key in data) {
+                      if (key !== "file" && data[key] !== null) {
+                        formData.append(key, data[key]);
+                      }
+                    }
+                    formData.append("id", id);
+
+                    const res = await fetch(
+                      `/api/workspaces/${workspaceId}/import/csv`,
+                      {
+                        method: "POST",
+                        body: formData,
+                      },
+                    );
+
+                    if (!res.ok) throw new Error();
+
+                    router.push(`/${slug}`);
+                    mutate(
+                      (key) =>
+                        typeof key === "string" &&
+                        (key.startsWith("/api/links") ||
+                          key.startsWith("/api/domains")),
+                    );
+
+                    toast.success(
+                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                    );
+                  } catch (error) {
+                    toast.error("Error adding links to import queue");
+                  } finally {
+                    toast.dismiss(loadingId);
+                  }
+                })}
+                className="flex flex-col gap-y-4"
+              >
+                {page === "select-file" && <SelectFile />}
+
+                {page === "confirm-import" && (
+                  <>
+                    <FieldMapping />
+                    <Button
+                      text="Confirm import"
+                      loading={isSubmitting}
+                      disabled={!isValid}
+                    />
+                    <button
+                      type="button"
+                      className="-mt-1 text-center text-xs text-gray-600 underline underline-offset-2 transition-colors hover:text-gray-800"
+                      onClick={() => {
+                        setPageNumber(0);
+                        reset();
+                        setFileColumns(null);
+                        setFirstRows(null);
+                      }}
+                    >
+                      Choose another file
+                    </button>
+                  </>
+                )}
+              </form>
+            </div>
+          </ImportCsvContext.Provider>
+        </AnimatedSizeContainer>
+      </div>
     </Modal>
   );
 }

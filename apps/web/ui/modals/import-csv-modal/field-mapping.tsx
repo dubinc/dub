@@ -1,12 +1,11 @@
 "use client";
 
 import { generateCsvMapping } from "@/lib/ai/generate-csv-mapping";
-import { Button, IconMenu, InfoTooltip, Popover, Tooltip } from "@dub/ui";
+import { Button, IconMenu, InfoTooltip, Popover } from "@dub/ui";
 import {
   ArrowRight,
   Check,
   LoadingSpinner,
-  Magnifier,
   TableIcon,
   Xmark,
 } from "@dub/ui/src/icons";
@@ -54,17 +53,12 @@ export function FieldMapping() {
   }, [fileColumns, firstRows]);
 
   return (
-    <div>
-      <p className="text-sm text-gray-600">
-        Please select the column that corresponds to each field:
-      </p>
-      <div className="mt-4 grid grid-cols-[1fr_min-content_1fr] gap-x-4 gap-y-2">
-        {(Object.keys(mappableFields) as (keyof typeof mappableFields)[]).map(
-          (field) => (
-            <FieldRow key={field} field={field} isStreaming={isStreaming} />
-          ),
-        )}
-      </div>
+    <div className="grid grid-cols-[1fr_min-content_1fr] gap-x-4 gap-y-2">
+      {(Object.keys(mappableFields) as (keyof typeof mappableFields)[]).map(
+        (field) => (
+          <FieldRow key={field} field={field} isStreaming={isStreaming} />
+        ),
+      )}
     </div>
   );
 }
@@ -152,10 +146,10 @@ function FieldRow({
                       >
                         <IconMenu
                           text={column}
-                          icon={<Icon className="h-4 w-4 flex-none" />}
+                          icon={<Icon className="size-4 flex-none" />}
                         />
                         {field.value === column && (
-                          <Check className="h-4 w-4 shrink-0" />
+                          <Check className="size-4 shrink-0" />
                         )}
                       </button>
                     );
@@ -178,9 +172,9 @@ function FieldRow({
                       )}
                     </span>
                     {isLoading ? (
-                      <LoadingSpinner className="h-4 w-4 shrink-0" />
+                      <LoadingSpinner className="size-4 shrink-0" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                      <ChevronDown className="size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
                     )}
                   </div>
                 }
@@ -188,7 +182,7 @@ function FieldRow({
             </Popover>
           )}
         />
-        {Boolean(examples?.length) ? (
+        {/* {Boolean(examples?.length) ? (
           <div className="hidden shrink-0 sm:block">
             <Tooltip
               content={
@@ -213,16 +207,16 @@ function FieldRow({
               }
             >
               <div>
-                <Magnifier className="h-4 w-4 text-gray-400 transition-colors hover:text-gray-500" />
+                <Magnifier className="size-4 text-gray-400 transition-colors hover:text-gray-500" />
               </div>
             </Tooltip>
           </div>
         ) : (
           <div className="w-4 shrink-0" />
-        )}
+        )} */}
       </div>
       <div className="flex items-center justify-end">
-        <ArrowRight className="h-4 w-4 text-gray-500" />
+        <ArrowRight className="size-4 text-gray-500" />
       </div>
       <span className="flex h-9 items-center gap-1 rounded-md border border-gray-200 bg-gray-100 px-3">
         <span className="grow whitespace-nowrap text-sm font-normal text-gray-700">
