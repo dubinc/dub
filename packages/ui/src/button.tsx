@@ -68,8 +68,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             {text && (
               <div
                 className={cn(
-                  "min-w-0 grow truncate",
-                  shortcut && "flex-1 text-left",
+                  "min-w-0 grow truncate text-left",
+                  shortcut && "flex-1",
                 )}
               >
                 {text}
@@ -110,8 +110,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {text && (
           <div
             className={cn(
-              "min-w-0 grow truncate",
-              shortcut && "flex-1 text-left",
+              "min-w-0 grow truncate text-left",
+              shortcut && "flex-1",
             )}
           >
             {text}
