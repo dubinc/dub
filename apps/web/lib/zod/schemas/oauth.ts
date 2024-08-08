@@ -137,24 +137,3 @@ export const tokenGrantSchema = z.discriminatedUnion(
     }),
   },
 );
-
-// Schema to represent an authorized OAuth app with user
-export const oAuthAuthorizedAppSchema = z
-  .object({
-    id: z.string(),
-    createdAt: z.date(),
-    user: z.object({
-      id: z.string(),
-      name: z.string(),
-    }),
-  })
-  .merge(
-    oAuthAppSchema.pick({
-      clientId: true,
-      name: true,
-      slug: true,
-      developer: true,
-      website: true,
-      logo: true,
-    }),
-  );
