@@ -91,6 +91,7 @@ export const DUB_DOMAINS = [
           allowedHostnames: [
             "google.com",
             "google.co.uk",
+            "google.co.id",
             "google.ca",
             "google.es",
             "google.fr",
@@ -100,6 +101,8 @@ export const DUB_DOMAINS = [
             "maps.google.com",
             "googleblog.com",
             "developers.googleblog.com",
+            "chromewebstore.google.com",
+            "play.google.com",
             "blog.google",
             "youtube.com",
             "youtu.be",
