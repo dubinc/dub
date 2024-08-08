@@ -34,8 +34,6 @@ model Project {
   defaultDomains        DefaultDomains[]
   restrictedTokens      RestrictedToken[]
   oAuthCodes            OAuthCode[]
-  oAuthApps             OAuthApp[] // OAuth apps workspace published
-  // oAuthAuthorizedApps   OAuthAuthorizedApp[] // OAuth apps workspace authorized
   integrations          Integration[] // Integrations workspace published
   installedIntegrations InstalledIntegration[] // Integrations workspace installed
 

@@ -31,8 +31,6 @@ model User {
   source                String?
   defaultWorkspace      String?
   oAuthCodes            OAuthCode[]
-  // oAuthAuthorizedApps   OAuthAuthorizedApp[] // OAuth apps user authorized for their workspace
-  oAuthApps             OAuthApp[] // OAuth apps user created in their workspace
   integrations          Integration[] // Integrations user created in their workspace
   installedIntegrations InstalledIntegration[] // Integrations user installed in their workspace
 
