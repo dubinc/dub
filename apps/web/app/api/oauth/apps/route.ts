@@ -111,8 +111,6 @@ export const POST = withWorkspace(
           oAuthApp: {
             create: {
               clientId,
-              projectId: workspace.id,
-              userId: session.user.id,
               hashedClientSecret: clientSecret
                 ? await hashToken(clientSecret)
                 : "",
