@@ -18,14 +18,14 @@ export default async function IntegrationsPage() {
 }
 
 const Integrations = async () => {
-  const integrations = await prisma.integration.findMany({
+  const integrations = await prisma.oAuthApp.findMany({
     where: {
       verified: true,
     },
     include: {
       _count: {
         select: {
-          installations: true,
+          authorizedApps: true,
         },
       },
     },
@@ -35,7 +35,7 @@ const Integrations = async () => {
     <IntegrationsPageClient
       integrations={integrations.map((integration) => ({
         ...integration,
-        installations: integration._count.installations,
+        installations: integration._count.authorizedApps,
       }))}
     />
   );

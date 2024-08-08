@@ -158,6 +158,8 @@ export const exchangeAuthCodeForToken = async (
     },
   });
 
+  const { userId, projectId, scopes } = accessCode;
+
   const accessToken = createToken({
     length: OAUTH_CONFIG.ACCESS_TOKEN_LENGTH,
     prefix: OAUTH_CONFIG.ACCESS_TOKEN_PREFIX,
@@ -171,23 +173,20 @@ export const exchangeAuthCodeForToken = async (
     Date.now() + OAUTH_CONFIG.ACCESS_TOKEN_LIFETIME * 1000,
   );
 
-  const { userId, projectId, scopes } = accessCode;
-  const { integrationId } = app;
-
   // Install the app
   // We only support one token per client per user per workspace at a time
-  const installation = await prisma.installedIntegration.upsert({
+  const installation = await prisma.oAuthAuthorizedApp.upsert({
     create: {
       userId,
       projectId,
-      integrationId: integrationId!,
+      clientId,
     },
     update: {},
     where: {
-      userId_integrationId_projectId: {
+      userId_projectId_clientId: {
         userId,
         projectId,
-        integrationId: integrationId!,
+        clientId,
       },
     },
   });
