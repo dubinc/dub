@@ -179,7 +179,7 @@ function ViewButtons() {
     <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
       {(flags?.conversions || demoPage) && (
         <>
-          <Tooltip content="Line chart">
+          <Tooltip content="Line Chart">
             <Button
               variant="secondary"
               className={cn(
@@ -194,7 +194,7 @@ function ViewButtons() {
               }}
             />
           </Tooltip>
-          <Tooltip content="Funnel chart">
+          <Tooltip content="Funnel Chart">
             <Button
               variant="secondary"
               className={cn(
