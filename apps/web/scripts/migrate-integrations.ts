@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 async function main() {
@@ -21,62 +20,55 @@ async function main() {
   //     updatedAt: true,
   //   },
   // });
-
   // for (const oAuthApp of oAuthApps) {
   //   const data = {
   //     ...oAuthApp,
   //     screenshots: oAuthApp.screenshots ? oAuthApp.screenshots : [],
   //   };
-
   //   const integration = await prisma.integration.create({ data });
-
   //   await prisma.oAuthApp.update({
   //     where: { slug: oAuthApp.slug },
   //     data: { integrationId: integration.id },
   //   });
   // }
-
   // ----------------------------
-
   // Step 2: Migrate OAuthAuthorizedApp to InstalledIntegration
-  const authorizedApps = await prisma.oAuthAuthorizedApp.findMany({
-    select: {
-      id: true,
-      userId: true,
-      clientId: true,
-      projectId: true,
-      createdAt: true,
-      oAuthApp: {
-        select: {
-          integration: {
-            select: {
-              id: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  for (const authorizedApp of authorizedApps) {
-    if (!authorizedApp.oAuthApp.integration) {
-      console.log(
-        `Integration not found for authorized app ${authorizedApp.id}`,
-      );
-      continue;
-    }
-
-    await prisma.installedIntegration.create({
-      data: {
-        id: authorizedApp.id,
-        integrationId: authorizedApp.oAuthApp.integration.id,
-        projectId: authorizedApp.projectId,
-        userId: authorizedApp.userId,
-        createdAt: authorizedApp.createdAt,
-        updatedAt: authorizedApp.createdAt,
-      },
-    });
-  }
+  // const authorizedApps = await prisma.oAuthAuthorizedApp.findMany({
+  //   select: {
+  //     id: true,
+  //     userId: true,
+  //     clientId: true,
+  //     projectId: true,
+  //     createdAt: true,
+  //     oAuthApp: {
+  //       select: {
+  //         integration: {
+  //           select: {
+  //             id: true,
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  // });
+  // for (const authorizedApp of authorizedApps) {
+  //   if (!authorizedApp.oAuthApp.integration) {
+  //     console.log(
+  //       `Integration not found for authorized app ${authorizedApp.id}`,
+  //     );
+  //     continue;
+  //   }
+  //   await prisma.installedIntegration.create({
+  //     data: {
+  //       id: authorizedApp.id,
+  //       integrationId: authorizedApp.oAuthApp.integration.id,
+  //       projectId: authorizedApp.projectId,
+  //       userId: authorizedApp.userId,
+  //       createdAt: authorizedApp.createdAt,
+  //       updatedAt: authorizedApp.createdAt,
+  //     },
+  //   });
+  // }
 }
 
 main();
