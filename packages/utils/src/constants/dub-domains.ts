@@ -91,6 +91,7 @@ export const DUB_DOMAINS = [
           allowedHostnames: [
             "google.com",
             "google.co.uk",
+            "google.co.id",
             "google.ca",
             "google.es",
             "google.fr",
