@@ -11,9 +11,7 @@ export default function IntegrationCard(
   const { slug } = useWorkspace();
   const { integrations: activeIntegrations } = useIntegrations();
 
-  const installed = activeIntegrations?.some(
-    (i) => i.clientId === integration.clientId,
-  );
+  const installed = activeIntegrations?.some((i) => i.id === integration.id);
 
   return (
     <Link
@@ -36,7 +34,7 @@ export default function IntegrationCard(
               height={20}
             />
           ) : (
-            <TokenAvatar id={integration.clientId} className="size-6" />
+            <TokenAvatar id={integration.id} className="size-6" />
           )}
         </div>
         <div>
