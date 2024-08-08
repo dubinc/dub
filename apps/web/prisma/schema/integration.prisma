@@ -31,9 +31,11 @@ model InstalledIntegration {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
-  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  integration   Integration         @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  refreshTokens OAuthRefreshToken[]
+  accessTokens  RestrictedToken[]
 
   @@unique([userId, integrationId, projectId])
   @@index([projectId])
