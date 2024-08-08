@@ -14,6 +14,10 @@ const acceptFileTypes: Record<
     types: ["image/png", "image/jpeg"],
     errorMessage: "File type not supported (.png or .jpg only)",
   },
+  csv: {
+    types: ["text/csv"],
+    errorMessage: "File type not supported (.csv only)",
+  },
 };
 
 const imageUploadVariants = cva(
@@ -208,7 +212,7 @@ export function FileUpload({
       >
         <UploadCloud
           className={cn(
-            "h-7 w-7 transition-all duration-75",
+            "size-7 transition-all duration-75",
             !disabled
               ? cn(
                   "text-gray-500 group-hover:scale-110 group-active:scale-95",
