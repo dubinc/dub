@@ -100,6 +100,7 @@ export const DUB_DOMAINS = [
             "maps.google.com",
             "googleblog.com",
             "developers.googleblog.com",
+            "chromewebstore.google.com",
             "blog.google",
             "youtube.com",
             "youtu.be",
