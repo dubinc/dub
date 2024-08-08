@@ -39,33 +39,44 @@ async function main() {
   // ----------------------------
 
   // Step 2: Migrate OAuthAuthorizedApp to InstalledIntegration
-  // const authorizedApps = await prisma.oAuthAuthorizedApp.findMany({
-  //   select: {
-  //     id: true,
-  //     userId: true,
-  //     clientId: true,
-  //     projectId: true,
-  //     createdAt: true,
-  //     oAuthApp: {
-  //       select: {
-  //         id: true,
-  //       },
-  //     },
-  //   },
-  // });
+  const authorizedApps = await prisma.oAuthAuthorizedApp.findMany({
+    select: {
+      id: true,
+      userId: true,
+      clientId: true,
+      projectId: true,
+      createdAt: true,
+      oAuthApp: {
+        select: {
+          integration: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
-  // for (const authorizedApp of authorizedApps) {
-  //   await prisma.installedIntegration.create({
-  //     data: {
-  //       id: authorizedApp.id,
-  //       integrationId: authorizedApp.oAuthApp.id,
-  //       projectId: authorizedApp.projectId,
-  //       userId: authorizedApp.userId,
-  //       createdAt: authorizedApp.createdAt,
-  //       updatedAt: authorizedApp.createdAt,
-  //     },
-  //   });
-  // }
+  for (const authorizedApp of authorizedApps) {
+    if (!authorizedApp.oAuthApp.integration) {
+      console.log(
+        `Integration not found for authorized app ${authorizedApp.id}`,
+      );
+      continue;
+    }
+
+    await prisma.installedIntegration.create({
+      data: {
+        id: authorizedApp.id,
+        integrationId: authorizedApp.oAuthApp.integration.id,
+        projectId: authorizedApp.projectId,
+        userId: authorizedApp.userId,
+        createdAt: authorizedApp.createdAt,
+        updatedAt: authorizedApp.createdAt,
+      },
+    });
+  }
 }
 
 main();
