@@ -196,17 +196,19 @@ export type NewOAuthApp = Omit<
 
 export type ExistingOAuthApp = OAuthAppProps;
 
+export type IntegrationProps = z.infer<typeof integrationSchema>;
+
 export type InstalledIntegrationProps = Pick<
-  OAuthAppProps,
-  "clientId" | "slug" | "logo" | "name" | "developer" | "description"
+  IntegrationProps,
+  "id" | "slug" | "logo" | "name" | "developer" | "description"
 > & {
   installations: number;
   installed?: boolean;
 };
 
 export type InstalledIntegrationInfoProps = Pick<
-  OAuthAppProps,
-  | "clientId"
+  IntegrationProps,
+  | "id"
   | "slug"
   | "logo"
   | "name"
@@ -228,5 +230,3 @@ export type InstalledIntegrationInfoProps = Pick<
     };
   } | null;
 };
-
-export type IntegrationProps = z.infer<typeof integrationSchema>;

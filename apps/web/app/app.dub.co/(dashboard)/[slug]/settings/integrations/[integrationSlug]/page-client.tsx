@@ -59,7 +59,7 @@ export default function IntegrationPageClient({
                 height={20}
               />
             ) : (
-              <TokenAvatar id={integration.clientId} className="size-8" />
+              <TokenAvatar id={integration.id} className="size-8" />
             )}
           </div>
           <div>

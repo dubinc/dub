@@ -27,10 +27,12 @@ async function main() {
     };
 
     // Create the integration
+    // @ts-ignore
     const integration = await prisma.integration.create({ data });
 
     // Update the oAuthApp with the new integrationId
     await prisma.oAuthApp.update({
+      // @ts-ignore
       where: { slug: oAuthApp.slug },
       data: { integrationId: integration.id },
     });
