@@ -43,24 +43,25 @@ export const refreshAccessToken = async (
     });
   }
 
-  const app = await prisma.oAuthApp.findFirst({
+  const oAuthApp = await prisma.oAuthApp.findFirst({
     where: {
       clientId,
     },
     select: {
       pkce: true,
+      integrationId: true,
       hashedClientSecret: true,
     },
   });
 
-  if (!app) {
+  if (!oAuthApp) {
     throw new DubApiError({
       code: "unauthorized",
       message: "OAuth app not found for the provided client_id",
     });
   }
 
-  if (!app.pkce) {
+  if (!oAuthApp.pkce) {
     if (!clientSecret) {
       throw new DubApiError({
         code: "unauthorized",
@@ -68,7 +69,7 @@ export const refreshAccessToken = async (
       });
     }
 
-    if (app.hashedClientSecret !== (await hashToken(clientSecret))) {
+    if (oAuthApp.hashedClientSecret !== (await hashToken(clientSecret))) {
       throw new DubApiError({
         code: "unauthorized",
         message: "Invalid client_secret",
@@ -82,24 +83,12 @@ export const refreshAccessToken = async (
     },
     select: {
       id: true,
+      accessTokenId: true,
+      installationId: true,
       expiresAt: true,
-      authorizedApp: {
-        select: {
-          id: true,
-          userId: true,
-          clientId: true,
-          projectId: true,
-          project: {
-            select: {
-              plan: true,
-            },
-          },
-        },
-      },
       accessToken: {
         select: {
           id: true,
-          name: true,
           scopes: true,
         },
       },
@@ -113,17 +102,52 @@ export const refreshAccessToken = async (
     });
   }
 
-  if (refreshTokenRecord.authorizedApp.clientId !== clientId) {
-    throw new DubApiError({
-      code: "unauthorized",
-      message: "Client ID mismatch.",
-    });
-  }
-
   if (refreshTokenRecord.expiresAt < new Date()) {
     throw new DubApiError({
       code: "unauthorized",
       message: "Refresh token expired.",
+    });
+  }
+
+  const authorizedApp = await prisma.installedIntegration.findUnique({
+    where: {
+      id: refreshTokenRecord.installationId,
+    },
+    select: {
+      id: true,
+      userId: true,
+      projectId: true,
+      integration: {
+        select: {
+          oAuthApp: {
+            select: {
+              clientId: true,
+            },
+          },
+        },
+      },
+      project: {
+        select: {
+          plan: true,
+        },
+      },
+    },
+  });
+
+  if (!authorizedApp) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Integration installation not found.",
+    });
+  }
+
+  const { accessToken } = refreshTokenRecord;
+  const { integration } = authorizedApp;
+
+  if (integration.oAuthApp?.clientId !== clientId) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Client ID mismatch.",
     });
   }
 
@@ -139,8 +163,6 @@ export const refreshAccessToken = async (
   const accessTokenExpires = new Date(
     Date.now() + OAUTH_CONFIG.ACCESS_TOKEN_LIFETIME * 1000,
   );
-
-  const { accessToken, authorizedApp } = refreshTokenRecord;
 
   await prisma.$transaction([
     // Delete the old access token

@@ -24,9 +24,9 @@ model OAuthApp {
   redirectUris        Json
   pkce                Boolean @default(false)
 
-  oAuthCodes     OAuthCode[]
-  authorizedApps OAuthAuthorizedApp[]
-  integration    Integration?         @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  oAuthCodes  OAuthCode[]
+  // authorizedApps OAuthAuthorizedApp[]
+  integration Integration? @relation(fields: [integrationId], references: [id], onDelete: Cascade)
 
   @@index(projectId)
   @@index([userId])
@@ -63,8 +63,9 @@ model OAuthRefreshToken {
   expiresAt          DateTime
   createdAt          DateTime @default(now())
 
-  accessToken   RestrictedToken    @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
-  authorizedApp OAuthAuthorizedApp @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  accessToken          RestrictedToken      @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
+  // authorizedApp OAuthAuthorizedApp @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  installedIntegration InstalledIntegration @relation(fields: [installationId], references: [id], onDelete: Cascade)
 
   @@index([installationId])
   @@index([accessTokenId])
@@ -77,11 +78,11 @@ model OAuthAuthorizedApp {
   userId    String // user who granted access
   createdAt DateTime @default(now())
 
-  oAuthApp      OAuthApp            @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  accessTokens  RestrictedToken[]
-  refreshTokens OAuthRefreshToken[]
+  // oAuthApp      OAuthApp            @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  // user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // accessTokens RestrictedToken[]
+  // refreshTokens OAuthRefreshToken[]
 
   @@unique([userId, projectId, clientId])
   @@index([clientId])
