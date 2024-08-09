@@ -26,6 +26,13 @@ export async function GET(req: NextRequest) {
             image: true,
           },
         },
+        project: {
+          select: {
+            name: true,
+            slug: true,
+            logo: true,
+          },
+        },
       },
     });
 
@@ -42,6 +49,11 @@ export async function GET(req: NextRequest) {
       id: user.id,
       name: user.name,
       image: user.image,
+      workspace: {
+        slug: tokenRecord.project.slug,
+        name: tokenRecord.project.name,
+        logo: tokenRecord.project.logo,
+      },
     };
 
     return NextResponse.json(userInfo);

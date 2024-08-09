@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_DOMAIN, cn, fetcher } from "@dub/utils";
+import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -8,7 +8,6 @@ import { ElementType, useEffect, useState } from "react";
 import useSWR from "swr";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { navItems, type NavTheme } from "./nav";
-import { createHref } from "./shared";
 
 export function NavMobile({ theme = "light" }: { theme?: NavTheme }) {
   const { domain = "dub.co" } = useParams() as { domain: string };
@@ -138,7 +137,12 @@ const MobileNavItem = ({
               {childItems.map(({ title, href, icon: Icon, iconClassName }) => (
                 <Link
                   key={href}
-                  href={createHref(href, domain)}
+                  href={createHref(href, domain, {
+                    utm_source: "Custom Domain",
+                    utm_medium: "Navbar",
+                    utm_campaign: domain,
+                    utm_content: title,
+                  })}
                   onClick={() => setOpen(false)}
                   className="flex w-full space-x-2"
                 >
@@ -165,7 +169,12 @@ const MobileNavItem = ({
   return (
     <li className="py-3">
       <Link
-        href={createHref(href, domain)}
+        href={createHref(href, domain, {
+          utm_source: "Custom Domain",
+          utm_medium: "Navbar",
+          utm_campaign: domain,
+          utm_content: name,
+        })}
         onClick={() => setOpen(false)}
         className="flex w-full font-semibold capitalize"
       >

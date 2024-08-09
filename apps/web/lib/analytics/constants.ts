@@ -15,30 +15,37 @@ export const INTERVAL_DISPLAYS = [
   {
     display: "Last 24 hours",
     value: "24h",
+    shortcut: "d",
   },
   {
     display: "Last 7 days",
     value: "7d",
+    shortcut: "w",
   },
   {
     display: "Last 30 days",
     value: "30d",
+    shortcut: "m",
   },
   {
     display: "Last 3 months",
     value: "90d",
+    shortcut: "t",
   },
   {
     display: "Year to Date",
     value: "ytd",
+    shortcut: "y",
   },
   {
     display: "Last 12 months",
     value: "1y",
+    shortcut: "l",
   },
   {
     display: "All Time",
     value: "all",
+    shortcut: "a",
   },
 ];
 
@@ -124,7 +131,9 @@ export const VALID_ANALYTICS_FILTERS = [
   "root",
 ];
 
-export const EVENT_TYPES = ["clicks", "leads", "sales", "composite"] as const;
+export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
+
+export const ANALYTICS_VIEWS = ["default", "funnel"] as const;
 
 export const OLD_ANALYTICS_ENDPOINTS = [
   "clicks",

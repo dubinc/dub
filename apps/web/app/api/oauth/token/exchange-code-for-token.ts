@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken, generateCodeChallengeHash } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
+import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
@@ -49,13 +50,13 @@ export const exchangeAuthCodeForToken = async (
       clientId,
     },
     select: {
-      name: true,
+      integrationId: true,
       pkce: true,
       hashedClientSecret: true,
     },
   });
 
-  if (!app) {
+  if (!app || !app.integrationId) {
     throw new DubApiError({
       code: "unauthorized",
       message: "OAuth app not found for the provided client_id",
@@ -157,8 +158,6 @@ export const exchangeAuthCodeForToken = async (
     },
   });
 
-  const { userId, projectId, scopes } = accessCode;
-
   const accessToken = createToken({
     length: OAUTH_CONFIG.ACCESS_TOKEN_LENGTH,
     prefix: OAUTH_CONFIG.ACCESS_TOKEN_PREFIX,
@@ -172,20 +171,23 @@ export const exchangeAuthCodeForToken = async (
     Date.now() + OAUTH_CONFIG.ACCESS_TOKEN_LIFETIME * 1000,
   );
 
-  // Add to authorized apps
+  const { userId, projectId, scopes } = accessCode;
+  const { integrationId } = app;
+
+  // Install the app
   // We only support one token per client per user per workspace at a time
-  const installation = await prisma.oAuthAuthorizedApp.upsert({
+  const installation = await prisma.installedIntegration.upsert({
     create: {
       userId,
       projectId,
-      clientId,
+      integrationId,
     },
     update: {},
     where: {
-      userId_projectId_clientId: {
-        clientId,
+      userId_integrationId_projectId: {
         userId,
         projectId,
+        integrationId,
       },
     },
   });
@@ -208,7 +210,7 @@ export const exchangeAuthCodeForToken = async (
     // Create the access token and refresh token
     prisma.restrictedToken.create({
       data: {
-        name: `Access token for ${app.name}`,
+        name: generateRandomName(),
         hashedKey: await hashToken(accessToken),
         partialKey: `${accessToken.slice(0, 3)}...${accessToken.slice(-4)}`,
         scopes,

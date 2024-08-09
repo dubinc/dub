@@ -12,13 +12,14 @@ import {
   ProgressBar,
   useRouterStuff,
 } from "@dub/ui";
-import { getFirstAndLastDay, nFormatter } from "@dub/utils";
-import va from "@vercel/analytics";
+import { getFirstAndLastDay, getPlanDetails, nFormatter } from "@dub/utils";
+import { trackEvent } from "fathom-client";
+import { usePlausible } from "next-plausible";
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useMemo, useState } from "react";
 import Confetti from "react-dom-confetti";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 export default function WorkspaceBillingClient() {
   const router = useRouter();
@@ -64,18 +65,27 @@ export default function WorkspaceBillingClient() {
   const { queryParams } = useRouterStuff();
   const [confetti, setConfetti] = useState(false);
 
+  const plausible = usePlausible();
+
   useEffect(() => {
     if (searchParams?.get("success")) {
-      toast.success("Upgrade success!");
       setConfetti(true);
-      setTimeout(() => {
-        mutate(`/api/workspaces/${id}`);
+      const plan = searchParams.get("plan");
+      const period = searchParams.get("period");
+      const currentPlan = plan ? getPlanDetails(plan) : undefined;
+      toast.success(`Successfully upgraded to ${currentPlan?.name || plan}!`);
+      if (currentPlan && period) {
         // track upgrade event
-        plan &&
-          va.track("Upgraded Plan", {
-            plan,
-          });
-      }, 1000);
+        trackEvent(`Upgraded to ${currentPlan.name}`, {
+          _value: currentPlan.price[period] * 100, // in cents
+        });
+        plausible(`Upgraded to ${currentPlan.name}`);
+        posthog.capture("plan_upgraded", {
+          plan: currentPlan.name,
+          period,
+          revenue: currentPlan.price[period],
+        });
+      }
     }
   }, [searchParams, plan]);
 

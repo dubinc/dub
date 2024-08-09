@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
-import va from "@vercel/analytics";
+import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -58,10 +58,10 @@ function InviteTeammateModal({
             if (res.status === 200) {
               await mutate(`/api/workspaces/${id}/invites`);
               toast.success("Invitation sent!");
-              slug &&
-                va.track("User invited teammate", {
-                  workspace: slug,
-                });
+              posthog.capture("teammate_invited", {
+                workspace: slug,
+                invitee_email: email,
+              });
               setShowInviteTeammateModal(false);
             } else {
               const { error } = await res.json();

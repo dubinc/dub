@@ -2,6 +2,7 @@ import { vaidateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
+import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
@@ -29,15 +30,13 @@ export default async function Authorize({
     redirect("/login");
   }
 
-  const { error, oAuthApp, requestParams } =
+  const { error, integration, requestParams } =
     await vaidateAuthorizeRequest(searchParams);
 
-  if (error || !oAuthApp) {
+  if (error || !integration) {
     return (
-      <div className="relative z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden border-y sm:rounded-2xl sm:border sm:shadow-xl">
-        <div className="flex flex-col items-center justify-center space-y-6 bg-white px-4 py-6 pt-8 text-center sm:px-16">
-          <p>{error}</p>
-        </div>
+      <div className="relative z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden sm:rounded-2xl">
+        <EmptyState icon={Logo} title={error} />
       </div>
     );
   }
@@ -46,11 +45,11 @@ export default async function Authorize({
     <div className="relative z-10 m-auto w-full max-w-md border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
       <div className="flex flex-col items-center justify-center space-y-6 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:rounded-t-2xl sm:px-16">
         <div className="flex items-center gap-3">
-          <a href={oAuthApp.website} target="_blank" rel="noreferrer">
-            {oAuthApp.logo ? (
+          <a href={integration.website} target="_blank" rel="noreferrer">
+            {integration.logo ? (
               <BlurImage
-                src={oAuthApp.logo}
-                alt={`Logo for ${oAuthApp.name}`}
+                src={integration.logo}
+                alt={`Logo for ${integration.name}`}
                 className="size-12 rounded-full border border-gray-200"
                 width={20}
                 height={20}
@@ -65,18 +64,18 @@ export default async function Authorize({
           </a>
         </div>
         <p className="text-md">
-          <span className="font-bold">{oAuthApp.name}</span> is requesting API
-          access to a workspace on Dub.
+          <span className="font-bold">{integration.name}</span> is requesting
+          API access to a workspace on Dub.
         </p>
         <span className="text-xs text-gray-500">
           Built by{" "}
           <a
-            href={oAuthApp.website}
+            href={integration.website}
             target="_blank"
             rel="noreferrer"
             className="underline"
           >
-            {oAuthApp.developer}
+            {integration.developer}
           </a>
         </span>
       </div>
@@ -84,8 +83,8 @@ export default async function Authorize({
         <ScopesRequested scopes={requestParams.scope} />
       </div>
       <div className="flex flex-col space-y-2 border-t border-gray-200 bg-white px-2 py-6 sm:rounded-b-2xl sm:px-10">
-        <Suspense fallback={<></>}>
-          <AuthorizeForm oAuthApp={oAuthApp} {...requestParams} />
+        <Suspense>
+          <AuthorizeForm {...requestParams} />
         </Suspense>
       </div>
     </div>

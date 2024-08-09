@@ -1,38 +1,88 @@
 "use client";
 
+import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
-  AuthMethod,
-  getLastUsedAuthMethod,
-  LastUsedAuthMethodTooltip,
-  setLastUsedAuthMethod,
-} from "@/lib/auth/last-used-method";
-import { Button, Github, Google, InfoTooltip, useMediaQuery } from "@dub/ui";
+  AnimatedSizeContainer,
+  Button,
+  Github,
+  Google,
+  InfoTooltip,
+  Input,
+  useLocalStorage,
+  useMediaQuery,
+} from "@dub/ui";
+import { InputPassword } from "@dub/ui/src/icons";
+import { cn } from "@dub/utils";
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
+
+export const authMethods = [
+  "google",
+  "github",
+  "email",
+  "saml",
+  "password",
+] as const;
+export type AuthMethod = (typeof authMethods)[number];
+
+const errorCodes = {
+  "no-credentials": "Please provide an email and password.",
+  "invalid-credentials": "Email or password is incorrect.",
+  "exceeded-login-attempts":
+    "Account has been locked due to too many login attempts. Please contact support to unlock your account.",
+  "too-many-login-attempts": "Too many login attempts. Please try again later.",
+};
+
+const LoginFormContext = createContext<{
+  authMethod: AuthMethod | undefined;
+  setAuthMethod: Dispatch<SetStateAction<AuthMethod | undefined>>;
+  clickedMethod: AuthMethod | undefined;
+  showPasswordField: boolean;
+  setShowPasswordField: Dispatch<SetStateAction<boolean>>;
+  setClickedMethod: Dispatch<SetStateAction<AuthMethod | undefined>>;
+  setLastUsedAuthMethod: Dispatch<SetStateAction<AuthMethod | undefined>>;
+  setShowSSOOption: Dispatch<SetStateAction<boolean>>;
+}>({
+  authMethod: undefined,
+  setAuthMethod: () => {},
+  clickedMethod: undefined,
+  showPasswordField: false,
+  setShowPasswordField: () => {},
+  setClickedMethod: () => {},
+  setLastUsedAuthMethod: () => {},
+  setShowSSOOption: () => {},
+});
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
-  const [showEmailOption, setShowEmailOption] = useState(false);
+  const [showPasswordField, setShowPasswordField] = useState(false);
   const [showSSOOption, setShowSSOOption] = useState(false);
-  const [noSuchAccount, setNoSuchAccount] = useState(false);
-  const [email, setEmail] = useState("");
-  const [clickedGoogle, setClickedGoogle] = useState(false);
-  const [clickedGithub, setClickedGithub] = useState(false);
-  const [clickedEmail, setClickedEmail] = useState(false);
-  const [clickedSSO, setClickedSSO] = useState(false);
-
-  const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
+  const [clickedMethod, setClickedMethod] = useState<AuthMethod | undefined>(
     undefined,
   );
 
-  useEffect(() => {
-    setAuthMethod(getLastUsedAuthMethod());
-  }, []);
+  const [lastUsedAuthMethodLive, setLastUsedAuthMethod] = useLocalStorage<
+    AuthMethod | undefined
+  >("last-used-auth-method", undefined);
+  const { current: lastUsedAuthMethod } = useRef<AuthMethod | undefined>(
+    lastUsedAuthMethodLive,
+  );
+
+  const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
+    authMethods.find((m) => m === lastUsedAuthMethodLive) ?? "email",
+  );
 
   useEffect(() => {
     const error = searchParams?.get("error");
@@ -43,139 +93,53 @@ export default function LoginForm() {
 
   useEffect(() => {
     // when leave page, reset state
-    return () => {
-      setClickedGoogle(false);
-      setClickedGithub(false);
-      setClickedEmail(false);
-      setClickedSSO(false);
-    };
+    return () => setClickedMethod(undefined);
   }, []);
 
-  return (
-    <>
-      <div className="flex flex-col gap-3">
-        <div className="relative">
-          <Button
-            text="Continue with Google"
-            variant="secondary"
-            onClick={() => {
-              setClickedGoogle(true);
-              setLastUsedAuthMethod("google");
-              signIn("google", {
-                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-              });
-            }}
-            loading={clickedGoogle}
-            disabled={clickedEmail || clickedSSO}
-            icon={<Google className="h-5 w-5" />}
-          />
-          {authMethod === "google" && <LastUsedAuthMethodTooltip />}
-        </div>
-
-        <div className="relative">
-          <Button
-            text="Continue with Github"
-            variant="secondary"
-            onClick={() => {
-              setClickedGithub(true);
-              setLastUsedAuthMethod("github");
-              signIn("github", {
-                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-              });
-            }}
-            loading={clickedGithub}
-            disabled={clickedEmail || clickedSSO}
-            icon={<Github className="h-5 w-5 text-black" />}
-          />
-          {authMethod === "github" && <LastUsedAuthMethodTooltip />}
-        </div>
-      </div>
-
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setClickedEmail(true);
-          setLastUsedAuthMethod("email");
-          fetch("/api/auth/account-exists", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          })
-            .then(async (res) => {
-              const { exists } = await res.json();
-              if (exists) {
-                signIn("email", {
-                  email,
-                  redirect: false,
-                  ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-                }).then((res) => {
-                  setClickedEmail(false);
-                  if (res?.ok && !res?.error) {
-                    setEmail("");
-                    toast.success("Email sent - check your inbox!");
-                  } else {
-                    toast.error("Error sending email - try again?");
-                  }
-                });
-              } else {
-                toast.error("No account found with that email address.");
-                setNoSuchAccount(true);
-                setClickedEmail(false);
-              }
-            })
-            .catch(() => {
-              setClickedEmail(false);
-              toast.error("Error sending email - try again?");
-            });
+  const GoogleButton = () => {
+    return (
+      <Button
+        text="Continue with Google"
+        variant="secondary"
+        onClick={() => {
+          setClickedMethod("google");
+          setLastUsedAuthMethod("google");
+          signIn("google", {
+            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+          });
         }}
-        className="flex flex-col space-y-3"
-      >
-        {showEmailOption && (
-          <div>
-            <div className="mb-4 mt-1 border-t border-gray-300" />
-            <input
-              id="email"
-              name="email"
-              autoFocus={!isMobile}
-              type="email"
-              placeholder="panic@thedis.co"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => {
-                setNoSuchAccount(false);
-                setEmail(e.target.value);
-              }}
-              className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-            />
-          </div>
-        )}
+        loading={clickedMethod === "google"}
+        disabled={clickedMethod && clickedMethod !== "google"}
+        icon={<Google className="size-4" />}
+      />
+    );
+  };
 
-        <div className="relative">
-          <Button
-            text="Continue with Email"
-            variant="secondary"
-            icon={<Mail className="h-4 w-4" />}
-            {...(!showEmailOption && {
-              type: "button",
-              onClick: (e) => {
-                e.preventDefault();
-                setLastUsedAuthMethod("email");
-                setShowSSOOption(false);
-                setShowEmailOption(true);
-              },
-            })}
-            loading={clickedEmail}
-            disabled={clickedGoogle || clickedSSO}
-          />
-          {authMethod === "email" && <LastUsedAuthMethodTooltip />}
-        </div>
-      </form>
+  const GitHubButton = () => {
+    return (
+      <Button
+        text="Continue with Github"
+        variant="secondary"
+        onClick={() => {
+          setClickedMethod("github");
+          setLastUsedAuthMethod("github");
+          signIn("github", {
+            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+          });
+        }}
+        loading={clickedMethod === "github"}
+        disabled={clickedMethod && clickedMethod !== "github"}
+        icon={<Github className="size-4 text-black" />}
+      />
+    );
+  };
+
+  const SignInWithSSO = () => {
+    return (
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          setClickedSSO(true);
-          setLastUsedAuthMethod("saml");
+          setClickedMethod("saml");
           fetch("/api/auth/saml/verify", {
             method: "POST",
             body: JSON.stringify({ slug: e.currentTarget.slug.value }),
@@ -183,9 +147,10 @@ export default function LoginForm() {
             const { data, error } = await res.json();
             if (error) {
               toast.error(error);
-              setClickedSSO(false);
+              setClickedMethod(undefined);
               return;
             }
+            setLastUsedAuthMethod("saml");
             await signIn("saml", undefined, {
               tenant: data.workspaceId,
               product: "Dub",
@@ -218,44 +183,269 @@ export default function LoginForm() {
           </div>
         )}
 
-        <div className="relative">
-          <Button
-            text="Continue with SAML SSO"
-            variant="secondary"
-            icon={<Lock className="h-4 w-4" />}
-            {...(!showSSOOption && {
-              type: "button",
-              onClick: (e) => {
-                e.preventDefault();
-                setShowEmailOption(false);
-                setShowSSOOption(true);
-              },
-            })}
-            loading={clickedSSO}
-            disabled={clickedGoogle || clickedEmail}
-          />
-          {authMethod === "saml" && <LastUsedAuthMethodTooltip />}
-        </div>
+        <Button
+          text="Continue with SAML SSO"
+          variant="secondary"
+          icon={<Lock className="size-4" />}
+          {...(!showSSOOption && {
+            type: "button",
+            onClick: (e) => {
+              e.preventDefault();
+              setShowSSOOption(true);
+            },
+          })}
+          loading={clickedMethod === "saml"}
+          disabled={clickedMethod && clickedMethod !== "saml"}
+        />
       </form>
-      {noSuchAccount ? (
-        <p className="text-center text-sm text-red-500">
-          No such account.{" "}
-          <Link href="/register" className="font-semibold text-red-600">
-            Sign up
-          </Link>{" "}
-          instead?
-        </p>
-      ) : (
-        <p className="text-center text-sm text-gray-500">
-          Don't have an account?{" "}
-          <Link
-            href="/register"
-            className="font-semibold text-gray-500 transition-colors hover:text-black"
-          >
-            Sign up
-          </Link>
-        </p>
-      )}
-    </>
+    );
+  };
+
+  const authProviders = [
+    {
+      method: "google",
+      component: <GoogleButton />,
+    },
+    {
+      method: "github",
+      component: <GitHubButton />,
+    },
+    {
+      method: "email",
+      component: <SignInWithEmail />,
+    },
+    {
+      method: "saml",
+      component: <SignInWithSSO />,
+    },
+  ];
+
+  const authMethodComponent = authProviders.find(
+    (provider) => provider.method === authMethod,
+  )?.component;
+
+  const showEmailPasswordOnly = authMethod === "email" && showPasswordField;
+
+  return (
+    <LoginFormContext.Provider
+      value={{
+        authMethod,
+        setAuthMethod,
+        clickedMethod,
+        showPasswordField,
+        setShowPasswordField,
+        setClickedMethod,
+        setLastUsedAuthMethod,
+        setShowSSOOption,
+      }}
+    >
+      <AnimatedSizeContainer height>
+        <div className="grid gap-3 p-1">
+          {authMethod && (
+            <div className="flex flex-col gap-2">
+              {authMethodComponent}
+
+              {!showEmailPasswordOnly && authMethod === lastUsedAuthMethod && (
+                <div className="text-center text-xs">
+                  <span className="text-gray-500">
+                    You signed in with{" "}
+                    {lastUsedAuthMethod.charAt(0).toUpperCase() +
+                      lastUsedAuthMethod.slice(1)}{" "}
+                    last time
+                  </span>
+                </div>
+              )}
+              <div className="my-2 flex flex-shrink items-center justify-center gap-2">
+                <div className="grow basis-0 border-b border-gray-300" />
+                <span className="text-xs font-normal uppercase leading-none text-gray-500">
+                  or
+                </span>
+                <div className="grow basis-0 border-b border-gray-300" />
+              </div>
+            </div>
+          )}
+          {showEmailPasswordOnly ? (
+            <div className="mt-2 text-center text-sm text-gray-500">
+              <button
+                type="button"
+                onClick={() => setShowPasswordField(false)}
+                className="font-semibold text-gray-500 transition-colors hover:text-black"
+              >
+                Continue with another method
+              </button>
+            </div>
+          ) : (
+            authProviders
+              .filter((provider) => provider.method !== authMethod)
+              .map((provider) => (
+                <div key={provider.method}>{provider.component}</div>
+              ))
+          )}
+        </div>
+      </AnimatedSizeContainer>
+    </LoginFormContext.Provider>
   );
 }
+
+const SignInWithEmail = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams?.get("next");
+  const { isMobile } = useMediaQuery();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [checkingEmailPassword, setCheckingEmailPassword] = useState(false);
+
+  const {
+    showPasswordField,
+    setShowPasswordField,
+    setClickedMethod,
+    authMethod,
+    setAuthMethod,
+    clickedMethod,
+    setLastUsedAuthMethod,
+    setShowSSOOption,
+  } = useContext(LoginFormContext);
+
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+
+        // Check if the user can enter a password, and if so display the field
+        if (!showPasswordField) {
+          const { success } = emailSchema.safeParse(email);
+
+          if (success) {
+            try {
+              setCheckingEmailPassword(true);
+              const res = await fetch("/api/auth/account-exists", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+              });
+              setCheckingEmailPassword(false);
+
+              const { accountExists, hasPassword } = await res.json();
+              if (accountExists && hasPassword) {
+                setShowPasswordField(true);
+                return;
+              }
+            } catch (e) {
+              console.error("Failed to determine if user has password", e);
+            }
+          }
+        }
+
+        setClickedMethod("email");
+
+        fetch("/api/auth/account-exists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }).then(async (res) => {
+          if (!res.ok) {
+            const error = await res.text();
+            toast.error(error);
+            setClickedMethod(undefined);
+            return;
+          }
+          const { accountExists, hasPassword } = await res.json();
+          if (accountExists) {
+            const provider = hasPassword && password ? "credentials" : "email";
+
+            signIn(provider, {
+              email,
+              redirect: false,
+              ...(password && { password }),
+              ...(next ? { callbackUrl: next } : {}),
+            }).then((res) => {
+              if (!res) return;
+
+              // Handle errors
+              if (!res.ok && res.error) {
+                if (errorCodes[res.error]) {
+                  toast.error(errorCodes[res.error]);
+                } else {
+                  toast.error(res.error);
+                }
+                setClickedMethod(undefined);
+
+                return;
+              }
+
+              // Handle success
+              setLastUsedAuthMethod("email");
+              if (provider === "email") {
+                toast.success("Email sent - check your inbox!");
+                setEmail("");
+                setClickedMethod(undefined);
+              } else if (provider === "credentials") {
+                router.push(next ?? "/");
+              }
+            });
+          } else {
+            setClickedMethod(undefined);
+            toast.error("No account found with that email address.");
+          }
+        });
+      }}
+      className="flex flex-col space-y-3"
+    >
+      {authMethod === "email" && (
+        <input
+          id="email"
+          name="email"
+          autoFocus={!isMobile && !showPasswordField}
+          type="email"
+          placeholder="panic@thedis.co"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={cn(
+            "block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
+            {
+              "pr-10": checkingEmailPassword,
+            },
+          )}
+        />
+      )}
+
+      {showPasswordField && (
+        <div>
+          <Input
+            type="password"
+            autoFocus={!isMobile}
+            value={password}
+            placeholder="Password (optional)"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+      )}
+
+      <Button
+        text={`Continue with ${password ? "Password" : "Email"}`}
+        variant="secondary"
+        icon={
+          password ? (
+            <InputPassword className="size-4 text-gray-600" />
+          ) : (
+            <Mail className="size-4 text-gray-600" />
+          )
+        }
+        {...(authMethod !== "email" && {
+          type: "button",
+          onClick: (e) => {
+            e.preventDefault();
+            setShowSSOOption(false);
+            setAuthMethod("email");
+          },
+        })}
+        loading={checkingEmailPassword || clickedMethod === "email"}
+        disabled={clickedMethod && clickedMethod !== "email"}
+      />
+    </form>
+  );
+};

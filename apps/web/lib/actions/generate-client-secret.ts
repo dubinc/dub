@@ -9,7 +9,7 @@ import { authActionClient } from "./safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  integrationId: z.string(),
+  appId: z.string(),
 });
 
 // Generate a new client secret for an integration
@@ -17,11 +17,11 @@ export const generateClientSecret = authActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
-    const { integrationId } = parsedInput;
+    const { appId } = parsedInput;
 
-    await prisma.oAuthApp.findFirstOrThrow({
+    await prisma.integration.findFirstOrThrow({
       where: {
-        id: integrationId,
+        id: appId,
         projectId: workspace.id,
       },
     });
@@ -33,7 +33,7 @@ export const generateClientSecret = authActionClient
 
     await prisma.oAuthApp.update({
       where: {
-        id: integrationId,
+        integrationId: appId,
       },
       data: {
         hashedClientSecret: await hashToken(clientSecret),

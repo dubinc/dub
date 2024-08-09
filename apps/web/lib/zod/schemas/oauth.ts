@@ -1,5 +1,7 @@
 import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
+import { R2_URL } from "@dub/utils";
 import { z } from "zod";
+import { integrationSchema } from "./integration";
 
 export const createOAuthAppSchema = z.object({
   name: z.string().min(1).max(100),
@@ -51,28 +53,29 @@ export const createOAuthAppSchema = z.object({
     })
     .nullable(),
   pkce: z.boolean().default(false),
+  screenshots: z
+    .array(z.string())
+    .max(4, {
+      message: "only 4 screenshots are allowed",
+    })
+    .transform((screenshots) =>
+      screenshots.map((screenshot) =>
+        screenshot.startsWith(R2_URL) ? screenshot : `${R2_URL}/${screenshot}`,
+      ),
+    )
+    .default([]),
 });
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 
-export const oAuthAppSchema = z.object({
-  id: z.string(),
-  clientId: z.string(),
-  partialClientSecret: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.string().nullish(),
-  readme: z.string().nullish(),
-  developer: z.string(),
-  website: z.string(),
-  redirectUris: z.array(z.string()),
-  logo: z.string().nullable(),
-  pkce: z.boolean(),
-  verified: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  installations: z.number().default(0),
-});
+export const oAuthAppSchema = integrationSchema.merge(
+  z.object({
+    clientId: z.string(),
+    partialClientSecret: z.string(),
+    redirectUris: z.array(z.string()),
+    pkce: z.boolean(),
+  }),
+);
 
 // Schema for OAuth2.0 Authorization request
 export const authorizeRequestSchema = z.object({
@@ -134,24 +137,3 @@ export const tokenGrantSchema = z.discriminatedUnion(
     }),
   },
 );
-
-// Schema to represent an authorized OAuth app with user
-export const oAuthAuthorizedAppSchema = z
-  .object({
-    id: z.string(),
-    createdAt: z.date(),
-    user: z.object({
-      id: z.string(),
-      name: z.string(),
-    }),
-  })
-  .merge(
-    oAuthAppSchema.pick({
-      clientId: true,
-      name: true,
-      slug: true,
-      developer: true,
-      website: true,
-      logo: true,
-    }),
-  );

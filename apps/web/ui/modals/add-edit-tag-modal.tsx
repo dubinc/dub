@@ -14,7 +14,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
-import va from "@vercel/analytics";
+import posthog from "posthog-js";
 import {
   Dispatch,
   FormEvent,
@@ -116,7 +116,11 @@ function AddEditTagModal({
             }),
           }).then(async (res) => {
             if (res.status === 200 || res.status === 201) {
-              va.track(props ? "Edited Tag" : "Created Tag");
+              posthog.capture(props ? "tag_edited" : "tag_created", {
+                tag_id: data.id,
+                tag_name: data.name,
+                tag_color: data.color,
+              });
               await Promise.all([
                 mutate(`/api/tags?workspaceId=${workspaceId}`),
                 props

@@ -51,12 +51,7 @@ export const ResetPasswordForm = () => {
 
         <div className="grid w-full max-w-sm items-center gap-2">
           <Label htmlFor="password">Password</Label>
-          <Input
-            type="password"
-            placeholder="********"
-            {...register("password")}
-            required
-          />
+          <Input type="password" {...register("password")} required />
           {errors.password && (
             <span
               className="block text-sm text-red-500"
@@ -70,12 +65,7 @@ export const ResetPasswordForm = () => {
 
         <div className="grid w-full max-w-sm items-center gap-2">
           <Label htmlFor="confirmPassword">Confirm Password</Label>
-          <Input
-            type="password"
-            placeholder="********"
-            {...register("confirmPassword")}
-            required
-          />
+          <Input type="password" {...register("confirmPassword")} required />
           {errors.confirmPassword && (
             <span
               className="block text-sm text-red-500"

@@ -53,8 +53,8 @@ export function useAnalyticsFilterOption(
   return (
     data?.map((d) => ({
       ...d,
-      count:
-        ((d[selectedTab] ?? d["clicks"]) as number | undefined) ?? undefined,
+      count: d[selectedTab] as number | undefined,
+      amount: d.amount as number | undefined,
     })) ?? null
   );
 }

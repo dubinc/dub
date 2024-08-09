@@ -1,7 +1,7 @@
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
-import { ModalContext } from "@/ui/modals/provider";
+import { ModalContext } from "@/ui/modals/modal-provider";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { ExpandingArrow, Logo, Modal } from "@dub/ui";
 import Link from "next/link";

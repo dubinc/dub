@@ -7,14 +7,12 @@ import {
   useContext,
   useEffect,
   useId,
-  useRef,
   useState,
 } from "react";
 
 type KeyboardShortcutListener = {
   id: string;
   key: string | string[];
-  callback: (e: KeyboardEvent) => void;
   enabled?: boolean;
   priority?: number;
 };
@@ -34,6 +32,22 @@ export function KeyboardShortcutProvider({
 }) {
   const [listeners, setListeners] = useState<KeyboardShortcutListener[]>([]);
 
+  return (
+    <KeyboardShortcutContext.Provider value={{ listeners, setListeners }}>
+      {children}
+    </KeyboardShortcutContext.Provider>
+  );
+}
+
+export function useKeyboardShortcut(
+  key: KeyboardShortcutListener["key"],
+  callback: (e: KeyboardEvent) => void,
+  options: Pick<KeyboardShortcutListener, "enabled" | "priority"> = {},
+) {
+  const id = useId();
+
+  const { listeners, setListeners } = useContext(KeyboardShortcutContext);
+
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -49,6 +63,9 @@ export function KeyboardShortcutProvider({
       )
         return;
 
+      // Ignore shortcut if it doesn't match this listener
+      if (Array.isArray(key) ? !key.includes(e.key) : e.key !== key) return;
+
       // Find enabled listeners that match the key
       const matchingListeners = listeners.filter(
         (l) =>
@@ -56,18 +73,21 @@ export function KeyboardShortcutProvider({
           (Array.isArray(l.key) ? l.key.includes(e.key) : l.key === e.key),
       );
 
-      if (!matchingListeners.length) return;
+      if (matchingListeners.length) {
+        // Sort the listeners by priority
+        const topListener = stableSort(
+          matchingListeners,
+          (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
+        ).slice(-1)[0];
 
-      // Sort the listeners by priority and call the top priority listener
-      const topListener = stableSort(
-        matchingListeners,
-        (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
-      ).slice(-1)[0];
+        // Check if this is the top listener
+        if (topListener.id !== id) return;
+      }
 
       e.preventDefault();
-      topListener.callback(e);
+      callback(e);
     },
-    [listeners],
+    [key, listeners, id, callback],
   );
 
   useEffect(() => {
@@ -75,34 +95,11 @@ export function KeyboardShortcutProvider({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onKeyDown]);
 
-  return (
-    <KeyboardShortcutContext.Provider value={{ listeners, setListeners }}>
-      {children}
-    </KeyboardShortcutContext.Provider>
-  );
-}
-
-export function useKeyboardShortcut(
-  key: KeyboardShortcutListener["key"],
-  callbackArg: KeyboardShortcutListener["callback"],
-  options: Pick<KeyboardShortcutListener, "enabled" | "priority"> = {},
-) {
-  const id = useId();
-
-  const { setListeners } = useContext(KeyboardShortcutContext);
-
-  // Use a ref rather than the callback directly in case it isn't stable
-  const callbackRef = useRef(callbackArg);
-
-  useEffect(() => {
-    callbackRef.current = callbackArg;
-  }, [callbackArg]);
-
   // Register/unregister the listener
   useEffect(() => {
     setListeners((prev) => [
       ...prev.filter((listener) => listener.id !== id),
-      { id, key, callback: callbackRef.current, ...options },
+      { id, key, ...options },
     ]);
 
     return () =>

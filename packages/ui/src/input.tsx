@@ -36,12 +36,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-label={isPasswordVisible ? "Hide password" : "Show Password"}
           >
             {isPasswordVisible ? (
-              <EyeOffIcon
-                className="h-5 w-5 flex-none transition"
+              <EyeIcon
+                className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
                 aria-hidden
               />
             ) : (
-              <EyeIcon className="h-5 w-5 flex-none transition" aria-hidden />
+              <EyeOffIcon
+                className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
+                aria-hidden
+              />
             )}
           </button>
         )}

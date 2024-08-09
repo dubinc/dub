@@ -51,8 +51,8 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
-import va from "@vercel/analytics";
 import { readStreamableValue } from "ai/rsc";
+import posthog from "posthog-js";
 import {
   ComponentProps,
   useCallback,
@@ -66,6 +66,7 @@ import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
+import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
@@ -164,7 +165,7 @@ export default function Toggle({
     cacheOnly: !isRequested("os"),
   });
   const referers = useAnalyticsFilterOption("referers", {
-    cacheOnly: !isRequested("referers"),
+    cacheOnly: !isRequested("referer"),
   });
 
   // Some suggestions will only appear if previously requested (see isRequested above)
@@ -545,8 +546,9 @@ export default function Toggle({
                         });
                       }
                     }
-                    va.track("Generated AI filters", {
+                    posthog.capture("ai_filters_generated", {
                       prompt,
+                      filters: activeFilters,
                     });
                     setStreaming(false);
                   } else {
@@ -619,44 +621,48 @@ export default function Toggle({
                       },
                     });
                   }}
-                  presets={INTERVAL_DISPLAYS.map(({ display, value }) => {
-                    const start = INTERVAL_DATA[value].startDate;
-                    const end = new Date();
+                  presets={INTERVAL_DISPLAYS.map(
+                    ({ display, value, shortcut }) => {
+                      const start = INTERVAL_DATA[value].startDate;
+                      const end = new Date();
 
-                    const requiresUpgrade =
-                      adminPage ||
-                      demoPage ||
-                      DUB_DEMO_LINKS.find(
-                        (l) => l.domain === domain && l.key === key,
-                      )
-                        ? false
-                        : !validDateRangeForPlan({
-                            plan,
-                            start,
-                            end,
-                          });
+                      const requiresUpgrade =
+                        adminPage ||
+                        demoPage ||
+                        DUB_DEMO_LINKS.find(
+                          (l) => l.domain === domain && l.key === key,
+                        )
+                          ? false
+                          : !validDateRangeForPlan({
+                              plan,
+                              start,
+                              end,
+                            });
 
-                    return {
-                      id: value,
-                      label: display,
-                      dateRange: {
-                        from: start,
-                        to: end,
-                      },
-                      requiresUpgrade,
-                      tooltipContent: requiresUpgrade ? (
-                        <UpgradeTooltip
-                          rangeLabel={display}
-                          plan={plan}
-                          isPublicStatsPage={isPublicStatsPage}
-                        />
-                      ) : undefined,
-                    };
-                  })}
+                      return {
+                        id: value,
+                        label: display,
+                        dateRange: {
+                          from: start,
+                          to: end,
+                        },
+                        requiresUpgrade,
+                        tooltipContent: requiresUpgrade ? (
+                          <UpgradeTooltip
+                            rangeLabel={display}
+                            plan={plan}
+                            isPublicStatsPage={isPublicStatsPage}
+                          />
+                        ) : undefined,
+                        shortcut,
+                      };
+                    },
+                  )}
                 />
                 {!isPublicStatsPage && page === "analytics" && (
                   <AnalyticsOptions />
                 )}
+                {page === "events" && <EventsOptions />}
               </div>
             </div>
           </div>

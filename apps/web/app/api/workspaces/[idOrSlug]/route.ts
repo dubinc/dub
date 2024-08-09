@@ -27,7 +27,9 @@ export const GET = withWorkspace(
         ...workspace,
         id: `ws_${workspace.id}`,
         domains,
-        flags: await getFeatureFlags(workspace.id),
+        flags: await getFeatureFlags({
+          workspaceId: workspace.id,
+        }),
       }),
       { headers },
     );
@@ -74,7 +76,9 @@ export const PATCH = withWorkspace(
         WorkspaceSchema.parse({
           ...response,
           id: `ws_${response.id}`,
-          flags: await getFeatureFlags(workspace.id),
+          flags: await getFeatureFlags({
+            workspaceId: response.id,
+          }),
         }),
       );
     } catch (error) {

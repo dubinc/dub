@@ -5,26 +5,44 @@ import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/oauth/apps/[appId] – get an OAuth app created by the workspace
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
-    const app = await prisma.oAuthApp.findFirst({
+    const oAuthApp = await prisma.oAuthApp.findFirst({
       where: {
-        id: params.appId,
-        projectId: workspace.id,
+        integration: {
+          id: params.appId,
+          projectId: workspace.id,
+        },
+      },
+      select: {
+        clientId: true,
+        partialClientSecret: true,
+        redirectUris: true,
+        pkce: true,
+        integration: true,
       },
     });
 
-    if (!app) {
+    if (!oAuthApp) {
       throw new DubApiError({
         code: "not_found",
         message: `OAuth app with id ${params.appId} not found.`,
       });
     }
 
-    return NextResponse.json(oAuthAppSchema.parse(app));
+    const { integration, ...app } = oAuthApp;
+
+    return NextResponse.json(
+      oAuthAppSchema.parse({
+        ...app,
+        ...integration,
+      }),
+    );
   },
   {
     requiredPermissions: ["oauth_apps.read"],
@@ -45,12 +63,26 @@ export const PATCH = withWorkspace(
       redirectUris,
       logo,
       pkce,
+      screenshots,
     } = updateOAuthAppSchema.parse(await parseRequestBody(req));
 
     try {
-      let logoUrl: string | undefined;
+      const integration = await prisma.integration.findUniqueOrThrow({
+        where: {
+          id: params.appId,
+          projectId: workspace.id,
+        },
+        select: {
+          logo: true,
+          screenshots: true,
+        },
+      });
 
-      if (logo && !logo.startsWith(R2_URL)) {
+      let logoUrl: string | undefined;
+      const logoUpdated = logo && integration.logo !== logo;
+
+      // Logo has been changed
+      if (logoUpdated) {
         const result = await storage.upload(
           `integrations/${params.appId}_${nanoid(7)}`,
           logo,
@@ -59,7 +91,7 @@ export const PATCH = withWorkspace(
         logoUrl = result.url;
       }
 
-      const app = await prisma.oAuthApp.update({
+      const updatedRecord = await prisma.integration.update({
         where: {
           id: params.appId,
           projectId: workspace.id,
@@ -71,13 +103,60 @@ export const PATCH = withWorkspace(
           website,
           description,
           readme,
-          redirectUris,
-          pkce,
+          screenshots,
           ...(logoUrl && { logo: logoUrl }),
+          oAuthApp: {
+            update: {
+              redirectUris,
+              pkce,
+            },
+          },
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          name: true,
+          slug: true,
+          description: true,
+          developer: true,
+          logo: true,
+          website: true,
+          readme: true,
+          screenshots: true,
+          verified: true,
+          oAuthApp: true,
         },
       });
 
-      return NextResponse.json(oAuthAppSchema.parse(app));
+      waitUntil(
+        (async () => {
+          if (
+            logoUpdated &&
+            integration.logo &&
+            integration.logo.startsWith(`${R2_URL}/integrations`)
+          ) {
+            await storage.delete(integration.logo.replace(`${R2_URL}/`, ""));
+          }
+
+          // Remove old screenshots
+          const oldScreenshots = integration.screenshots
+            ? (integration.screenshots as string[])
+            : [];
+
+          const removedScreenshots = oldScreenshots?.filter(
+            (s) => !screenshots?.includes(s),
+          );
+
+          await deleteScreenshots(removedScreenshots);
+        })(),
+      );
+
+      const { oAuthApp, ...updatedIntegration } = updatedRecord;
+
+      return NextResponse.json(
+        oAuthAppSchema.parse({ ...oAuthApp, ...updatedIntegration }),
+      );
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -101,25 +180,38 @@ export const PATCH = withWorkspace(
 // DELETE /api/oauth/apps/[appId] - delete an OAuth app
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const app = await prisma.oAuthApp.findFirst({
+    const integration = await prisma.integration.findFirst({
       where: {
         id: params.appId,
         projectId: workspace.id,
       },
     });
 
-    if (!app) {
+    if (!integration) {
       throw new DubApiError({
         code: "not_found",
         message: `OAuth app with id ${params.appId} not found.`,
       });
     }
 
-    await prisma.oAuthApp.delete({
+    await prisma.integration.delete({
       where: {
         id: params.appId,
       },
     });
+
+    waitUntil(
+      (async () => {
+        if (
+          integration.logo &&
+          integration.logo.startsWith(`${R2_URL}/integrations`)
+        ) {
+          await storage.delete(integration.logo.replace(`${R2_URL}/`, ""));
+        }
+
+        await deleteScreenshots(integration.screenshots);
+      })(),
+    );
 
     return NextResponse.json({ id: params.appId });
   },
@@ -128,3 +220,21 @@ export const DELETE = withWorkspace(
     featureFlag: "integrations",
   },
 );
+
+const deleteScreenshots = async (screenshots: Prisma.JsonValue | null) => {
+  const images = screenshots as string[];
+
+  if (!images || images.length === 0) {
+    return;
+  }
+
+  const res = await Promise.all(
+    images.map(async (image: string) => {
+      if (image.startsWith(`${R2_URL}/integration-screenshots`)) {
+        return storage.delete(image.replace(`${R2_URL}/`, ""));
+      }
+    }),
+  );
+
+  console.log({ res });
+};

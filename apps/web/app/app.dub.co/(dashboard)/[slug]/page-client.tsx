@@ -12,7 +12,6 @@ import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
-  AnimatedSizeContainer,
   Button,
   Filter,
   IconMenu,
@@ -20,11 +19,13 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { CloudUpload, Download, Tag } from "@dub/ui/src/icons";
-import { Sheet } from "lucide-react";
+import { Download, TableIcon, Tag } from "@dub/ui/src/icons";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   ReactNode,
@@ -34,6 +35,17 @@ import {
 } from "react";
 
 export default function WorkspaceLinksClient() {
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session?.user) {
+      posthog.identify(session.user["id"], {
+        email: session.user.email,
+        name: session.user.name,
+      });
+    }
+  }, [session?.user]);
+
   return (
     <LinksDisplayProvider>
       <WorkspaceLinks />
@@ -153,6 +165,7 @@ function WorkspaceLinks() {
 const MoreLinkOptions = () => {
   const router = useRouter();
   const { slug } = useWorkspace();
+  const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
   const [state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
@@ -166,105 +179,97 @@ const MoreLinkOptions = () => {
       <ExportLinksModal />
       <Popover
         content={
-          <AnimatedSizeContainer width height>
-            <div className="w-full divide-y divide-gray-200 md:w-52">
-              {state === "default" && (
-                <div className="p-2">
-                  <button
-                    onClick={() => setState("import")}
-                    className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                  >
-                    <IconMenu
-                      text="Import links"
-                      icon={<CloudUpload className="h-4 w-4" />}
+          <div className="w-full md:w-52">
+            <div className="grid gap-px p-2">
+              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+                Import Links
+              </p>
+              <ImportOption
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=bitly`);
+                }}
+                setOpenPopover={setOpenPopover}
+              >
+                <IconMenu
+                  text="Import from Bitly"
+                  icon={
+                    <img
+                      src="/_static/icons/bitly.svg"
+                      alt="Bitly logo"
+                      className="h-4 w-4"
                     />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowExportLinksModal(true);
-                    }}
-                    className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                  >
-                    <IconMenu
-                      text="Export links"
-                      icon={<Download className="h-4 w-4" />}
+                  }
+                />
+              </ImportOption>
+              <ImportOption
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=rebrandly`);
+                }}
+                setOpenPopover={setOpenPopover}
+              >
+                <IconMenu
+                  text="Import from Rebrandly"
+                  icon={
+                    <img
+                      src="/_static/icons/rebrandly.svg"
+                      alt="Rebrandly logo"
+                      className="h-4 w-4"
                     />
-                  </button>
-                </div>
-              )}
-              {state === "import" && (
-                <>
-                  <div className="p-2">
-                    <ImportOption
-                      onClick={() => {
-                        setOpenPopover(false);
-                        router.push(`/${slug}?import=bitly`);
-                      }}
-                      setOpenPopover={setOpenPopover}
-                    >
-                      <IconMenu
-                        text="Import from Bitly"
-                        icon={
-                          <img
-                            src="/_static/icons/bitly.svg"
-                            alt="Bitly logo"
-                            className="h-4 w-4"
-                          />
-                        }
-                      />
-                    </ImportOption>
-                    <ImportOption
-                      onClick={() => {
-                        setOpenPopover(false);
-                        router.push(`/${slug}?import=rebrandly`);
-                      }}
-                      setOpenPopover={setOpenPopover}
-                    >
-                      <IconMenu
-                        text="Import from Rebrandly"
-                        icon={
-                          <img
-                            src="/_static/icons/rebrandly.svg"
-                            alt="Rebrandly logo"
-                            className="h-4 w-4"
-                          />
-                        }
-                      />
-                    </ImportOption>
-                    <ImportOption
-                      onClick={() => {
-                        setOpenPopover(false);
-                        router.push(`/${slug}?import=short`);
-                      }}
-                      setOpenPopover={setOpenPopover}
-                    >
-                      <IconMenu
-                        text="Import from Short.io"
-                        icon={
-                          <img
-                            src="/_static/icons/short.svg"
-                            alt="Short.io logo"
-                            className="h-4 w-4"
-                          />
-                        }
-                      />
-                    </ImportOption>
-                  </div>
-                  <div className="p-2">
-                    <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
-                      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
-                        <IconMenu
-                          text="Import from CSV"
-                          icon={<Sheet className="h-4 w-4" />}
-                        />
-                      </div>
-                    </Tooltip>
-                  </div>
-                </>
-              )}
+                  }
+                />
+              </ImportOption>
+              <ImportOption
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=short`);
+                }}
+                setOpenPopover={setOpenPopover}
+              >
+                <IconMenu
+                  text="Import from Short.io"
+                  icon={
+                    <img
+                      src="/_static/icons/short.svg"
+                      alt="Short.io logo"
+                      className="h-4 w-4"
+                    />
+                  }
+                />
+              </ImportOption>
+              <ImportOption
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=csv`);
+                }}
+                setOpenPopover={setOpenPopover}
+              >
+                <IconMenu
+                  text="Import from CSV"
+                  icon={<TableIcon className="size-4" />}
+                />
+              </ImportOption>
             </div>
-          </AnimatedSizeContainer>
+            <div className="border-t border-gray-200" />
+            <div className="grid gap-px p-2">
+              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+                Export Links
+              </p>
+              <button
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowExportLinksModal(true);
+                }}
+                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+              >
+                <IconMenu
+                  text="Export as CSV"
+                  icon={<Download className="h-4 w-4" />}
+                />
+              </button>
+            </div>
+          </div>
         }
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}

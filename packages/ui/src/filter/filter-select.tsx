@@ -13,11 +13,8 @@ import {
   useState,
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
-import {
-  useKeyboardShortcut,
-  useMediaQuery,
-  useResizeObserver,
-} from "../hooks";
+import { useKeyboardShortcut, useMediaQuery } from "../hooks";
+import { useScrollProgress } from "../hooks/use-scroll-progress";
 import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
 import { Filter, FilterOption } from "./types";
@@ -178,9 +175,11 @@ export function FilterSelect({
                   } else selectOption(search);
                 }}
               />
-              <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
-                F
-              </kbd>
+              {!selectedFilter && (
+                <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                  F
+                </kbd>
+              )}
             </div>
             <FilterScroll key={selectedFilterKey} ref={mainListContainer}>
               <Command.List
@@ -315,22 +314,7 @@ const FilterScroll = forwardRef(
     const ref = useRef<HTMLDivElement>(null);
     useImperativeHandle(forwardedRef, () => ref.current);
 
-    const [scrollProgress, setScrollProgress] = useState(1);
-
-    const updateScrollProgress = useCallback(() => {
-      if (!ref.current) return;
-      const { scrollTop, scrollHeight, clientHeight } = ref.current;
-
-      setScrollProgress(
-        scrollHeight === clientHeight
-          ? 1
-          : scrollTop / (scrollHeight - clientHeight),
-      );
-    }, []);
-
-    const resizeObserverEntry = useResizeObserver(ref);
-
-    useEffect(updateScrollProgress, [resizeObserverEntry]);
+    const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
 
     return (
       <>

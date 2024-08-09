@@ -5,12 +5,12 @@ import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { OAuthApp } from "@prisma/client";
-import { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
-  oAuthApp: Pick<OAuthApp, "name">;
+  //
 }
 
 export const AuthorizeForm = ({
@@ -22,6 +22,7 @@ export const AuthorizeForm = ({
   code_challenge,
   code_challenge_method,
 }: AuthorizeFormProps) => {
+  const { data: session } = useSession();
   const { workspaces } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] =
@@ -30,12 +31,20 @@ export const AuthorizeForm = ({
   const selectOptions = useMemo(() => {
     return workspaces
       ? workspaces.map((workspace) => ({
-          id: workspace.id,
+          id: workspace.slug,
           value: workspace.name,
           image: workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
         }))
       : [];
   }, [workspaces]);
+
+  useEffect(() => {
+    setSelectedWorkspace(
+      selectOptions.find(
+        (option) => option.id === session?.user?.["defaultWorkspace"],
+      ) || null,
+    );
+  }, [selectOptions, session]);
 
   // Decline the request
   const onDecline = () => {
@@ -50,10 +59,20 @@ export const AuthorizeForm = ({
   // Approve the
   const onAuthorize = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!selectedWorkspace) {
+      toast.error("Please select a workspace to continue");
+      return;
+    }
+
     setSubmitting(true);
 
+    const workspaceId = workspaces?.find(
+      (workspace) => workspace.slug === selectedWorkspace.id,
+    )?.id;
+
     const response = await fetch(
-      `/api/oauth/authorize?workspaceId=${selectedWorkspace?.id}`,
+      `/api/oauth/authorize?workspaceId=${workspaceId}`,
       {
         method: "POST",
         body: JSON.stringify(Object.fromEntries(new FormData(e.currentTarget))),

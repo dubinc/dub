@@ -9,19 +9,24 @@ export default function PersonalSettingsLayout({
 }) {
   const tabs = [
     {
-      name: "General",
-      icon: Gear2,
-      segment: null,
-    },
-    {
-      name: "Security",
-      icon: ShieldCheck,
-      segment: "security",
-    },
-    {
-      name: "API Keys",
-      icon: Key,
-      segment: "tokens",
+      group: "",
+      tabs: [
+        {
+          name: "General",
+          icon: Gear2,
+          segment: null,
+        },
+        {
+          name: "Security",
+          icon: ShieldCheck,
+          segment: "security",
+        },
+        {
+          name: "API Keys",
+          icon: Key,
+          segment: "tokens",
+        },
+      ],
     },
   ];
 

@@ -55,16 +55,24 @@ export default async function AppMiddleware(req: NextRequest) {
         "/domains",
         "/settings",
       ].includes(path) ||
+      path.startsWith("/integrations/") ||
       path.startsWith("/settings/")
     ) {
       const defaultWorkspace = await getDefaultWorkspace(user);
 
       if (defaultWorkspace) {
+        let redirectPath = path;
+        if (["/", "/login", "/register"].includes(path)) {
+          redirectPath = "";
+        } else if (
+          path === "/integrations" ||
+          path.startsWith("/integrations/")
+        ) {
+          redirectPath = `/settings/${path}`;
+        }
         return NextResponse.redirect(
           new URL(
-            `/${defaultWorkspace}${
-              ["/", "/login", "/register"].includes(path) ? "" : path
-            }${searchParamsString}`,
+            `/${defaultWorkspace}${redirectPath}${searchParamsString}`,
             req.url,
           ),
         );

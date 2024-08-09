@@ -6,12 +6,14 @@ export default function EmptyState({
   icon: Icon,
   title,
   description,
+  learnMore,
   buttonText,
   buttonLink,
 }: {
   icon: React.ElementType;
   title: string;
   description?: string;
+  learnMore?: string;
   buttonText?: string;
   buttonLink?: string;
 }) {
@@ -22,14 +24,23 @@ export default function EmptyState({
       </div>
       <p className="text-center text-base font-medium text-gray-950">{title}</p>
       {description && (
-        <p className="max-w-md text-center text-sm text-gray-500">
-          {description}
+        <p className="max-w-sm text-center text-sm text-gray-500">
+          {description}{" "}
+          {learnMore && (
+            <a
+              href={learnMore}
+              target="_blank"
+              className="underline underline-offset-2 hover:text-gray-800"
+            >
+              Learn more ↗
+            </a>
+          )}
         </p>
       )}
       {buttonText && buttonLink && (
         <Link
           href={buttonLink}
-          target="_blank"
+          {...(buttonLink.startsWith("http") ? { target: "_blank" } : {})}
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm",

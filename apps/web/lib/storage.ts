@@ -53,12 +53,33 @@ class StorageClient {
     }
   }
 
+  async fetch(key: string) {
+    return this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`);
+  }
+
   async delete(key: string) {
     await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
       method: "DELETE",
     });
 
     return { success: true };
+  }
+
+  async getSignedUrl(key: string) {
+    const url = new URL(`${process.env.STORAGE_ENDPOINT}/${key}`);
+
+    // 10 minutes expiration
+    url.searchParams.set("X-Amz-Expires", "600");
+
+    const signed = await this.client.sign(url, {
+      method: "PUT",
+      aws: {
+        signQuery: true,
+        allHeaders: true,
+      },
+    });
+
+    return signed.url;
   }
 
   private base64ToArrayBuffer(base64: string, opts?: imageOptions) {

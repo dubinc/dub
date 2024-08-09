@@ -5,31 +5,35 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import z from "@/lib/zod";
 import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/oauth/apps - get all OAuth apps created by a workspace
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    const result = await prisma.oAuthApp.findMany({
+    const oAuthApp = await prisma.oAuthApp.findMany({
       where: {
-        projectId: workspace.id,
-      },
-      include: {
-        _count: {
-          select: { authorizedApps: true },
+        integration: {
+          projectId: workspace.id,
         },
+      },
+      select: {
+        clientId: true,
+        partialClientSecret: true,
+        redirectUris: true,
+        pkce: true,
+        integration: true,
       },
     });
 
-    const apps = result.map((app) => ({
-      ...app,
-      installations: app._count.authorizedApps,
+    const oAuthApps = oAuthApp.map(({ integration, ...oAuthApp }) => ({
+      ...oAuthApp,
+      ...integration,
     }));
 
-    return NextResponse.json(z.array(oAuthAppSchema).parse(apps));
+    return NextResponse.json(z.array(oAuthAppSchema).parse(oAuthApps));
   },
   {
     requiredPermissions: ["oauth_apps.read"],
@@ -50,15 +54,16 @@ export const POST = withWorkspace(
       redirectUris,
       logo,
       pkce,
+      screenshots,
     } = createOAuthAppSchema.parse(await parseRequestBody(req));
 
-    const app = await prisma.oAuthApp.findUnique({
+    const integration = await prisma.integration.findUnique({
       where: {
         slug,
       },
     });
 
-    if (app) {
+    if (integration) {
       throw new DubApiError({
         code: "conflict",
         message: `The slug "${slug}" is already in use.`,
@@ -70,48 +75,74 @@ export const POST = withWorkspace(
       prefix: OAUTH_CONFIG.CLIENT_ID_PREFIX,
     });
 
-    const clientSecret = createToken({
-      length: OAUTH_CONFIG.CLIENT_SECRET_LENGTH,
-      prefix: OAUTH_CONFIG.CLIENT_SECRET_PREFIX,
-    });
+    const clientSecret = !pkce
+      ? createToken({
+          length: OAUTH_CONFIG.CLIENT_SECRET_LENGTH,
+          prefix: OAUTH_CONFIG.CLIENT_SECRET_PREFIX,
+        })
+      : undefined;
 
     try {
       let logoUrl: string | undefined;
-      const appId = nanoid(25);
+      const integrationId = nanoid(25);
 
       if (logo) {
         const result = await storage.upload(
-          `integrations/${appId}_${nanoid(7)}`,
+          `integrations/${integrationId}_${nanoid(7)}`,
           logo,
         );
 
         logoUrl = result.url;
       }
 
-      const app = await prisma.oAuthApp.create({
+      const { oAuthApp, ...integration } = await prisma.integration.create({
         data: {
-          id: appId,
+          id: integrationId,
           projectId: workspace.id,
+          userId: session.user.id,
           name,
           slug,
           developer,
           website,
           description,
           readme,
-          redirectUris,
-          clientId,
-          hashedClientSecret: await hashToken(clientSecret),
-          partialClientSecret: `dub_app_secret_****${clientSecret.slice(-8)}`,
-          userId: session.user.id,
-          pkce,
+          screenshots,
           ...(logoUrl && { logo: logoUrl }),
+          oAuthApp: {
+            create: {
+              clientId,
+              hashedClientSecret: clientSecret
+                ? await hashToken(clientSecret)
+                : "",
+              partialClientSecret: clientSecret
+                ? `dub_app_secret_****${clientSecret.slice(-8)}`
+                : "",
+              redirectUris,
+              pkce,
+            },
+          },
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          name: true,
+          slug: true,
+          description: true,
+          developer: true,
+          logo: true,
+          website: true,
+          readme: true,
+          screenshots: true,
+          verified: true,
+          oAuthApp: true,
         },
       });
 
       return NextResponse.json(
         {
-          ...oAuthAppSchema.parse(app),
-          clientSecret,
+          ...oAuthAppSchema.parse({ ...oAuthApp, ...integration }),
+          ...(clientSecret && { clientSecret }),
         },
         { status: 201 },
       );

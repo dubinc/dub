@@ -20,8 +20,10 @@ import {
   capitalize,
   cn,
 } from "@dub/utils";
+import { trackEvent } from "fathom-client";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { usePlausible } from "next-plausible";
 import Link from "next/link";
 import {
   useParams,
@@ -29,6 +31,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -68,6 +71,8 @@ function UpgradePlanModal({
   const [clicked, setClicked] = useState(false);
   const [clickedCompare, setClickedCompare] = useState(false);
   const { queryParams } = useRouterStuff();
+
+  const plausible = usePlausible();
 
   return (
     <Modal
@@ -313,6 +318,12 @@ function UpgradePlanModal({
                 }),
               })
                 .then(async (res) => {
+                  trackEvent("Opened Checkout");
+                  plausible("Opened Checkout");
+                  posthog.capture("checkout_opened", {
+                    currentPlan: capitalize(currentPlan),
+                    newPlan: selectedPlan.name,
+                  });
                   if (currentPlan === "free") {
                     const data = await res.json();
                     const { id: sessionId } = data;
