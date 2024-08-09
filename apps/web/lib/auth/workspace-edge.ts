@@ -161,7 +161,7 @@ export const withWorkspaceEdge = (
 
           if (token.expires && token.expires < new Date()) {
             throw new DubApiError({
-              code: "forbidden",
+              code: "unauthorized",
               message: "Unauthorized: Access token expired.",
             });
           }
