@@ -23,7 +23,7 @@ export const createUserAccountAction = actionClient
   .action(async ({ parsedInput, ctx }) => {
     const { email, password } = parsedInput;
 
-    const { success } = await ratelimit(1, "1 m").limit(`signup:${getIP()}`);
+    const { success } = await ratelimit(2, "1 m").limit(`signup:${getIP()}`);
 
     if (!success) {
       throw new Error("Too many requests. Please try again later.");
