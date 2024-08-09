@@ -27,7 +27,7 @@ export const FEATURES_LIST = [
     title: "Advanced Analytics",
     description: "Powerful Analytics For The Modern Marketer",
     icon: ChartLine,
-    href: "/features/analytics",
+    href: "/help/article/dub-analytics",
   },
   {
     title: "Branded Links",
