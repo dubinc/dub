@@ -55,6 +55,7 @@ Dub.co is the open-source link management infrastructure for modern marketing te
 - [Stripe](https://stripe.com/) – payments
 - [Postmark](https://postmarkapp.com/) – emails
 - [Vercel](https://vercel.com/) – deployments
+- [Pangea](https://pangea.cloud/services/domain-intel/reputation) - link scanning
 
 ## Self-Hosting
 
