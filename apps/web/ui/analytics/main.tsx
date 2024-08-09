@@ -155,15 +155,15 @@ export default function Main() {
         </div>
       </div>
       <div className="relative">
-        <div className="absolute right-3 top-3 z-10 w-fit sm:hidden">
-          <ViewButtons />
-        </div>
         {view === "default" && (
           <div className="p-5 pt-10 sm:p-10">
             <AnalyticsAreaChart resource={tab.id} />
           </div>
         )}
         {view === "funnel" && <AnalyticsFunnelChart />}
+        <div className="absolute right-2 top-2 w-fit sm:hidden">
+          <ViewButtons />
+        </div>
       </div>
     </div>
   );

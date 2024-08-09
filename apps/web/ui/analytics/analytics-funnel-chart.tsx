@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
 import { curveBasis } from "@visx/curve";
 import { ParentSize } from "@visx/responsive";
@@ -69,6 +70,8 @@ export function AnalyticsFunnelChartInner({
 }) {
   const { totalEvents } = useContext(AnalyticsContext);
 
+  const { isMobile } = useMediaQuery();
+
   const [tooltip, setTooltip] = useState<string | null>(null);
   const tooltipStep = steps.find(({ id }) => id === tooltip);
 
@@ -122,7 +125,8 @@ export function AnalyticsFunnelChartInner({
               height={height}
               className="fill-transparent transition-colors hover:fill-blue-600/5"
               onPointerEnter={() => setTooltip(id)}
-              onPointerLeave={() => setTooltip(null)}
+              onPointerDown={() => setTooltip(id)}
+              onPointerLeave={() => !isMobile && setTooltip(null)}
             />
             {/* Divider line */}
             <line
@@ -130,7 +134,7 @@ export function AnalyticsFunnelChartInner({
               y1={0}
               x2={xScale(idx)}
               y2={height}
-              className="stroke-black/10"
+              className="stroke-black/5 sm:stroke-black/10"
             />
 
             {/* Funnel */}
@@ -164,7 +168,7 @@ export function AnalyticsFunnelChartInner({
                 verticalAnchor="middle"
                 fill="white"
                 fontSize={16}
-                className="pointer-events-none"
+                className="pointer-events-none select-none"
               >
                 {formatPercentage((totalEvents?.[id] / maxValue) * 100) + "%"}
               </Text>
@@ -175,7 +179,7 @@ export function AnalyticsFunnelChartInner({
       {tooltipStep && (
         <div
           key={tooltipStep.id}
-          className="animate-slide-up-fade pointer-events-none absolute top-12 flex items-center justify-center pb-4"
+          className="animate-slide-up-fade pointer-events-none absolute top-16 flex items-center justify-center px-1 pb-4 sm:top-12"
           style={{
             left: xScale(steps.findIndex(({ id }) => id === tooltipStep.id)),
             width: width / steps.length,
@@ -186,10 +190,10 @@ export function AnalyticsFunnelChartInner({
               "rounded-lg border border-gray-200 bg-white text-base shadow-sm",
             )}
           >
-            <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+            <p className="border-b border-gray-200 px-3 py-2 text-sm text-gray-900 sm:px-4 sm:py-3">
               {tooltipStep.label}
             </p>
-            <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 px-4 py-3 text-sm">
+            <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 px-3 py-2 text-sm sm:px-4 sm:py-3">
               <div className="flex items-center gap-2">
                 <div
                   className={cn(
