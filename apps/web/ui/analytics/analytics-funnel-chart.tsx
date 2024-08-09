@@ -228,8 +228,11 @@ export function AnalyticsFunnelChartInner({
   );
 }
 
-const formatPercentage = (value: number) =>
-  value > 0 && value < 1 ? "< 1" : nFormatter(value, { digits: 2 });
+const formatPercentage = (value: number) => {
+  return value > 0 && value < 0.01
+    ? "< 0.01"
+    : nFormatter(value, { digits: 2 });
+};
 
 const interpolate = (from: number, to: number) => [
   { x: 0, y: from },
