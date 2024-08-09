@@ -1,5 +1,5 @@
 import { Link } from "@prisma/client";
-import { expect, test } from "vitest";
+import { afterAll, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 
@@ -36,5 +36,7 @@ test("GET /links", async (ctx) => {
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
   });
 
-  await h.deleteLink(firstLink.id);
+  afterAll(async () => {
+    await h.deleteLink(firstLink.id);
+  });
 });
