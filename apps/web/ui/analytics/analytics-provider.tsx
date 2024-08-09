@@ -1,10 +1,12 @@
 "use client";
 
 import {
+  ANALYTICS_VIEWS,
   EVENT_TYPES,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import {
+  AnalyticsView,
   CompositeAnalyticsResponseOptions,
   EventType,
 } from "@/lib/analytics/types";
@@ -29,6 +31,7 @@ export const AnalyticsContext = createContext<{
   basePath: string;
   baseApiPath: string;
   selectedTab: EventType;
+  view: AnalyticsView;
   domain?: string;
   key?: string;
   url?: string;
@@ -47,6 +50,7 @@ export const AnalyticsContext = createContext<{
   basePath: "",
   baseApiPath: "",
   selectedTab: "clicks",
+  view: "default",
   domain: "",
   queryString: "",
   start: new Date(),
@@ -112,6 +116,14 @@ export default function AnalyticsProvider({
 
     return EVENT_TYPES.find((t) => t === tab) ?? "clicks";
   }, [searchParams.get("tab")]);
+
+  const view: AnalyticsView = useMemo(() => {
+    if (!demoPage && !flags?.conversions) return "default";
+
+    const view = searchParams.get("view");
+
+    return ANALYTICS_VIEWS.find((v) => v === view) ?? "default";
+  }, [searchParams.get("view")]);
 
   const root = searchParams.get("root")
     ? searchParams.get("root") === "true"
@@ -221,6 +233,7 @@ export default function AnalyticsProvider({
         basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
         baseApiPath, // baseApiPath for analytics API endpoints (e.g. /api/analytics)
         selectedTab, // selected tab (clicks, leads, sales)
+        view,
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
