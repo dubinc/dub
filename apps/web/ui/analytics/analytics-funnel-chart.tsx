@@ -189,7 +189,7 @@ export function AnalyticsFunnelChartInner({
             <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
               {tooltipStep.label}
             </p>
-            <div className="xs:grid-cols-2 grid grid-cols-1 gap-x-6 gap-y-2 px-4 py-3 text-sm">
+            <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 px-4 py-3 text-sm">
               <div className="flex items-center gap-2">
                 <div
                   className={cn(
@@ -203,8 +203,14 @@ export function AnalyticsFunnelChartInner({
                   ) + "%"}
                 </p>
               </div>
-              <p className="xs:text-right font-medium text-gray-900">
-                {nFormatter(stepValue(tooltipStep.id))}
+              <p className="whitespace-nowrap font-medium text-gray-900">
+                {nFormatter(stepValue(tooltipStep.id), { full: true })}
+                {tooltipStep.id === "sales" && (
+                  <span className="text-gray-500">
+                    {" "}
+                    (${nFormatter(totalEvents.amount / 100)})
+                  </span>
+                )}
               </p>
             </div>
           </div>
