@@ -96,6 +96,9 @@ export const PATCH = withSession(async ({ req, session }) => {
     }
   }
 
+  // TODO:
+  // Email change should require a verification process before updating the email in the database
+
   try {
     const response = await prisma.user.update({
       where: {
@@ -125,10 +128,14 @@ export const PATCH = withSession(async ({ req, session }) => {
 
     return NextResponse.json(response);
   } catch (error) {
-    throw new DubApiError({
-      code: "conflict",
-      message: "Email is already in use.",
-    });
+    if (error.code === "P2002") {
+      throw new DubApiError({
+        code: "conflict",
+        message: "Email is already in use.",
+      });
+    }
+
+    throw error;
   }
 });
 
