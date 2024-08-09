@@ -50,14 +50,15 @@ export default function UpdateDefaultWorkspace() {
         defaultWorkspace: selectedWorkspace?.id || undefined,
       }),
     });
+
     if (response.ok) {
       setSaving(false);
       update();
     } else {
+      setSaving(false);
       const { error } = await response.json();
       throw new Error(error.message);
     }
-    setSaving(false);
   }
 
   return (
@@ -69,7 +70,6 @@ export default function UpdateDefaultWorkspace() {
           success: "Successfully updated your default workspace!",
           error: (error) => error,
         });
-        setSaving(false);
       }}
       className="rounded-lg border border-gray-200 bg-white"
     >
