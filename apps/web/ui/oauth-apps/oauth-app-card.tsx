@@ -10,7 +10,7 @@ export default function OAuthAppCard(oAuthApp: OAuthAppProps) {
   return (
     <Link
       href={`/${slug}/settings/oauth-apps/${oAuthApp.id}`}
-      className="relative rounded-xl border border-gray-200 bg-white px-5 py-4 transition-[filter] hover:[filter:drop-shadow(0_8px_12px_#222A350d)_drop-shadow(0_32px_80px_#2f30370f)]"
+      className="hover:drop-shadow-card-hover relative rounded-xl border border-gray-200 bg-white px-5 py-4 transition-[filter]"
     >
       <div className="flex items-center gap-x-3">
         <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2.5">

@@ -16,7 +16,7 @@ const cardListCardVariants = cva("w-full group/card border-gray-200 bg-white", {
       compact:
         "first-of-type:rounded-t-xl last-of-type:rounded-b-xl first-of-type:border-t border-b border-x hover:bg-gray-50 transition-colors",
       loose:
-        "border rounded-xl transition-[filter] hover:[filter:drop-shadow(0_8px_12px_#222A350d)_drop-shadow(0_32px_80px_#2f30370f)]",
+        "border rounded-xl transition-[filter] hover:drop-shadow-card-hover",
     },
   },
 });

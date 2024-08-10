@@ -57,7 +57,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
 
   const ref = useRef<HTMLDivElement>(null);
   const entry = useIntersectionObserver(ref, {});
-  const isVisible = !!entry?.isIntersecting;
+  const isVisible = entry?.isIntersecting ?? true;
 
   const { primaryTag, additionalTags } = useOrganizedTags(tags);
 

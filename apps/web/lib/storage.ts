@@ -53,6 +53,10 @@ class StorageClient {
     }
   }
 
+  async fetch(key: string) {
+    return this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`);
+  }
+
   async delete(key: string) {
     await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
       method: "DELETE",

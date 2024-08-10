@@ -13,7 +13,7 @@ export default function ProBanner({
   const { queryParams } = useRouterStuff();
 
   return (
-    <div className="fixed bottom-5 z-10 mx-5 flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white p-5 shadow-lg sm:right-5 sm:mx-auto sm:max-w-sm">
+    <div className="fixed bottom-24 z-10 mx-5 flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white p-5 shadow-lg sm:right-5 sm:mx-auto sm:max-w-sm">
       <h3 className="text-lg font-semibold">Upgrade to Pro</h3>
       <p className="text-sm text-gray-500">
         It looks like you're currently on our Free plan. Please consider
@@ -26,7 +26,7 @@ export default function ProBanner({
             posthog.capture("pro_banner_hidden", {
               workspace: slug,
             });
-            Cookies.set("hideProBanner", slug, { expires: 7 });
+            Cookies.set("hideProBanner", slug, { expires: 180 });
           }}
           className="w-full rounded-md border border-gray-300 p-2 text-center text-sm font-medium text-gray-500 transition-all hover:border-gray-700 hover:text-gray-600"
         >

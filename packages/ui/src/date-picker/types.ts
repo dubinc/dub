@@ -43,6 +43,7 @@ export interface Preset {
   label: string;
   requiresUpgrade?: boolean;
   tooltipContent?: ReactNode;
+  shortcut?: string;
 }
 
 export interface DatePreset extends Preset {
