@@ -21,9 +21,20 @@ export const vaidateAuthorizeRequest = async (params: any) => {
     where: {
       clientId,
     },
+    select: {
+      redirectUris: true,
+      integration: {
+        select: {
+          name: true,
+          developer: true,
+          website: true,
+          logo: true,
+        },
+      },
+    },
   });
 
-  if (!oAuthApp) {
+  if (!oAuthApp || !oAuthApp.integration) {
     return {
       error: "Could not find OAuth application.",
     };
@@ -38,7 +49,7 @@ export const vaidateAuthorizeRequest = async (params: any) => {
   }
 
   return {
-    oAuthApp,
+    integration: { ...oAuthApp.integration },
     requestParams: request.data,
   };
 };

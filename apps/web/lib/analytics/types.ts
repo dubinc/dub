@@ -3,7 +3,12 @@ import {
   analyticsQuerySchema,
   eventsQuerySchema,
 } from "../zod/schemas/analytics";
-import { EVENT_TYPES, VALID_ANALYTICS_ENDPOINTS, intervals } from "./constants";
+import {
+  ANALYTICS_VIEWS,
+  EVENT_TYPES,
+  VALID_ANALYTICS_ENDPOINTS,
+  intervals,
+} from "./constants";
 
 export type IntervalOptions = (typeof intervals)[number];
 export type AnalyticsGroupByOptions =
@@ -15,6 +20,8 @@ export type CompositeAnalyticsResponseOptions =
   | "amount";
 
 export type EventType = (typeof EVENT_TYPES)[number];
+
+export type AnalyticsView = (typeof ANALYTICS_VIEWS)[number];
 
 export type LocationTabs = "countries" | "cities";
 export type TopLinksTabs = "link" | "url";

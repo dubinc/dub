@@ -2,7 +2,7 @@ import { cn } from "@dub/utils";
 import { enUS } from "date-fns/locale";
 import { useEffect, useMemo, useState } from "react";
 import { SelectRangeEventHandler } from "react-day-picker";
-import { useMediaQuery } from "../hooks";
+import { useKeyboardShortcut, useMediaQuery } from "../hooks";
 import { Popover } from "../popover";
 import { Calendar as CalendarPrimitive } from "./calendar";
 import { Presets } from "./presets";
@@ -113,6 +113,16 @@ const DateRangePickerInner = ({
     }`;
   }, [range, locale]);
 
+  useKeyboardShortcut(
+    (presets
+      ?.filter((preset) => preset.shortcut)
+      .map((preset) => preset.shortcut) as string[]) ?? [],
+    (e) => {
+      const preset = presets?.find((preset) => preset.shortcut === e.key);
+      if (preset) onPresetSelected(preset);
+    },
+  );
+
   return (
     <DatePickerContext.Provider value={{ isOpen: open, setIsOpen: setOpen }}>
       <Popover
@@ -126,7 +136,7 @@ const DateRangePickerInner = ({
               {presets && presets.length > 0 && (
                 <div
                   className={cn(
-                    "relative flex h-16 w-full items-center sm:h-full sm:w-44",
+                    "relative flex h-16 w-full items-center sm:h-full sm:w-48",
                     "border-b border-gray-200 sm:border-b-0 sm:border-l",
                     "scrollbar-hide overflow-auto",
                   )}

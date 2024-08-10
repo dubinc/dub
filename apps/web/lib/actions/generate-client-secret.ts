@@ -19,7 +19,7 @@ export const generateClientSecret = authActionClient
     const { workspace } = ctx;
     const { appId } = parsedInput;
 
-    await prisma.oAuthApp.findFirstOrThrow({
+    await prisma.integration.findFirstOrThrow({
       where: {
         id: appId,
         projectId: workspace.id,
@@ -33,7 +33,7 @@ export const generateClientSecret = authActionClient
 
     await prisma.oAuthApp.update({
       where: {
-        id: appId,
+        integrationId: appId,
       },
       data: {
         hashedClientSecret: await hashToken(clientSecret),

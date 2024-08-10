@@ -9,6 +9,7 @@ import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
+import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useCookies } from "@dub/ui";
@@ -39,6 +40,7 @@ export const ModalContext = createContext<{
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportCsvModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddWorkspaceModal: () => {},
   setShowCompleteSetupModal: () => {},
@@ -49,6 +51,7 @@ export const ModalContext = createContext<{
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
   setShowImportRebrandlyModal: () => {},
+  setShowImportCsvModal: () => {},
 });
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -98,6 +101,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
   const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
     useImportRebrandlyModal();
+  const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -185,6 +189,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowImportBitlyModal,
         setShowImportShortModal,
         setShowImportRebrandlyModal,
+        setShowImportCsvModal,
       }}
     >
       <AddWorkspaceModal />
@@ -197,6 +202,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportBitlyModal />
       <ImportShortModal />
       <ImportRebrandlyModal />
+      <ImportCsvModal />
       {children}
     </ModalContext.Provider>
   );

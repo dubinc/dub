@@ -64,7 +64,6 @@ export async function processLink<T extends Record<string, any>>({
     geo,
     doIndex,
     tagNames,
-    createdAt,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
@@ -98,11 +97,8 @@ export async function processLink<T extends Record<string, any>>({
     };
   }
 
-  // free plan restrictions (after Jan 19, 2024)
-  if (
-    (!workspace || workspace.plan === "free") &&
-    (!createdAt || new Date(createdAt) > new Date("2024-01-19"))
-  ) {
+  // free plan restrictions
+  if (!workspace || workspace.plan === "free") {
     if (key === "_root" && url) {
       return {
         link: payload,

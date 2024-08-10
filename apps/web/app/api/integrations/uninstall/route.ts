@@ -8,7 +8,7 @@ export const DELETE = withWorkspace(
   async ({ searchParams, session }) => {
     const { installationId } = searchParams;
 
-    const installation = await prisma.oAuthAuthorizedApp.findUnique({
+    const installation = await prisma.installedIntegration.findUnique({
       where: {
         id: installationId,
       },
@@ -29,7 +29,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await prisma.oAuthAuthorizedApp.delete({
+    await prisma.installedIntegration.delete({
       where: {
         id: installationId,
       },

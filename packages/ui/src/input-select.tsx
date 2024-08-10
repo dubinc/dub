@@ -377,6 +377,7 @@ function CloseChevron() {
 
   return (
     <button
+      type="button"
       onClick={() => {
         setOpenCommandList((prev) => !prev);
         setSelectedItem(null);

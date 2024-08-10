@@ -5,15 +5,15 @@ import { NextResponse } from "next/server";
 // GET /api/integrations - get all active integrations
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    const integrations = await prisma.oAuthApp.findMany({
+    const integrations = await prisma.integration.findMany({
       select: {
-        clientId: true,
+        id: true,
         name: true,
         slug: true,
       },
       where: {
         verified: true,
-        authorizedApps: {
+        installations: {
           some: {
             project: {
               slug: workspace.slug,

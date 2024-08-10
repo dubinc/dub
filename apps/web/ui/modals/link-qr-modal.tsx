@@ -88,7 +88,7 @@ export function QRCodePicker({
       fgColor,
       size: 1024,
       level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
-      includeMargin: true,
+      includeMargin: false,
       ...(showLogo && {
         imageSettings: {
           src:
@@ -134,6 +134,7 @@ export function QRCodePicker({
             bgColor={qrData.bgColor}
             fgColor={qrData.fgColor}
             level={qrData.level}
+            includeMargin={false}
             {...(qrData.imageSettings && {
               imageSettings: {
                 ...qrData.imageSettings,

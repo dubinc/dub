@@ -1,6 +1,7 @@
 "use client";
 
 import { generateClientSecret } from "@/lib/actions/generate-client-secret";
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";
@@ -14,7 +15,7 @@ import {
   Popover,
   TokenAvatar,
 } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { ChevronLeft, RefreshCcw, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -25,7 +26,7 @@ import useSWR from "swr";
 
 export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
   const searchParams = useSearchParams();
-  const { slug, id: workspaceId } = useWorkspace();
+  const { slug, id: workspaceId, role } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const { executeAsync, result, isExecuting } = useAction(
     generateClientSecret,
@@ -49,6 +50,11 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
       oAuthApp,
     });
 
+  const { error: permissionsError } = clientAccessCheck({
+    action: "oauth_apps.write",
+    role,
+  });
+
   if (!isLoading && !oAuthApp) {
     return notFound();
   }
@@ -66,7 +72,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
             Back to OAuth Apps
           </p>
         </Link>
-        <div className="flex justify-between gap-2">
+        <div className="flex items-center justify-between gap-2">
           {isLoading ? (
             <div className="flex items-center gap-x-3">
               <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
@@ -100,7 +106,6 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
           )}
 
           <Popover
-            align="end"
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
                 <Button
@@ -129,19 +134,19 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
                 />
               </div>
             }
+            align="end"
             openPopover={openPopover}
             setOpenPopover={setOpenPopover}
           >
-            <button
+            <Button
+              variant="outline"
+              className="flex w-8 rounded-md border border-gray-200 px-2 transition-[border-color] duration-200"
+              icon={<ThreeDots className="h-5 w-5 shrink-0 text-gray-500" />}
               onClick={() => setOpenPopover(!openPopover)}
-              className={cn(
-                "flex h-10 items-center rounded-md border px-1.5 outline-none transition-all",
-                "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
-                "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
-              )}
-            >
-              <ThreeDots className="h-5 w-5 text-gray-500" />
-            </button>
+              {...(permissionsError && {
+                disabledTooltip: permissionsError,
+              })}
+            />
           </Popover>
         </div>
       </MaxWidthWrapper>

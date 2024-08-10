@@ -8,6 +8,13 @@ export function nFormatter(
   if (opts.full) {
     return Intl.NumberFormat("en-US").format(num);
   }
+
+  const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+
+  if (num < 1) {
+    return num.toFixed(opts.digits).replace(rx, "$1");
+  }
+
   const lookup = [
     { value: 1, symbol: "" },
     { value: 1e3, symbol: "K" },
@@ -17,7 +24,6 @@ export function nFormatter(
     { value: 1e15, symbol: "P" },
     { value: 1e18, symbol: "E" },
   ];
-  const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
   var item = lookup
     .slice()
     .reverse()

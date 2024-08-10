@@ -12,21 +12,37 @@ import { NextResponse } from "next/server";
 // GET /api/oauth/apps/[appId] – get an OAuth app created by the workspace
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
-    const app = await prisma.oAuthApp.findFirst({
+    const oAuthApp = await prisma.oAuthApp.findFirst({
       where: {
-        id: params.appId,
-        projectId: workspace.id,
+        integration: {
+          id: params.appId,
+          projectId: workspace.id,
+        },
+      },
+      select: {
+        clientId: true,
+        partialClientSecret: true,
+        redirectUris: true,
+        pkce: true,
+        integration: true,
       },
     });
 
-    if (!app) {
+    if (!oAuthApp) {
       throw new DubApiError({
         code: "not_found",
         message: `OAuth app with id ${params.appId} not found.`,
       });
     }
 
-    return NextResponse.json(oAuthAppSchema.parse(app));
+    const { integration, ...app } = oAuthApp;
+
+    return NextResponse.json(
+      oAuthAppSchema.parse({
+        ...app,
+        ...integration,
+      }),
+    );
   },
   {
     requiredPermissions: ["oauth_apps.read"],
@@ -51,7 +67,7 @@ export const PATCH = withWorkspace(
     } = updateOAuthAppSchema.parse(await parseRequestBody(req));
 
     try {
-      const app = await prisma.oAuthApp.findUniqueOrThrow({
+      const integration = await prisma.integration.findUniqueOrThrow({
         where: {
           id: params.appId,
           projectId: workspace.id,
@@ -63,7 +79,7 @@ export const PATCH = withWorkspace(
       });
 
       let logoUrl: string | undefined;
-      const logoUpdated = logo && app.logo !== logo;
+      const logoUpdated = logo && integration.logo !== logo;
 
       // Logo has been changed
       if (logoUpdated) {
@@ -75,7 +91,7 @@ export const PATCH = withWorkspace(
         logoUrl = result.url;
       }
 
-      const updatedApp = await prisma.oAuthApp.update({
+      const updatedRecord = await prisma.integration.update({
         where: {
           id: params.appId,
           projectId: workspace.id,
@@ -87,10 +103,29 @@ export const PATCH = withWorkspace(
           website,
           description,
           readme,
-          redirectUris,
-          pkce,
           screenshots,
           ...(logoUrl && { logo: logoUrl }),
+          oAuthApp: {
+            update: {
+              redirectUris,
+              pkce,
+            },
+          },
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          name: true,
+          slug: true,
+          description: true,
+          developer: true,
+          logo: true,
+          website: true,
+          readme: true,
+          screenshots: true,
+          verified: true,
+          oAuthApp: true,
         },
       });
 
@@ -98,15 +133,15 @@ export const PATCH = withWorkspace(
         (async () => {
           if (
             logoUpdated &&
-            app.logo &&
-            app.logo.startsWith(`${R2_URL}/integrations`)
+            integration.logo &&
+            integration.logo.startsWith(`${R2_URL}/integrations`)
           ) {
-            await storage.delete(app.logo.replace(`${R2_URL}/`, ""));
+            await storage.delete(integration.logo.replace(`${R2_URL}/`, ""));
           }
 
           // Remove old screenshots
-          const oldScreenshots = app.screenshots
-            ? (app.screenshots as string[])
+          const oldScreenshots = integration.screenshots
+            ? (integration.screenshots as string[])
             : [];
 
           const removedScreenshots = oldScreenshots?.filter(
@@ -117,7 +152,11 @@ export const PATCH = withWorkspace(
         })(),
       );
 
-      return NextResponse.json(oAuthAppSchema.parse(updatedApp));
+      const { oAuthApp, ...updatedIntegration } = updatedRecord;
+
+      return NextResponse.json(
+        oAuthAppSchema.parse({ ...oAuthApp, ...updatedIntegration }),
+      );
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -141,21 +180,21 @@ export const PATCH = withWorkspace(
 // DELETE /api/oauth/apps/[appId] - delete an OAuth app
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const app = await prisma.oAuthApp.findFirst({
+    const integration = await prisma.integration.findFirst({
       where: {
         id: params.appId,
         projectId: workspace.id,
       },
     });
 
-    if (!app) {
+    if (!integration) {
       throw new DubApiError({
         code: "not_found",
         message: `OAuth app with id ${params.appId} not found.`,
       });
     }
 
-    await prisma.oAuthApp.delete({
+    await prisma.integration.delete({
       where: {
         id: params.appId,
       },
@@ -163,11 +202,14 @@ export const DELETE = withWorkspace(
 
     waitUntil(
       (async () => {
-        if (app.logo && app.logo.startsWith(`${R2_URL}/integrations`)) {
-          await storage.delete(app.logo.replace(`${R2_URL}/`, ""));
+        if (
+          integration.logo &&
+          integration.logo.startsWith(`${R2_URL}/integrations`)
+        ) {
+          await storage.delete(integration.logo.replace(`${R2_URL}/`, ""));
         }
 
-        await deleteScreenshots(app.screenshots);
+        await deleteScreenshots(integration.screenshots);
       })(),
     );
 

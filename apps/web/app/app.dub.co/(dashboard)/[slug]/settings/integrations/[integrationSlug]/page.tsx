@@ -9,17 +9,17 @@ export default async function IntegrationPage({
 }: {
   params: { slug: string; integrationSlug: string };
 }) {
-  const integration = await prisma.oAuthApp.findUnique({
+  const integration = await prisma.integration.findUnique({
     where: {
       slug: params.integrationSlug,
     },
     include: {
       _count: {
         select: {
-          authorizedApps: true,
+          installations: true,
         },
       },
-      authorizedApps: {
+      installations: {
         where: {
           project: {
             slug: params.slug,
@@ -47,17 +47,17 @@ export default async function IntegrationPage({
       integration={{
         ...integration,
         screenshots: integration.screenshots as string[],
-        installations: integration._count.authorizedApps,
+        installations: integration._count.installations,
         installed:
-          integration.authorizedApps.length > 0
+          integration.installations.length > 0
             ? {
-                id: integration.authorizedApps[0].id,
+                id: integration.installations[0].id,
                 by: {
-                  id: integration.authorizedApps[0].userId,
-                  name: integration.authorizedApps[0].user.name,
-                  image: integration.authorizedApps[0].user.image,
+                  id: integration.installations[0].userId,
+                  name: integration.installations[0].user.name,
+                  image: integration.installations[0].user.image,
                 },
-                createdAt: integration.authorizedApps[0].createdAt,
+                createdAt: integration.installations[0].createdAt,
               }
             : null,
       }}
