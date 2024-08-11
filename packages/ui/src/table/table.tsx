@@ -259,7 +259,7 @@ export function Table<T>({
                       }}
                     >
                       <div className="flex w-full items-center justify-between overflow-hidden truncate">
-                        <div className="min-w-0 shrink grow">
+                        <div className="min-w-0 shrink grow truncate">
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext(),

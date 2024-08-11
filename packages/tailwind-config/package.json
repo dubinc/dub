@@ -1,7 +1,7 @@
 {
   "name": "@dub/tailwind-config",
   "description": "Tailwindcss config for Dub.co",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "index.ts",
   "types": "index.ts",
   "devDependencies": {
