@@ -169,7 +169,8 @@ export default function IntegrationPageClient({
                 const { installUrl } = integration;
 
                 if (installUrl) {
-                  window.location.href = installUrl;
+                  // open in a new tab
+                  window.open(installUrl, "_blank");
                   return;
                 }
 
