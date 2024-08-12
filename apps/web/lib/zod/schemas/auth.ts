@@ -49,3 +49,7 @@ export const verifyEmailSchema = z.object({
   email: emailSchema,
   code: z.string().min(6),
 });
+
+export const resendOtpSchema = z.object({
+  email: emailSchema,
+});

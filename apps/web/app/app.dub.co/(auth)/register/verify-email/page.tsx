@@ -2,6 +2,7 @@ import { BlurImage, Button, Wordmark } from "@dub/ui";
 import { constructMetadata, truncate } from "@dub/utils";
 import { Suspense } from "react";
 import VerifyEmailForm from "./form";
+import { ResendCode } from "./resend-code";
 
 export const metadata = constructMetadata({
   title: `Create your ${process.env.NEXT_PUBLIC_APP_NAME} account`,
@@ -61,6 +62,7 @@ export default function VerifyEmailPage({
               </Suspense>
             </div>
           </div>
+          <ResendCode email={email} />
         </div>
       </div>
       <div className="hidden h-full flex-col justify-center space-y-12 overflow-hidden border-l border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur md:col-span-2 md:flex">
