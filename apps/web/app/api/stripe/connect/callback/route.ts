@@ -1,12 +1,13 @@
-import { withSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integration/install";
-import { prisma } from "@/lib/prisma";
+import { prismaEdge } from "@/lib/prisma/edge";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { APP_DOMAIN, getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 
-// export const runtime = "edge";
+export const runtime = "edge";
 
 const schema = z.object({
   state: z.string(),
@@ -15,7 +16,13 @@ const schema = z.object({
   error_description: z.string().optional(),
 });
 
-export const GET = withSession(async ({ session, req }) => {
+export const GET = async (req: NextRequest) => {
+  const session = await getSession();
+
+  if (!session?.user.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const parsed = schema.safeParse(getSearchParams(req.url));
 
   if (!parsed.success) {
@@ -41,7 +48,7 @@ export const GET = withSession(async ({ session, req }) => {
   await redis.del(`stripe:install:state:${state}`);
 
   if (error) {
-    const workspace = await prisma.project.findUnique({
+    const workspace = await prismaEdge.project.findUnique({
       where: {
         id: workspaceId,
       },
@@ -54,7 +61,7 @@ export const GET = withSession(async ({ session, req }) => {
     );
   } else if (stripeAccountId) {
     // Update the workspace with the Stripe Connect ID
-    const workspace = await prisma.project.update({
+    const workspace = await prismaEdge.project.update({
       where: {
         id: workspaceId,
       },
@@ -73,4 +80,4 @@ export const GET = withSession(async ({ session, req }) => {
   }
 
   return new Response("Invalid request", { status: 400 });
-});
+};

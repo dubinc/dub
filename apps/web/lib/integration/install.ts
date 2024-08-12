@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prismaEdge } from "@/lib/prisma/edge";
 
 interface InstallIntegrationArgs {
   userId: string;
@@ -14,7 +14,7 @@ export const installIntegration = async ({
   integrationSlug,
   credentials,
 }: InstallIntegrationArgs) => {
-  const integration = await prisma.integration.findUniqueOrThrow({
+  const integration = await prismaEdge.integration.findUniqueOrThrow({
     where: {
       slug: integrationSlug,
     },
@@ -23,7 +23,7 @@ export const installIntegration = async ({
     },
   });
 
-  await prisma.installedIntegration.upsert({
+  await prismaEdge.installedIntegration.upsert({
     create: {
       userId,
       projectId: workspaceId,
