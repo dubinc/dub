@@ -10,8 +10,8 @@ export function useInputFocused() {
     const onFocusBlur = () => {
       const activeElement = document.activeElement;
       setIsInputFocused(
-        !activeElement?.tagName ||
-          !["INPUT", "TEXTAREA"].includes(activeElement.tagName),
+        activeElement?.tagName != null &&
+          ["INPUT", "TEXTAREA"].includes(activeElement.tagName),
       );
     };
 

@@ -77,7 +77,7 @@ function LinksList({
 }) {
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
-  const showHoverStates = useInputFocused();
+  const showHoverStates = !useInputFocused();
 
   const page = (parseInt(searchParams?.get("page") || "1") || 1) - 1;
 
