@@ -28,9 +28,7 @@ const Integrations = async ({ workspaceSlug }: { workspaceSlug: string }) => {
   const integrations = await prisma.integration.findMany({
     where: {
       verified: true,
-      slug: {
-        notIn: [...(!flags.conversions ? ["stripe"] : [])],
-      },
+      ...(!flags.conversions ? { slug: { notIn: ["stripe"] } } : {}),
     },
     include: {
       _count: {
