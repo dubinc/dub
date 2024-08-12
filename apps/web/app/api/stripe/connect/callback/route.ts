@@ -1,10 +1,11 @@
 import { installIntegration } from "@/lib/api/integration/install";
-import { withSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { APP_DOMAIN, getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 
 // export const runtime = "edge";
 
@@ -15,7 +16,13 @@ const schema = z.object({
   error_description: z.string().optional(),
 });
 
-export const GET = withSession(async ({ session, req }) => {
+export const GET = async (req: NextRequest) => {
+  const session = await getSession();
+
+  if (!session?.user.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const parsed = schema.safeParse(getSearchParams(req.url));
 
   if (!parsed.success) {
@@ -73,4 +80,4 @@ export const GET = withSession(async ({ session, req }) => {
   }
 
   return new Response("Invalid request", { status: 400 });
-});
+};
