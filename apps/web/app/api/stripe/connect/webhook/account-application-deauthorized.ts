@@ -1,4 +1,3 @@
-import { uninstallIntegration } from "@/lib/api/integration/uninstall";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
@@ -18,9 +17,13 @@ export async function accountApplicationDeauthorized(event: Stripe.Event) {
     },
   });
 
-  await uninstallIntegration({
-    integrationSlug: "stripe",
-    workspaceId: workspace.id,
+  await prisma.installedIntegration.deleteMany({
+    where: {
+      projectId: workspace.id,
+      integration: {
+        slug: "stripe",
+      },
+    },
   });
 
   return `Stripe Connect account ${stripeAccountId} deauthorized for workspace ${workspace.id}`;
