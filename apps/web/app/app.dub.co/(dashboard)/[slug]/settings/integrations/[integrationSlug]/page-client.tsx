@@ -17,12 +17,7 @@ import {
   Popover,
   TokenAvatar,
 } from "@dub/ui";
-import {
-  ConnectedDots,
-  Globe,
-  Hyperlink,
-  OfficeBuilding,
-} from "@dub/ui/src/icons";
+import { ConnectedDots, Globe, OfficeBuilding } from "@dub/ui/src/icons";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -88,7 +83,7 @@ export default function IntegrationPageClient({
           </div>
         </div>
 
-        {integration.installed && integration.slug != "stripe" && (
+        {integration.installed && (
           <Popover
             align="end"
             content={
@@ -101,6 +96,11 @@ export default function IntegrationPageClient({
                   onClick={() => {
                     setShowUninstallIntegrationModal(true);
                   }}
+                  disabledTooltip={
+                    integration.slug === "stripe"
+                      ? "You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
+                      : null
+                  }
                 />
               </div>
             }
@@ -121,43 +121,45 @@ export default function IntegrationPageClient({
         )}
       </div>
 
-      <div className="flex gap-12 rounded-lg border border-gray-200 bg-white p-4">
-        {integration.installed && (
-          <div className="flex items-center gap-2">
-            <Avatar user={integration.installed.by} className="size-8" />
-            <div className="flex flex-col gap-1">
-              <p className="text-xs text-gray-500">INSTALLED BY</p>
-              <p className="text-sm font-medium text-gray-700">
-                {integration.installed.by.name}
-                <span className="ml-1 font-normal text-gray-500">
-                  {formatDate(integration.installed.createdAt, {
-                    year: undefined,
-                  })}
-                </span>
-              </p>
+      <div className="flex justify-between rounded-lg border border-gray-200 bg-white p-4">
+        <div className="flex gap-12">
+          {integration.installed && (
+            <div className="flex items-center gap-2">
+              <Avatar user={integration.installed.by} className="size-8" />
+              <div className="flex flex-col gap-1">
+                <p className="text-xs text-gray-500">INSTALLED BY</p>
+                <p className="text-sm font-medium text-gray-700">
+                  {integration.installed.by.name}
+                  <span className="ml-1 font-normal text-gray-500">
+                    {formatDate(integration.installed.createdAt, {
+                      year: undefined,
+                    })}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-gray-500">DEVELOPER</p>
+            <div className="flex items-center gap-x-1 text-sm font-medium text-gray-700">
+              <OfficeBuilding className="size-3" />
+              {integration.developer}
             </div>
           </div>
-        )}
 
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-gray-500">DEVELOPER</p>
-          <div className="flex items-center gap-x-1 text-sm font-medium text-gray-700">
-            <OfficeBuilding className="size-3" />
-            {integration.developer}
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-gray-500">WEBSITE</p>
+            <a
+              href={integration.website}
+              className="flex items-center gap-x-1 text-sm font-medium text-gray-700"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Globe className="size-3" />
+              {getPrettyUrl(integration.website)}
+            </a>
           </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-gray-500">WEBSITE</p>
-          <a
-            href={integration.website}
-            className="flex items-center gap-x-1 text-sm font-medium text-gray-700"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Globe className="size-3" />
-            {getPrettyUrl(integration.website)}
-          </a>
         </div>
 
         {!integration.installed && (
@@ -167,8 +169,6 @@ export default function IntegrationPageClient({
                 const { installUrl } = integration;
 
                 if (installUrl) {
-                  // TODO:
-                  // Open the URL in a new tab
                   window.location.href = installUrl;
                   return;
                 }
@@ -181,13 +181,7 @@ export default function IntegrationPageClient({
               loading={getInstallationUrl.isExecuting}
               text="Enable"
               variant="primary"
-              icon={
-                integration.installUrl ? (
-                  <Hyperlink className="h-4 w-4" />
-                ) : (
-                  <ConnectedDots className="h-4 w-4" />
-                )
-              }
+              icon={<ConnectedDots className="h-4 w-4" />}
             />
           </div>
         )}
