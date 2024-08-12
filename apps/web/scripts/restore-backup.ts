@@ -1,5 +1,5 @@
 import { bulkCreateLinks } from "@/lib/api/links";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import "dotenv-flow/config";

@@ -1,6 +1,6 @@
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   LEGAL_USER_ID,

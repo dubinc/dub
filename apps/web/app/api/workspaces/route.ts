@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import {
   WorkspaceSchema,
   createWorkspaceSchema,

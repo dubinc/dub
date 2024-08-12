@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { Background, BlurImage, Logo } from "@dub/ui";
 import { constructMetadata, isDubDomain } from "@dub/utils";
 import { notFound, redirect } from "next/navigation";

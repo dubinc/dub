@@ -1,6 +1,6 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { DomainSchema } from "@/lib/zod/schemas/domains";
 import { NextResponse } from "next/server";
 

@@ -2,7 +2,7 @@ import { exceededLimitError } from "@/lib/api/errors";
 import { propagateBulkLinkChanges } from "@/lib/api/links/propagate-bulk-link-changes";
 import { updateLinksUsage } from "@/lib/api/links/update-links-usage";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { SimpleLinkProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 

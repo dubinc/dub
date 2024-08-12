@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import { R2_URL, nanoid, trim } from "@dub/utils";

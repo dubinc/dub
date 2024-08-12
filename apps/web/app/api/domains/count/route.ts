@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { getDomainsCountQuerySchema } from "@/lib/zod/schemas/domains";
 import { NextResponse } from "next/server";
 

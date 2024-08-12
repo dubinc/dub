@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { redis } from "@/lib/upstash";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";

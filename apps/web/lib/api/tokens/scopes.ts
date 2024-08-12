@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import type { Role } from "@dub/prisma/client";
 import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 

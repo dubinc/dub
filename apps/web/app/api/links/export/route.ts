@@ -3,7 +3,7 @@ import { convertToCSV } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
 

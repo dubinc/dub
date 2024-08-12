@@ -1,6 +1,6 @@
 import { trackCustomerResponseSchema } from "@/lib/zod/schemas/customers";
 import { nanoid } from "@dub/utils";
-import { Tag } from "@prisma/client";
+import { Tag } from "@dub/prisma";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 

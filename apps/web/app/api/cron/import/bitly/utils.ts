@@ -1,6 +1,6 @@
 import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";

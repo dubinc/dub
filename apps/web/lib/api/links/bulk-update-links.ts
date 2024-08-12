@@ -1,12 +1,12 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { isStored, storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { combineTagIds, transformLink } from "./utils";
+import { Prisma } from "@dub/prisma/client";
 
 export async function bulkUpdateLinks(
   params: z.infer<typeof bulkUpdateLinksBodySchema> & { workspaceId: string },

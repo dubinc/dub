@@ -3,7 +3,7 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import {
   DomainSchema,
   transferDomainBodySchema,

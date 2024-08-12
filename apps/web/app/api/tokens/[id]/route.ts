@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { tokenSchema, updateTokenSchema } from "@/lib/zod/schemas/token";
 import { NextResponse } from "next/server";
 

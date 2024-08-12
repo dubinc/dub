@@ -1,11 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { storage } from "@/lib/storage";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

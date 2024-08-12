@@ -1,4 +1,4 @@
-import { Domain } from "@prisma/client";
+import { Domain } from "@dub/prisma";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";

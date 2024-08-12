@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@dub/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
