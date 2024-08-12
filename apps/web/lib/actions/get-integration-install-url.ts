@@ -24,6 +24,8 @@ export const getIntegrationInstallUrl = authActionClient
     // Move the installation URL logic to the respective integration specific file
     if (integrationSlug === "stripe") {
       url = await stripeInstallationUrl(workspace.id);
+    } else if (integrationSlug === "slack") {
+      url = await slackInstallationUrl(workspace.id);
     } else {
       throw new Error("Invalid integration slug");
     }
@@ -49,6 +51,23 @@ const stripeInstallationUrl = async (workspaceId: string) => {
   url.searchParams.set(
     "redirect_uri",
     `${process.env.APP_DOMAIN_WITH_NGROK}/api/stripe/connect/callback`,
+  );
+
+  return url.toString();
+};
+
+// Slack installation URL
+const slackInstallationUrl = async (workspaceId: string) => {
+  const state = nanoid(16);
+  await redis.set(`slack:install:state:${state}`, workspaceId, {
+    ex: 30 * 60,
+  });
+
+  const url = new URL(`${process.env.SLACK_APP_INSTALL_URL}`);
+  url.searchParams.set("state", state);
+  url.searchParams.set(
+    "redirect_uri",
+    `${process.env.APP_DOMAIN_WITH_NGROK}/api/slack/callback`,
   );
 
   return url.toString();

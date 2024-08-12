@@ -1,75 +1,71 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integration/install";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import { APP_DOMAIN, getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
-
+import { SlackCredential } from "../../../../lib/integration/slack/type";
 
 const schema = z.object({
+  code: z.string(),
   state: z.string(),
-  stripe_user_id: z.string().optional(),
-  error: z.string().optional(),
-  error_description: z.string().optional(),
 });
 
-export const GET = withSession(async ({ session, req }) => {
-  const parsed = schema.safeParse(getSearchParams(req.url));
-
-  if (!parsed.success) {
-    console.error("[Stripe OAuth callback] Error", parsed.error);
-    return new Response("Invalid request", { status: 400 });
-  }
-
-  const {
-    state,
-    stripe_user_id: stripeAccountId,
-    error,
-    error_description,
-  } = parsed.data;
+export const GET = withSession(async ({ session, searchParams }) => {
+  const { code, state } = schema.parse(searchParams);
 
   // Find workspace that initiated the Stripe app install
-  const workspaceId = await redis.get<string>(`stripe:install:state:${state}`);
+  const workspaceId = await redis.get<string>(`slack:install:state:${state}`);
 
   if (!workspaceId) {
-    redirect(APP_DOMAIN);
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Unknown state",
+    });
   }
 
-  // Delete the state key from Redis
-  await redis.del(`stripe:install:state:${state}`);
+  const workspace = await prisma.project.findFirstOrThrow({
+    where: {
+      id: workspaceId,
+    },
+    select: {
+      slug: true,
+    },
+  });
 
-  if (error) {
-    const workspace = await prisma.project.findUnique({
-      where: {
-        id: workspaceId,
-      },
-    });
-    if (!workspace) {
-      redirect(APP_DOMAIN);
-    }
-    redirect(
-      `${APP_DOMAIN}/${workspace.slug}/settings?stripeConnectError=${error_description}`,
-    );
-  } else if (stripeAccountId) {
-    // Update the workspace with the Stripe Connect ID
-    const workspace = await prisma.project.update({
-      where: {
-        id: workspaceId,
-      },
-      data: {
-        stripeConnectId: stripeAccountId,
-      },
-    });
+  const formData = new FormData();
+  formData.append("code", code);
+  formData.append("client_id", `${process.env.SLACK_CLIENT_ID}`);
+  formData.append("client_secret", `${process.env.SLACK_CLIENT_SECRET}`);
 
-    await installIntegration({
-      integrationSlug: "stripe",
-      userId: session.user.id,
-      workspaceId: workspace.id,
-    });
+  const response = await fetch("https://slack.com/api/oauth.v2.access", {
+    method: "POST",
+    body: formData,
+  });
 
-    redirect(`${APP_DOMAIN}/${workspace.slug}/settings`);
-  }
+  const data = await response.json();
+
+  const credentials: SlackCredential = {
+    appId: data.app_id,
+    botUserId: data.bot_user_id,
+    scope: data.scope,
+    accessToken: data.access_token,
+    tokenType: data.token_type,
+    authUser: data.authed_user,
+    team: data.team,
+  };
+
+  console.log(credentials);
+
+  await installIntegration({
+    integrationSlug: "slack",
+    userId: session.user.id,
+    workspaceId,
+    credentials,
+  });
+
+  redirect(`${workspace.slug}/integrations/slack`);
 
   return new Response("Invalid request", { status: 400 });
 });
