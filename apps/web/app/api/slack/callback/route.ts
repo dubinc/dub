@@ -1,4 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integration/install";
 import { SlackCredential } from "@/lib/integration/slack/type";
@@ -77,9 +77,8 @@ export const GET = async (req: Request) => {
       credentials,
     });
   } catch (e: any) {
-    console.error(e);
-    redirect(`/integrations/slack?error=${e.message}`);
+    return handleAndReturnErrorResponse(e);
   }
 
-  redirect(`${workspace?.slug}/integrations/slack`);
+  redirect(`${workspace.slug}/integrations/slack`);
 };
