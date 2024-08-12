@@ -143,15 +143,19 @@ function useDomainFilterOptions() {
   const { id: workspaceId } = useWorkspace();
   const { showArchived } = useContext(LinksDisplayContext);
 
-  const { data: domains } = useLinksCount({ groupBy: "domain", showArchived });
+  const { data: domainsCount } = useLinksCount({
+    groupBy: "domain",
+    showArchived,
+  });
   const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
 
   return useMemo(() => {
-    if (domains?.length === 0) return [];
+    if (domainsCount?.length === 0) return [];
 
     const workspaceDomains = activeWorkspaceDomains?.map((domain) => ({
       ...domain,
-      count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
+      count:
+        domainsCount?.find(({ domain: d }) => d === domain.slug)?._count || 0,
     }));
 
     const defaultDomains =
@@ -161,8 +165,8 @@ function useDomainFilterOptions() {
             ?.map((domain) => ({
               ...domain,
               count:
-                domains?.find(({ domain: d }) => d === domain.slug)?._count ||
-                0,
+                domainsCount?.find(({ domain: d }) => d === domain.slug)
+                  ?._count || 0,
             }))
             .filter((d) => d.count > 0);
 
@@ -172,7 +176,7 @@ function useDomainFilterOptions() {
     ].sort((a, b) => b.count - a.count);
 
     return finalOptions;
-  }, [activeWorkspaceDomains, activeDefaultDomains, domains, workspaceId]);
+  }, [activeWorkspaceDomains, activeDefaultDomains, domainsCount, workspaceId]);
 }
 
 function useTagFilterOptions() {

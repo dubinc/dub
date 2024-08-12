@@ -25,7 +25,7 @@ function CompleteSetupModal({
   const { slug } = useParams() as { slug: string };
 
   const { data: domainsCount } = useDomainsCount();
-  const { data: count } = useLinksCount({ ignoreParams: true });
+  const { data: linksCount } = useLinksCount({ ignoreParams: true });
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
   const { setShowAddEditLinkModal } = useContext(ModalContext);
@@ -40,7 +40,7 @@ function CompleteSetupModal({
       {
         display: "Create or import your links",
         cta: `/${slug}`,
-        checked: count > 0,
+        checked: linksCount > 0,
       },
       {
         display: "Invite your teammates",
@@ -48,7 +48,7 @@ function CompleteSetupModal({
         checked: (users && users.length > 1) || (invites && invites.length > 0),
       },
     ];
-  }, [slug, domainsCount, count, users, invites]);
+  }, [slug, domainsCount, linksCount, users, invites]);
 
   return (
     <Modal
