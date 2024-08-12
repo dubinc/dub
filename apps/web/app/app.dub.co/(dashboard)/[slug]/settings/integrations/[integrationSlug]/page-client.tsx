@@ -220,6 +220,16 @@ export default function IntegrationPageClient({
               "prose-headings:leading-tight",
               "prose-a:font-medium prose-a:text-gray-500 prose-a:underline-offset-4 hover:prose-a:text-black",
             )}
+            components={{
+              a: ({ node, ...props }) => (
+                <a
+                  {...props}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 underline"
+                />
+              ),
+            }}
           >
             {integration.readme}
           </Markdown>
