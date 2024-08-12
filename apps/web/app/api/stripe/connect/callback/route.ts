@@ -1,5 +1,5 @@
-import { installIntegration } from "@/lib/api/integration/install";
 import { withSession } from "@/lib/auth";
+import { installIntegration } from "@/lib/integration/install";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
