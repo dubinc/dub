@@ -8,7 +8,7 @@ export const passwordSchema = z
     "Password must contain at least one number, one uppercase, and one lowercase letter",
   );
 
-const emailSchema = z
+export const emailSchema = z
   .string()
   .email()
   .min(1)
