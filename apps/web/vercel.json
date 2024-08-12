@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/usage",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/disposable-emails",
+      "schedule": "0 12 * * 1"
     }
   ],
   "functions": {
