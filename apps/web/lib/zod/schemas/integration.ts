@@ -10,6 +10,7 @@ export const integrationSchema = z.object({
   website: z.string(),
   logo: z.string().nullable(),
   screenshots: z.array(z.string()).nullable(),
+  installUrl: z.string().nullable(),
   verified: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),

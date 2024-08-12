@@ -1,5 +1,6 @@
 "use client";
 
+import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
@@ -16,21 +17,40 @@ import {
   Popover,
   TokenAvatar,
 } from "@dub/ui";
-import { Globe, OfficeBuilding } from "@dub/ui/src/icons";
+import {
+  ConnectedDots,
+  Globe,
+  Hyperlink,
+  OfficeBuilding,
+} from "@dub/ui/src/icons";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
+import { toast } from "sonner";
 
 export default function IntegrationPageClient({
   integration,
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug } = useWorkspace();
+  const { slug, id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
+  const getInstallationUrl = useAction(getIntegrationInstallUrl, {
+    onSuccess: ({ data }) => {
+      if (!data?.url) {
+        throw new Error("Error getting installation URL");
+      }
+
+      window.location.href = data.url;
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError?.serverError);
+    },
+  });
 
   const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
     useUninstallIntegrationModal({
@@ -68,7 +88,7 @@ export default function IntegrationPageClient({
           </div>
         </div>
 
-        {integration.installed && (
+        {integration.installed && integration.slug != "stripe" && (
           <Popover
             align="end"
             content={
@@ -139,6 +159,38 @@ export default function IntegrationPageClient({
             {getPrettyUrl(integration.website)}
           </a>
         </div>
+
+        {!integration.installed && (
+          <div>
+            <Button
+              onClick={() => {
+                const { installUrl } = integration;
+
+                if (installUrl) {
+                  // TODO:
+                  // Open the URL in a new tab
+                  window.location.href = installUrl;
+                  return;
+                }
+
+                getInstallationUrl.execute({
+                  workspaceId: workspaceId!,
+                  integrationSlug: integration.slug,
+                });
+              }}
+              loading={getInstallationUrl.isExecuting}
+              text="Enable"
+              variant="primary"
+              icon={
+                integration.installUrl ? (
+                  <Hyperlink className="h-4 w-4" />
+                ) : (
+                  <ConnectedDots className="h-4 w-4" />
+                )
+              }
+            />
+          </div>
+        )}
       </div>
 
       <div className="w-full rounded-lg border border-gray-200 bg-white">

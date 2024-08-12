@@ -217,6 +217,7 @@ export type InstalledIntegrationInfoProps = Pick<
   | "readme"
   | "website"
   | "screenshots"
+  | "installUrl"
 > & {
   createdAt: Date;
   installations: number;
