@@ -4,7 +4,7 @@ interface InstallIntegrationArgs {
   userId: string;
   workspaceId: string;
   integrationSlug: string;
-  config: Record<string, any>;
+  config?: Record<string, any>;
 }
 
 // Install an integration for a user in a workspace
