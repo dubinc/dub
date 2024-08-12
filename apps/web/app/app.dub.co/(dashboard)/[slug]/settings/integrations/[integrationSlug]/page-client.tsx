@@ -222,12 +222,7 @@ export default function IntegrationPageClient({
             )}
             components={{
               a: ({ node, ...props }) => (
-                <a
-                  {...props}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-500 underline"
-                />
+                <a {...props} target="_blank" rel="noopener noreferrer" />
               ),
             }}
           >
