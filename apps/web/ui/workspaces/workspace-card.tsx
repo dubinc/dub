@@ -93,7 +93,7 @@ export default function WorkspaceCard({
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <p className="text-gray-500">
+                  <p className="max-w-[160px] truncate text-gray-500">
                     {domains.length > 0
                       ? domains.find((d) => d.primary)?.slug || domains[0].slug
                       : "dub.sh"}
