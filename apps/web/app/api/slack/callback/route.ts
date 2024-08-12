@@ -1,19 +1,33 @@
 import { DubApiError } from "@/lib/api/errors";
-import { withSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integration/install";
+import { SlackCredential } from "@/lib/integration/slack/type";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
+import { getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
-import { SlackCredential } from "../../../../lib/integration/slack/type";
 
 const schema = z.object({
   code: z.string(),
   state: z.string(),
 });
 
-export const GET = withSession(async ({ session, searchParams }) => {
-  const { code, state } = schema.parse(searchParams);
+export const GET = async (req: Request) => {
+  try {
+
+  } catch(e: any) {
+    //
+  }
+
+
+  const session = await getSession();
+
+  if (!session?.user.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const { code, state } = schema.parse(getSearchParams(req.url));
 
   // Find workspace that initiated the Stripe app install
   const workspaceId = await redis.get<string>(`slack:install:state:${state}`);
@@ -56,8 +70,6 @@ export const GET = withSession(async ({ session, searchParams }) => {
     team: data.team,
   };
 
-  console.log(credentials);
-
   await installIntegration({
     integrationSlug: "slack",
     userId: session.user.id,
@@ -66,6 +78,4 @@ export const GET = withSession(async ({ session, searchParams }) => {
   });
 
   redirect(`${workspace.slug}/integrations/slack`);
-
-  return new Response("Invalid request", { status: 400 });
-});
+};
