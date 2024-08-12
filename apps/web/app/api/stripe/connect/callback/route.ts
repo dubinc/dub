@@ -7,8 +7,6 @@ import { APP_DOMAIN, getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
-// export const runtime = "edge";
-
 const schema = z.object({
   state: z.string(),
   stripe_user_id: z.string().optional(),
