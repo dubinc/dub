@@ -191,7 +191,12 @@ export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
 export type NewOAuthApp = Omit<
   OAuthAppProps,
-  "id" | "clientId" | "verified" | "installations" | "screenshots"
+  | "id"
+  | "clientId"
+  | "verified"
+  | "installations"
+  | "screenshots"
+  | "installUrl"
 >;
 
 export type ExistingOAuthApp = OAuthAppProps;
@@ -217,6 +222,7 @@ export type InstalledIntegrationInfoProps = Pick<
   | "readme"
   | "website"
   | "screenshots"
+  | "installUrl"
 > & {
   createdAt: Date;
   installations: number;

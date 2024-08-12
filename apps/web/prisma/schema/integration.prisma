@@ -11,6 +11,7 @@ model Integration {
   logo        String?
   screenshots Json?
   verified    Boolean  @default(false)
+  installUrl  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
