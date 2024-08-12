@@ -1,6 +1,7 @@
 "use server";
 
 import { nanoid } from "@dub/utils";
+import { getFeatureFlags } from "../edge-config";
 import { redis } from "../upstash";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
@@ -32,6 +33,12 @@ export const getIntegrationInstallUrl = authActionClient
 
 // Stripe installation URL
 const stripeInstallationUrl = async (workspaceId: string) => {
+  const flags = await getFeatureFlags({ workspaceId });
+
+  if (!flags.conversions) {
+    throw new Error("Conversions feature is not enabled.");
+  }
+
   const state = nanoid(16);
   await redis.set(`stripe:install:state:${state}`, workspaceId, {
     ex: 30 * 60,

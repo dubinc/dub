@@ -7,7 +7,8 @@ async function main() {
     data: {
       name: "Stripe",
       slug: "stripe",
-      description: "Connect your Stripe account to set up conversion tracking and pay out affiliates.",
+      description:
+        "Connect your Stripe account to set up conversion tracking and pay out affiliates.",
       developer: "Dub",
       website: "https://dub.co",
       verified: true,
