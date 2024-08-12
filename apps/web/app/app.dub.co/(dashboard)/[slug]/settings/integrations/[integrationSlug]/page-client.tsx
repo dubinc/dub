@@ -64,7 +64,7 @@ export default function IntegrationPageClient({
       </Link>
       <div className="flex justify-between gap-2">
         <div className="flex items-center gap-x-3">
-          <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+          <div className="flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
             {integration.logo ? (
               <BlurImage
                 src={integration.logo}
