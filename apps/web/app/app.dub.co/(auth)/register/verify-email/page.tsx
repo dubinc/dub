@@ -1,5 +1,5 @@
-import { BlurImage, Button, Logo } from "@dub/ui";
-import { constructMetadata, HOME_DOMAIN } from "@dub/utils";
+import { BlurImage, Button, Wordmark } from "@dub/ui";
+import { constructMetadata, truncate } from "@dub/utils";
 import { Suspense } from "react";
 import VerifyEmailForm from "./form";
 
@@ -24,31 +24,42 @@ const logos = [
 
 export const runtime = "nodejs";
 
-export default function VerifyEmailPage() {
+export default function VerifyEmailPage({
+  searchParams,
+}: {
+  searchParams: { email: string };
+}) {
+  const email = searchParams.email;
+
   return (
     <div className="grid w-full grid-cols-1 md:grid-cols-5">
       <div className="col-span-1 flex items-center justify-center md:col-span-3">
-        <div className="w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
-          <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
-            <a href={HOME_DOMAIN}>
-              <Logo className="h-10 w-10" />
-            </a>
-            <h3 className="text-xl font-semibold">Verify your email</h3>
-            <p className="text-sm text-gray-500">
-              Enter the 6 digits verification code sent to your email address.
-            </p>
-          </div>
-          <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
-            <Suspense
-              fallback={
-                <>
-                  <Button disabled={true} text="" variant="secondary" />
-                  <div className="mx-auto h-5 w-3/4 rounded-lg bg-gray-100" />
-                </>
-              }
-            >
-              <VerifyEmailForm />
-            </Suspense>
+        <div className="flex w-full max-w-md flex-col items-center">
+          <Wordmark className="mb-8 h-12" />
+          <div className="overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
+            <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
+              <h3 className="text-xl font-semibold">
+                Verify your email address
+              </h3>
+              <p className="text-sm text-gray-500">
+                Enter the six digit verification code sent to{" "}
+                <strong className="font-medium text-gray-600" title={email}>
+                  {truncate(email, 30)}
+                </strong>
+              </p>
+            </div>
+            <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
+              <Suspense
+                fallback={
+                  <>
+                    <Button disabled={true} text="" variant="secondary" />
+                    <div className="mx-auto h-5 w-3/4 rounded-lg bg-gray-100" />
+                  </>
+                }
+              >
+                <VerifyEmailForm />
+              </Suspense>
+            </div>
           </div>
         </div>
       </div>

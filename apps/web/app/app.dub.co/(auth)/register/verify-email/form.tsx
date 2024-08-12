@@ -1,7 +1,9 @@
 "use client";
 
 import { verifyEmailAction } from "@/lib/actions/verify-email";
-import { Button, Input } from "@dub/ui";
+import { Button } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { OTPInput } from "input-otp";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -16,7 +18,7 @@ export default function VerifyEmailForm() {
     verifyEmailAction,
     {
       onSuccess() {
-        toast.success("Success.");
+        toast.success("Email verified! Redirecting to login...");
         router.push("/login");
       },
     },
@@ -51,21 +53,43 @@ export default function VerifyEmailForm() {
           await executeAsync({ email, code });
         }}
       >
-        <div className="flex flex-col space-y-4">
-          <Input
-            type="text"
-            placeholder="Enter OTP"
-            required
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
+        <div className="flex flex-col gap-8">
+          <OTPInput
             maxLength={6}
+            value={code}
+            onChange={setCode}
+            autoFocus
+            containerClassName="group flex items-center justify-center"
+            render={({ slots }) => (
+              <div className="flex items-center">
+                {slots.map(({ char, isActive, hasFakeCaret }, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "relative flex h-14 w-10 items-center justify-center text-xl",
+                      "border-y border-r border-gray-200 bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
+                      "ring ring-0 transition-all",
+                      isActive &&
+                        "z-10 border border-gray-500 ring-4 ring-gray-200",
+                    )}
+                  >
+                    {char}
+                    {hasFakeCaret && (
+                      <div className="animate-caret-blink pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <div className="h-5 w-px bg-black" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           />
           <input type="hidden" value={email} />
           <Button
             text={status === "executing" ? "Verifying..." : "Continue"}
             type="submit"
             loading={isExecuting}
-            disabled={!code}
+            disabled={!code || code.length < 6}
           />
         </div>
       </form>

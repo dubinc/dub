@@ -23,6 +23,8 @@ const config: Pick<Config, "presets"> = {
             // Table pinned column shadow animation
             "table-pinned-shadow":
               "table-pinned-shadow cubic-bezier(0, 0, 1, 0)",
+            // OTP caret blink animation
+            "caret-blink": "caret-blink 1s ease-out infinite",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -46,6 +48,11 @@ const config: Pick<Config, "presets"> = {
             "table-pinned-shadow": {
               "0%": { filter: "drop-shadow(rgba(0, 0, 0, 0.1) -2px 10px 6px)" },
               "100%": { filter: "drop-shadow(rgba(0, 0, 0, 0) -2px 10px 6px)" },
+            },
+            // OTP caret blink animation
+            "caret-blink": {
+              "0%,70%,100%": { opacity: "0" },
+              "20%,50%": { opacity: "1" },
             },
           },
         },
