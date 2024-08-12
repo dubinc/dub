@@ -1,5 +1,11 @@
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { nanoid } from "nanoid";
 import { redis } from "../upstash";
+import z from "../zod";
+
+const envSchema = z.object({
+  STRIPE_APP_INSTALL_URL: z.string(),
+});
 
 export const getStripeInstallationUrl = async (workspaceId: string) => {
   const state = nanoid(16);
@@ -7,12 +13,21 @@ export const getStripeInstallationUrl = async (workspaceId: string) => {
     ex: 30 * 60,
   });
 
-  const url = new URL(`${process.env.STRIPE_APP_INSTALL_URL}`);
-  url.searchParams.set("state", state);
+  const env = envSchema.safeParse(process.env);
+
+  if (!env.success) {
+    throw new Error(
+      "Stripe App environment variables are not configured properly.",
+    );
+  }
+
+  const { STRIPE_APP_INSTALL_URL } = env.data;
+  const url = new URL(STRIPE_APP_INSTALL_URL);
   url.searchParams.set(
     "redirect_uri",
-    `${process.env.APP_DOMAIN_WITH_NGROK}/api/stripe/connect/callback`,
+    `${APP_DOMAIN_WITH_NGROK}/api/stripe/connect/callback`,
   );
+  url.searchParams.set("state", state);
 
   return url.toString();
 };
