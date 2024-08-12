@@ -14,9 +14,9 @@ const cardListCardVariants = cva("w-full group/card border-gray-200 bg-white", {
   variants: {
     variant: {
       compact:
-        "first-of-type:rounded-t-xl last-of-type:rounded-b-xl first-of-type:border-t border-b border-x hover:bg-gray-50 transition-colors",
+        "first-of-type:rounded-t-xl last-of-type:rounded-b-xl first-of-type:border-t border-b border-x data-[hover-state-enabled=true]:hover:bg-gray-50 transition-colors",
       loose:
-        "border rounded-xl transition-[filter] hover:drop-shadow-card-hover",
+        "border rounded-xl transition-[filter] data-[hover-state-enabled=true]:hover:drop-shadow-card-hover",
     },
   },
 });
@@ -32,10 +32,12 @@ export function CardListCard({
   innerClassName,
   children,
   onClick,
+  hoverStateEnabled = true,
 }: PropsWithChildren<{
   outerClassName?: string;
   innerClassName?: string;
   onClick?: () => void;
+  hoverStateEnabled?: boolean;
 }>) {
   const { variant } = useContext(CardListContext);
 
@@ -61,6 +63,7 @@ export function CardListCard({
       className={cn(cardListCardVariants({ variant }), outerClassName)}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
+      data-hover-state-enabled={hoverStateEnabled}
     >
       <div
         className={cn(cardListCardInnerClassName, innerClassName)}
