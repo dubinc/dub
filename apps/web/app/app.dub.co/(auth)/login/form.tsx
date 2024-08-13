@@ -368,6 +368,13 @@ const SignInWithEmail = () => {
 
                 // Handle errors
                 if (!res.ok && res.error) {
+                  if (res.error === "email-not-verified") {
+                    router.push(
+                      `/register/verify-email?email=${encodeURIComponent(email)}`,
+                    );
+                    return;
+                  }
+
                   if (errorCodes[res.error]) {
                     toast.error(errorCodes[res.error]);
                   } else {

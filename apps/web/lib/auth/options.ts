@@ -217,10 +217,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error("invalid-credentials");
         }
 
-        if (!user.emailVerified) {
-          throw new Error("email-not-verified");
-        }
-
         if (exceededLoginAttemptsThreshold(user)) {
           throw new Error("exceeded-login-attempts");
         }
@@ -240,6 +236,10 @@ export const authOptions: NextAuthOptions = {
           } else {
             throw new Error("invalid-credentials");
           }
+        }
+
+        if (!user.emailVerified) {
+          throw new Error("email-not-verified");
         }
 
         // Reset invalid login attempts
