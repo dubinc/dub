@@ -63,6 +63,24 @@ export const DELETE = withWorkspace(
       },
     });
 
+    const webhooksCount = await prisma.webhook.count({
+      where: {
+        projectId: workspace.id,
+      },
+    });
+
+    // Disable webhooks for the workspace if there are no more webhooks
+    if (webhooksCount === 0) {
+      await prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          webhookEnabled: false,
+        },
+      });
+    }
+
     return NextResponse.json({
       id: webhookId,
     });

@@ -41,7 +41,20 @@ export const POST = withWorkspace(
       },
     });
 
+    // Enable webhooks for the workspace
+    if (webhook) {
+      await prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          webhookEnabled: true,
+        },
+      });
+    }
+
     waitUntil(
+      // Inform the workspace user that the webhook was added
       sendEmail({
         email: session.user.email,
         subject: "New webhook added",
