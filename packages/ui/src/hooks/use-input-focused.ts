@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
  * Determines whether an <input> or <textarea> element is currently focused.
  */
 export function useInputFocused() {
-  const [isInputFocused, setIsInputFocused] = useState(true);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   useEffect(() => {
     const onFocusBlur = () => {
@@ -15,12 +15,12 @@ export function useInputFocused() {
       );
     };
 
-    window.addEventListener("focus", onFocusBlur, true);
-    window.addEventListener("blur", onFocusBlur, true);
+    window.addEventListener("focusin", onFocusBlur);
+    window.addEventListener("focusout", onFocusBlur);
 
     return () => {
-      window.removeEventListener("focus", onFocusBlur);
-      window.removeEventListener("blur", onFocusBlur);
+      window.removeEventListener("focusin", onFocusBlur);
+      window.removeEventListener("focusout", onFocusBlur);
     };
   }, []);
 
