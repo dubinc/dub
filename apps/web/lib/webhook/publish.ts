@@ -4,6 +4,7 @@ import { Webhook } from "@prisma/client";
 import { WebhookTrigger } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { LinkSchema } from "../zod/schemas/links";
+import { createWebhookSignature } from "./signature";
 
 interface SendToWebhookArgs {
   webhookUrl?: string;
@@ -18,14 +19,15 @@ export const sendToWebhook = async ({
   data,
 }: SendToWebhookArgs) => {
   const url = webhookUrl || webhook?.url;
+  const secret = webhook?.secret || ""; // TODO: A signature is must
 
   if (!url) {
     console.error("No webhook URL provided. Skipping webhook event.");
     return;
   }
 
-  // Receive webhook status from QStash at this URL
   const callbackUrl = `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`;
+  const signature = createWebhookSignature(secret, data);
 
   const response = await qstash.publishJSON({
     url,
@@ -33,13 +35,17 @@ export const sendToWebhook = async ({
       data,
     },
     headers: {
-      "X-Dub-Header1": "Header Value 1",
+      "Dub-Signature": signature,
     },
     callback: callbackUrl,
     failureCallback: callbackUrl,
   });
 
-  console.log("Webhook response", response);
+  if (response.messageId) {
+    console.log(
+      `Webhook event sent to ${url} with messageId: ${response.messageId}`,
+    );
+  }
 };
 
 // Transform payload to match the webhook event schema
