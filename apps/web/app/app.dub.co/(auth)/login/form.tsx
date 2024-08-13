@@ -15,6 +15,7 @@ import { InputPassword } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -255,6 +256,14 @@ export default function LoginForm() {
                   </span>
                 </div>
               )}
+              {showPasswordField && (
+                <Link
+                  href="/forgot-password"
+                  className="text-center text-xs text-gray-500 transition-colors hover:text-black"
+                >
+                  Forgot password?
+                </Link>
+              )}
               <div className="my-2 flex flex-shrink items-center justify-center gap-2">
                 <div className="grow basis-0 border-b border-gray-300" />
                 <span className="text-xs font-normal uppercase leading-none text-gray-500">
@@ -391,7 +400,7 @@ const SignInWithEmail = () => {
           }
         });
       }}
-      className="flex flex-col space-y-3"
+      className="flex flex-col gap-y-3"
     >
       {authMethod === "email" && (
         <input

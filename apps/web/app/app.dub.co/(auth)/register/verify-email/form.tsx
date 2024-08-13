@@ -1,7 +1,7 @@
 "use client";
 
 import { verifyEmailAction } from "@/lib/actions/verify-email";
-import { Button } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { OTPInput } from "input-otp";
 import { useAction } from "next-safe-action/hooks";
@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 export default function VerifyEmailForm() {
   const router = useRouter();
+  const { isMobile } = useMediaQuery();
   const [code, setCode] = useState("");
   const searchParams = useSearchParams();
 
@@ -58,7 +59,7 @@ export default function VerifyEmailForm() {
             maxLength={6}
             value={code}
             onChange={setCode}
-            autoFocus
+            autoFocus={!isMobile}
             containerClassName="group flex items-center justify-center"
             render={({ slots }) => (
               <div className="flex items-center">

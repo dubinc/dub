@@ -13,6 +13,7 @@ export default async function AppMiddleware(req: NextRequest) {
   if (
     !user &&
     path !== "/login" &&
+    path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/register/verify-email" &&
     path !== "/auth/saml" &&

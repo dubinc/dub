@@ -19,9 +19,11 @@ const logos = [
 
 export default function AuthLayout({
   variant,
+  heading,
   children,
 }: {
   variant: "login" | "register";
+  heading?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -34,9 +36,10 @@ export default function AuthLayout({
             <div className="w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-sm">
               <div className="border-b border-gray-200 bg-white pb-6 pt-8 text-center">
                 <h3 className="text-lg font-semibold">
-                  {variant === "login"
-                    ? "Sign in to your Dub account"
-                    : "Get started with Dub"}
+                  {heading ||
+                    (variant === "login"
+                      ? "Sign in to your Dub account"
+                      : "Get started with Dub")}
                 </h3>
               </div>
               <div className="grid gap-3 bg-gray-50 px-4 py-8 sm:px-16">
