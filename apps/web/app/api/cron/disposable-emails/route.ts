@@ -15,7 +15,6 @@ async function handler(req: Request) {
     if (req.method === "GET") await verifyVercelSignature(req);
     else if (req.method === "POST") await verifyQstashSignature(req);
 
-    // do it
     const disposableEmails = await fetch(
       "https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf",
     );
