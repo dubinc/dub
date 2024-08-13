@@ -25,7 +25,7 @@ async function main() {
 
   console.table(
     utms.map((utm) => ({
-      [utmTag]: truncate(utm[utmTag], 20),
+      [utmTag]: truncate(utm[utmTag], 24),
       count: utm._count[utmTag],
     })),
   );
