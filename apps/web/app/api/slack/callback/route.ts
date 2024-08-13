@@ -42,7 +42,7 @@ export const GET = async (req: Request) => {
       });
     }
 
-    workspace = await prisma.project.findFirstOrThrow({
+    workspace = await prisma.project.findUniqueOrThrow({
       where: {
         id: workspaceId,
       },
@@ -62,8 +62,6 @@ export const GET = async (req: Request) => {
     });
 
     const data = await response.json();
-
-    console.log(data);
 
     const credentials: SlackCredential = {
       appId: data.app_id,
