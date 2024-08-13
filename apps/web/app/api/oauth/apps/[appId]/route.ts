@@ -134,7 +134,9 @@ export const PATCH = withWorkspace(
           if (
             logoUpdated &&
             integration.logo &&
-            integration.logo.startsWith(`${R2_URL}/integrations`)
+            integration.logo.startsWith(
+              `${R2_URL}/integrations/${params.appId}`,
+            )
           ) {
             await storage.delete(integration.logo.replace(`${R2_URL}/`, ""));
           }

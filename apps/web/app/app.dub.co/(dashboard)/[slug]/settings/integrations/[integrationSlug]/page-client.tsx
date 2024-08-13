@@ -18,6 +18,7 @@ import {
   TokenAvatar,
 } from "@dub/ui";
 import { ConnectedDots, Globe, OfficeBuilding } from "@dub/ui/src/icons";
+import { TooltipContent } from "@dub/ui/src/tooltip";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -64,7 +65,7 @@ export default function IntegrationPageClient({
       </Link>
       <div className="flex justify-between gap-2">
         <div className="flex items-center gap-x-3">
-          <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+          <div className="flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
             {integration.logo ? (
               <BlurImage
                 src={integration.logo}
@@ -96,11 +97,16 @@ export default function IntegrationPageClient({
                   onClick={() => {
                     setShowUninstallIntegrationModal(true);
                   }}
-                  disabledTooltip={
-                    integration.slug === "stripe"
-                      ? "You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
-                      : null
-                  }
+                  {...(integration.slug === "stripe" && {
+                    disabledTooltip: (
+                      <TooltipContent
+                        title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
+                        cta="Go to Stripe"
+                        href="https://dashboard.stripe.com/settings/apps/dub.co"
+                        target="_blank"
+                      />
+                    ),
+                  })}
                 />
               </div>
             }
@@ -169,7 +175,8 @@ export default function IntegrationPageClient({
                 const { installUrl } = integration;
 
                 if (installUrl) {
-                  window.location.href = installUrl;
+                  // open in a new tab
+                  window.open(installUrl, "_blank");
                   return;
                 }
 
@@ -219,6 +226,11 @@ export default function IntegrationPageClient({
               "prose-headings:leading-tight",
               "prose-a:font-medium prose-a:text-gray-500 prose-a:underline-offset-4 hover:prose-a:text-black",
             )}
+            components={{
+              a: ({ node, ...props }) => (
+                <a {...props} target="_blank" rel="noopener noreferrer" />
+              ),
+            }}
           >
             {integration.readme}
           </Markdown>

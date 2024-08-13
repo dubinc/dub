@@ -73,16 +73,16 @@ export function useKeyboardShortcut(
           (Array.isArray(l.key) ? l.key.includes(e.key) : l.key === e.key),
       );
 
-      if (matchingListeners.length) {
-        // Sort the listeners by priority
-        const topListener = stableSort(
-          matchingListeners,
-          (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
-        ).slice(-1)[0];
+      if (!matchingListeners.length) return;
 
-        // Check if this is the top listener
-        if (topListener.id !== id) return;
-      }
+      // Sort the listeners by priority
+      const topListener = stableSort(
+        matchingListeners,
+        (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
+      ).slice(-1)[0];
+
+      // Check if this is the top listener
+      if (topListener.id !== id) return;
 
       e.preventDefault();
       callback(e);

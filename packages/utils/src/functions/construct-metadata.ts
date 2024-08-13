@@ -25,6 +25,7 @@ export function constructMetadata({
       url: "/favicon-16x16.png",
     },
   ],
+  canonicalUrl,
   noIndex = false,
 }: {
   title?: string;
@@ -32,6 +33,7 @@ export function constructMetadata({
   image?: string | null;
   video?: string | null;
   icons?: Metadata["icons"];
+  canonicalUrl?: string;
   noIndex?: boolean;
 } = {}): Metadata {
   return {
@@ -61,6 +63,11 @@ export function constructMetadata({
     },
     icons,
     metadataBase: new URL(HOME_DOMAIN),
+    ...(canonicalUrl && {
+      alternates: {
+        canonical: canonicalUrl,
+      },
+    }),
     ...(noIndex && {
       robots: {
         index: false,
