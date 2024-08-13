@@ -1,18 +1,18 @@
 enum WebhookSource {
+  user
   zapier
   make
-  user
 }
 
 model Webhook {
   id        String        @id @default(cuid())
+  source    WebhookSource
   projectId String
   linkId    String?
   name      String
   url       String
   secret    String
   active    Boolean       @default(true)
-  source    WebhookSource
   triggers  Json
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt

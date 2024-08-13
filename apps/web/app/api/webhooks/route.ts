@@ -20,7 +20,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.read"],
-    featureFlag: "integrations",
   },
 );
 
@@ -63,6 +62,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.write"],
-    featureFlag: "integrations",
   },
 );
