@@ -256,14 +256,6 @@ export default function LoginForm() {
                   </span>
                 </div>
               )}
-              {showPasswordField && (
-                <Link
-                  href="/forgot-password"
-                  className="text-center text-xs text-gray-500 transition-colors hover:text-black"
-                >
-                  Forgot password?
-                </Link>
-              )}
               <div className="my-2 flex flex-shrink items-center justify-center gap-2">
                 <div className="grow basis-0 border-b border-gray-300" />
                 <span className="text-xs font-normal uppercase leading-none text-gray-500">
@@ -318,143 +310,154 @@ const SignInWithEmail = () => {
   } = useContext(LoginFormContext);
 
   return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
+    <>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
 
-        // Check if the user can enter a password, and if so display the field
-        if (!showPasswordField) {
-          const { success } = emailSchema.safeParse(email);
+          // Check if the user can enter a password, and if so display the field
+          if (!showPasswordField) {
+            const { success } = emailSchema.safeParse(email);
 
-          if (success) {
-            try {
-              setCheckingEmailPassword(true);
-              const res = await fetch("/api/auth/account-exists", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-              });
-              setCheckingEmailPassword(false);
+            if (success) {
+              try {
+                setCheckingEmailPassword(true);
+                const res = await fetch("/api/auth/account-exists", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email }),
+                });
+                setCheckingEmailPassword(false);
 
-              const { accountExists, hasPassword } = await res.json();
-              if (accountExists && hasPassword) {
-                setShowPasswordField(true);
-                return;
+                const { accountExists, hasPassword } = await res.json();
+                if (accountExists && hasPassword) {
+                  setShowPasswordField(true);
+                  return;
+                }
+              } catch (e) {
+                console.error("Failed to determine if user has password", e);
               }
-            } catch (e) {
-              console.error("Failed to determine if user has password", e);
             }
           }
-        }
 
-        setClickedMethod("email");
+          setClickedMethod("email");
 
-        fetch("/api/auth/account-exists", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        }).then(async (res) => {
-          if (!res.ok) {
-            const error = await res.text();
-            toast.error(error);
-            setClickedMethod(undefined);
-            return;
-          }
-          const { accountExists, hasPassword } = await res.json();
-          if (accountExists) {
-            const provider = hasPassword && password ? "credentials" : "email";
+          fetch("/api/auth/account-exists", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          }).then(async (res) => {
+            if (!res.ok) {
+              const error = await res.text();
+              toast.error(error);
+              setClickedMethod(undefined);
+              return;
+            }
+            const { accountExists, hasPassword } = await res.json();
+            if (accountExists) {
+              const provider =
+                hasPassword && password ? "credentials" : "email";
 
-            signIn(provider, {
-              email,
-              redirect: false,
-              ...(password && { password }),
-              ...(next ? { callbackUrl: next } : {}),
-            }).then((res) => {
-              if (!res) return;
+              signIn(provider, {
+                email,
+                redirect: false,
+                ...(password && { password }),
+                ...(next ? { callbackUrl: next } : {}),
+              }).then((res) => {
+                if (!res) return;
 
-              // Handle errors
-              if (!res.ok && res.error) {
-                if (errorCodes[res.error]) {
-                  toast.error(errorCodes[res.error]);
-                } else {
-                  toast.error(res.error);
+                // Handle errors
+                if (!res.ok && res.error) {
+                  if (errorCodes[res.error]) {
+                    toast.error(errorCodes[res.error]);
+                  } else {
+                    toast.error(res.error);
+                  }
+                  setClickedMethod(undefined);
+
+                  return;
                 }
-                setClickedMethod(undefined);
 
-                return;
-              }
-
-              // Handle success
-              setLastUsedAuthMethod("email");
-              if (provider === "email") {
-                toast.success("Email sent - check your inbox!");
-                setEmail("");
-                setClickedMethod(undefined);
-              } else if (provider === "credentials") {
-                router.push(next ?? "/");
-              }
-            });
-          } else {
-            setClickedMethod(undefined);
-            toast.error("No account found with that email address.");
-          }
-        });
-      }}
-      className="flex flex-col gap-y-3"
-    >
-      {authMethod === "email" && (
-        <input
-          id="email"
-          name="email"
-          autoFocus={!isMobile && !showPasswordField}
-          type="email"
-          placeholder="panic@thedis.co"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={cn(
-            "block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
-            {
-              "pr-10": checkingEmailPassword,
-            },
-          )}
-        />
-      )}
-
-      {showPasswordField && (
-        <div>
-          <Input
-            type="password"
-            autoFocus={!isMobile}
-            value={password}
-            placeholder="Password (optional)"
-            onChange={(e) => setPassword(e.target.value)}
+                // Handle success
+                setLastUsedAuthMethod("email");
+                if (provider === "email") {
+                  toast.success("Email sent - check your inbox!");
+                  setEmail("");
+                  setClickedMethod(undefined);
+                } else if (provider === "credentials") {
+                  router.push(next ?? "/");
+                }
+              });
+            } else {
+              setClickedMethod(undefined);
+              toast.error("No account found with that email address.");
+            }
+          });
+        }}
+        className="flex flex-col gap-y-3"
+      >
+        {authMethod === "email" && (
+          <input
+            id="email"
+            name="email"
+            autoFocus={!isMobile && !showPasswordField}
+            type="email"
+            placeholder="panic@thedis.co"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={cn(
+              "block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
+              {
+                "pr-10": checkingEmailPassword,
+              },
+            )}
           />
-        </div>
-      )}
+        )}
 
-      <Button
-        text={`Continue with ${password ? "Password" : "Email"}`}
-        variant="secondary"
-        icon={
-          password ? (
-            <InputPassword className="size-4 text-gray-600" />
-          ) : (
-            <Mail className="size-4 text-gray-600" />
-          )
-        }
-        {...(authMethod !== "email" && {
-          type: "button",
-          onClick: (e) => {
-            e.preventDefault();
-            setShowSSOOption(false);
-            setAuthMethod("email");
-          },
-        })}
-        loading={checkingEmailPassword || clickedMethod === "email"}
-        disabled={clickedMethod && clickedMethod !== "email"}
-      />
-    </form>
+        {showPasswordField && (
+          <div>
+            <Input
+              type="password"
+              autoFocus={!isMobile}
+              value={password}
+              placeholder="Password (optional)"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        )}
+
+        <Button
+          text={`Continue with ${password ? "Password" : "Email"}`}
+          variant="secondary"
+          icon={
+            password ? (
+              <InputPassword className="size-4 text-gray-600" />
+            ) : (
+              <Mail className="size-4 text-gray-600" />
+            )
+          }
+          {...(authMethod !== "email" && {
+            type: "button",
+            onClick: (e) => {
+              e.preventDefault();
+              setShowSSOOption(false);
+              setAuthMethod("email");
+            },
+          })}
+          loading={checkingEmailPassword || clickedMethod === "email"}
+          disabled={clickedMethod && clickedMethod !== "email"}
+        />
+      </form>
+      {showPasswordField && (
+        <Link
+          href={`/forgot-password?email=${encodeURIComponent(email)}`}
+          className="text-center text-xs text-gray-500 transition-colors hover:text-black"
+        >
+          Forgot password?
+        </Link>
+      )}
+    </>
   );
 };

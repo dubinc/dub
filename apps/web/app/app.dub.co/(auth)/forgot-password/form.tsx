@@ -1,6 +1,6 @@
 "use client";
 
-import { verifyEmailAction } from "@/lib/actions/verify-email";
+import { requestPasswordResetAction } from "@/lib/actions/request-password-reset";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -15,10 +15,10 @@ export function ForgotPasswordForm() {
   const [email, setEmail] = useState(searchParams.get("email") || "");
 
   const { executeAsync, result, status, isExecuting } = useAction(
-    verifyEmailAction,
+    requestPasswordResetAction,
     {
       onSuccess() {
-        toast.success("Email verified! Redirecting to login...");
+        toast.success("Reset instructions sent! Redirecting to login...");
         router.push("/login");
       },
     },
@@ -43,17 +43,23 @@ export function ForgotPasswordForm() {
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          //await executeAsync({ email, code });
+          await executeAsync({ email });
         }}
       >
         <div className="flex flex-col gap-8">
-          <Input
-            type="email"
-            autoFocus={!isMobile}
-            value={email}
-            placeholder="panic@thedis.co"
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <label>
+            <span className="text-sm font-medium text-gray-700">
+              Email Address
+            </span>
+            <Input
+              type="email"
+              autoFocus={!isMobile}
+              value={email}
+              placeholder="panic@thedis.co"
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1"
+            />
+          </label>
           <Button
             text={status === "executing" ? "Sending..." : "Send Reset Link"}
             type="submit"

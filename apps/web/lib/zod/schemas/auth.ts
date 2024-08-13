@@ -53,3 +53,7 @@ export const verifyEmailSchema = z.object({
 export const resendOtpSchema = z.object({
   email: emailSchema,
 });
+
+export const requestPasswordResetSchema = z.object({
+  email: emailSchema,
+});
