@@ -55,7 +55,7 @@ export const GET = async (req: NextRequest) => {
       redirect(APP_DOMAIN);
     }
     redirect(
-      `${APP_DOMAIN}/${workspace.slug}/settings?stripeConnectError=${error_description}`,
+      `${APP_DOMAIN}/${workspace.slug}/settings/integrations/stripe?stripeConnectError=${error_description}`,
     );
   } else if (stripeAccountId) {
     // Update the workspace with the Stripe Connect ID
@@ -74,7 +74,7 @@ export const GET = async (req: NextRequest) => {
       workspaceId: workspace.id,
     });
 
-    redirect(`${APP_DOMAIN}/${workspace.slug}/settings`);
+    redirect(`${APP_DOMAIN}/${workspace.slug}/settings/integrations/stripe`);
   }
 
   return new Response("Invalid request", { status: 400 });
