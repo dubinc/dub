@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { uninstallSlackIntegration } from "@/lib/integration/slack/uninstall";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -34,6 +35,18 @@ export const DELETE = withWorkspace(
         id: installationId,
       },
     });
+
+    const integration = await prisma.integration.findUniqueOrThrow({
+      where: {
+        id: installation.integrationId,
+      },
+    });
+
+    if (integration.slug === "slack") {
+      await uninstallSlackIntegration({
+        installation,
+      });
+    }
 
     return NextResponse.json({ id: installationId });
   },
