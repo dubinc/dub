@@ -1,6 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
+import { getSlackEnv } from "@/lib/integrations/slack/env";
 import { SlackCredential } from "@/lib/integrations/slack/type";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -15,6 +16,8 @@ const oAuthCallbackSchema = z.object({
 });
 
 export const GET = async (req: Request) => {
+  const env = getSlackEnv();
+
   let workspace: Pick<Project, "slug"> | null = null;
 
   try {
@@ -50,8 +53,8 @@ export const GET = async (req: Request) => {
 
     const formData = new FormData();
     formData.append("code", code);
-    formData.append("client_id", `${process.env.SLACK_CLIENT_ID}`);
-    formData.append("client_secret", `${process.env.SLACK_CLIENT_SECRET}`);
+    formData.append("client_id", env.SLACK_CLIENT_ID);
+    formData.append("client_secret", env.SLACK_CLIENT_SECRET);
 
     const response = await fetch("https://slack.com/api/oauth.v2.access", {
       method: "POST",
@@ -59,6 +62,8 @@ export const GET = async (req: Request) => {
     });
 
     const data = await response.json();
+
+    console.log(data);
 
     const credentials: SlackCredential = {
       appId: data.app_id,

@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { InstalledIntegration } from "@prisma/client";
+import { getSlackEnv } from "./env";
 import { SlackCredential } from "./type";
 
 export const uninstallSlackIntegration = async ({
@@ -7,6 +8,8 @@ export const uninstallSlackIntegration = async ({
 }: {
   installation: InstalledIntegration;
 }) => {
+  const env = getSlackEnv();
+
   const credentials = installation.credentials as SlackCredential;
 
   const response = await fetch("https://slack.com/api/apps.uninstall", {
@@ -16,8 +19,8 @@ export const uninstallSlackIntegration = async ({
     },
     body: new URLSearchParams({
       token: credentials.accessToken,
-      client_id: `${process.env.SLACK_CLIENT_ID}`,
-      client_secret: `${process.env.SLACK_CLIENT_SECRET}`,
+      client_id: env.SLACK_CLIENT_SECRET,
+      client_secret: env.SLACK_CLIENT_SECRET,
     }),
   });
 
