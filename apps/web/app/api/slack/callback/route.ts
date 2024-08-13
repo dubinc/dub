@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
-import { installIntegration } from "@/lib/integration/install";
-import { SlackCredential } from "@/lib/integration/slack/type";
+import { installIntegration } from "@/lib/integrations/install";
+import { SlackCredential } from "@/lib/integrations/slack/type";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";

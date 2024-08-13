@@ -1,4 +1,4 @@
-import { handleSlashCommand } from "@/lib/integration/slack/slash-commands";
+import { handleSlashCommand } from "@/lib/integrations/slack/slash-commands";
 
 // Slack will send an HTTP POST request information to this URL when a user run the slash command
 export const POST = async (req: Request) => {

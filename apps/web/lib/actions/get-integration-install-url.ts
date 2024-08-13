@@ -1,8 +1,8 @@
 "use server";
 
 import { getFeatureFlags } from "../edge-config";
-import { getSlackInstallationUrl } from "../integration/slack/install";
-import { getStripeInstallationUrl } from "../integrations/stripe";
+import { getSlackInstallationUrl } from "../integrations/slack/install";
+import { getStripeInstallationUrl } from "../integrations/stripe/install";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
 

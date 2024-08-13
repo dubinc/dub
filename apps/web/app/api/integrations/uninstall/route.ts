@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { uninstallSlackIntegration } from "@/lib/integration/slack/uninstall";
+import { uninstallSlackIntegration } from "@/lib/integrations/slack/uninstall";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 

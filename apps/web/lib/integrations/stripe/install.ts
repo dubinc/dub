@@ -1,7 +1,7 @@
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { nanoid } from "nanoid";
-import { redis } from "../upstash";
-import z from "../zod";
+import { redis } from "../../upstash";
+import z from "../../zod";
 
 const envSchema = z.object({
   STRIPE_APP_INSTALL_URL: z.string(),
