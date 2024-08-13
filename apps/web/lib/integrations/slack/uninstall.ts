@@ -19,7 +19,7 @@ export const uninstallSlackIntegration = async ({
     },
     body: new URLSearchParams({
       token: credentials.accessToken,
-      client_id: env.SLACK_CLIENT_SECRET,
+      client_id: env.SLACK_CLIENT_ID,
       client_secret: env.SLACK_CLIENT_SECRET,
     }),
   });
@@ -27,6 +27,8 @@ export const uninstallSlackIntegration = async ({
   const data = await response.json();
 
   if (!data.ok) {
+    console.error("[Slack App]", data);
+
     throw new DubApiError({
       code: "bad_request",
       message: "Failed to remove the app from the Slack workspace.",

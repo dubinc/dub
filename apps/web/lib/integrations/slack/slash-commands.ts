@@ -4,6 +4,7 @@ import { WorkspaceProps } from "@/lib/types";
 import z from "@/lib/zod";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { InstalledIntegration } from "@prisma/client";
+import { verifySlackSignature } from "./verify-request";
 
 const schema = z.object({
   api_app_id: z.string(),
@@ -16,9 +17,13 @@ const schema = z.object({
 export const handleSlashCommand = async (
   req: Request,
 ): Promise<{ text: string }> => {
-  const formData = await req.formData();
-  const rawFormData = Object.fromEntries(formData.entries());
-  const parsedInput = schema.safeParse(rawFormData);
+  const body = await req.text();
+
+  await verifySlackSignature(req, body);
+
+  const rawFormData = new URLSearchParams(body);
+  const formData = Object.fromEntries(rawFormData.entries());
+  const parsedInput = schema.safeParse(formData);
 
   if (!parsedInput.success) {
     return {
