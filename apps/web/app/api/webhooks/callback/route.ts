@@ -1,5 +1,7 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import z from "@/lib/zod";
+import { nanoid } from "@dub/utils";
+import { recordWebhookEvent } from "../../../../lib/tinybird/record-webhook-event";
 
 const schema = z.object({
   status: z.number(),
@@ -12,16 +14,31 @@ const schema = z.object({
 
 // POST /api/webhooks/callback – listen to webhooks status from QStash
 export const POST = async (req: Request) => {
-  const body = await req.json();
+  const rawBody = await req.json();
 
-  await verifyQstashSignature(req, body);
+  await verifyQstashSignature(req, rawBody);
 
-  const parsedPayload = schema.parse(body);
+  const { url, status, body, sourceBody, createdAt, sourceMessageId } =
+    schema.parse(rawBody);
 
-  console.log("Webhook callback", parsedPayload);
+  const request = Buffer.from(sourceBody, "base64").toString("utf-8");
+  const response = Buffer.from(body, "base64").toString("utf-8");
 
   // TODO:
-  // Store the logs in TB
+  // Use createdAt as timestamp
+  // Replace with webhook.id from DB
+
+  const tb = await recordWebhookEvent({
+    event_id: nanoid(16),
+    event_type: "link.clicked",
+    status_code: status,
+    webhook_id: sourceMessageId,
+    url,
+    request,
+    response,
+  });
+
+  console.log("Webhook event recorded in Tinybird", tb);
 
   return new Response("OK");
 };

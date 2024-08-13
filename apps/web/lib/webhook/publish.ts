@@ -1,15 +1,15 @@
 import { qstash } from "@/lib/cron";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { Webhook } from "@prisma/client";
 import { WebhookTrigger } from "../types";
-import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { LinkSchema } from "../zod/schemas/links";
+import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { createWebhookSignature } from "./utils";
 
 interface SendToWebhookArgs {
   webhookUrl?: string;
   webhook?: Webhook;
   data: any;
+  trigger: WebhookTrigger;
 }
 
 // Publish webhook event to the webhook endpoint
@@ -17,23 +17,31 @@ export const sendToWebhook = async ({
   webhookUrl,
   webhook,
   data,
+  trigger,
 }: SendToWebhookArgs) => {
   const url = webhookUrl || webhook?.url;
-  const secret = webhook?.secret || ""; // TODO: A signature is must
+  const secret = webhook?.secret || "random-secret";
 
   if (!url) {
     console.error("No webhook URL provided. Skipping webhook event.");
     return;
   }
 
+  const payload = webhookPayloadSchema.parse({
+    event: trigger,
+    webhookId: nanoid(16),
+    createdAt: new Date().toISOString(),
+    data,
+  });
+
+  console.log("Webhook payload", payload);
+
   const callbackUrl = `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`;
-  const signature = createWebhookSignature(secret, data);
+  const signature = await createWebhookSignature(secret, payload);
 
   const response = await qstash.publishJSON({
     url,
-    body: {
-      data,
-    },
+    body: payload,
     headers: {
       "Dub-Signature": signature,
     },
@@ -45,16 +53,5 @@ export const sendToWebhook = async ({
     console.log(
       `Webhook event sent to ${url} with messageId: ${response.messageId}`,
     );
-  }
-};
-
-// Transform payload to match the webhook event schema
-export const transformPayload = (payload: any, event: WebhookTrigger) => {
-  if (event === "link.created") {
-    return LinkSchema.parse(payload);
-  }
-
-  if (event === "link.clicked") {
-    return clickEventSchemaTB.parse(payload);
   }
 };

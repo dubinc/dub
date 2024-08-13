@@ -115,8 +115,9 @@ export async function recordClick({
 
     // send the click event to the webhook endpoint
     sendToWebhook({
-      webhookUrl: "some-webhook-url",
+      webhookUrl: "https://webhook.site/3264bb14-82cf-4d79-b368-50491b2b9a8a",
       data: clickEvent,
+      trigger: "link.clicked",
     }),
   ]);
 }
