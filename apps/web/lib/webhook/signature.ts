@@ -5,5 +5,8 @@ export const createWebhookSignature = (secret: string, rawBody: any) => {
     throw new Error("A secret must be provided to create a webhook signature.");
   }
 
-  return crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+  return crypto
+    .createHmac("sha256", secret)
+    .update(JSON.stringify(rawBody))
+    .digest("hex");
 };
