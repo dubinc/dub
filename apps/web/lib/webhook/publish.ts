@@ -4,7 +4,7 @@ import { Webhook } from "@prisma/client";
 import { WebhookTrigger } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { LinkSchema } from "../zod/schemas/links";
-import { createWebhookSignature } from "./signature";
+import { createWebhookSignature } from "./utils";
 
 interface SendToWebhookArgs {
   webhookUrl?: string;
