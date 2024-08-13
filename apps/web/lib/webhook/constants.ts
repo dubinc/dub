@@ -1,5 +1,3 @@
-// Webhook sources
-export const webhookSource = ["zapier", "make", "user"] as const;
+export const webhookSources = ["zapier", "make", "user"] as const;
 
-// Webhook triggers
-export const webhookTrigger = ["link.created", "link.clicked"] as const;
+export const webhookTriggers = ["link.created", "link.clicked"] as const;
