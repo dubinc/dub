@@ -10,6 +10,8 @@ import { getSearchParams } from "@dub/utils";
 import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 const oAuthCallbackSchema = z.object({
   code: z.string(),
   state: z.string(),
