@@ -19,7 +19,7 @@ export default function IntegrationsPageClient({
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {integrations.map((integration) => (
-        <IntegrationCard key={integration.clientId} {...integration} />
+        <IntegrationCard key={integration.id} {...integration} />
       ))}
     </div>
   );

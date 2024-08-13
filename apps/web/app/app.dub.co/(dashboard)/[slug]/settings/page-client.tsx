@@ -2,20 +2,18 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import ConnectStripe from "@/ui/workspaces/connect-stripe";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Suspense } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, role, flags } = useWorkspace();
+  const { id, name, slug, role } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "workspaces.write",
@@ -95,11 +93,6 @@ export default function WorkspaceSettingsClient() {
       />
       <WorkspaceId />
       <UploadLogo />
-      {flags?.conversions && (
-        <Suspense>
-          <ConnectStripe />
-        </Suspense>
-      )}
       <DeleteWorkspace />
     </>
   );

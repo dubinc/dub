@@ -68,7 +68,7 @@ function UninstallIntegrationModal({
               height={20}
             />
           ) : (
-            <TokenAvatar id={integration.clientId} className="size-8" />
+            <TokenAvatar id={integration.id} className="size-8" />
           )}
           <div className="flex flex-col">
             <h3 className="text-sm font-medium">{name}</h3>

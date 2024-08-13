@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project } from "@prisma/client";
-import { webhookTrigger } from "./webhook/constants";
+import { integrationSchema } from "./zod/schemas/integration";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
@@ -191,22 +191,29 @@ export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
 export type NewOAuthApp = Omit<
   OAuthAppProps,
-  "id" | "clientId" | "verified" | "installations" | "screenshots"
+  | "id"
+  | "clientId"
+  | "verified"
+  | "installations"
+  | "screenshots"
+  | "installUrl"
 >;
 
 export type ExistingOAuthApp = OAuthAppProps;
 
+export type IntegrationProps = z.infer<typeof integrationSchema>;
+
 export type InstalledIntegrationProps = Pick<
-  OAuthAppProps,
-  "clientId" | "slug" | "logo" | "name" | "developer" | "description"
+  IntegrationProps,
+  "id" | "slug" | "logo" | "name" | "developer" | "description"
 > & {
   installations: number;
   installed?: boolean;
 };
 
 export type InstalledIntegrationInfoProps = Pick<
-  OAuthAppProps,
-  | "clientId"
+  IntegrationProps,
+  | "id"
   | "slug"
   | "logo"
   | "name"
@@ -215,6 +222,7 @@ export type InstalledIntegrationInfoProps = Pick<
   | "readme"
   | "website"
   | "screenshots"
+  | "installUrl"
 > & {
   createdAt: Date;
   installations: number;

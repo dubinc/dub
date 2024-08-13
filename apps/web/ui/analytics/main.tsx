@@ -4,14 +4,16 @@ import {
   Button,
   CountingNumbers,
   NumberTooltip,
+  Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { SquareLayoutGrid6 } from "@dub/ui/src/icons";
+import { ChartLine, Filter2, SquareLayoutGrid6 } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
 import { useContext, useMemo } from "react";
 import AnalyticsAreaChart from "./analytics-area-chart";
+import { AnalyticsFunnelChart } from "./analytics-funnel-chart";
 import { AnalyticsContext } from "./analytics-provider";
 
 type Tab = {
@@ -22,8 +24,14 @@ type Tab = {
 
 export default function Main() {
   const { flags, slug } = useWorkspace();
-  const { basePath, totalEvents, requiresUpgrade, demoPage, selectedTab } =
-    useContext(AnalyticsContext);
+  const {
+    basePath,
+    totalEvents,
+    requiresUpgrade,
+    demoPage,
+    selectedTab,
+    view,
+  } = useContext(AnalyticsContext);
   const { router, queryParams, getQueryString } = useRouterStuff();
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -142,37 +150,85 @@ export default function Main() {
             );
           })}
         </div>
-        <div className="hidden shrink-0 pr-2 pt-2 sm:block sm:pr-6 sm:pt-6">
-          <Button
-            variant="secondary"
-            className="h-9 border-transparent px-2 hover:border-gray-200"
-            icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
-            text="View Events"
-            onClick={() => {
-              if (isPublicStatsPage) {
-                window.open("https://d.to/events");
-              } else {
-                router.push(`/${slug}/events${getQueryString()}`);
-              }
-            }}
-          />
+        <div className="hidden sm:block">
+          <ViewButtons />
         </div>
       </div>
-      <div className="relative p-5 pt-10 sm:p-10">
+      <div className="relative">
+        {view === "default" && (
+          <div className="p-5 pt-10 sm:p-10">
+            <AnalyticsAreaChart resource={tab.id} />
+          </div>
+        )}
+        {view === "funnel" && <AnalyticsFunnelChart />}
+        <div className="absolute right-2 top-2 w-fit sm:hidden">
+          <ViewButtons />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ViewButtons() {
+  const { flags, slug } = useWorkspace();
+  const { basePath, demoPage, view } = useContext(AnalyticsContext);
+  const { router, queryParams, getQueryString } = useRouterStuff();
+  const isPublicStatsPage = basePath.startsWith("/stats");
+
+  return (
+    <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
+      {(flags?.conversions || demoPage) && (
+        <>
+          <Tooltip content="Line Chart">
+            <Button
+              variant="secondary"
+              className={cn(
+                "h-9 border-transparent px-2 hover:border-gray-200",
+                view === "default" && "border border-gray-200 bg-gray-100",
+              )}
+              icon={<ChartLine className="h-4 w-4 text-gray-600" />}
+              onClick={() => {
+                queryParams({
+                  del: "view",
+                });
+              }}
+            />
+          </Tooltip>
+          <Tooltip content="Funnel Chart">
+            <Button
+              variant="secondary"
+              className={cn(
+                "h-9 border-transparent px-2 hover:border-gray-200",
+                view === "funnel" && "border border-gray-200 bg-gray-100",
+              )}
+              icon={<Filter2 className="h-4 w-4 -rotate-90 text-gray-600" />}
+              onClick={() => {
+                queryParams({
+                  set: {
+                    view: "funnel",
+                  },
+                });
+              }}
+            />
+          </Tooltip>
+        </>
+      )}
+      <Tooltip content="View Events">
         <Button
-          variant="outline"
+          variant="secondary"
+          className="h-9 border-transparent px-2 hover:border-gray-200"
           icon={<SquareLayoutGrid6 className="h-4 w-4 text-gray-600" />}
           onClick={() => {
             if (isPublicStatsPage) {
               window.open("https://d.to/events");
             } else {
-              router.push(`/${slug}/events${getQueryString()}`);
+              router.push(
+                `/${slug}/events${getQueryString({}, { ignore: ["view"] })}`,
+              );
             }
           }}
-          className="absolute right-3 top-3 h-8 w-fit p-2 sm:hidden"
         />
-        <AnalyticsAreaChart resource={tab.id} />
-      </div>
+      </Tooltip>
     </div>
   );
 }

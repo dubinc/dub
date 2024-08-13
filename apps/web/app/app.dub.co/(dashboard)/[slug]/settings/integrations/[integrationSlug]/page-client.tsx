@@ -1,5 +1,6 @@
 "use client";
 
+import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
@@ -16,21 +17,36 @@ import {
   Popover,
   TokenAvatar,
 } from "@dub/ui";
-import { Globe, OfficeBuilding } from "@dub/ui/src/icons";
+import { ConnectedDots, Globe, OfficeBuilding } from "@dub/ui/src/icons";
+import { TooltipContent } from "@dub/ui/src/tooltip";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
+import { toast } from "sonner";
 
 export default function IntegrationPageClient({
   integration,
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug } = useWorkspace();
+  const { slug, id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
+  const getInstallationUrl = useAction(getIntegrationInstallUrl, {
+    onSuccess: ({ data }) => {
+      if (!data?.url) {
+        throw new Error("Error getting installation URL");
+      }
+
+      window.location.href = data.url;
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError?.serverError);
+    },
+  });
 
   const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
     useUninstallIntegrationModal({
@@ -49,7 +65,7 @@ export default function IntegrationPageClient({
       </Link>
       <div className="flex justify-between gap-2">
         <div className="flex items-center gap-x-3">
-          <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+          <div className="flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
             {integration.logo ? (
               <BlurImage
                 src={integration.logo}
@@ -59,7 +75,7 @@ export default function IntegrationPageClient({
                 height={20}
               />
             ) : (
-              <TokenAvatar id={integration.clientId} className="size-8" />
+              <TokenAvatar id={integration.id} className="size-8" />
             )}
           </div>
           <div>
@@ -81,6 +97,16 @@ export default function IntegrationPageClient({
                   onClick={() => {
                     setShowUninstallIntegrationModal(true);
                   }}
+                  {...(integration.slug === "stripe" && {
+                    disabledTooltip: (
+                      <TooltipContent
+                        title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
+                        cta="Go to Stripe"
+                        href="https://dashboard.stripe.com/settings/apps/dub.co"
+                        target="_blank"
+                      />
+                    ),
+                  })}
                 />
               </div>
             }
@@ -101,44 +127,71 @@ export default function IntegrationPageClient({
         )}
       </div>
 
-      <div className="flex gap-12 rounded-lg border border-gray-200 bg-white p-4">
-        {integration.installed && (
-          <div className="flex items-center gap-2">
-            <Avatar user={integration.installed.by} className="size-8" />
-            <div className="flex flex-col gap-1">
-              <p className="text-xs text-gray-500">INSTALLED BY</p>
-              <p className="text-sm font-medium text-gray-700">
-                {integration.installed.by.name}
-                <span className="ml-1 font-normal text-gray-500">
-                  {formatDate(integration.installed.createdAt, {
-                    year: undefined,
-                  })}
-                </span>
-              </p>
+      <div className="flex justify-between rounded-lg border border-gray-200 bg-white p-4">
+        <div className="flex gap-12">
+          {integration.installed && (
+            <div className="flex items-center gap-2">
+              <Avatar user={integration.installed.by} className="size-8" />
+              <div className="flex flex-col gap-1">
+                <p className="text-xs text-gray-500">INSTALLED BY</p>
+                <p className="text-sm font-medium text-gray-700">
+                  {integration.installed.by.name}
+                  <span className="ml-1 font-normal text-gray-500">
+                    {formatDate(integration.installed.createdAt, {
+                      year: undefined,
+                    })}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-gray-500">DEVELOPER</p>
+            <div className="flex items-center gap-x-1 text-sm font-medium text-gray-700">
+              <OfficeBuilding className="size-3" />
+              {integration.developer}
             </div>
           </div>
-        )}
 
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-gray-500">DEVELOPER</p>
-          <div className="flex items-center gap-x-1 text-sm font-medium text-gray-700">
-            <OfficeBuilding className="size-3" />
-            {integration.developer}
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-gray-500">WEBSITE</p>
+            <a
+              href={integration.website}
+              className="flex items-center gap-x-1 text-sm font-medium text-gray-700"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Globe className="size-3" />
+              {getPrettyUrl(integration.website)}
+            </a>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-gray-500">WEBSITE</p>
-          <a
-            href={integration.website}
-            className="flex items-center gap-x-1 text-sm font-medium text-gray-700"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Globe className="size-3" />
-            {getPrettyUrl(integration.website)}
-          </a>
-        </div>
+        {!integration.installed && (
+          <div>
+            <Button
+              onClick={() => {
+                const { installUrl } = integration;
+
+                if (installUrl) {
+                  // open in a new tab
+                  window.open(installUrl, "_blank");
+                  return;
+                }
+
+                getInstallationUrl.execute({
+                  workspaceId: workspaceId!,
+                  integrationSlug: integration.slug,
+                });
+              }}
+              loading={getInstallationUrl.isExecuting}
+              text="Enable"
+              variant="primary"
+              icon={<ConnectedDots className="h-4 w-4" />}
+            />
+          </div>
+        )}
       </div>
 
       <div className="w-full rounded-lg border border-gray-200 bg-white">
@@ -173,6 +226,11 @@ export default function IntegrationPageClient({
               "prose-headings:leading-tight",
               "prose-a:font-medium prose-a:text-gray-500 prose-a:underline-offset-4 hover:prose-a:text-black",
             )}
+            components={{
+              a: ({ node, ...props }) => (
+                <a {...props} target="_blank" rel="noopener noreferrer" />
+              ),
+            }}
           >
             {integration.readme}
           </Markdown>
