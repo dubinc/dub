@@ -40,12 +40,6 @@ export const handleSlashCommand = async (
             equals: data.team_id,
           },
         },
-        {
-          credentials: {
-            path: "$.appId",
-            equals: data.api_app_id,
-          },
-        },
       ],
     },
   });
