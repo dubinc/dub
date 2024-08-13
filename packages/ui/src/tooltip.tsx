@@ -1,13 +1,13 @@
 "use client";
 
-import { nFormatter, timeAgo } from "@dub/utils";
+import { cn, nFormatter, timeAgo } from "@dub/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Linkify from "linkify-react";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
 import { Badge } from "./badge";
-import { ButtonProps } from "./button";
+import { Button, ButtonProps, buttonVariants } from "./button";
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
@@ -84,18 +84,15 @@ export function TooltipContent({
           <Link
             href={href}
             {...(target ? { target } : {})}
-            className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+            className={cn(
+              buttonVariants({ variant: "primary" }),
+              "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+            )}
           >
             {cta}
           </Link>
         ) : onClick ? (
-          <button
-            type="button"
-            className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
-            onClick={onClick}
-          >
-            {cta}
-          </button>
+          <Button onClick={onClick} text={cta} variant="primary" />
         ) : null)}
     </div>
   );

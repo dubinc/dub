@@ -18,6 +18,7 @@ import {
   TokenAvatar,
 } from "@dub/ui";
 import { ConnectedDots, Globe, OfficeBuilding } from "@dub/ui/src/icons";
+import { TooltipContent } from "@dub/ui/src/tooltip";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -96,11 +97,16 @@ export default function IntegrationPageClient({
                   onClick={() => {
                     setShowUninstallIntegrationModal(true);
                   }}
-                  disabledTooltip={
-                    integration.slug === "stripe"
-                      ? "You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
-                      : null
-                  }
+                  {...(integration.slug === "stripe" && {
+                    disabledTooltip: (
+                      <TooltipContent
+                        title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
+                        cta="Go to Stripe"
+                        href="https://dashboard.stripe.com/settings/apps/dub.co"
+                        target="_blank"
+                      />
+                    ),
+                  })}
                 />
               </div>
             }
