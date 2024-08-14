@@ -3,10 +3,11 @@ SCHEMA >
   `event_id` String `json:$.event_id`,
   `webhook_id` String `json:$.webhook_id`,
   `url` String `json:$.url`,
-  `event_type` LowCardinality(String) `json:$.event_type`,
-  `status_code` UInt16 `json:$.status_code`,
-  `request` String `json:$.request`,
-  `response` String `json:$.response`
+  `event` LowCardinality(String) `json:$.event`,
+  `http_status` UInt16 `json:$.http_status`,
+  `request_body` String `json:$.request_body`,
+  `response_body` String `json:$.response_body`,
+  `message_id` String `json:$.message_id`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

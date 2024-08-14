@@ -7,7 +7,11 @@ import { integrationSchema } from "./zod/schemas/integration";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
-import { createWebhookSchema, webhookSchema } from "./zod/schemas/webhooks";
+import {
+  createWebhookSchema,
+  webhookPayloadSchema,
+  webhookSchema,
+} from "./zod/schemas/webhooks";
 
 export type LinkProps = Link;
 
@@ -248,3 +252,5 @@ export type WebhookTrigger = (typeof WEBHOOK_TRIGGERS)[number];
 export type WebhookProps = z.infer<typeof webhookSchema>;
 
 export type NewWebhook = z.infer<typeof createWebhookSchema>;
+
+export type WebhookPayloadSchema = z.infer<typeof webhookPayloadSchema>;

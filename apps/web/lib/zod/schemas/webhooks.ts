@@ -4,8 +4,6 @@ import {
 } from "@/lib/webhook/constants";
 import { z } from "zod";
 
-//whsec_646072a9e9c28e22c8170ec50eba8e0f5dda32a21ac663771d9e901fe6bb25c1
-
 export const webhookSchema = z.object({
   id: z.string(),
   linkId: z.string().optional(),
@@ -30,17 +28,28 @@ export const updateWebhookSchema = createWebhookSchema.partial();
 export const webhookEventSchemaTB = z.object({
   event_id: z.string(),
   webhook_id: z.string(),
+  message_id: z.string(), // QStash message ID
   url: z.string(),
-  event_type: z.enum(WEBHOOK_TRIGGERS),
-  status_code: z.number(),
-  request: z.string(),
-  response: z.string(),
+  event: z.enum(WEBHOOK_TRIGGERS),
+  http_status: z.number(),
+  request_body: z.string(),
+  response_body: z.string(),
 });
 
-// Represents the schema of the payload sent to the webhook endpoint
+// Schema of the payload sent to the webhook endpoint
 export const webhookPayloadSchema = z.object({
   event: z.enum(WEBHOOK_TRIGGERS),
   webhookId: z.string(),
   createdAt: z.string(),
   data: z.any(),
+});
+
+// Schema of the payload sent to /webhooks/callback endpoint from QStash
+export const webhookCallbackSchema = z.object({
+  status: z.number(),
+  url: z.string(),
+  createdAt: z.number(),
+  sourceMessageId: z.string(),
+  body: z.string().optional().default(""), // Response from the users webhook URL
+  sourceBody: z.string(), // Original request payload from Dub
 });

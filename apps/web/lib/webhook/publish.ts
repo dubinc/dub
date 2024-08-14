@@ -1,46 +1,33 @@
 import { qstash } from "@/lib/cron";
-import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Webhook } from "@prisma/client";
 import { WebhookTrigger } from "../types";
 import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { createWebhookSignature } from "./signature";
 
 interface SendToWebhookArgs {
-  webhookUrl?: string;
-  webhook?: Webhook;
+  webhook: Pick<Webhook, "id" | "url" | "secret">;
+  event: WebhookTrigger;
   data: any;
-  trigger: WebhookTrigger;
 }
 
-// Publish webhook event to the webhook endpoint
 export const sendToWebhook = async ({
-  webhookUrl,
   webhook,
+  event,
   data,
-  trigger,
 }: SendToWebhookArgs) => {
-  const url = webhookUrl || webhook?.url;
-  const secret = webhook?.secret || "random-secret";
-
-  if (!url) {
-    console.error("No webhook URL provided. Skipping webhook event.");
-    return;
-  }
-
   const payload = webhookPayloadSchema.parse({
-    event: trigger,
-    webhookId: nanoid(16),
-    createdAt: new Date().toISOString(),
+    event,
     data,
+    webhookId: webhook.id,
+    createdAt: new Date().toISOString(),
   });
 
-  console.log("Webhook payload", payload);
-
   const callbackUrl = `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`;
-  const signature = await createWebhookSignature(secret, payload);
+  const signature = await createWebhookSignature(webhook.secret, payload);
 
   const response = await qstash.publishJSON({
-    url,
+    url: webhook.url,
     body: payload,
     headers: {
       "Dub-Signature": signature,
@@ -51,7 +38,7 @@ export const sendToWebhook = async ({
 
   if (response.messageId) {
     console.log(
-      `Webhook event sent to ${url} with messageId: ${response.messageId}`,
+      `Webhook event published to QStash with message ID: ${response.messageId}`,
     );
   }
 };

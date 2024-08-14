@@ -4,12 +4,15 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
+import { sendToWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas/links";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
@@ -96,6 +99,36 @@ export const POST = withWorkspace(
 
     try {
       const response = await createLink(link);
+
+      waitUntil(
+        (async () => {
+          if (workspace.webhookEnabled) {
+            const webhooks = await prisma.webhook.findMany({
+              where: {
+                projectId: workspace.id,
+                triggers: {
+                  array_contains: ["link.created"],
+                },
+              },
+              select: {
+                id: true,
+                url: true,
+                secret: true,
+              },
+            });
+
+            await Promise.all(
+              webhooks.map((webhook) =>
+                sendToWebhook({
+                  event: "link.created",
+                  data: response,
+                  webhook,
+                }),
+              ),
+            );
+          }
+        })(),
+      );
 
       return NextResponse.json(response, { headers });
     } catch (error) {

@@ -25,7 +25,7 @@ export default function WebhookLogsPageClient({
   }
 
   const { data, isLoading, error } = useSWR<any[]>(
-    `/api/webhooks/${webhookId}/logs?workspaceId=${workspaceId}`,
+    `/api/webhooks/${webhookId}/events?workspaceId=${workspaceId}`,
     fetcher,
     {
       keepPreviousData: true,
