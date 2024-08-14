@@ -520,6 +520,9 @@ importers:
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
+      js-sha256:
+        specifier: ^0.11.0
+        version: 0.11.0
       linkify-react:
         specifier: ^4.1.3
         version: 4.1.3(linkifyjs@4.1.3)(react@18.2.0)
@@ -14272,6 +14275,10 @@ packages:
 
   /js-md4@0.3.2:
     resolution: {integrity: sha512-/GDnfQYsltsjRswQhN9fhv3EMw2sCpUdrdxyWDOUK7eyD++r3gRhzgiQgc/x4MAv2i1iuQ4lxO5mvqM3vj4bwA==}
+    dev: false
+
+  /js-sha256@0.11.0:
+    resolution: {integrity: sha512-6xNlKayMZvds9h1Y1VWc0fQHQ82BxTXizWPEtEeGvmOUYpBRy4gbWroHLpzowe6xiQhHpelCQiE7HEdznyBL9Q==}
     dev: false
 
   /js-tokens@4.0.0:

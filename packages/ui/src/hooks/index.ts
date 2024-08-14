@@ -10,3 +10,4 @@ export * from "./use-resize-observer";
 export * from "./use-router-stuff";
 export * from "./use-scroll";
 export * from "./use-toast-with-undo";
+export * from "./use-user-avatar-url";
