@@ -61,7 +61,7 @@ export const createUserAccountAction = actionClient
     // Generate the OTP
     const code = generateOTP();
 
-    await prisma.verificationToken.create({
+    await prisma.emailVerificationToken.create({
       data: {
         identifier: email,
         token: code,

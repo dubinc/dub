@@ -42,7 +42,7 @@ export default async function ResetPasswordPage({ params: { token } }: Props) {
 }
 
 const isValidToken = async (token: string) => {
-  const resetToken = await prisma.verificationToken.findUnique({
+  const resetToken = await prisma.passwordResetToken.findUnique({
     where: {
       token,
       expires: {

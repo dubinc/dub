@@ -31,7 +31,7 @@ export const verifyEmailAction = actionClient
       );
     }
 
-    const verificationToken = await prisma.verificationToken.findUnique({
+    const verificationToken = await prisma.emailVerificationToken.findUnique({
       where: {
         identifier: email,
         token: code,
@@ -46,7 +46,7 @@ export const verifyEmailAction = actionClient
     }
 
     await Promise.all([
-      prisma.verificationToken.delete({
+      prisma.emailVerificationToken.delete({
         where: {
           token: code,
         },

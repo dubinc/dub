@@ -40,7 +40,7 @@ export const requestPasswordResetAction = actionClient
       throw new Error("An user with this email does not exist.");
     }
 
-    const { token } = await prisma.verificationToken.create({
+    const { token } = await prisma.passwordResetToken.create({
       data: {
         identifier: email,
         token: randomBytes(32).toString("hex"),
