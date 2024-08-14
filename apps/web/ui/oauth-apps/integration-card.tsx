@@ -29,7 +29,7 @@ export default function IntegrationCard(
             <BlurImage
               src={integration.logo}
               alt={`Logo for ${integration.name}`}
-              className="size-6 rounded-full border border-gray-200"
+              className="size-6 rounded-full"
               width={20}
               height={20}
             />
