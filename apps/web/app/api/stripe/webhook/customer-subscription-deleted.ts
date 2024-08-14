@@ -1,8 +1,8 @@
+import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { FREE_PLAN, log } from "@dub/utils";
-import { sendEmail } from "emails";
+import { APP_DOMAIN_WITH_NGROK, FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -33,11 +33,13 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         select: {
           user: {
             select: {
+              name: true,
               email: true,
             },
           },
         },
         where: {
+          role: "owner",
           user: {
             isMachine: false,
           },
@@ -59,9 +61,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
 
   const workspaceLinks = workspace.links;
 
-  const workspaceUsers = workspace.users.map(
-    ({ user }) => user.email as string,
-  );
+  const workspaceUsers = workspace.users.map(({ user }) => user);
 
   const pipeline = redis.pipeline();
   // remove root domain redirect for all domains from Redis
@@ -132,13 +132,14 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       type: "cron",
       mention: true,
     }),
-    workspaceUsers.map((email) =>
-      sendEmail({
-        email,
-        from: "steven@dub.co",
-        subject: "Feedback on your Dub.co experience?",
-        text: "Hey!\n\nI noticed you recently cancelled your Dub.co subscription – we're sorry to see you go!\n\nI'd love to hear your feedback on your experience with Dub – what could we have done better?\n\nThank you so much in advance!\n\nSteven Tey\nFounder, Dub.co",
-      }),
-    ),
+    qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/emails/cancellation-feedback`,
+      // artificially delay anywhere between 3-5 hours to make it feel more like a human
+      delay:
+        Math.floor(Math.random() * 1000 * 60 * 60 * 3) + 3 * 1000 * 60 * 60,
+      body: {
+        owners: workspaceUsers,
+      },
+    }),
   ]);
 }
