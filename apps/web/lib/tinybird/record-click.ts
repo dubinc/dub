@@ -10,7 +10,6 @@ import { NextRequest, userAgent } from "next/server";
 import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
 import { conn } from "../planetscale";
 import { ratelimit } from "../upstash";
-import { sendToWebhook } from "../webhook/publish";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data

@@ -19,7 +19,7 @@ export default function WebhookCard(webhook: WebhookProps) {
         <div>
           <div className="flex items-center gap-1">
             <p className="font-semibold text-gray-700">{webhook.name}</p>
-            <span className="text-gray-400 text-sm">{webhook.url}</span>
+            <span className="text-sm text-gray-400">{webhook.url}</span>
           </div>
           <div className="flex items-center gap-1 text-sm text-gray-500">
             Last updated
