@@ -80,11 +80,9 @@ export default async function WorkspaceSettingsLayout({
           icon: Key,
           segment: "tokens",
         },
-        {
-          name: "Webhooks",
-          icon: Key,
-          segment: "webhooks",
-        },
+        ...(flags.webhooks
+          ? [{ name: "Webhooks", icon: Key, segment: "webhooks" }]
+          : []),
         ...(flags.integrations
           ? [{ name: "OAuth Apps", icon: CubeSettings, segment: "oauth-apps" }]
           : []),
