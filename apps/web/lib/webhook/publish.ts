@@ -3,7 +3,7 @@ import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { Webhook } from "@prisma/client";
 import { WebhookTrigger } from "../types";
 import { webhookPayloadSchema } from "../zod/schemas/webhooks";
-import { createWebhookSignature } from "./utils";
+import { createWebhookSignature } from "./signature";
 
 interface SendToWebhookArgs {
   webhookUrl?: string;

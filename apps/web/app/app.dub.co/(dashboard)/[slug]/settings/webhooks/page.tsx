@@ -1,3 +1,5 @@
-export default function WebhooksPage() {
-  return <div>Webhooks</div>;
+import WebhooksPageClient from "./page-client";
+
+export default async function WebhooksPage() {
+  return <WebhooksPageClient />;
 }

@@ -2,11 +2,12 @@ import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project } from "@prisma/client";
-import { webhookTriggers } from "./webhook/constants";
+import { WEBHOOK_TRIGGERS } from "./webhook/constants";
 import { integrationSchema } from "./zod/schemas/integration";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
+import { createWebhookSchema, webhookSchema } from "./zod/schemas/webhooks";
 
 export type LinkProps = Link;
 
@@ -71,7 +72,11 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "conversions" | "integrations" | "dublink";
+export type BetaFeatures =
+  | "conversions"
+  | "integrations"
+  | "dublink"
+  | "webhooks";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -238,11 +243,8 @@ export type InstalledIntegrationInfoProps = Pick<
   } | null;
 };
 
-export type WebhookTrigger = (typeof webhookTriggers)[number];
+export type WebhookTrigger = (typeof WEBHOOK_TRIGGERS)[number];
 
-export type WebhookEventPayload = {
-  id: string;
-  event: WebhookTrigger;
-  createdAt: string;
-  data: any; // FIXME: add type
-};
+export type WebhookProps = z.infer<typeof webhookSchema>;
+
+export type NewWebhook = z.infer<typeof createWebhookSchema>;
