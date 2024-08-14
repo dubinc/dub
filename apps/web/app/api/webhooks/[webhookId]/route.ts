@@ -20,6 +20,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.read"],
+    featureFlag: "webhooks",
   },
 );
 
@@ -48,6 +49,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.write"],
+    featureFlag: "webhooks",
   },
 );
 
@@ -87,5 +89,6 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.write"],
+    featureFlag: "webhooks",
   },
 );

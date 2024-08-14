@@ -25,5 +25,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.read"],
+    featureFlag: "webhooks",
   },
 );

@@ -36,7 +36,7 @@ export const webhookEventSchemaTB = z.object({
   response_body: z.string(),
 });
 
-// Schema of the payload sent to the webhook endpoint
+// Schema of the payload sent to the webhook endpoint by Dub
 export const webhookPayloadSchema = z.object({
   event: z.enum(WEBHOOK_TRIGGERS),
   webhookId: z.string(),
@@ -44,7 +44,7 @@ export const webhookPayloadSchema = z.object({
   data: z.any(),
 });
 
-// Schema of the payload sent to /webhooks/callback endpoint from QStash
+// Schema of response sent to the webhook callback URL by QStash
 export const webhookCallbackSchema = z.object({
   status: z.number(),
   url: z.string(),

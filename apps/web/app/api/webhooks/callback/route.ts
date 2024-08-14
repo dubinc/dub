@@ -12,7 +12,7 @@ export const POST = async (req: Request) => {
 
   await verifyQstashSignature(req, rawBody);
 
-  const { url, status, body, sourceBody, createdAt, sourceMessageId } =
+  const { url, status, body, sourceBody, sourceMessageId } =
     webhookCallbackSchema.parse(rawBody);
 
   const request = Buffer.from(sourceBody, "base64").toString("utf-8");
