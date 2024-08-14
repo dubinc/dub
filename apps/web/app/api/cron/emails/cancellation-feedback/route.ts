@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "emails";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,8 @@ const cancellationReasonMap = {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // await verifyQstashSignature(req, body);
+    await verifyQstashSignature(req, body);
+
     const { owners, reason } = body as {
       owners: {
         name: string | null;
