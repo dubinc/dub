@@ -16,7 +16,7 @@ import {
   Refresh2,
   StatusBadge,
   Tooltip,
-  useIntersectionObserver,
+  useInViewport,
   useMediaQuery,
 } from "@dub/ui";
 import {
@@ -27,7 +27,7 @@ import {
   Hyperlink,
   PenWriting,
 } from "@dub/ui/src/icons";
-import { DEFAULT_LINK_PROPS, cn, fetcher, nFormatter } from "@dub/utils";
+import { cn, DEFAULT_LINK_PROPS, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
@@ -51,9 +51,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
   const { id: workspaceId, slug } = useWorkspace();
 
-  const domainRef = useRef<any>();
-  const entry = useIntersectionObserver(domainRef, {});
-  const isVisible = !!entry?.isIntersecting;
+  const domainRef = useRef<HTMLDivElement>(null);
+  const isVisible = useInViewport(domainRef, { defaultValue: true });
 
   const { data, isValidating, mutate } = useSWRImmutable<{
     status: DomainVerificationStatusProps;
