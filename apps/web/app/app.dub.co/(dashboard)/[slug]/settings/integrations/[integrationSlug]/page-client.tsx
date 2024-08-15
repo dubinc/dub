@@ -24,6 +24,7 @@ import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
@@ -34,7 +35,12 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId } = useWorkspace();
+  const { slug, id: workspaceId, flags } = useWorkspace();
+
+  if (!flags?.integrations) {
+    redirect(`/${slug}/settings`);
+  }
+
   const [openPopover, setOpenPopover] = useState(false);
   const getInstallationUrl = useAction(getIntegrationInstallUrl, {
     onSuccess: ({ data }) => {
