@@ -66,7 +66,9 @@ export const getEvents = async (
     customer: {
       name: d.customer_name,
       email: d.customer_email,
-      avatar: d.customer_avatar,
+      avatar:
+        d.customer_avatar ||
+        `https://api.dicebear.com/7.x/micah/svg?seed=${d.customer_id}`,
     },
   }));
 };
