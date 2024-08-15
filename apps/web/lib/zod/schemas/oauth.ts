@@ -1,72 +1,6 @@
 import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
-import { R2_URL } from "@dub/utils";
 import { z } from "zod";
-import { integrationSchema } from "./integration";
-
-export const createOAuthAppSchema = z.object({
-  name: z.string().min(1).max(100),
-  slug: z.string().min(1).max(100),
-  developer: z.string().min(1).max(100),
-  website: z
-    .string()
-    .url({
-      message: "website must be a valid URL",
-    })
-    .max(100),
-  logo: z
-    .string()
-    .url({
-      message: "Please provide a valid URL for the logo",
-    })
-    .nullable(),
-  redirectUris: z
-    .string()
-    .array()
-    .min(1, {
-      message: "At least one redirect URI is required",
-    })
-    .max(5, {
-      message: "only 5 redirect URIs are allowed",
-    })
-    .refine(
-      (urls) => {
-        return urls.every(
-          (url) =>
-            url.startsWith("https://") || url.startsWith("http://localhost"),
-        );
-      },
-      {
-        message:
-          "redirect_uri must be a valid URL starting with 'https://' except for 'http://localhost'",
-      },
-    ),
-  description: z
-    .string()
-    .max(120, {
-      message: "must be less than 120 characters",
-    })
-    .nullable(),
-  readme: z
-    .string()
-    .max(1000, {
-      message: "must be less than 1000 characters",
-    })
-    .nullable(),
-  pkce: z.boolean().default(false),
-  screenshots: z
-    .array(z.string())
-    .max(4, {
-      message: "only 4 screenshots are allowed",
-    })
-    .transform((screenshots) =>
-      screenshots.map((screenshot) =>
-        screenshot.startsWith(R2_URL) ? screenshot : `${R2_URL}/${screenshot}`,
-      ),
-    )
-    .default([]),
-});
-
-export const updateOAuthAppSchema = createOAuthAppSchema.partial();
+import { createIntegrationSchema, integrationSchema } from "./integration";
 
 export const oAuthAppSchema = integrationSchema.merge(
   z.object({
@@ -76,6 +10,35 @@ export const oAuthAppSchema = integrationSchema.merge(
     pkce: z.boolean(),
   }),
 );
+
+export const createOAuthAppSchema = createIntegrationSchema.merge(
+  z.object({
+    redirectUris: z
+      .string()
+      .array()
+      .min(1, {
+        message: "At least one redirect URI is required",
+      })
+      .max(5, {
+        message: "only 5 redirect URIs are allowed",
+      })
+      .refine(
+        (urls) => {
+          return urls.every(
+            (url) =>
+              url.startsWith("https://") || url.startsWith("http://localhost"),
+          );
+        },
+        {
+          message:
+            "redirect_uri must be a valid URL starting with 'https://' except for 'http://localhost'",
+        },
+      ),
+    pkce: z.boolean().default(false),
+  }),
+);
+
+export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 
 // Schema for OAuth2.0 Authorization request
 export const authorizeRequestSchema = z.object({

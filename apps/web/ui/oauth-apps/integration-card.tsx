@@ -29,7 +29,7 @@ export default function IntegrationCard(
             <BlurImage
               src={integration.logo}
               alt={`Logo for ${integration.name}`}
-              className="size-6 rounded-full border border-gray-200"
+              className="size-6 rounded-full"
               width={20}
               height={20}
             />
@@ -51,7 +51,10 @@ export default function IntegrationCard(
         </p>
         <div className="flex items-center justify-end gap-1 text-gray-500">
           <Download className="size-4" />
-          <span className="text-sm">{integration.installations} installs</span>
+          <span className="text-sm">
+            {integration.installations} install
+            {integration.installations === 1 ? "" : "s"}
+          </span>
         </div>
       </div>
     </Link>

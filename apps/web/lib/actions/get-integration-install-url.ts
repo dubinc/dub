@@ -1,7 +1,8 @@
 "use server";
 
 import { getFeatureFlags } from "../edge-config";
-import { getStripeInstallationUrl } from "../integrations/stripe";
+import { getSlackInstallationUrl } from "../integrations/slack/install";
+import { getStripeInstallationUrl } from "../integrations/stripe/install";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
 
@@ -19,8 +20,6 @@ export const getIntegrationInstallUrl = authActionClient
 
     let url: string | null = null;
 
-    // TODO:
-    // Move the installation URL logic to the respective integration specific file
     if (integrationSlug === "stripe") {
       const flags = await getFeatureFlags({ workspaceId: workspace.id });
 
@@ -29,6 +28,8 @@ export const getIntegrationInstallUrl = authActionClient
       }
 
       url = await getStripeInstallationUrl(workspace.id);
+    } else if (integrationSlug === "slack") {
+      url = await getSlackInstallationUrl(workspace.id);
     } else {
       throw new Error("Invalid integration slug");
     }

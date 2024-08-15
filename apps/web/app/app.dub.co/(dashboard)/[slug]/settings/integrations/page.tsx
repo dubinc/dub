@@ -37,6 +37,16 @@ const Integrations = async ({ workspaceSlug }: { workspaceSlug: string }) => {
         },
       },
     },
+    orderBy: [
+      {
+        installations: {
+          _count: "desc",
+        },
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
   });
 
   return (

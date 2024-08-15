@@ -18,7 +18,7 @@ export default function OAuthAppCard(oAuthApp: OAuthAppProps) {
             <BlurImage
               src={oAuthApp.logo}
               alt={`Logo for ${oAuthApp.name}`}
-              className="size-6 rounded-full border border-gray-200"
+              className="size-6 rounded-full"
               width={20}
               height={20}
             />
