@@ -9,6 +9,7 @@ import {
   Avatar,
   BlurImage,
   Button,
+  buttonVariants,
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -92,7 +93,7 @@ export default function IntegrationPageClient({
                 <Button
                   text="Uninstall Integration"
                   variant="danger-outline"
-                  icon={<Trash className="h-4 w-4" />}
+                  icon={<Trash className="size-4" />}
                   className="h-9 justify-start px-2"
                   onClick={() => {
                     setShowUninstallIntegrationModal(true);
@@ -169,7 +170,18 @@ export default function IntegrationPageClient({
         </div>
 
         {!integration.installed && (
-          <div>
+          <div className="flex items-center gap-x-2">
+            {slug === "dub" && (
+              <Link
+                href={`/${slug}/settings/integrations/${integration.slug}/manage`}
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-full items-center rounded-md border px-4 text-sm",
+                )}
+              >
+                Manage
+              </Link>
+            )}
             <Button
               onClick={() => {
                 const { installUrl } = integration;
@@ -188,7 +200,7 @@ export default function IntegrationPageClient({
               loading={getInstallationUrl.isExecuting}
               text="Enable"
               variant="primary"
-              icon={<ConnectedDots className="h-4 w-4" />}
+              icon={<ConnectedDots className="size-4" />}
             />
           </div>
         )}

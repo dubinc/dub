@@ -5,19 +5,18 @@ import "dotenv-flow/config";
 async function main() {
   const integration = await prisma.integration.create({
     data: {
-      name: "Stripe",
-      slug: "stripe",
-      description:
-        "Connect your Stripe account to set up conversion tracking and understand how your clicks are converting to sales.",
+      name: "Slack",
+      slug: "slack",
+      description: "Create links from Slack messages easily with Dub.",
       developer: "Dub",
       website: "https://dub.co",
       verified: true,
       projectId: DUB_WORKSPACE_ID,
 
-      screenshots: [],
-      userId: "",
-      logo: "",
-      readme: "",
+      // screenshots: [],
+      // userId: "",
+      // logo: "",
+      // readme: "",
     },
   });
 

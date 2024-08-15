@@ -2,6 +2,7 @@ import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
@@ -434,31 +435,35 @@ export const authOptions: NextAuthOptions = {
           new Date(user.createdAt).getTime() > Date.now() - 10000 &&
           process.env.NEXT_PUBLIC_IS_DUB
         ) {
-          await Promise.allSettled([
-            subscribe({ email, name: user.name || undefined }),
-            sendEmail({
-              subject: "Welcome to Dub.co!",
-              email,
-              react: WelcomeEmail({
+          waitUntil(
+            Promise.allSettled([
+              subscribe({ email, name: user.name || undefined }),
+              sendEmail({
+                subject: "Welcome to Dub.co!",
                 email,
-                name: user.name || null,
+                react: WelcomeEmail({
+                  email,
+                  name: user.name || null,
+                }),
+                marketing: true,
               }),
-              marketing: true,
-            }),
-          ]);
+            ]),
+          );
         }
 
         const clickId = cookies().get("dclid")?.value;
         if (clickId) {
           // send lead event to Dub
-          await dub.track.lead({
-            clickId,
-            eventName: "Sign Up",
-            customerId: user.id,
-            customerName: user.name,
-            customerEmail: user.email,
-            customerAvatar: user.image,
-          });
+          waitUntil(
+            dub.track.lead({
+              clickId,
+              eventName: "Sign Up",
+              customerId: user.id,
+              customerName: user.name,
+              customerEmail: user.email,
+              customerAvatar: user.image,
+            }),
+          );
           // delete the clickId cookie
           cookies().delete("dclid");
         }
@@ -466,18 +471,22 @@ export const authOptions: NextAuthOptions = {
       // lazily backup user avatar to R2
       const currentImage = message.user.image;
       if (currentImage && !isStored(currentImage)) {
-        const { url } = await storage.upload(
-          `avatars/${message.user.id}`,
-          currentImage,
+        waitUntil(
+          (async () => {
+            const { url } = await storage.upload(
+              `avatars/${message.user.id}`,
+              currentImage,
+            );
+            await prisma.user.update({
+              where: {
+                id: message.user.id,
+              },
+              data: {
+                image: url,
+              },
+            });
+          })(),
         );
-        await prisma.user.update({
-          where: {
-            id: message.user.id,
-          },
-          data: {
-            image: url,
-          },
-        });
       }
     },
   },

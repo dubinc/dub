@@ -4,6 +4,7 @@ interface InstallIntegrationArgs {
   userId: string;
   workspaceId: string;
   integrationSlug: string;
+  credentials?: Record<string, any>;
 }
 
 // Install an integration for a user in a workspace
@@ -11,8 +12,9 @@ export const installIntegration = async ({
   userId,
   workspaceId,
   integrationSlug,
+  credentials,
 }: InstallIntegrationArgs) => {
-  const { id: integrationId } = await prisma.integration.findUniqueOrThrow({
+  const integration = await prisma.integration.findUniqueOrThrow({
     where: {
       slug: integrationSlug,
     },
@@ -25,14 +27,17 @@ export const installIntegration = async ({
     create: {
       userId,
       projectId: workspaceId,
-      integrationId,
+      integrationId: integration.id,
+      credentials,
     },
-    update: {},
+    update: {
+      credentials,
+    },
     where: {
       userId_integrationId_projectId: {
         userId,
         projectId: workspaceId,
-        integrationId,
+        integrationId: integration.id,
       },
     },
   });

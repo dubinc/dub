@@ -1,11 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { deleteScreenshots } from "@/lib/integrations/utils";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -222,21 +222,3 @@ export const DELETE = withWorkspace(
     featureFlag: "integrations",
   },
 );
-
-const deleteScreenshots = async (screenshots: Prisma.JsonValue | null) => {
-  const images = screenshots as string[];
-
-  if (!images || images.length === 0) {
-    return;
-  }
-
-  const res = await Promise.all(
-    images.map(async (image: string) => {
-      if (image.startsWith(`${R2_URL}/integration-screenshots`)) {
-        return storage.delete(image.replace(`${R2_URL}/`, ""));
-      }
-    }),
-  );
-
-  console.log({ res });
-};
