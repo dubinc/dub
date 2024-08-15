@@ -121,6 +121,7 @@ export const RESOURCE_SCOPES: {
       "workspaces.read",
       "workspaces.write",
       "analytics.read",
+      "conversions.write",
     ],
   },
 ];
