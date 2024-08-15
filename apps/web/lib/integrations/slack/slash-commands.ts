@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import z from "@/lib/zod";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { SLACK_INTEGRATION_ID } from "@dub/utils";
 import { InstalledIntegration } from "@prisma/client";
 import { verifySlackSignature } from "./verify-request";
 
@@ -35,7 +36,7 @@ export const handleSlashCommand = async (
 
   const installation = await prisma.installedIntegration.findFirst({
     where: {
-      integrationId: "clzu59rx9000110bm5fnlzwuj",
+      integrationId: SLACK_INTEGRATION_ID,
       credentials: {
         path: "$.team.id",
         equals: data.team_id,
