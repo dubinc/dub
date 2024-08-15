@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import type Stripe from "stripe";
 
 // Handle event "account.application.deauthorized"
@@ -20,9 +21,7 @@ export async function accountApplicationDeauthorized(event: Stripe.Event) {
   await prisma.installedIntegration.deleteMany({
     where: {
       projectId: workspace.id,
-      integration: {
-        slug: "stripe",
-      },
+      integrationId: STRIPE_INTEGRATION_ID,
     },
   });
 
