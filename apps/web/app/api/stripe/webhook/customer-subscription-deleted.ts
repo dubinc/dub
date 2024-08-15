@@ -135,8 +135,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/emails/cancellation-feedback`,
       // artificially delay anywhere between 3-5 hours to make it feel more like a human
-      delay:
-        Math.floor(Math.random() * 1000 * 60 * 60 * 3) + 3 * 1000 * 60 * 60,
+      delay: Math.floor(Math.random() * 60 * 60 * 3) + 3 * 60 * 60,
       body: {
         owners: workspaceUsers,
       },
