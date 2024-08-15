@@ -6,7 +6,7 @@ import { SlackCredential } from "@/lib/integrations/slack/type";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import { getSearchParams } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, getSearchParams } from "@dub/utils";
 import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
 
@@ -57,6 +57,10 @@ export const GET = async (req: Request) => {
     formData.append("code", code);
     formData.append("client_id", env.SLACK_CLIENT_ID);
     formData.append("client_secret", env.SLACK_CLIENT_SECRET);
+    formData.append(
+      "redirect_uri",
+      `${APP_DOMAIN_WITH_NGROK}/api/slack/callback`,
+    );
 
     const response = await fetch("https://slack.com/api/oauth.v2.access", {
       method: "POST",

@@ -51,7 +51,10 @@ export default function IntegrationCard(
         </p>
         <div className="flex items-center justify-end gap-1 text-gray-500">
           <Download className="size-4" />
-          <span className="text-sm">{integration.installations} installs</span>
+          <span className="text-sm">
+            {integration.installations} install
+            {integration.installations === 1 ? "" : "s"}
+          </span>
         </div>
       </div>
     </Link>

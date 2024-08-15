@@ -35,17 +35,11 @@ export const handleSlashCommand = async (
 
   const installation = await prisma.installedIntegration.findFirst({
     where: {
-      integration: {
-        slug: "slack",
+      integrationId: "clzu59rx9000110bm5fnlzwuj",
+      credentials: {
+        path: "$.team.id",
+        equals: data.team_id,
       },
-      AND: [
-        {
-          credentials: {
-            path: "$.team.id",
-            equals: data.team_id,
-          },
-        },
-      ],
     },
   });
 
@@ -90,8 +84,8 @@ const createShortLink = async ({
   workspace: Pick<WorkspaceProps, "id" | "plan">;
   installation: InstalledIntegration;
 }) => {
-  const [url, key] = data.text;
-  const body = createLinkBodySchema.parse({ url, key });
+  const [url, key, domain] = data.text;
+  const body = createLinkBodySchema.parse({ url, key, domain });
 
   const { link, error } = await processLink({
     payload: body,

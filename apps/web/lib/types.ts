@@ -203,6 +203,13 @@ export type ExistingOAuthApp = OAuthAppProps;
 
 export type IntegrationProps = z.infer<typeof integrationSchema>;
 
+export type NewOrExistingIntegration = Omit<
+  IntegrationProps,
+  "id" | "verified" | "installations"
+> & {
+  id?: string;
+};
+
 export type InstalledIntegrationProps = Pick<
   IntegrationProps,
   "id" | "slug" | "logo" | "name" | "developer" | "description"
