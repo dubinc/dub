@@ -1,7 +1,7 @@
 {
   "name": "com.example.dub",
   "version": "0.0.1",
-  "description": "Test",
+  "description": "Dub Conversions Stripe App",
   "private": true,
   "license": "~~proprietary~~",
   "dependencies": {
