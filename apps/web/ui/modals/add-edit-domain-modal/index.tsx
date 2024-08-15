@@ -107,7 +107,7 @@ function AddEditDomainModal({
       setShowModal={setShowAddEditDomainModal}
       className="scrollbar-hide h-fit max-h-[95vh] overflow-auto"
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center gap-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
           <BlurImage
             src={logo}
@@ -173,16 +173,25 @@ function AddEditDomainModal({
             setSaving(false);
           });
         }}
-        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
+        className="flex flex-col gap-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
       >
         <div>
           <div className="flex items-center justify-between">
-            <label htmlFor="domain">
+            <label htmlFor="domain" className="flex items-center gap-x-2">
               <h2 className="text-sm font-medium text-gray-700">Domain</h2>
+              <InfoTooltip
+                content={
+                  <SimpleTooltipContent
+                    title="Not sure which domain to use?"
+                    cta="Check out our guide"
+                    href="https://dub.co/help/article/choosing-a-custom-domain"
+                  />
+                }
+              />
             </label>
             {props && lockDomain && (
               <button
-                className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                className="flex items-center gap-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
                 type="button"
                 onClick={() => {
                   window.confirm(
@@ -225,13 +234,10 @@ function AddEditDomainModal({
         {expanded && (
           <motion.div
             {...FADE_IN_ANIMATION_SETTINGS}
-            className="flex flex-col space-y-6"
+            className="flex flex-col gap-y-6"
           >
             <div>
-              <label
-                htmlFor="expiredUrl"
-                className="flex items-center space-x-2"
-              >
+              <label htmlFor="expiredUrl" className="flex items-center gap-x-2">
                 <h2 className="text-sm font-medium text-gray-900">
                   Default Expiration URL
                 </h2>
@@ -262,7 +268,7 @@ function AddEditDomainModal({
             <div>
               <label
                 htmlFor="placeholder"
-                className="flex items-center space-x-2"
+                className="flex items-center gap-x-2"
               >
                 <h2 className="text-sm font-medium text-gray-900">
                   Input Placeholder URL

@@ -1,3 +1,4 @@
+import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import { Suspense } from "react";
@@ -6,21 +7,28 @@ import IntegrationsPageHeader from "./page-header";
 
 export const revalidate = 300; // 5 minutes
 
-export default async function IntegrationsPage() {
+export default async function IntegrationsPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
   return (
     <>
       <IntegrationsPageHeader />
       <Suspense fallback={<Loader />}>
-        <Integrations />
+        <Integrations workspaceSlug={params.slug} />
       </Suspense>
     </>
   );
 }
 
-const Integrations = async () => {
+const Integrations = async ({ workspaceSlug }: { workspaceSlug: string }) => {
+  const flags = await getFeatureFlags({ workspaceSlug });
+
   const integrations = await prisma.integration.findMany({
     where: {
       verified: true,
+      ...(!flags.conversions ? { slug: { notIn: ["stripe"] } } : {}),
     },
     include: {
       _count: {
@@ -29,6 +37,16 @@ const Integrations = async () => {
         },
       },
     },
+    orderBy: [
+      {
+        installations: {
+          _count: "desc",
+        },
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
   });
 
   return (

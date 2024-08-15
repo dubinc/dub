@@ -5,8 +5,9 @@ import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import { BlurImage, getUserAvatarUrl, Popover, Tick } from "@dub/ui";
+import { OfficeBuilding } from "@dub/ui/src/icons";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { ChevronsUpDown, PlusCircle } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -152,7 +153,7 @@ function WorkspaceList({
         return (
           <Link
             key={slug}
-            className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
+            className={`relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
               selected.slug === slug ? "font-medium" : ""
             } transition-all duration-75`}
             href={href(slug)}
@@ -164,7 +165,7 @@ function WorkspaceList({
               width={20}
               height={20}
               alt={id}
-              className="h-7 w-7 shrink-0 overflow-hidden rounded-full"
+              className="size-7 shrink-0 overflow-hidden rounded-full"
             />
             <span
               className={`block truncate text-sm sm:max-w-[140px] ${
@@ -175,7 +176,7 @@ function WorkspaceList({
             </span>
             {selected.slug === slug ? (
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-                <Tick className="h-5 w-5" aria-hidden="true" />
+                <Tick className="size-5" aria-hidden="true" />
               </span>
             ) : null}
           </Link>
@@ -187,10 +188,12 @@ function WorkspaceList({
           setOpenPopover(false);
           setShowAddWorkspaceModal(true);
         }}
-        className="flex w-full cursor-pointer items-center space-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
+        className="group flex w-full cursor-pointer items-center gap-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
       >
-        <PlusCircle className="h-6 w-6 text-gray-500" />
-        <span className="block truncate">Add a new workspace</span>
+        <div className="flex size-7 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 group-hover:bg-white">
+          <OfficeBuilding className="size-4 text-gray-700" />
+        </div>
+        <span className="block truncate">Create new workspace</span>
       </button>
     </div>
   );

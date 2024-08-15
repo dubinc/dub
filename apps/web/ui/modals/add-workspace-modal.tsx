@@ -56,6 +56,7 @@ function AddWorkspaceModalHelper({
   }, [name]);
 
   const welcomeFlow = pathname === "/welcome";
+  const oauthFlow = pathname.startsWith("/oauth/authorize");
 
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
@@ -113,6 +114,9 @@ function AddWorkspaceModalHelper({
               await mutate("/api/workspaces");
               if (welcomeFlow) {
                 router.push(`/welcome?step=upgrade&slug=${slug}`);
+              } else if (oauthFlow) {
+                router.refresh();
+                setShowAddWorkspaceModal(false);
               } else {
                 router.push(`/${slug}`);
                 toast.success("Successfully created workspace!");

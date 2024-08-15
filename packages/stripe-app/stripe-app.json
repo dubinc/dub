@@ -1,7 +1,7 @@
 {
   "id": "dub.co",
-  "version": "0.0.1",
-  "name": "Dub",
+  "version": "0.0.2",
+  "name": "Dub Conversions",
   "icon": "./logo.png",
   "permissions": [
     {
@@ -46,8 +46,7 @@
   },
   "allowed_redirect_uris": [
     "https://app.dub.co/api/stripe/connect/callback",
-    "https://preview.dub.co/api/stripe/connect/callback",
-    "https://rich-easily-kingfish.ngrok-free.app/api/stripe/connect/callback"
+    "https://preview.dub.co/api/stripe/connect/callback"
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"

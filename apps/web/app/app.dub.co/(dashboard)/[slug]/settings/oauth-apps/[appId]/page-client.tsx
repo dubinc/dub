@@ -56,7 +56,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
   });
 
   if (!isLoading && !oAuthApp) {
-    return notFound();
+    notFound();
   }
 
   return (

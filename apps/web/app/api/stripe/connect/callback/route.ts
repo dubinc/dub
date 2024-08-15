@@ -1,11 +1,11 @@
-import { prismaEdge } from "@/lib/prisma/edge";
+import { getSession } from "@/lib/auth";
+import { installIntegration } from "@/lib/integrations/install";
+import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { APP_DOMAIN, getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
-
-export const runtime = "edge";
 
 const schema = z.object({
   state: z.string(),
@@ -15,6 +15,12 @@ const schema = z.object({
 });
 
 export const GET = async (req: NextRequest) => {
+  const session = await getSession();
+
+  if (!session?.user.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const parsed = schema.safeParse(getSearchParams(req.url));
 
   if (!parsed.success) {
@@ -40,7 +46,7 @@ export const GET = async (req: NextRequest) => {
   await redis.del(`stripe:install:state:${state}`);
 
   if (error) {
-    const workspace = await prismaEdge.project.findUnique({
+    const workspace = await prisma.project.findUnique({
       where: {
         id: workspaceId,
       },
@@ -49,11 +55,11 @@ export const GET = async (req: NextRequest) => {
       redirect(APP_DOMAIN);
     }
     redirect(
-      `${APP_DOMAIN}/${workspace.slug}/settings?stripeConnectError=${error_description}`,
+      `${APP_DOMAIN}/${workspace.slug}/settings/integrations/stripe?stripeConnectError=${error_description}`,
     );
   } else if (stripeAccountId) {
     // Update the workspace with the Stripe Connect ID
-    const workspace = await prismaEdge.project.update({
+    const workspace = await prisma.project.update({
       where: {
         id: workspaceId,
       },
@@ -61,6 +67,15 @@ export const GET = async (req: NextRequest) => {
         stripeConnectId: stripeAccountId,
       },
     });
-    redirect(`${APP_DOMAIN}/${workspace.slug}/settings`);
+
+    await installIntegration({
+      integrationSlug: "stripe",
+      userId: session.user.id,
+      workspaceId: workspace.id,
+    });
+
+    redirect(`${APP_DOMAIN}/${workspace.slug}/settings/integrations/stripe`);
   }
+
+  return new Response("Invalid request", { status: 400 });
 };
