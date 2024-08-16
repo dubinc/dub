@@ -36,11 +36,18 @@ export function useInViewport(
     (root?.current || window).addEventListener("scroll", checkVisibility);
     window.addEventListener("resize", checkVisibility);
 
+    let observer: IntersectionObserver | null = null;
+    if (elementRef.current) {
+      observer = new IntersectionObserver(checkVisibility);
+      observer.observe(elementRef.current);
+    }
+
     checkVisibility();
 
     return () => {
       (root?.current || window).removeEventListener("scroll", checkVisibility);
       window.removeEventListener("resize", checkVisibility);
+      observer?.disconnect();
     };
   }, [elementRef, root]);
 
