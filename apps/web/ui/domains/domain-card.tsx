@@ -291,7 +291,11 @@ function Menu({
   const [copiedLinkId, setCopiedLinkId] = useState(false);
 
   const copyLinkId = () => {
-    navigator.clipboard.writeText(props.id);
+    if (!linkProps) {
+      toast.error("Link ID not found");
+      return;
+    }
+    navigator.clipboard.writeText(linkProps.id);
     setCopiedLinkId(true);
     toast.success("Link ID copied!");
     setTimeout(() => setCopiedLinkId(false), 3000);
@@ -352,6 +356,9 @@ function Menu({
                     setShowAddEditLinkModal(true);
                   }}
                   icon={<Hyperlink className="h-4 w-4" />}
+                  disabledTooltip={
+                    !linkProps ? "Retrieving link details..." : undefined
+                  }
                   className="h-9 justify-start px-2 font-medium"
                 />
                 <Button
@@ -362,6 +369,9 @@ function Menu({
                     setShowLinkQRModal(true);
                   }}
                   icon={<QrCode className="h-4 w-4" />}
+                  disabledTooltip={
+                    !linkProps ? "Retrieving link details..." : undefined
+                  }
                   className="h-9 justify-start px-2 font-medium"
                 />
                 <Button
@@ -374,6 +384,9 @@ function Menu({
                     ) : (
                       <Copy className="h-4 w-4" />
                     )
+                  }
+                  disabledTooltip={
+                    !linkProps ? "Retrieving link details..." : undefined
                   }
                   className="h-9 justify-start px-2 font-medium"
                 />
