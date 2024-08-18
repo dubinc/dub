@@ -1,10 +1,8 @@
-import { render } from "@react-email/render";
-import { Client } from "postmark";
 import { JSXElementConstructor, ReactElement } from "react";
 
-export const client = process.env.POSTMARK_API_KEY
-  ? new Client(process.env.POSTMARK_API_KEY)
-  : null;
+import { Resend } from "resend";
+
+export const client = new Resend(process.env.RESEND_API_KEY);
 
 export const sendEmail = async ({
   email,
@@ -35,31 +33,28 @@ export const sendEmail = async ({
     return Promise.resolve();
   } else if (!client) {
     console.error(
-      "Postmark is not configured. You need to add a POSTMARK_API_KEY in your .env file for emails to work.",
+      "Resend is not configured. You need to add a RESEND_API_KEY in your .env file for emails to work.",
     );
     return Promise.resolve();
   }
 
-  return client.sendEmail({
-    From:
+  return client.emails.send({
+    from:
       from ||
       (marketing
         ? "steven@ship.dub.co"
         : process.env.NEXT_PUBLIC_IS_DUB
           ? "system@dub.co"
           : `${process.env.NEXT_PUBLIC_APP_NAME} <system@${process.env.NEXT_PUBLIC_APP_DOMAIN}>`),
-    To: email,
-    Bcc: bcc,
+    to: email,
+    bcc: bcc,
     ...(!replyToFromEmail && {
-      ReplyTo: process.env.NEXT_PUBLIC_IS_DUB
+      replyTo: process.env.NEXT_PUBLIC_IS_DUB
         ? "support@dub.co"
         : `support@${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
     }),
-    Subject: subject,
-    ...(text && { TextBody: text }),
-    ...(react && { HtmlBody: render(react) }),
-    ...(marketing && {
-      MessageStream: "broadcast",
-    }),
+    subject: subject,
+    text: text,
+    react: react,
   });
 };
