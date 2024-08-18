@@ -20,7 +20,6 @@ export async function subscribe({
       firstName: name.split(" ")[0],
       lastName: name.split(" ").slice(1).join(" "),
     }),
-    unsubscribed: false,
     audienceId: process.env.RESEND_AUDIENCE_ID as string,
   });
 }
