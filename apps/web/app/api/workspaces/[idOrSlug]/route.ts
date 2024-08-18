@@ -1,12 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
+import { dub } from "@/lib/dub";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import {
   WorkspaceSchema,
   updateWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
@@ -61,16 +63,25 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (slug !== workspace.slug) {
-        await prisma.user.updateMany({
-          where: {
-            defaultWorkspace: workspace.slug,
-          },
-          data: {
-            defaultWorkspace: slug,
-          },
-        });
-      }
+      waitUntil(
+        (async () => {
+          if (slug !== workspace.slug) {
+            await prisma.user.updateMany({
+              where: {
+                defaultWorkspace: workspace.slug,
+              },
+              data: {
+                defaultWorkspace: slug,
+              },
+            });
+
+            // update the workspace's referral link to use the new slug
+            await dub.links.update(`ext_ws_${workspace.id}`, {
+              key: slug,
+            });
+          }
+        })(),
+      );
 
       return NextResponse.json(
         WorkspaceSchema.parse({

@@ -1,7 +1,11 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
+import { dub } from "@/lib/dub";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
+import { recordLink } from "@/lib/tinybird";
+import { WorkspaceProps } from "@/lib/types";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
@@ -9,9 +13,6 @@ import {
   R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { recordLink } from "../tinybird";
-import { WorkspaceProps } from "../types";
-import { formatRedisLink, redis } from "../upstash";
 
 export async function deleteWorkspace(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
@@ -107,6 +108,11 @@ export async function deleteWorkspace(
           storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
         // if they have a Stripe subscription, cancel it
         workspace.stripeId && cancelSubscription(workspace.stripeId),
+        // set the referral link to `/deleted/[slug]`
+        dub.links.update(`ext_ws_${workspace.id}`, {
+          key: `/deleted/${workspace.slug}`,
+          archived: true,
+        }),
         // delete the workspace
         prisma.project.delete({
           where: {
@@ -189,6 +195,11 @@ export async function deleteWorkspaceAdmin(
       storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
+    // set the referral link to `/deleted/[slug]`
+    dub.links.update(`ext_ws_${workspace.id}`, {
+      key: `/deleted/${workspace.slug}`,
+      archived: true,
+    }),
     // delete the workspace
     prisma.project.delete({
       where: {

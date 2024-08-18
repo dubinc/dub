@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { dub } from "@/lib/dub";
 import { checkIfUserExists } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import {
@@ -118,6 +119,14 @@ export const POST = withSession(async ({ req, session }) => {
 
     waitUntil(
       (async () => {
+        // create a referral link for the workspace
+        await dub.links.create({
+          domain: "refer.dub.co",
+          key: slug,
+          url: "https://dub.co",
+          externalId: `ws_${workspaceResponse.id}`,
+          tagIds: ["cm000srqx0004o6ldehod07zc"],
+        });
         if (session.user["defaultWorkspace"] === null) {
           await prisma.user.update({
             where: {
