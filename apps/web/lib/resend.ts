@@ -9,8 +9,6 @@ export async function subscribe({
   email: string;
   name?: string | null;
 }) {
-  const [firstName, ...lastName] = name ? name.split(" ") : [];
-
   if (!process.env.RESEND_API_KEY || !process.env.RESEND_AUDIENCE_ID) {
     console.error("Resend API key or audience ID not found");
     return;
@@ -18,8 +16,10 @@ export async function subscribe({
 
   return await resend.contacts.create({
     email,
-    firstName,
-    lastName: lastName.length > 0 ? lastName.join(" ") : undefined,
+    ...(name && {
+      firstName: name.split(" ")[0],
+      lastName: name.split(" ").slice(1).join(" "),
+    }),
     unsubscribed: false,
     audienceId: process.env.RESEND_AUDIENCE_ID as string,
   });
