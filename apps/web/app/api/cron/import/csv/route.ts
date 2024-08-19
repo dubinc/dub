@@ -40,7 +40,14 @@ export async function POST(req: Request) {
           ? parseDateTime(row[mapping.createdAt])
           : undefined,
         tags: mapping.tags
-          ? row[mapping.tags]?.split(",").map((tag) => tag.trim())
+          ? [
+              ...new Set(
+                row[mapping.tags]
+                  ?.split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean),
+              ),
+            ]
           : undefined,
       };
     };
@@ -92,6 +99,7 @@ export async function POST(req: Request) {
           const { data } = chunk;
           if (!data?.length) {
             console.warn("No data in CSV import chunk", chunk.errors);
+            parser.resume();
             return;
           }
 
@@ -118,7 +126,7 @@ export async function POST(req: Request) {
               (link) =>
                 !alreadyCreatedLinks.some(
                   (l) => l.domain === link.domain && l.key === link.key,
-                ),
+                ) && link.key !== "_root",
             );
 
           const selectedTags = [
@@ -133,7 +141,8 @@ export async function POST(req: Request) {
           // Find tags that need to be added to the workspace
           const tagsNotInWorkspace = selectedTags.filter(
             (tag) =>
-              !tags.find((t) => t.name === tag) && !addedTags.includes(tag),
+              !tags.find((t) => t.name.toLowerCase() === tag.toLowerCase()) &&
+              !addedTags.find((t) => t.toLowerCase() === tag.toLowerCase()),
           );
 
           // Add missing tags to the workspace
@@ -144,6 +153,7 @@ export async function POST(req: Request) {
                 color: randomBadgeColor(),
                 projectId: workspace.id,
               })),
+              skipDuplicates: true,
             });
           }
 
