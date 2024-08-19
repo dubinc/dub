@@ -2,6 +2,7 @@
 
 import DeleteAccountSection from "@/ui/account/delete-account";
 import UpdateDefaultWorkspace from "@/ui/account/update-default-workspace";
+import UpdateSubscription from "@/ui/account/update-subscription";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
 import { Form } from "@dub/ui";
@@ -52,8 +53,7 @@ export default function SettingsPageClient() {
           defaultValue: session?.user?.email || undefined,
           placeholder: "panic@thedis.co",
         }}
-        helpText="Must be a valid email address."
-        // helpText={<UpdateSubscription />} TODO: enable this once we can subscribe folks programmatically
+        helpText={<UpdateSubscription />}
         handleSubmit={(data) =>
           fetch("/api/user", {
             method: "PATCH",
