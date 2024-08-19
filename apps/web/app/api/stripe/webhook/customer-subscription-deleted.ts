@@ -1,10 +1,10 @@
-import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { APP_DOMAIN_WITH_NGROK, FREE_PLAN, log } from "@dub/utils";
+import { FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { sendCancellationFeedback } from "./utils";
 
 export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const subscriptionDeleted = event.data.object as Stripe.Subscription;
@@ -132,13 +132,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       type: "cron",
       mention: true,
     }),
-    qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/emails/cancellation-feedback`,
-      // artificially delay anywhere between 3-5 hours to make it feel more like a human
-      delay: Math.floor(Math.random() * 60 * 60 * 3) + 3 * 60 * 60,
-      body: {
-        owners: workspaceUsers,
-      },
+    sendCancellationFeedback({
+      owners: workspaceUsers,
     }),
   ]);
 }
