@@ -1,11 +1,6 @@
 import { dub } from "@/lib/dub";
 import { Button, CopyButton, Wordmark } from "@dub/ui";
-import {
-  Crosshairs,
-  CursorRays,
-  Globe,
-  InvoiceDollar,
-} from "@dub/ui/src/icons";
+import { CursorRays, Globe, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { COUNTRIES, getPrettyUrl, timeAgo } from "@dub/utils";
 import { Mail } from "lucide-react";
 import ReferralsPageClient from "./page-client";
@@ -31,7 +26,7 @@ export default function ReferralsPage({
           <div className="flex gap-3 lg:col-span-2 lg:flex-col">
             <p className="font-medium text-gray-700">Why refer someone?</p>
             <div className="flex items-center gap-x-2">
-              <Crosshairs className="size-4 text-gray-500" />
+              <UserCheck className="size-4 text-gray-500" />
               <p className="text-sm text-gray-500">
                 Earn 500 extra clicks quota per month per signup (up to 16,000
                 total)
