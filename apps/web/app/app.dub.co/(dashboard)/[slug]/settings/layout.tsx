@@ -14,6 +14,8 @@ import {
 } from "@dub/ui/src/icons";
 import { ReactNode } from "react";
 
+export const revalidate = 0;
+
 export default async function WorkspaceSettingsLayout({
   children,
   params,
