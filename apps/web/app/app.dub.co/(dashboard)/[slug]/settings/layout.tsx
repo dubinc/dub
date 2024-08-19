@@ -5,6 +5,7 @@ import {
   ConnectedDots,
   CubeSettings,
   Gear2,
+  Gift,
   Globe,
   Key,
   Receipt2,
@@ -13,6 +14,8 @@ import {
   Users6,
 } from "@dub/ui/src/icons";
 import { ReactNode } from "react";
+
+export const revalidate = 0;
 
 export default async function WorkspaceSettingsLayout({
   children,
@@ -67,6 +70,9 @@ export default async function WorkspaceSettingsLayout({
           icon: ShieldCheck,
           segment: "security",
         },
+        ...(flags.referrals
+          ? [{ name: "Referrals", icon: Gift, segment: "referrals" }]
+          : []),
       ],
     },
 
