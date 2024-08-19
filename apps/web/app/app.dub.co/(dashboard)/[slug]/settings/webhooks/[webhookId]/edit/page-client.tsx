@@ -7,11 +7,8 @@ import AddEditWebhookForm from "@/ui/webhooks/add-edit-webhook-form";
 import WebhookHeader from "@/ui/webhooks/webhook-header";
 import { MaxWidthWrapper } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import useSWR from "swr";
-
-// TODO:
-// Finish the remaining
 
 export default function UpdateWebhookPageClient({
   webhookId,
@@ -34,11 +31,15 @@ export default function UpdateWebhookPageClient({
     fetcher,
   );
 
+  if (!isLoading && !webhook) {
+    notFound();
+  }
+
   return (
     <>
       <WebhookHeader webhookId={webhookId} />
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        <AddEditWebhookForm webhook={null} />
+        {webhook && <AddEditWebhookForm webhook={webhook} />}
       </MaxWidthWrapper>
     </>
   );

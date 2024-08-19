@@ -207,7 +207,7 @@ export default function AddEditWebhookForm({
         </div>
 
         <Button
-          text={webhook ? "Save changes" : "Create"}
+          text={webhook ? "Save changes" : "Create webhook"}
           disabled={buttonDisabled}
           loading={saving}
           type="submit"

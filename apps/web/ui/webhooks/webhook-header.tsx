@@ -7,13 +7,14 @@ import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MaxWidthWrapper, Popover, TokenAvatar } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, RefreshCcw, Trash } from "lucide-react";
+import { ChevronLeft, Edit3, Trash } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
+  const router = useRouter();
   const { slug, id: workspaceId, role } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -78,10 +79,11 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                 <Button
                   text="Update webhook"
                   variant="outline"
-                  icon={<RefreshCcw className="h-4 w-4" />}
+                  icon={<Edit3 className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                   onClick={async () => {
                     setOpenPopover(false);
+                    router.push(`/${slug}/settings/webhooks/${webhookId}/edit`);
                   }}
                 />
                 <Button
