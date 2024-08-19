@@ -133,7 +133,8 @@ export async function POST(req: Request) {
           // Find tags that need to be added to the workspace
           const tagsNotInWorkspace = selectedTags.filter(
             (tag) =>
-              !tags.find((t) => t.name === tag) && !addedTags.includes(tag),
+              !tags.find((t) => t.name.toLowerCase() === tag.toLowerCase()) &&
+              !addedTags.find((t) => t.toLowerCase() === tag.toLowerCase()),
           );
 
           // Add missing tags to the workspace
@@ -144,6 +145,7 @@ export async function POST(req: Request) {
                 color: randomBadgeColor(),
                 projectId: workspace.id,
               })),
+              skipDuplicates: true,
             });
           }
 
