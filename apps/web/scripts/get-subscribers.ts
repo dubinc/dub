@@ -32,7 +32,7 @@ async function main() {
   });
 
   const subscribersThatOpenedEmail = subscribers
-    .filter((subscriber) => emailOpens.includes(subscriber.email!))
+    // .filter((subscriber) => emailOpens.includes(subscriber.email!))
     .map(({ email, name }) => ({
       email,
       ...(name && {
@@ -44,7 +44,7 @@ async function main() {
   console.table(subscribersThatOpenedEmail.slice(0, 10));
 
   fs.writeFileSync(
-    "active_email_subscribers.csv",
+    "all_email_subscribers.csv",
     Papa.unparse(subscribersThatOpenedEmail),
   );
 }
