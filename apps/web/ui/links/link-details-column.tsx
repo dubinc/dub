@@ -5,7 +5,7 @@ import {
   CardList,
   Crosshairs,
   Tooltip,
-  useIntersectionObserver,
+  useInViewport,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
@@ -56,8 +56,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
-  const entry = useIntersectionObserver(ref, {});
-  const isVisible = entry?.isIntersecting ?? true;
+  const isVisible = useInViewport(ref, { defaultValue: true });
 
   const { primaryTag, additionalTags } = useOrganizedTags(tags);
 

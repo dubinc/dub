@@ -24,6 +24,7 @@ import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
@@ -34,7 +35,12 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId } = useWorkspace();
+  const { slug, id: workspaceId, flags } = useWorkspace();
+
+  if (!flags?.integrations) {
+    redirect(`/${slug}/settings`);
+  }
+
   const [openPopover, setOpenPopover] = useState(false);
   const getInstallationUrl = useAction(getIntegrationInstallUrl, {
     onSuccess: ({ data }) => {
@@ -169,19 +175,19 @@ export default function IntegrationPageClient({
           </div>
         </div>
 
-        {!integration.installed && (
-          <div className="flex items-center gap-x-2">
-            {slug === "dub" && (
-              <Link
-                href={`/${slug}/settings/integrations/${integration.slug}/manage`}
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-full items-center rounded-md border px-4 text-sm",
-                )}
-              >
-                Manage
-              </Link>
-            )}
+        <div className="flex items-center gap-x-2">
+          {slug === "dub" && (
+            <Link
+              href={`/${slug}/settings/integrations/${integration.slug}/manage`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-full items-center rounded-md border px-4 text-sm",
+              )}
+            >
+              Manage
+            </Link>
+          )}
+          {!integration.installed && (
             <Button
               onClick={() => {
                 const { installUrl } = integration;
@@ -202,8 +208,8 @@ export default function IntegrationPageClient({
               variant="primary"
               icon={<ConnectedDots className="size-4" />}
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="w-full rounded-lg border border-gray-200 bg-white">

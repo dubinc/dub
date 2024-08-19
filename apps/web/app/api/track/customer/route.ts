@@ -22,6 +22,9 @@ export const POST = withWorkspaceEdge(
       customerAvatar,
     } = trackCustomerRequestSchema.parse(await parseRequestBody(req));
 
+    const finalCustomerName =
+      customerName || customerEmail || generateRandomName();
+
     const customer = await prismaEdge.customer.upsert({
       where: {
         projectId_externalId: {
@@ -30,7 +33,7 @@ export const POST = withWorkspaceEdge(
         },
       },
       create: {
-        name: customerName || generateRandomName(),
+        name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
         externalId,
@@ -38,7 +41,7 @@ export const POST = withWorkspaceEdge(
         projectConnectId: workspace.stripeConnectId,
       },
       update: {
-        name: customerName,
+        name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
       },
