@@ -84,7 +84,7 @@ async function ClickEvents({ slug }: { slug: string }) {
         <div key={click_id} className="flex justify-between gap-2 p-4">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <CursorRays className="size-4 text-gray-500" />
-            <p>Someone from from</p>
+            <p>Someone from</p>
             <img
               alt={country}
               src={`https://flag.vercel.app/m/${country}.svg`}
