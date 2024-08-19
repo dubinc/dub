@@ -7,7 +7,6 @@ import {
   WorkspaceSchema,
   updateWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
@@ -62,26 +61,23 @@ export const PATCH = withWorkspace(
         },
       });
 
-      waitUntil(
-        (async () => {
-          if (slug !== workspace.slug) {
-            await prisma.user.updateMany({
-              where: {
-                defaultWorkspace: workspace.slug,
-              },
-              data: {
-                defaultWorkspace: slug,
-              },
-            });
+      if (slug !== workspace.slug) {
+        await prisma.user.updateMany({
+          where: {
+            defaultWorkspace: workspace.slug,
+          },
+          data: {
+            defaultWorkspace: slug,
+          },
+        });
 
-            // SOON: update the workspace's referral link to use the new slug
-            // await dub.links.update(`ext_ws_${workspace.id}`, {
-            //   key: slug,
-            // });
-          }
-        })(),
-      );
-
+        // SOON: update the workspace's referral link to use the new slug
+        // waitUntil(
+        //   await dub.links.update(`ext_ws_${workspace.id}`, {
+        //     key: slug,
+        //   }),
+        // );
+      }
       return NextResponse.json(
         WorkspaceSchema.parse({
           ...response,
