@@ -1,5 +1,11 @@
+import { dub } from "@/lib/dub";
 import { Button, CopyButton, Wordmark } from "@dub/ui";
-import { Crosshairs, CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
+import {
+  Crosshairs,
+  CursorRays,
+  Globe,
+  InvoiceDollar,
+} from "@dub/ui/src/icons";
 import { COUNTRIES, getPrettyUrl, timeAgo } from "@dub/utils";
 import { Mail } from "lucide-react";
 import ReferralsPageClient from "./page-client";
@@ -65,34 +71,30 @@ export default function ReferralsPage({
 }
 
 async function ClickEvents({ slug }: { slug: string }) {
-  const events = (await fetch(
-    `https://api.dub.co/events?domain=refer.dub.co&key=${slug}`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.DUB_API_KEY}`,
-      },
-    },
-  ).then((res) => res.json())) as {
-    timestamp: string;
-    click_id: string;
-    country: string;
-  }[];
+  const events = await dub.events.list({
+    domain: "refer.dub.co",
+    key: slug,
+  });
 
   return (
     <div className="grid divide-y divide-gray-200">
-      {events.map(({ click_id, country, timestamp }) => (
-        <div key={click_id} className="flex justify-between gap-2 p-4">
+      {events.map(({ clickId, country, timestamp }) => (
+        <div key={clickId} className="flex justify-between gap-2 p-4">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <CursorRays className="size-4 text-gray-500" />
             <p>Someone from</p>
-            <img
-              alt={country}
-              src={`https://flag.vercel.app/m/${country}.svg`}
-              className="h-3 w-5"
-            />
+            {country ? (
+              <img
+                alt={country}
+                src={`https://flag.vercel.app/m/${country}.svg`}
+                className="h-3 w-5"
+              />
+            ) : (
+              <Globe className="size-3 text-gray-700" />
+            )}
             <p>
               <span className="font-semibold text-gray-700">
-                {COUNTRIES[country]}
+                {country ? COUNTRIES[country] : "Planet Earth"}
               </span>{" "}
               clicked on your link
             </p>
