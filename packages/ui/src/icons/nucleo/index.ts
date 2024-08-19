@@ -36,6 +36,7 @@ export * from "./flag2";
 export * from "./gaming-console";
 export * from "./gear";
 export * from "./gear2";
+export * from "./gift";
 export * from "./globe";
 export * from "./globe2";
 export * from "./grid-layout-rows";

@@ -118,6 +118,15 @@ export const POST = withSession(async ({ req, session }) => {
 
     waitUntil(
       (async () => {
+        // SOON: create a referral link for the workspace
+        // await dub.links.create({
+        //   domain: "refer.dub.co",
+        //   key: slug,
+        //   url: "https://dub.co",
+        //   externalId: `ws_${workspaceResponse.id}`,
+        //   tagIds: ["cm000srqx0004o6ldehod07zc"],
+        //   trackConversion: true,
+        // });
         if (session.user["defaultWorkspace"] === null) {
           await prisma.user.update({
             where: {

@@ -70,7 +70,11 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "conversions" | "integrations" | "dublink";
+export type BetaFeatures =
+  | "conversions"
+  | "integrations"
+  | "dublink"
+  | "referrals";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;

@@ -70,8 +70,14 @@ export const PATCH = withWorkspace(
             defaultWorkspace: slug,
           },
         });
-      }
 
+        // SOON: update the workspace's referral link to use the new slug
+        // waitUntil(
+        //   await dub.links.update(`ext_ws_${workspace.id}`, {
+        //     key: slug,
+        //   }),
+        // );
+      }
       return NextResponse.json(
         WorkspaceSchema.parse({
           ...response,
