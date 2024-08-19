@@ -126,7 +126,7 @@ export async function POST(req: Request) {
               (link) =>
                 !alreadyCreatedLinks.some(
                   (l) => l.domain === link.domain && l.key === link.key,
-                ),
+                ) && link.key !== "_root",
             );
 
           const selectedTags = [
