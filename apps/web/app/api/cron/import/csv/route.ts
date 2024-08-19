@@ -246,6 +246,13 @@ export async function POST(req: Request) {
             links: validLinks,
           });
 
+          if (selectedDomains.length > 0) {
+            await redis.sadd(
+              `import:csv:${workspaceId}:${id}:domains`,
+              ...selectedDomains,
+            );
+          }
+
           count += validLinks.length;
 
           cursor += data.length;
@@ -262,10 +269,17 @@ export async function POST(req: Request) {
       -1,
     )) as any;
 
+    const affectedDomains = (await redis.smembers(
+      `import:csv:${workspaceId}:${id}:domains`,
+    )) as any;
+
     await sendCsvImportEmails({
       workspaceId,
       count,
-      domains: addedDomains,
+      domains:
+        Array.isArray(affectedDomains) && affectedDomains.length > 0
+          ? affectedDomains
+          : [],
       errorLinks:
         Array.isArray(errorLinks) && errorLinks.length > 0 ? errorLinks : [],
     });
@@ -275,6 +289,7 @@ export async function POST(req: Request) {
       storage.delete(url),
       redis.del(`import:csv:${workspaceId}:${id}:cursor`),
       redis.del(`import:csv:${workspaceId}:${id}:failed`),
+      redis.del(`import:csv:${workspaceId}:${id}:domains`),
     ]);
     clearResults.forEach((result, idx) => {
       if (result.status === "rejected") {
