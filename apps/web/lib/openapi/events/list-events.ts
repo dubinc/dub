@@ -4,7 +4,7 @@ import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
-import { ZodOpenApiOperationObject } from "zod-openapi";
+import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
 export const listEvents: ZodOpenApiOperationObject = {
   operationId: "listEvents",
@@ -21,9 +21,9 @@ export const listEvents: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.union([
-            z.array(clickEventEnrichedSchema),
-            z.array(leadEventEnrichedSchema),
-            z.array(saleEventEnrichedSchema),
+            z.array(clickEventEnrichedSchema).openapi({ title: "ClickEvents" }),
+            z.array(leadEventEnrichedSchema).openapi({ title: "LeadEvents" }),
+            z.array(saleEventEnrichedSchema).openapi({ title: "SaleEvents" }),
           ]),
         },
       },
@@ -32,4 +32,10 @@ export const listEvents: ZodOpenApiOperationObject = {
   },
   tags: ["Events"],
   security: [{ token: [] }],
+};
+
+export const eventsPath: ZodOpenApiPathsObject = {
+  "/events": {
+    get: listEvents,
+  },
 };
