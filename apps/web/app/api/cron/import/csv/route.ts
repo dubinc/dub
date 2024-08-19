@@ -40,7 +40,14 @@ export async function POST(req: Request) {
           ? parseDateTime(row[mapping.createdAt])
           : undefined,
         tags: mapping.tags
-          ? row[mapping.tags]?.split(",").map((tag) => tag.trim())
+          ? [
+              ...new Set(
+                row[mapping.tags]
+                  ?.split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean),
+              ),
+            ]
           : undefined,
       };
     };
@@ -92,6 +99,7 @@ export async function POST(req: Request) {
           const { data } = chunk;
           if (!data?.length) {
             console.warn("No data in CSV import chunk", chunk.errors);
+            parser.resume();
             return;
           }
 
