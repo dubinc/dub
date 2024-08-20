@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -30,6 +31,20 @@ export const POST = withWorkspace(
     const { name, url, secret, triggers } = createWebhookSchema.parse(
       await parseRequestBody(req),
     );
+
+    const existingWebhook = await prisma.webhook.findFirst({
+      where: {
+        url,
+        projectId: workspace.id,
+      },
+    });
+
+    if (existingWebhook) {
+      throw new DubApiError({
+        code: "conflict",
+        message: "A Webhook with this URL already exists.",
+      });
+    }
 
     const webhook = await prisma.webhook.create({
       data: {
