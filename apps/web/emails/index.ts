@@ -1,10 +1,5 @@
-import { render } from "@react-email/render";
-import { Client } from "postmark";
-import { JSXElementConstructor, ReactElement } from "react";
-
-export const client = process.env.POSTMARK_API_KEY
-  ? new Client(process.env.POSTMARK_API_KEY)
-  : null;
+import { resend } from "@/lib/resend";
+import { CreateEmailOptions } from "resend";
 
 export const sendEmail = async ({
   email,
@@ -14,18 +9,15 @@ export const sendEmail = async ({
   replyToFromEmail,
   text,
   react,
+  scheduledAt,
   marketing,
-}: {
+}: Omit<CreateEmailOptions, "to" | "from"> & {
   email: string;
-  subject: string;
   from?: string;
-  bcc?: string;
   replyToFromEmail?: boolean;
-  text?: string;
-  react?: ReactElement<any, string | JSXElementConstructor<any>>;
   marketing?: boolean;
 }) => {
-  if (process.env.NODE_ENV === "development" && !client) {
+  if (process.env.NODE_ENV === "development" && !resend) {
     // Set up a fake email client for development
     console.info(
       `Email to ${email} with subject ${subject} sent from ${
@@ -33,33 +25,32 @@ export const sendEmail = async ({
       }`,
     );
     return Promise.resolve();
-  } else if (!client) {
+  } else if (!resend) {
     console.error(
-      "Postmark is not configured. You need to add a POSTMARK_API_KEY in your .env file for emails to work.",
+      "Resend is not configured. You need to add a RESEND_API_KEY in your .env file for emails to work.",
     );
     return Promise.resolve();
   }
 
-  return client.sendEmail({
-    From:
+  return resend.emails.send({
+    to: email,
+    from:
       from ||
       (marketing
-        ? "steven@ship.dub.co"
-        : process.env.NEXT_PUBLIC_IS_DUB
-          ? "system@dub.co"
-          : `${process.env.NEXT_PUBLIC_APP_NAME} <system@${process.env.NEXT_PUBLIC_APP_DOMAIN}>`),
-    To: email,
-    Bcc: bcc,
+        ? "Steven from Dub.co <steven@ship.dub.co>"
+        : "Dub.co <system@dub.co>"),
+    bcc: bcc,
     ...(!replyToFromEmail && {
-      ReplyTo: process.env.NEXT_PUBLIC_IS_DUB
-        ? "support@dub.co"
-        : `support@${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+      replyTo: "support@dub.co",
     }),
-    Subject: subject,
-    ...(text && { TextBody: text }),
-    ...(react && { HtmlBody: render(react) }),
+    subject: subject,
+    text: text,
+    react: react,
+    scheduledAt,
     ...(marketing && {
-      MessageStream: "broadcast",
+      headers: {
+        "List-Unsubscribe": "https://app.dub.co/account/settings",
+      },
     }),
   });
 };

@@ -208,7 +208,7 @@ export const eventsFilterTB = analyticsFilterTB
 
 export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
-  .and(
+  .merge(
     z.object({
       page: z.coerce.number().default(0),
       limit: z.coerce.number().default(PAGINATION_LIMIT),

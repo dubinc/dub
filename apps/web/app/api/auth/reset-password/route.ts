@@ -3,6 +3,7 @@ import { parseRequestBody, ratelimitOrThrow } from "@/lib/api/utils";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
+import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import PasswordUpdated from "emails/password-updated";
 import { NextRequest, NextResponse } from "next/server";
@@ -59,14 +60,17 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
-    // Send the email to inform the user that their password has been updated
-    await sendEmail({
-      subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been reset`,
-      email: identifier,
-      react: PasswordUpdated({
+    // Send the email to inform the user that their password has been reset
+    waitUntil(
+      sendEmail({
+        subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been reset`,
         email: identifier,
+        react: PasswordUpdated({
+          email: identifier,
+          verb: "reset",
+        }),
       }),
-    });
+    );
 
     return NextResponse.json({ ok: true });
   } catch (error) {

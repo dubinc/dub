@@ -34,7 +34,7 @@ export const validDomainRegex = new RegExp(
 );
 
 export const validKeyRegex = new RegExp(
-  /^[0-9A-Za-z\u0080-\uFFFF\/\-\p{Emoji}]*$/u,
+  /^[0-9A-Za-z_\u0080-\uFFFF\/\-\p{Emoji}]*$/u,
 );
 
 export const validSlugRegex = new RegExp(/^[a-zA-Z0-9\-]+$/);

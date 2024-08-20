@@ -54,6 +54,9 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(clickEvent.data[0]);
 
+    const finalCustomerName =
+      customerName || customerEmail || generateRandomName();
+
     // Find customer or create if not exists
     const customer = await prismaEdge.customer.upsert({
       where: {
@@ -63,7 +66,7 @@ export const POST = withWorkspaceEdge(
         },
       },
       create: {
-        name: customerName || generateRandomName(),
+        name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
         externalId,
@@ -71,7 +74,7 @@ export const POST = withWorkspaceEdge(
         projectConnectId: workspace.stripeConnectId,
       },
       update: {
-        name: customerName,
+        name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
       },

@@ -4,6 +4,9 @@ import { withSession } from "@/lib/auth";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
+import { waitUntil } from "@vercel/functions";
+import { sendEmail } from "emails";
+import PasswordUpdated from "emails/password-updated";
 import { NextResponse } from "next/server";
 
 // PATCH /api/user/password - updates the user's password
@@ -49,8 +52,16 @@ export const PATCH = withSession(async ({ req, session }) => {
     },
   });
 
-  // TODO:
-  // Send an email to the user notifying them that their password has been updated
+  // Send the email to inform the user that their password has been updated
+  waitUntil(
+    sendEmail({
+      subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been updated`,
+      email: session.user.email,
+      react: PasswordUpdated({
+        email: session.user.email,
+      }),
+    }),
+  );
 
   return NextResponse.json({ ok: true });
 });

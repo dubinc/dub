@@ -18,7 +18,6 @@ export const GET = withWorkspace(
     await getDomainOrThrow({
       workspace,
       domain,
-      dubDomainChecks: true,
     });
 
     const response = await getLinkViaEdge(domain, key);
@@ -38,7 +37,6 @@ export const PUT = withWorkspace(
     await getDomainOrThrow({
       workspace,
       domain,
-      dubDomainChecks: true,
     });
 
     const response = await prisma.link.update({

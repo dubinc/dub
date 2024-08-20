@@ -10,7 +10,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
-  useIntersectionObserver,
+  useInViewport,
 } from "@dub/ui";
 import {
   Apple,
@@ -60,9 +60,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const ref = useRef<HTMLDivElement>(null);
 
-  // Use intersection observer for basic "virtualization" to improve transition performance
-  const entry = useIntersectionObserver(ref, {});
-  const isVisible = entry?.isIntersecting ?? true;
+  const isVisible = useInViewport(ref, { defaultValue: true });
 
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
