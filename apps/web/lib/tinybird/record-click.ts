@@ -4,6 +4,7 @@ import {
   capitalize,
   getDomainWithoutWWW,
 } from "@dub/utils";
+import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { ipAddress } from "@vercel/edge";
 import { nanoid } from "ai";
 import { NextRequest, userAgent } from "next/server";
@@ -37,6 +38,7 @@ export async function recordClick({
       ? req.headers.get("x-vercel-ip-continent")
       : LOCALHOST_GEO_DATA.continent;
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
+  const isEuCountry = geo?.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
@@ -67,8 +69,8 @@ export async function recordClick({
           alias_link_id: "",
           url: url || "",
           ip:
-            // only record IP if it's a valid IP and not from EU
-            typeof ip === "string" && ip.trim().length > 0 && continent !== "EU"
+            // only record IP if it's a valid IP and not from a EU country
+            typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
               ? ip
               : "",
           continent: continent || "",
