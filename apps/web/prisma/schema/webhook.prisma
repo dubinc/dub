@@ -1,20 +1,20 @@
-enum WebhookSource {
+enum WebhookReceiver {
   user
   zapier
   make
 }
 
 model Webhook {
-  id        String        @id @default(cuid())
-  source    WebhookSource
+  id        String          @id @default(cuid())
+  receiver  WebhookReceiver
   projectId String
   linkId    String?
   name      String
   url       String
   secret    String
   triggers  Json
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   Project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   Link    Link?   @relation(fields: [linkId], references: [id], onDelete: Cascade)

@@ -38,7 +38,7 @@ export const POST = withWorkspace(
         secret,
         triggers,
         projectId: workspace.id,
-        source: "user",
+        receiver: "user",
       },
     });
 

@@ -93,6 +93,15 @@ export default function WorkspaceSettingsLayoutClient({
                 },
               ]
             : []),
+          ...(flags?.webhooks
+            ? [
+                {
+                  name: "Webhooks",
+                  icon: Key,
+                  segment: "webhooks",
+                },
+              ]
+            : []),
         ],
       },
 
