@@ -80,7 +80,8 @@ export type BetaFeatures =
   | "conversions"
   | "integrations"
   | "dublink"
-  | "webhooks";
+  | "webhooks"
+  | "referrals";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;

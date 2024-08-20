@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export function Crosshairs(props: SVGProps<SVGSVGElement>) {
+export function Gift(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       height="18"
@@ -10,26 +10,6 @@ export function Crosshairs(props: SVGProps<SVGSVGElement>) {
       {...props}
     >
       <g fill="currentColor">
-        <circle
-          cx="9"
-          cy="9"
-          fill="none"
-          r="6.5"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
-        <circle
-          cx="9"
-          cy="9"
-          fill="none"
-          r="2.25"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
         <line
           fill="none"
           stroke="currentColor"
@@ -38,41 +18,45 @@ export function Crosshairs(props: SVGProps<SVGSVGElement>) {
           strokeWidth="1.5"
           x1="9"
           x2="9"
-          y1="1"
-          y2="2.5"
+          y1="5.25"
+          y2="16.25"
         />
-        <line
+        <path
+          d="M3.75,3.5c0-.966,.784-1.75,1.75-1.75,2.589,0,3.5,3.5,3.5,3.5h-3.5c-.966,0-1.75-.784-1.75-1.75Z"
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
-          x1="17"
-          x2="15.5"
-          y1="9"
-          y2="9"
         />
-        <line
+        <path
+          d="M12.5,5.25h-3.5s.911-3.5,3.5-3.5c.966,0,1.75,.784,1.75,1.75s-.784,1.75-1.75,1.75Z"
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
-          x1="9"
-          x2="9"
-          y1="17"
-          y2="15.5"
         />
-        <line
+        <path
+          d="M14.25,8.25v6c0,1.105-.895,2-2,2H5.75c-1.105,0-2-.895-2-2v-6"
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
-          x1="1"
-          x2="2.5"
-          y1="9"
-          y2="9"
+        />
+        <rect
+          height="3"
+          width="14.5"
+          fill="none"
+          rx="1"
+          ry="1"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+          x="1.75"
+          y="5.25"
         />
       </g>
     </svg>

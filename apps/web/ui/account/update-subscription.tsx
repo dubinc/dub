@@ -22,7 +22,7 @@ export default function UpdateSubscription() {
   };
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center gap-x-2">
       <Switch
         checked={data?.subscribed}
         loading={isLoading}
@@ -30,7 +30,7 @@ export default function UpdateSubscription() {
           update(() => subscribe(checked), { subscribed: checked });
         }}
       />
-      <p className="text-sm text-gray-500">Subscribed to updates</p>
+      <p className="text-sm text-gray-500">Subscribed to product updates</p>
     </div>
   );
 }

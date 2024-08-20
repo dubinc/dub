@@ -3,13 +3,12 @@ import { TagProps } from "@/lib/types";
 import {
   AnimatedSizeContainer,
   CardList,
-  Crosshairs,
   Tooltip,
   useInViewport,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
+import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { cn, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -187,7 +186,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               ? [
                   {
                     id: "leads",
-                    icon: Crosshairs,
+                    icon: UserCheck,
                     value: link.leads,
                     className: "hidden sm:flex",
                   },
