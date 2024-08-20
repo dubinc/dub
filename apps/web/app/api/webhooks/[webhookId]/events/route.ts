@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getWebhookEvents } from "@/lib/tinybird/get-webhook-events";
 import { NextResponse } from "next/server";
 
-// GET /api/webhooks/[webhookId]/events - get events occurred for a webhook
+// GET /api/webhooks/[webhookId]/events - get logs for a webhook
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
@@ -15,13 +15,18 @@ export const GET = withWorkspace(
       },
     });
 
+    // TODO:
+    // 1. Filter events by url, workspace, event type, http status
+    // 2. Paginate events
+    // 3. Sort events by createdAt
+
     const events = await getWebhookEvents({
       webhookId,
     });
 
-    console.log(events);
+    // console.log(events);
 
-    return NextResponse.json(events);
+    return NextResponse.json(events.data);
   },
   {
     requiredPermissions: ["webhooks.read"],

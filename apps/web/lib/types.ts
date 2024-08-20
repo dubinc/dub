@@ -260,5 +260,3 @@ export type WebhookTrigger = (typeof WEBHOOK_TRIGGERS)[number];
 export type WebhookProps = z.infer<typeof webhookSchema>;
 
 export type NewWebhook = z.infer<typeof createWebhookSchema>;
-
-export type WebhookPayloadSchema = z.infer<typeof webhookPayloadSchema>;

@@ -25,17 +25,6 @@ export const createWebhookSchema = z.object({
 
 export const updateWebhookSchema = createWebhookSchema.partial();
 
-export const webhookEventSchemaTB = z.object({
-  event_id: z.string(),
-  webhook_id: z.string(),
-  message_id: z.string(), // QStash message ID
-  url: z.string(),
-  event: z.enum(WEBHOOK_TRIGGERS),
-  http_status: z.number(),
-  request_body: z.string(),
-  response_body: z.string(),
-});
-
 // Schema of the payload sent to the webhook endpoint by Dub
 export const webhookPayloadSchema = z.object({
   event: z.enum(WEBHOOK_TRIGGERS),
@@ -50,6 +39,19 @@ export const webhookCallbackSchema = z.object({
   url: z.string(),
   createdAt: z.number(),
   sourceMessageId: z.string(),
-  body: z.string().optional().default(""), // Response from the users webhook URL
+  body: z.string().optional().default(""), // Response from the original webhook URL
   sourceBody: z.string(), // Original request payload from Dub
+});
+
+// Webhook event schema for the webhook logs
+export const webhookEventSchemaTB = z.object({
+  timestamp: z.string(),
+  event_id: z.string(),
+  webhook_id: z.string(),
+  message_id: z.string(), // QStash message ID
+  url: z.string(),
+  event: z.enum(WEBHOOK_TRIGGERS),
+  http_status: z.number(),
+  request_body: z.string(),
+  response_body: z.string(),
 });
