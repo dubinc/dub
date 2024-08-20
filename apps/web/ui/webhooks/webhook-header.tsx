@@ -3,7 +3,6 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
-import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MaxWidthWrapper, Popover, TokenAvatar } from "@dub/ui";
 import { fetcher } from "@dub/utils";
@@ -12,6 +11,7 @@ import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
+import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
 
 export default function WebhookHeader({
   webhookId,
@@ -29,12 +29,9 @@ export default function WebhookHeader({
     fetcher,
   );
 
-  const { RemoveOAuthAppModal, setShowRemoveOAuthAppModal } =
-    useRemoveOAuthAppModal({
-      // @ts-ignore
-      // Fix it
-      webhook: {},
-    });
+  const { DeleteWebhookModal, setDeleteWebhookModal } = useDeleteWebhookModal({
+    webhook,
+  });
 
   const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
@@ -48,7 +45,7 @@ export default function WebhookHeader({
   return (
     <>
       <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
-        <RemoveOAuthAppModal />
+        <DeleteWebhookModal />
         <Link
           href={`/${slug}/settings/webhooks`}
           className="flex items-center gap-x-1"
@@ -118,7 +115,7 @@ export default function WebhookHeader({
                   icon={<Trash className="h-4 w-4" />}
                   className="h-9 justify-start px-2"
                   onClick={() => {
-                    setShowRemoveOAuthAppModal(true);
+                    setDeleteWebhookModal(true);
                   }}
                 />
               </div>
