@@ -37,7 +37,7 @@ export default function UpdateWebhookPageClient({
 
   return (
     <>
-      <WebhookHeader webhookId={webhookId} />
+      <WebhookHeader webhookId={webhookId} page="edit" />
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
         {webhook && <AddEditWebhookForm webhook={webhook} />}
       </MaxWidthWrapper>

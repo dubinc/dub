@@ -34,7 +34,7 @@ export default function WebhookLogsPageClient({
 
   return (
     <>
-      <WebhookHeader webhookId={webhookId} />
+      <WebhookHeader webhookId={webhookId} page="events" />
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
         <></>
       </MaxWidthWrapper>

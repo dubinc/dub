@@ -4,7 +4,7 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
-import { Button, Checkbox, InfoTooltip } from "@dub/ui";
+import { Button, Checkbox, CopyButton, InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { redirect, useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
@@ -149,23 +149,20 @@ export default function AddEditWebhookForm({
           </div>
         </div>
 
-        <div>
-          <label htmlFor="secret" className="flex items-center space-x-2">
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">
               Signing secret
             </h2>
             <InfoTooltip content="A secret token used to sign the webhook payload." />
           </label>
-          <div className="relative mt-2 rounded-md shadow-sm">
-            <input
-              className="block w-full cursor-not-allowed rounded-md border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              required
-              value={secret}
-              onChange={(e) => setData({ ...data, url: e.target.value })}
-              autoComplete="off"
-              readOnly
-              disabled
-            />
+          <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white py-1 px-3">
+            <p className="text-nowrap font-mono text-sm text-gray-500">
+              {secret}
+            </p>
+            <div className="flex flex-col gap-2">
+              <CopyButton value={secret} className="rounded-md"  />
+            </div>
           </div>
         </div>
 

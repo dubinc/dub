@@ -7,13 +7,19 @@ import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MaxWidthWrapper, Popover, TokenAvatar } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, Edit3, Trash } from "lucide-react";
+import { ChevronLeft, Edit3, FileStack, Trash } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 
-export default function WebhookHeader({ webhookId }: { webhookId: string }) {
+export default function WebhookHeader({
+  webhookId,
+  page,
+}: {
+  webhookId: string;
+  page: "edit" | "events";
+}) {
   const router = useRouter();
   const { slug, id: workspaceId, role } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
@@ -76,16 +82,36 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
           <Popover
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
-                <Button
-                  text="Update webhook"
-                  variant="outline"
-                  icon={<Edit3 className="h-4 w-4" />}
-                  className="h-9 justify-start px-2 font-medium"
-                  onClick={async () => {
-                    setOpenPopover(false);
-                    router.push(`/${slug}/settings/webhooks/${webhookId}/edit`);
-                  }}
-                />
+                {page === "events" && (
+                  <Button
+                    text="Update webhook"
+                    variant="outline"
+                    icon={<Edit3 className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                    onClick={async () => {
+                      setOpenPopover(false);
+                      router.push(
+                        `/${slug}/settings/webhooks/${webhookId}/edit`,
+                      );
+                    }}
+                  />
+                )}
+
+                {page === "edit" && (
+                  <Button
+                    text="Webhook logs"
+                    variant="outline"
+                    icon={<FileStack className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                    onClick={async () => {
+                      setOpenPopover(false);
+                      router.push(
+                        `/${slug}/settings/webhooks/${webhookId}/events`,
+                      );
+                    }}
+                  />
+                )}
+
                 <Button
                   text="Remove webhook"
                   variant="danger-outline"
