@@ -1,5 +1,4 @@
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { get } from "@vercel/edge-config";
 import { nanoid } from "nanoid";
 import { redis } from "../../upstash";
 import z from "../../zod";
@@ -22,13 +21,7 @@ export const getStripeInstallationUrl = async (workspaceId: string) => {
     );
   }
 
-  // const { STRIPE_APP_INSTALL_URL } = env.data;
-
-  const STRIPE_APP_INSTALL_URL = (await get("stripeAppUrl"))![
-    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-      ? "production"
-      : "development"
-  ];
+  const { STRIPE_APP_INSTALL_URL } = env.data;
 
   const url = new URL(STRIPE_APP_INSTALL_URL);
   url.searchParams.set(
