@@ -3,7 +3,7 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
+import { AddOns, BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -54,6 +54,7 @@ export const withWorkspaceEdge = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
+    requiredAddOn,
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
@@ -61,6 +62,7 @@ export const withWorkspaceEdge = (
     requiredPermissions = [],
   }: {
     requiredPlan?: Array<PlanProps>;
+    requiredAddOn?: AddOns;
     needNotExceededClicks?: boolean;
     needNotExceededLinks?: boolean;
     needNotExceededAI?: boolean;
@@ -378,6 +380,15 @@ export const withWorkspaceEdge = (
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
+          });
+        }
+
+        // add-ons checks
+        if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "Unauthorized: This feature is not available on your plan.",
           });
         }
 
