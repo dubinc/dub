@@ -41,16 +41,23 @@ export const resendOtpAction = actionClient
       throw new Error("An user with this email does not exist.");
     }
 
-    // Generate the OTP
     const code = generateOTP();
 
-    await prisma.emailVerificationToken.create({
-      data: {
-        identifier: email,
-        token: code,
-        expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000),
-      },
-    });
+    await Promise.all([
+      prisma.emailVerificationToken.deleteMany({
+        where: {
+          identifier: email,
+        },
+      }),
+
+      prisma.emailVerificationToken.create({
+        data: {
+          identifier: email,
+          token: code,
+          expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000),
+        },
+      }),
+    ]);
 
     // Send email with generated OTP
     await sendEmail({
