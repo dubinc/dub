@@ -2,18 +2,14 @@ import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project } from "@prisma/client";
-import { WEBHOOK_TRIGGER_DESCRIPTIONS, WEBHOOK_TRIGGERS } from "./webhook/constants";
+import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { integrationSchema } from "./zod/schemas/integration";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
-import {
-  createWebhookSchema,
-  webhookPayloadSchema,
-  webhookSchema,
-} from "./zod/schemas/webhooks";
+import { createWebhookSchema, webhookSchema } from "./zod/schemas/webhooks";
 
-export type LinkProps = Link;
+export type LinkProps = Link & { shortLink: string };
 
 export interface LinkWithTagsProps extends LinkProps {
   tags: TagProps[];

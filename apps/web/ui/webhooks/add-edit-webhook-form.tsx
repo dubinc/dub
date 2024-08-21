@@ -1,9 +1,13 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
-import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
+import {
+  WEBHOOK_TRIGGER_DESCRIPTIONS,
+  WEBHOOK_TRIGGERS,
+} from "@/lib/webhook/constants";
 import { Button, Checkbox, CopyButton, InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { redirect, useRouter } from "next/navigation";
@@ -29,6 +33,7 @@ export default function AddEditWebhookForm({
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const { slug: workspaceSlug, id: workspaceId, flags, role } = useWorkspace();
+  const { links } = useLinks();
 
   if (!flags?.webhooks) {
     redirect(`/${workspaceSlug}`);
@@ -68,6 +73,8 @@ export default function AddEditWebhookForm({
     e.preventDefault();
     setSaving(true);
 
+    console.log(data);
+
     const response = await fetch(endpoint.url, {
       method: endpoint.method,
       headers: {
@@ -95,6 +102,10 @@ export default function AddEditWebhookForm({
 
   const buttonDisabled = !name || !url || !triggers.length || saving;
   const canManageWebhook = !permissionsError;
+  const isClickWebhook =
+    triggers.includes("link.clicked") ||
+    triggers.includes("lead.created") ||
+    triggers.includes("sale.created");
 
   return (
     <>
@@ -156,12 +167,12 @@ export default function AddEditWebhookForm({
             </h2>
             <InfoTooltip content="A secret token used to sign the webhook payload." />
           </label>
-          <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white py-1 px-3">
+          <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-1">
             <p className="text-nowrap font-mono text-sm text-gray-500">
               {secret}
             </p>
             <div className="flex flex-col gap-2">
-              <CopyButton value={secret} className="rounded-md"  />
+              <CopyButton value={secret} className="rounded-md" />
             </div>
           </div>
         </div>
@@ -196,12 +207,44 @@ export default function AddEditWebhookForm({
                   htmlFor={trigger}
                   className="select-none text-sm font-medium text-gray-600 group-hover:text-gray-800"
                 >
-                  {trigger}
+                  {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
                 </label>
               </div>
             ))}
           </div>
         </div>
+
+        {isClickWebhook && (
+          <div>
+            <label htmlFor="triggers" className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-gray-900">
+                Choose which link we should send events for
+              </h2>
+              <InfoTooltip content="Select the link we should listen for events on. By default, we listen for events on all links." />
+            </label>
+            <div className="mt-3 flex flex-col gap-4">
+              {triggers.includes("link.clicked") ||
+              triggers.includes("lead.created") ||
+              triggers.includes("sale.created") ? (
+                <div className="group flex gap-2">
+                  <select
+                    value={linkId || ""}
+                    onChange={(e) =>
+                      setData({ ...data, linkId: e.target.value })
+                    }
+                    className="rounded-md border border-gray-300 bg-white px-3 py-1"
+                  >
+                    {links?.map((link) => (
+                      <option key={link.id} value={link.id}>
+                        {link.shortLink}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
 
         <Button
           text={webhook ? "Save changes" : "Create webhook"}
