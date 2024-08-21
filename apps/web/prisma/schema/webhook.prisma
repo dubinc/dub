@@ -8,7 +8,6 @@ model Webhook {
   id        String          @id @default(cuid())
   receiver  WebhookReceiver
   projectId String
-  linkId    String?
   name      String
   url       String
   secret    String
@@ -16,9 +15,21 @@ model Webhook {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
-  Project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  Link    Link?   @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  linkWebhooks LinkWebhook[]
 
   @@index([projectId])
+}
+
+model LinkWebhook {
+  id        String @id @default(cuid())
+  linkId    String
+  webhookId String
+
+  link    Link    @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@unique([linkId, webhookId])
   @@index([linkId])
+  @@index([webhookId])
 }
