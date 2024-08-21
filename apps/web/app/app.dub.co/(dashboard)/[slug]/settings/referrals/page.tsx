@@ -2,12 +2,12 @@ export const dynamic = "force-dynamic";
 
 import { EVENT_TYPES } from "@/lib/analytics/constants";
 import { dub } from "@/lib/dub";
-import { Button, CopyButton } from "@dub/ui";
+import { CopyButton, Logo } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
-import { Mail } from "lucide-react";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
+import { InviteButton } from "./invite-button";
 import ReferralsPageClient from "./page-client";
 
 export default async function ReferralsPage({
@@ -41,8 +41,10 @@ export default async function ReferralsPage({
   return (
     <ReferralsPageClient>
       <div>
-        <div className="rounded-xl border border-gray-200 p-9">
+        <div className="relative rounded-xl border border-gray-200 p-9">
           <h1 className="text-2xl font-semibold text-black">Refer and earn</h1>
+
+          {/* Benefits */}
           <div className="mt-6 flex flex-col gap-6">
             {[
               {
@@ -67,6 +69,8 @@ export default async function ReferralsPage({
               </div>
             ))}
           </div>
+
+          {/* Referral link + invite button */}
           <div className="mt-8 grid gap-1.5">
             <p className="text-xs text-gray-500">Referral Link</p>
             <div className="grid max-w-md grid-cols-[1fr_auto] gap-x-2">
@@ -78,12 +82,16 @@ export default async function ReferralsPage({
                   className="p-1.5 text-gray-500"
                 />
               </div>
-              <Button
-                text="Invite via email"
-                icon={<Mail className="size-4" />}
-                className="h-9 rounded-lg"
-              />
+              <InviteButton url={link} />
             </div>
+          </div>
+
+          {/* Powered by Dub Conversions */}
+          <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg border border-gray-100 bg-white p-2 drop-shadow-sm">
+            <Logo className="size-4" />
+            <p className="text-xs text-gray-800">
+              Powered by <span className="font-medium">Dub Conversions</span>
+            </p>
           </div>
         </div>
         <div className="mt-12">

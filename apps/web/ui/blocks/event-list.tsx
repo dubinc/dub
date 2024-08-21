@@ -29,7 +29,7 @@ export function EventList({
         {events.map((event, index) => (
           <div
             key={index}
-            className="flex items-center justify-between px-3.5 py-5"
+            className="flex items-center justify-between px-3.5 py-4"
           >
             <div className="flex items-center gap-2.5 text-gray-500">
               <div>{event.icon}</div>
