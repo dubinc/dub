@@ -42,7 +42,7 @@ export const verifyEmailAction = actionClient
     });
 
     if (!verificationToken) {
-      throw new Error("Incorrect code.");
+      throw new Error("Invalid verification code entered.");
     }
 
     await Promise.all([
