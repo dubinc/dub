@@ -55,16 +55,12 @@ export const withWorkspaceEdge = (
       "enterprise",
     ], // if the action needs a specific plan
     requiredAddOn,
-    needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
-    needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredAddOn?: AddOns;
-    needNotExceededClicks?: boolean;
-    needNotExceededLinks?: boolean;
     needNotExceededAI?: boolean;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
@@ -333,34 +329,6 @@ export const withWorkspaceEdge = (
               message: "Workspace invite pending.",
             });
           }
-        }
-
-        // clicks usage overage checks
-        if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: exceededLimitError({
-              plan: workspace.plan,
-              limit: workspace.usageLimit,
-              type: "clicks",
-            }),
-          });
-        }
-
-        // links usage overage checks
-        if (
-          needNotExceededLinks &&
-          workspace.linksUsage > workspace.linksLimit &&
-          (workspace.plan === "free" || workspace.plan === "pro")
-        ) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: exceededLimitError({
-              plan: workspace.plan,
-              limit: workspace.linksLimit,
-              type: "links",
-            }),
-          });
         }
 
         // AI usage overage checks
