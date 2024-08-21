@@ -25,13 +25,12 @@ export const createOAuthAppSchema = createIntegrationSchema.merge(
       .refine(
         (urls) => {
           return urls.every(
-            (url) =>
-              url.startsWith("https://") || url.startsWith("http://localhost"),
+            (url) => url.startsWith("https://") || url.startsWith("http://"),
           );
         },
         {
           message:
-            "redirect_uri must be a valid URL starting with 'https://' except for 'http://localhost'",
+            "redirect_uri must be a valid URL starting with 'https://' or 'http://'",
         },
       ),
     pkce: z.boolean().default(false),
