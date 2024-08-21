@@ -40,13 +40,23 @@ export const requestPasswordResetAction = actionClient
       throw new Error("An user with this email does not exist.");
     }
 
-    const { token } = await prisma.passwordResetToken.create({
-      data: {
-        identifier: email,
-        token: randomBytes(32).toString("hex"),
-        expires: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRY * 1000),
-      },
-    });
+    const token = randomBytes(32).toString("hex");
+
+    await Promise.all([
+      prisma.passwordResetToken.deleteMany({
+        where: {
+          identifier: email,
+        },
+      }),
+
+      prisma.passwordResetToken.create({
+        data: {
+          identifier: email,
+          token,
+          expires: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRY * 1000),
+        },
+      }),
+    ]);
 
     await sendEmail({
       subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Password reset instructions`,
