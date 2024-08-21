@@ -75,7 +75,7 @@ export const SearchBox = forwardRef(
           ref={inputRef}
           type="text"
           className={cn(
-            "peer w-full rounded-md border border-gray-200 px-10 text-sm text-black outline-none placeholder:text-gray-400",
+            "peer w-full rounded-md border border-gray-200 px-10 text-black outline-none placeholder:text-gray-400 sm:text-sm",
             "transition-all focus:border-gray-500 focus:ring-4 focus:ring-gray-200",
             inputClassName,
           )}
@@ -85,6 +85,7 @@ export const SearchBox = forwardRef(
             onChange(e.target.value);
             debounced(e.target.value);
           }}
+          autoCapitalize="none"
         />
         {showClearButton && value.length > 0 && (
           <button
