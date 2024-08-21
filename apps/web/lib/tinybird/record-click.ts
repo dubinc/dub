@@ -4,6 +4,7 @@ import {
   capitalize,
   getDomainWithoutWWW,
 } from "@dub/utils";
+import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { ipAddress } from "@vercel/edge";
 import { nanoid } from "ai";
 import { NextRequest, userAgent } from "next/server";
@@ -37,6 +38,7 @@ export async function recordClick({
       ? req.headers.get("x-vercel-ip-continent")
       : LOCALHOST_GEO_DATA.continent;
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
+  const isEuCountry = geo?.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
@@ -95,7 +97,42 @@ export async function recordClick({
         headers: {
           Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         },
-        body: JSON.stringify(clickEvent),
+        body: JSON.stringify({
+          timestamp: new Date(Date.now()).toISOString(),
+          identity_hash,
+          click_id: clickId || nanoid(16),
+          link_id: linkId,
+          alias_link_id: "",
+          url: url || "",
+          ip:
+            // only record IP if it's a valid IP and not from a EU country
+            typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
+              ? ip
+              : "",
+          continent: continent || "",
+          country: geo?.country || "Unknown",
+          city: geo?.city || "Unknown",
+          region: geo?.region || "Unknown",
+          latitude: geo?.latitude || "Unknown",
+          longitude: geo?.longitude || "Unknown",
+          device: capitalize(ua.device.type) || "Desktop",
+          device_vendor: ua.device.vendor || "Unknown",
+          device_model: ua.device.model || "Unknown",
+          browser: ua.browser.name || "Unknown",
+          browser_version: ua.browser.version || "Unknown",
+          engine: ua.engine.name || "Unknown",
+          engine_version: ua.engine.version || "Unknown",
+          os: ua.os.name || "Unknown",
+          os_version: ua.os.version || "Unknown",
+          cpu_architecture: ua.cpu?.architecture || "Unknown",
+          ua: ua.ua || "Unknown",
+          bot: ua.isBot,
+          qr: isQr,
+          referer: referer
+            ? getDomainWithoutWWW(referer) || "(direct)"
+            : "(direct)",
+          referer_url: referer || "(direct)",
+        }),
       },
     ).then((res) => res.json()),
 
