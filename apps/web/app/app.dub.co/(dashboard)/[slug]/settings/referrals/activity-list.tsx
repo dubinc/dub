@@ -50,7 +50,11 @@ export function ActivityList({
             leads: <LeadDescription event={e} />,
             sales: <SaleDescription event={e} />,
           }[event],
-          right: timeAgo(new Date(e.timestamp), { withAgo: true }),
+          right: (
+            <div className="whitespace-nowrap">
+              {timeAgo(new Date(e.timestamp), { withAgo: true })}
+            </div>
+          ),
         };
       })}
       onPrevious={() =>
@@ -69,24 +73,24 @@ function ClickDescription({
   event: z.infer<typeof clickEventEnrichedSchema>;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <p>Someone from</p>
-      {event.country ? (
-        <img
-          alt={event.country}
-          src={`https://flag.vercel.app/m/${event.country}.svg`}
-          className="h-3 w-5"
-        />
-      ) : (
-        <Globe className="size-3 text-gray-700" />
-      )}
-      <p>
+    <>
+      Someone from{" "}
+      <div className="mx-1 inline-block">
+        {event.country ? (
+          <img
+            alt={event.country}
+            src={`https://flag.vercel.app/m/${event.country}.svg`}
+            className="-mt-px inline-block h-3 w-4"
+          />
+        ) : (
+          <Globe className="inline-block size-3 text-gray-700" />
+        )}{" "}
         <span className="font-semibold text-gray-700">
           {event.country ? COUNTRIES[event.country] : "Planet Earth"}
         </span>{" "}
-        clicked on your link
-      </p>
-    </div>
+      </div>
+      clicked on your link
+    </>
   );
 }
 
@@ -96,24 +100,24 @@ function LeadDescription({
   event: z.infer<typeof leadEventEnrichedSchema>;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <p>Someone from</p>
-      {event.country ? (
-        <img
-          alt={event.country}
-          src={`https://flag.vercel.app/m/${event.country}.svg`}
-          className="h-3 w-5"
-        />
-      ) : (
-        <Globe className="size-3 text-gray-700" />
-      )}
-      <p>
+    <>
+      Someone from{" "}
+      <div className="mx-1 inline-block">
+        {event.country ? (
+          <img
+            alt={event.country}
+            src={`https://flag.vercel.app/m/${event.country}.svg`}
+            className="-mt-px inline-block h-3 w-4"
+          />
+        ) : (
+          <Globe className="inline-block size-3 text-gray-700" />
+        )}{" "}
         <span className="font-semibold text-gray-700">
           {event.country ? COUNTRIES[event.country] : "Planet Earth"}
         </span>{" "}
-        signed up for an account
-      </p>
-    </div>
+      </div>
+      signed up for an account
+    </>
   );
 }
 
@@ -123,23 +127,23 @@ function SaleDescription({
   event: z.infer<typeof saleEventEnrichedSchema>;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <p>Someone from</p>
-      {event.country ? (
-        <img
-          alt={event.country}
-          src={`https://flag.vercel.app/m/${event.country}.svg`}
-          className="h-3 w-5"
-        />
-      ) : (
-        <Globe className="size-3 text-gray-700" />
-      )}
-      <p>
+    <>
+      Someone from{" "}
+      <div className="mx-1 inline-block">
+        {event.country ? (
+          <img
+            alt={event.country}
+            src={`https://flag.vercel.app/m/${event.country}.svg`}
+            className="-mt-px inline-block h-3 w-4"
+          />
+        ) : (
+          <Globe className="inline-block size-3 text-gray-700" />
+        )}{" "}
         <span className="font-semibold text-gray-700">
           {event.country ? COUNTRIES[event.country] : "Planet Earth"}
         </span>{" "}
-        upgraded their account
-      </p>
-    </div>
+      </div>
+      upgraded their account
+    </>
   );
 }

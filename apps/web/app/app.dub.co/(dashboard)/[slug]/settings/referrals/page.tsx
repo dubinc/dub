@@ -41,53 +41,59 @@ export default async function ReferralsPage({
   return (
     <ReferralsPageClient>
       <div>
-        <div className="relative rounded-xl border border-gray-200 p-9">
-          <h1 className="text-2xl font-semibold text-black">Refer and earn</h1>
+        <div className="relative">
+          <div className="rounded-xl border border-gray-200 p-4 sm:p-9">
+            <h1 className="text-xl font-semibold text-black sm:text-2xl">
+              Refer and earn
+            </h1>
 
-          {/* Benefits */}
-          <div className="mt-6 flex flex-col gap-6">
-            {[
-              {
-                title: "10% recurring revenue",
-                description: "per paying customer (up to 1 year)",
-              },
-              {
-                title: "500 extra clicks quota per month",
-                description: "per signup (up to 16,000 total)",
-              },
-            ].map(({ title, description }) => (
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 to-white">
-                  <div className="rounded-full bg-green-500 p-0.5">
-                    <Check className="size-3.5 text-white" />
+            {/* Benefits */}
+            <div className="mt-6 flex flex-col gap-6">
+              {[
+                {
+                  title: "10% recurring revenue",
+                  description: "per paying customer (up to 1 year)",
+                },
+                {
+                  title: "500 extra clicks quota per month",
+                  description: "per signup (up to 16,000 total)",
+                },
+              ].map(({ title, description }) => (
+                <div className="flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 to-white">
+                    <div className="rounded-full bg-green-500 p-0.5">
+                      <Check className="size-3.5 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-base font-medium text-gray-800">
+                      {title}
+                    </p>
+                    <p className="text-xs text-gray-500">{description}</p>
                   </div>
                 </div>
-                <div>
-                  <p className="text-base font-medium text-gray-800">{title}</p>
-                  <p className="text-xs text-gray-500">{description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Referral link + invite button */}
-          <div className="mt-8 grid gap-1.5">
-            <p className="text-xs text-gray-500">Referral Link</p>
-            <div className="grid max-w-md grid-cols-[1fr_auto] gap-x-2">
-              <div className="flex h-9 items-center justify-between gap-x-2 rounded-lg border border-gray-300 bg-white py-1.5 pl-4 pr-2">
-                <p className="text-sm text-gray-500">{getPrettyUrl(link)}</p>
-                <CopyButton
-                  value={link}
-                  variant="neutral"
-                  className="p-1.5 text-gray-500"
-                />
+            {/* Referral link + invite button */}
+            <div className="mt-8 grid gap-1.5">
+              <p className="text-xs text-gray-500">Referral Link</p>
+              <div className="grid grid-cols-1 gap-x-2 gap-y-2 sm:max-w-sm sm:grid-cols-[1fr_auto] xl:max-w-md">
+                <div className="flex h-9 items-center justify-between gap-x-2 rounded-lg border border-gray-300 bg-white py-1.5 pl-4 pr-2">
+                  <p className="text-sm text-gray-500">{getPrettyUrl(link)}</p>
+                  <CopyButton
+                    value={link}
+                    variant="neutral"
+                    className="p-1.5 text-gray-500"
+                  />
+                </div>
+                <InviteButton url={link} />
               </div>
-              <InviteButton url={link} />
             </div>
           </div>
 
           {/* Powered by Dub Conversions */}
-          <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg border border-gray-100 bg-white p-2 drop-shadow-sm">
+          <div className="mt-2 flex items-center justify-center gap-2 rounded-lg border-gray-100 bg-white p-2 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0 md:border md:drop-shadow-sm">
             <Logo className="size-4" />
             <p className="text-xs text-gray-800">
               Powered by <span className="font-medium">Dub Conversions</span>
@@ -95,7 +101,7 @@ export default async function ReferralsPage({
           </div>
         </div>
         <div className="mt-12">
-          <div className="mb-5 flex items-end justify-between">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-xl font-semibold text-gray-800">Activity</h2>
             <EventTabs event={event} />
           </div>

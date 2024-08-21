@@ -4,7 +4,8 @@ import { Button } from "@dub/ui";
 import { Mail } from "lucide-react";
 
 const subject = "Create a free account on Dub!";
-const body = (url: string) => `Use my referral link to get started: ${url}`;
+const body = (url: string) =>
+  `Use my referral link to get started with Dub: ${url}`;
 
 export function InviteButton({ url }: { url: string }) {
   return (
