@@ -335,15 +335,25 @@ export const withWorkspace = (
           }
         }
 
-        // plan checks
-        if (!requiredPlan.includes(workspace.plan)) {
+        const url = new URL(req.url || "", API_DOMAIN);
+
+        const hasRequiredPlanOrFeature =
+          requiredPlan.includes(workspace.plan) ||
+          (url.pathname.includes("/events") && workspace.conversionEnabled);
+
+        const requiresConversionEnabled =
+          ["/track/lead", "/track/sale"].includes(url.pathname) &&
+          workspace.conversionEnabled;
+
+        // Plan or feature check
+        if (!hasRequiredPlanOrFeature && !requiresConversionEnabled) {
           throw new DubApiError({
             code: "forbidden",
-            message: "Unauthorized: Need higher plan.",
+            message: "Unauthorized: Need higher plan or feature enabled.",
           });
         }
 
-        // add-ons checks
+        // Check for required add-ons
         if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
           throw new DubApiError({
             code: "forbidden",
@@ -353,7 +363,6 @@ export const withWorkspace = (
         }
 
         // analytics API checks
-        const url = new URL(req.url || "", API_DOMAIN);
         if (
           workspace.plan === "free" &&
           apiKey &&
