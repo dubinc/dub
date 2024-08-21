@@ -24,9 +24,7 @@ export const createOAuthAppSchema = createIntegrationSchema.merge(
       })
       .refine(
         (urls) => {
-          return urls.every(
-            (url) => url.startsWith("https://") || url.startsWith("http://"),
-          );
+          return urls.every((url) => /^(https?:\/\/)/i.test(url));
         },
         {
           message:
