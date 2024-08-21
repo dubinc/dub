@@ -297,7 +297,7 @@ const CommandInput = (
     <Command.Input
       {...props}
       size={1}
-      className="grow border-0 py-3 pl-4 pr-2 text-sm outline-none placeholder:text-gray-400 focus:ring-0"
+      className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm"
       onKeyDown={(e) => {
         props.onKeyDown?.(e);
 
@@ -305,6 +305,7 @@ const CommandInput = (
           props.emptySubmit?.(e);
         }
       }}
+      autoCapitalize="none"
     />
   );
 };

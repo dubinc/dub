@@ -362,6 +362,7 @@ const CommandInput = forwardRef<HTMLInputElement>((_, ref) => {
       }}
       disabled={disabled}
       className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
+      autoCapitalize="none"
     />
   );
 });
