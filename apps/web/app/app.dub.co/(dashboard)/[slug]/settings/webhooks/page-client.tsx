@@ -68,7 +68,12 @@ export default function WebhooksPageClient() {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
-              <EmptyState icon={Cube} title="No webhooks added yet." />
+              <EmptyState
+                icon={Cube}
+                title="You haven't set up any webhooks yet."
+                description="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
+                learnMore="https://dub.co/docs/webhooks"
+              />
             </div>
           )
         ) : (

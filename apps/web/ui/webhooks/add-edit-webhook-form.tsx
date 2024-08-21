@@ -169,7 +169,7 @@ export default function AddEditWebhookForm({
         <div>
           <label htmlFor="triggers" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">
-              Events to send
+              Which events should we send?
             </h2>
             <InfoTooltip content="Select the events that will trigger the webhook." />
           </label>
