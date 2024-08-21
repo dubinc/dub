@@ -1,6 +1,11 @@
+import { dub } from "@/lib/dub";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
+import { subscribe } from "@/lib/resend";
+import { isStored, storage } from "@/lib/storage";
+import { UserProps } from "@/lib/types";
+import { ratelimit } from "@/lib/upstash";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
@@ -14,11 +19,6 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
-import { dub } from "../dub";
-import { subscribe } from "../flodesk";
-import { isStored, storage } from "../storage";
-import { UserProps } from "../types";
-import { ratelimit } from "../upstash";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -450,6 +450,8 @@ export const authOptions: NextAuthOptions = {
                   email,
                   name: user.name || null,
                 }),
+                // send the welcome email 5 minutes after the user signed up
+                scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
                 marketing: true,
               }),
             ]),

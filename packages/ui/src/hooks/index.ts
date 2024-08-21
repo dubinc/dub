@@ -1,6 +1,7 @@
 export * from "./use-cookies";
 export * from "./use-current-anchor";
 export * from "./use-enter-submit";
+export * from "./use-in-viewport";
 export * from "./use-input-focused";
 export * from "./use-intersection-observer";
 export * from "./use-keyboard-shortcut";

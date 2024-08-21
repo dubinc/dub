@@ -1,8 +1,8 @@
 import { deleteWorkspaceAdmin } from "@/lib/api/workspaces";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
-import { unsubscribe } from "@/lib/flodesk";
 import { prisma } from "@/lib/prisma";
+import { unsubscribe } from "@/lib/resend";
 import { isStored, storage } from "@/lib/storage";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -62,7 +62,7 @@ export const POST = withAdmin(async ({ req }) => {
       user.image &&
         isStored(user.image) &&
         storage.delete(user.image.replace(`${R2_URL}/`, "")),
-      unsubscribe(email),
+      unsubscribe({ email }),
       updateConfig({
         key: "emails",
         value: email,

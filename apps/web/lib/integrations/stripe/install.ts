@@ -22,6 +22,7 @@ export const getStripeInstallationUrl = async (workspaceId: string) => {
   }
 
   const { STRIPE_APP_INSTALL_URL } = env.data;
+
   const url = new URL(STRIPE_APP_INSTALL_URL);
   url.searchParams.set(
     "redirect_uri",

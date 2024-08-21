@@ -626,11 +626,11 @@ function AddEditLinkModal({
                       type="text"
                       name="key"
                       id={`key-${randomIdx}`}
-                      // allow letters, numbers, '-', '/' and emojis
-                      pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}]+"
+                      // allow letters, numbers, '-', '_', '/' and emojis
+                      pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_]+"
                       onInvalid={(e) => {
                         e.currentTarget.setCustomValidity(
-                          "Only letters, numbers, '-', '/', and emojis are allowed.",
+                          "Only letters, numbers, '-', '_', '/', and emojis are allowed.",
                         );
                       }}
                       onBlur={(e) => {
@@ -648,6 +648,7 @@ function AddEditLinkModal({
                       }}
                       disabled={props && lockKey}
                       autoComplete="off"
+                      autoCapitalize="none"
                       className={cn(
                         "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                         {

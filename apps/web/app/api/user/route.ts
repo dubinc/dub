@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { unsubscribe } from "@/lib/flodesk";
 import { prisma } from "@/lib/prisma";
+import { unsubscribe } from "@/lib/resend";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import { R2_URL, nanoid, trim } from "@dub/utils";
@@ -165,7 +165,7 @@ export const DELETE = withSession(async ({ session }) => {
       user.image &&
         user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`) &&
         storage.delete(user.image.replace(`${R2_URL}/`, "")),
-      unsubscribe(session.user.email),
+      unsubscribe({ email: session.user.email }),
     ]);
     return NextResponse.json(response);
   }

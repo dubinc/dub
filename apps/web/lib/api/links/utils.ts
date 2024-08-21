@@ -118,6 +118,11 @@ export function processKey(key: string) {
   if (!validKeyRegex.test(key)) {
     return null;
   }
+  // if key starts with _, return null (reserved route for Dub internals)
+  if (key.startsWith("_")) {
+    return null;
+  }
+
   // remove all leading and trailing slashes from key
   key = key.replace(/^\/+|\/+$/g, "");
   // replace all special characters

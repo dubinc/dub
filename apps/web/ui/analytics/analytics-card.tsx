@@ -1,6 +1,6 @@
 import { EventType } from "@/lib/analytics/types";
 import { Modal, TabSelect } from "@dub/ui";
-import { Crosshairs, CursorRays, InvoiceDollar } from "@dub/ui/src/icons";
+import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import {
   Dispatch,
@@ -68,7 +68,7 @@ export function AnalyticsCard<T extends string>({
             {event === "sales" ? (
               <InvoiceDollar className="h-4 w-4" />
             ) : event === "leads" ? (
-              <Crosshairs className="h-4 w-4" />
+              <UserCheck className="h-4 w-4" />
             ) : (
               <CursorRays className="h-4 w-4" />
             )}

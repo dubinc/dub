@@ -16,7 +16,7 @@ import {
   Refresh2,
   StatusBadge,
   Tooltip,
-  useIntersectionObserver,
+  useInViewport,
   useMediaQuery,
 } from "@dub/ui";
 import {
@@ -27,7 +27,7 @@ import {
   Hyperlink,
   PenWriting,
 } from "@dub/ui/src/icons";
-import { DEFAULT_LINK_PROPS, cn, fetcher, nFormatter } from "@dub/utils";
+import { cn, DEFAULT_LINK_PROPS, fetcher, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
@@ -51,9 +51,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
   const { id: workspaceId, slug } = useWorkspace();
 
-  const domainRef = useRef<any>();
-  const entry = useIntersectionObserver(domainRef, {});
-  const isVisible = !!entry?.isIntersecting;
+  const domainRef = useRef<HTMLDivElement>(null);
+  const isVisible = useInViewport(domainRef, { defaultValue: true });
 
   const { data, isValidating, mutate } = useSWRImmutable<{
     status: DomainVerificationStatusProps;
@@ -292,7 +291,11 @@ function Menu({
   const [copiedLinkId, setCopiedLinkId] = useState(false);
 
   const copyLinkId = () => {
-    navigator.clipboard.writeText(props.id);
+    if (!linkProps) {
+      toast.error("Link ID not found");
+      return;
+    }
+    navigator.clipboard.writeText(linkProps.id);
     setCopiedLinkId(true);
     toast.success("Link ID copied!");
     setTimeout(() => setCopiedLinkId(false), 3000);
@@ -353,6 +356,9 @@ function Menu({
                     setShowAddEditLinkModal(true);
                   }}
                   icon={<Hyperlink className="h-4 w-4" />}
+                  disabledTooltip={
+                    !linkProps ? "Retrieving link details..." : undefined
+                  }
                   className="h-9 justify-start px-2 font-medium"
                 />
                 <Button
@@ -363,6 +369,9 @@ function Menu({
                     setShowLinkQRModal(true);
                   }}
                   icon={<QrCode className="h-4 w-4" />}
+                  disabledTooltip={
+                    !linkProps ? "Retrieving link details..." : undefined
+                  }
                   className="h-9 justify-start px-2 font-medium"
                 />
                 <Button
@@ -375,6 +384,9 @@ function Menu({
                     ) : (
                       <Copy className="h-4 w-4" />
                     )
+                  }
+                  disabledTooltip={
+                    !linkProps ? "Retrieving link details..." : undefined
                   }
                   className="h-9 justify-start px-2 font-medium"
                 />
