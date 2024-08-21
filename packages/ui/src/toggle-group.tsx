@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@dub/utils";
 import { LayoutGroup, motion } from "framer-motion";
 import { useId } from "react";
