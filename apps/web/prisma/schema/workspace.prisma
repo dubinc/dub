@@ -10,15 +10,21 @@ model Project {
   stripeConnectId   String? @unique // for Stripe Connect
   inviteCode        String? @unique
 
-  usage        Int @default(0)
-  usageLimit   Int @default(1000)
-  aiUsage      Int @default(0)
-  aiLimit      Int @default(10)
+  usage      Int @default(0)
+  usageLimit Int @default(1000)
   linksUsage   Int @default(0)
   linksLimit   Int @default(25)
+  revenueUsage Int @default(0)
+  revenueLimit Int @default(0)
   domainsLimit Int @default(3)
   tagsLimit    Int @default(5)
   usersLimit   Int @default(1)
+  aiUsage      Int @default(0)
+  aiLimit      Int @default(10)
+
+  webhookEnabled    Boolean @default(false)
+  conversionEnabled Boolean @default(false)
+  ssoEnabled        Boolean @default(false)
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

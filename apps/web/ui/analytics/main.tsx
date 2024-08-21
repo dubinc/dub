@@ -23,17 +23,10 @@ type Tab = {
 };
 
 export default function Main() {
-  const { flags, slug } = useWorkspace();
-  const {
-    basePath,
-    totalEvents,
-    requiresUpgrade,
-    demoPage,
-    selectedTab,
-    view,
-  } = useContext(AnalyticsContext);
-  const { router, queryParams, getQueryString } = useRouterStuff();
-  const isPublicStatsPage = basePath.startsWith("/stats");
+  const { conversionEnabled } = useWorkspace();
+  const { totalEvents, requiresUpgrade, demoPage, selectedTab, view } =
+    useContext(AnalyticsContext);
+  const { queryParams } = useRouterStuff();
 
   const tabs = useMemo(
     () =>
@@ -43,7 +36,7 @@ export default function Main() {
           label: "Clicks",
           colorClassName: "text-blue-500/50",
         },
-        ...(flags?.conversions || demoPage
+        ...(conversionEnabled || demoPage
           ? [
               {
                 id: "leads",
@@ -58,7 +51,7 @@ export default function Main() {
             ]
           : []),
       ] as Tab[],
-    [flags],
+    [conversionEnabled],
   );
 
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
@@ -170,14 +163,14 @@ export default function Main() {
 }
 
 function ViewButtons() {
-  const { flags, slug } = useWorkspace();
+  const { slug, conversionEnabled } = useWorkspace();
   const { basePath, demoPage, view } = useContext(AnalyticsContext);
   const { router, queryParams, getQueryString } = useRouterStuff();
   const isPublicStatsPage = basePath.startsWith("/stats");
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-gray-100 pr-2 pt-2 sm:pr-6 sm:pt-6">
-      {(flags?.conversions || demoPage) && (
+      {(conversionEnabled || demoPage) && (
         <>
           <Tooltip content="Line Chart">
             <Button

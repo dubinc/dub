@@ -4,6 +4,7 @@ import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Divider } from "@/ui/shared/icons";
+import Infinity from "@/ui/shared/icons/infinity";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import {
   Button,
@@ -150,6 +151,7 @@ export default function WorkspaceBillingClient() {
             tooltip="Number of billable link clicks for your current billing cycle. If you exceed your monthly limits, your existing links will still work and clicks will still be tracked, but you need to upgrade to view your analytics."
             usage={usage}
             usageLimit={usageLimit}
+            numberOnly={(linksLimit && linksLimit >= 1000000000) || false}
           />
           <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
             <UsageCategory
@@ -158,6 +160,7 @@ export default function WorkspaceBillingClient() {
               tooltip="Number of short links created in the current billing cycle."
               usage={linksUsage}
               usageLimit={linksLimit}
+              numberOnly={(linksLimit && linksLimit >= 1000000000) || false}
             />
             <UsageCategory
               title="Custom Domains"
@@ -260,12 +263,16 @@ function UsageCategory({
               {nFormatter(usage, { full: true })}
             </p>
           ) : (
-            <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
+            <div className="size-8 animate-pulse rounded-md bg-gray-200" />
           )}
-          <Divider className="h-8 w-8 text-gray-500" />
-          <p className="text-2xl font-semibold text-gray-400">
-            {nFormatter(usageLimit, { full: true })}
-          </p>
+          <Divider className="size-8 text-gray-500" />
+          {usageLimit && usageLimit >= 1000000000 ? (
+            <Infinity className="size-8 text-gray-500" />
+          ) : (
+            <p className="text-2xl font-semibold text-gray-400">
+              {nFormatter(usageLimit, { full: true })}
+            </p>
+          )}
         </div>
       ) : (
         <div className="mt-2 flex flex-col space-y-2">

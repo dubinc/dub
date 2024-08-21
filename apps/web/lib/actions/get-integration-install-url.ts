@@ -1,6 +1,5 @@
 "use server";
 
-import { getFeatureFlags } from "../edge-config";
 import { getSlackInstallationUrl } from "../integrations/slack/install";
 import { getStripeInstallationUrl } from "../integrations/stripe/install";
 import z from "../zod";
@@ -21,12 +20,9 @@ export const getIntegrationInstallUrl = authActionClient
     let url: string | null = null;
 
     if (integrationSlug === "stripe") {
-      const flags = await getFeatureFlags({ workspaceId: workspace.id });
-
-      if (!flags.conversions) {
+      if (!workspace.conversionEnabled) {
         throw new Error("Conversions feature is not enabled.");
       }
-
       url = await getStripeInstallationUrl(workspace.id);
     } else if (integrationSlug === "slack") {
       url = await getSlackInstallationUrl(workspace.id);

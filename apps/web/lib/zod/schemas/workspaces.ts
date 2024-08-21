@@ -67,6 +67,11 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The invite code of the workspace."),
+    conversionEnabled: z
+      .boolean()
+      .describe(
+        "Whether the workspace has conversion tracking enabled (d.to/conversions).",
+      ),
     flags: z
       .record(z.boolean())
       .optional()
