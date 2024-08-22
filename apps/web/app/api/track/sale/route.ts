@@ -83,6 +83,19 @@ export const POST = withWorkspaceEdge(
           },
         },
       }),
+      prismaEdge.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          usage: {
+            increment: 1,
+          },
+          salesUsage: {
+            increment: amount,
+          },
+        },
+      }),
     ]);
 
     const response = trackSaleResponseSchema.parse({
