@@ -3,7 +3,7 @@ import { StatCard, StatCardSkeleton } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
 import { ClicksCount, SalesCount } from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
-import { getReferralLink } from "./get-referral-link";
+import { getReferralLink } from "../../../../../../lib/actions/get-referral-link";
 
 export function Stats({ slug }: { slug: string }) {
   return (

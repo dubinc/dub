@@ -9,9 +9,9 @@ import {
   SalesCount,
 } from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
+import { getReferralLink } from "../../../../../../lib/actions/get-referral-link";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
-import { getReferralLink } from "./get-referral-link";
 import ReferralsPageClient from "./page-client";
 import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
 import { Stats } from "./stats";

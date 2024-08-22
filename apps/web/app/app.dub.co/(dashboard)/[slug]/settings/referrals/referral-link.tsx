@@ -1,8 +1,7 @@
 import { CopyButton } from "@dub/ui";
-import { CircleWarning } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
+import { getReferralLink } from "../../../../../../lib/actions/get-referral-link";
 import { GenerateButton } from "./generate-button";
-import { getReferralLink } from "./get-referral-link";
 import { InviteButton } from "./invite-button";
 
 export default async function ReferralLink({ slug }: { slug: string }) {
@@ -33,10 +32,5 @@ export default async function ReferralLink({ slug }: { slug: string }) {
 }
 
 export function ReferralLinkSkeleton() {
-  return (
-    <p className="text-sm text-gray-500">
-      <CircleWarning className="-mt-0.5 mr-1.5 inline-block size-4" />
-      Failed to load referral link. Please try again later or contact support.
-    </p>
-  );
+  return <div className="mt-8 h-9 w-40 animate-pulse rounded-lg bg-gray-200" />;
 }
