@@ -37,10 +37,11 @@ export const generateReferralLink = authActionClient
         tagIds: ["cm000srqx0004o6ldehod07zc"],
         trackConversion: true,
       });
+
+      return { url: `https://${createdLink.domain}/${createdLink.key}` };
     } catch (e) {
       console.error("Failed to generate referral link.", e);
-      throw new Error("Failed to generate referral link.");
     }
 
-    return { url: `https://${createdLink.domain}/${createdLink.key}` };
+    throw new Error("Failed to generate referral link.");
   });
