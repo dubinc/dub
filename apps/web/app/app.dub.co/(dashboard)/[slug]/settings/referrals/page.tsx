@@ -1,14 +1,17 @@
 import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
+import { getWorkspace } from "@/lib/fetchers";
 import { EventListSkeleton } from "@dub/blocks";
 import { CopyButton, Logo } from "@dub/ui";
 import { Check, CircleWarning } from "@dub/ui/src/icons";
-import { getPrettyUrl } from "@dub/utils";
+import { getPrettyUrl, linkConstructor } from "@dub/utils";
 import {
   ClicksCount,
   LeadsCount,
+  LinkSchema,
   SalesCount,
 } from "dub/dist/commonjs/models/components";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
@@ -25,19 +28,28 @@ export default async function ReferralsPage({
   params: { slug: string };
   searchParams: { event?: string; page?: string };
 }) {
-  const linkUrl = `https://refer.dub.co/${slug}`;
   const event = (searchParams.event ?? "clicks") as EventType;
   const page = parseInt(searchParams.page ?? "0") || 0;
 
+  const workspace = await getWorkspace({ slug });
+
+  if (!workspace) {
+    return redirect(`/${slug}/settings`);
+  }
+
   let errorCode = null;
+  let link: LinkSchema | null = null;
   try {
-    await dub.links.get({
-      domain: "refer.dub.co",
-      key: slug,
+    link = await dub.links.get({
+      externalId: `ext_ws_${workspace.id}`,
     });
   } catch (e) {
     errorCode = e?.error?.code ?? "error";
   }
+
+  const linkUrl = link
+    ? linkConstructor({ domain: link.domain, key: link.key })
+    : null;
 
   return (
     <ReferralsPageClient>
@@ -78,7 +90,7 @@ export default async function ReferralsPage({
 
             {/* Referral link + invite button */}
             <div className="mt-8">
-              {!errorCode ? (
+              {linkUrl && !errorCode ? (
                 <div className="grid gap-1.5">
                   <p className="text-xs text-gray-500">Referral Link</p>
                   <div className="grid grid-cols-1 gap-x-2 gap-y-2 sm:max-w-sm sm:grid-cols-[1fr_auto] xl:max-w-md">
@@ -92,7 +104,7 @@ export default async function ReferralsPage({
                         className="p-1.5 text-gray-500"
                       />
                     </div>
-                    <InviteButton url={linkUrl} />
+                    <InviteButton />
                   </div>
                 </div>
               ) : errorCode === "not_found" ? (

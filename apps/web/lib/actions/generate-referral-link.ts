@@ -1,6 +1,6 @@
 "use server";
 
-import { nanoid } from "@dub/utils";
+import { linkConstructor, nanoid } from "@dub/utils";
 import { z } from "zod";
 import { dub } from "../dub";
 import { authActionClient } from "./safe-action";
@@ -38,7 +38,12 @@ export const generateReferralLink = authActionClient
         trackConversion: true,
       });
 
-      return { url: `https://${createdLink.domain}/${createdLink.key}` };
+      return {
+        url: linkConstructor({
+          domain: createdLink.domain,
+          key: createdLink.key,
+        }),
+      };
     } catch (e) {
       console.error("Failed to generate referral link.", e);
     }
