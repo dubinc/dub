@@ -5,8 +5,9 @@ import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
+  LINK_LEVEL_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
-  WEBHOOK_TRIGGERS,
+  WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
 import { Button, Checkbox, CopyButton, InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -17,10 +18,10 @@ import { mutate } from "swr";
 
 const defaultValues: NewWebhook = {
   name: "",
-  linkId: "",
   url: "",
   secret: "",
-  triggers: ["link.created"],
+  triggers: [],
+  linkIds: [],
 };
 
 export default function AddEditWebhookForm({
@@ -98,7 +99,7 @@ export default function AddEditWebhookForm({
     }
   };
 
-  const { name, url, secret, triggers, linkId } = data;
+  const { name, url, secret, triggers } = data;
 
   const buttonDisabled = !name || !url || !triggers.length || saving;
   const canManageWebhook = !permissionsError;
@@ -116,7 +117,6 @@ export default function AddEditWebhookForm({
         <div>
           <label htmlFor="name" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-gray-900">Name</h2>
-            <InfoTooltip content="An easily identifiable name for your webhook." />
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
             <input
@@ -139,8 +139,7 @@ export default function AddEditWebhookForm({
 
         <div>
           <label htmlFor="url" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">Endpoint URL</h2>
-            <InfoTooltip content="The URL where the webhook will send POST requests." />
+            <h2 className="text-sm font-medium text-gray-900">URL</h2>
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
             <input
@@ -154,7 +153,7 @@ export default function AddEditWebhookForm({
               value={url}
               onChange={(e) => setData({ ...data, url: e.target.value })}
               autoComplete="off"
-              placeholder="https://example.com/webhook"
+              placeholder="Webhook URL"
               disabled={!canManageWebhook}
             />
           </div>
@@ -177,15 +176,17 @@ export default function AddEditWebhookForm({
           </div>
         </div>
 
-        <div>
-          <label htmlFor="triggers" className="flex items-center space-x-2">
+        <div className="rounded-md border border-gray-200 p-4">
+          <label htmlFor="triggers" className="flex flex-col gap-1">
             <h2 className="text-sm font-medium text-gray-900">
-              Which events should we send?
+              Workspace level events
             </h2>
-            <InfoTooltip content="Select the events that will trigger the webhook." />
+            <span className="text-xs text-gray-500">
+              These events are triggered at the workspace level.
+            </span>
           </label>
           <div className="mt-3 flex flex-col gap-4">
-            {WEBHOOK_TRIGGERS.map((trigger) => (
+            {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
                   value={trigger}
@@ -214,37 +215,76 @@ export default function AddEditWebhookForm({
           </div>
         </div>
 
-        {isClickWebhook && (
-          <div>
-            <label htmlFor="triggers" className="flex items-center space-x-2">
-              <h2 className="text-sm font-medium text-gray-900">
-                Choose which link we should send events for
-              </h2>
-              <InfoTooltip content="Select the link we should listen for events on. By default, we listen for events on all links." />
-            </label>
-            <div className="mt-3 flex flex-col gap-4">
-              {triggers.includes("link.clicked") ||
-              triggers.includes("lead.created") ||
-              triggers.includes("sale.created") ? (
-                <div className="group flex gap-2">
-                  <select
-                    value={linkId || ""}
-                    onChange={(e) =>
-                      setData({ ...data, linkId: e.target.value })
+        <div className="rounded-md border border-gray-200 p-4">
+          <label htmlFor="triggers" className="flex flex-col gap-1">
+            <h2 className="text-sm font-medium text-gray-900">
+              Link level events
+            </h2>
+            <span className="text-xs text-gray-500">
+              These events are triggered at the link level. You can choose which
+              links you want to listen for events on.
+            </span>
+          </label>
+          <div className="mt-3 flex flex-col gap-4">
+            {LINK_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
+              <div key={trigger} className="group flex gap-2">
+                <Checkbox
+                  value={trigger}
+                  id={trigger}
+                  checked={triggers.includes(trigger)}
+                  disabled={!canManageWebhook}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setData({ ...data, triggers: [...triggers, trigger] });
+                    } else {
+                      setData({
+                        ...data,
+                        triggers: triggers.filter((t) => t !== trigger),
+                      });
                     }
-                    className="rounded-md border border-gray-300 bg-white px-3 py-1"
-                  >
-                    {links?.map((link) => (
-                      <option key={link.id} value={link.id}>
-                        {link.shortLink}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
-            </div>
+                  }}
+                />
+                <label
+                  htmlFor={trigger}
+                  className="select-none text-sm font-medium text-gray-600 group-hover:text-gray-800"
+                >
+                  {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
+                </label>
+              </div>
+            ))}
           </div>
-        )}
+
+          {isClickWebhook && (
+            <div className="mt-4">
+              <label htmlFor="triggers" className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Choose which link we should send events for
+                </h2>
+              </label>
+              <div className="mt-3 flex flex-col gap-4">
+                {triggers.includes("link.clicked") ||
+                triggers.includes("lead.created") ||
+                triggers.includes("sale.created") ? (
+                  <div className="group flex gap-2">
+                    <select
+                      // value={linkId || ""}
+                      // onChange={(e) =>
+                      //   setData({ ...data, linkId: e.target.value })
+                      // }
+                      className="rounded-md border border-gray-300 bg-white px-3 py-1"
+                    >
+                      {links?.map((link) => (
+                        <option key={link.id} value={link.id}>
+                          {link.shortLink}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+        </div>
 
         <Button
           text={webhook ? "Save changes" : "Create webhook"}

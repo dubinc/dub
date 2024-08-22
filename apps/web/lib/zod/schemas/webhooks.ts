@@ -20,7 +20,7 @@ export const createWebhookSchema = z.object({
   url: z.string().url().max(190),
   secret: z.string().startsWith(WEBHOOK_SECRET_PREFIX),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
-  // linkId: z.string().nullable().optional(),
+  linkIds: z.array(z.string()).optional(),
 });
 
 export const updateWebhookSchema = createWebhookSchema.partial();
