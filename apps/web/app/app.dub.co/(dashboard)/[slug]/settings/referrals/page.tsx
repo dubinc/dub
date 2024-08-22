@@ -2,15 +2,16 @@ import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
 import { getWorkspace } from "@/lib/fetchers";
 import { EventListSkeleton } from "@dub/blocks";
-import { CopyButton, Logo } from "@dub/ui";
+import { BlurImage, CopyButton, Logo } from "@dub/ui";
 import { Check, CircleWarning } from "@dub/ui/src/icons";
-import { getPrettyUrl, linkConstructor } from "@dub/utils";
+import { DICEBEAR_AVATAR_URL, getPrettyUrl, linkConstructor } from "@dub/utils";
 import {
   ClicksCount,
   LeadsCount,
   LinkSchema,
   SalesCount,
 } from "dub/dist/commonjs/models/components";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ActivityList } from "./activity-list";
@@ -21,6 +22,9 @@ import ReferralsPageClient from "./page-client";
 import { Stats } from "./stats";
 
 export const dynamic = "auto";
+
+const heroGradient =
+  "conic-gradient(from 45deg at 65% 70%, #855AFC 0deg, #3A8BFD 72deg, #00FFF9 144deg, #5CFF80 197.89deg, #EAB308 260.96deg, #FF0000 360deg)";
 
 export default async function ReferralsPage({
   params: { slug },
@@ -56,67 +60,103 @@ export default async function ReferralsPage({
     <ReferralsPageClient>
       <div>
         <div className="relative">
-          <div className="rounded-xl border border-gray-200 p-4 sm:p-9">
-            <h1 className="text-xl font-semibold text-black sm:text-2xl">
-              Refer and earn
-            </h1>
-
-            {/* Benefits */}
-            <div className="mt-6 flex flex-col gap-6">
-              {[
-                {
-                  title: "10% recurring revenue",
-                  description: "per paying customer (up to 1 year)",
-                },
-                {
-                  title: "500 extra clicks quota per month",
-                  description: "per signup (up to 16,000 total)",
-                },
-              ].map(({ title, description }) => (
-                <div className="flex items-center gap-3">
-                  <div className="flex size-9 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 to-white">
-                    <div className="rounded-full bg-green-500 p-0.5">
-                      <Check className="size-3.5 text-white" />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-base font-medium text-gray-800">
-                      {title}
-                    </p>
-                    <p className="text-xs text-gray-500">{description}</p>
-                  </div>
-                </div>
-              ))}
+          <div className="relative overflow-hidden rounded-xl border border-gray-200 p-4 sm:p-9">
+            <div className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(100%_100%_at_top_right,black,transparent)] max-[350px]:opacity-50 sm:[mask-image:linear-gradient(to_right,transparent_50%,black_70%)]">
+              <div className="absolute -right-[60px] top-[40px] isolate w-[600px] -translate-y-1/2 overflow-hidden bg-white sm:-right-[60px] sm:top-1/2 sm:w-[1200px] md:right-0">
+                <div
+                  className="absolute -inset-[50%] opacity-15 blur-[100px]"
+                  style={{
+                    backgroundImage: heroGradient,
+                  }}
+                />
+                <Image
+                  src="/_static/referrals/hero-background.svg"
+                  alt="Refer and earn"
+                  width={1200}
+                  height={630}
+                  className="relative"
+                />
+                <div
+                  className="absolute -inset-[50%] mix-blend-soft-light blur-[100px]"
+                  style={{
+                    backgroundImage: heroGradient,
+                  }}
+                />
+                <BlurImage
+                  src={
+                    workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`
+                  }
+                  referrerPolicy="no-referrer"
+                  width={20}
+                  height={20}
+                  alt={workspace.id || workspace.name}
+                  className="absolute right-[9.9%] top-[49.9%] size-10 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full sm:size-20 sm:drop-shadow-lg"
+                />
+              </div>
             </div>
 
-            {/* Referral link + invite button or empty/error states */}
-            <div className="mt-8">
-              {linkUrl && !errorCode ? (
-                <div className="grid gap-1.5">
-                  <p className="text-xs text-gray-500">Referral Link</p>
-                  <div className="grid grid-cols-1 gap-x-2 gap-y-2 sm:max-w-sm sm:grid-cols-[1fr_auto] xl:max-w-md">
-                    <div className="flex h-9 items-center justify-between gap-x-2 rounded-lg border border-gray-300 bg-white py-1.5 pl-4 pr-2">
-                      <p className="text-sm text-gray-500">
-                        {getPrettyUrl(linkUrl)}
-                      </p>
-                      <CopyButton
-                        value={linkUrl}
-                        variant="neutral"
-                        className="p-1.5 text-gray-500"
-                      />
+            <div className="relative">
+              <h1 className="text-xl font-semibold text-black sm:text-2xl">
+                Refer and earn
+              </h1>
+
+              {/* Benefits */}
+              <div className="mt-6 flex flex-col gap-6">
+                {[
+                  {
+                    title: "10% recurring revenue",
+                    description: "per paying customer (up to 1 year)",
+                  },
+                  {
+                    title: "500 extra clicks quota per month",
+                    description: "per signup (up to 16,000 total)",
+                  },
+                ].map(({ title, description }) => (
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-9 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 to-white">
+                      <div className="rounded-full bg-green-500 p-0.5">
+                        <Check className="size-3.5 text-white" />
+                      </div>
                     </div>
-                    <InviteButton />
+                    <div>
+                      <p className="text-base font-medium text-gray-800">
+                        {title}
+                      </p>
+                      <p className="text-xs text-gray-500">{description}</p>
+                    </div>
                   </div>
-                </div>
-              ) : errorCode === "not_found" ? (
-                <GenerateButton />
-              ) : (
-                <p className="text-sm text-gray-500">
-                  <CircleWarning className="-mt-0.5 mr-1.5 inline-block size-4" />
-                  Failed to load referral link. Please try again later or
-                  contact support.
-                </p>
-              )}
+                ))}
+              </div>
+
+              {/* Referral link + invite button or empty/error states */}
+              <div className="mt-8">
+                {linkUrl && !errorCode ? (
+                  <div className="grid gap-1.5">
+                    <p className="text-xs text-gray-500">Referral Link</p>
+                    <div className="grid grid-cols-1 gap-x-2 gap-y-2 sm:max-w-sm sm:grid-cols-[1fr_auto] xl:max-w-md">
+                      <div className="flex h-9 items-center justify-between gap-x-2 rounded-lg border border-gray-300 bg-white py-1.5 pl-4 pr-2">
+                        <p className="text-sm text-gray-500">
+                          {getPrettyUrl(linkUrl)}
+                        </p>
+                        <CopyButton
+                          value={linkUrl}
+                          variant="neutral"
+                          className="p-1.5 text-gray-500"
+                        />
+                      </div>
+                      <InviteButton />
+                    </div>
+                  </div>
+                ) : errorCode === "not_found" ? (
+                  <GenerateButton />
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    <CircleWarning className="-mt-0.5 mr-1.5 inline-block size-4" />
+                    Failed to load referral link. Please try again later or
+                    contact support.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
