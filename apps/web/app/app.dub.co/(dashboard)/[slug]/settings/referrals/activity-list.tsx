@@ -5,8 +5,14 @@ import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { EventList } from "@dub/blocks";
-import { CursorRays, Globe, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
-import { COUNTRIES, timeAgo } from "@dub/utils";
+import {
+  ChartActivity2,
+  CursorRays,
+  Globe,
+  InvoiceDollar,
+  UserCheck,
+} from "@dub/ui/src/icons";
+import { capitalize, COUNTRIES, timeAgo } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import { z } from "zod";
 
@@ -46,6 +52,12 @@ export function ActivityList({
         };
       })}
       totalEvents={totalEvents}
+      emptyState={{
+        icon: ChartActivity2,
+        title: `${capitalize(event)} Activity`,
+        description: `No referral ${event} have been recorded yet.`,
+        learnMore: "https://d.to/conversions",
+      }}
     />
   );
 }
