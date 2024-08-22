@@ -9,7 +9,7 @@ import { oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
 import { createWebhookSchema, webhookSchema } from "./zod/schemas/webhooks";
 
-export type LinkProps = Link & { shortLink: string };
+export type LinkProps = Link;
 
 export interface LinkWithTagsProps extends LinkProps {
   tags: TagProps[];
