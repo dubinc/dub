@@ -10,7 +10,7 @@ export default function IntegrationsPageClient({
 }: {
   integrations: InstalledIntegrationProps[];
 }) {
-  const { slug, flags } = useWorkspace();
+  const { slug, conversionEnabled, flags } = useWorkspace();
 
   if (!flags?.integrations) {
     redirect(`/${slug}/settings`);
@@ -18,9 +18,13 @@ export default function IntegrationsPageClient({
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      {integrations.map((integration) => (
-        <IntegrationCard key={integration.id} {...integration} />
-      ))}
+      {integrations
+        .filter(
+          (integration) => integration.slug !== "stripe" || conversionEnabled,
+        )
+        .map((integration) => (
+          <IntegrationCard key={integration.id} {...integration} />
+        ))}
     </div>
   );
 }

@@ -73,7 +73,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 };
 
 export default function EventsTable() {
-  const { plan } = useWorkspace();
+  const { plan, conversionEnabled } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
   const { selectedTab: tab } = useContext(AnalyticsContext);
@@ -438,7 +438,8 @@ export default function EventsTable() {
     [setExportQueryString, queryString, columnVisibility, tab],
   );
 
-  const needsHigherPlan = plan === "free" || plan === "pro";
+  const needsHigherPlan =
+    (plan === "free" || plan === "pro") && !conversionEnabled;
 
   const { data, isLoading, error } = useSWR<EventDatum[]>(
     !needsHigherPlan && `/api/events?${queryString}`,

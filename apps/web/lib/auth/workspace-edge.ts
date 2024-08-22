@@ -3,7 +3,7 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
+import { AddOns, BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -54,15 +54,13 @@ export const withWorkspaceEdge = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
-    needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
-    needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
+    requiredAddOn,
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
   }: {
     requiredPlan?: Array<PlanProps>;
-    needNotExceededClicks?: boolean;
-    needNotExceededLinks?: boolean;
+    requiredAddOn?: AddOns;
     needNotExceededAI?: boolean;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
@@ -333,34 +331,6 @@ export const withWorkspaceEdge = (
           }
         }
 
-        // clicks usage overage checks
-        if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: exceededLimitError({
-              plan: workspace.plan,
-              limit: workspace.usageLimit,
-              type: "clicks",
-            }),
-          });
-        }
-
-        // links usage overage checks
-        if (
-          needNotExceededLinks &&
-          workspace.linksUsage > workspace.linksLimit &&
-          (workspace.plan === "free" || workspace.plan === "pro")
-        ) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: exceededLimitError({
-              plan: workspace.plan,
-              limit: workspace.linksLimit,
-              type: "links",
-            }),
-          });
-        }
-
         // AI usage overage checks
         if (needNotExceededAI && workspace.aiUsage > workspace.aiLimit) {
           throw new DubApiError({
@@ -373,16 +343,32 @@ export const withWorkspaceEdge = (
           });
         }
 
+        const url = new URL(req.url || "", API_DOMAIN);
+
         // plan checks
-        if (!requiredPlan.includes(workspace.plan)) {
+        // special scenario – /events API is available for conversionEnabled workspaces
+        // (even if they're on a Pro plan)
+        if (
+          !requiredPlan.includes(workspace.plan) &&
+          url.pathname.includes("/events") &&
+          !workspace.conversionEnabled
+        ) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
           });
         }
 
+        // add-ons checks
+        if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "Unauthorized: This feature is not available on your plan.",
+          });
+        }
+
         // analytics API checks
-        const url = new URL(req.url || "", API_DOMAIN);
         if (
           workspace.plan === "free" &&
           apiKey &&

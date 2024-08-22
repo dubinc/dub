@@ -4,6 +4,7 @@ import Areas from "@/ui/charts/areas";
 import TimeSeriesChart from "@/ui/charts/time-series-chart";
 import XAxis from "@/ui/charts/x-axis";
 import YAxis from "@/ui/charts/y-axis";
+import { currencyFormatter } from "@dub/utils";
 import { Fragment } from "react";
 
 export default function RevenueClient({
@@ -34,12 +35,6 @@ export default function RevenueClient({
       year: "numeric",
       timeZone: "UTC",
     });
-
-  const currencyFormatter = Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format;
 
   const finalValue = data[data.length - 1].value;
   const previousValue = data[data.length - 2].value;

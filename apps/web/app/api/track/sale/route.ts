@@ -78,6 +78,22 @@ export const POST = withWorkspaceEdge(
           sales: {
             increment: 1,
           },
+          saleAmount: {
+            increment: amount,
+          },
+        },
+      }),
+      prismaEdge.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          usage: {
+            increment: 1,
+          },
+          salesUsage: {
+            increment: amount,
+          },
         },
       }),
     ]);
@@ -95,7 +111,7 @@ export const POST = withWorkspaceEdge(
     return NextResponse.json(response);
   },
   {
-    featureFlag: "conversions",
+    requiredAddOn: "conversion",
     requiredPermissions: ["conversions.write"],
   },
 );

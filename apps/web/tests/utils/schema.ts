@@ -29,6 +29,7 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   lastClicked: null,
   leads: 0,
   sales: 0,
+  saleAmount: 0,
   tagId: null, // backwards compatibility
   comments: null,
   createdAt: expect.any(String),
@@ -52,6 +53,8 @@ export const expectedWorkspace: Partial<Project> = {
   usageLimit: expect.any(Number),
   linksUsage: expect.any(Number),
   linksLimit: expect.any(Number),
+  salesUsage: expect.any(Number),
+  salesLimit: expect.any(Number),
   domainsLimit: expect.any(Number),
   tagsLimit: expect.any(Number),
   usersLimit: expect.any(Number),
