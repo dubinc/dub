@@ -1,3 +1,4 @@
+import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
 import { EventListSkeleton } from "@dub/blocks";
@@ -9,7 +10,6 @@ import {
   SalesCount,
 } from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
-import { getReferralLink } from "../../../../../../lib/actions/get-referral-link";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
 import ReferralsPageClient from "./page-client";
@@ -130,7 +130,7 @@ async function ActivityListRSC({
 
   const totalEvents = (await dub.analytics.retrieve({
     ...eventsParams,
-    interval: event === "sales" ? "all" : "all_unfiltered", // temp fix till we add sales to all_unfiltered
+    interval: "all_unfiltered",
   })) as ClicksCount | LeadsCount | SalesCount;
 
   return (

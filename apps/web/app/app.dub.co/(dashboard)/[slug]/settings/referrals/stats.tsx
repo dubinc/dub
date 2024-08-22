@@ -1,9 +1,14 @@
+import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { dub } from "@/lib/dub";
 import { StatCard, StatCardSkeleton } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
-import { ClicksCount, SalesCount } from "dub/dist/commonjs/models/components";
+import {
+  ClicksCount,
+  ClicksTimeseries,
+  SalesCount,
+  SalesTimeseries,
+} from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
-import { getReferralLink } from "../../../../../../lib/actions/get-referral-link";
 
 export function Stats({ slug }: { slug: string }) {
   return (
@@ -54,7 +59,7 @@ async function loadData(linkId: string) {
       linkId,
       event: "clicks",
       interval: "all_unfiltered",
-    }) as any as Promise<ClicksCount>,
+    }) as Promise<ClicksCount>,
 
     // Clicks timeseries
     dub.analytics.retrieve({
@@ -62,22 +67,22 @@ async function loadData(linkId: string) {
       event: "clicks",
       interval: "30d",
       groupBy: "timeseries",
-    }) as any as Promise<{ start: string; clicks: number }[]>,
+    }) as Promise<ClicksTimeseries[]>,
 
     // Total sales
     dub.analytics.retrieve({
       linkId,
       event: "sales",
-      interval: "all", // temp fix until we add sales to all_unfiltered
-    }) as any as Promise<SalesCount>,
+      interval: "all_unfiltered",
+    }) as Promise<SalesCount>,
 
     // Sales timeseries
-    (await dub.analytics.retrieve({
+    dub.analytics.retrieve({
       linkId,
       event: "sales",
       interval: "30d",
       groupBy: "timeseries",
-    })) as any as Promise<{ start: string; sales: number; amount: number }[]>,
+    }) as Promise<SalesTimeseries[]>,
   ]);
 
   return {

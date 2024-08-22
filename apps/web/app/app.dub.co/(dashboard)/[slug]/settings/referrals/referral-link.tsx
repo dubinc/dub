@@ -1,6 +1,6 @@
+import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { CopyButton } from "@dub/ui";
 import { getPrettyUrl } from "@dub/utils";
-import { getReferralLink } from "../../../../../../lib/actions/get-referral-link";
 import { GenerateButton } from "./generate-button";
 import { InviteButton } from "./invite-button";
 
