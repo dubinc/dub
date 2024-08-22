@@ -31,7 +31,7 @@ export async function processLink<T extends Record<string, any>>({
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<WorkspaceProps, "id" | "plan">;
+  workspace?: Pick<WorkspaceProps, "id" | "plan" | "conversionEnabled">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -244,13 +244,11 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (trackConversion && workspace) {
-    const flags = await getFeatureFlags({ workspaceId: workspace.id });
-
-    if (!flags.conversions) {
+  if (trackConversion) {
+    if (!workspace || !workspace.conversionEnabled) {
       return {
         link: payload,
-        error: "Conversion tracking is only available for beta testers.",
+        error: "Conversion tracking is not enabled for this workspace.",
         code: "forbidden",
       };
     }

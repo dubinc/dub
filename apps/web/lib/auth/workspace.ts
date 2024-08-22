@@ -1,6 +1,11 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
-import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
+import {
+  AddOns,
+  BetaFeatures,
+  PlanProps,
+  WorkspaceWithUsers,
+} from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -47,12 +52,14 @@ export const withWorkspace = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
+    requiredAddOn,
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
     skipPermissionChecks, // if the action doesn't need to check for required permission(s)
   }: {
     requiredPlan?: Array<PlanProps>;
+    requiredAddOn?: AddOns;
     allowAnonymous?: boolean;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
@@ -328,16 +335,32 @@ export const withWorkspace = (
           }
         }
 
+        const url = new URL(req.url || "", API_DOMAIN);
+
         // plan checks
-        if (!requiredPlan.includes(workspace.plan)) {
+        // special scenario – /events API is available for conversionEnabled workspaces
+        // (even if they're on a Pro plan)
+        if (
+          !requiredPlan.includes(workspace.plan) &&
+          url.pathname.includes("/events") &&
+          !workspace.conversionEnabled
+        ) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
           });
         }
 
+        // add-ons checks
+        if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "Unauthorized: This feature is not available on your plan.",
+          });
+        }
+
         // analytics API checks
-        const url = new URL(req.url || "", API_DOMAIN);
         if (
           workspace.plan === "free" &&
           apiKey &&

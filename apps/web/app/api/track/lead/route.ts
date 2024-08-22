@@ -117,6 +117,16 @@ export const POST = withWorkspaceEdge(
           },
         },
       }),
+      prismaEdge.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          usage: {
+            increment: 1,
+          },
+        },
+      }),
     ]);
 
     const response = trackLeadResponseSchema.parse({
@@ -141,7 +151,7 @@ export const POST = withWorkspaceEdge(
     return NextResponse.json(response);
   },
   {
-    featureFlag: "conversions",
+    requiredAddOn: "conversion",
     requiredPermissions: ["conversions.write"],
   },
 );

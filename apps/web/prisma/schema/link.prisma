@@ -48,7 +48,8 @@ model Link {
   clicks      Int       @default(0) // number of clicks
   lastClicked DateTime? // when the link was last clicked
   leads       Int       @default(0)
-  sales       Int       @default(0)
+  sales       Int       @default(0) // number of sales
+  saleAmount  Int       @default(0) // total dollar value of sales (in cents)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

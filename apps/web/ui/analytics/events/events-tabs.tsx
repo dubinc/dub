@@ -30,7 +30,7 @@ export default function EventsTabs() {
   const tab = searchParams.get("tab") || "clicks";
   const { demoPage } = useContext(AnalyticsContext);
 
-  const { flags } = useWorkspace();
+  const { conversionEnabled } = useWorkspace();
   const { baseApiPath, queryString, requiresUpgrade } =
     useContext(AnalyticsContext);
 
@@ -38,7 +38,7 @@ export default function EventsTabs() {
     [key in CompositeAnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demoPage || flags?.conversions ? "composite" : "clicks",
+      event: demoPage || conversionEnabled ? "composite" : "clicks",
     })}`,
     fetcher,
     {
@@ -50,7 +50,7 @@ export default function EventsTabs() {
     useSWRImmutable<TimeseriesData>(
       `${baseApiPath}?${editQueryString(queryString, {
         groupBy: "timeseries",
-        event: demoPage || flags?.conversions ? "composite" : "clicks",
+        event: demoPage || conversionEnabled ? "composite" : "clicks",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       })}`,
       fetcher,
@@ -89,13 +89,13 @@ export default function EventsTabs() {
     <div className="grid w-full grid-cols-3 gap-2 overflow-x-auto sm:gap-4">
       {[
         "clicks",
-        ...(demoPage || flags?.conversions ? ["leads", "sales"] : []),
+        ...(demoPage || conversionEnabled ? ["leads", "sales"] : []),
       ].map((event) => (
         <button
           key={event}
           className={cn(
             "flex justify-between gap-4 rounded-xl border bg-white px-5 py-4 text-left transition-[box-shadow] focus:outline-none",
-            tab === event && flags?.conversions
+            tab === event && conversionEnabled
               ? "border-black shadow-[0_0_0_1px_black_inset]"
               : "border-gray-200 focus-visible:border-black",
           )}

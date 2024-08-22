@@ -505,6 +505,12 @@ export const LinkSchema = z
       .number()
       .default(0)
       .describe("[BETA]: The number of sales the short links has generated."),
+    saleAmount: z
+      .number()
+      .default(0)
+      .describe(
+        "[BETA]: The total dollar amount of sales the short links has generated (in cents).",
+      ),
     createdAt: z
       .string()
       .describe("The date and time when the short link was created."),

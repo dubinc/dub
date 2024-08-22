@@ -1,6 +1,5 @@
-import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
 export const revalidate = 0;
@@ -10,11 +9,6 @@ export default async function IntegrationPage({
 }: {
   params: { slug: string; integrationSlug: string };
 }) {
-  const flags = await getFeatureFlags({ workspaceSlug: params.slug });
-  if (!flags.conversions && params.integrationSlug === "stripe") {
-    redirect(`/${params.slug}/settings/integrations`);
-  }
-
   const integration = await prisma.integration.findUnique({
     where: {
       slug: params.integrationSlug,

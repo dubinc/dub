@@ -4,15 +4,10 @@ import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Divider } from "@/ui/shared/icons";
+import Infinity from "@/ui/shared/icons/infinity";
 import PlanBadge from "@/ui/workspaces/plan-badge";
-import {
-  Button,
-  InfoTooltip,
-  NumberTooltip,
-  ProgressBar,
-  useRouterStuff,
-} from "@dub/ui";
-import { getFirstAndLastDay, getPlanDetails, nFormatter } from "@dub/utils";
+import { Button, InfoTooltip, ProgressBar, useRouterStuff } from "@dub/ui";
+import { cn, getFirstAndLastDay, getPlanDetails, nFormatter } from "@dub/utils";
 import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -32,6 +27,8 @@ export default function WorkspaceBillingClient() {
     nextPlan,
     usage,
     usageLimit,
+    salesUsage,
+    salesLimit,
     linksUsage,
     linksLimit,
     domains,
@@ -39,6 +36,7 @@ export default function WorkspaceBillingClient() {
     tagsLimit,
     usersLimit,
     billingCycleStart,
+    conversionEnabled,
   } = useWorkspace();
 
   const { tags } = useTags();
@@ -128,15 +126,17 @@ export default function WorkspaceBillingClient() {
                   setClicked(true);
                   fetch(`/api/workspaces/${id}/billing/manage`, {
                     method: "POST",
-                  })
-                    .then(async (res) => {
+                  }).then(async (res) => {
+                    if (res.ok) {
                       const url = await res.json();
+                      console.log({ url });
                       router.push(url);
-                    })
-                    .catch((err) => {
-                      alert(err);
+                    } else {
+                      const { error } = await res.json();
+                      toast.error(error.message);
                       setClicked(false);
-                    });
+                    }
+                  });
                 }}
                 loading={clicked}
               />
@@ -144,20 +144,42 @@ export default function WorkspaceBillingClient() {
           )}
         </div>
         <div className="grid divide-y divide-gray-200 border-y border-gray-200">
-          <UsageCategory
-            title="Link Clicks"
-            unit="clicks"
-            tooltip="Number of billable link clicks for your current billing cycle. If you exceed your monthly limits, your existing links will still work and clicks will still be tracked, but you need to upgrade to view your analytics."
-            usage={usage}
-            usageLimit={usageLimit}
-          />
+          <div
+            className={cn(
+              "grid grid-cols-1 divide-y divide-gray-200",
+              conversionEnabled && "sm:grid-cols-2 sm:divide-x sm:divide-y-0",
+            )}
+          >
+            {conversionEnabled && (
+              <UsageCategory
+                title="Revenue tracked"
+                unit="$"
+                tooltip="Amount of revenue tracked for your current billing cycle."
+                usage={salesUsage}
+                usageLimit={salesLimit}
+              />
+            )}
+            <UsageCategory
+              title={conversionEnabled ? "Events tracked" : "Link Clicks"}
+              unit={conversionEnabled ? "events" : "clicks"}
+              tooltip={
+                conversionEnabled
+                  ? "Number of events tracked for your current billing cycle (clicks, leads, sales)"
+                  : "Number of billable link clicks for your current billing cycle. If you exceed your monthly limits, your existing links will still work and clicks will still be tracked, but you need to upgrade to view your analytics."
+              }
+              usage={usage}
+              usageLimit={usageLimit}
+              numberOnly={(linksLimit && linksLimit >= 1000000000) || false}
+            />
+          </div>
           <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
             <UsageCategory
-              title="Created Links"
+              title="Links Created"
               unit="links"
               tooltip="Number of short links created in the current billing cycle."
               usage={linksUsage}
               usageLimit={linksLimit}
+              numberOnly={(linksLimit && linksLimit >= 1000000000) || false}
             />
             <UsageCategory
               title="Custom Domains"
@@ -232,14 +254,7 @@ export default function WorkspaceBillingClient() {
   );
 }
 
-function UsageCategory({
-  title,
-  unit,
-  tooltip,
-  usage,
-  usageLimit,
-  numberOnly,
-}: {
+function UsageCategory(data: {
   title: string;
   unit: string;
   tooltip: string;
@@ -247,6 +262,12 @@ function UsageCategory({
   usageLimit?: number;
   numberOnly?: boolean;
 }) {
+  let { title, unit, tooltip, usage, usageLimit, numberOnly } = data;
+
+  if (unit === "$" && usage !== undefined && usageLimit !== undefined) {
+    usage = usage / 100;
+    usageLimit = usageLimit / 100;
+  }
   return (
     <div className="p-10">
       <div className="flex items-center space-x-2">
@@ -260,22 +281,26 @@ function UsageCategory({
               {nFormatter(usage, { full: true })}
             </p>
           ) : (
-            <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
+            <div className="size-8 animate-pulse rounded-md bg-gray-200" />
           )}
-          <Divider className="h-8 w-8 text-gray-500" />
-          <p className="text-2xl font-semibold text-gray-400">
-            {nFormatter(usageLimit, { full: true })}
-          </p>
+          <Divider className="size-8 text-gray-500" />
+          {usageLimit && usageLimit >= 1000000000 ? (
+            <Infinity className="size-8 text-gray-500" />
+          ) : (
+            <p className="text-2xl font-semibold text-gray-400">
+              {nFormatter(usageLimit, { full: true })}
+            </p>
+          )}
         </div>
       ) : (
         <div className="mt-2 flex flex-col space-y-2">
-          {usage !== undefined && usageLimit ? (
+          {usage !== undefined && usageLimit !== undefined ? (
             <p className="text-sm text-gray-600">
-              <NumberTooltip value={usage} unit={unit}>
-                <span>{nFormatter(usage)} </span>
-              </NumberTooltip>
-              / {nFormatter(usageLimit)} {unit} (
-              {((usage / usageLimit) * 100).toFixed(1)}%)
+              {unit === "$" && unit}
+              {nFormatter(usage, { full: true })} / {unit === "$" && unit}
+              {nFormatter(usageLimit)} {unit !== "$" && unit} (
+              {((usage / usageLimit) * 100).toFixed(1)}
+              %)
             </p>
           ) : (
             <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />

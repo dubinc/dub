@@ -76,7 +76,7 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, flags } = useWorkspace();
+  const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
@@ -110,7 +110,7 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const selectedTab: EventType = useMemo(() => {
-    if (!demoPage && !flags?.conversions) return "clicks";
+    if (!demoPage && !conversionEnabled) return "clicks";
 
     const tab = searchParams.get("tab");
 
@@ -118,7 +118,7 @@ export default function AnalyticsProvider({
   }, [searchParams.get("tab")]);
 
   const view: AnalyticsView = useMemo(() => {
-    if (!demoPage && !flags?.conversions) return "default";
+    if (!demoPage && !conversionEnabled) return "default";
 
     const view = searchParams.get("view");
 
@@ -198,7 +198,7 @@ export default function AnalyticsProvider({
     [key in CompositeAnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demoPage || flags?.conversions ? "composite" : "clicks",
+      event: demoPage || conversionEnabled ? "composite" : "clicks",
     })}`,
     fetcher,
     {

@@ -34,14 +34,25 @@ const links = [
   },
 ];
 
-const countries = ["US", "IN", "DE", "FR", "GB", "NL", "SG", "CA", "AU", "BR"];
+const countries = [
+  { continent: "NA", country: "US" },
+  { continent: "AS", country: "IN" },
+  { continent: "EU", country: "DE" },
+  { continent: "EU", country: "FR" },
+  { continent: "EU", country: "GB" },
+  { continent: "EU", country: "NL" },
+  { continent: "AS", country: "SG" },
+  { continent: "NA", country: "CA" },
+  { continent: "OC", country: "AU" },
+  { continent: "SA", country: "BR" },
+];
 
 const devices = ["Desktop", "Mobile", "Tablet"];
 
 async function main() {
-  // await seedLinkMetadata();
-  // await seedClicks();
-  // await seedLeads(3269);
+  await seedLinkMetadata();
+  await seedClicks();
+  await seedLeads(3269);
   await seedSales(50);
 }
 
@@ -77,6 +88,8 @@ async function seedLinkMetadata() {
 async function seedClicks(count = 10000) {
   const data = Array.from({ length: count }).map(() => {
     const link = links[Math.floor(Math.random() * links.length)];
+    const { country, continent } =
+      countries[Math.floor(Math.random() * countries.length)];
 
     return {
       timestamp: new Date(
@@ -85,7 +98,8 @@ async function seedClicks(count = 10000) {
       click_id: nanoid(16),
       link_id: link.id,
       url: link.url,
-      country: countries[Math.floor(Math.random() * countries.length)],
+      country,
+      continent,
       device: devices[Math.floor(Math.random() * devices.length)],
       alias_link_id: "",
       ip: "63.141.57.109",
@@ -132,6 +146,8 @@ async function seedClicks(count = 10000) {
 async function seedLeads(count = 10) {
   const data = Array.from({ length: count }).map(() => {
     const link = links[Math.floor(Math.random() * links.length)];
+    const { country, continent } =
+      countries[Math.floor(Math.random() * countries.length)];
 
     return {
       // random date in the last 30 days
@@ -144,9 +160,11 @@ async function seedLeads(count = 10) {
       click_id: nanoid(16),
       link_id: link.id,
       url: link.url,
-      country: countries[Math.floor(Math.random() * countries.length)],
+      country,
+      continent,
       device: devices[Math.floor(Math.random() * devices.length)],
       metadata: "",
+      ip: "63.141.57.109",
       city: "San Francisco",
       region: "CA",
       latitude: "37.7695",
@@ -162,6 +180,7 @@ async function seedLeads(count = 10) {
       cpu_architecture: "Unknown",
       ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
       bot: 0,
+      qr: 0,
       referer: "(direct)",
       referer_url: "(direct)",
     };
@@ -189,6 +208,8 @@ async function seedLeads(count = 10) {
 async function seedSales(count = 5) {
   const data = Array.from({ length: count }).map(() => {
     const link = links[Math.floor(Math.random() * links.length)];
+    const { country, continent } =
+      countries[Math.floor(Math.random() * countries.length)];
 
     return {
       // random date in the last 30 days
@@ -196,11 +217,13 @@ async function seedSales(count = 5) {
         Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000),
       ).toISOString(),
       event_id: nanoid(16),
+      event_name: "Subscription creation",
       customer_id: "xxxx",
       click_id: nanoid(16),
       link_id: link.id,
       url: link.url,
-      country: countries[Math.floor(Math.random() * countries.length)],
+      country,
+      continent,
       device: devices[Math.floor(Math.random() * devices.length)],
       invoice_id: nanoid(16),
       // random amount between $24 and $99
@@ -208,6 +231,7 @@ async function seedSales(count = 5) {
       currency: "USD",
       payment_processor: "stripe",
       metadata: "",
+      ip: "63.141.57.109",
       city: "San Francisco",
       region: "CA",
       latitude: "37.7695",
@@ -223,6 +247,7 @@ async function seedSales(count = 5) {
       cpu_architecture: "Unknown",
       ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
       bot: 0,
+      qr: 0,
       referer: "(direct)",
       referer_url: "(direct)",
     };
