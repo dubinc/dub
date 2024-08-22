@@ -1,15 +1,5 @@
 import { NextRequest } from "next/server";
 
-// Only following query params are passed to the final url
-const allowedQueryParams = [
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "utm_content",
-  "ref",
-];
-
 export const getFinalUrl = (
   url: string,
   { req, clickId }: { req: NextRequest; clickId?: string },
@@ -31,9 +21,7 @@ export const getFinalUrl = (
 
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {
-    if (allowedQueryParams.includes(key)) {
-      urlObj.searchParams.set(key, value);
-    }
+    urlObj.searchParams.set(key, value);
   }
 
   if (urlObj.searchParams.get("qr") === "1") {

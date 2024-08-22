@@ -6,7 +6,7 @@ import {
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { ipAddress } from "@vercel/edge";
-import { nanoid } from "ai";
+import { nanoid } from "nanoid";
 import { NextRequest, userAgent } from "next/server";
 import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
 import { conn } from "../planetscale";
