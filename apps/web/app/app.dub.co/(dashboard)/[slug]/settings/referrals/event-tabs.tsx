@@ -13,7 +13,7 @@ export function EventTabs() {
         { value: "sales", label: "Sales" },
       ]}
       selected={searchParams.get("event") ?? "clicks"}
-      selectAction={(event) => queryParams({ set: { event } })}
+      selectAction={(event) => queryParams({ set: { event }, del: "page" })}
     />
   );
 }

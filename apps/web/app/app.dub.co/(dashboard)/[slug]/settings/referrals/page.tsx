@@ -20,7 +20,7 @@ export default async function ReferralsPage({
 }) {
   const link = `https://refer.dub.co/${slug}`;
   const event = (searchParams.event ?? "clicks") as EventType;
-  const page = parseInt(searchParams.page ?? "1") || 1;
+  const page = parseInt(searchParams.page ?? "0") || 0;
 
   return (
     <ReferralsPageClient>
@@ -119,7 +119,7 @@ async function ActivityListRSC({
   const events = await dub.events.list({
     ...eventsParams,
     interval: "all",
-    page: page - 1,
+    page,
   });
 
   const totalEvents = (await dub.analytics.retrieve({

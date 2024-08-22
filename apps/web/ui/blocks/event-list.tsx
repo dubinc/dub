@@ -1,6 +1,6 @@
 "use client";
 
-import { PAGINATION_LIMIT } from "@dub/utils";
+import { nFormatter, PAGINATION_LIMIT } from "@dub/utils";
 import { PropsWithChildren, ReactNode } from "react";
 import usePagination from "../analytics/events/use-pagination";
 
@@ -35,7 +35,7 @@ export function EventList({ events, totalEvents }: EventListProps) {
           </div>
         ))}
       </div>
-      <div className="flex items-center justify-between gap-2 border-t border-gray-200 px-3.5 py-2 text-sm leading-6 text-gray-600">
+      <div className="sticky bottom-0 flex items-center justify-between gap-2 rounded-b-[inherit] border-t border-gray-200 bg-white px-3.5 py-2 text-sm leading-6 text-gray-600">
         <div>
           <span className="hidden sm:inline-block">Viewing</span>{" "}
           <span className="font-medium">
@@ -45,7 +45,11 @@ export function EventList({ events, totalEvents }: EventListProps) {
               totalEvents,
             )}
           </span>{" "}
-          of <span className="font-medium">{totalEvents}</span> events
+          of{" "}
+          <span className="font-medium">
+            {nFormatter(totalEvents, { full: true })}
+          </span>{" "}
+          events
         </div>
         <div className="flex items-center gap-2">
           <button
