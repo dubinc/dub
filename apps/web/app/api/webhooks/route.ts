@@ -24,7 +24,7 @@ export const GET = withWorkspace(
         linkWebhooks: true,
       },
       orderBy: {
-        createdAt: "desc",
+        updatedAt: "desc",
       },
     });
 

@@ -102,7 +102,7 @@ export default function AddEditWebhookForm({
   const { name, url, secret, triggers, linkIds } = data;
   const buttonDisabled = !name || !url || !triggers.length || saving;
   const canManageWebhook = !permissionsError;
-  const enableLinkLevelTriggers = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
+  const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
     triggers.includes(trigger),
   );
 
@@ -192,14 +192,12 @@ export default function AddEditWebhookForm({
                   checked={triggers.includes(trigger)}
                   disabled={!canManageWebhook}
                   onCheckedChange={(checked) => {
-                    if (checked) {
-                      setData({ ...data, triggers: [...triggers, trigger] });
-                    } else {
-                      setData({
-                        ...data,
-                        triggers: triggers.filter((t) => t !== trigger),
-                      });
-                    }
+                    setData({
+                      ...data,
+                      triggers: checked
+                        ? [...triggers, trigger]
+                        : triggers.filter((t) => t !== trigger),
+                    });
                   }}
                 />
                 <label
@@ -232,14 +230,12 @@ export default function AddEditWebhookForm({
                   checked={triggers.includes(trigger)}
                   disabled={!canManageWebhook}
                   onCheckedChange={(checked) => {
-                    if (checked) {
-                      setData({ ...data, triggers: [...triggers, trigger] });
-                    } else {
-                      setData({
-                        ...data,
-                        triggers: triggers.filter((t) => t !== trigger),
-                      });
-                    }
+                    setData({
+                      ...data,
+                      triggers: checked
+                        ? [...triggers, trigger]
+                        : triggers.filter((t) => t !== trigger),
+                    });
                   }}
                 />
                 <label
@@ -259,28 +255,24 @@ export default function AddEditWebhookForm({
               </h2>
             </label>
             <div className="mt-3 flex flex-col gap-4">
-              <div className="border-b border-gray-200 pb-2 min-h-[100px] max-h-[200px] overflow-y-auto bg-red-100">
+              <div className="max-h-[200px] min-h-[100px] overflow-y-auto border-b border-gray-200 pb-2">
                 {links?.map((link) => (
                   <div key={link.id} className="group flex h-8 gap-2 py-1">
                     <Checkbox
                       value={link.id}
-                      id={link.id}
-                      checked={(linkIds || []).includes(link.id)}
-                      disabled={!canManageWebhook || !enableLinkLevelTriggers}
+                      id={`link-${link.id}`}
+                      checked={linkIds?.includes(link.id)}
+                      disabled={
+                        !canManageWebhook ||
+                        (!enableLinkSelection && !linkIds?.length)
+                      }
                       onCheckedChange={(checked) => {
-                        if (checked) {
-                          setData({
-                            ...data,
-                            linkIds: [...(linkIds || []), link.id],
-                          });
-                        } else {
-                          setData({
-                            ...data,
-                            linkIds: (linkIds || []).filter(
-                              (id) => id !== link.id,
-                            ),
-                          });
-                        }
+                        setData({
+                          ...data,
+                          linkIds: checked
+                            ? [...(linkIds || []), link.id]
+                            : (linkIds || []).filter((id) => id !== link.id),
+                        });
                       }}
                     />
                     <label
