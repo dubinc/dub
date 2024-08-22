@@ -5,12 +5,14 @@ import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
+import { dispatchLinkWebhook } from "@/lib/webhook/publish-edge";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -126,6 +128,15 @@ export const POST = withWorkspaceEdge(
       customerAvatar: customer.avatar,
       metadata,
     });
+
+    waitUntil(
+      dispatchLinkWebhook({
+        workspace,
+        linkId: clickData.link_id,
+        event: "lead.created",
+        data: response
+      }),
+    );
 
     return NextResponse.json(response);
   },
