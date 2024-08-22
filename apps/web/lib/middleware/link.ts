@@ -185,14 +185,8 @@ export default async function LinkMiddleware(
     clickId = nanoid(16);
   }
 
-  const searchParams = req.nextUrl.searchParams;
-  // only track the click when there is no `dub-no-track` header or query param
-  if (
-    !(
-      req.headers.get("dub-no-track") ||
-      searchParams.get("dub-no-track") === "1"
-    )
-  ) {
+  // for root domain links, if there's no destination URL, rewrite to placeholder page
+  if (!url) {
     ev.waitUntil(
       recordClick({
         req,
@@ -201,10 +195,7 @@ export default async function LinkMiddleware(
         url,
       }),
     );
-  }
 
-  // for root domain links, if there's no destination URL, rewrite to placeholder page
-  if (!url) {
     return createResponseWithCookie(
       NextResponse.rewrite(new URL(`/${domain}`, req.url), {
         headers: {
@@ -239,6 +230,15 @@ export default async function LinkMiddleware(
 
     // rewrite to deeplink page if the link is a mailto: or tel:
   } else if (isSupportedDeeplinkProtocol(url)) {
+    ev.waitUntil(
+      recordClick({
+        req,
+        linkId,
+        clickId,
+        url,
+      }),
+    );
+
     return createResponseWithCookie(
       NextResponse.rewrite(
         new URL(
@@ -262,6 +262,15 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
   } else if (rewrite) {
+    ev.waitUntil(
+      recordClick({
+        req,
+        linkId,
+        clickId,
+        url,
+      }),
+    );
+
     if (iframeable) {
       return createResponseWithCookie(
         NextResponse.rewrite(
@@ -300,6 +309,15 @@ export default async function LinkMiddleware(
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
+    ev.waitUntil(
+      recordClick({
+        req,
+        linkId,
+        clickId,
+        url: ios,
+      }),
+    );
+
     return createResponseWithCookie(
       NextResponse.redirect(
         getFinalUrl(ios, {
@@ -319,6 +337,15 @@ export default async function LinkMiddleware(
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
+    ev.waitUntil(
+      recordClick({
+        req,
+        linkId,
+        clickId,
+        url: android,
+      }),
+    );
+
     return createResponseWithCookie(
       NextResponse.redirect(
         getFinalUrl(android, {
@@ -338,6 +365,15 @@ export default async function LinkMiddleware(
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
+    ev.waitUntil(
+      recordClick({
+        req,
+        linkId,
+        clickId,
+        url: geo[country],
+      }),
+    );
+
     return createResponseWithCookie(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
@@ -357,6 +393,15 @@ export default async function LinkMiddleware(
 
     // regular redirect
   } else {
+    ev.waitUntil(
+      recordClick({
+        req,
+        linkId,
+        clickId,
+        url,
+      }),
+    );
+
     return createResponseWithCookie(
       NextResponse.redirect(
         getFinalUrl(url, {
