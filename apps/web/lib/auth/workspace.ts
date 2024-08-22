@@ -337,23 +337,21 @@ export const withWorkspace = (
 
         const url = new URL(req.url || "", API_DOMAIN);
 
-        const hasRequiredPlanOrFeature =
-          requiredPlan.includes(workspace.plan) ||
-          (url.pathname.includes("/events") && workspace.conversionEnabled);
-
-        const requiresConversionEnabled =
-          ["/track/lead", "/track/sale"].includes(url.pathname) &&
-          workspace.conversionEnabled;
-
-        // Plan or feature check
-        if (!hasRequiredPlanOrFeature && !requiresConversionEnabled) {
+        // plan checks
+        // special scenario – /events API is available for conversionEnabled workspaces
+        // (even if they're on a Pro plan)
+        if (
+          !requiredPlan.includes(workspace.plan) &&
+          url.pathname.includes("/events") &&
+          !workspace.conversionEnabled
+        ) {
           throw new DubApiError({
             code: "forbidden",
-            message: "Unauthorized: Need higher plan or feature enabled.",
+            message: "Unauthorized: Need higher plan.",
           });
         }
 
-        // Check for required add-ons
+        // add-ons checks
         if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
           throw new DubApiError({
             code: "forbidden",

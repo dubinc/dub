@@ -343,8 +343,16 @@ export const withWorkspaceEdge = (
           });
         }
 
+        const url = new URL(req.url || "", API_DOMAIN);
+
         // plan checks
-        if (!requiredPlan.includes(workspace.plan)) {
+        // special scenario – /events API is available for conversionEnabled workspaces
+        // (even if they're on a Pro plan)
+        if (
+          !requiredPlan.includes(workspace.plan) &&
+          url.pathname.includes("/events") &&
+          !workspace.conversionEnabled
+        ) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
@@ -361,7 +369,6 @@ export const withWorkspaceEdge = (
         }
 
         // analytics API checks
-        const url = new URL(req.url || "", API_DOMAIN);
         if (
           workspace.plan === "free" &&
           apiKey &&

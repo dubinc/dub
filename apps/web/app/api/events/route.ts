@@ -57,7 +57,6 @@ export const GET = withWorkspace(
       "business max",
       "enterprise",
     ],
-    requiredAddOn: "conversion",
     requiredPermissions: ["analytics.read"],
   },
 );
