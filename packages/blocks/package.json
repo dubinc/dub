@@ -18,9 +18,7 @@
   "peerDependencies": {
     "next": "14.2.0-canary.47",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@dub/ui": "workspace:*",
-    "@dub/utils": "workspace:*"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
@@ -36,6 +34,8 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@dub/ui": "workspace:*",
+    "@dub/utils": "workspace:*",
     "@visx/curve": "^3.3.0",
     "@visx/gradient": "^3.3.0",
     "@visx/group": "^3.3.0",
