@@ -129,15 +129,17 @@ export default function WorkspaceBillingClient() {
                   setClicked(true);
                   fetch(`/api/workspaces/${id}/billing/manage`, {
                     method: "POST",
-                  })
-                    .then(async (res) => {
+                  }).then(async (res) => {
+                    if (res.ok) {
                       const url = await res.json();
+                      console.log({ url });
                       router.push(url);
-                    })
-                    .catch((err) => {
-                      alert(err);
+                    } else {
+                      const { error } = await res.json();
+                      toast.error(error.message);
                       setClicked(false);
-                    });
+                    }
+                  });
                 }}
                 loading={clicked}
               />
