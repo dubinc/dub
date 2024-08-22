@@ -3,8 +3,9 @@ import { StatCard, StatCardSkeleton } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
 import { ClicksCount, SalesCount } from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
+import { getReferralLink } from "../../../../../../lib/actions/get-referral-link";
 
-export function Stats({ linkId }: { linkId: string }) {
+export function Stats({ slug }: { slug: string }) {
   return (
     <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
       <Suspense
@@ -12,15 +13,20 @@ export function Stats({ linkId }: { linkId: string }) {
           <StatCardSkeleton />
         ))}
       >
-        <StatsInner linkId={linkId} />
+        <StatsInner slug={slug} />
       </Suspense>
     </div>
   );
 }
 
-async function StatsInner({ linkId }: { linkId: string }) {
+async function StatsInner({ slug }: { slug: string }) {
+  const link = await getReferralLink(slug);
+  if (!link) {
+    return [...Array(2)].map(() => <StatCardSkeleton error />);
+  }
+
   try {
-    const { totalClicks, clicks, totalSales, sales } = await loadData(linkId);
+    const { totalClicks, clicks, totalSales, sales } = await loadData(link.id);
 
     return (
       <>

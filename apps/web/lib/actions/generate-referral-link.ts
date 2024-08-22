@@ -1,6 +1,6 @@
 "use server";
 
-import { linkConstructor, nanoid } from "@dub/utils";
+import { linkConstructor } from "@dub/utils";
 import { z } from "zod";
 import { dub } from "../dub";
 import { authActionClient } from "./safe-action";
@@ -15,23 +15,10 @@ export const generateReferralLink = authActionClient
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
 
-    let existingLink: any = null;
-
-    try {
-      existingLink = await dub.links.get({
-        domain: "refer.dub.co",
-        key: workspace.slug,
-      });
-    } catch (e) {}
-
-    const key = existingLink
-      ? `${workspace.slug}-${nanoid(4)}`
-      : workspace.slug;
-
     try {
       const createdLink = await dub.links.create({
         domain: "refer.dub.co",
-        key,
+        key: workspace.slug,
         url: "https://dub.co",
         externalId: `ws_${workspace.id}`,
         tagIds: ["cm000srqx0004o6ldehod07zc"],
