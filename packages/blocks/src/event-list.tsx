@@ -1,8 +1,8 @@
 "use client";
 
-import { nFormatter, PAGINATION_LIMIT } from "@dub/utils";
+import { usePagination } from "@dub/ui";
 import { PropsWithChildren, ReactNode } from "react";
-import usePagination from "../analytics/events/use-pagination";
+import { PaginationControls } from "./pagination-controls";
 
 export type EventListProps = PropsWithChildren<{
   events: { icon: ReactNode; content: ReactNode; right?: ReactNode }[];
@@ -16,7 +16,8 @@ const buttonClassName = [
 ].join(" ");
 
 export function EventList({ events, totalEvents }: EventListProps) {
-  const { pagination, setPagination } = usePagination(PAGINATION_LIMIT);
+  const { pagination, setPagination } = usePagination();
+
   return (
     <div className="rounded-xl border border-gray-200">
       <div className="flex flex-col divide-y divide-gray-200">
@@ -35,54 +36,13 @@ export function EventList({ events, totalEvents }: EventListProps) {
           </div>
         ))}
       </div>
-      <div className="sticky bottom-0 flex items-center justify-between gap-2 rounded-b-[inherit] border-t border-gray-200 bg-white px-3.5 py-2 text-sm leading-6 text-gray-600">
-        <div>
-          <span className="hidden sm:inline-block">Viewing</span>{" "}
-          <span className="font-medium">
-            {pagination.pageIndex * pagination.pageSize + 1}-
-            {Math.min(
-              pagination.pageIndex * pagination.pageSize + pagination.pageSize,
-              totalEvents,
-            )}
-          </span>{" "}
-          of{" "}
-          <span className="font-medium">
-            {nFormatter(totalEvents, { full: true })}
-          </span>{" "}
-          events
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className={buttonClassName}
-            onClick={() =>
-              setPagination({
-                pageIndex: pagination.pageIndex - 1,
-                pageSize: pagination.pageSize,
-              })
-            }
-            disabled={pagination.pageIndex === 0}
-          >
-            Previous
-          </button>
-          <button
-            type="button"
-            className={buttonClassName}
-            onClick={() =>
-              setPagination({
-                pageIndex: pagination.pageIndex + 1,
-                pageSize: pagination.pageSize,
-              })
-            }
-            disabled={
-              pagination.pageIndex * pagination.pageSize +
-                pagination.pageSize >=
-              totalEvents
-            }
-          >
-            Next
-          </button>
-        </div>
+      <div className="sticky bottom-0 rounded-b-[inherit] border-t border-gray-200 bg-white px-3.5 py-2">
+        <PaginationControls
+          pagination={pagination}
+          setPagination={setPagination}
+          totalCount={totalEvents}
+          unit={(p) => `event${p ? "s" : ""}`}
+        />
       </div>
     </div>
   );

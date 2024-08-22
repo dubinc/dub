@@ -4,7 +4,7 @@ import { EventType } from "@/lib/analytics/types";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
-import { EventList } from "@/ui/blocks/event-list";
+import { EventList } from "@dub/blocks";
 import { CursorRays, Globe, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { COUNTRIES, timeAgo } from "@dub/utils";
 import { useSearchParams } from "next/navigation";

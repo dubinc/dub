@@ -1,6 +1,6 @@
 import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
-import { EventListSkeleton } from "@/ui/blocks/event-list";
+import { EventListSkeleton } from "@dub/blocks";
 import { CopyButton, Logo } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";

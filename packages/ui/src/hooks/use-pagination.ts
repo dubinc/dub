@@ -1,8 +1,14 @@
-import { useRouterStuff, useTablePagination } from "@dub/ui";
 import { PAGINATION_LIMIT } from "@dub/utils";
 import { useEffect, useMemo } from "react";
+import { useTablePagination } from "../table/use-table-pagination";
+import { useRouterStuff } from "./use-router-stuff";
 
-export default function usePagination(pageSize = PAGINATION_LIMIT) {
+export type PaginationState = {
+  pageIndex: number;
+  pageSize: number;
+};
+
+export function usePagination(pageSize = PAGINATION_LIMIT) {
   const { searchParams, queryParams } = useRouterStuff();
 
   const page = useMemo(
