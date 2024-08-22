@@ -3,10 +3,10 @@ import {
   LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
+  nanoid,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { ipAddress } from "@vercel/edge";
-import { nanoid } from "nanoid";
 import { NextRequest, userAgent } from "next/server";
 import {
   detectBot,
