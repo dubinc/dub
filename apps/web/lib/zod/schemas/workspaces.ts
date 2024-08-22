@@ -30,8 +30,16 @@ export const WorkspaceSchema = z
     usageLimit: z.number().describe("The usage limit of the workspace."),
     linksUsage: z.number().describe("The links usage of the workspace."),
     linksLimit: z.number().describe("The links limit of the workspace."),
-    salesUsage: z.number().describe("The sales usage of the workspace."),
-    salesLimit: z.number().describe("The sales limit of the workspace."),
+    salesUsage: z
+      .number()
+      .describe(
+        "The dollar amount of tracked revenue in the current billing cycle (in cents).",
+      ),
+    salesLimit: z
+      .number()
+      .describe(
+        "The limit of tracked revenue in the current billing cycle (in cents).",
+      ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
     usersLimit: z.number().describe("The users limit of the workspace."),
