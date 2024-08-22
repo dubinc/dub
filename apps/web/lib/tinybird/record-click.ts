@@ -8,7 +8,12 @@ import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { ipAddress } from "@vercel/edge";
 import { nanoid } from "nanoid";
 import { NextRequest, userAgent } from "next/server";
-import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
+import {
+  detectBot,
+  detectQr,
+  getFinalUrlForClick,
+  getIdentityHash,
+} from "../middleware/utils";
 import { conn } from "../planetscale";
 import { ratelimit } from "../upstash";
 
@@ -53,6 +58,8 @@ export async function recordClick({
     return null;
   }
 
+  const finalUrl = url ? getFinalUrlForClick({ req, url }) : "";
+
   return await Promise.allSettled([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
@@ -67,7 +74,7 @@ export async function recordClick({
           click_id: clickId || nanoid(16),
           link_id: linkId,
           alias_link_id: "",
-          url: url || "",
+          url: finalUrl,
           ip:
             // only record IP if it's a valid IP and not from a EU country
             typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
