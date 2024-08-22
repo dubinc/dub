@@ -3,18 +3,13 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
 import IntegrationCard from "@/ui/oauth-apps/integration-card";
-import { redirect } from "next/navigation";
 
 export default function IntegrationsPageClient({
   integrations,
 }: {
   integrations: InstalledIntegrationProps[];
 }) {
-  const { slug, conversionEnabled, flags } = useWorkspace();
-
-  if (!flags?.integrations) {
-    redirect(`/${slug}/settings`);
-  }
+  const { conversionEnabled } = useWorkspace();
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">

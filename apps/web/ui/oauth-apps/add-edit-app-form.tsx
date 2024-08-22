@@ -14,7 +14,7 @@ import { cn, nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -42,7 +42,7 @@ export default function AddOAuthAppForm({
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const { slug: workspaceSlug, id: workspaceId, flags, role } = useWorkspace();
+  const { slug: workspaceSlug, id: workspaceId, role } = useWorkspace();
   const [urls, setUrls] = useState<{ id: string; value: string }[]>([
     { id: nanoid(), value: "" },
   ]);
@@ -53,10 +53,6 @@ export default function AddOAuthAppForm({
       uploading: boolean;
     }[]
   >([]);
-
-  if (!flags?.integrations) {
-    redirect(`/${workspaceSlug}`);
-  }
 
   const [data, setData] = useState<NewOAuthApp | ExistingOAuthApp>(
     oAuthApp || defaultValues,

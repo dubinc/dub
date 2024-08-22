@@ -35,11 +35,7 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId, conversionEnabled, flags } = useWorkspace();
-
-  if (!flags?.integrations) {
-    redirect(`/${slug}/settings`);
-  }
+  const { slug, id: workspaceId, conversionEnabled } = useWorkspace();
 
   if (!conversionEnabled && integration.slug === "stripe") {
     redirect(`/${slug}/settings/integrations`);
