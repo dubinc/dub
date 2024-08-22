@@ -29,6 +29,7 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   lastClicked: null,
   leads: 0,
   sales: 0,
+  saleAmount: 0,
   tagId: null, // backwards compatibility
   comments: null,
   createdAt: expect.any(String),
