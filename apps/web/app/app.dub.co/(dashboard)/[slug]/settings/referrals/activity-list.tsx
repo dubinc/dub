@@ -1,39 +1,27 @@
 "use client";
 
+import { EventType } from "@/lib/analytics/types";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { EventList } from "@/ui/blocks/event-list";
-import { useRouterStuff } from "@dub/ui";
 import { CursorRays, Globe, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
 import { COUNTRIES, timeAgo } from "@dub/utils";
+import { useSearchParams } from "next/navigation";
 import { z } from "zod";
 
-type ActivityListProps = {
-  page: number;
-  hasNextPage?: boolean;
-} & (
-  | {
-      event: "clicks";
-      events: z.infer<typeof clickEventEnrichedSchema>[];
-    }
-  | {
-      event: "leads";
-      events: z.infer<typeof leadEventEnrichedSchema>[];
-    }
-  | {
-      event: "sales";
-      events: z.infer<typeof saleEventEnrichedSchema>[];
-    }
-);
-
 export function ActivityList({
-  event,
-  page,
-  hasNextPage,
   events,
-}: ActivityListProps) {
-  const { queryParams } = useRouterStuff();
+  totalEvents,
+}: {
+  events:
+    | z.infer<typeof clickEventEnrichedSchema>[]
+    | z.infer<typeof leadEventEnrichedSchema>[]
+    | z.infer<typeof saleEventEnrichedSchema>[];
+  totalEvents: number;
+}) {
+  const searchParams = useSearchParams();
+  const event = (searchParams.get("event") || "clicks") as EventType;
 
   return (
     <EventList
@@ -57,12 +45,7 @@ export function ActivityList({
           ),
         };
       })}
-      onPrevious={() =>
-        queryParams({ set: { page: Math.max(page - 1, 1).toString() } })
-      }
-      onNext={() => queryParams({ set: { page: (page + 1).toString() } })}
-      hasPrevious={page > 1}
-      hasNext={hasNextPage}
+      totalEvents={totalEvents}
     />
   );
 }

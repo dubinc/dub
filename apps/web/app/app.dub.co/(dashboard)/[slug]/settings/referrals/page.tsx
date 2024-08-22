@@ -1,14 +1,21 @@
-export const dynamic = "force-dynamic";
-
-import { EVENT_TYPES } from "@/lib/analytics/constants";
+import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
+import { EventListSkeleton } from "@/ui/blocks/event-list";
 import { CopyButton, Logo } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
+import {
+  ClicksCount,
+  LeadsCount,
+  SalesCount,
+} from "dub/dist/commonjs/models/components";
+import { Suspense } from "react";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
 import { InviteButton } from "./invite-button";
 import ReferralsPageClient from "./page-client";
+
+export const dynamic = "auto";
 
 export default async function ReferralsPage({
   params: { slug },
@@ -18,25 +25,8 @@ export default async function ReferralsPage({
   searchParams: { event?: string; page?: string };
 }) {
   const link = `https://refer.dub.co/${slug}`;
-  const event = EVENT_TYPES.find((e) => e === searchParams.event) ?? "clicks";
-  const page = parseInt(searchParams.page ?? "1") || 1;
-
-  const eventsParams = {
-    domain: "refer.dub.co",
-    key: slug,
-    event,
-  };
-
-  const events = await dub.events.list({
-    ...eventsParams,
-    page: page - 1,
-  });
-
-  // Ideally the Dub SDK/API would give us hasNext info, but at least this could speed things up with caching
-  const nextEvents = await dub.events.list({
-    ...eventsParams,
-    page: page,
-  });
+  const event = (searchParams.event ?? "clicks") as EventType;
+  const page = parseInt(searchParams.page ?? "0") || 0;
 
   return (
     <ReferralsPageClient>
@@ -103,16 +93,47 @@ export default async function ReferralsPage({
         <div className="mt-12">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-xl font-semibold text-gray-800">Activity</h2>
-            <EventTabs event={event} />
+            <EventTabs />
           </div>
-          <ActivityList
-            event={event}
-            page={page}
-            hasNextPage={nextEvents.length > 0}
-            events={events as any}
-          />
+          <Suspense
+            key={`${slug}-${event}-${page}`}
+            fallback={<EventListSkeleton />}
+          >
+            <ActivityListRSC slug={slug} event={event} page={page} />
+          </Suspense>
         </div>
       </div>
     </ReferralsPageClient>
+  );
+}
+
+async function ActivityListRSC({
+  slug,
+  event,
+  page,
+}: {
+  slug: string;
+  event: EventType;
+  page: number;
+}) {
+  const eventsParams = {
+    domain: "refer.dub.co",
+    key: slug,
+    event,
+  };
+
+  const events = await dub.events.list({
+    ...eventsParams,
+    interval: "all",
+    page,
+  });
+
+  const totalEvents = (await dub.analytics.retrieve({
+    ...eventsParams,
+    interval: event === "sales" ? "all" : "all_unfiltered", // temp fix till we add sales to all_unfiltered
+  })) as ClicksCount | LeadsCount | SalesCount;
+
+  return (
+    <ActivityList events={events as any} totalEvents={totalEvents[event]} />
   );
 }

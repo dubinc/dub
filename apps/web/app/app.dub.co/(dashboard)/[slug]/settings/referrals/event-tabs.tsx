@@ -1,11 +1,10 @@
 "use client";
 
-import { EventType } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 
-export function EventTabs({ event }: { event: EventType }) {
-  const { queryParams } = useRouterStuff();
+export function EventTabs() {
+  const { queryParams, searchParams } = useRouterStuff();
   return (
     <ToggleGroup
       options={[
@@ -13,8 +12,8 @@ export function EventTabs({ event }: { event: EventType }) {
         { value: "leads", label: "Leads" },
         { value: "sales", label: "Sales" },
       ]}
-      selected={event}
-      selectAction={(event) => queryParams({ set: { event } })}
+      selected={searchParams.get("event") ?? "clicks"}
+      selectAction={(event) => queryParams({ set: { event }, del: "page" })}
     />
   );
 }
