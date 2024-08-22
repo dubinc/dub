@@ -29,7 +29,7 @@ export function GenerateButton() {
     <Button
       icon={<Hyperlink className="size-4" />}
       text="Generate Referral Link"
-      className="w-auto"
+      className="h-9 w-auto rounded-lg"
       onClick={() => executeAsync({ workspaceId: workspaceId! })}
       loading={isExecuting || hasSucceeded}
     />

@@ -1,23 +1,19 @@
 import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
-import { getWorkspace } from "@/lib/fetchers";
 import { EventListSkeleton } from "@dub/blocks";
-import { CopyButton, Logo } from "@dub/ui";
-import { Check, CircleWarning } from "@dub/ui/src/icons";
-import { getPrettyUrl, linkConstructor } from "@dub/utils";
+import { Logo } from "@dub/ui";
+import { Check } from "@dub/ui/src/icons";
 import {
   ClicksCount,
   LeadsCount,
-  LinkSchema,
   SalesCount,
 } from "dub/dist/commonjs/models/components";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
-import { GenerateButton } from "./generate-button";
-import { InviteButton } from "./invite-button";
+import { getReferralLink } from "./get-referral-link";
 import ReferralsPageClient from "./page-client";
+import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
 import { Stats } from "./stats";
 
 export const dynamic = "auto";
@@ -31,26 +27,6 @@ export default async function ReferralsPage({
 }) {
   const event = (searchParams.event ?? "clicks") as EventType;
   const page = parseInt(searchParams.page ?? "0") || 0;
-
-  const workspace = await getWorkspace({ slug });
-
-  if (!workspace) {
-    return redirect(`/${slug}/settings`);
-  }
-
-  let errorCode = null;
-  let link: LinkSchema | null = null;
-  try {
-    link = await dub.links.get({
-      externalId: `ext_ws_${workspace.id}`,
-    });
-  } catch (e) {
-    errorCode = e?.error?.code ?? "error";
-  }
-
-  const linkUrl = link
-    ? linkConstructor({ domain: link.domain, key: link.key })
-    : null;
 
   return (
     <ReferralsPageClient>
@@ -90,34 +66,9 @@ export default async function ReferralsPage({
             </div>
 
             {/* Referral link + invite button or empty/error states */}
-            <div className="mt-8">
-              {linkUrl && !errorCode ? (
-                <div className="grid gap-1.5">
-                  <p className="text-xs text-gray-500">Referral Link</p>
-                  <div className="grid grid-cols-1 gap-x-2 gap-y-2 sm:max-w-sm sm:grid-cols-[1fr_auto] xl:max-w-md">
-                    <div className="flex h-9 items-center justify-between gap-x-2 rounded-lg border border-gray-300 bg-white py-1.5 pl-4 pr-2">
-                      <p className="text-sm text-gray-500">
-                        {getPrettyUrl(linkUrl)}
-                      </p>
-                      <CopyButton
-                        value={linkUrl}
-                        variant="neutral"
-                        className="p-1.5 text-gray-500"
-                      />
-                    </div>
-                    <InviteButton />
-                  </div>
-                </div>
-              ) : errorCode === "not_found" ? (
-                <GenerateButton />
-              ) : (
-                <p className="text-sm text-gray-500">
-                  <CircleWarning className="-mt-0.5 mr-1.5 inline-block size-4" />
-                  Failed to load referral link. Please try again later or
-                  contact support.
-                </p>
-              )}
-            </div>
+            <Suspense fallback={<ReferralLinkSkeleton />}>
+              <ReferralLink slug={slug} />
+            </Suspense>
           </div>
 
           {/* Powered by Dub Conversions */}
@@ -132,43 +83,42 @@ export default async function ReferralsPage({
             </p>
           </a>
         </div>
-        {!errorCode && link && (
-          <>
-            <div className="mt-8">
-              <Stats linkId={link.id} />
-            </div>
-            <div className="mt-12">
-              <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Activity
-                </h2>
-                <EventTabs />
-              </div>
-              <Suspense
-                key={`${slug}-${event}-${page}`}
-                fallback={<EventListSkeleton />}
-              >
-                <ActivityListRSC linkId={link.id} event={event} page={page} />
-              </Suspense>
-            </div>
-          </>
-        )}
+        <div className="mt-8">
+          <Stats slug={slug} />
+        </div>
+        <div className="mt-12">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-xl font-semibold text-gray-800">Activity</h2>
+            <EventTabs />
+          </div>
+          <Suspense
+            key={`${slug}-${event}-${page}`}
+            fallback={<EventListSkeleton />}
+          >
+            <ActivityListRSC slug={slug} event={event} page={page} />
+          </Suspense>
+        </div>
       </div>
     </ReferralsPageClient>
   );
 }
 
 async function ActivityListRSC({
-  linkId,
+  slug,
   event,
   page,
 }: {
-  linkId: string;
+  slug: string;
   event: EventType;
   page: number;
 }) {
+  const link = await getReferralLink(slug);
+  if (!link) {
+    return <EventListSkeleton />;
+  }
+
   const eventsParams = {
-    linkId,
+    linkId: link.id,
     event,
   };
 
