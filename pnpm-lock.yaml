@@ -423,9 +423,30 @@ importers:
       '@dub/utils':
         specifier: workspace:*
         version: link:../utils
+      '@visx/curve':
+        specifier: ^3.3.0
+        version: 3.3.0
+      '@visx/gradient':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.2.0)
+      '@visx/group':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.2.0)
+      '@visx/responsive':
+        specifier: ^2.10.0
+        version: 2.10.0(react@18.2.0)
+      '@visx/scale':
+        specifier: ^3.3.0
+        version: 3.3.0
+      '@visx/shape':
+        specifier: ^2.12.2
+        version: 2.12.2(react@18.2.0)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
+      framer-motion:
+        specifier: ^10.16.16
+        version: 10.18.0(react-dom@18.2.0)(react@18.2.0)
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)

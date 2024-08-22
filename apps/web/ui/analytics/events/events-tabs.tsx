@@ -1,15 +1,9 @@
 import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { MiniAreaChart } from "@dub/blocks";
 import { CountingNumbers, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
-import { curveNatural } from "@visx/curve";
-import { LinearGradient } from "@visx/gradient";
-import { Group } from "@visx/group";
-import { ParentSize } from "@visx/responsive";
-import { scaleLinear, scaleUtc } from "@visx/scale";
-import { Area, AreaClosed } from "@visx/shape";
-import { motion } from "framer-motion";
 import { useCallback, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
@@ -59,6 +53,15 @@ export default function EventsTabs() {
         keepPreviousData: true,
       },
     );
+
+  const chartData = useMemo(() => {
+    if (!timeseriesData) return [];
+    return timeseriesData.map((d) => ({
+      date: new Date(d.start),
+      value:
+        ((tab === "sales" ? d?.amount : d?.[tab]) as number | undefined) ?? 0,
+    }));
+  }, [timeseriesData, tab]);
 
   const onEventTabClick = useCallback(
     (event: string) => {
@@ -130,145 +133,11 @@ export default function EventsTabs() {
                 isLoadingTimeseries && "opacity-40",
               )}
             >
-              <Chart data={timeseriesData} event={event} />
+              <MiniAreaChart data={chartData} />
             </div>
           )}
         </button>
       ))}
     </div>
-  );
-}
-
-type ChartProps = { data: TimeseriesData; event: string };
-function Chart(props: ChartProps) {
-  return (
-    <ParentSize className="relative">
-      {({ width, height }) => {
-        return (
-          width > 0 &&
-          height > 0 && <ChartInner {...{ width, height, ...props }} />
-        );
-      }}
-    </ParentSize>
-  );
-}
-
-const padding = { top: 8, right: 2, bottom: 2, left: 2 };
-
-function ChartInner({
-  data,
-  event,
-  width,
-  height,
-}: ChartProps & { width: number; height: number }) {
-  const chartData = useMemo(
-    () =>
-      data.map((d) => ({
-        date: new Date(d.start),
-        value:
-          ((event === "sales" ? d?.amount : d?.[event]) as
-            | number
-            | undefined) ?? 0,
-      })) ?? null,
-    [data, event],
-  );
-
-  const zeroedData = useMemo(
-    () =>
-      chartData.map(({ date }) => ({
-        date,
-        value: 0,
-      })),
-    [chartData],
-  );
-
-  const { yScale, xScale } = useMemo(() => {
-    const values = chartData.map(({ value }) => value);
-    const maxY = Math.max(...values);
-
-    const dateTimes = chartData.map(({ date }) => date.getTime());
-    const minDate = new Date(Math.min(...dateTimes));
-    const maxDate = new Date(Math.max(...dateTimes));
-
-    return {
-      yScale: scaleLinear<number>({
-        domain: [-2, Math.max(maxY, 2)],
-        range: [height - padding.top - padding.bottom, 0],
-        nice: true,
-        clamp: true,
-      }),
-      xScale: scaleUtc<number>({
-        domain: [minDate, maxDate],
-        range: [0, width - padding.left - padding.right],
-        nice: true,
-      }),
-    };
-  }, [chartData, height, width]);
-
-  return (
-    <svg width={width} height={height} key={chartData.length}>
-      <defs>
-        <LinearGradient
-          id="color-gradient"
-          from="#7D3AEC"
-          to="#DA2778"
-          x1={0}
-          x2={width - padding.left - padding.right}
-          gradientUnits="userSpaceOnUse"
-        />
-        <LinearGradient
-          id="mask-gradient"
-          from="white"
-          to="white"
-          fromOpacity={0.3}
-          toOpacity={0}
-          x1={0}
-          x2={0}
-          y1={0}
-          y2={1}
-        />
-        <mask id="mask" maskContentUnits="objectBoundingBox">
-          <rect width="1" height="1" fill="url(#mask-gradient)" />
-        </mask>
-      </defs>
-      <Group left={padding.left} top={padding.top}>
-        <Area
-          data={chartData}
-          x={({ date }) => xScale(date)}
-          y={({ value }) => yScale(value) ?? 0}
-          curve={curveNatural}
-        >
-          {({ path }) => {
-            return (
-              <motion.path
-                initial={{ d: path(zeroedData) || "", opacity: 0 }}
-                animate={{ d: path(chartData) || "", opacity: 1 }}
-                strokeWidth={1.5}
-                stroke="url(#color-gradient)"
-              />
-            );
-          }}
-        </Area>
-
-        <AreaClosed
-          data={chartData}
-          x={({ date }) => xScale(date)}
-          y={({ value }) => yScale(value) ?? 0}
-          yScale={yScale}
-          curve={curveNatural}
-        >
-          {({ path }) => {
-            return (
-              <motion.path
-                initial={{ d: path(zeroedData) || "", opacity: 0 }}
-                animate={{ d: path(chartData) || "", opacity: 1 }}
-                fill="url(#color-gradient)"
-                mask="url(#mask)"
-              />
-            );
-          }}
-        </AreaClosed>
-      </Group>
-    </svg>
   );
 }

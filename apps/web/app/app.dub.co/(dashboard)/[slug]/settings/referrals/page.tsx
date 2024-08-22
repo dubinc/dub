@@ -18,6 +18,7 @@ import { EventTabs } from "./event-tabs";
 import { GenerateButton } from "./generate-button";
 import { InviteButton } from "./invite-button";
 import ReferralsPageClient from "./page-client";
+import { Stats } from "./stats";
 
 export const dynamic = "auto";
 
@@ -88,7 +89,7 @@ export default async function ReferralsPage({
               ))}
             </div>
 
-            {/* Referral link + invite button */}
+            {/* Referral link + invite button or empty/error states */}
             <div className="mt-8">
               {linkUrl && !errorCode ? (
                 <div className="grid gap-1.5">
@@ -131,19 +132,26 @@ export default async function ReferralsPage({
             </p>
           </a>
         </div>
-        {!errorCode && (
-          <div className="mt-12">
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-              <h2 className="text-xl font-semibold text-gray-800">Activity</h2>
-              <EventTabs />
+        {!errorCode && link && (
+          <>
+            <div className="mt-8">
+              <Stats linkId={link.id} />
             </div>
-            <Suspense
-              key={`${slug}-${event}-${page}`}
-              fallback={<EventListSkeleton />}
-            >
-              <ActivityListRSC slug={slug} event={event} page={page} />
-            </Suspense>
-          </div>
+            <div className="mt-12">
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Activity
+                </h2>
+                <EventTabs />
+              </div>
+              <Suspense
+                key={`${slug}-${event}-${page}`}
+                fallback={<EventListSkeleton />}
+              >
+                <ActivityListRSC linkId={link.id} event={event} page={page} />
+              </Suspense>
+            </div>
+          </>
         )}
       </div>
     </ReferralsPageClient>
@@ -151,17 +159,16 @@ export default async function ReferralsPage({
 }
 
 async function ActivityListRSC({
-  slug,
+  linkId,
   event,
   page,
 }: {
-  slug: string;
+  linkId: string;
   event: EventType;
   page: number;
 }) {
   const eventsParams = {
-    domain: "refer.dub.co",
-    key: slug,
+    linkId,
     event,
   };
 

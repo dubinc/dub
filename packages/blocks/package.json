@@ -36,7 +36,14 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "class-variance-authority": "^0.7.0"
+    "@visx/curve": "^3.3.0",
+    "@visx/gradient": "^3.3.0",
+    "@visx/group": "^3.3.0",
+    "@visx/responsive": "^2.10.0",
+    "@visx/scale": "^3.3.0",
+    "@visx/shape": "^2.12.2",
+    "class-variance-authority": "^0.7.0",
+    "framer-motion": "^10.16.16"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",
