@@ -102,9 +102,7 @@ export default function WebhookHeader({
                     className="h-9 justify-start px-2 font-medium"
                     onClick={async () => {
                       setOpenPopover(false);
-                      router.push(
-                        `/${slug}/settings/webhooks/${webhookId}`,
-                      );
+                      router.push(`/${slug}/settings/webhooks/${webhookId}`);
                     }}
                   />
                 )}

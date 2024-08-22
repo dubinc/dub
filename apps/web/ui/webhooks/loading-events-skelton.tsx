@@ -16,4 +16,4 @@ export const WebhookEventListSkeleton = () => {
       </div>
     </div>
   );
-}
+};

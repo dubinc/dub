@@ -101,5 +101,3 @@ export function WebhookEventList({ events, totalEvents }: EventListProps) {
     </div>
   );
 }
-
-
