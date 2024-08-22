@@ -7,7 +7,7 @@ import { Divider } from "@/ui/shared/icons";
 import Infinity from "@/ui/shared/icons/infinity";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import { Button, InfoTooltip, ProgressBar, useRouterStuff } from "@dub/ui";
-import { getFirstAndLastDay, getPlanDetails, nFormatter } from "@dub/utils";
+import { cn, getFirstAndLastDay, getPlanDetails, nFormatter } from "@dub/utils";
 import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -144,7 +144,12 @@ export default function WorkspaceBillingClient() {
           )}
         </div>
         <div className="grid divide-y divide-gray-200 border-y border-gray-200">
-          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+          <div
+            className={cn(
+              "grid grid-cols-1 divide-y divide-gray-200",
+              conversionEnabled && "sm:grid-cols-2 sm:divide-x sm:divide-y-0",
+            )}
+          >
             {conversionEnabled && (
               <UsageCategory
                 title="Revenue tracked"
@@ -169,7 +174,7 @@ export default function WorkspaceBillingClient() {
           </div>
           <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
             <UsageCategory
-              title="Created Links"
+              title="Links Created"
               unit="links"
               tooltip="Number of short links created in the current billing cycle."
               usage={linksUsage}
