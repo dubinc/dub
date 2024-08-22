@@ -12,6 +12,7 @@ import {
 import { Suspense } from "react";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
+import { HeroBackground } from "./hero-background";
 import ReferralsPageClient from "./page-client";
 import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
 import { Stats } from "./stats";
@@ -32,43 +33,49 @@ export default async function ReferralsPage({
     <ReferralsPageClient>
       <div>
         <div className="relative">
-          <div className="rounded-xl border border-gray-200 p-4 sm:p-9">
-            <h1 className="text-xl font-semibold text-black sm:text-2xl">
-              Refer and earn
-            </h1>
+          <div className="relative overflow-hidden rounded-xl border border-gray-200 p-4 sm:p-9">
+            <Suspense>
+              <HeroBackground slug={slug} />
+            </Suspense>
 
-            {/* Benefits */}
-            <div className="mt-6 flex flex-col gap-6">
-              {[
-                {
-                  title: "10% recurring revenue",
-                  description: "per paying customer (up to 1 year)",
-                },
-                {
-                  title: "500 extra clicks quota per month",
-                  description: "per signup (up to 16,000 total)",
-                },
-              ].map(({ title, description }) => (
-                <div className="flex items-center gap-3">
-                  <div className="flex size-9 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 to-white">
-                    <div className="rounded-full bg-green-500 p-0.5">
-                      <Check className="size-3.5 text-white" />
+            <div className="relative">
+              <h1 className="text-xl font-semibold text-black sm:text-2xl">
+                Refer and earn
+              </h1>
+
+              {/* Benefits */}
+              <div className="mt-6 flex flex-col gap-6">
+                {[
+                  {
+                    title: "10% recurring revenue",
+                    description: "per paying customer (up to 1 year)",
+                  },
+                  {
+                    title: "500 extra clicks quota per month",
+                    description: "per signup (up to 16,000 total)",
+                  },
+                ].map(({ title, description }) => (
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-9 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 to-white">
+                      <div className="rounded-full bg-green-500 p-0.5">
+                        <Check className="size-3.5 text-white" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-base font-medium text-gray-800">
+                        {title}
+                      </p>
+                      <p className="text-xs text-gray-500">{description}</p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-base font-medium text-gray-800">
-                      {title}
-                    </p>
-                    <p className="text-xs text-gray-500">{description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Referral link + invite button or empty/error states */}
-            <Suspense fallback={<ReferralLinkSkeleton />}>
-              <ReferralLink slug={slug} />
-            </Suspense>
+              {/* Referral link + invite button or empty/error states */}
+              <Suspense fallback={<ReferralLinkSkeleton />}>
+                <ReferralLink slug={slug} />
+              </Suspense>
+            </div>
           </div>
 
           {/* Powered by Dub Conversions */}
