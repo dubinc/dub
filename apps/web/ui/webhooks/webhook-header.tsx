@@ -103,7 +103,7 @@ export default function WebhookHeader({
                     onClick={async () => {
                       setOpenPopover(false);
                       router.push(
-                        `/${slug}/settings/webhooks/${webhookId}/events`,
+                        `/${slug}/settings/webhooks/${webhookId}`,
                       );
                     }}
                   />

@@ -183,7 +183,7 @@ export default function AddEditWebhookForm({
               These events are triggered at the workspace level.
             </span>
           </label>
-          <div className="mt-3 flex flex-col gap-4">
+          <div className="mt-3 flex flex-col gap-2">
             {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
@@ -202,7 +202,7 @@ export default function AddEditWebhookForm({
                 />
                 <label
                   htmlFor={trigger}
-                  className="select-none text-sm font-medium text-gray-600 group-hover:text-gray-800"
+                  className="select-none text-sm text-gray-600 group-hover:text-gray-800"
                 >
                   {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
                 </label>
@@ -221,7 +221,7 @@ export default function AddEditWebhookForm({
               links you want to listen for events on.
             </span>
           </label>
-          <div className="mt-3 flex flex-col gap-4">
+          <div className="mt-3 flex flex-col gap-2">
             {LINK_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
@@ -240,7 +240,7 @@ export default function AddEditWebhookForm({
                 />
                 <label
                   htmlFor={trigger}
-                  className="select-none text-sm font-medium text-gray-600 group-hover:text-gray-800"
+                  className="select-none text-sm text-gray-600 group-hover:text-gray-800"
                 >
                   {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
                 </label>
@@ -252,7 +252,7 @@ export default function AddEditWebhookForm({
             <div className="mt-4">
               <label htmlFor="triggers" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-gray-900">
-                  Choose which link we should send events for
+                  Choose links we should send events for
                 </h2>
               </label>
               <div className="mt-3 flex flex-col gap-4">
@@ -263,10 +263,7 @@ export default function AddEditWebhookForm({
                         value={link.id}
                         id={`link-${link.id}`}
                         checked={linkIds.includes(link.id)}
-                        disabled={
-                          !canManageWebhook ||
-                          (!enableLinkSelection && !linkIds.length)
-                        }
+                        disabled={!canManageWebhook}
                         onCheckedChange={(checked) => {
                           setData({
                             ...data,
@@ -278,7 +275,7 @@ export default function AddEditWebhookForm({
                       />
                       <label
                         htmlFor={`link-${link.id}`}
-                        className="select-none text-sm font-medium text-gray-600 group-hover:text-gray-800"
+                        className="select-none text-sm text-gray-600 group-hover:text-gray-800"
                       >
                         {link.domain}/{link.key}
                       </label>
