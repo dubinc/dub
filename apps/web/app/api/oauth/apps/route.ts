@@ -37,7 +37,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.read"],
-    featureFlag: "integrations",
   },
 );
 
@@ -164,6 +163,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.write"],
-    featureFlag: "integrations",
   },
 );
