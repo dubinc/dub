@@ -40,7 +40,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 3. interval is all time
   // 4. call is made from dashboard
   if (linkId && groupBy === "count" && interval === "all_unfiltered") {
-    const columns = event === "composite" ? `clicks, leads, sales` : `${event}`;
+    const columns =
+      event === "composite"
+        ? `clicks, leads, sales, saleAmount as amount`
+        : event === "sales"
+          ? `sales, saleAmount as amount`
+          : `${event}`;
 
     let response = await conn.execute(
       `SELECT ${columns} FROM Link WHERE id = ?`,

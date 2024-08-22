@@ -78,6 +78,9 @@ export const POST = withWorkspaceEdge(
           sales: {
             increment: 1,
           },
+          saleAmount: {
+            increment: amount,
+          },
         },
       }),
     ]);

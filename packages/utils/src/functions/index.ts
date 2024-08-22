@@ -3,6 +3,7 @@ export * from "./chunk";
 export * from "./cn";
 export * from "./combine-words";
 export * from "./construct-metadata";
+export * from "./currency-formatter";
 export * from "./datetime";
 export * from "./deep-equal";
 export * from "./domains";
