@@ -2,8 +2,10 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import z from "@/lib/zod";
-import { webhookEventSchemaTB } from "@/lib/zod/schemas/webhooks";
+import { WebhookEventProps } from "@/lib/types";
+import { WebhookEventListSkeleton } from "@/ui/webhooks/loading-events-skelton";
+import { NoEventsPlaceholder } from "@/ui/webhooks/no-events-placeholder";
+import { WebhookEventList } from "@/ui/webhooks/webhook-events";
 import WebhookHeader from "@/ui/webhooks/webhook-header";
 import { MaxWidthWrapper } from "@dub/ui";
 import { fetcher } from "@dub/utils";
@@ -26,11 +28,7 @@ export default function WebhookLogsPageClient({
     redirect(`/${slug}/settings`);
   }
 
-  const {
-    data: events,
-    isLoading,
-    error,
-  } = useSWR<z.infer<typeof webhookEventSchemaTB>[]>(
+  const { data: events, isLoading } = useSWR<WebhookEventProps[]>(
     `/api/webhooks/${webhookId}/events?workspaceId=${workspaceId}`,
     fetcher,
     {
@@ -38,35 +36,20 @@ export default function WebhookLogsPageClient({
     },
   );
 
-  console.log(events);
+  // TODO: Get total events from API
+  const totalEvents = events?.length || 100;
 
   return (
     <>
       <WebhookHeader webhookId={webhookId} page="events" />
       <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        {/* display events table */}
-        <div>
-          <table>
-            <thead>
-              <tr>
-                <th>Status</th>
-                <th>Event Type</th>
-                <th>HTTP Status</th>
-                <th>Created At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events?.map((event) => (
-                <tr key={event.event_id}>
-                  <td>{event.http_status}</td>
-                  <td>{event.event}</td>
-                  <td>{event.http_status}</td>
-                  <td>{event.timestamp}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {isLoading ? (
+          <WebhookEventListSkeleton />
+        ) : events && events.length === 0 ? (
+          <NoEventsPlaceholder />
+        ) : (
+          <WebhookEventList totalEvents={totalEvents} events={events || []} />
+        )}
       </MaxWidthWrapper>
     </>
   );

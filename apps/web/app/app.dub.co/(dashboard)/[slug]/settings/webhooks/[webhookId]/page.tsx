@@ -1,11 +1,11 @@
-import WebhookLogsPageClient from "./page-client";
+import WebhookEventsPageClient from "./page-client";
 
-export default async function WebhookLogsPage({
+export default async function WebhookEventsPage({
   params,
 }: {
   params: { webhookId: string };
 }) {
   const { webhookId } = params;
 
-  return <WebhookLogsPageClient webhookId={webhookId} />;
+  return <WebhookEventsPageClient webhookId={webhookId} />;
 }

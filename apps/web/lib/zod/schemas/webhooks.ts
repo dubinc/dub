@@ -43,7 +43,7 @@ export const webhookCallbackSchema = z.object({
 
 // Webhook event schema for the webhook logs
 export const webhookEventSchemaTB = z.object({
-  timestamp: z.string(),
+  timestamp: z.string().default(new Date(Date.now()).toISOString()),
   event_id: z.string(),
   webhook_id: z.string(),
   message_id: z.string(), // QStash message ID
