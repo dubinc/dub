@@ -217,8 +217,7 @@ export default function AddEditWebhookForm({
               Link level events
             </h2>
             <span className="text-xs text-gray-500">
-              These events are triggered at the link level. You can choose which
-              links you want to listen for events on.
+              These events are triggered at the link level.
             </span>
           </label>
           <div className="mt-3 flex flex-col gap-2">
@@ -256,7 +255,7 @@ export default function AddEditWebhookForm({
                 </h2>
               </label>
               <div className="mt-3 flex flex-col gap-4">
-                <div className="max-h-[200px] min-h-[100px] overflow-y-auto border-b border-gray-200 pb-2">
+                <div className="max-h-[200px] min-h-[100px] overflow-y-auto pb-2">
                   {links?.map((link) => (
                     <div key={link.id} className="group flex h-8 gap-2 py-1">
                       <Checkbox

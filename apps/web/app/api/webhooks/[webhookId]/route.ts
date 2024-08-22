@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { transformWebhook } from "@/lib/webhook/utils";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { NextResponse } from "next/server";
 
@@ -25,16 +26,7 @@ export const GET = withWorkspace(
       },
     });
 
-    const webhookWithLinks = {
-      id: webhook.id,
-      name: webhook.name,
-      url: webhook.url,
-      secret: webhook.secret,
-      triggers: webhook.triggers,
-      linkIds: webhook.linkWebhooks.map((linkWebhook) => linkWebhook.linkId),
-    };
-
-    return NextResponse.json(webhookWithLinks);
+    return NextResponse.json(transformWebhook(webhook));
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -120,16 +112,7 @@ export const PATCH = withWorkspace(
       },
     });
 
-    const webhookWithLinks = {
-      id: webhook.id,
-      name: webhook.name,
-      url: webhook.url,
-      secret: webhook.secret,
-      triggers: webhook.triggers,
-      linkIds: webhook.linkWebhooks.map((linkWebhook) => linkWebhook.linkId),
-    };
-
-    return NextResponse.json(webhookWithLinks);
+    return NextResponse.json(transformWebhook(webhook));
   },
   {
     requiredPermissions: ["webhooks.write"],

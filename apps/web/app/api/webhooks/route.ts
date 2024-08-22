@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { transformWebhook } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
@@ -28,16 +29,7 @@ export const GET = withWorkspace(
       },
     });
 
-    const webhookWithLinks = webhooks.map((webhook) => ({
-      id: webhook.id,
-      name: webhook.name,
-      url: webhook.url,
-      secret: webhook.secret,
-      triggers: webhook.triggers,
-      linkIds: webhook.linkWebhooks.map((linkWebhook) => linkWebhook.linkId),
-    }));
-
-    return NextResponse.json(webhookWithLinks);
+    return NextResponse.json(webhooks.map(transformWebhook));
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -131,15 +123,6 @@ export const POST = withWorkspace(
       });
     }
 
-    const webhookWithLinks = {
-      id: webhook.id,
-      name: webhook.name,
-      url: webhook.url,
-      secret: webhook.secret,
-      triggers: webhook.triggers,
-      linkIds: webhook.linkWebhooks.map((linkWebhook) => linkWebhook.linkId),
-    };
-
     waitUntil(
       sendEmail({
         email: session.user.email,
@@ -157,7 +140,7 @@ export const POST = withWorkspace(
       }),
     );
 
-    return NextResponse.json(webhookWithLinks, { status: 201 });
+    return NextResponse.json(transformWebhook(webhook), { status: 201 });
   },
   {
     requiredPermissions: ["webhooks.write"],
