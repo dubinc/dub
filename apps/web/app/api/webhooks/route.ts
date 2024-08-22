@@ -15,9 +15,29 @@ export const GET = withWorkspace(
       where: {
         projectId: workspace.id,
       },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        secret: true,
+        triggers: true,
+        linkWebhooks: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    return NextResponse.json(webhooks);
+    const webhookWithLinks = webhooks.map((webhook) => ({
+      id: webhook.id,
+      name: webhook.name,
+      url: webhook.url,
+      secret: webhook.secret,
+      triggers: webhook.triggers,
+      linkIds: webhook.linkWebhooks.map((linkWebhook) => linkWebhook.linkId),
+    }));
+
+    return NextResponse.json(webhookWithLinks);
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -35,7 +55,7 @@ export const GET = withWorkspace(
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, url, secret, triggers } = createWebhookSchema.parse(
+    const { name, url, secret, triggers, linkIds } = createWebhookSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -53,6 +73,26 @@ export const POST = withWorkspace(
       });
     }
 
+    if (linkIds && linkIds.length > 0) {
+      const links = await prisma.link.findMany({
+        where: {
+          id: { in: linkIds },
+          projectId: workspace.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (links.length !== linkIds.length) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "Invalid link IDs provided. Please check the links you are adding the webhook to.",
+        });
+      }
+    }
+
     const webhook = await prisma.webhook.create({
       data: {
         name,
@@ -61,10 +101,25 @@ export const POST = withWorkspace(
         triggers,
         projectId: workspace.id,
         receiver: "user",
+        linkWebhooks: {
+          ...(linkIds &&
+            linkIds.length > 0 && {
+              create: linkIds.map((linkId) => ({
+                linkId,
+              })),
+            }),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        secret: true,
+        triggers: true,
+        linkWebhooks: true,
       },
     });
 
-    // Enable webhooks for the workspace
     if (webhook) {
       await prisma.project.update({
         where: {
@@ -76,8 +131,16 @@ export const POST = withWorkspace(
       });
     }
 
+    const webhookWithLinks = {
+      id: webhook.id,
+      name: webhook.name,
+      url: webhook.url,
+      secret: webhook.secret,
+      triggers: webhook.triggers,
+      linkIds: webhook.linkWebhooks.map((linkWebhook) => linkWebhook.linkId),
+    };
+
     waitUntil(
-      // Inform the workspace user that the webhook was added
       sendEmail({
         email: session.user.email,
         subject: "New webhook added",
@@ -94,7 +157,7 @@ export const POST = withWorkspace(
       }),
     );
 
-    return NextResponse.json(webhook, { status: 201 });
+    return NextResponse.json(webhookWithLinks, { status: 201 });
   },
   {
     requiredPermissions: ["webhooks.write"],

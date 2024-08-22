@@ -15,9 +15,26 @@ export const GET = withWorkspace(
         id: webhookId,
         projectId: workspace.id,
       },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        secret: true,
+        triggers: true,
+        linkWebhooks: true,
+      },
     });
 
-    return NextResponse.json(webhook);
+    const webhookWithLinks = {
+      id: webhook.id,
+      name: webhook.name,
+      url: webhook.url,
+      secret: webhook.secret,
+      triggers: webhook.triggers,
+      linkIds: webhook.linkWebhooks.map((linkWebhook) => linkWebhook.linkId),
+    };
+
+    return NextResponse.json(webhookWithLinks);
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -37,7 +54,7 @@ export const PATCH = withWorkspace(
   async ({ workspace, params, req }) => {
     const { webhookId } = params;
 
-    const { name, url, triggers } = updateWebhookSchema.parse(
+    const { name, url, triggers, linkIds } = updateWebhookSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -58,6 +75,23 @@ export const PATCH = withWorkspace(
       });
     }
 
+    if (linkIds && linkIds.length > 0) {
+      const links = await prisma.link.findMany({
+        where: {
+          id: { in: linkIds },
+          projectId: workspace.id,
+        },
+      });
+
+      if (links.length !== linkIds.length) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "Invalid link IDs provided. Please check the links you are adding the webhook to.",
+        });
+      }
+    }
+
     const webhook = await prisma.webhook.update({
       where: {
         id: webhookId,
@@ -67,10 +101,35 @@ export const PATCH = withWorkspace(
         ...(name && { name }),
         ...(url && { url }),
         ...(triggers && { triggers }),
+        ...(linkIds && {
+          linkWebhooks: {
+            deleteMany: {},
+            create: linkIds.map((linkId) => ({
+              linkId,
+            })),
+          },
+        }),
+      },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        secret: true,
+        triggers: true,
+        linkWebhooks: true,
       },
     });
 
-    return NextResponse.json(webhook);
+    const webhookWithLinks = {
+      id: webhook.id,
+      name: webhook.name,
+      url: webhook.url,
+      secret: webhook.secret,
+      triggers: webhook.triggers,
+      linkIds: webhook.linkWebhooks.map((linkWebhook) => linkWebhook.linkId),
+    };
+
+    return NextResponse.json(webhookWithLinks);
   },
   {
     requiredPermissions: ["webhooks.write"],

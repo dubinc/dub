@@ -6,13 +6,11 @@ import { z } from "zod";
 
 export const webhookSchema = z.object({
   id: z.string(),
-  // linkId: z.string().optional(),
   name: z.string(),
   url: z.string(),
   secret: z.string(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  linkIds: z.array(z.string()).optional(),
 });
 
 export const createWebhookSchema = z.object({

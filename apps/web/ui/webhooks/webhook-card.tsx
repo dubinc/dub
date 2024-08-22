@@ -1,7 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
 import { TokenAvatar } from "@dub/ui";
-import { formatDate } from "@dub/utils";
 import Link from "next/link";
 
 export default function WebhookCard(webhook: WebhookProps) {
@@ -18,14 +17,10 @@ export default function WebhookCard(webhook: WebhookProps) {
         </div>
         <div>
           <div className="flex items-center gap-1">
-            <p className="font-semibold text-gray-700">{webhook.name}</p>
-            <span className="text-sm text-gray-400">{webhook.url}</span>
+            <span className="font-semibold text-gray-700">{webhook.name}</span>
           </div>
           <div className="flex items-center gap-1 text-sm text-gray-500">
-            Last updated
-            <span className="font-medium text-gray-700">
-              {formatDate(webhook.updatedAt, { year: undefined })}
-            </span>
+            {webhook.url}
           </div>
         </div>
       </div>

@@ -17,8 +17,8 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 const defaultValues: NewWebhook = {
-  name: "",
-  url: "",
+  name: "Webhook name",
+  url: "https://example.com",
   secret: "",
   triggers: [],
   linkIds: [],
@@ -99,14 +99,12 @@ export default function AddEditWebhookForm({
     }
   };
 
-  const { name, url, secret, triggers } = data;
-
+  const { name, url, secret, triggers, linkIds } = data;
   const buttonDisabled = !name || !url || !triggers.length || saving;
   const canManageWebhook = !permissionsError;
-  const isClickWebhook =
-    triggers.includes("link.clicked") ||
-    triggers.includes("lead.created") ||
-    triggers.includes("sale.created");
+  const enableLinkLevelTriggers = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
+    triggers.includes(trigger),
+  );
 
   return (
     <>
@@ -254,36 +252,48 @@ export default function AddEditWebhookForm({
             ))}
           </div>
 
-          {isClickWebhook && (
-            <div className="mt-4">
-              <label htmlFor="triggers" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">
-                  Choose which link we should send events for
-                </h2>
-              </label>
-              <div className="mt-3 flex flex-col gap-4">
-                {triggers.includes("link.clicked") ||
-                triggers.includes("lead.created") ||
-                triggers.includes("sale.created") ? (
-                  <div className="group flex gap-2">
-                    <select
-                      // value={linkId || ""}
-                      // onChange={(e) =>
-                      //   setData({ ...data, linkId: e.target.value })
-                      // }
-                      className="rounded-md border border-gray-300 bg-white px-3 py-1"
+          <div className="mt-4">
+            <label htmlFor="triggers" className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-gray-900">
+                Choose which link we should send events for
+              </h2>
+            </label>
+            <div className="mt-3 flex flex-col gap-4">
+              <div className="border-b border-gray-200 pb-2 min-h-[100px] max-h-[200px] overflow-y-auto bg-red-100">
+                {links?.map((link) => (
+                  <div key={link.id} className="group flex h-8 gap-2 py-1">
+                    <Checkbox
+                      value={link.id}
+                      id={link.id}
+                      checked={(linkIds || []).includes(link.id)}
+                      disabled={!canManageWebhook || !enableLinkLevelTriggers}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setData({
+                            ...data,
+                            linkIds: [...(linkIds || []), link.id],
+                          });
+                        } else {
+                          setData({
+                            ...data,
+                            linkIds: (linkIds || []).filter(
+                              (id) => id !== link.id,
+                            ),
+                          });
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`link-${link.id}`}
+                      className="select-none text-sm font-medium text-gray-600 group-hover:text-gray-800"
                     >
-                      {links?.map((link) => (
-                        <option key={link.id} value={link.id}>
-                          {link.shortLink}
-                        </option>
-                      ))}
-                    </select>
+                      {link.domain}/{link.key}
+                    </label>
                   </div>
-                ) : null}
+                ))}
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         <Button
