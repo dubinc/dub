@@ -4,7 +4,11 @@ import { EventListSkeleton } from "@/ui/blocks/event-list";
 import { CopyButton, Logo } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
 import { getPrettyUrl } from "@dub/utils";
-import { ClicksCount } from "dub/dist/commonjs/models/components";
+import {
+  ClicksCount,
+  LeadsCount,
+  SalesCount,
+} from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
@@ -124,8 +128,8 @@ async function ActivityListRSC({
 
   const totalEvents = (await dub.analytics.retrieve({
     ...eventsParams,
-    interval: "all_unfiltered",
-  })) as ClicksCount;
+    interval: event === "sales" ? "all" : "all_unfiltered", // temp fix till we add sales to all_unfiltered
+  })) as ClicksCount | LeadsCount | SalesCount;
 
   return (
     <ActivityList events={events as any} totalEvents={totalEvents[event]} />
