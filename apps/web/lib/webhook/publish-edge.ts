@@ -40,8 +40,6 @@ export const dispatchLinkWebhook = async ({
     return;
   }
 
-  console.log("webhooks", webhooks);
-
   await Promise.all(
     webhooks.map((webhook) =>
       sendWebhookEventToQStash({

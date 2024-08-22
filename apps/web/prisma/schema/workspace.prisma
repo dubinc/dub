@@ -10,8 +10,8 @@ model Project {
   stripeConnectId   String? @unique // for Stripe Connect
   inviteCode        String? @unique
 
-  usage      Int @default(0)
-  usageLimit Int @default(1000)
+  usage        Int @default(0)
+  usageLimit   Int @default(1000)
   linksUsage   Int @default(0)
   linksLimit   Int @default(25)
   salesUsage   Int @default(0)
@@ -29,7 +29,6 @@ model Project {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
-  webhookEnabled   Boolean  @default(false)
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]

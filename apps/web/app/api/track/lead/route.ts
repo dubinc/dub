@@ -144,7 +144,10 @@ export const POST = withWorkspaceEdge(
         workspace,
         linkId: clickData.link_id,
         event: "lead.created",
-        data: response
+        data: {
+          ...response,
+          ...clickData,
+        },
       }),
     );
 

@@ -115,10 +115,12 @@ export const POST = withWorkspaceEdge(
         workspace,
         linkId: clickData.link_id,
         event: "sale.created",
-        data: response
+        data: {
+          ...response,
+          ...clickData,
+        },
       }),
     );
-
 
     return NextResponse.json(response);
   },
