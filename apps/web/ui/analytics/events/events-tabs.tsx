@@ -27,7 +27,7 @@ export default function EventsTabs() {
   const { searchParams, queryParams } = useRouterStuff();
   const { isMobile } = useMediaQuery();
 
-  const tab = searchParams.get("tab") || "clicks";
+  const tab = searchParams.get("event") || "clicks";
   const { demoPage } = useContext(AnalyticsContext);
 
   const { conversionEnabled } = useWorkspace();
@@ -66,7 +66,7 @@ export default function EventsTabs() {
         event === "sales" ? ["timestamp", "amount"] : ["date"];
       const currentSort = searchParams.get("sort");
       queryParams({
-        set: { tab: event },
+        set: { event },
         del: [
           // Reset pagination
           "page",
