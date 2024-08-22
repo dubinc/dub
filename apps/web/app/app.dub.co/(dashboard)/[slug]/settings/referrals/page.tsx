@@ -15,6 +15,8 @@ import { EventTabs } from "./event-tabs";
 import { InviteButton } from "./invite-button";
 import ReferralsPageClient from "./page-client";
 
+export const dynamic = "auto";
+
 export default async function ReferralsPage({
   params: { slug },
   searchParams,
@@ -97,7 +99,7 @@ export default async function ReferralsPage({
             key={`${slug}-${event}-${page}`}
             fallback={<EventListSkeleton />}
           >
-            <ActivityListRSC workspaceSlug={slug} event={event} page={page} />
+            <ActivityListRSC slug={slug} event={event} page={page} />
           </Suspense>
         </div>
       </div>
@@ -106,17 +108,17 @@ export default async function ReferralsPage({
 }
 
 async function ActivityListRSC({
-  workspaceSlug,
+  slug,
   event,
   page,
 }: {
-  workspaceSlug: string;
+  slug: string;
   event: EventType;
   page: number;
 }) {
   const eventsParams = {
     domain: "refer.dub.co",
-    key: workspaceSlug,
+    key: slug,
     event,
   };
 
