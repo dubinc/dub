@@ -17,8 +17,8 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 const defaultValues: NewWebhook = {
-  name: "Webhook name",
-  url: "https://example.com",
+  name: "",
+  url: "",
   secret: "",
   triggers: [],
   linkIds: [],
@@ -239,9 +239,15 @@ export default function AddEditWebhookForm({
                 />
                 <label
                   htmlFor={trigger}
-                  className="select-none text-sm text-gray-600 group-hover:text-gray-800"
+                  className="flex select-none items-center gap-2 text-sm text-gray-600 group-hover:text-gray-800"
                 >
                   {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
+
+                  {trigger === "link.clicked" && (
+                    <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
+                      High traffic
+                    </span>
+                  )}
                 </label>
               </div>
             ))}
