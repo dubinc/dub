@@ -7,6 +7,7 @@ import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { EventList } from "@dub/blocks";
 import {
+  CaretUpFill,
   ChartActivity2,
   CursorRays,
   Globe,
@@ -126,7 +127,8 @@ function LeadDescription({
 
 const saleText = {
   "Subscription creation": "upgraded their account",
-  "Subscription update": "paid their subscription",
+  "Subscription paid": "paid their subscription",
+  "Plan upgraded": "upgraded their plan",
   default: "made a payment",
 };
 
@@ -156,7 +158,10 @@ function SaleDescription({
         {saleText[event.event_name] || saleText.default}
       </div>
       {event.amount && event.amount > 0 && (
-        <span className="font-medium text-gray-700 sm:pr-8 md:pr-12 lg:pr-20">
+        <span className="flex items-center gap-1 whitespace-nowrap font-medium text-gray-700 sm:pr-8 md:pr-12 lg:pr-20">
+          {event.event_name === "Plan upgraded" && (
+            <CaretUpFill className="size-3 text-green-600" />
+          )}
           {currencyFormatter(
             Math.floor(event.amount * REFERRAL_REVENUE_SHARE) / 100,
             {

@@ -142,7 +142,7 @@ const placeholderEvents = {
         country: "US",
       }) as z.infer<typeof leadEventEnrichedSchema>,
   ),
-  sales: [...Array(2)].map(
+  sales: [...Array(3)].map(
     (_, idx) =>
       ({
         timestamp: subDays(new Date(), idx).toISOString(),
@@ -152,7 +152,12 @@ const placeholderEvents = {
         key: "",
         url: "https://dub.co",
         country: "US",
-        amount: [11, 49][idx % 2],
+        event_name: [
+          "Subscription creation",
+          "Subscription paid",
+          "Plan upgraded",
+        ][idx % 3],
+        amount: [1100, 4900, 2400][idx % 3],
       }) as z.infer<typeof saleEventEnrichedSchema>,
   ),
 };
@@ -188,9 +193,12 @@ async function ActivityListRSC({
     page,
   });
 
-  const totalEvents = (await getTotalEvents(link.id)) ?? 0;
+  const totalEvents = await getTotalEvents(link.id);
 
   return (
-    <ActivityList events={events as any} totalEvents={totalEvents[event]} />
+    <ActivityList
+      events={events as any}
+      totalEvents={totalEvents[event] ?? 0}
+    />
   );
 }

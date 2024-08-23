@@ -22,7 +22,7 @@ export function EventList({ events, totalEvents, emptyState }: EventListProps) {
 
   return (
     <div className="rounded-xl border border-gray-200">
-      {totalEvents === 0 ? (
+      {events.length === 0 && totalEvents === 0 ? (
         <div className="px-4 py-8">
           <EmptyState {...emptyState} />
         </div>
