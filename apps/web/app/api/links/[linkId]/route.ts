@@ -169,7 +169,7 @@ export const DELETE = withWorkspace(
       dispatchWebhook("link.deleted", {
         workspace,
         data: {
-          id: link.id,
+          ...transformLink(link),
         },
       }),
     );

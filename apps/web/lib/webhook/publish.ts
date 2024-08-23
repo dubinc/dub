@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { WebhookTrigger, WorkspaceProps } from "../types";
+import { prepareWebhookPayload } from "./prepare-payload";
 import { sendWebhookEventToQStash } from "./qstash";
 
 interface DispatchWebhookProps {
@@ -10,10 +11,8 @@ interface DispatchWebhookProps {
 
 export const dispatchWebhook = async (
   trigger: WebhookTrigger,
-  props: DispatchWebhookProps,
+  { workspace, linkId, data }: DispatchWebhookProps,
 ) => {
-  const { workspace, linkId, data } = props;
-
   if (!workspace.webhookEnabled) {
     return;
   }
@@ -43,12 +42,14 @@ export const dispatchWebhook = async (
     return;
   }
 
+  // Final payload to be sent to Webhook
+  const payload = prepareWebhookPayload(trigger, data);
+
   await Promise.all(
     webhooks.map((webhook) =>
       sendWebhookEventToQStash({
         webhook,
-        data,
-        trigger,
+        payload,
       }),
     ),
   );

@@ -1,27 +1,18 @@
 import { qstash } from "@/lib/cron";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Webhook } from "@prisma/client";
-import { WebhookTrigger } from "../types";
+import z from "../zod";
 import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { createWebhookSignature } from "./signature";
 
 export const sendWebhookEventToQStash = async ({
   webhook,
-  trigger,
-  data,
+  payload,
 }: {
   webhook: Pick<Webhook, "id" | "url" | "secret">;
-  trigger: WebhookTrigger;
-  data: any;
+  payload: z.infer<typeof webhookPayloadSchema>;
 }) => {
-  const payload = webhookPayloadSchema.parse({
-    data,
-    event: trigger,
-    webhookId: webhook.id,
-    createdAt: new Date().toISOString(),
-  });
-
-  const callbackUrl = `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`;
+  const callbackUrl = `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback?webhookId=${webhook.id}`;
   const signature = await createWebhookSignature(webhook.secret, payload);
 
   const response = await qstash.publishJSON({
@@ -34,9 +25,7 @@ export const sendWebhookEventToQStash = async ({
     failureCallback: callbackUrl,
   });
 
-  if (response.messageId) {
-    console.log(
-      `Webhook event published to QStash with message ID: ${response.messageId}`,
-    );
+  if (!response.messageId) {
+    console.error("Failed to publish webhook event to QStash", response);
   }
 };

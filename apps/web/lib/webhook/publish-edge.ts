@@ -1,5 +1,6 @@
 import { prismaEdge } from "@/lib/prisma/edge";
 import { WebhookTrigger, WorkspaceProps } from "../types";
+import { prepareWebhookPayload } from "./prepare-payload";
 import { sendWebhookEventToQStash } from "./qstash";
 
 interface DispatchWebhookProps {
@@ -43,12 +44,14 @@ export const dispatchWebhook = async (
     return;
   }
 
+  // Final payload to be sent to Webhook
+  const payload = prepareWebhookPayload(trigger, data);
+
   await Promise.all(
     webhooks.map((webhook) =>
       sendWebhookEventToQStash({
         webhook,
-        data,
-        trigger,
+        payload,
       }),
     ),
   );

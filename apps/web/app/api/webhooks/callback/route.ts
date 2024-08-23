@@ -4,7 +4,7 @@ import {
   webhookCallbackSchema,
   webhookPayloadSchema,
 } from "@/lib/zod/schemas/webhooks";
-import { nanoid } from "@dub/utils";
+import { getSearchParams } from "@dub/utils";
 
 // POST /api/webhooks/callback – listen to webhooks status from QStash
 export const POST = async (req: Request) => {
@@ -18,25 +18,21 @@ export const POST = async (req: Request) => {
   const request = Buffer.from(sourceBody, "base64").toString("utf-8");
   const response = Buffer.from(body, "base64").toString("utf-8");
 
-  const { event, webhookId } = webhookPayloadSchema.parse(JSON.parse(request));
+  const { id: eventId, event } = webhookPayloadSchema.parse(
+    JSON.parse(request),
+  );
+
+  const { webhookId } = getSearchParams(req.url);
 
   await recordWebhookEvent({
     url,
     event,
-    event_id: nanoid(16),
+    event_id: eventId,
     http_status: status,
     webhook_id: webhookId,
     request_body: request,
     response_body: response,
     message_id: sourceMessageId,
-  });
-
-  console.log("Webhook event recorded", {
-    url,
-    event,
-    webhookId,
-    status,
-    response,
   });
 
   return new Response("OK");
