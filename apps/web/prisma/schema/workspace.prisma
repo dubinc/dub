@@ -22,6 +22,7 @@ model Project {
   aiUsage      Int @default(0)
   aiLimit      Int @default(10)
 
+  referralLinkId  String?
   referredSignups Int @default(0)
 
   webhookEnabled    Boolean @default(false)

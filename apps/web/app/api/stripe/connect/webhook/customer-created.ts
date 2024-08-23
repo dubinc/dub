@@ -58,18 +58,6 @@ export async function customerCreated(event: Stripe.Event) {
     .parse(clickEvent.data[0]);
 
   await Promise.all([
-    // update link leads count
-    prisma.link.update({
-      where: {
-        id: clickData.link_id,
-      },
-      data: {
-        leads: {
-          increment: 1,
-        },
-      },
-    }),
-
     // Record customer
     recordCustomer({
       workspace_id: customer.projectId,
@@ -85,6 +73,18 @@ export async function customerCreated(event: Stripe.Event) {
       event_id: nanoid(16),
       event_name: "New customer",
       customer_id: customer.id,
+    }),
+
+    // update link leads count
+    prisma.link.update({
+      where: {
+        id: clickData.link_id,
+      },
+      data: {
+        leads: {
+          increment: 1,
+        },
+      },
     }),
   ]);
 

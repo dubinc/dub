@@ -49,9 +49,14 @@ export const expectedWorkspace: Partial<Project> = {
   name: expect.any(String),
   slug: expect.any(String),
   logo: expect.any(String),
+
+  plan: expect.any(String),
+  stripeId: expect.any(String),
+  billingCycleStart: expect.any(Number),
+  inviteCode: expect.any(String),
+
   usage: expect.any(Number),
   usageLimit: expect.any(Number),
-  referredSignups: expect.any(Number),
   linksUsage: expect.any(Number),
   linksLimit: expect.any(Number),
   salesUsage: expect.any(Number),
@@ -59,9 +64,9 @@ export const expectedWorkspace: Partial<Project> = {
   domainsLimit: expect.any(Number),
   tagsLimit: expect.any(Number),
   usersLimit: expect.any(Number),
-  plan: expect.any(String),
-  stripeId: expect.any(String),
-  billingCycleStart: expect.any(Number),
-  inviteCode: expect.any(String),
+
+  referralLinkId: expect.any(String),
+  referredSignups: expect.any(Number),
+
   createdAt: expect.any(String),
 };

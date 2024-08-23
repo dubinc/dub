@@ -8,16 +8,10 @@ export const getReferralLink = unstable_cache(async (slug: string) => {
       slug,
     },
   });
-  if (!workspace) {
+  if (!workspace || !workspace.referralLinkId) {
     return null;
   }
-  const workspaceId = `ws_${workspace.id}`;
-
-  try {
-    return await dub.links.get({
-      externalId: `ext_${workspaceId}`,
-    });
-  } catch (error) {
-    return null;
-  }
+  return await dub.links.get({
+    linkId: workspace.referralLinkId,
+  });
 });

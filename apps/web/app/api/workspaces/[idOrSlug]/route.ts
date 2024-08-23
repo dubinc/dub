@@ -72,20 +72,16 @@ export const PATCH = withWorkspace(
             defaultWorkspace: slug,
           },
         });
-
         // Update the workspace's referral link to use the new slug
-        waitUntil(
-          (async () => {
-            try {
-              await dub.links.update(`ext_ws_${workspace.id}`, {
-                key: slug,
-              });
-            } catch (error) {
-              if (error.error.code !== "not_found") throw error;
-            }
-          })(),
-        );
+        if (workspace.referralLinkId) {
+          waitUntil(
+            dub.links.update(workspace.referralLinkId, {
+              key: slug,
+            }),
+          );
+        }
       }
+
       return NextResponse.json(
         WorkspaceSchema.parse({
           ...response,
