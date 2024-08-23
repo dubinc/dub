@@ -1,3 +1,4 @@
+import { DUB_API_URL } from "@dub/utils";
 import { unstable_cache } from "next/cache";
 
 export const getTotalEvents = unstable_cache(async (linkId: string) => {
@@ -8,7 +9,7 @@ export const getTotalEvents = unstable_cache(async (linkId: string) => {
   //   })
 
   return await fetch(
-    `https://api.dub.co/analytics?event=composite&groupBy=count&interval=all_unfiltered&linkId=${linkId}`,
+    `${DUB_API_URL}/analytics?event=composite&groupBy=count&interval=all_unfiltered&linkId=${linkId}`,
     {
       headers: {
         Authorization: `Bearer ${process.env.DUB_API_KEY}`,
