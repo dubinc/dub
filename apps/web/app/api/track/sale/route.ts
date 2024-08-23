@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { dispatchLinkWebhook } from "@/lib/webhook/publish-edge";
+import { dispatchWebhook } from "@/lib/webhook/publish-edge";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackSaleRequestSchema,
@@ -111,10 +111,9 @@ export const POST = withWorkspaceEdge(
     });
 
     waitUntil(
-      dispatchLinkWebhook({
+      dispatchWebhook("sale.created", {
         workspace,
         linkId: clickData.link_id,
-        event: "sale.created",
         data: {
           ...response,
           ...clickData,

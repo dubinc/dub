@@ -7,16 +7,16 @@ import { createWebhookSignature } from "./signature";
 
 export const sendWebhookEventToQStash = async ({
   webhook,
-  event,
+  trigger,
   data,
 }: {
   webhook: Pick<Webhook, "id" | "url" | "secret">;
-  event: WebhookTrigger;
+  trigger: WebhookTrigger;
   data: any;
 }) => {
   const payload = webhookPayloadSchema.parse({
-    event,
     data,
+    event: trigger,
     webhookId: webhook.id,
     createdAt: new Date().toISOString(),
   });

@@ -10,7 +10,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
-import { dispatchWebhookEvents } from "@/lib/webhook/publish";
+import { dispatchWebhook } from "@/lib/webhook/publish";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -124,8 +124,7 @@ export const PATCH = withWorkspace(
       });
 
       waitUntil(
-        dispatchWebhookEvents({
-          event: "link.updated",
+        dispatchWebhook("link.updated", {
           workspace,
           data: response,
         }),
@@ -167,8 +166,7 @@ export const DELETE = withWorkspace(
     await deleteLink(link.id);
 
     waitUntil(
-      dispatchWebhookEvents({
-        event: "link.deleted",
+      dispatchWebhook("link.deleted", {
         workspace,
         data: {
           id: link.id,

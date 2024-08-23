@@ -2,17 +2,18 @@ import { prismaEdge } from "@/lib/prisma/edge";
 import { WebhookTrigger, WorkspaceProps } from "../types";
 import { sendWebhookEventToQStash } from "./qstash";
 
-export const dispatchLinkWebhook = async ({
-  workspace,
-  linkId,
-  event,
-  data,
-}: {
+interface DispatchWebhookProps {
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-  linkId: string;
-  event: WebhookTrigger;
   data: any;
-}) => {
+  linkId?: string;
+}
+
+export const dispatchWebhook = async (
+  trigger: WebhookTrigger,
+  props: DispatchWebhookProps,
+) => {
+  const { workspace, linkId, data } = props;
+
   if (!workspace.webhookEnabled) {
     return;
   }
@@ -21,13 +22,15 @@ export const dispatchLinkWebhook = async ({
     where: {
       projectId: workspace.id,
       triggers: {
-        array_contains: [event],
+        array_contains: [trigger],
       },
-      linkWebhooks: {
-        some: {
-          linkId,
+      ...(linkId && {
+        linkWebhooks: {
+          some: {
+            linkId,
+          },
         },
-      },
+      }),
     },
     select: {
       id: true,
@@ -44,8 +47,8 @@ export const dispatchLinkWebhook = async ({
     webhooks.map((webhook) =>
       sendWebhookEventToQStash({
         webhook,
-        event,
         data,
+        trigger,
       }),
     ),
   );
