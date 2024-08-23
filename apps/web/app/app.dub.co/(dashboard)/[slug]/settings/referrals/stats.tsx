@@ -3,7 +3,10 @@ import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { dub } from "@/lib/dub";
 import { getWorkspace } from "@/lib/fetchers";
 import { getReferralClicksQuotaBonus } from "@/lib/referrals";
-import { REFERRAL_CLICKS_QUOTA_BONUS_MAX } from "@/lib/referrals/constants";
+import {
+  REFERRAL_CLICKS_QUOTA_BONUS_MAX,
+  REFERRAL_REVENUE_SHARE,
+} from "@/lib/referrals/constants";
 import { Gauge, MiniAreaChart, StatCard, StatCardSkeleton } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
 import { User } from "@dub/ui/src/icons";
@@ -15,9 +18,9 @@ import { Suspense } from "react";
 
 export function Stats({ slug }: { slug: string }) {
   return (
-    <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-3 lg:gap-x-6">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2 lg:gap-x-6">
       <Suspense
-        fallback={[...Array(3)].map(() => (
+        fallback={[...Array(2)].map(() => (
           <StatCardSkeleton />
         ))}
       >
@@ -33,43 +36,34 @@ async function StatsInner({ slug }: { slug: string }) {
     if (!link) {
       return (
         <>
-          <StatCard label="Clicks" demo>
-            120
-          </StatCard>
-          <StatCard label="Sales" demo>
+          <StatCard label="Affiliate Earnings" demo>
             $60
           </StatCard>
-          <StatCard label="Clicks Earned" demo>
+          <StatCard label="Clicks Quota Earned" demo>
             500
           </StatCard>
         </>
       );
     }
 
-    const {
-      totalClicks,
-      clicks,
-      totalSales,
-      sales,
-      referredSignups,
-      clicksQuotaBonus,
-    } = await loadData({
-      linkId: link.id,
-      slug,
-    });
+    const { totalSales, sales, referredSignups, clicksQuotaBonus } =
+      await loadData({
+        linkId: link.id,
+        slug,
+      });
 
     return (
       <>
-        <StatCard label="Clicks" graphic={<MiniAreaChart data={clicks} />}>
-          <CountingNumbers>{totalClicks}</CountingNumbers>
-        </StatCard>
-        <StatCard label="Sales" graphic={<MiniAreaChart data={sales} />}>
+        <StatCard
+          label="Affiliate Earnings"
+          graphic={<MiniAreaChart data={sales} />}
+        >
           <CountingNumbers prefix="$" fullNumber>
-            {totalSales / 100}
+            {(totalSales / 100) * REFERRAL_REVENUE_SHARE}
           </CountingNumbers>
         </StatCard>
         <StatCard
-          label="Clicks Earned"
+          label="Clicks Quota Earned"
           graphic={
             <Gauge
               value={clicksQuotaBonus}
