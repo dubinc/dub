@@ -150,7 +150,7 @@ function SaleDescription({
         upgraded their account
       </div>
       {event.amount && event.amount > 0 && (
-        <span className="font-medium text-gray-800 sm:pr-8">
+        <span className="font-medium text-gray-700 sm:pr-8 md:pr-12 lg:pr-20">
           {currencyFormatter(
             Math.floor(event.amount * REFERRAL_REVENUE_SHARE) / 100,
             {
