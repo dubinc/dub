@@ -124,6 +124,12 @@ function LeadDescription({
   );
 }
 
+const saleText = {
+  "Subscription creation": "upgraded their account",
+  "Subscription update": "paid their subscription",
+  default: "made a payment",
+};
+
 function SaleDescription({
   event,
 }: {
@@ -147,7 +153,7 @@ function SaleDescription({
             {event.country ? COUNTRIES[event.country] : "Planet Earth"}
           </span>{" "}
         </div>
-        upgraded their account
+        {saleText[event.event_name] || saleText.default}
       </div>
       {event.amount && event.amount > 0 && (
         <span className="font-medium text-gray-700 sm:pr-8 md:pr-12 lg:pr-20">
