@@ -130,7 +130,7 @@ const placeholderEvents = {
         country: "US",
       }) as z.infer<typeof clickEventEnrichedSchema>,
   ),
-  leads: [...Array(4)].map(
+  leads: [...Array(8)].map(
     (_, idx) =>
       ({
         timestamp: subDays(new Date(), idx).toISOString(),
@@ -142,7 +142,7 @@ const placeholderEvents = {
         country: "US",
       }) as z.infer<typeof leadEventEnrichedSchema>,
   ),
-  sales: [...Array(3)].map(
+  sales: [...Array(8)].map(
     (_, idx) =>
       ({
         timestamp: subDays(new Date(), idx).toISOString(),

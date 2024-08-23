@@ -4,7 +4,7 @@ import { PropsWithChildren, ReactNode } from "react";
 const wrapperClassName =
   "flex justify-between gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left";
 
-export function StatCard({
+export function StatsCard({
   label,
   demo,
   graphic,
@@ -38,7 +38,7 @@ export function StatCard({
   );
 }
 
-export function StatCardSkeleton({ error }: { error?: boolean }) {
+export function StatsCardSkeleton({ error }: { error?: boolean }) {
   return (
     <div className={wrapperClassName}>
       {error ? (

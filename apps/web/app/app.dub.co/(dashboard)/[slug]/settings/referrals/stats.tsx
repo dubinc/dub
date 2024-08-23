@@ -6,7 +6,12 @@ import {
   REFERRAL_CLICKS_QUOTA_BONUS_MAX,
   REFERRAL_REVENUE_SHARE,
 } from "@/lib/referrals/constants";
-import { Gauge, MiniAreaChart, StatCard, StatCardSkeleton } from "@dub/blocks";
+import {
+  Gauge,
+  MiniAreaChart,
+  StatsCard,
+  StatsCardSkeleton,
+} from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
 import { User } from "@dub/ui/src/icons";
 import {
@@ -20,7 +25,7 @@ export function Stats({ slug }: { slug: string }) {
     <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2 lg:gap-x-6">
       <Suspense
         fallback={[...Array(2)].map(() => (
-          <StatCardSkeleton />
+          <StatsCardSkeleton />
         ))}
       >
         <StatsInner slug={slug} />
@@ -35,12 +40,12 @@ async function StatsInner({ slug }: { slug: string }) {
     if (!link) {
       return (
         <>
-          <StatCard label="Affiliate Earnings" demo>
+          <StatsCard label="Affiliate Earnings" demo>
             $60
-          </StatCard>
-          <StatCard label="Clicks Quota Earned" demo>
+          </StatsCard>
+          <StatsCard label="Clicks Quota Earned" demo>
             500
-          </StatCard>
+          </StatsCard>
         </>
       );
     }
@@ -50,15 +55,15 @@ async function StatsInner({ slug }: { slug: string }) {
 
     return (
       <>
-        <StatCard
+        <StatsCard
           label="Affiliate Earnings"
           graphic={<MiniAreaChart data={sales} />}
         >
           <CountingNumbers prefix="$" fullNumber>
             {(totalSales / 100) * REFERRAL_REVENUE_SHARE}
           </CountingNumbers>
-        </StatCard>
-        <StatCard
+        </StatsCard>
+        <StatsCard
           label="Clicks Quota Earned"
           graphic={
             <Gauge
@@ -73,14 +78,14 @@ async function StatsInner({ slug }: { slug: string }) {
           }
         >
           <CountingNumbers fullNumber>{clicksQuotaBonus}</CountingNumbers>
-        </StatCard>
+        </StatsCard>
       </>
     );
   } catch (e) {
     console.error("Failed to load referral stats", e);
   }
 
-  return [...Array(2)].map(() => <StatCardSkeleton error />);
+  return [...Array(2)].map(() => <StatsCardSkeleton error />);
 }
 
 async function loadData(linkId: string) {

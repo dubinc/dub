@@ -6,4 +6,4 @@ export * from "./event-list";
 export * from "./gauge";
 export * from "./mini-area-chart";
 export * from "./pagination-controls";
-export * from "./stat-card";
+export * from "./stats-card";
