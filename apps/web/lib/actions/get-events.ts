@@ -1,4 +1,3 @@
-import { DUB_API_URL } from "@dub/utils";
 import { unstable_cache } from "next/cache";
 import { EventType } from "../analytics/types";
 
@@ -24,7 +23,7 @@ export const getEvents = unstable_cache(
     // });
 
     return await fetch(
-      `${DUB_API_URL}/events?event=${event}&interval=all&linkId=${linkId}&page=${page}`,
+      `https://api.dub.co/events?event=${event}&interval=all&linkId=${linkId}&page=${page}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.DUB_API_KEY}`,

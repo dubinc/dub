@@ -45,8 +45,6 @@ export const ADMIN_HOSTNAMES = new Set([
   "admin.localhost:8888",
 ]);
 
-export const DUB_API_URL = process.env.DUB_API_URL || "https://api.dub.co";
-
 export const DUB_LOGO = "https://assets.dub.co/logo.png";
 export const DUB_WORDMARK = "https://assets.dub.co/wordmark.png";
 export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.jpg";
