@@ -7,12 +7,17 @@ export const getTotalEvents = unstable_cache(async (linkId: string) => {
   //     interval: "all_unfiltered",
   //   })
 
-  return await fetch(
+  return (await fetch(
     `https://api.dub.co/analytics?event=composite&groupBy=count&interval=all_unfiltered&linkId=${linkId}`,
     {
       headers: {
         Authorization: `Bearer ${process.env.DUB_API_KEY}`,
       },
     },
-  ).then((res) => res.json());
+  ).then((res) => res.json())) as Promise<{
+    clicks: number;
+    leads: number;
+    sales: number;
+    amount: number;
+  }>;
 });

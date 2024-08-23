@@ -2,7 +2,7 @@
 
 import { linkConstructor } from "@dub/utils";
 import { sendEmail } from "emails";
-import { ReferralInvite } from "emails/referral-invite";
+import ReferralInvite from "emails/referral-invite";
 import { z } from "zod";
 import { dub } from "../dub";
 import { ratelimit } from "../upstash";

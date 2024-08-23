@@ -6,17 +6,12 @@ import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
-import { CircleWarning } from "@dub/ui/src/icons";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-export default function WorkspaceSettingsClient({
-  hasReferralLink,
-}: {
-  hasReferralLink?: boolean;
-}) {
+export default function WorkspaceSettingsClient() {
   const router = useRouter();
   const { id, name, slug, role } = useWorkspace();
 
@@ -71,20 +66,7 @@ export default function WorkspaceSettingsClient({
           pattern: "^[a-z0-9-]+$",
           maxLength: 48,
         }}
-        helpText={
-          <div className="text-sm text-gray-500">
-            {hasReferralLink && (
-              <p className="mb-1">
-                <CircleWarning className="-mt-0.5 mr-1 inline-block size-4 text-red-600" />
-                Changing your workspace slug will also change your Dub referral
-                link.
-              </p>
-            )}
-            <p>
-              Only lowercase letters, numbers, and dashes. Max 48 characters
-            </p>
-          </div>
-        }
+        helpText="Only lowercase letters, numbers, and dashes. Max 48 characters"
         disabledTooltip={permissionsError || undefined}
         handleSubmit={(data) =>
           fetch(`/api/workspaces/${id}`, {

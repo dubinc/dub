@@ -1,6 +1,5 @@
 import { plain } from "@/lib/plain";
 import { prisma } from "@/lib/prisma";
-import { getWorkspaceClicksLimit } from "@/lib/referrals";
 import { capitalize, formatDate } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -110,13 +109,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const clicksLimit = getWorkspaceClicksLimit(topWorkspace);
-
   const {
     name,
     slug,
     plan,
     usage,
+    usageLimit,
     linksUsage,
     linksLimit,
     domainsLimit,
@@ -199,7 +197,7 @@ export async function POST(req: NextRequest) {
           plainDivider,
           plainUsageSection({
             usage,
-            usageLimit: clicksLimit,
+            usageLimit,
             label: "Clicks",
             sublabel: "This billing period",
             color: "GREEN",

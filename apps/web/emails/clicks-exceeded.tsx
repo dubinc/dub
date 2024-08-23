@@ -1,4 +1,3 @@
-import { getWorkspaceClicksLimit } from "@/lib/referrals";
 import { DUB_WORDMARK, capitalize, getNextPlan, nFormatter } from "@dub/utils";
 import {
   Body,
@@ -33,11 +32,7 @@ export default function ClicksExceeded({
   workspace: Partial<WorkspaceProps>;
   type: "firstUsageLimitEmail" | "secondUsageLimitEmail";
 }) {
-  const { slug, name, usage, plan } = workspace;
-  const clicksLimit = getWorkspaceClicksLimit({
-    usageLimit: workspace.usageLimit ?? 0,
-    referredSignups: workspace.referredSignups ?? 0,
-  });
+  const { slug, name, usage, usageLimit, plan } = workspace;
   const nextPlan = getNextPlan(plan as string);
 
   return (
@@ -45,7 +40,7 @@ export default function ClicksExceeded({
       <Head />
       <Preview>
         Your Dub.co workspace, {name || ""} has exceeded the{" "}
-        {capitalize(plan) || ""} Plan limit of {nFormatter(clicksLimit)} link
+        {capitalize(plan) || ""} Plan limit of {nFormatter(usageLimit)} link
         clicks/month.
       </Preview>
       <Tailwind>
@@ -73,7 +68,7 @@ export default function ClicksExceeded({
               has exceeded the
               <strong> {capitalize(plan)} Plan </strong>
               limit of{" "}
-              <strong>{nFormatter(clicksLimit)} link clicks/month</strong>. You
+              <strong>{nFormatter(usageLimit)} link clicks/month</strong>. You
               have used{" "}
               <strong>{nFormatter(usage, { digits: 2 })} link clicks</strong>{" "}
               across all your links in your current billing cycle.

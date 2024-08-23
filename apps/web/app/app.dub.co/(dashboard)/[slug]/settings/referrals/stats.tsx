@@ -1,9 +1,8 @@
 import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { dub } from "@/lib/dub";
-import { getWorkspace } from "@/lib/fetchers";
-import { getReferralClicksQuotaBonus } from "@/lib/referrals";
 import {
+  REFERRAL_CLICKS_QUOTA_BONUS,
   REFERRAL_CLICKS_QUOTA_BONUS_MAX,
   REFERRAL_REVENUE_SHARE,
 } from "@/lib/referrals/constants";
@@ -47,10 +46,7 @@ async function StatsInner({ slug }: { slug: string }) {
     }
 
     const { totalSales, sales, referredSignups, clicksQuotaBonus } =
-      await loadData({
-        linkId: link.id,
-        slug,
-      });
+      await loadData(link.id);
 
     return (
       <>
@@ -87,8 +83,8 @@ async function StatsInner({ slug }: { slug: string }) {
   return [...Array(2)].map(() => <StatCardSkeleton error />);
 }
 
-async function loadData({ linkId, slug }: { linkId: string; slug: string }) {
-  const [clicks, sales, totalEvents, workspace] = await Promise.all([
+async function loadData(linkId: string) {
+  const [clicks, sales, totalEvents] = await Promise.all([
     // Clicks timeseries
     dub.analytics.retrieve({
       linkId,
@@ -107,9 +103,6 @@ async function loadData({ linkId, slug }: { linkId: string; slug: string }) {
 
     // Total events
     getTotalEvents(linkId),
-
-    // Workspace
-    getWorkspace({ slug }),
   ]);
 
   return {
@@ -123,7 +116,10 @@ async function loadData({ linkId, slug }: { linkId: string; slug: string }) {
       date: new Date(d.start),
       value: d.amount,
     })),
-    referredSignups: workspace?.referredSignups ?? 0,
-    clicksQuotaBonus: workspace ? getReferralClicksQuotaBonus(workspace) : 0,
+    referredSignups: totalEvents.leads,
+    clicksQuotaBonus: Math.min(
+      totalEvents.leads * REFERRAL_CLICKS_QUOTA_BONUS,
+      REFERRAL_CLICKS_QUOTA_BONUS_MAX,
+    ),
   };
 }

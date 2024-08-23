@@ -3,7 +3,6 @@ import { qstash } from "@/lib/cron";
 import { limiter } from "@/lib/cron/limiter";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { prisma } from "@/lib/prisma";
-import { getWorkspaceClicksLimit } from "@/lib/referrals";
 import { WorkspaceProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -73,9 +72,7 @@ export const updateUsage = async () => {
   // also send 30-day summary email
   await Promise.allSettled(
     billingReset.map(async (workspace) => {
-      const { plan, usage } = workspace;
-
-      const clicksLimit = getWorkspaceClicksLimit(workspace);
+      const { plan, usage, usageLimit } = workspace;
 
       /* 
         We only reset clicks usage if it's not over clicksLimit by:
@@ -84,7 +81,7 @@ export const updateUsage = async () => {
       */
 
       const resetUsage =
-        plan === "free" ? usage <= clicksLimit * 4 : usage <= clicksLimit * 2;
+        plan === "free" ? usage <= usageLimit * 4 : usage <= usageLimit * 2;
 
       await prisma.project.update({
         where: {
@@ -201,20 +198,19 @@ export const updateUsage = async () => {
 
   // Get all workspaces that have exceeded usage
   const exceedingUsage = workspaces.filter(
-    ({ usage, ...workspace }) => usage > getWorkspaceClicksLimit(workspace),
+    ({ usage, usageLimit }) => usage > usageLimit,
   );
 
   // Send email to notify overages
   await Promise.allSettled(
     exceedingUsage.map(async (workspace) => {
-      const { slug, plan, usage, users, sentEmails } = workspace;
-      const clicksLimit = getWorkspaceClicksLimit(workspace);
+      const { slug, plan, usage, usageLimit, users, sentEmails } = workspace;
       const emails = users.map((user) => user.user.email) as string[];
 
       await log({
         message: `*${slug}* is over their *${capitalize(
           plan,
-        )} Plan* usage limit. Usage: ${usage}, Limit: ${clicksLimit}, Email: ${emails.join(
+        )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
           ", ",
         )}`,
         type: plan === "free" ? "cron" : "alerts",
