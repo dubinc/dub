@@ -37,6 +37,7 @@ export const getWorkspace = cache(async ({ slug }: { slug: string }) => {
       logo: true,
       usage: true,
       usageLimit: true,
+      referredSignups: true,
       plan: true,
       stripeId: true,
       billingCycleStart: true,

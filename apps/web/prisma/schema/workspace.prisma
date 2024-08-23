@@ -22,6 +22,8 @@ model Project {
   aiUsage      Int @default(0)
   aiLimit      Int @default(10)
 
+  referredSignups Int @default(0)
+
   webhookEnabled    Boolean @default(false)
   conversionEnabled Boolean @default(false)
   ssoEnabled        Boolean @default(false)

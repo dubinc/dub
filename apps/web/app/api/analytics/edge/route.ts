@@ -6,6 +6,7 @@ import {
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
+import { getWorkspaceClicksLimit } from "@/lib/referrals";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
@@ -76,12 +77,14 @@ export const GET = async (req: NextRequest) => {
         throwError: true,
       });
 
-      if (workspace && workspace.usage > workspace.usageLimit) {
+      const clicksLimit = getWorkspaceClicksLimit(workspace);
+
+      if (workspace && workspace.usage > clicksLimit) {
         throw new DubApiError({
           code: "forbidden",
           message: exceededLimitError({
             plan: workspace.plan,
-            limit: workspace.usageLimit,
+            limit: clicksLimit,
             type: "clicks",
           }),
         });

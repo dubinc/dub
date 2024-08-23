@@ -2,6 +2,7 @@ import { WorkspaceProps } from "@/lib/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
+import { getWorkspaceClicksLimit } from "../referrals";
 
 export default function useWorkspace() {
   let { slug } = useParams() as { slug: string | null };
@@ -23,7 +24,8 @@ export default function useWorkspace() {
     nextPlan: workspace?.plan ? getNextPlan(workspace.plan) : PRO_PLAN,
     role: (workspace?.users && workspace.users[0].role) || "member",
     isOwner: workspace?.users && workspace.users[0].role === "owner",
-    exceededClicks: workspace && workspace.usage >= workspace.usageLimit,
+    exceededClicks:
+      workspace && workspace.usage >= getWorkspaceClicksLimit(workspace),
     exceededLinks: workspace && workspace.linksUsage >= workspace.linksLimit,
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
     exceededDomains:

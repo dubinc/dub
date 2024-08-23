@@ -51,6 +51,7 @@ export const expectedWorkspace: Partial<Project> = {
   logo: expect.any(String),
   usage: expect.any(Number),
   usageLimit: expect.any(Number),
+  referredSignups: expect.any(Number),
   linksUsage: expect.any(Number),
   linksLimit: expect.any(Number),
   salesUsage: expect.any(Number),

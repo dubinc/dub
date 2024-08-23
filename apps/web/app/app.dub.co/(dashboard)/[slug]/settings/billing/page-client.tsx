@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceClicksLimit } from "@/lib/referrals";
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -20,13 +21,14 @@ export default function WorkspaceBillingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const workspace = useWorkspace();
+
   const {
     id,
     plan,
     stripeId,
     nextPlan,
     usage,
-    usageLimit,
     salesUsage,
     salesLimit,
     linksUsage,
@@ -37,7 +39,14 @@ export default function WorkspaceBillingClient() {
     usersLimit,
     billingCycleStart,
     conversionEnabled,
-  } = useWorkspace();
+  } = workspace;
+
+  const clicksLimit = workspace
+    ? getWorkspaceClicksLimit({
+        usageLimit: workspace.usageLimit ?? 0,
+        referredSignups: workspace.referredSignups ?? 0,
+      })
+    : undefined;
 
   const { tags } = useTags();
   const { users } = useUsers();
@@ -168,7 +177,7 @@ export default function WorkspaceBillingClient() {
                   : "Number of billable link clicks for your current billing cycle. If you exceed your monthly limits, your existing links will still work and clicks will still be tracked, but you need to upgrade to view your analytics."
               }
               usage={usage}
-              usageLimit={usageLimit}
+              usageLimit={clicksLimit}
               numberOnly={(linksLimit && linksLimit >= 1000000000) || false}
             />
           </div>

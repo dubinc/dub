@@ -57,7 +57,19 @@ export async function customerCreated(event: Stripe.Event) {
     .omit({ timestamp: true })
     .parse(clickEvent.data[0]);
 
-  await Promise.all([
+  const [link] = await Promise.all([
+    // update link leads count
+    prisma.link.update({
+      where: {
+        id: clickData.link_id,
+      },
+      data: {
+        leads: {
+          increment: 1,
+        },
+      },
+    }),
+
     // Record customer
     recordCustomer({
       workspace_id: customer.projectId,
@@ -74,19 +86,20 @@ export async function customerCreated(event: Stripe.Event) {
       event_name: "New customer",
       customer_id: customer.id,
     }),
+  ]);
 
-    // update link leads count
-    prisma.link.update({
+  if (link.domain === "refer.dub.co") {
+    await prisma.project.update({
       where: {
-        id: clickData.link_id,
+        slug: link.key,
       },
       data: {
-        leads: {
+        referredSignups: {
           increment: 1,
         },
       },
-    }),
-  ]);
+    });
+  }
 
   return `Customer created: ${customer.id}`;
 }

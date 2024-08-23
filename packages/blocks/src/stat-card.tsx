@@ -1,24 +1,25 @@
 import { cn } from "@dub/utils";
-import { PropsWithChildren } from "react";
-import { MiniAreaChart, MiniAreaChartProps } from "./mini-area-chart";
+import { PropsWithChildren, ReactNode } from "react";
 
 const wrapperClassName =
   "flex justify-between gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left";
 
 export function StatCard({
   label,
-  timeseriesData,
   demo,
+  graphic,
   children,
 }: PropsWithChildren<{
   label: string;
   demo?: boolean;
-  timeseriesData?: MiniAreaChartProps["data"];
+  graphic?: ReactNode;
 }>) {
   return (
     <div className={wrapperClassName}>
       <div className="flex flex-col gap-2">
-        <span className="text-sm text-gray-600">{label}</span>
+        <span className="truncate whitespace-nowrap text-sm text-gray-600">
+          {label}
+        </span>
         <span
           className={cn(
             "text-2xl font-medium",
@@ -28,9 +29,9 @@ export function StatCard({
           {children}
         </span>
       </div>
-      {timeseriesData && (
-        <div className="relative h-full min-w-0 max-w-[140px] grow">
-          <MiniAreaChart data={timeseriesData} />
+      {graphic && (
+        <div className="relative flex h-full min-w-0 max-w-[140px] grow items-center justify-end">
+          {graphic}
         </div>
       )}
     </div>

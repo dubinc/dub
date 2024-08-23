@@ -1,8 +1,12 @@
 import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { dub } from "@/lib/dub";
-import { StatCard, StatCardSkeleton } from "@dub/blocks";
+import { getWorkspace } from "@/lib/fetchers";
+import { getReferralClicksQuotaBonus } from "@/lib/referrals";
+import { REFERRAL_CLICKS_QUOTA_BONUS_MAX } from "@/lib/referrals/constants";
+import { Gauge, MiniAreaChart, StatCard, StatCardSkeleton } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
+import { User } from "@dub/ui/src/icons";
 import {
   ClicksTimeseries,
   SalesTimeseries,
@@ -11,9 +15,9 @@ import { Suspense } from "react";
 
 export function Stats({ slug }: { slug: string }) {
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-3 lg:gap-x-6">
       <Suspense
-        fallback={[...Array(2)].map(() => (
+        fallback={[...Array(3)].map(() => (
           <StatCardSkeleton />
         ))}
       >
@@ -35,21 +39,50 @@ async function StatsInner({ slug }: { slug: string }) {
           <StatCard label="Sales" demo>
             $60
           </StatCard>
+          <StatCard label="Clicks Earned" demo>
+            500
+          </StatCard>
         </>
       );
     }
 
-    const { totalClicks, clicks, totalSales, sales } = await loadData(link.id);
+    const {
+      totalClicks,
+      clicks,
+      totalSales,
+      sales,
+      referredSignups,
+      clicksQuotaBonus,
+    } = await loadData({
+      linkId: link.id,
+      slug,
+    });
 
     return (
       <>
-        <StatCard label="Clicks" timeseriesData={clicks}>
+        <StatCard label="Clicks" graphic={<MiniAreaChart data={clicks} />}>
           <CountingNumbers>{totalClicks}</CountingNumbers>
         </StatCard>
-        <StatCard label="Sales" timeseriesData={sales}>
+        <StatCard label="Sales" graphic={<MiniAreaChart data={sales} />}>
           <CountingNumbers prefix="$" fullNumber>
             {totalSales / 100}
           </CountingNumbers>
+        </StatCard>
+        <StatCard
+          label="Clicks Earned"
+          graphic={
+            <Gauge
+              value={clicksQuotaBonus}
+              max={REFERRAL_CLICKS_QUOTA_BONUS_MAX}
+            >
+              <div className="flex items-end gap-1 text-xs font-medium text-gray-500">
+                <User className="size-4" />
+                <CountingNumbers>{referredSignups}</CountingNumbers>
+              </div>
+            </Gauge>
+          }
+        >
+          <CountingNumbers fullNumber>{clicksQuotaBonus}</CountingNumbers>
         </StatCard>
       </>
     );
@@ -60,8 +93,8 @@ async function StatsInner({ slug }: { slug: string }) {
   return [...Array(2)].map(() => <StatCardSkeleton error />);
 }
 
-async function loadData(linkId: string) {
-  const [clicks, sales, totalEvents] = await Promise.all([
+async function loadData({ linkId, slug }: { linkId: string; slug: string }) {
+  const [clicks, sales, totalEvents, workspace] = await Promise.all([
     // Clicks timeseries
     dub.analytics.retrieve({
       linkId,
@@ -80,6 +113,9 @@ async function loadData(linkId: string) {
 
     // Total events
     getTotalEvents(linkId),
+
+    // Workspace
+    getWorkspace({ slug }),
   ]);
 
   return {
@@ -93,5 +129,7 @@ async function loadData(linkId: string) {
       date: new Date(d.start),
       value: d.amount,
     })),
+    referredSignups: workspace?.referredSignups ?? 0,
+    clicksQuotaBonus: workspace ? getReferralClicksQuotaBonus(workspace) : 0,
   };
 }

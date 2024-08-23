@@ -1,14 +1,17 @@
+import { getWorkspaceClicksLimit } from "@/lib/referrals";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { DubApiError, exceededLimitError } from "../errors";
 
 // Workspace clicks usage overage checks
 export const throwIfClicksUsageExceeded = (workspace: WorkspaceWithUsers) => {
-  if (workspace.usage > workspace.usageLimit) {
+  const clicksLimit = getWorkspaceClicksLimit(workspace);
+
+  if (workspace.usage > clicksLimit) {
     throw new DubApiError({
       code: "forbidden",
       message: exceededLimitError({
         plan: workspace.plan,
-        limit: workspace.usageLimit,
+        limit: clicksLimit,
         type: "clicks",
       }),
     });
