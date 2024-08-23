@@ -57,7 +57,7 @@ export async function customerCreated(event: Stripe.Event) {
     .omit({ timestamp: true })
     .parse(clickEvent.data[0]);
 
-  const [link] = await Promise.all([
+  await Promise.all([
     // update link leads count
     prisma.link.update({
       where: {
@@ -87,19 +87,6 @@ export async function customerCreated(event: Stripe.Event) {
       customer_id: customer.id,
     }),
   ]);
-
-  if (link.domain === "refer.dub.co") {
-    await prisma.project.update({
-      where: {
-        slug: link.key,
-      },
-      data: {
-        referredSignups: {
-          increment: 1,
-        },
-      },
-    });
-  }
 
   return `Customer created: ${customer.id}`;
 }

@@ -20,8 +20,6 @@ export default function WorkspaceBillingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const workspace = useWorkspace();
-
   const {
     id,
     plan,
@@ -39,7 +37,7 @@ export default function WorkspaceBillingClient() {
     usersLimit,
     billingCycleStart,
     conversionEnabled,
-  } = workspace;
+  } = useWorkspace();
 
   const { tags } = useTags();
   const { users } = useUsers();

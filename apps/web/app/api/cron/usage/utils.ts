@@ -75,7 +75,7 @@ export const updateUsage = async () => {
       const { plan, usage, usageLimit } = workspace;
 
       /* 
-        We only reset clicks usage if it's not over clicksLimit by:
+        We only reset clicks usage if it's not over usageLimit by:
         - 4x for free plan (4K clicks)
         - 2x for all other plans
       */
