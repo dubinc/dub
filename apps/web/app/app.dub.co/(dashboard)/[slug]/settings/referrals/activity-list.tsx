@@ -19,46 +19,53 @@ import { z } from "zod";
 export function ActivityList({
   events,
   totalEvents,
+  demo,
 }: {
   events:
     | z.infer<typeof clickEventEnrichedSchema>[]
     | z.infer<typeof leadEventEnrichedSchema>[]
     | z.infer<typeof saleEventEnrichedSchema>[];
   totalEvents: number;
+  demo?: boolean;
 }) {
   const searchParams = useSearchParams();
   const event = (searchParams.get("event") || "clicks") as EventType;
 
   return (
-    <EventList
-      events={events.map((e) => {
-        const Icon = {
-          clicks: CursorRays,
-          leads: UserCheck,
-          sales: InvoiceDollar,
-        }[event];
-        return {
-          icon: <Icon className="size-4.5" />,
-          content: {
-            clicks: <ClickDescription event={e} />,
-            leads: <LeadDescription event={e} />,
-            sales: <SaleDescription event={e} />,
-          }[event],
-          right: (
-            <div className="whitespace-nowrap">
-              {timeAgo(new Date(e.timestamp), { withAgo: true })}
-            </div>
-          ),
-        };
-      })}
-      totalEvents={totalEvents}
-      emptyState={{
-        icon: ChartActivity2,
-        title: `${capitalize(event)} Activity`,
-        description: `No referral ${event} have been recorded yet.`,
-        learnMore: "https://d.to/conversions",
-      }}
-    />
+    <div className="relative">
+      <EventList
+        events={events.map((e) => {
+          const Icon = {
+            clicks: CursorRays,
+            leads: UserCheck,
+            sales: InvoiceDollar,
+          }[event];
+          return {
+            icon: <Icon className="size-4.5" />,
+            content: {
+              clicks: <ClickDescription event={e} />,
+              leads: <LeadDescription event={e} />,
+              sales: <SaleDescription event={e} />,
+            }[event],
+            right: (
+              <div className="whitespace-nowrap">
+                {timeAgo(new Date(e.timestamp), { withAgo: true })}
+              </div>
+            ),
+          };
+        })}
+        totalEvents={totalEvents}
+        emptyState={{
+          icon: ChartActivity2,
+          title: `${capitalize(event)} Activity`,
+          description: `No referral ${event} have been recorded yet.`,
+          learnMore: "https://d.to/conversions",
+        }}
+      />
+      {demo && (
+        <div className="absolute inset-0 bg-gradient-to-b from-[#fff3] to-white"></div>
+      )}
+    </div>
   );
 }
 

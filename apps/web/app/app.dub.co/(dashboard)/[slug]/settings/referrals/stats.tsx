@@ -24,12 +24,21 @@ export function Stats({ slug }: { slug: string }) {
 }
 
 async function StatsInner({ slug }: { slug: string }) {
-  const link = await getReferralLink(slug);
-  if (!link) {
-    return [...Array(2)].map(() => <StatCardSkeleton error />);
-  }
-
   try {
+    const link = await getReferralLink(slug);
+    if (!link) {
+      return (
+        <>
+          <StatCard label="Clicks" demo>
+            120
+          </StatCard>
+          <StatCard label="Sales" demo>
+            $60
+          </StatCard>
+        </>
+      );
+    }
+
     const { totalClicks, clicks, totalSales, sales } = await loadData(link.id);
 
     return (

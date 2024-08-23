@@ -1,3 +1,4 @@
+import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 import { MiniAreaChart, MiniAreaChartProps } from "./mini-area-chart";
 
@@ -7,16 +8,25 @@ const wrapperClassName =
 export function StatCard({
   label,
   timeseriesData,
+  demo,
   children,
 }: PropsWithChildren<{
   label: string;
-  timeseriesData: MiniAreaChartProps["data"];
+  demo?: boolean;
+  timeseriesData?: MiniAreaChartProps["data"];
 }>) {
   return (
     <div className={wrapperClassName}>
       <div className="flex flex-col gap-2">
         <span className="text-sm text-gray-600">{label}</span>
-        <span className="text-2xl font-medium">{children}</span>
+        <span
+          className={cn(
+            "text-2xl font-medium",
+            demo && "text-gray-500 blur-[4px]",
+          )}
+        >
+          {children}
+        </span>
       </div>
       {timeseriesData && (
         <div className="relative h-full min-w-0 max-w-[140px] grow">

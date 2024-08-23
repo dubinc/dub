@@ -2,10 +2,15 @@ import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
+import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
+import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
+import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { EventListSkeleton } from "@dub/blocks";
 import { Wordmark } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
+import { subDays } from "date-fns";
 import { Suspense } from "react";
+import { z } from "zod";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
 import { HeroBackground } from "./hero-background";
@@ -106,6 +111,46 @@ export default async function ReferralsPage({
   );
 }
 
+const placeholderEvents = {
+  clicks: [...Array(8)].map(
+    (_, idx) =>
+      ({
+        timestamp: subDays(new Date(), idx).toISOString(),
+        click_id: "1",
+        link_id: "1",
+        domain: "refer.dub.co",
+        key: "",
+        url: "https://dub.co",
+        country: "US",
+      }) as z.infer<typeof clickEventEnrichedSchema>,
+  ),
+  leads: [...Array(4)].map(
+    (_, idx) =>
+      ({
+        timestamp: subDays(new Date(), idx).toISOString(),
+        click_id: "1",
+        link_id: "1",
+        domain: "refer.dub.co",
+        key: "",
+        url: "https://dub.co",
+        country: "US",
+      }) as z.infer<typeof leadEventEnrichedSchema>,
+  ),
+  sales: [...Array(2)].map(
+    (_, idx) =>
+      ({
+        timestamp: subDays(new Date(), idx).toISOString(),
+        click_id: "1",
+        link_id: "1",
+        domain: "refer.dub.co",
+        key: "",
+        url: "https://dub.co",
+        country: "US",
+        amount: [11, 49][idx % 2],
+      }) as z.infer<typeof saleEventEnrichedSchema>,
+  ),
+};
+
 async function ActivityListRSC({
   slug,
   event,
@@ -117,7 +162,13 @@ async function ActivityListRSC({
 }) {
   const link = await getReferralLink(slug);
   if (!link) {
-    return <EventListSkeleton />;
+    return (
+      <ActivityList
+        events={placeholderEvents[event]}
+        totalEvents={placeholderEvents[event].length}
+        demo
+      />
+    );
   }
 
   const eventsParams = {
@@ -131,7 +182,7 @@ async function ActivityListRSC({
     page,
   });
 
-  const totalEvents = await getTotalEvents(link.id);
+  const totalEvents = (await getTotalEvents(link.id)) ?? 0;
 
   return (
     <ActivityList events={events as any} totalEvents={totalEvents[event]} />
