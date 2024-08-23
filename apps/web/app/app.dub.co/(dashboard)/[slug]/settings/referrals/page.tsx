@@ -1,7 +1,7 @@
+import { getEvents } from "@/lib/actions/get-events";
 import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { EventType } from "@/lib/analytics/types";
-import { dub } from "@/lib/dub";
 import {
   REFERRAL_CLICKS_QUOTA_BONUS,
   REFERRAL_CLICKS_QUOTA_BONUS_MAX,
@@ -182,16 +182,7 @@ async function ActivityListRSC({
     );
   }
 
-  const eventsParams = {
-    linkId: link.id,
-    event,
-  };
-
-  const events = await dub.events.list({
-    ...eventsParams,
-    interval: "all",
-    page,
-  });
+  const events = await getEvents({ linkId: link.id, event, page });
 
   const totalEvents = await getTotalEvents(link.id);
 
