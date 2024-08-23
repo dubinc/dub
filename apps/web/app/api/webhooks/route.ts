@@ -22,7 +22,7 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
-        linkWebhooks: true,
+        links: true,
       },
       orderBy: {
         updatedAt: "desc",
@@ -93,7 +93,7 @@ export const POST = withWorkspace(
         triggers,
         projectId: workspace.id,
         receiver: "user",
-        linkWebhooks: {
+        links: {
           ...(linkIds &&
             linkIds.length > 0 && {
               create: linkIds.map((linkId) => ({
@@ -108,7 +108,7 @@ export const POST = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
-        linkWebhooks: true,
+        links: true,
       },
     });
 

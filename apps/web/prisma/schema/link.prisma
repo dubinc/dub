@@ -57,7 +57,7 @@ model Link {
   tags LinkTag[]
 
   // Link webhooks
-  linkWebhooks LinkWebhook[]
+  webhooks LinkWebhook[]
 
   // Comments on the particular shortlink
   comments String? @db.LongText

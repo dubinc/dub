@@ -22,7 +22,7 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
-        linkWebhooks: true,
+        links: true,
       },
     });
 
@@ -94,7 +94,7 @@ export const PATCH = withWorkspace(
         ...(url && { url }),
         ...(triggers && { triggers }),
         ...(linkIds && {
-          linkWebhooks: {
+          links: {
             deleteMany: {},
             create: linkIds.map((linkId) => ({
               linkId,
@@ -108,7 +108,7 @@ export const PATCH = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
-        linkWebhooks: true,
+        links: true,
       },
     });
 

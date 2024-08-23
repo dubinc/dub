@@ -25,7 +25,7 @@ export const dispatchWebhook = async (
         array_contains: [trigger],
       },
       ...(linkId && {
-        linkWebhooks: {
+        links: {
           some: {
             linkId,
           },

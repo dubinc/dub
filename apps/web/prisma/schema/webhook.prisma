@@ -15,8 +15,8 @@ model Webhook {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
-  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  linkWebhooks LinkWebhook[]
+  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  links   LinkWebhook[]
 
   @@index([projectId])
 }
