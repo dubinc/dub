@@ -2,7 +2,7 @@ import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
 import { EventListSkeleton } from "@dub/blocks";
-import { Logo } from "@dub/ui";
+import { Wordmark } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
 import {
   ClicksCount,
@@ -84,7 +84,7 @@ export default async function ReferralsPage({
             target="_blank"
             className="mt-2 flex items-center justify-center gap-2 rounded-lg border-gray-100 bg-white p-2 transition-colors hover:border-gray-200 active:bg-gray-50 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0 md:border md:drop-shadow-sm"
           >
-            <Logo className="size-4" />
+            <Wordmark className="h-4" />
             <p className="text-xs text-gray-800">
               Powered by <span className="font-medium">Dub Conversions</span>
             </p>
