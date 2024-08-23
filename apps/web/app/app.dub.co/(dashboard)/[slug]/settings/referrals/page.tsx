@@ -2,12 +2,18 @@ import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
+import {
+  REFERRAL_CLICKS_QUOTA_BONUS,
+  REFERRAL_CLICKS_QUOTA_BONUS_MAX,
+  REFERRAL_REVENUE_SHARE,
+} from "@/lib/referrals/constants";
 import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { EventListSkeleton } from "@dub/blocks";
 import { Wordmark } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
+import { nFormatter } from "@dub/utils";
 import { subDays } from "date-fns";
 import { Suspense } from "react";
 import { z } from "zod";
@@ -20,7 +26,7 @@ import { Stats } from "./stats";
 
 export const dynamic = "auto";
 
-export default async function ReferralsPage({
+export default function ReferralsPage({
   params: { slug },
   searchParams,
 }: {
@@ -48,12 +54,12 @@ export default async function ReferralsPage({
               <div className="mt-6 flex flex-col gap-6">
                 {[
                   {
-                    title: "10% recurring revenue",
+                    title: `${nFormatter(REFERRAL_REVENUE_SHARE * 100)}% recurring revenue`,
                     description: "per paying customer (up to 1 year)",
                   },
                   {
-                    title: "500 extra clicks quota per month",
-                    description: "per signup (up to 16,000 total)",
+                    title: `${nFormatter(REFERRAL_CLICKS_QUOTA_BONUS)} extra clicks quota per month`,
+                    description: `per signup (up to ${nFormatter(REFERRAL_CLICKS_QUOTA_BONUS_MAX, { full: true })} total)`,
                   },
                 ].map(({ title, description }) => (
                   <div className="flex items-center gap-3">
