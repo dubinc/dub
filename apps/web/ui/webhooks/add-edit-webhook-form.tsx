@@ -214,7 +214,10 @@ export default function AddEditWebhookForm({
         <div className="rounded-md border border-gray-200 p-4">
           <label htmlFor="triggers" className="flex flex-col gap-1">
             <h2 className="text-sm font-medium text-gray-900">
-              Link level events
+              Link level events{" "}
+              <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
+                High traffic
+              </span>
             </h2>
             <span className="text-xs text-gray-500">
               These events are triggered at the link level.
@@ -242,12 +245,6 @@ export default function AddEditWebhookForm({
                   className="flex select-none items-center gap-2 text-sm text-gray-600 group-hover:text-gray-800"
                 >
                   {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-
-                  {trigger === "link.clicked" && (
-                    <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
-                      High traffic
-                    </span>
-                  )}
                 </label>
               </div>
             ))}
