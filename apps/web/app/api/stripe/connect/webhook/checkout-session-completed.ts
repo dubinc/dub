@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { dispatchWebhook } from "@/lib/webhook/publish";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "checkout.session.completed"
@@ -58,19 +60,22 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
-  await Promise.all([
-    recordSale({
-      ...leadEvent.data[0],
-      event_id: nanoid(16),
-      event_name: "Subscription creation",
-      payment_processor: "stripe",
-      amount: charge.amount_total!,
-      currency: charge.currency!,
-      invoice_id: invoiceId || "",
-      metadata: JSON.stringify({
-        charge,
-      }),
+  const saleData = {
+    ...leadEvent.data[0],
+    event_id: nanoid(16),
+    event_name: "Subscription creation",
+    payment_processor: "stripe",
+    amount: charge.amount_total!,
+    currency: charge.currency!,
+    invoice_id: invoiceId || "",
+    metadata: JSON.stringify({
+      charge,
     }),
+  };
+
+  await Promise.all([
+    recordSale(saleData),
+
     // update link sales count
     prisma.link.update({
       where: {
@@ -83,6 +88,28 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
     }),
   ]);
+
+  waitUntil(
+    (async () => {
+      const workspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: customer.projectId,
+        },
+        select: {
+          id: true,
+          webhookEnabled: true,
+        },
+      });
+
+      dispatchWebhook("sale.created", {
+        workspace,
+        data: {
+          ...customer,
+          ...saleData,
+        },
+      });
+    })(),
+  );
 
   return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId}`;
 }

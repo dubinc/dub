@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
-import { dispatchLinkWebhook } from "@/lib/webhook/publish-edge";
+import { dispatchWebhook } from "@/lib/webhook/publish-edge";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -59,6 +59,13 @@ export async function customerCreated(event: Stripe.Event) {
     .omit({ timestamp: true })
     .parse(clickEvent.data[0]);
 
+  const leadData = {
+    ...clickData,
+    event_id: nanoid(16),
+    event_name: "New customer",
+    customer_id: customer.id,
+  };
+
   await Promise.all([
     // Record customer
     recordCustomer({
@@ -70,12 +77,7 @@ export async function customerCreated(event: Stripe.Event) {
     }),
 
     // Record lead
-    recordLead({
-      ...clickData,
-      event_id: nanoid(16),
-      event_name: "New customer",
-      customer_id: customer.id,
-    }),
+    recordLead(leadData),
 
     // update link leads count
     prisma.link.update({
@@ -89,6 +91,28 @@ export async function customerCreated(event: Stripe.Event) {
       },
     }),
   ]);
+
+  waitUntil(
+    (async () => {
+      const workspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: customer.projectId,
+        },
+        select: {
+          id: true,
+          webhookEnabled: true,
+        },
+      });
+
+      dispatchWebhook("lead.created", {
+        workspace,
+        data: {
+          ...customer,
+          ...leadData,
+        },
+      });
+    })(),
+  );
 
   return `Customer created: ${customer.id}`;
 }
