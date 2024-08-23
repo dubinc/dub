@@ -1,11 +1,10 @@
 import { getReferralLink } from "@/lib/actions/get-referral-link";
+import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { dub } from "@/lib/dub";
 import { StatCard, StatCardSkeleton } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
 import {
-  ClicksCount,
   ClicksTimeseries,
-  SalesCount,
   SalesTimeseries,
 } from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
@@ -53,14 +52,7 @@ async function StatsInner({ slug }: { slug: string }) {
 }
 
 async function loadData(linkId: string) {
-  const [totalClicks, clicks, totalSales, sales] = await Promise.all([
-    // Total clicks
-    dub.analytics.retrieve({
-      linkId,
-      event: "clicks",
-      interval: "all_unfiltered",
-    }) as Promise<ClicksCount>,
-
+  const [clicks, sales, totalEvents] = await Promise.all([
     // Clicks timeseries
     dub.analytics.retrieve({
       linkId,
@@ -69,13 +61,6 @@ async function loadData(linkId: string) {
       groupBy: "timeseries",
     }) as Promise<ClicksTimeseries[]>,
 
-    // Total sales
-    dub.analytics.retrieve({
-      linkId,
-      event: "sales",
-      interval: "all_unfiltered",
-    }) as Promise<SalesCount>,
-
     // Sales timeseries
     dub.analytics.retrieve({
       linkId,
@@ -83,15 +68,18 @@ async function loadData(linkId: string) {
       interval: "30d",
       groupBy: "timeseries",
     }) as Promise<SalesTimeseries[]>,
+
+    // Total events
+    getTotalEvents(linkId),
   ]);
 
   return {
-    totalClicks: totalClicks.clicks,
+    totalClicks: totalEvents.clicks,
     clicks: clicks.map((d) => ({
       date: new Date(d.start),
       value: d.clicks,
     })),
-    totalSales: totalSales.amount,
+    totalSales: totalEvents.amount,
     sales: sales.map((d) => ({
       date: new Date(d.start),
       value: d.amount,

@@ -1,14 +1,10 @@
 import { getReferralLink } from "@/lib/actions/get-referral-link";
+import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { EventType } from "@/lib/analytics/types";
 import { dub } from "@/lib/dub";
 import { EventListSkeleton } from "@dub/blocks";
 import { Wordmark } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
-import {
-  ClicksCount,
-  LeadsCount,
-  SalesCount,
-} from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
@@ -135,10 +131,7 @@ async function ActivityListRSC({
     page,
   });
 
-  const totalEvents = (await dub.analytics.retrieve({
-    ...eventsParams,
-    interval: "all_unfiltered",
-  })) as ClicksCount | LeadsCount | SalesCount;
+  const totalEvents = await getTotalEvents(link.id);
 
   return (
     <ActivityList events={events as any} totalEvents={totalEvents[event]} />
