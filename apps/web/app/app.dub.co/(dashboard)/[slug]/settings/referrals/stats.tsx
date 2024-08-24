@@ -40,11 +40,26 @@ async function StatsInner({ slug }: { slug: string }) {
     if (!link) {
       return (
         <>
-          <StatsCard label="Affiliate Earnings" demo>
+          <StatsCard
+            label="Affiliate Earnings"
+            demo
+            graphic={<MiniAreaChart data={[]} />}
+          >
             $60
           </StatsCard>
-          <StatsCard label="Clicks Quota Earned" demo>
-            500
+          <StatsCard
+            label="Clicks Quota Earned"
+            demo
+            graphic={
+              <Gauge value={2500} max={REFERRAL_CLICKS_QUOTA_BONUS_MAX}>
+                <div className="flex items-end gap-1 text-xs font-medium text-gray-500">
+                  <User className="size-4" />
+                  <CountingNumbers>5</CountingNumbers>
+                </div>
+              </Gauge>
+            }
+          >
+            2500
           </StatsCard>
         </>
       );
@@ -121,7 +136,7 @@ async function loadData(linkId: string) {
       date: new Date(d.start),
       value: d.amount,
     })),
-    referredSignups: totalEvents.leads,
+    referredSignups: Math.min(totalEvents.leads, 32),
     clicksQuotaBonus: Math.min(
       totalEvents.leads * REFERRAL_CLICKS_QUOTA_BONUS,
       REFERRAL_CLICKS_QUOTA_BONUS_MAX,

@@ -1,4 +1,3 @@
-import { cn } from "@dub/utils";
 import { PropsWithChildren, ReactNode } from "react";
 
 const wrapperClassName =
@@ -20,14 +19,14 @@ export function StatsCard({
         <span className="truncate whitespace-nowrap text-sm text-gray-600">
           {label}
         </span>
-        <span
-          className={cn(
-            "text-2xl font-medium",
-            demo && "text-gray-500 blur-[4px]",
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-medium">{children}</span>
+          {demo && (
+            <span className="rounded-full border border-gray-500 px-1 py-px text-[9px] text-gray-500">
+              DEMO DATA
+            </span>
           )}
-        >
-          {children}
-        </span>
+        </div>
       </div>
       {graphic && (
         <div className="relative flex h-full min-w-0 max-w-[140px] grow items-center justify-end">
