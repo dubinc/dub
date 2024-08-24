@@ -46,6 +46,7 @@ export interface RedisLinkProps {
   geo?: object;
   doIndex?: boolean;
   projectId?: string;
+  webhookIds?: string[];
 }
 
 export interface EdgeLinkProps {

@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -160,6 +161,15 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
+    const linkWebhooks = await prisma.linkWebhook.findMany({
+      where: {
+        webhookId,
+      },
+      select: {
+        linkId: true,
+      },
+    });
+
     await prisma.webhook.delete({
       where: {
         id: webhookId,
@@ -185,7 +195,37 @@ export const DELETE = withWorkspace(
       });
     }
 
-    waitUntil(webhookCache.delete(webhookId));
+    waitUntil(
+      (async () => {
+        const linkIds = linkWebhooks.map((linkWebhook) => linkWebhook.linkId);
+
+        const links = await prisma.link.findMany({
+          where: {
+            id: { in: linkIds },
+            projectId: workspace.id,
+          },
+          include: {
+            webhooks: {
+              select: {
+                webhookId: true,
+              },
+            },
+          },
+        });
+
+        const formatedLinks = links.map((link) => {
+          return {
+            ...link,
+            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
+          };
+        });
+
+        await Promise.all([
+          linkCache.mset(formatedLinks),
+          webhookCache.delete(webhookId),
+        ]);
+      })(),
+    );
 
     return NextResponse.json({
       id: webhookId,

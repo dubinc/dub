@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -129,24 +130,51 @@ export const POST = withWorkspace(
     }
 
     waitUntil(
-      Promise.allSettled([
-        ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
+      (async () => {
+        const links = await prisma.link.findMany({
+          where: {
+            id: { in: linkIds },
+            projectId: workspace.id,
+          },
+          include: {
+            webhooks: {
+              select: {
+                webhookId: true,
+              },
+            },
+          },
+        });
 
-        sendEmail({
-          email: session.user.email,
-          subject: "New webhook added",
-          react: WebhookAdded({
+        const formatedLinks = links.map((link) => {
+          return {
+            ...link,
+            webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
+          };
+        });
+
+        Promise.all([
+          ...(links && links.length > 0
+            ? [linkCache.mset(formatedLinks), []]
+            : []),
+
+          ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
+
+          sendEmail({
             email: session.user.email,
-            workspace: {
-              name: workspace.name,
-              slug: workspace.slug,
-            },
-            webhook: {
-              name,
-            },
+            subject: "New webhook added",
+            react: WebhookAdded({
+              email: session.user.email,
+              workspace: {
+                name: workspace.name,
+                slug: workspace.slug,
+              },
+              webhook: {
+                name,
+              },
+            }),
           }),
-        }),
-      ]),
+        ]);
+      })(),
     );
 
     return NextResponse.json(transformWebhook(webhook), { status: 201 });

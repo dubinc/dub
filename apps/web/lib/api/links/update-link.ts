@@ -111,6 +111,11 @@ export async function updateLink({
           },
         },
       },
+      webhooks: {
+        select: {
+          webhookId: true,
+        },
+      },
     },
   });
 
@@ -118,7 +123,10 @@ export async function updateLink({
     Promise.all([
       // record link in Redis
       redis.hset(updatedLink.domain.toLowerCase(), {
-        [updatedLink.key.toLowerCase()]: await formatRedisLink(response),
+        [updatedLink.key.toLowerCase()]: await formatRedisLink({
+          ...response,
+          webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
+        }),
       }),
       // record link in Tinybird
       recordLink({

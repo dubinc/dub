@@ -2,7 +2,7 @@ import { isIframeable } from "@dub/utils";
 import { LinkProps, RedisLinkProps } from "../types";
 
 export async function formatRedisLink(
-  link: LinkProps,
+  link: LinkProps & { webhookIds?: string[] },
 ): Promise<RedisLinkProps> {
   const {
     id,
@@ -19,6 +19,7 @@ export async function formatRedisLink(
     geo,
     doIndex,
     projectId,
+    webhookIds,
   } = link;
   const hasPassword = password && password.length > 0 ? true : false;
 
@@ -40,5 +41,6 @@ export async function formatRedisLink(
     ...(geo && { geo: geo as object }),
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
     ...(doIndex && { doIndex: true }),
+    ...(webhookIds && { webhookIds }),
   };
 }
