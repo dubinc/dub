@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
 import { transformWebhook } from "@/lib/webhook/transform";
+import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -129,7 +130,7 @@ export const POST = withWorkspace(
 
     waitUntil(
       Promise.allSettled([
-        webhookCache.set(webhook),
+        ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
 
         sendEmail({
           email: session.user.email,

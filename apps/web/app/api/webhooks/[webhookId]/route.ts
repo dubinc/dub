@@ -4,6 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
+import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -52,7 +53,7 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const existingWebhook = await prisma.webhook.findFirst({
+    const webhookUrlExists = await prisma.webhook.findFirst({
       where: {
         projectId: workspace.id,
         url,
@@ -62,7 +63,7 @@ export const PATCH = withWorkspace(
       },
     });
 
-    if (existingWebhook) {
+    if (webhookUrlExists) {
       throw new DubApiError({
         code: "conflict",
         message: "A Webhook with this URL already exists.",
@@ -114,7 +115,30 @@ export const PATCH = withWorkspace(
       },
     });
 
-    waitUntil(webhookCache.set(webhook));
+    waitUntil(
+      (async () => {
+        const existingWebhook = await prisma.webhook.findUniqueOrThrow({
+          where: {
+            id: webhookId,
+            projectId: workspace.id,
+          },
+        });
+
+        // If the webhook is being changed from link level to workspace level, delete the cache
+        if (
+          isLinkLevelWebhook(existingWebhook) &&
+          !isLinkLevelWebhook(webhook)
+        ) {
+          await webhookCache.delete(webhookId);
+          return;
+        }
+
+        // If the webhook is being changed from workspace level to link level, set the cache
+        if (isLinkLevelWebhook(webhook)) {
+          await webhookCache.set(webhook);
+        }
+      })(),
+    );
 
     return NextResponse.json(transformWebhook(webhook));
   },
