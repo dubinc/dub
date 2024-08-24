@@ -1,3 +1,5 @@
+"use server";
+
 import { dub } from "@/lib/dub";
 import { prisma } from "@/lib/prisma";
 

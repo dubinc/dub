@@ -1,3 +1,5 @@
+"use server";
+
 import { unstable_cache } from "next/cache";
 
 export const getTotalEvents = unstable_cache(async (linkId: string) => {
