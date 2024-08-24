@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
-import { transformWebhook } from "@/lib/webhook/utils";
+import { transformWebhook } from "@/lib/webhook/transform";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

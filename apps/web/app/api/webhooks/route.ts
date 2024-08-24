@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
-import { transformWebhook } from "@/lib/webhook/utils";
+import { transformWebhook } from "@/lib/webhook/transform";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
