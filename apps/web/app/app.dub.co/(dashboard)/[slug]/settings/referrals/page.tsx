@@ -13,7 +13,7 @@ import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { EventListSkeleton } from "@dub/blocks";
 import { Wordmark } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
-import { nFormatter } from "@dub/utils";
+import { nFormatter, randomValue } from "@dub/utils";
 import { subDays } from "date-fns";
 import { Suspense } from "react";
 import { z } from "zod";
@@ -118,7 +118,7 @@ export default function ReferralsPage({
 }
 
 const placeholderEvents = {
-  clicks: [...Array(8)].map(
+  clicks: [...Array(10)].map(
     (_, idx) =>
       ({
         timestamp: subDays(new Date(), idx).toISOString(),
@@ -127,10 +127,10 @@ const placeholderEvents = {
         domain: "refer.dub.co",
         key: "",
         url: "https://dub.co",
-        country: "US",
+        country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
       }) as z.infer<typeof clickEventEnrichedSchema>,
   ),
-  leads: [...Array(8)].map(
+  leads: [...Array(10)].map(
     (_, idx) =>
       ({
         timestamp: subDays(new Date(), idx).toISOString(),
@@ -139,10 +139,10 @@ const placeholderEvents = {
         domain: "refer.dub.co",
         key: "",
         url: "https://dub.co",
-        country: "US",
+        country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
       }) as z.infer<typeof leadEventEnrichedSchema>,
   ),
-  sales: [...Array(8)].map(
+  sales: [...Array(10)].map(
     (_, idx) =>
       ({
         timestamp: subDays(new Date(), idx).toISOString(),
@@ -151,7 +151,7 @@ const placeholderEvents = {
         domain: "refer.dub.co",
         key: "",
         url: "https://dub.co",
-        country: "US",
+        country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
         event_name: [
           "Subscription creation",
           "Subscription paid",

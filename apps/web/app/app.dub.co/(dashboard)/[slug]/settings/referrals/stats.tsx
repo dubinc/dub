@@ -14,6 +14,8 @@ import {
 } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
 import { User } from "@dub/ui/src/icons";
+import { nFormatter, randomValue } from "@dub/utils";
+import { subDays } from "date-fns";
 import {
   ClicksTimeseries,
   SalesTimeseries,
@@ -43,9 +45,24 @@ async function StatsInner({ slug }: { slug: string }) {
           <StatsCard
             label="Affiliate Earnings"
             demo
-            graphic={<MiniAreaChart data={[]} />}
+            graphic={
+              <MiniAreaChart
+                // generate a random bell curve
+                data={[...Array(16)].map((_, idx) => {
+                  const x = (idx - 7.5) / 4;
+                  const curve1 = 800 * Math.exp(-Math.pow(x + 0.5, 2));
+                  const curve2 = 600 * Math.exp(-Math.pow(x - 0.5, 2));
+                  return {
+                    date: subDays(new Date(), 15 - idx),
+                    value: Math.floor(
+                      1500 + curve1 + curve2 + (Math.random() - 0.5) * 200,
+                    ),
+                  };
+                })}
+              />
+            }
           >
-            $60
+            ${Math.floor(Math.random() * 50) + 50}
           </StatsCard>
           <StatsCard
             label="Clicks Quota Earned"
@@ -59,7 +76,9 @@ async function StatsInner({ slug }: { slug: string }) {
               </Gauge>
             }
           >
-            2500
+            {nFormatter(randomValue([1000, 1500, 2000, 2500, 3000]), {
+              full: true,
+            })}
           </StatsCard>
         </>
       );

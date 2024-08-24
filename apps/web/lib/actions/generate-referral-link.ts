@@ -32,8 +32,8 @@ export const generateReferralLink = authActionClient
         }),
       };
     } catch (e) {
-      console.error("Failed to generate referral link.", e);
+      console.error("Failed to activate referral link.", e);
     }
 
-    throw new Error("Failed to generate referral link.");
+    throw new Error("Failed to activate referral link.");
   });
