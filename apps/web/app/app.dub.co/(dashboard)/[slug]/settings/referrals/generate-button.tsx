@@ -3,7 +3,6 @@
 import { generateReferralLink } from "@/lib/actions/generate-referral-link";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
-import { Hyperlink } from "@dub/ui/src/icons";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -27,7 +26,6 @@ export function GenerateButton() {
 
   return (
     <Button
-      icon={<Hyperlink className="size-4" />}
       text="Activate Referral Link"
       className="h-9 w-auto rounded-lg"
       onClick={() => executeAsync({ workspaceId: workspaceId! })}
