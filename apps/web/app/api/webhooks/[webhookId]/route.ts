@@ -2,8 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/utils";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/webhooks/[webhookId] - get info about a specific webhook
@@ -112,6 +114,8 @@ export const PATCH = withWorkspace(
       },
     });
 
+    waitUntil(webhookCache.set(webhook));
+
     return NextResponse.json(transformWebhook(webhook));
   },
   {
@@ -156,6 +160,8 @@ export const DELETE = withWorkspace(
         },
       });
     }
+
+    waitUntil(webhookCache.delete(webhookId));
 
     return NextResponse.json({
       id: webhookId,

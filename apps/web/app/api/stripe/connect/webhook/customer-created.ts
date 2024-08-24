@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
-import { dispatchWebhook } from "@/lib/webhook/publish-edge";
+import { sendWebhook } from "@/lib/webhook/publish-edge";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -104,7 +104,7 @@ export async function customerCreated(event: Stripe.Event) {
         },
       });
 
-      dispatchWebhook("lead.created", {
+      sendWebhook("lead.created", {
         workspace,
         data: {
           ...customer,

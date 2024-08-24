@@ -54,41 +54,6 @@ export async function recordClick({
     return null;
   }
 
-  const clickEvent = {
-    timestamp: new Date(Date.now()).toISOString(),
-    identity_hash,
-    click_id: clickId || nanoid(16),
-    link_id: linkId,
-    alias_link_id: "",
-    url: url || "",
-    ip:
-      // only record IP if it's a valid IP and not from EU
-      typeof ip === "string" && ip.trim().length > 0 && continent !== "EU"
-        ? ip
-        : "",
-    continent: continent || "",
-    country: geo?.country || "Unknown",
-    city: geo?.city || "Unknown",
-    region: geo?.region || "Unknown",
-    latitude: geo?.latitude || "Unknown",
-    longitude: geo?.longitude || "Unknown",
-    device: capitalize(ua.device.type) || "Desktop",
-    device_vendor: ua.device.vendor || "Unknown",
-    device_model: ua.device.model || "Unknown",
-    browser: ua.browser.name || "Unknown",
-    browser_version: ua.browser.version || "Unknown",
-    engine: ua.engine.name || "Unknown",
-    engine_version: ua.engine.version || "Unknown",
-    os: ua.os.name || "Unknown",
-    os_version: ua.os.version || "Unknown",
-    cpu_architecture: ua.cpu?.architecture || "Unknown",
-    ua: ua.ua || "Unknown",
-    bot: ua.isBot,
-    qr: isQr,
-    referer: referer ? getDomainWithoutWWW(referer) || "(direct)" : "(direct)",
-    referer_url: referer || "(direct)",
-  };
-
   return await Promise.allSettled([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
@@ -148,12 +113,5 @@ export async function recordClick({
         "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
         [linkId],
       ),
-
-    // send the click event to the webhook endpoint
-    // sendToWebhook({
-    //   webhook: null
-    //   data: clickEvent,
-    //   trigger: "link.clicked",
-    // }),
   ]);
 }

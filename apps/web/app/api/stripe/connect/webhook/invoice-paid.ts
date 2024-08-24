@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { dispatchWebhook } from "@/lib/webhook/publish";
+import { sendWebhook } from "@/lib/webhook/publish";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -86,7 +86,7 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       });
 
-      dispatchWebhook("sale.created", {
+      sendWebhook("sale.created", {
         workspace,
         data: {
           ...customer,

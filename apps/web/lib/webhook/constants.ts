@@ -1,8 +1,12 @@
 export const WEBHOOK_SECRET_LENGTH = 16;
 
+export const WEBHOOK_ID_PREFIX = "wh_";
+
 export const WEBHOOK_SECRET_PREFIX = "whsec_";
 
 export const WEBHOOK_EVENT_ID_PREFIX = "event_";
+
+export const WEBHOOK_REDIS_KEY = "dub:webhooks";
 
 export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.created",

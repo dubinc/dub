@@ -2,8 +2,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { webhookCache } from "@/lib/webhook/cache";
+import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
 import { transformWebhook } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import WebhookAdded from "emails/webhook-added";
@@ -87,6 +90,7 @@ export const POST = withWorkspace(
 
     const webhook = await prisma.webhook.create({
       data: {
+        id: `${WEBHOOK_ID_PREFIX}${nanoid(25)}`,
         name,
         url,
         secret,
@@ -124,20 +128,24 @@ export const POST = withWorkspace(
     }
 
     waitUntil(
-      sendEmail({
-        email: session.user.email,
-        subject: "New webhook added",
-        react: WebhookAdded({
+      Promise.allSettled([
+        webhookCache.set(webhook),
+
+        sendEmail({
           email: session.user.email,
-          workspace: {
-            name: workspace.name,
-            slug: workspace.slug,
-          },
-          webhook: {
-            name,
-          },
+          subject: "New webhook added",
+          react: WebhookAdded({
+            email: session.user.email,
+            workspace: {
+              name: workspace.name,
+              slug: workspace.slug,
+            },
+            webhook: {
+              name,
+            },
+          }),
         }),
-      }),
+      ]),
     );
 
     return NextResponse.json(transformWebhook(webhook), { status: 201 });

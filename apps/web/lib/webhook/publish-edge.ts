@@ -3,15 +3,15 @@ import { WebhookTrigger, WorkspaceProps } from "../types";
 import { prepareWebhookPayload } from "./prepare-payload";
 import { sendWebhookEventToQStash } from "./qstash";
 
-interface DispatchWebhookProps {
+interface SendWebhookProps {
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   data: any;
   linkId?: string;
 }
 
-export const dispatchWebhook = async (
+export const sendWebhook = async (
   trigger: WebhookTrigger,
-  props: DispatchWebhookProps,
+  props: SendWebhookProps,
 ) => {
   const { workspace, linkId, data } = props;
 
