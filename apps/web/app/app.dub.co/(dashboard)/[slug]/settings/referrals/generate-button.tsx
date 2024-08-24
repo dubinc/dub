@@ -15,8 +15,8 @@ export function GenerateButton() {
     generateReferralLink,
     {
       onSuccess: () => {
-        toast.success("Referral link generated.");
         router.refresh();
+        toast.success("Referral link generated.");
       },
       onError: ({ error }) => {
         toast.error(error.serverError?.serverError);

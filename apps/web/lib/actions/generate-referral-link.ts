@@ -3,6 +3,7 @@
 import { linkConstructor } from "@dub/utils";
 import { z } from "zod";
 import { dub } from "../dub";
+import { prisma } from "../prisma";
 import { authActionClient } from "./safe-action";
 
 // Generate a new client secret for an integration
@@ -23,6 +24,15 @@ export const generateReferralLink = authActionClient
         externalId: `ws_${workspace.id}`,
         tagIds: ["cm000srqx0004o6ldehod07zc"],
         trackConversion: true,
+      });
+
+      await prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          referralLinkId: createdLink.id,
+        },
       });
 
       return {
