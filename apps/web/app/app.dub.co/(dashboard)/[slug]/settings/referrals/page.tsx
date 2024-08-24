@@ -24,7 +24,7 @@ import ReferralsPageClient from "./page-client";
 import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
 import { Stats } from "./stats";
 
-export const dynamic = "auto";
+export const dynamic = "force-dynamic";
 
 export default function ReferralsPage({
   params: { slug },
