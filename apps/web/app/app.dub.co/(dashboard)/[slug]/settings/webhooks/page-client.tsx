@@ -6,9 +6,10 @@ import { WebhookProps } from "@/lib/types";
 import EmptyState from "@/ui/shared/empty-state";
 import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
-import { Button, Cube, TooltipContent } from "@dub/ui";
+import { Button, TooltipContent } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import { fetcher } from "@dub/utils";
+import { Webhook } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
 import useSWR from "swr";
 
@@ -69,7 +70,7 @@ export default function WebhooksPageClient() {
           ) : (
             <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
               <EmptyState
-                icon={Cube}
+                icon={Webhook}
                 title="You haven't set up any webhooks yet."
                 description="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
                 learnMore="https://dub.co/docs/webhooks"
