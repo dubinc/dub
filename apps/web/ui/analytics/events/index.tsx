@@ -18,7 +18,7 @@ export default function AnalyticsEvents({
   demoPage?: boolean;
 }) {
   const { searchParams } = useRouterStuff();
-  const tab = searchParams.get("tab");
+  const event = searchParams.get("event");
 
   return (
     <AnalyticsProvider
@@ -29,7 +29,7 @@ export default function AnalyticsEvents({
         <Toggle page="events" />
         <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-2.5 lg:px-20">
           <EventsTabs />
-          <EventsTable key={tab} />
+          <EventsTable key={event} />
         </div>
       </div>
     </AnalyticsProvider>
