@@ -1,46 +1,22 @@
-import { prismaEdge } from "@/lib/prisma/edge";
-import { WebhookTrigger, WorkspaceProps } from "../types";
+import { WebhookCacheProps, WebhookTrigger } from "../types";
 import { prepareWebhookPayload } from "./prepare-payload";
 import { sendWebhookEventToQStash } from "./qstash";
 
 interface SendWebhookProps {
-  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
+  webhooks: WebhookCacheProps[];
   data: any;
-  linkId?: string;
 }
 
 export const sendWebhook = async (
   trigger: WebhookTrigger,
-  props: SendWebhookProps,
+  { webhooks, data }: SendWebhookProps,
 ) => {
-  const { workspace, linkId, data } = props;
-
-  if (!workspace.webhookEnabled) {
-    return;
-  }
-
-  const webhooks = await prismaEdge.webhook.findMany({
-    where: {
-      projectId: workspace.id,
-      triggers: {
-        array_contains: [trigger],
-      },
-      ...(linkId && {
-        links: {
-          some: {
-            linkId,
-          },
-        },
-      }),
-    },
-    select: {
-      id: true,
-      url: true,
-      secret: true,
-    },
+  // Filter webhooks that match the trigger
+  const matchedWebhooks = webhooks.filter((webhook) => {
+    return webhook.triggers && (webhook.triggers as string[]).includes(trigger);
   });
 
-  if (webhooks.length === 0) {
+  if (matchedWebhooks.length === 0) {
     return;
   }
 
@@ -48,7 +24,7 @@ export const sendWebhook = async (
   const payload = prepareWebhookPayload(trigger, data);
 
   await Promise.all(
-    webhooks.map((webhook) =>
+    matchedWebhooks.map((webhook) =>
       sendWebhookEventToQStash({
         webhook,
         payload,
