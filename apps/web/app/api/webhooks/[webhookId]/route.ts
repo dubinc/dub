@@ -161,15 +161,6 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    const linkWebhooks = await prisma.linkWebhook.findMany({
-      where: {
-        webhookId,
-      },
-      select: {
-        linkId: true,
-      },
-    });
-
     await prisma.webhook.delete({
       where: {
         id: webhookId,
@@ -197,12 +188,20 @@ export const DELETE = withWorkspace(
 
     waitUntil(
       (async () => {
-        const linkIds = linkWebhooks.map((linkWebhook) => linkWebhook.linkId);
+        const linkWebhooks = await prisma.linkWebhook.findMany({
+          where: {
+            webhookId,
+          },
+          select: {
+            linkId: true,
+          },
+        });
+
+        const linkIds = linkWebhooks.map(({ linkId }) => linkId);
 
         const links = await prisma.link.findMany({
           where: {
             id: { in: linkIds },
-            projectId: workspace.id,
           },
           include: {
             webhooks: {
