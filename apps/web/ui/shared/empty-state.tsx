@@ -1,42 +1,19 @@
+import { EmptyState as EmptyStateBlock } from "@dub/blocks";
 import { buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
+import { ComponentProps } from "react";
 
 export default function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  learnMore,
   buttonText,
   buttonLink,
+  ...rest
 }: {
-  icon: React.ElementType;
-  title: string;
-  description?: string;
-  learnMore?: string;
   buttonText?: string;
   buttonLink?: string;
-}) {
+} & Omit<ComponentProps<typeof EmptyStateBlock>, "children">) {
   return (
-    <div className="flex flex-col items-center justify-center gap-y-4">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50">
-        <Icon className="h-8 w-8 text-black" strokeWidth={0.75} />
-      </div>
-      <p className="text-center text-base font-medium text-gray-950">{title}</p>
-      {description && (
-        <p className="max-w-sm text-center text-sm text-gray-500">
-          {description}{" "}
-          {learnMore && (
-            <a
-              href={learnMore}
-              target="_blank"
-              className="underline underline-offset-2 hover:text-gray-800"
-            >
-              Learn more ↗
-            </a>
-          )}
-        </p>
-      )}
+    <EmptyStateBlock {...rest}>
       {buttonText && buttonLink && (
         <Link
           href={buttonLink}
@@ -51,6 +28,6 @@ export default function EmptyState({
           </span>
         </Link>
       )}
-    </div>
+    </EmptyStateBlock>
   );
 }

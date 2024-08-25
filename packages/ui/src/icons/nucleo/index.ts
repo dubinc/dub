@@ -8,6 +8,8 @@ export * from "./book2";
 export * from "./box-archive";
 export * from "./bullet-list";
 export * from "./cards";
+export * from "./caret-up-fill";
+export * from "./chart-activity2";
 export * from "./chart-line";
 export * from "./check";
 export * from "./circle-check";

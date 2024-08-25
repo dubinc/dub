@@ -31,6 +31,7 @@ export const POST = withAdmin(async ({ req }) => {
               slug: true,
               logo: true,
               stripeId: true,
+              referralLinkId: true,
             },
           },
         },
@@ -44,14 +45,7 @@ export const POST = withAdmin(async ({ req }) => {
 
   waitUntil(
     Promise.allSettled([
-      ...user.projects.map(({ project }) =>
-        deleteWorkspaceAdmin({
-          id: project.id,
-          slug: project.slug,
-          stripeId: project.stripeId || null,
-          logo: project.logo || null,
-        }),
-      ),
+      ...user.projects.map(({ project }) => deleteWorkspaceAdmin(project)),
       // delete user
       prisma.user.delete({
         where: {

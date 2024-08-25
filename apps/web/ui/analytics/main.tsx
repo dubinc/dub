@@ -86,12 +86,12 @@ export default function Main() {
                   href={
                     (tab.id === id
                       ? queryParams({
-                          del: "tab",
+                          del: "event",
                           getNewPath: true,
                         })
                       : queryParams({
                           set: {
-                            tab: id,
+                            event: id,
                           },
                           getNewPath: true,
                         })) as string

@@ -19,6 +19,7 @@
     "@dub/analytics": "^0.0.14",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
+    "@dub/blocks": "workspace:*",
     "@dub/utils": "workspace:*",
     "@hookform/resolvers": "^3.9.0",
     "@next-auth/prisma-adapter": "^1.0.5",
