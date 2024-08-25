@@ -6,7 +6,14 @@ import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import EmptyState from "@/ui/shared/empty-state";
-import { LinkLogo, Table, Tooltip, useRouterStuff, useTable } from "@dub/ui";
+import {
+  LinkLogo,
+  Table,
+  Tooltip,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import {
   CursorRays,
   FilterBars,
@@ -37,7 +44,6 @@ import { EventsContext } from "./events-provider";
 import { exampleData } from "./example-data";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
-import usePagination from "./use-pagination";
 
 export type EventDatum =
   | z.infer<typeof clickEventEnrichedSchema>
