@@ -39,10 +39,7 @@ export const getFinalUrl = (
     urlObj.searchParams.delete("qr");
   }
 
-  // construct final url
-  const finalUrl = urlObj.toString();
-
-  return finalUrl;
+  return urlObj.toString();
 };
 
 // Get final cleaned url for storing in TB
@@ -65,6 +62,5 @@ export const getFinalUrlForRecordClick = ({
     }
   }
 
-  // remove trailing slash from URL
-  return urlObj.toString().replace(/\/$/, "");
+  return urlObj.toString();
 };
