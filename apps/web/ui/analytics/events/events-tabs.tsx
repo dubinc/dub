@@ -4,7 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { MiniAreaChart } from "@dub/blocks";
 import { CountingNumbers, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
-import { useCallback, useContext, useEffect, useMemo } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import { AnalyticsContext } from "../analytics-provider";
@@ -53,15 +53,6 @@ export default function EventsTabs() {
         keepPreviousData: true,
       },
     );
-
-  const chartData = useMemo(() => {
-    if (!timeseriesData) return [];
-    return timeseriesData.map((d) => ({
-      date: new Date(d.start),
-      value:
-        ((tab === "sales" ? d?.amount : d?.[tab]) as number | undefined) ?? 0,
-    }));
-  }, [timeseriesData, tab]);
 
   const onEventTabClick = useCallback(
     (event: string) => {
@@ -133,7 +124,17 @@ export default function EventsTabs() {
                 isLoadingTimeseries && "opacity-40",
               )}
             >
-              <MiniAreaChart data={chartData} />
+              <MiniAreaChart
+                data={
+                  timeseriesData?.map((d) => ({
+                    date: new Date(d.start),
+                    value:
+                      ((event === "sales" ? d?.amount : d?.[event]) as
+                        | number
+                        | undefined) ?? 0,
+                  })) || []
+                }
+              />
             </div>
           )}
         </button>
