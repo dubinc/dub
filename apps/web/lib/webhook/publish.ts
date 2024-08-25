@@ -1,19 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { WebhookTrigger, WorkspaceProps } from "../types";
-import { prepareWebhookPayload } from "./prepare-payload";
-import { sendWebhookEventToQStash } from "./qstash";
+import { sendWebhooks } from "./qstash";
 
-interface SendWebhookProps {
-  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-  data: any;
-  linkId?: string;
-}
-
-export const sendWebhook = async (
+// Send workspace level webhook
+export const sendWorkspaceWebhook = async (
   trigger: WebhookTrigger,
-  props: SendWebhookProps,
+  props: {
+    workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
+    data: any;
+  },
 ) => {
-  const { workspace, linkId, data } = props;
+  const { workspace, data } = props;
 
   if (!workspace.webhookEnabled) {
     return;
@@ -25,13 +22,6 @@ export const sendWebhook = async (
       triggers: {
         array_contains: [trigger],
       },
-      ...(linkId && {
-        links: {
-          some: {
-            linkId,
-          },
-        },
-      }),
     },
     select: {
       id: true,
@@ -40,19 +30,44 @@ export const sendWebhook = async (
     },
   });
 
-  if (webhooks.length === 0) {
+  return sendWebhooks(trigger, { webhooks, data });
+};
+
+// Send link level webhook
+export const sendLinkWebhook = async (
+  trigger: WebhookTrigger,
+  props: {
+    linkId: string;
+    data: any;
+  },
+) => {
+  const { data, linkId } = props;
+
+  const linkWebhooks = await prisma.linkWebhook.findMany({
+    where: {
+      linkId,
+      webhook: {
+        triggers: {
+          array_contains: [trigger],
+        },
+      },
+    },
+    include: {
+      webhook: {
+        select: {
+          id: true,
+          url: true,
+          secret: true,
+        },
+      },
+    },
+  });
+
+  if (linkWebhooks.length === 0) {
     return;
   }
 
-  // Final payload to be sent to Webhook
-  const payload = prepareWebhookPayload(trigger, data);
+  const webhooks = linkWebhooks.map(({ webhook }) => webhook);
 
-  await Promise.all(
-    webhooks.map((webhook) =>
-      sendWebhookEventToQStash({
-        webhook,
-        payload,
-      }),
-    ),
-  );
+  return sendWebhooks(trigger, { webhooks, data });
 };

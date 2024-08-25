@@ -5,7 +5,7 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
-import { sendWebhook } from "@/lib/webhook/publish";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
@@ -100,7 +100,7 @@ export const POST = withWorkspace(
       const response = await createLink(link);
 
       waitUntil(
-        sendWebhook("link.created", {
+        sendWorkspaceWebhook("link.created", {
           data: response,
           workspace,
         }),

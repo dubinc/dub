@@ -1,11 +1,38 @@
 import { qstash } from "@/lib/cron";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Webhook } from "@prisma/client";
+import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { webhookPayloadSchema } from "../zod/schemas/webhooks";
+import { prepareWebhookPayload } from "./prepare-payload";
 import { createWebhookSignature } from "./signature";
 
-export const sendWebhookEventToQStash = async ({
+export const sendWebhooks = async (
+  trigger: WebhookTrigger,
+  props: {
+    webhooks: Pick<Webhook, "id" | "url" | "secret">[];
+    data: any;
+  },
+) => {
+  const { webhooks, data } = props;
+
+  if (webhooks.length === 0) {
+    return;
+  }
+
+  const payload = prepareWebhookPayload(trigger, data);
+
+  return await Promise.all(
+    webhooks.map((webhook) =>
+      publishWebhookEventToQStash({
+        webhook,
+        payload,
+      }),
+    ),
+  );
+};
+
+export const publishWebhookEventToQStash = async ({
   webhook,
   payload,
 }: {

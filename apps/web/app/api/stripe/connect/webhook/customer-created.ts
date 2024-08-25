@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
-import { sendWebhook } from "@/lib/webhook/publish-edge";
+import { sendLinkWebhook } from "@/lib/webhook/publish";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -94,18 +94,8 @@ export async function customerCreated(event: Stripe.Event) {
 
   waitUntil(
     (async () => {
-      const workspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          id: customer.projectId,
-        },
-        select: {
-          id: true,
-          webhookEnabled: true,
-        },
-      });
-
-      sendWebhook("lead.created", {
-        workspace,
+      sendLinkWebhook("lead.created", {
+        linkId: clickData.link_id,
         data: {
           ...customer,
           ...leadData,

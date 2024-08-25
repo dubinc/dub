@@ -1,10 +1,10 @@
 "use client";
 
 import { WebhookEventProps } from "@/lib/types";
+import { usePagination } from "@dub/ui/src/hooks/use-pagination";
 import { nFormatter, PAGINATION_LIMIT } from "@dub/utils";
 import { CircleCheck, Clock4 } from "lucide-react";
 import { PropsWithChildren } from "react";
-import usePagination from "../analytics/events/use-pagination";
 
 export type EventListProps = PropsWithChildren<{
   events: WebhookEventProps[];

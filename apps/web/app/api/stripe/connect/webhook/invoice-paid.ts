@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { sendWebhook } from "@/lib/webhook/publish";
+import { sendLinkWebhook } from "@/lib/webhook/publish";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -58,13 +58,15 @@ export async function invoicePaid(event: Stripe.Event) {
     }),
   };
 
+  const linkId = leadEvent.data[0].link_id;
+
   await Promise.all([
     recordSale(saleData),
 
     // update link sales count
     prisma.link.update({
       where: {
-        id: leadEvent.data[0].link_id,
+        id: linkId,
       },
       data: {
         sales: {
@@ -76,18 +78,8 @@ export async function invoicePaid(event: Stripe.Event) {
 
   waitUntil(
     (async () => {
-      const workspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          id: customer.projectId,
-        },
-        select: {
-          id: true,
-          webhookEnabled: true,
-        },
-      });
-
-      sendWebhook("sale.created", {
-        workspace,
+      sendLinkWebhook("sale.created", {
+        linkId,
         data: {
           ...customer,
           ...saleData,

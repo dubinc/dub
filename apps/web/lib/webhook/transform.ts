@@ -18,6 +18,14 @@ export const transformWebhook = (webhook: TransformWebhookProps) => {
   };
 };
 
+export const transformClick = (click: any) => {
+  const camelCaseClick = Object.fromEntries(
+    Object.entries(click).map(([key, value]) => [toCamelCase(key), value]),
+  );
+
+  return camelCaseClick;
+};
+
 export const transformLead = (lead: any) => {
   const camelCaseLead = Object.fromEntries(
     Object.entries(lead).map(([key, value]) => [toCamelCase(key), value]),
