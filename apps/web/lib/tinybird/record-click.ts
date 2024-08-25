@@ -3,12 +3,17 @@ import {
   LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
+  nanoid,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { ipAddress } from "@vercel/edge";
-import { nanoid } from "ai";
 import { NextRequest, userAgent } from "next/server";
-import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
+import {
+  detectBot,
+  detectQr,
+  getFinalUrlForRecordClick,
+  getIdentityHash,
+} from "../middleware/utils";
 import { conn } from "../planetscale";
 import { ratelimit } from "../upstash";
 
@@ -26,10 +31,34 @@ export async function recordClick({
   clickId?: string;
   url?: string;
 }) {
-  const isBot = detectBot(req);
-  if (isBot) {
-    return null; // don't record clicks from bots
+  const searchParams = req.nextUrl.searchParams;
+
+  // only track the click when there is no `dub-no-track` header or query param
+  if (
+    req.headers.has("dub-no-track") ||
+    searchParams.get("dub-no-track") === "1"
+  ) {
+    return null;
   }
+
+  const isBot = detectBot(req);
+
+  // don't record clicks from bots
+  if (isBot) {
+    return null;
+  }
+
+  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+
+  // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
+  const { success } = await ratelimit(1, "1 h").limit(
+    `recordClick:${ip}:${linkId}`,
+  );
+
+  if (!success) {
+    return null;
+  }
+
   const isQr = detectQr(req);
 
   // get continent & geolocation data
@@ -43,15 +72,9 @@ export async function recordClick({
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
 
-  // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
-  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
-  const { success } = await ratelimit(1, "1 h").limit(
-    `recordClick:${ip}:${linkId}`,
-  );
-  if (!success) {
-    return null;
-  }
+
+  const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
   return await Promise.allSettled([
     fetch(
@@ -67,7 +90,7 @@ export async function recordClick({
           click_id: clickId || nanoid(16),
           link_id: linkId,
           alias_link_id: "",
-          url: url || "",
+          url: finalUrl,
           ip:
             // only record IP if it's a valid IP and not from a EU country
             typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
