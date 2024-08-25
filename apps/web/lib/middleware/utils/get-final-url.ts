@@ -46,7 +46,7 @@ export const getFinalUrl = (
 };
 
 // Get final cleaned url for storing in TB
-export const getFinalUrlForClick = ({
+export const getFinalUrlForRecordClick = ({
   req,
   url,
 }: {
@@ -65,5 +65,6 @@ export const getFinalUrlForClick = ({
     }
   }
 
-  return urlObj.toString();
+  // remove trailing slash from URL
+  return urlObj.toString().replace(/\/$/, "");
 };

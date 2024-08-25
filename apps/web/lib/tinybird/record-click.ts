@@ -11,7 +11,7 @@ import { NextRequest, userAgent } from "next/server";
 import {
   detectBot,
   detectQr,
-  getFinalUrlForClick,
+  getFinalUrlForRecordClick,
   getIdentityHash,
 } from "../middleware/utils";
 import { conn } from "../planetscale";
@@ -74,7 +74,7 @@ export async function recordClick({
 
   const identity_hash = await getIdentityHash(req);
 
-  const finalUrl = url ? getFinalUrlForClick({ req, url }) : "";
+  const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
   return await Promise.allSettled([
     fetch(
