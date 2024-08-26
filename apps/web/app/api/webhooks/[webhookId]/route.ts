@@ -192,13 +192,9 @@ export const PATCH = withWorkspace(
           (linkId) => !newLinkIds.includes(linkId),
         );
 
-        const linksToBeUpdated = [...linksAdded, ...linksRemoved];
-
-        console.log("linksToBeUpdated", linksToBeUpdated);
-
         const links = await prisma.link.findMany({
           where: {
-            id: { in: linksToBeUpdated },
+            id: { in: [...linksAdded, ...linksRemoved] },
           },
           include: {
             webhooks: {
@@ -212,7 +208,9 @@ export const PATCH = withWorkspace(
         const formatedLinks = links.map((link) => {
           return {
             ...link,
-            webhookIds: link.webhooks.map(({ webhookId }) => webhookId),
+            ...(link.webhooks.length > 0 && {
+              webhookIds: link.webhooks.map(({ webhookId }) => webhookId),
+            }),
           };
         });
 
@@ -239,6 +237,15 @@ export const PATCH = withWorkspace(
 export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
+
+    const linkWebhooks = await prisma.linkWebhook.findMany({
+      where: {
+        webhookId,
+      },
+      select: {
+        linkId: true,
+      },
+    });
 
     await prisma.webhook.delete({
       where: {
@@ -267,20 +274,9 @@ export const DELETE = withWorkspace(
 
     waitUntil(
       (async () => {
-        const linkWebhooks = await prisma.linkWebhook.findMany({
-          where: {
-            webhookId,
-          },
-          select: {
-            linkId: true,
-          },
-        });
-
-        const linkIds = linkWebhooks.map(({ linkId }) => linkId);
-
         const links = await prisma.link.findMany({
           where: {
-            id: { in: linkIds },
+            id: { in: linkWebhooks.map(({ linkId }) => linkId) },
           },
           include: {
             webhooks: {
