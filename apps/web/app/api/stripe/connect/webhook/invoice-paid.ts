@@ -72,6 +72,23 @@ export async function invoicePaid(event: Stripe.Event) {
         sales: {
           increment: 1,
         },
+        saleAmount: {
+          increment: invoice.amount_paid,
+        },
+      },
+    }),
+    // update workspace sales usage
+    prisma.project.update({
+      where: {
+        id: customer.projectId,
+      },
+      data: {
+        usage: {
+          increment: 1,
+        },
+        salesUsage: {
+          increment: invoice.amount_paid,
+        },
       },
     }),
   ]);

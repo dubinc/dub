@@ -37,12 +37,12 @@ export default function IntegrationPageClient({
 }) {
   const { slug, id: workspaceId, conversionEnabled, flags } = useWorkspace();
 
-  if (!flags?.integrations) {
-    redirect(`/${slug}/settings`);
+  if (!conversionEnabled && integration.slug === "stripe") {
+    redirect("https://dub.co/help/article/dub-conversions");
   }
 
-  if (!conversionEnabled && integration.slug === "stripe") {
-    redirect(`/${slug}/settings/integrations`);
+  if (!flags?.integrations) {
+    redirect(`/${slug}/settings`);
   }
 
   const [openPopover, setOpenPopover] = useState(false);
