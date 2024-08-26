@@ -97,8 +97,11 @@ export async function customerCreated(event: Stripe.Event) {
       sendLinkWebhook("lead.created", {
         linkId: clickData.link_id,
         data: {
-          ...customer,
           ...leadData,
+          customerId: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
         },
       });
     })(),
