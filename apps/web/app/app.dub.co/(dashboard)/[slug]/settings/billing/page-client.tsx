@@ -169,7 +169,7 @@ export default function WorkspaceBillingClient() {
               }
               usage={usage}
               usageLimit={usageLimit}
-              numberOnly={(linksLimit && linksLimit >= 1000000000) || false}
+              numberOnly={(usageLimit && usageLimit >= 1000000000) || false}
             />
           </div>
           <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">

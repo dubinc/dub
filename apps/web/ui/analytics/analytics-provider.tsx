@@ -112,10 +112,10 @@ export default function AnalyticsProvider({
   const selectedTab: EventType = useMemo(() => {
     if (!demoPage && !conversionEnabled) return "clicks";
 
-    const tab = searchParams.get("tab");
+    const event = searchParams.get("event");
 
-    return EVENT_TYPES.find((t) => t === tab) ?? "clicks";
-  }, [searchParams.get("tab")]);
+    return EVENT_TYPES.find((t) => t === event) ?? "clicks";
+  }, [searchParams.get("event")]);
 
   const view: AnalyticsView = useMemo(() => {
     if (!demoPage && !conversionEnabled) return "default";
@@ -232,7 +232,7 @@ export default function AnalyticsProvider({
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
         baseApiPath, // baseApiPath for analytics API endpoints (e.g. /api/analytics)
-        selectedTab, // selected tab (clicks, leads, sales)
+        selectedTab, // selected event tab (clicks, leads, sales)
         view,
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)

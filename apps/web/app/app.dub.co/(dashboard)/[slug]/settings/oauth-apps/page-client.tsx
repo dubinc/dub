@@ -47,7 +47,7 @@ export default function OAuthAppsPageClient() {
         <div className="flex w-full items-center gap-3 sm:w-auto">
           <Button
             className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm"
-            text="Add OAuth App"
+            text="Create OAuth App"
             onClick={() => router.push(`/${slug}/settings/oauth-apps/new`)}
             disabledTooltip={permissionsError}
           />

@@ -7,9 +7,9 @@ import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import EmptyState from "@/ui/shared/empty-state";
-import Pagination from "@/ui/shared/pagination";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { Globe, useRouterStuff } from "@dub/ui";
+import { PaginationControls } from "@dub/blocks/src/pagination-controls";
+import { Globe, usePagination, useRouterStuff } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { DefaultDomains } from "./default-domains";
@@ -29,6 +29,8 @@ export default function WorkspaceDomainsClient() {
 
   const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
   const { data: domainsCount } = useDomainsCount();
+
+  const { pagination, setPagination } = usePagination(50);
 
   return (
     <>
@@ -113,11 +115,14 @@ export default function WorkspaceDomainsClient() {
             </ul>
           )}
         </div>
-        <Pagination
-          pageSize={50}
-          totalCount={domainsCount || 0}
-          unit="domains"
-        />
+        <div className="sticky bottom-0 rounded-b-[inherit] border-t border-gray-200 bg-white px-3.5 py-2">
+          <PaginationControls
+            pagination={pagination}
+            setPagination={setPagination}
+            totalCount={domainsCount || 0}
+            unit={(p) => `domain${p ? "s" : ""}`}
+          />
+        </div>
       </div>
 
       <DefaultDomains />
