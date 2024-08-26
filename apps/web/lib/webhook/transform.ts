@@ -63,6 +63,9 @@ export const transformLead = (data: any) => {
     },
     link: {
       id: lead.linkId,
+      externalId: lead.externalId,
+      domain: lead.domain,
+      key: lead.key,
     },
   });
 };

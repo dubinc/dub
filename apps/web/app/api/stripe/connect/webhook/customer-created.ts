@@ -24,6 +24,18 @@ export async function customerCreated(event: Stripe.Event) {
     return `Click event with ID ${clickId} not found, skipping...`;
   }
 
+  // Find link
+  const linkId = clickEvent.data[0].link_id;
+  const link = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+  });
+
+  if (!link) {
+    return `Link with ID ${linkId} not found, skipping...`;
+  }
+
   // Check the customer is not already created
   // Find customer using projectConnectId and externalId (the customer's ID in the client app)
   const customerFound = await prisma.customer.findFirst({
@@ -82,7 +94,7 @@ export async function customerCreated(event: Stripe.Event) {
     // update link leads count
     prisma.link.update({
       where: {
-        id: clickData.link_id,
+        id: linkId,
       },
       data: {
         leads: {
@@ -95,9 +107,10 @@ export async function customerCreated(event: Stripe.Event) {
   waitUntil(
     (async () => {
       sendLinkWebhook("lead.created", {
-        linkId: clickData.link_id,
+        linkId,
         data: {
           ...leadData,
+          ...link,
           customerId: customer.id,
           customerName: customer.name,
           customerEmail: customer.email,

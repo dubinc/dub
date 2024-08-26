@@ -1,11 +1,11 @@
 // Create a signature for a webhook request
-export const createWebhookSignature = async (secret: string, rawBody: any) => {
+export const createWebhookSignature = async (secret: string, body: any) => {
   if (!secret) {
     throw new Error("A secret must be provided to create a webhook signature.");
   }
 
   const keyData = new TextEncoder().encode(secret);
-  const messageData = new TextEncoder().encode(rawBody);
+  const messageData = new TextEncoder().encode(body);
 
   const cryptoKey = await crypto.subtle.importKey(
     "raw",

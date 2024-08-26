@@ -45,7 +45,12 @@ export const leadEventSchema = z.object({
   customerEmail: z.string().nullable(),
   customerAvatar: z.string().nullable(),
   click: clickEventSchema.partial(),
-  link: z.object({ id: z.string() }),
+  link: z.object({
+    id: z.string(),
+    externalId: z.string().nullable(),
+    domain: z.string(),
+    key: z.string(),
+  }),
 });
 
 export const saleEventSchema = z.object({
