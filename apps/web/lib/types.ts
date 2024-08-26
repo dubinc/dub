@@ -4,7 +4,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project } from "@prisma/client";
 import { integrationSchema } from "./zod/schemas/integration";
 import { createLinkBodySchema } from "./zod/schemas/links";
-import { oAuthAppSchema } from "./zod/schemas/oauth";
+import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
 
 export type LinkProps = Link;
@@ -191,15 +191,7 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type NewOAuthApp = Omit<
-  OAuthAppProps,
-  | "id"
-  | "clientId"
-  | "verified"
-  | "installations"
-  | "screenshots"
-  | "installUrl"
->;
+export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
 export type ExistingOAuthApp = OAuthAppProps;
 
