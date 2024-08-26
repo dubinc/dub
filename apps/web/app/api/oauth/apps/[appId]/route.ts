@@ -46,7 +46,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.read"],
-    featureFlag: "integrations",
   },
 );
 
@@ -178,7 +177,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.write"],
-    featureFlag: "integrations",
   },
 );
 
@@ -222,6 +220,5 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.write"],
-    featureFlag: "integrations",
   },
 );
