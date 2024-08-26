@@ -1,15 +1,27 @@
-// TODO:
-// Move this to proper route path
-// Verify the Dub-Signature header
-
 import { prisma } from "@/lib/prisma";
 import { LeadEventData } from "@/lib/webhook/types";
 import { webhookPayloadSchema } from "@/lib/zod/schemas/webhooks";
+import crypto from "crypto";
 
 // POST /api/webhooks/receive - receive link-level webhooks from Dub
 export const POST = async (req: Request) => {
   const body = await req.json();
   const { event, data } = webhookPayloadSchema.parse(body);
+
+  const webhookSignature = req.headers.get("Dub-Signature");
+
+  if (!webhookSignature) {
+    return new Response("No signature", { status: 400 });
+  }
+
+  const computedSignature = crypto
+    .createHmac("sha256", "whsec_f0dfa39067ee15fdf5abe53c08600c22")
+    .update(JSON.stringify(body))
+    .digest("hex");
+
+  if (webhookSignature !== computedSignature) {
+    return new Response("Invalid signature", { status: 400 });
+  }
 
   // A new lead was created on Dub
   if (event === "lead.created") {

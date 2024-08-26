@@ -5,7 +5,7 @@ export const createWebhookSignature = async (secret: string, body: any) => {
   }
 
   const keyData = new TextEncoder().encode(secret);
-  const messageData = new TextEncoder().encode(body);
+  const messageData = new TextEncoder().encode(JSON.stringify(body));
 
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
