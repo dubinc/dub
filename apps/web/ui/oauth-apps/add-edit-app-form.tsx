@@ -27,12 +27,11 @@ const defaultValues: NewOAuthApp = {
   readme: "",
   developer: "",
   website: "",
-  partialClientSecret: "",
+  installUrl: null,
   redirectUris: [],
+  screenshots: [],
   logo: null,
   pkce: true,
-  createdAt: new Date(),
-  updatedAt: new Date(),
 };
 
 export default function AddOAuthAppForm({
@@ -193,6 +192,7 @@ export default function AddOAuthAppForm({
     redirectUris,
     logo,
     pkce,
+    installUrl,
   } = data;
 
   const buttonDisabled =
@@ -422,6 +422,33 @@ export default function AddOAuthAppForm({
               value={website}
               onChange={(e) => setData({ ...data, website: e.target.value })}
               placeholder="https://acme.com"
+              disabled={!canManageApp}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="installUrl" className="flex items-center space-x-2">
+            <h2 className="text-sm font-medium text-gray-900">Install URL</h2>
+            <InfoTooltip content="An optional URL for installing the application" />
+          </label>
+          <div className="relative mt-2 rounded-md shadow-sm">
+            <input
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-50": !canManageApp,
+                },
+              )}
+              type="url"
+              value={installUrl || ""}
+              onChange={(e) =>
+                setData({
+                  ...data,
+                  installUrl: e.target.value ? e.target.value : null,
+                })
+              }
+              placeholder="https://acme.com/install"
               disabled={!canManageApp}
             />
           </div>
