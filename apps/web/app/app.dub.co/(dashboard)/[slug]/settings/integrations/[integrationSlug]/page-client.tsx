@@ -35,7 +35,7 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId, conversionEnabled, flags } = useWorkspace();
+  const { slug, id: workspaceId, conversionEnabled } = useWorkspace();
 
   if (!conversionEnabled && integration.slug === "stripe") {
     redirect("https://dub.co/help/article/dub-conversions");
