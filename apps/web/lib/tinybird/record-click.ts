@@ -143,7 +143,10 @@ export async function recordClick({
   if (webhookIds && webhookIds.length > 0) {
     sendWebhooks("link.clicked", {
       webhooks: await webhookCache.mget(webhookIds),
-      data: clickData,
+      data: {
+        ...clickData,
+        url,
+      },
     });
   }
 }
