@@ -4,7 +4,7 @@ import { WebhookTrigger } from "../types";
 import { LinkSchema } from "../zod/schemas/links";
 import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
-import { clickSchema, leadSchema, saleSchema } from "./schemas";
+import { clickEventSchema, leadEventSchema, saleEventSchema } from "./schemas";
 
 interface TransformWebhookProps
   extends Pick<Webhook, "id" | "name" | "url" | "secret" | "triggers"> {
@@ -38,7 +38,7 @@ export const transformClick = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return clickSchema.parse({
+  return clickEventSchema.parse({
     ...click,
     id: click.clickId,
     link: {
@@ -53,7 +53,7 @@ export const transformLead = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return leadSchema.parse({
+  return leadEventSchema.parse({
     ...lead,
     click: {
       ...lead,
@@ -72,7 +72,7 @@ export const transformSale = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return saleSchema.parse({
+  return saleEventSchema.parse({
     ...sale,
     click: {
       ...sale,

@@ -63,10 +63,6 @@ export const sendLinkWebhook = async (
     },
   });
 
-  if (linkWebhooks.length === 0) {
-    return;
-  }
-
   return sendWebhooks(trigger, {
     webhooks: linkWebhooks.map(({ webhook }) => webhook),
     data,
