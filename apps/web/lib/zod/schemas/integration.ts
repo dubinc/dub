@@ -28,6 +28,12 @@ export const createIntegrationSchema = z.object({
       message: "website must be a valid URL",
     })
     .max(100),
+  installUrl: z
+    .string()
+    .url({
+      message: "installUrl must be a valid URL",
+    })
+    .nullish(),
   logo: z
     .string()
     .url({
