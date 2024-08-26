@@ -1,7 +1,7 @@
 import { toCamelCase } from "@dub/utils";
 import type { Webhook } from "@prisma/client";
 import { LinkSchema } from "../zod/schemas/links";
-import { clickSchema } from "./schemas";
+import { clickSchema, leadSchema, saleSchema } from "./schemas";
 
 interface TransformWebhookProps
   extends Pick<Webhook, "id" | "name" | "url" | "secret" | "triggers"> {
@@ -37,6 +37,7 @@ export const transformClick = (data: any) => {
 
   return clickSchema.parse({
     ...click,
+    id: click.clickId,
     link: {
       id: click.linkId,
       url: click.url,
@@ -49,7 +50,18 @@ export const transformLead = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return lead;
+  return leadSchema.parse({
+    ...lead,
+    click: {
+      ...lead,
+      id: lead.clickId,
+      qr: lead.qr === 1,
+      bot: lead.bot === 1,
+    },
+    link: {
+      id: lead.linkId,
+    },
+  });
 };
 
 export const transformSale = (data: any) => {
@@ -57,5 +69,16 @@ export const transformSale = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return sale;
+  return saleSchema.parse({
+    ...sale,
+    click: {
+      ...sale,
+      id: sale.clickId,
+      qr: sale.qr === 1,
+      bot: sale.bot === 1,
+    },
+    link: {
+      id: sale.linkId,
+    },
+  });
 };

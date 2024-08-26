@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 
 export const clickSchema = z.object({
-  clickId: z.string(),
+  id: z.string(),
   aliasLinkId: z.string(),
   url: z.string(),
   ip: z.string(),
@@ -28,5 +28,29 @@ export const clickSchema = z.object({
   refererUrl: z.string(),
   timestamp: z.string(),
   identityHash: z.string(),
-  link: z.object({ id: z.string(), url: z.string() }),
+  link: z.object({ id: z.string() }),
+});
+
+export const leadSchema = z.object({
+  eventName: z.string(),
+  customerId: z.string(),
+  customerName: z.string(),
+  customerEmail: z.string().nullable(),
+  customerAvatar: z.string().nullable(),
+  click: clickSchema.partial(),
+  link: z.object({ id: z.string() }),
+});
+
+export const saleSchema = z.object({
+  eventName: z.string(),
+  customerId: z.string(),
+  customerName: z.string(),
+  customerEmail: z.string().nullable(),
+  customerAvatar: z.string().nullable(),
+  amount: z.number(),
+  paymentProcessor: z.string(),
+  invoiceId: z.string().nullable(),
+  currency: z.string(),
+  click: clickSchema.partial(),
+  link: z.object({ id: z.string() }),
 });

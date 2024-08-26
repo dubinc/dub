@@ -117,6 +117,10 @@ export const POST = withWorkspaceEdge(
         data: {
           ...response,
           ...clickData,
+          customerId: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
         },
       }),
     );

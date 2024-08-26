@@ -114,8 +114,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       sendLinkWebhook("sale.created", {
         linkId,
         data: {
-          ...customer,
           ...saleData,
+          customerId: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
         },
       });
     })(),
