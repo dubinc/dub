@@ -58,7 +58,13 @@ export async function POST(req: Request) {
           where: { domain, projectId: currentWorkspaceId, id: { in: linkIds } },
           data: { projectId: newWorkspaceId },
         }),
+
         prisma.linkTag.deleteMany({
+          where: { linkId: { in: linkIds } },
+        }),
+
+        // Remove the webhooks associated with the links
+        prisma.linkWebhook.deleteMany({
           where: { linkId: { in: linkIds } },
         }),
 

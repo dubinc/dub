@@ -14,7 +14,7 @@ export const transformWebhook = (webhook: TransformWebhookProps) => {
     url: webhook.url,
     secret: webhook.secret,
     triggers: webhook.triggers,
-    linkIds: webhook.links.map((link) => link.linkId),
+    linkIds: webhook.links.map(({ linkId }) => linkId),
   };
 };
 

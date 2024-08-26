@@ -77,6 +77,9 @@ export const PATCH = withWorkspace(
           id: { in: linkIds },
           projectId: workspace.id,
         },
+        select: {
+          id: true,
+        },
       });
 
       if (links.length !== linkIds.length) {
@@ -87,6 +90,15 @@ export const PATCH = withWorkspace(
         });
       }
     }
+
+    const oldLinks = await prisma.linkWebhook.findMany({
+      where: {
+        webhookId,
+      },
+      select: {
+        linkId: true,
+      },
+    });
 
     const webhook = await prisma.webhook.update({
       where: {
@@ -112,7 +124,11 @@ export const PATCH = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
-        links: true,
+        links: {
+          select: {
+            linkId: true,
+          },
+        },
       },
     });
 
@@ -131,13 +147,76 @@ export const PATCH = withWorkspace(
           !isLinkLevelWebhook(webhook)
         ) {
           await webhookCache.delete(webhookId);
-          return;
+
+          const links = await prisma.link.findMany({
+            where: {
+              id: { in: oldLinks.map(({ linkId }) => linkId) },
+            },
+            include: {
+              webhooks: {
+                select: {
+                  webhookId: true,
+                },
+              },
+            },
+          });
+
+          const formatedLinks = links.map((link) => {
+            return {
+              ...link,
+              webhookIds: link.webhooks.map(({ webhookId }) => webhookId),
+            };
+          });
+
+          await linkCache.mset(formatedLinks);
         }
 
         // If the webhook is being changed from workspace level to link level, set the cache
-        if (isLinkLevelWebhook(webhook)) {
+        else if (isLinkLevelWebhook(webhook)) {
           await webhookCache.set(webhook);
         }
+
+        const newLinkIds = webhook.links.map(({ linkId }) => linkId);
+        const oldLinkIds = oldLinks.map(({ linkId }) => linkId);
+
+        // No changes in the links
+        if (!newLinkIds.length && !oldLinkIds.length) {
+          return;
+        }
+
+        const linksAdded = newLinkIds.filter(
+          (linkId) => !oldLinkIds.includes(linkId),
+        );
+
+        const linksRemoved = oldLinkIds.filter(
+          (linkId) => !newLinkIds.includes(linkId),
+        );
+
+        const linksToBeUpdated = [...linksAdded, ...linksRemoved];
+
+        console.log("linksToBeUpdated", linksToBeUpdated);
+
+        const links = await prisma.link.findMany({
+          where: {
+            id: { in: linksToBeUpdated },
+          },
+          include: {
+            webhooks: {
+              select: {
+                webhookId: true,
+              },
+            },
+          },
+        });
+
+        const formatedLinks = links.map((link) => {
+          return {
+            ...link,
+            webhookIds: link.webhooks.map(({ webhookId }) => webhookId),
+          };
+        });
+
+        await linkCache.mset(formatedLinks);
       })(),
     );
 
