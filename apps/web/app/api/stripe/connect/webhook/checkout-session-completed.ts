@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { nanoid } from "@dub/utils";
+import { Customer } from "@prisma/client";
 import type Stripe from "stripe";
 
 // Handle event "checkout.session.completed"
@@ -16,7 +17,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return "Customer ID not found in Stripe checkout session metadata, skipping...";
   }
 
-  let customer;
+  let customer: Customer;
   try {
     // Update customer with stripe customerId if exists
     customer = await prisma.customer.update({
@@ -79,6 +80,23 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       data: {
         sales: {
           increment: 1,
+        },
+        saleAmount: {
+          increment: charge.amount_total!,
+        },
+      },
+    }),
+    // update workspace sales usage
+    prisma.project.update({
+      where: {
+        id: customer.projectId,
+      },
+      data: {
+        usage: {
+          increment: 1,
+        },
+        salesUsage: {
+          increment: charge.amount_total!,
         },
       },
     }),
