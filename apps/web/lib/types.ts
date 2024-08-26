@@ -5,7 +5,7 @@ import { Link, Project, Webhook } from "@prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { integrationSchema } from "./zod/schemas/integration";
 import { createLinkBodySchema } from "./zod/schemas/links";
-import { oAuthAppSchema } from "./zod/schemas/oauth";
+import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
 import {
   createWebhookSchema,
@@ -77,11 +77,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures =
-  | "integrations"
-  | "dublink"
-  | "referrals"
-  | "webhooks";
+export type BetaFeatures = "dublink" | "referrals" | "webhooks";
 
 export type AddOns = "conversion" | "sso";
 
@@ -202,15 +198,7 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type NewOAuthApp = Omit<
-  OAuthAppProps,
-  | "id"
-  | "clientId"
-  | "verified"
-  | "installations"
-  | "screenshots"
-  | "installUrl"
->;
+export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
 export type ExistingOAuthApp = OAuthAppProps;
 

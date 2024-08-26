@@ -56,15 +56,11 @@ export default function WorkspaceSettingsLayoutClient({
             icon: Users6,
             segment: "people",
           },
-          ...(flags?.integrations
-            ? [
-                {
-                  name: "Integrations",
-                  icon: ConnectedDots,
-                  segment: "integrations",
-                },
-              ]
-            : []),
+          {
+            name: "Integrations",
+            icon: ConnectedDots,
+            segment: "integrations",
+          },
           {
             name: "Security",
             icon: ShieldCheck,
@@ -85,15 +81,11 @@ export default function WorkspaceSettingsLayoutClient({
             icon: Key,
             segment: "tokens",
           },
-          ...(flags?.integrations
-            ? [
-                {
-                  name: "OAuth Apps",
-                  icon: CubeSettings,
-                  segment: "oauth-apps",
-                },
-              ]
-            : []),
+          {
+            name: "OAuth Apps",
+            icon: CubeSettings,
+            segment: "oauth-apps",
+          },
           ...(flags?.webhooks
             ? [
                 {

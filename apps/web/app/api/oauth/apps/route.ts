@@ -37,7 +37,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.read"],
-    featureFlag: "integrations",
   },
 );
 
@@ -49,6 +48,7 @@ export const POST = withWorkspace(
       slug,
       developer,
       website,
+      installUrl,
       description,
       readme,
       redirectUris,
@@ -91,6 +91,7 @@ export const POST = withWorkspace(
           slug,
           developer,
           website,
+          installUrl,
           description,
           readme,
           screenshots,
@@ -118,6 +119,7 @@ export const POST = withWorkspace(
           developer: true,
           logo: true,
           website: true,
+          installUrl: true,
           readme: true,
           screenshots: true,
           verified: true,
@@ -164,6 +166,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.write"],
-    featureFlag: "integrations",
   },
 );
