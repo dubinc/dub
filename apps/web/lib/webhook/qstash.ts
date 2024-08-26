@@ -4,8 +4,8 @@ import { Webhook } from "@prisma/client";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { webhookPayloadSchema } from "../zod/schemas/webhooks";
-import { prepareWebhookPayload } from "./prepare-payload";
 import { createWebhookSignature } from "./signature";
+import { prepareWebhookPayload } from "./transform";
 
 export const sendWebhooks = async (
   trigger: WebhookTrigger,
