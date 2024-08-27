@@ -41,6 +41,7 @@ export * from "./gift";
 export * from "./globe";
 export * from "./globe2";
 export * from "./grid-layout-rows";
+export * from "./grid-plus";
 export * from "./headset";
 export * from "./hexadecagon-star";
 export * from "./hyperlink";
