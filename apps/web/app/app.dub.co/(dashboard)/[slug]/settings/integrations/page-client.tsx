@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
-import IntegrationCard from "@/ui/oauth-apps/integration-card";
+import IntegrationCard from "@/ui/integrations/integration-card";
 
 export default function IntegrationsPageClient({
   integrations,

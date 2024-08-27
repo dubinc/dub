@@ -2,7 +2,13 @@ import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
 import { BlurImage, TokenAvatar } from "@dub/ui";
-import { Download, OfficeBuilding } from "@dub/ui/src/icons";
+import {
+  CircleWarning,
+  Download,
+  OfficeBuilding,
+  ShieldCheck,
+} from "@dub/ui/src/icons";
+import { Tooltip } from "@dub/ui/src/tooltip";
 import Link from "next/link";
 
 export default function IntegrationCard(
@@ -38,7 +44,24 @@ export default function IntegrationCard(
           )}
         </div>
         <div>
-          <p className="font-semibold text-gray-700">{integration.name}</p>
+          <div className="flex items-center gap-1">
+            <p className="font-semibold text-gray-700">{integration.name}</p>
+            <Tooltip
+              content={
+                integration.verified
+                  ? "This is a verified integration."
+                  : "Dub hasn't verified this integration. Install it at your own risk."
+              }
+            >
+              <div>
+                {integration.verified ? (
+                  <ShieldCheck className="size-4 text-[#E2B719]" invert />
+                ) : (
+                  <CircleWarning className="size-4 text-gray-500" invert />
+                )}
+              </div>
+            </Tooltip>
+          </div>
           <div className="flex items-center gap-1 text-gray-500">
             <OfficeBuilding className="size-3" />
             <span className="text-sm">{integration.developer}</span>
