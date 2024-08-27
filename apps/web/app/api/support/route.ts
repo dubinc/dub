@@ -49,7 +49,5 @@ export const POST = withSession(async ({ req, session }) => {
     attachmentIds,
   });
 
-  console.log({ res });
-
   return NextResponse.json(res);
 });
