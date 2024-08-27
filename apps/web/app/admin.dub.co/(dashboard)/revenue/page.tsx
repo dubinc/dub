@@ -26,7 +26,16 @@ async function RevenueRSC() {
   )
     .then((res) => res.json())
     .catch(() => {
-      return { data: { recurring_revenue: [] } };
+      return {
+        data: {
+          recurring_revenue:
+            // dummy data for this year
+            Array.from({ length: 12 }, (_, i) => ({
+              date: new Date(new Date().setMonth(i)),
+              value: 0,
+            })),
+        },
+      };
     });
 
   return <RevenueClient data={res.data.recurring_revenue} />;

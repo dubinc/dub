@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import IntegrationCard from "@/ui/integrations/integration-card";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import { Suspense } from "react";
-import IntegrationsPageClient from "./page-client";
 import IntegrationsPageHeader from "./page-header";
 
 export const revalidate = 300; // 5 minutes
@@ -42,12 +42,15 @@ const Integrations = async () => {
   });
 
   return (
-    <IntegrationsPageClient
-      integrations={integrations.map((integration) => ({
-        ...integration,
-        installations: integration._count.installations,
-      }))}
-    />
+    <div className="grid gap-3 sm:grid-cols-2">
+      {integrations.map((integration) => (
+        <IntegrationCard
+          key={integration.id}
+          {...integration}
+          installations={integration._count.installations}
+        />
+      ))}
+    </div>
   );
 };
 
