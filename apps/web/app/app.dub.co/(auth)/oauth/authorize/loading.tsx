@@ -4,7 +4,7 @@ import { ArrowLeftRight } from "lucide-react";
 export default function AuthorizeLoading() {
   return (
     <div className="relative z-10 m-auto w-full max-w-md border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-xl">
-      <div className="flex flex-col items-center justify-center gap-6 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:rounded-t-2xl sm:px-16">
+      <div className="flex flex-col items-center justify-center gap-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:rounded-t-2xl sm:px-16">
         <div className="flex items-center gap-3">
           <div className="size-12 rounded-full border border-gray-200 bg-gradient-to-t from-gray-100" />
           <ArrowLeftRight className="size-5 text-gray-300" />

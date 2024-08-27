@@ -18,8 +18,14 @@ import {
   Popover,
   TokenAvatar,
 } from "@dub/ui";
-import { ConnectedDots, Globe, OfficeBuilding } from "@dub/ui/src/icons";
-import { TooltipContent } from "@dub/ui/src/tooltip";
+import {
+  CircleWarning,
+  ConnectedDots,
+  Globe,
+  OfficeBuilding,
+  ShieldCheck,
+} from "@dub/ui/src/icons";
+import { Tooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -86,7 +92,24 @@ export default function IntegrationPageClient({
             )}
           </div>
           <div>
-            <p className="font-semibold text-gray-700">{integration.name}</p>
+            <div className="flex items-center gap-1">
+              <p className="font-semibold text-gray-700">{integration.name}</p>
+              <Tooltip
+                content={
+                  integration.verified
+                    ? "This is a verified integration."
+                    : "Dub hasn't verified this integration. Install it at your own risk."
+                }
+              >
+                <div>
+                  {integration.verified ? (
+                    <ShieldCheck className="size-5 text-[#E2B719]" invert />
+                  ) : (
+                    <CircleWarning className="size-5 text-gray-500" invert />
+                  )}
+                </div>
+              </Tooltip>
+            </div>
             <p className="text-sm text-gray-500">{integration.description}</p>
           </div>
         </div>

@@ -220,6 +220,7 @@ export type InstalledIntegrationInfoProps = Pick<
   | "name"
   | "developer"
   | "description"
+  | "verified"
   | "readme"
   | "website"
   | "screenshots"
