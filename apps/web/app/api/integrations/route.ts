@@ -27,6 +27,5 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.read"],
-    featureFlag: "integrations",
   },
 );

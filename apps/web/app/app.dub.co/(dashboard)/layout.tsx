@@ -1,3 +1,4 @@
+import ChangelogPopup from "@/ui/layout/changelog-popup";
 import HelpPortal from "@/ui/layout/help";
 import { MainNav } from "@/ui/layout/main-nav";
 import NavTabs from "@/ui/layout/nav-tabs";
@@ -24,7 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         {children}
       </div>
       {/* <UserSurveyPopup /> */}
-      {/* <ChangelogPopup /> */}
+      <ChangelogPopup />
       <HelpPortal />
     </Providers>
   );

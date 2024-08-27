@@ -18,13 +18,23 @@ import {
   Popover,
   TokenAvatar,
 } from "@dub/ui";
-import { ConnectedDots, Globe, OfficeBuilding } from "@dub/ui/src/icons";
-import { TooltipContent } from "@dub/ui/src/tooltip";
-import { cn, formatDate, getPrettyUrl } from "@dub/utils";
+import {
+  CircleWarning,
+  ConnectedDots,
+  Globe,
+  OfficeBuilding,
+  ShieldCheck,
+} from "@dub/ui/src/icons";
+import { Tooltip, TooltipContent } from "@dub/ui/src/tooltip";
+import {
+  cn,
+  formatDate,
+  getPrettyUrl,
+  STRIPE_INTEGRATION_ID,
+} from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
@@ -35,15 +45,7 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId, conversionEnabled, flags } = useWorkspace();
-
-  if (!flags?.integrations) {
-    redirect(`/${slug}/settings`);
-  }
-
-  if (!conversionEnabled && integration.slug === "stripe") {
-    redirect(`/${slug}/settings/integrations`);
-  }
+  const { slug, id: workspaceId, conversionEnabled } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
   const getInstallationUrl = useAction(getIntegrationInstallUrl, {
@@ -90,7 +92,24 @@ export default function IntegrationPageClient({
             )}
           </div>
           <div>
-            <p className="font-semibold text-gray-700">{integration.name}</p>
+            <div className="flex items-center gap-1">
+              <p className="font-semibold text-gray-700">{integration.name}</p>
+              <Tooltip
+                content={
+                  integration.verified
+                    ? "This is a verified integration."
+                    : "Dub hasn't verified this integration. Install it at your own risk."
+                }
+              >
+                <div>
+                  {integration.verified ? (
+                    <ShieldCheck className="size-5 text-[#E2B719]" invert />
+                  ) : (
+                    <CircleWarning className="size-5 text-gray-500" invert />
+                  )}
+                </div>
+              </Tooltip>
+            </div>
             <p className="text-sm text-gray-500">{integration.description}</p>
           </div>
         </div>
@@ -211,6 +230,17 @@ export default function IntegrationPageClient({
               text="Enable"
               variant="primary"
               icon={<ConnectedDots className="size-4" />}
+              {...(integration.id === STRIPE_INTEGRATION_ID &&
+                !conversionEnabled && {
+                  disabledTooltip: (
+                    <TooltipContent
+                      title="To use this integration, you need to have Dub Conversions enabled for your workspace."
+                      cta="Learn more"
+                      href="https://d.to/conversions"
+                      target="_blank"
+                    />
+                  ),
+                })}
             />
           )}
         </div>

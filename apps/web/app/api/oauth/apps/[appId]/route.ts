@@ -46,7 +46,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.read"],
-    featureFlag: "integrations",
   },
 );
 
@@ -58,6 +57,7 @@ export const PATCH = withWorkspace(
       slug,
       developer,
       website,
+      installUrl,
       description,
       readme,
       redirectUris,
@@ -101,6 +101,7 @@ export const PATCH = withWorkspace(
           slug,
           developer,
           website,
+          installUrl,
           description,
           readme,
           screenshots,
@@ -122,6 +123,7 @@ export const PATCH = withWorkspace(
           developer: true,
           logo: true,
           website: true,
+          installUrl: true,
           readme: true,
           screenshots: true,
           verified: true,
@@ -175,7 +177,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.write"],
-    featureFlag: "integrations",
   },
 );
 
@@ -219,6 +220,5 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["oauth_apps.write"],
-    featureFlag: "integrations",
   },
 );

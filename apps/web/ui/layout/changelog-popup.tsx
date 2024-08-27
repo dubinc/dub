@@ -6,12 +6,12 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://d.to/events";
-const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/events-stream.jpg";
-const CHANGELOG_TITLE = "Introducing Real-time Events Stream";
+const CHANGELOG_URL = "https://d.to/integrations";
+const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/integrations.jpg";
+const CHANGELOG_TITLE = "Introducing Dub Integrations";
 const CHANGELOG_DESCRIPTION =
-  "Gain deeper insights into your clicks with a detailed, real-time stream of events across your entire Dub workspace.";
-const CHANGELOG_ID = "hideChangelogPopup08012024";
+  "Today, we're excited to unveil a new way to extend Dub's functionality with integrations. Get started with our flagship integrations, or build your own.";
+const CHANGELOG_ID = "hideChangelogPopup08262024";
 
 export default function ChangelogPopup() {
   return (

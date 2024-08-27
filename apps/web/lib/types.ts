@@ -4,7 +4,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project } from "@prisma/client";
 import { integrationSchema } from "./zod/schemas/integration";
 import { createLinkBodySchema } from "./zod/schemas/links";
-import { oAuthAppSchema } from "./zod/schemas/oauth";
+import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
 
 export type LinkProps = Link;
@@ -70,7 +70,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "integrations" | "dublink" | "referrals";
+export type BetaFeatures = "dublink" | "referrals";
 
 export type AddOns = "conversion" | "sso";
 
@@ -191,15 +191,7 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type NewOAuthApp = Omit<
-  OAuthAppProps,
-  | "id"
-  | "clientId"
-  | "verified"
-  | "installations"
-  | "screenshots"
-  | "installUrl"
->;
+export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
 export type ExistingOAuthApp = OAuthAppProps;
 
@@ -214,7 +206,7 @@ export type NewOrExistingIntegration = Omit<
 
 export type InstalledIntegrationProps = Pick<
   IntegrationProps,
-  "id" | "slug" | "logo" | "name" | "developer" | "description"
+  "id" | "slug" | "logo" | "name" | "developer" | "description" | "verified"
 > & {
   installations: number;
   installed?: boolean;
@@ -228,6 +220,7 @@ export type InstalledIntegrationInfoProps = Pick<
   | "name"
   | "developer"
   | "description"
+  | "verified"
   | "readme"
   | "website"
   | "screenshots"

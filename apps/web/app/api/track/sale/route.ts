@@ -83,6 +83,7 @@ export const POST = withWorkspaceEdge(
           },
         },
       }),
+      // update workspace sales usage
       prismaEdge.project.update({
         where: {
           id: workspace.id,
