@@ -206,7 +206,7 @@ export type NewOrExistingIntegration = Omit<
 
 export type InstalledIntegrationProps = Pick<
   IntegrationProps,
-  "id" | "slug" | "logo" | "name" | "developer" | "description"
+  "id" | "slug" | "logo" | "name" | "developer" | "description" | "verified"
 > & {
   installations: number;
   installed?: boolean;

@@ -4,6 +4,7 @@ import { InstalledIntegrationProps } from "@/lib/types";
 import { BlurImage, TokenAvatar } from "@dub/ui";
 import { Download, OfficeBuilding } from "@dub/ui/src/icons";
 import Link from "next/link";
+import { VerifiedBadge } from "./verified-badge";
 
 export default function IntegrationCard(
   integration: InstalledIntegrationProps,
@@ -38,7 +39,10 @@ export default function IntegrationCard(
           )}
         </div>
         <div>
-          <p className="font-semibold text-gray-700">{integration.name}</p>
+          <div className="flex items-center gap-1">
+            <p className="font-semibold text-gray-700">{integration.name}</p>
+            {integration.verified && <VerifiedBadge verified={true} />}
+          </div>
           <div className="flex items-center gap-1 text-gray-500">
             <OfficeBuilding className="size-3" />
             <span className="text-sm">{integration.developer}</span>
