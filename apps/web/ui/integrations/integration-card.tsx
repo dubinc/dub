@@ -3,8 +3,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
 import { BlurImage, TokenAvatar } from "@dub/ui";
 import { Download, OfficeBuilding } from "@dub/ui/src/icons";
+import { BadgeCheck } from "lucide-react";
 import Link from "next/link";
-import { VerifiedBadge } from "./verified-badge";
 
 export default function IntegrationCard(
   integration: InstalledIntegrationProps,
@@ -41,7 +41,9 @@ export default function IntegrationCard(
         <div>
           <div className="flex items-center gap-1">
             <p className="font-semibold text-gray-700">{integration.name}</p>
-            {integration.verified && <VerifiedBadge verified={true} />}
+            {integration.verified && (
+              <BadgeCheck className="h-5 w-5 text-blue-600" />
+            )}
           </div>
           <div className="flex items-center gap-1 text-gray-500">
             <OfficeBuilding className="size-3" />
