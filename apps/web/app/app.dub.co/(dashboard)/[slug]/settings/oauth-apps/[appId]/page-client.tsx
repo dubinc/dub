@@ -126,10 +126,21 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
                       workspaceId: workspaceId!,
                       appId,
                     });
-
                     setOpenPopover(false);
                   }}
                 />
+                {!oAuthApp?.verified && (
+                  <Button
+                    text="Submit for review"
+                    variant="outline"
+                    icon={<Upload className="h-4 w-4" />}
+                    className="h-9 justify-start px-2"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowSubmitOAuthAppModal(true);
+                    }}
+                  />
+                )}
                 <Button
                   text="Remove application"
                   variant="danger-outline"
@@ -139,18 +150,6 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
                     setShowRemoveOAuthAppModal(true);
                   }}
                 />
-
-                {!oAuthApp?.verified && (
-                  <Button
-                    text="Submit for review"
-                    variant="outline"
-                    icon={<Upload className="h-4 w-4" />}
-                    className="h-9 justify-start px-2"
-                    onClick={() => {
-                      setShowSubmitOAuthAppModal(true);
-                    }}
-                  />
-                )}
               </div>
             }
             align="end"

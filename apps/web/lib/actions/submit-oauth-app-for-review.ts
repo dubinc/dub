@@ -1,7 +1,8 @@
 "use server";
 
+import { plain, upsertPlainCustomer } from "@/lib/plain";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "emails";
+import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
 import { ratelimit } from "../upstash";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
@@ -16,7 +17,7 @@ const schema = z.object({
 export const submitOAuthAppForReview = authActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
-    const { workspace } = ctx;
+    const { user, workspace } = ctx;
     const { message, integrationId } = parsedInput;
 
     const integration = await prisma.integration.findFirstOrThrow({
@@ -36,10 +37,74 @@ export const submitOAuthAppForReview = authActionClient
       );
     }
 
-    await sendEmail({
-      subject: `New OAuth App Submission: ${integration.name} by ${workspace.name}`,
-      email: "steven@dub.co",
-      react: message,
+    let plainCustomerId: string | null = null;
+
+    const plainCustomer = await plain.getCustomerByEmail({
+      email: user.email,
+    });
+
+    if (plainCustomer.data) {
+      plainCustomerId = plainCustomer.data.id;
+    } else {
+      const { data } = await upsertPlainCustomer({ user });
+      if (data) {
+        plainCustomerId = data.customer.id;
+      }
+    }
+
+    await plain.createThread({
+      customerIdentifier: {
+        customerId: plainCustomerId,
+      },
+      title: `Integration Submission: ${integration.name}`,
+      components: [
+        {
+          componentText: {
+            text: message,
+          },
+        },
+        {
+          componentDivider: {
+            dividerSpacingSize: ComponentDividerSpacingSize.L,
+          },
+        },
+        {
+          componentRow: {
+            rowMainContent: [
+              {
+                componentText: {
+                  text: "Integration Slug",
+                },
+              },
+            ],
+            rowAsideContent: [
+              {
+                componentText: {
+                  text: integration.slug,
+                },
+              },
+            ],
+          },
+        },
+        {
+          componentRow: {
+            rowMainContent: [
+              {
+                componentText: {
+                  text: "Workspace Slug",
+                },
+              },
+            ],
+            rowAsideContent: [
+              {
+                componentText: {
+                  text: workspace.slug,
+                },
+              },
+            ],
+          },
+        },
+      ],
     });
 
     return { ok: true };

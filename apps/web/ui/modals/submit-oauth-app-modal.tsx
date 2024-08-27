@@ -82,34 +82,23 @@ function SubmitOAuthAppModal({
             workspaceId: workspace.id!,
           });
         }}
-        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
+        className="flex flex-col gap-4 bg-gray-50 px-4 pb-8 pt-6 text-left sm:px-16"
       >
-        <div>
-          <TextareaAutosize
-            id="message"
-            name="message"
-            minRows={5}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
-            maxLength={1000}
-          />
-        </div>
-
-        <div className="flex flex-col space-y-2 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0">
-          <Button
-            text="Cancel"
-            variant="secondary"
-            onClick={() => setShowSubmitOAuthAppModal(false)}
-            disabled={isExecuting}
-          />
-          <Button
-            text={isExecuting ? "Submitting..." : "Submit"}
-            loading={isExecuting}
-            disabled={message.trim().length === 0}
-            type="submit"
-          />
-        </div>
+        <TextareaAutosize
+          id="message"
+          name="message"
+          minRows={5}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+          maxLength={1000}
+        />
+        <Button
+          text={isExecuting ? "Submitting..." : "Submit"}
+          loading={isExecuting}
+          disabled={message.trim().length === 0}
+          type="submit"
+        />
       </form>
     </Modal>
   );
