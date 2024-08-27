@@ -15,18 +15,16 @@ export const GET = withWorkspace(
       },
     });
 
-    // TODO:
-    // 1. Filter events by url, workspace, event type, http status
-    // 2. Paginate events
-    // 3. Sort events by createdAt
-
     const events = await getWebhookEvents({
       webhookId,
     });
 
-    // console.log(events);
+    const parsedEvents = events.data.map((event) => ({
+      ...event,
+      request_body: JSON.parse(event.request_body),
+    }));
 
-    return NextResponse.json(events.data);
+    return NextResponse.json(parsedEvents);
   },
   {
     requiredPermissions: ["webhooks.read"],

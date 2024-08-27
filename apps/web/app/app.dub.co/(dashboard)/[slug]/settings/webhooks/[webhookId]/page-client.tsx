@@ -36,9 +36,6 @@ export default function WebhookLogsPageClient({
     },
   );
 
-  // TODO: Get total events from API
-  const totalEvents = events?.length || 100;
-
   return (
     <>
       <WebhookHeader webhookId={webhookId} page="events" />
@@ -48,7 +45,7 @@ export default function WebhookLogsPageClient({
         ) : events && events.length === 0 ? (
           <NoEventsPlaceholder />
         ) : (
-          <WebhookEventList totalEvents={totalEvents} events={events || []} />
+          <WebhookEventList events={events || []} />
         )}
       </MaxWidthWrapper>
     </>

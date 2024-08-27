@@ -6,12 +6,11 @@ import { PropsWithChildren } from "react";
 
 export type EventListProps = PropsWithChildren<{
   events: WebhookEventProps[];
-  totalEvents: number;
 }>;
 
 const isSuccess = (status: number) => status >= 200 && status < 300;
 
-export function WebhookEventList({ events, totalEvents }: EventListProps) {
+export function WebhookEventList({ events }: EventListProps) {
   return (
     <div className="rounded-xl border border-gray-200">
       {/* Webhook Events */}
