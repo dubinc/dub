@@ -26,11 +26,15 @@ import {
   ShieldCheck,
 } from "@dub/ui/src/icons";
 import { Tooltip, TooltipContent } from "@dub/ui/src/tooltip";
-import { cn, formatDate, getPrettyUrl } from "@dub/utils";
+import {
+  cn,
+  formatDate,
+  getPrettyUrl,
+  STRIPE_INTEGRATION_ID,
+} from "@dub/utils";
 import { BookOpenText, ChevronLeft, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
@@ -42,10 +46,6 @@ export default function IntegrationPageClient({
   integration: InstalledIntegrationInfoProps;
 }) {
   const { slug, id: workspaceId, conversionEnabled } = useWorkspace();
-
-  if (!conversionEnabled && integration.slug === "stripe") {
-    redirect("https://dub.co/help/article/dub-conversions");
-  }
 
   const [openPopover, setOpenPopover] = useState(false);
   const getInstallationUrl = useAction(getIntegrationInstallUrl, {
@@ -230,6 +230,17 @@ export default function IntegrationPageClient({
               text="Enable"
               variant="primary"
               icon={<ConnectedDots className="size-4" />}
+              {...(integration.id === STRIPE_INTEGRATION_ID &&
+                !conversionEnabled && {
+                  disabledTooltip: (
+                    <TooltipContent
+                      title="To use this integration, you need to have Dub Conversions enabled for your workspace."
+                      cta="Learn more"
+                      href="https://d.to/conversions"
+                      target="_blank"
+                    />
+                  ),
+                })}
             />
           )}
         </div>
