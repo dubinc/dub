@@ -45,7 +45,7 @@ export default function ProBanner({
           }}
           className="w-full rounded-md border border-black bg-black p-2 text-center text-sm font-medium text-white transition-all hover:bg-white hover:text-black"
         >
-          Upgrade
+          Benefits of Pro
         </button>
       </div>
     </div>
