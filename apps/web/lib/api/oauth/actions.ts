@@ -29,7 +29,7 @@ export const vaidateAuthorizeRequest = async (params: any) => {
           developer: true,
           website: true,
           logo: true,
-          verified: true
+          verified: true,
         },
       },
     },
