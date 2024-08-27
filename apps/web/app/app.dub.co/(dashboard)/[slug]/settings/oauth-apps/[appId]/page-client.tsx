@@ -5,6 +5,7 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";
+import { useSubmitOAuthAppModal } from "@/ui/modals/submit-oauth-app-modal";
 import AddOAuthAppForm from "@/ui/oauth-apps/add-edit-app-form";
 import OAuthAppCredentials from "@/ui/oauth-apps/oauth-app-credentials";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -16,7 +17,7 @@ import {
   TokenAvatar,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, RefreshCcw, Trash } from "lucide-react";
+import { ChevronLeft, RefreshCcw, Trash, Upload } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound, useSearchParams } from "next/navigation";
@@ -50,6 +51,11 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
       oAuthApp,
     });
 
+  const { SubmitOAuthAppModal, setShowSubmitOAuthAppModal } =
+    useSubmitOAuthAppModal({
+      oAuthApp,
+    });
+
   const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
     role,
@@ -63,6 +69,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
     <>
       <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
         <RemoveOAuthAppModal />
+        <SubmitOAuthAppModal />
         <Link
           href={`/${slug}/settings/oauth-apps`}
           className="flex items-center gap-x-1"
@@ -119,10 +126,21 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
                       workspaceId: workspaceId!,
                       appId,
                     });
-
                     setOpenPopover(false);
                   }}
                 />
+                {!oAuthApp?.verified && (
+                  <Button
+                    text="Submit for review"
+                    variant="outline"
+                    icon={<Upload className="h-4 w-4" />}
+                    className="h-9 justify-start px-2"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowSubmitOAuthAppModal(true);
+                    }}
+                  />
+                )}
                 <Button
                   text="Remove application"
                   variant="danger-outline"
