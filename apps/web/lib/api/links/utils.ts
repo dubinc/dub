@@ -125,9 +125,11 @@ export function processKey({ domain, key }: { domain: string; key: string }) {
 
   // remove all leading and trailing slashes from key
   key = key.replace(/^\/+|\/+$/g, "");
-  // for default dub domains, remove all special characters
-  // unicode normalization to remove accents / diacritical marks
-  // this is to prevent phishing/typo squatting
+  /* 
+    for default dub domains, remove all special characters + unicode normalization 
+      to remove accents / diacritical marks. this is to prevent phishing/typo squatting
+    for custom domains this is fine, since only the workspace can set the key
+  */
   if (isDubDomain(domain)) {
     key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
