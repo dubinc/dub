@@ -7,15 +7,16 @@ import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
 
-export const sendWebhooks = async (
-  trigger: WebhookTrigger,
-  props: {
-    webhooks: Pick<Webhook, "id" | "url" | "secret">[];
-    data: any;
-  },
-) => {
-  const { webhooks, data } = props;
-
+// Send webhooks to multiple webhooks
+export const sendWebhooks = async ({
+  webhooks,
+  data,
+  trigger,
+}: {
+  webhooks: Pick<Webhook, "id" | "url" | "secret">[];
+  data: any;
+  trigger: WebhookTrigger;
+}) => {
   if (webhooks.length === 0) {
     return;
   }
@@ -24,14 +25,12 @@ export const sendWebhooks = async (
 
   return await Promise.all(
     webhooks.map((webhook) =>
-      publishWebhookEventToQStash({
-        webhook,
-        payload,
-      }),
+      publishWebhookEventToQStash({ webhook, payload }),
     ),
   );
 };
 
+// Publish webhook event to QStash
 export const publishWebhookEventToQStash = async ({
   webhook,
   payload,
@@ -55,4 +54,6 @@ export const publishWebhookEventToQStash = async ({
   if (!response.messageId) {
     console.error("Failed to publish webhook event to QStash", response);
   }
+
+  return response;
 };

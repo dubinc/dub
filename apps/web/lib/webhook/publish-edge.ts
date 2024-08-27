@@ -31,7 +31,8 @@ export const sendLinkWebhookOnEdge = async (
     },
   });
 
-  return sendWebhooks(trigger, {
+  return sendWebhooks({
+    trigger,
     webhooks: linkWebhooks.map(({ webhook }) => webhook),
     data,
   });

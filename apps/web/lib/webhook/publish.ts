@@ -30,7 +30,7 @@ export const sendWorkspaceWebhook = async (
     },
   });
 
-  return sendWebhooks(trigger, { webhooks, data });
+  return sendWebhooks({ trigger, webhooks, data });
 };
 
 // Send link level webhook
@@ -63,7 +63,8 @@ export const sendLinkWebhook = async (
     },
   });
 
-  return sendWebhooks(trigger, {
+  return sendWebhooks({
+    trigger,
     webhooks: linkWebhooks.map(({ webhook }) => webhook),
     data,
   });

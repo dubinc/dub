@@ -6,12 +6,13 @@ import { WebhookProps } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MaxWidthWrapper, Popover, TokenAvatar } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, Edit3, FileStack, Trash } from "lucide-react";
+import { ChevronLeft, Edit3, FileStack, Send, Trash } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
+import { useTestSendWebhookModal } from "../modals/test-send-webhook";
 
 export default function WebhookHeader({
   webhookId,
@@ -33,8 +34,13 @@ export default function WebhookHeader({
     webhook,
   });
 
+  const { TestSendWebhookModal, setShowTestSendWebhookModal } =
+    useTestSendWebhookModal({
+      webhook,
+    });
+
   const { error: permissionsError } = clientAccessCheck({
-    action: "oauth_apps.write",
+    action: "webhooks.write",
     role,
   });
 
@@ -45,6 +51,7 @@ export default function WebhookHeader({
   return (
     <>
       <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
+        <TestSendWebhookModal />
         <DeleteWebhookModal />
         <Link
           href={`/${slug}/settings/webhooks`}
@@ -106,6 +113,16 @@ export default function WebhookHeader({
                     }}
                   />
                 )}
+
+                <Button
+                  text="Send test event"
+                  variant="outline"
+                  icon={<Send className="h-4 w-4" />}
+                  className="h-9 justify-start px-2"
+                  onClick={() => {
+                    setShowTestSendWebhookModal(true);
+                  }}
+                />
 
                 <Button
                   text="Remove webhook"

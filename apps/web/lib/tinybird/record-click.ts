@@ -141,7 +141,8 @@ export async function recordClick({
 
   // Send webhook events if link has webhooks enabled
   if (webhookIds && webhookIds.length > 0) {
-    sendWebhooks("link.clicked", {
+    sendWebhooks({
+      trigger: "link.clicked",
       webhooks: await webhookCache.mget(webhookIds),
       data: {
         ...clickData,
