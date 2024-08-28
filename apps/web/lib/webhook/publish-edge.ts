@@ -1,16 +1,17 @@
 import { prismaEdge } from "../prisma/edge";
 import { WebhookTrigger } from "../types";
 import { sendWebhooks } from "./qstash";
+import { LeadEventDataProps, SaleEventDataProps } from "./types";
 
-export const sendLinkWebhookOnEdge = async (
-  trigger: WebhookTrigger,
-  props: {
-    linkId: string;
-    data: any;
-  },
-) => {
-  const { data, linkId } = props;
-
+export const sendLinkWebhookOnEdge = async ({
+  trigger,
+  linkId,
+  data,
+}: {
+  trigger: WebhookTrigger;
+  linkId: string;
+  data: LeadEventDataProps | SaleEventDataProps;
+}) => {
   const linkWebhooks = await prismaEdge.linkWebhook.findMany({
     where: {
       linkId,

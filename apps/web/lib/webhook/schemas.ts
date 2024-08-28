@@ -1,11 +1,14 @@
 import z from "@/lib/zod";
 import { LinkSchema } from "../zod/schemas/links";
 
-export const linkEventSchema = LinkSchema.extend({
-  expiresAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
+export const linkEventSchema = LinkSchema
+
+
+// .extend({
+//   expiresAt: z.string().nullable(),
+//   createdAt: z.string(),
+//   updatedAt: z.string(),
+// });
 
 export const clickEventSchema = z.object({
   id: z.string(),

@@ -6,6 +6,12 @@ import z from "../zod";
 import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
+import {
+  ClickEventDataProps,
+  LeadEventDataProps,
+  LinkEventDataProps,
+  SaleEventDataProps,
+} from "./types";
 
 // Send webhooks to multiple webhooks
 export const sendWebhooks = async ({
@@ -14,7 +20,11 @@ export const sendWebhooks = async ({
   trigger,
 }: {
   webhooks: Pick<Webhook, "id" | "url" | "secret">[];
-  data: any;
+  data:
+    | LinkEventDataProps
+    | ClickEventDataProps
+    | LeadEventDataProps
+    | SaleEventDataProps;
   trigger: WebhookTrigger;
 }) => {
   if (webhooks.length === 0) {

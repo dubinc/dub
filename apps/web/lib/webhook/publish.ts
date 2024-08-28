@@ -1,17 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import { WebhookTrigger, WorkspaceProps } from "../types";
 import { sendWebhooks } from "./qstash";
+import {
+  ClickEventDataProps,
+  LeadEventDataProps,
+  LinkEventDataProps,
+  SaleEventDataProps,
+} from "./types";
 
 // Send workspace level webhook
-export const sendWorkspaceWebhook = async (
-  trigger: WebhookTrigger,
-  props: {
-    workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-    data: any;
-  },
-) => {
-  const { workspace, data } = props;
-
+export const sendWorkspaceWebhook = async ({
+  trigger,
+  workspace,
+  data,
+}: {
+  trigger: WebhookTrigger;
+  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
+  data: LinkEventDataProps;
+}) => {
   if (!workspace.webhookEnabled) {
     return;
   }
@@ -34,15 +40,15 @@ export const sendWorkspaceWebhook = async (
 };
 
 // Send link level webhook
-export const sendLinkWebhook = async (
-  trigger: WebhookTrigger,
-  props: {
-    linkId: string;
-    data: any;
-  },
-) => {
-  const { data, linkId } = props;
-
+export const sendLinkWebhook = async ({
+  trigger,
+  linkId,
+  data,
+}: {
+  trigger: WebhookTrigger;
+  linkId: string;
+  data: ClickEventDataProps | LeadEventDataProps | SaleEventDataProps;
+}) => {
   const linkWebhooks = await prisma.linkWebhook.findMany({
     where: {
       linkId,

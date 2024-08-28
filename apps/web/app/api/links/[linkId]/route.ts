@@ -11,6 +11,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { transformLinkEventData } from "@/lib/webhook/transform";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -124,9 +125,11 @@ export const PATCH = withWorkspace(
       });
 
       waitUntil(
-        sendWorkspaceWebhook("link.updated", {
+        sendWorkspaceWebhook({
+          trigger: "link.updated",
           workspace,
-          data: response,
+          // @ts-ignore
+          data: transformLinkEventData(response),
         }),
       );
 
@@ -166,11 +169,11 @@ export const DELETE = withWorkspace(
     await deleteLink(link.id);
 
     waitUntil(
-      sendWorkspaceWebhook("link.deleted", {
+      sendWorkspaceWebhook({
+        trigger: "link.deleted",
         workspace,
-        data: {
-          ...transformLink(link),
-        },
+        // @ts-ignore
+        data: transformLinkEventData(transformLink(link)),
       }),
     );
 
