@@ -27,7 +27,7 @@ export default function WebhooksPageClient() {
   );
 
   const { error: permissionsError } = clientAccessCheck({
-    action: "webhooks.write",
+    action: "webhooks.read",
     role,
   });
 
