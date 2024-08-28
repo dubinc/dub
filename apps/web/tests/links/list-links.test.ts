@@ -31,7 +31,6 @@ test("GET /links", async (ctx) => {
     userId: user.id,
     projectId,
     workspaceId,
-
     shortLink: `https://${domain}/${firstLink.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
   });

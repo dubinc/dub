@@ -37,7 +37,6 @@ export const expectedLink: Partial<Link> & {
   tagId: null, // backwards compatibility
   comments: null,
   tags: [],
-  webhooks: [],
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
   expiredUrl: null,
