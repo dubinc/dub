@@ -8,8 +8,8 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const E2E_USER_ID = "cm022rkcw0000ikt14mscg9sg";
-const E2E_WORKSPACE_ID = "cm022sis60003ikt1syy7kfhl";
+const E2E_USER_ID = "REPLACE_WITH_E2E_USER_ID";
+const E2E_WORKSPACE_ID = "REPLACE_WITH_E2E_WORKSPACE_ID";
 
 // Cron to remove links and domains created during the E2E test.
 // Runs once every day at noon UTC (0 12 * * *)
