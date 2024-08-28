@@ -19,7 +19,7 @@ export const getFeatureFlags = async ({
   const workspaceFeatures: Record<BetaFeatures, boolean> = {
     dublink: false,
     referrals: false,
-    webhooks: true,
+    webhooks: false,
   };
 
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
