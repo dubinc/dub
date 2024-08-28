@@ -4,7 +4,6 @@ import { expect } from "vitest";
 export const expectedLink: Partial<Link> & {
   tagId: string | null;
   tags: [];
-  webhooks: [];
 } = {
   id: expect.any(String),
   key: expect.any(String),
