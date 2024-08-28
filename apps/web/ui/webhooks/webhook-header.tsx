@@ -120,12 +120,13 @@ export default function WebhookHeader({
                   icon={<Send className="h-4 w-4" />}
                   className="h-9 justify-start px-2"
                   onClick={() => {
+                    setOpenPopover(false);
                     setShowSendTestWebhookModal(true);
                   }}
                 />
 
                 <Button
-                  text="Remove webhook"
+                  text="Delete webhook"
                   variant="danger-outline"
                   icon={<Trash className="h-4 w-4" />}
                   className="h-9 justify-start px-2"
