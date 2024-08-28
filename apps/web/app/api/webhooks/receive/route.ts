@@ -15,7 +15,7 @@ export const POST = async (req: Request) => {
   }
 
   const computedSignature = crypto
-    .createHmac("sha256", "whsec_f0dfa39067ee15fdf5abe53c08600c22")
+    .createHmac("sha256", `${process.env.DUB_WEBHOOK_SECRET}`)
     .update(JSON.stringify(body))
     .digest("hex");
 

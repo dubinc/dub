@@ -33,13 +33,9 @@ export const testSendWebhookEvent = authActionClient
       },
     });
 
-    const payload = samplePayload[trigger] as z.infer<
-      typeof webhookPayloadSchema
-    >;
-
     await publishWebhookEventToQStash({
       webhook,
-      payload,
+      payload: webhookPayloadSchema.parse(samplePayload[trigger]),
     });
 
     return { ok: true };

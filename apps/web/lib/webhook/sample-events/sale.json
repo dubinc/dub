@@ -38,6 +38,11 @@
       "referer": "(direct)",
       "refererUrl": "(direct)"
     },
-    "link": { "id": "cm0aznkw30003139wxprw69nx" }
+    "link": {
+      "id": "cm0atl8tk0001k15k4691jyga",
+      "externalId": null,
+      "domain": "dub.sh",
+      "key": "DUc7ENl"
+    }
   }
 }
