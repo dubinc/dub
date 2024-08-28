@@ -224,7 +224,7 @@ export async function processLink<T extends Record<string, any>>({
       long: domain === "loooooooo.ng",
     });
   } else if (!skipKeyChecks) {
-    const processedKey = processKey(key);
+    const processedKey = processKey({ domain, key });
     if (processedKey === null) {
       return {
         link: payload,

@@ -18,7 +18,7 @@ import {
 import { FADE_IN_ANIMATION_SETTINGS, capitalize } from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
   Dispatch,
@@ -40,10 +40,8 @@ function AddEditDomainModal({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   props?: DomainProps;
 }) {
-  const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { id: workspaceId, logo, plan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
+  const { id: workspaceId, logo } = useWorkspace();
 
   const [data, setData] = useState<DomainProps>(
     props || {
