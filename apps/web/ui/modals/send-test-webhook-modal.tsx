@@ -1,4 +1,4 @@
-import { testSendWebhookEvent } from "@/lib/actions/test-send-webhook";
+import { sendTestWebhookEvent } from "@/lib/actions/send-test-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps, WebhookTrigger } from "@/lib/types";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "@/lib/webhook/constants";
@@ -19,23 +19,23 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-function TestSendWebhookModal({
-  showTestSendWebhookModal,
-  setShowTestSendWebhookModal,
+function SendTestWebhookModal({
+  showSendTestWebhookModal,
+  setShowSendTestWebhookModal,
   webhook,
 }: {
-  showTestSendWebhookModal: boolean;
-  setShowTestSendWebhookModal: Dispatch<SetStateAction<boolean>>;
+  showSendTestWebhookModal: boolean;
+  setShowSendTestWebhookModal: Dispatch<SetStateAction<boolean>>;
   webhook: WebhookProps | undefined;
 }) {
   const workspace = useWorkspace();
   const [selectedTrigger, setSelectedTrigger] =
     useState<InputSelectItemProps | null>(null);
 
-  const { execute, isExecuting } = useAction(testSendWebhookEvent, {
+  const { execute, isExecuting } = useAction(sendTestWebhookEvent, {
     onSuccess: () => {
       toast.success("Webhook event sent.");
-      setShowTestSendWebhookModal(false);
+      setShowSendTestWebhookModal(false);
     },
     onError: ({ error }) => {
       toast.error(error.serverError?.serverError);
@@ -51,8 +51,8 @@ function TestSendWebhookModal({
 
   return (
     <Modal
-      showModal={showTestSendWebhookModal}
-      setShowModal={setShowTestSendWebhookModal}
+      showModal={showSendTestWebhookModal}
+      setShowModal={setShowSendTestWebhookModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
         <Logo />
@@ -94,29 +94,29 @@ function TestSendWebhookModal({
   );
 }
 
-export function useTestSendWebhookModal({
+export function useSendTestWebhookModal({
   webhook,
 }: {
   webhook: WebhookProps | undefined;
 }) {
-  const [showTestSendWebhookModal, setShowTestSendWebhookModal] =
+  const [showSendTestWebhookModal, setShowSendTestWebhookModal] =
     useState(false);
 
-  const TestSendWebhookModalCallback = useCallback(() => {
+  const SendTestWebhookModalCallback = useCallback(() => {
     return (
-      <TestSendWebhookModal
-        showTestSendWebhookModal={showTestSendWebhookModal}
-        setShowTestSendWebhookModal={setShowTestSendWebhookModal}
+      <SendTestWebhookModal
+        showSendTestWebhookModal={showSendTestWebhookModal}
+        setShowSendTestWebhookModal={setShowSendTestWebhookModal}
         webhook={webhook}
       />
     );
-  }, [showTestSendWebhookModal, setShowTestSendWebhookModal]);
+  }, [showSendTestWebhookModal, setShowSendTestWebhookModal]);
 
   return useMemo(
     () => ({
-      setShowTestSendWebhookModal,
-      TestSendWebhookModal: TestSendWebhookModalCallback,
+      setShowSendTestWebhookModal,
+      SendTestWebhookModal: SendTestWebhookModalCallback,
     }),
-    [setShowTestSendWebhookModal, TestSendWebhookModalCallback],
+    [setShowSendTestWebhookModal, SendTestWebhookModalCallback],
   );
 }

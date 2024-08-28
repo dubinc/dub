@@ -12,7 +12,7 @@ import { notFound, useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
-import { useTestSendWebhookModal } from "../modals/test-send-webhook";
+import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
 
 export default function WebhookHeader({
   webhookId,
@@ -34,8 +34,8 @@ export default function WebhookHeader({
     webhook,
   });
 
-  const { TestSendWebhookModal, setShowTestSendWebhookModal } =
-    useTestSendWebhookModal({
+  const { SendTestWebhookModal, setShowSendTestWebhookModal } =
+    useSendTestWebhookModal({
       webhook,
     });
 
@@ -51,7 +51,7 @@ export default function WebhookHeader({
   return (
     <>
       <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
-        <TestSendWebhookModal />
+        <SendTestWebhookModal />
         <DeleteWebhookModal />
         <Link
           href={`/${slug}/settings/webhooks`}
@@ -120,7 +120,7 @@ export default function WebhookHeader({
                   icon={<Send className="h-4 w-4" />}
                   className="h-9 justify-start px-2"
                   onClick={() => {
-                    setShowTestSendWebhookModal(true);
+                    setShowSendTestWebhookModal(true);
                   }}
                 />
 
