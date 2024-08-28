@@ -1,13 +1,23 @@
-import { CreateWorkspaceForm } from "@/ui/workspaces/create-workspace-form";
 import { GridPlus } from "@dub/ui/src/icons";
-import { StepIcon } from "../step-icon";
+import { StepPage } from "../step-page";
+import { Form } from "./form";
 
 export default function Workspace() {
   return (
-    <div className="mx-auto flex max-w-sm flex-col items-center">
-      <StepIcon icon={GridPlus} />
-      <h1 className="mt-4 text-lg font-medium">Create a workspace</h1>
-      <CreateWorkspaceForm className="mt-8" />
-    </div>
+    <StepPage
+      icon={GridPlus}
+      title="Create a workspace"
+      description={
+        <a
+          href="https://dub.co/help/article/what-is-a-workspace"
+          target="_blank"
+          className="underline transition-colors hover:text-gray-700"
+        >
+          What is a workspace?
+        </a>
+      }
+    >
+      <Form />
+    </StepPage>
   );
 }

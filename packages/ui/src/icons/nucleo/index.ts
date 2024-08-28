@@ -50,6 +50,7 @@ export * from "./input-password";
 export * from "./invoice-dollar";
 export * from "./key";
 export * from "./lines-y";
+export * from "./link-broken";
 export * from "./magnifier";
 export * from "./map-position";
 export * from "./menu3";
