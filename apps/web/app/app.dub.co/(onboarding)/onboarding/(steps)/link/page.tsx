@@ -1,7 +1,6 @@
 import { LinkBroken } from "@dub/ui/src/icons";
 import { StepPage } from "../step-page";
 import { Form } from "./form";
-// import { Form } from "./form";
 
 export default function Link() {
   return (

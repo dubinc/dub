@@ -8,7 +8,7 @@ export function Form() {
 
   return (
     <CreateWorkspaceForm
-      className="mt-8 w-full"
+      className="w-full"
       onSuccess={({ slug }) => {
         router.push(`/onboarding/link?slug=${slug}`);
       }}

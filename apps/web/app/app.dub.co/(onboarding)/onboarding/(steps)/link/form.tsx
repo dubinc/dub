@@ -57,7 +57,7 @@ export function Form() {
 
   return (
     <form
-      className="mt-8 flex w-full flex-col gap-y-4"
+      className="flex w-full flex-col gap-y-4"
       onSubmit={handleSubmit(async (data) => {
         if (!workspaceId) {
           toast.error("Failed to get workspace data.");

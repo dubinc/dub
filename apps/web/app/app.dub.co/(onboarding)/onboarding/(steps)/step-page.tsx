@@ -23,11 +23,13 @@ export function StepPage({
       )}
     >
       {Icon && <StepIcon icon={Icon} />}
-      <h1 className="mt-4 text-2xl font-medium leading-tight">{title}</h1>
-      <p className="mt-1.5 text-base leading-tight text-gray-500">
+      <h1 className="mt-4 text-center text-2xl font-medium leading-tight">
+        {title}
+      </h1>
+      <p className="mt-1.5 text-center text-base leading-tight text-gray-500">
         {description}
       </p>
-      {children}
+      <div className="mt-8 w-full">{children}</div>
     </div>
   );
 }
