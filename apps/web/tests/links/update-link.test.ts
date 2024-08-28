@@ -62,6 +62,7 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       projectId,
       shortLink: `https://${domain}/${toUpdate.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
+      webhooks: expect.any(Array),
     });
 
     // Fetch the link
@@ -105,6 +106,7 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       projectId,
       shortLink: `https://${domain}/${toUpdate.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
+      webhooks: expect.any(Array),
     });
 
     // Fetch the link
@@ -137,6 +139,7 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       projectId,
       shortLink: `https://${domain}/${toUpdate.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
+      webhooks: expect.any(Array),
     });
 
     // Fetch the link
@@ -170,6 +173,7 @@ describe.sequential("PATCH /links/{linkId}", async () => {
       projectId,
       shortLink: `https://${domain}/${toUpdate.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
+      webhooks: expect.any(Array),
     });
 
     // Fetch the link
@@ -238,6 +242,7 @@ describe.sequential(
         projectId,
         shortLink: `https://${domain}/${toUpdate.key}`,
         qrCode: `https://api.dub.co/qr?url=https://${domain}/${toUpdate.key}?qr=1`,
+        webhooks: expect.any(Array),
       });
 
       // Fetch the link
