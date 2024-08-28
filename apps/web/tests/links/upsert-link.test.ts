@@ -55,6 +55,7 @@ describe.sequential("PUT /links/upsert", async () => {
       comments: "Updated comment",
       shortLink: `https://${domain}/${createdLink.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${createdLink.key}?qr=1`,
+      webhooks: expect.any(Array),
     });
   });
 });
