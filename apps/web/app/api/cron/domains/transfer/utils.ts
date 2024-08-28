@@ -12,7 +12,7 @@ export const updateLinksInRedis = async ({
 }: {
   newWorkspaceId: string;
   domain: string;
-  links: (Link & { webhookIds: string[] })[];
+  links: Link[];
 }) => {
   const pipeline = redis.pipeline();
 
