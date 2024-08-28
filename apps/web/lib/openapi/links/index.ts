@@ -1,6 +1,7 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
 
 import { bulkCreateLinks } from "./bulk-create-links";
+import { bulkDeleteLinks } from "./bulk-delete-links";
 import { bulkUpdateLinks } from "./bulk-update-links";
 import { createLink } from "./create-link";
 import { deleteLink } from "./delete-link";
@@ -28,6 +29,7 @@ export const linksPaths: ZodOpenApiPathsObject = {
   "/links/bulk": {
     post: bulkCreateLinks,
     patch: bulkUpdateLinks,
+    delete: bulkDeleteLinks,
   },
   "/links/upsert": {
     put: upsertLink,

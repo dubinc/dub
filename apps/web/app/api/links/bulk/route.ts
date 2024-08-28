@@ -1,5 +1,10 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
-import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
+import {
+  bulkCreateLinks,
+  combineTagIds,
+  deleteLink,
+  processLink,
+} from "@/lib/api/links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -269,3 +274,46 @@ export const PATCH = withWorkspace(async ({ req, workspace, headers }) => {
 
   return NextResponse.json([...response, ...errorLinks], { headers });
 });
+
+// DELETE /api/links/bulk – bulk delete up to 100 links
+export const DELETE = withWorkspace(
+  async ({ workspace, headers, searchParams }) => {
+    const linkIds = searchParams["linkIds"]?.split(",") || [];
+
+    if (linkIds.length === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Please provide linkIds as a comma-separated query parameter 'linkIds'.",
+      });
+    }
+
+    if (linkIds.length > 100) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "You can only delete up to 100 links at a time.",
+      });
+    }
+
+    const links = await prisma.link.findMany({
+      where: {
+        id: { in: linkIds },
+        projectId: workspace.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const deletedLinks = await Promise.all(
+      links.map(({ id }) => deleteLink(id)),
+    );
+
+    return NextResponse.json(
+      {
+        deletedCount: deletedLinks.length,
+      },
+      { headers },
+    );
+  },
+);
