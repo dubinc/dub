@@ -17,7 +17,7 @@ export function StepPage({
   return (
     <div
       className={cn(
-        "mx-auto flex max-w-sm flex-col items-center",
+        "mx-auto flex w-full max-w-sm flex-col items-center",
         "animate-slide-up-fade [--offset:10px] [animation-duration:1s] [animation-fill-mode:both]",
         className,
       )}

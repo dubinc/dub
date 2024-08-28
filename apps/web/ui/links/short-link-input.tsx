@@ -66,7 +66,6 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
     }: ShortLinkInputProps,
     ref,
   ) => {
-    console.log("inner data", data);
     const existingLink = Boolean(existingLinkProps);
 
     const inputId = useId();
@@ -171,8 +170,6 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       });
     }, [key, domain]);
 
-    console.log("domain is", domain);
-
     return (
       <div>
         <div className="flex items-center justify-between">
@@ -267,11 +264,6 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             }}
             onBlur={(e) => {
               // if the key is changed, check if key exists
-              console.log(
-                e.target.value,
-                !!e.target.value,
-                existingLinkProps?.key,
-              );
               if (e.target.value && existingLinkProps?.key !== e.target.value) {
                 runKeyChecks(e.target.value);
               } else if (

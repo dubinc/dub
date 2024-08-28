@@ -1,29 +1,34 @@
 "use client";
 
+import { DomainProps } from "@/lib/types";
 import { InfoTooltip, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
 import { forwardRef, HTMLProps, useId } from "react";
 import { AlertCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
-import { useAvailableDomains } from "./use-available-domains";
 
-export const DestinationUrlInput = forwardRef<HTMLInputElement, any>(
+type DestinationUrlInputProps = {
+  _key?: string;
+  domain?: string;
+  domains: DomainProps[];
+  error?: string;
+} & HTMLProps<HTMLInputElement>;
+
+export const DestinationUrlInput = forwardRef<
+  HTMLInputElement,
+  DestinationUrlInputProps
+>(
   (
     {
       _key: key,
       domain,
+      domains,
       error,
       ...inputProps
-    }: {
-      _key?: string;
-      domain?: string;
-      error?: string;
-    } & HTMLProps<HTMLInputElement>,
+    }: DestinationUrlInputProps,
     ref,
   ) => {
     const inputId = useId();
     const { isMobile } = useMediaQuery();
-
-    const { domains } = useAvailableDomains({ currentDomain: domain });
 
     return (
       <div>

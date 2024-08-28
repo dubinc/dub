@@ -346,12 +346,13 @@ function AddEditLinkModal({
                 domain={domain}
                 _key={key}
                 value={url}
-                onChange={(e) => {
+                domains={domains}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setUrlError(null);
                   setData({ ...data, url: e.target.value });
                 }}
                 required={key !== "_root"}
-                error={urlError}
+                error={urlError || undefined}
               />
 
               {key !== "_root" && (

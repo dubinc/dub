@@ -1,5 +1,6 @@
 import { LinkBroken } from "@dub/ui/src/icons";
 import { StepPage } from "../step-page";
+import { Form } from "./form";
 // import { Form } from "./form";
 
 export default function Link() {
@@ -9,7 +10,7 @@ export default function Link() {
       title="Create a link"
       description="Don't worry, you can edit this later."
     >
-      {/* <Form /> */}
+      <Form />
     </StepPage>
   );
 }
