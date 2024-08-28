@@ -45,7 +45,7 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
 
 export const WebhookEventList = ({ events }: EventListProps) => {
   return (
-    <div className="rounded-md border border-gray-200">
+    <div className="overflow-hidden rounded-md border border-gray-200">
       <div className="flex flex-col divide-y divide-gray-200">
         {events.map((event, index) => (
           <WebhookEvent key={index} event={event} />
