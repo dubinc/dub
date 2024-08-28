@@ -1,31 +1,22 @@
 import { qstash } from "@/lib/cron";
+import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Webhook } from "@prisma/client";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
-import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
-import {
-  ClickEventDataProps,
-  LeadEventDataProps,
-  LinkEventDataProps,
-  SaleEventDataProps,
-} from "./types";
+import { EventDataProps } from "./types";
 
 // Send webhooks to multiple webhooks
 export const sendWebhooks = async ({
   webhooks,
-  data,
   trigger,
+  data,
 }: {
   webhooks: Pick<Webhook, "id" | "url" | "secret">[];
-  data:
-    | LinkEventDataProps
-    | ClickEventDataProps
-    | LeadEventDataProps
-    | SaleEventDataProps;
   trigger: WebhookTrigger;
+  data: EventDataProps;
 }) => {
   if (webhooks.length === 0) {
     return;

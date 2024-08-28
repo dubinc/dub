@@ -1,11 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { WEBHOOK_TRIGGERS } from "../webhook/constants";
 import { publishWebhookEventToQStash } from "../webhook/qstash";
 import { samplePayload } from "../webhook/sample-events/payload";
 import z from "../zod";
-import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({

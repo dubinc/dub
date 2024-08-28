@@ -18,6 +18,7 @@ import { conn } from "../planetscale";
 import { ratelimit } from "../upstash";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
+import { transformClickEventData } from "../webhook/transform";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -60,7 +61,7 @@ export async function recordClick({
   );
 
   if (!success) {
-    return null;
+    // return null;
   }
 
   const isQr = detectQr(req);
@@ -141,13 +142,11 @@ export async function recordClick({
 
   // Send webhook events if link has webhooks enabled
   if (webhookIds && webhookIds.length > 0) {
-    sendWebhooks({
+    await sendWebhooks({
       trigger: "link.clicked",
       webhooks: await webhookCache.mget(webhookIds),
-      data: {
-        ...clickData,
-        url,
-      },
+      // @ts-ignore
+      data: transformClickEventData(clickData),
     });
   }
 }

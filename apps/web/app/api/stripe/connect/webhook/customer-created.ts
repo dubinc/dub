@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { sendLinkWebhook } from "@/lib/webhook/publish";
+import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -106,16 +107,17 @@ export async function customerCreated(event: Stripe.Event) {
 
   waitUntil(
     (async () => {
-      sendLinkWebhook("lead.created", {
+      sendLinkWebhook({
+        trigger: "lead.created",
         linkId,
-        data: {
+        data: transformLeadEventData({
           ...leadData,
           ...link,
           customerId: customer.id,
           customerName: customer.name,
           customerEmail: customer.email,
           customerAvatar: customer.avatar,
-        },
+        }),
       });
     })(),
   );

@@ -6,6 +6,7 @@ import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
 import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
@@ -154,14 +155,17 @@ export const POST = withWorkspaceEdge(
     });
 
     waitUntil(
-      sendLinkWebhookOnEdge("lead.created", {
-        linkId,
-        data: {
-          ...response,
-          ...clickData,
-          ...link,
-        },
-      }),
+      (async () => {
+        sendLinkWebhookOnEdge({
+          trigger: "lead.created",
+          linkId,
+          data: transformLeadEventData({
+            ...response,
+            ...clickData,
+            ...link,
+          }),
+        });
+      })(),
     );
 
     return NextResponse.json(response);

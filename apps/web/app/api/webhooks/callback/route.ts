@@ -1,9 +1,7 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordWebhookEvent } from "@/lib/tinybird/record-webhook-event";
-import {
-  webhookCallbackSchema,
-  webhookPayloadSchema,
-} from "@/lib/zod/schemas/webhooks";
+import { webhookPayloadSchema } from "@/lib/webhook/schemas";
+import { webhookCallbackSchema } from "@/lib/zod/schemas/webhooks";
 import { getSearchParams } from "@dub/utils";
 
 // POST /api/webhooks/callback – listen to webhooks status from QStash

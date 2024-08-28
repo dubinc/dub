@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendLinkWebhook } from "@/lib/webhook/publish";
+import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -74,7 +75,17 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }),
   };
 
+  // Find link
   const linkId = leadEvent.data[0].link_id;
+  const link = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+  });
+
+  if (!link) {
+    return `Link with ID ${linkId} not found, skipping...`;
+  }
 
   await Promise.all([
     recordSale(saleData),
@@ -111,15 +122,17 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   waitUntil(
     (async () => {
-      sendLinkWebhook("sale.created", {
+      sendLinkWebhook({
+        trigger: "sale.created",
         linkId,
-        data: {
+        data: transformSaleEventData({
           ...saleData,
+          ...link,
           customerId: customer.id,
           customerName: customer.name,
           customerEmail: customer.email,
           customerAvatar: customer.avatar,
-        },
+        }),
       });
     })(),
   );

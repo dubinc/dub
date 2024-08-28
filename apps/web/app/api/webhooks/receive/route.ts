@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { LeadEventData } from "@/lib/webhook/types";
-import { webhookPayloadSchema } from "@/lib/zod/schemas/webhooks";
+import { webhookPayloadSchema } from "@/lib/webhook/schemas";
+import { LeadEventDataProps } from "@/lib/webhook/types";
 import crypto from "crypto";
 
 // POST /api/webhooks/receive - receive link-level webhooks from Dub
@@ -25,7 +25,7 @@ export const POST = async (req: Request) => {
 
   // A new lead was created on Dub
   if (event === "lead.created") {
-    const lead = data as LeadEventData;
+    const lead = data as LeadEventDataProps;
     const workspaceId = lead.link.externalId?.replace("ws_", "");
 
     if (!workspaceId) {

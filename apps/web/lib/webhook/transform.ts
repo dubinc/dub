@@ -1,8 +1,10 @@
+import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { nanoid, toCamelCase } from "@dub/utils";
 import type { Link, Webhook } from "@prisma/client";
 import { WebhookTrigger } from "../types";
+import z from "../zod";
+import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { LinkSchema } from "../zod/schemas/links";
-import { webhookPayloadSchema } from "../zod/schemas/webhooks";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { clickEventSchema, leadEventSchema, saleEventSchema } from "./schemas";
 
@@ -33,7 +35,9 @@ export const transformLinkEventData = (data: Link) => {
   });
 };
 
-export const transformClickEventData = (data: any) => {
+export const transformClickEventData = (
+  data: z.infer<typeof clickEventSchemaTB>,
+) => {
   const click = Object.fromEntries(
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
@@ -43,7 +47,6 @@ export const transformClickEventData = (data: any) => {
     id: click.clickId,
     link: {
       id: click.linkId,
-      url: click.url,
     },
   });
 };
@@ -85,6 +88,9 @@ export const transformSaleEventData = (data: any) => {
     },
     link: {
       id: sale.linkId,
+      externalId: sale.externalId,
+      domain: sale.domain,
+      key: sale.key,
     },
   });
 };

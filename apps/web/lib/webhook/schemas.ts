@@ -1,14 +1,8 @@
 import z from "@/lib/zod";
 import { LinkSchema } from "../zod/schemas/links";
+import { WEBHOOK_TRIGGERS } from "./constants";
 
-export const linkEventSchema = LinkSchema
-
-
-// .extend({
-//   expiresAt: z.string().nullable(),
-//   createdAt: z.string(),
-//   updatedAt: z.string(),
-// });
+export const linkEventSchema = LinkSchema;
 
 export const clickEventSchema = z.object({
   id: z.string(),
@@ -67,5 +61,27 @@ export const saleEventSchema = z.object({
   invoiceId: z.string().nullable(),
   currency: z.string(),
   click: clickEventSchema.partial(),
-  link: z.object({ id: z.string() }),
+  link: z.object({
+    id: z.string(),
+    externalId: z.string().nullable(),
+    domain: z.string(),
+    key: z.string(),
+  }),
+});
+
+// Schema of the payload sent to the webhook endpoint by Dub
+export const webhookPayloadSchema = z.object({
+  id: z.string().describe("Unique identifier for the event."),
+  event: z
+    .enum(WEBHOOK_TRIGGERS)
+    .describe("The type of event that triggered the webhook."),
+  createdAt: z
+    .string()
+    .describe("The date and time when the event was created."),
+  data: z.union([
+    linkEventSchema,
+    clickEventSchema,
+    leadEventSchema,
+    saleEventSchema,
+  ]),
 });
