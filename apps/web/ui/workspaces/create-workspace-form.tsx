@@ -27,12 +27,11 @@ export function CreateWorkspaceForm({
   const plausible = usePlausible();
 
   const {
-    control,
     register,
     handleSubmit,
     watch,
     setValue,
-    formState: { isLoading },
+    formState: { isSubmitting },
   } = useForm<FormData>();
 
   const slug = watch("slug");
@@ -44,14 +43,16 @@ export function CreateWorkspaceForm({
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        fetch("/api/workspaces", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }).then(async (res) => {
-          if (res.status === 200) {
+        try {
+          const res = await fetch("/api/workspaces", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (res.ok) {
             const { id: workspaceId } = await res.json();
             trackEvent("Created Workspace");
             plausible("Created Workspace");
@@ -67,13 +68,14 @@ export function CreateWorkspaceForm({
             const { error } = await res.json();
             const message = error.message;
 
-            if (message.toLowerCase().includes("slug")) {
-              setSlugError(message);
-            }
+            if (message.toLowerCase().includes("slug")) setSlugError(message);
 
             toast.error(error.message);
           }
-        });
+        } catch (e) {
+          toast.error("Failed to create workspace.");
+          console.error("Failed to create workspace", e);
+        }
       })}
       className={cn("flex flex-col space-y-6 text-left", className)}
     >
@@ -164,7 +166,7 @@ export function CreateWorkspaceForm({
 
       <Button
         disabled={slugError ? true : false}
-        loading={isLoading}
+        loading={isSubmitting}
         text="Create workspace"
       />
     </form>
