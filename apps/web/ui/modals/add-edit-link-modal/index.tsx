@@ -108,12 +108,14 @@ function AddEditLinkModal({
         (domain) => domain.slug === props.domain,
       );
       if (currentDomain) {
-        return [...allActiveDomains, currentDomain].filter(Boolean);
+        return [...allActiveDomains, currentDomain]
+          .filter(Boolean)
+          .sort((a, b) => a.slug.localeCompare(b.slug));
       } else {
-        return allActiveDomains;
+        return allActiveDomains.sort((a, b) => a.slug.localeCompare(b.slug));
       }
     }
-    return allActiveDomains;
+    return allActiveDomains.sort((a, b) => a.slug.localeCompare(b.slug));
   }, [allDomains, allActiveDomains, props]);
 
   const [data, setData] = useState<LinkWithTagsProps>(

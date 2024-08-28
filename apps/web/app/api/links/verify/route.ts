@@ -17,7 +17,7 @@ export const GET = async (req: NextRequest) => {
       .and(workspaceIdSchema)
       .parse(searchParams);
 
-    const processedKey = processKey(key);
+    const processedKey = processKey({ domain, key });
     if (processedKey === null) {
       throw new DubApiError({
         code: "unprocessable_entity",
