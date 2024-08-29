@@ -6,7 +6,7 @@ import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
 import { PlanProps } from "../types";
 
-export const ErrorCode = z.enum([
+const ErrorCode = z.enum([
   "bad_request",
   "not_found",
   "internal_server_error",
@@ -117,7 +117,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
   };
 }
 
-export function handleApiError(error: any): ErrorResponse & { status: number } {
+function handleApiError(error: any): ErrorResponse & { status: number } {
   console.error("API error occurred", error.message);
 
   // Zod errors
