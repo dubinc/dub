@@ -2,9 +2,8 @@
 
 import { WebhookEventProps } from "@/lib/types";
 import { Sheet, SheetContent, SheetTrigger } from "@dub/ui";
-import { Copy } from "@dub/ui/src/icons";
-import { ButtonTooltip } from "@dub/ui/src/tooltip";
-import { CircleCheck, Clock4 } from "lucide-react";
+import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
+import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
 
@@ -55,11 +54,21 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
         <button className="flex items-center justify-between gap-5 px-3.5 py-3 hover:bg-gray-50 focus:outline-none">
           <div className="flex items-center gap-5">
             <div className="flex items-center gap-2.5">
-              {isSuccess ? (
-                <CircleCheck className="size-4 text-green-500" />
-              ) : (
-                <Clock4 className="size-4 text-red-500" />
-              )}
+              <Tooltip
+                content={
+                  isSuccess
+                    ? "This webhook was successfully delivered."
+                    : "This webhook failed to deliver – it will be retried."
+                }
+              >
+                <div>
+                  {isSuccess ? (
+                    <CircleCheck className="size-4 text-green-500" />
+                  ) : (
+                    <CircleHalfDottedClock className="size-4 text-amber-500" />
+                  )}
+                </div>
+              </Tooltip>
               <div className="text-sm text-gray-500">{event.http_status}</div>
             </div>
             <div className="text-sm text-gray-500">{event.event}</div>
