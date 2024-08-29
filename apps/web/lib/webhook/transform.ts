@@ -59,7 +59,6 @@ export const transformLeadEventData = (data: any) => {
     ...lead,
     click: {
       ...lead,
-      id: lead.clickId,
       qr: lead.qr === 1,
       bot: lead.bot === 1,
     },
@@ -81,7 +80,6 @@ export const transformSaleEventData = (data: any) => {
     ...sale,
     click: {
       ...sale,
-      id: sale.clickId,
       qr: sale.qr === 1,
       bot: sale.bot === 1,
     },

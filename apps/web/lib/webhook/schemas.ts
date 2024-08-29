@@ -5,7 +5,7 @@ import { WEBHOOK_TRIGGERS } from "./constants";
 export const linkEventSchema = LinkSchema;
 
 export const clickEventSchema = z.object({
-  id: z.string(),
+  clickId: z.string(),
   aliasLinkId: z.string(),
   url: z.string(),
   ip: z.string(),
