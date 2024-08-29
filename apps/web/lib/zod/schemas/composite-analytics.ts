@@ -2,34 +2,40 @@ import z from "@/lib/zod";
 import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
 
 export const compositeAnalyticsResponse = {
-  count: z.object({
-    clicks: z.number().describe("The total number of clicks"),
-    leads: z.number().describe("The total number of leads"),
-    sales: z.number().describe("The total number of sales"),
-    amount: z.number().describe("The total amount of sales"),
-  }),
+  count: z
+    .object({
+      clicks: z.number().describe("The total number of clicks"),
+      leads: z.number().describe("The total number of leads"),
+      sales: z.number().describe("The total number of sales"),
+      amount: z.number().describe("The total amount of sales"),
+    })
+    .openapi({ ref: "CompositeCount", title: "CompositeCount" }),
 
-  timeseries: z.object({
-    start: z.string().describe("The starting timestamp of the interval"),
-    clicks: z.number().describe("The number of clicks in the interval"),
-    leads: z.number().describe("The number of leads in the interval"),
-    sales: z.number().describe("The number of sales in the interval"),
-    amount: z.number().describe("The total amount of sales in the interval"),
-  }),
+  timeseries: z
+    .object({
+      start: z.string().describe("The starting timestamp of the interval"),
+      clicks: z.number().describe("The number of clicks in the interval"),
+      leads: z.number().describe("The number of leads in the interval"),
+      sales: z.number().describe("The number of sales in the interval"),
+      amount: z.number().describe("The total amount of sales in the interval"),
+    })
+    .openapi({ ref: "CompositeTimeseries" }),
 
-  continents: z.object({
-    continent: z
-      .enum(CONTINENT_CODES)
-      .describe(
-        "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
-      ),
-    clicks: z.number().describe("The number of clicks from this continent"),
-    leads: z.number().describe("The number of leads from this continent"),
-    sales: z.number().describe("The number of sales from this continent"),
-    amount: z
-      .number()
-      .describe("The total amount of sales from this continent"),
-  }),
+  continents: z
+    .object({
+      continent: z
+        .enum(CONTINENT_CODES)
+        .describe(
+          "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
+        ),
+      clicks: z.number().describe("The number of clicks from this continent"),
+      leads: z.number().describe("The number of leads from this continent"),
+      sales: z.number().describe("The number of sales from this continent"),
+      amount: z
+        .number()
+        .describe("The total amount of sales from this continent"),
+    })
+    .openapi({ ref: "CompositeContinents" }),
 
   countries: z
     .object({
@@ -45,7 +51,7 @@ export const compositeAnalyticsResponse = {
         .number()
         .describe("The total amount of sales from this country"),
     })
-    .openapi({ ref: "salesByCountry" }),
+    .openapi({ ref: "CompositeCountries" }),
 
   cities: z
     .object({
@@ -58,78 +64,104 @@ export const compositeAnalyticsResponse = {
       sales: z.number().describe("The number of sales from this city"),
       amount: z.number().describe("The total amount of sales from this city"),
     })
-    .openapi({ ref: "salesByCities" }),
+    .openapi({ ref: "CompositeCities" }),
 
-  devices: z.object({
-    device: z.string().describe("The name of the device"),
-    clicks: z.number().describe("The number of clicks from this device"),
-    leads: z.number().describe("The number of leads from this device"),
-    sales: z.number().describe("The number of sales from this device"),
-    amount: z.number().describe("The total amount of sales from this device"),
-  }),
+  devices: z
+    .object({
+      device: z.string().describe("The name of the device"),
+      clicks: z.number().describe("The number of clicks from this device"),
+      leads: z.number().describe("The number of leads from this device"),
+      sales: z.number().describe("The number of sales from this device"),
+      amount: z.number().describe("The total amount of sales from this device"),
+    })
+    .openapi({ ref: "CompositeDevices" }),
 
-  browsers: z.object({
-    browser: z.string().describe("The name of the browser"),
-    clicks: z.number().describe("The number of clicks from this browser"),
-    leads: z.number().describe("The number of leads from this browser"),
-    sales: z.number().describe("The number of sales from this browser"),
-    amount: z.number().describe("The total amount of sales from this browser"),
-  }),
+  browsers: z
+    .object({
+      browser: z.string().describe("The name of the browser"),
+      clicks: z.number().describe("The number of clicks from this browser"),
+      leads: z.number().describe("The number of leads from this browser"),
+      sales: z.number().describe("The number of sales from this browser"),
+      amount: z
+        .number()
+        .describe("The total amount of sales from this browser"),
+    })
+    .openapi({ ref: "CompositeBrowsers" }),
 
-  os: z.object({
-    os: z.string().describe("The name of the OS"),
-    clicks: z.number().describe("The number of clicks from this OS"),
-    leads: z.number().describe("The number of leads from this OS"),
-    sales: z.number().describe("The number of sales from this OS"),
-    amount: z.number().describe("The total amount of sales from this OS"),
-  }),
+  os: z
+    .object({
+      os: z.string().describe("The name of the OS"),
+      clicks: z.number().describe("The number of clicks from this OS"),
+      leads: z.number().describe("The number of leads from this OS"),
+      sales: z.number().describe("The number of sales from this OS"),
+      amount: z.number().describe("The total amount of sales from this OS"),
+    })
+    .openapi({ ref: "CompositeOS" }),
 
-  referers: z.object({
-    referer: z
-      .string()
-      .describe("The name of the referer. If unknown, this will be `(direct)`"),
-    clicks: z.number().describe("The number of clicks from this referer"),
-    leads: z.number().describe("The number of leads from this referer"),
-    sales: z.number().describe("The number of sales from this referer"),
-    amount: z.number().describe("The total amount of sales from this referer"),
-  }),
+  referers: z
+    .object({
+      referer: z
+        .string()
+        .describe(
+          "The name of the referer. If unknown, this will be `(direct)`",
+        ),
+      clicks: z.number().describe("The number of clicks from this referer"),
+      leads: z.number().describe("The number of leads from this referer"),
+      sales: z.number().describe("The number of sales from this referer"),
+      amount: z
+        .number()
+        .describe("The total amount of sales from this referer"),
+    })
+    .openapi({ ref: "CompositeReferers" }),
 
-  top_links: z.object({
-    link: z
-      .string()
-      .describe("The unique ID of the short link")
-      .openapi({ deprecated: true }),
-    id: z.string().describe("The unique ID of the short link"),
-    domain: z.string().describe("The domain of the short link"),
-    key: z.string().describe("The key of the short link"),
-    shortLink: z.string().describe("The short link URL"),
-    url: z.string().describe("The destination URL of the short link"),
-    createdAt: z.string().describe("The creation timestamp of the short link"),
-    clicks: z.number().describe("The number of clicks from this link"),
-    leads: z.number().describe("The number of leads from this link"),
-    sales: z.number().describe("The number of sales from this link"),
-    amount: z.number().describe("The total amount of sales from this link"),
-  }),
+  top_links: z
+    .object({
+      link: z
+        .string()
+        .describe("The unique ID of the short link")
+        .openapi({ deprecated: true }),
+      id: z.string().describe("The unique ID of the short link"),
+      domain: z.string().describe("The domain of the short link"),
+      key: z.string().describe("The key of the short link"),
+      shortLink: z.string().describe("The short link URL"),
+      url: z.string().describe("The destination URL of the short link"),
+      createdAt: z
+        .string()
+        .describe("The creation timestamp of the short link"),
+      clicks: z.number().describe("The number of clicks from this link"),
+      leads: z.number().describe("The number of leads from this link"),
+      sales: z.number().describe("The number of sales from this link"),
+      amount: z.number().describe("The total amount of sales from this link"),
+    })
+    .openapi({ ref: "CompositeTopLinks" }),
 
-  top_urls: z.object({
-    url: z.string().describe("The destination URL"),
-    clicks: z.number().describe("The number of clicks from this URL"),
-    leads: z.number().describe("The number of leads from this URL"),
-    sales: z.number().describe("The number of sales from this URL"),
-    amount: z.number().describe("The total amount of sales from this URL"),
-  }),
+  top_urls: z
+    .object({
+      url: z.string().describe("The destination URL"),
+      clicks: z.number().describe("The number of clicks from this URL"),
+      leads: z.number().describe("The number of leads from this URL"),
+      sales: z.number().describe("The number of sales from this URL"),
+      amount: z.number().describe("The total amount of sales from this URL"),
+    })
+    .openapi({ ref: "CompositeTopUrls" }),
 
-  trigger: z.object({
-    trigger: z
-      .enum(["link", "qr"])
-      .describe("The type of trigger method: link click or QR scan"),
-    clicks: z
-      .number()
-      .describe("The number of clicks from this trigger method."),
-    leads: z.number().describe("The number of leads from this trigger method."),
-    sales: z.number().describe("The number of sales from this trigger method."),
-    amount: z
-      .number()
-      .describe("The total amount of sales from this trigger method."),
-  }),
+  trigger: z
+    .object({
+      trigger: z
+        .enum(["link", "qr"])
+        .describe("The type of trigger method: link click or QR scan"),
+      clicks: z
+        .number()
+        .describe("The number of clicks from this trigger method."),
+      leads: z
+        .number()
+        .describe("The number of leads from this trigger method."),
+      sales: z
+        .number()
+        .describe("The number of sales from this trigger method."),
+      amount: z
+        .number()
+        .describe("The total amount of sales from this trigger method."),
+    })
+    .openapi({ ref: "CompositeTrigger" }),
 } as const;
