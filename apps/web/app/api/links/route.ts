@@ -102,13 +102,11 @@ export const POST = withWorkspace(
 
       if (response.projectId && response.userId) {
         waitUntil(
-          (async () => {
-            await sendWorkspaceWebhook({
-              trigger: "link.created",
-              workspace,
-              data: transformLinkEventData(response),
-            });
-          })(),
+          sendWorkspaceWebhook({
+            trigger: "link.created",
+            workspace,
+            data: transformLinkEventData(response),
+          }),
         );
       }
 

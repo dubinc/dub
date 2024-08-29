@@ -29,9 +29,10 @@ export const transformWebhook = (webhook: TransformWebhookProps) => {
 export const transformLinkEventData = (data: Link) => {
   return LinkSchema.parse({
     ...data,
+    expiresAt: data.expiresAt?.toISOString() || null,
+    lastClicked: data.lastClicked?.toISOString() || null,
     createdAt: data.createdAt.toISOString(),
     updatedAt: data.updatedAt.toISOString(),
-    expiresAt: data.expiresAt?.toISOString() || null,
   });
 };
 
