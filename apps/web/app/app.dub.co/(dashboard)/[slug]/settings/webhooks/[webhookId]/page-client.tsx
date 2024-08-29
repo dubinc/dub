@@ -6,7 +6,6 @@ import { WebhookEventProps } from "@/lib/types";
 import { WebhookEventListSkeleton } from "@/ui/webhooks/loading-events-skelton";
 import { NoEventsPlaceholder } from "@/ui/webhooks/no-events-placeholder";
 import { WebhookEventList } from "@/ui/webhooks/webhook-events";
-import WebhookHeader from "@/ui/webhooks/webhook-header";
 import { MaxWidthWrapper } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -38,17 +37,14 @@ export default function WebhookLogsPageClient({
   );
 
   return (
-    <>
-      <WebhookHeader webhookId={webhookId} page="events" />
-      <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        {isLoading ? (
-          <WebhookEventListSkeleton />
-        ) : events && events.length === 0 ? (
-          <NoEventsPlaceholder />
-        ) : (
-          <WebhookEventList events={events || []} />
-        )}
-      </MaxWidthWrapper>
-    </>
+    <MaxWidthWrapper className="max-w-screen-lg space-y-6">
+      {isLoading ? (
+        <WebhookEventListSkeleton />
+      ) : events && events.length === 0 ? (
+        <NoEventsPlaceholder />
+      ) : (
+        <WebhookEventList events={events || []} />
+      )}
+    </MaxWidthWrapper>
   );
 }

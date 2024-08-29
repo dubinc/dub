@@ -4,7 +4,6 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
 import AddEditWebhookForm from "@/ui/webhooks/add-edit-webhook-form";
-import WebhookHeader from "@/ui/webhooks/webhook-header";
 import { MaxWidthWrapper } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { notFound, redirect } from "next/navigation";
@@ -36,11 +35,8 @@ export default function UpdateWebhookPageClient({
   }
 
   return (
-    <>
-      <WebhookHeader webhookId={webhookId} page="edit" />
-      <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        {webhook && <AddEditWebhookForm webhook={webhook} />}
-      </MaxWidthWrapper>
-    </>
+    <MaxWidthWrapper className="max-w-screen-lg space-y-6">
+      {webhook && <AddEditWebhookForm webhook={webhook} />}
+    </MaxWidthWrapper>
   );
 }

@@ -4,25 +4,29 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, MaxWidthWrapper, Popover, TokenAvatar } from "@dub/ui";
+import {
+  Button,
+  MaxWidthWrapper,
+  Popover,
+  TabSelect,
+  TokenAvatar,
+} from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, Edit3, FileStack, Send, Trash } from "lucide-react";
+import { ChevronLeft, Send, Trash } from "lucide-react";
 import Link from "next/link";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
 import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
 
-export default function WebhookHeader({
-  webhookId,
-  page,
-}: {
-  webhookId: string;
-  page: "edit" | "events";
-}) {
+export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const router = useRouter();
   const { slug, id: workspaceId, role } = useWorkspace();
+
+  const selectedLayoutSegment = useSelectedLayoutSegment();
+  const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
+
   const [openPopover, setOpenPopover] = useState(false);
 
   const { data: webhook, isLoading } = useSWR<WebhookProps>(
@@ -86,38 +90,10 @@ export default function WebhookHeader({
           <Popover
             content={
               <div className="grid w-screen gap-px p-2 sm:w-48">
-                {page === "events" && (
-                  <Button
-                    text="Update webhook"
-                    variant="outline"
-                    icon={<Edit3 className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                    onClick={async () => {
-                      setOpenPopover(false);
-                      router.push(
-                        `/${slug}/settings/webhooks/${webhookId}/edit`,
-                      );
-                    }}
-                  />
-                )}
-
-                {page === "edit" && (
-                  <Button
-                    text="Webhook logs"
-                    variant="outline"
-                    icon={<FileStack className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                    onClick={async () => {
-                      setOpenPopover(false);
-                      router.push(`/${slug}/settings/webhooks/${webhookId}`);
-                    }}
-                  />
-                )}
-
                 <Button
                   text="Send test event"
                   variant="outline"
-                  icon={<Send className="h-4 w-4" />}
+                  icon={<Send className="size-4" />}
                   className="h-9 justify-start px-2"
                   onClick={() => {
                     setOpenPopover(false);
@@ -128,7 +104,7 @@ export default function WebhookHeader({
                 <Button
                   text="Delete webhook"
                   variant="danger-outline"
-                  icon={<Trash className="h-4 w-4" />}
+                  icon={<Trash className="size-4" />}
                   className="h-9 justify-start px-2"
                   onClick={() => {
                     setDeleteWebhookModal(true);
@@ -151,6 +127,16 @@ export default function WebhookHeader({
             />
           </Popover>
         </div>
+        <TabSelect
+          options={[
+            { id: "", label: "Webhook Logs" },
+            { id: "edit", label: "Update Details" },
+          ]}
+          selected={page}
+          onSelect={(id: "" | "edit") => {
+            router.push(`/${slug}/settings/webhooks/${webhookId}/${id}`);
+          }}
+        />
       </MaxWidthWrapper>
     </>
   );
