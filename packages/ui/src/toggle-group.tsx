@@ -13,10 +13,14 @@ export function ToggleGroup({
   options,
   selected,
   selectAction,
+  className,
+  style,
 }: {
   options: ToggleOption[];
   selected: string | null;
   selectAction: (option: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
 }) {
   const layoutGroupId = useId();
 
@@ -24,7 +28,11 @@ export function ToggleGroup({
     <LayoutGroup id={layoutGroupId}>
       <motion.div
         layout
-        className="relative inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1"
+        className={cn(
+          "relative inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1",
+          className,
+        )}
+        style={style}
       >
         {options.map((option) => (
           <button

@@ -15,5 +15,6 @@ export function useOnboardingProgress() {
         : `?slug=${slugParam || slug}`;
       router.push(`/onboarding/${step}${queryParams}`);
     },
+    finish: () => router.push(`/${slug}`),
   };
 }

@@ -1,9 +1,6 @@
-import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CheckCircleFill } from "@/ui/shared/icons";
 import {
   Badge,
-  Button,
   IconMenu,
   LoadingSpinner,
   Logo,
@@ -12,7 +9,6 @@ import {
   Tick,
   useRouterStuff,
 } from "@dub/ui";
-import { SimpleTooltipContent, Tooltip } from "@dub/ui/src/tooltip";
 import {
   APP_DOMAIN,
   SELF_SERVE_PAID_PLANS,
@@ -20,7 +16,6 @@ import {
   capitalize,
   cn,
 } from "@dub/utils";
-import { trackEvent } from "fathom-client";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { usePlausible } from "next-plausible";
@@ -31,7 +26,6 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -41,8 +35,10 @@ import {
   useState,
 } from "react";
 import Confetti from "react-dom-confetti";
+import { PlanFeatures } from "../workspaces/plan-features";
+import { UpgradePlanButton } from "../workspaces/upgrade-plan-button";
 
-const PERIODS = ["monthly", "yearly"];
+const PERIODS = ["monthly", "yearly"] as const;
 
 function UpgradePlanModal({
   showUpgradePlanModal,
@@ -68,7 +64,6 @@ function UpgradePlanModal({
   const [period, setPeriod] = useState<(typeof PERIODS)[number]>("yearly");
   const [openPeriodSelector, setOpenPeriodSelector] = useState(false);
 
-  const [clicked, setClicked] = useState(false);
   const [clickedCompare, setClickedCompare] = useState(false);
   const { queryParams } = useRouterStuff();
 
@@ -244,7 +239,7 @@ function UpgradePlanModal({
                 variant="neutral"
                 className="text-sm font-normal normal-case"
               >
-                ${selectedPlan.price[period].toString()}
+                ${selectedPlan.price[period]!.toString()}
                 /mo
                 <span className="hidden sm:inline-block">
                   , billed {period}
@@ -252,93 +247,11 @@ function UpgradePlanModal({
               </Badge>
             </div>
           </div>
-          <motion.div
-            variants={{
-              show: {
-                transition: {
-                  staggerChildren: 0.08,
-                },
-              },
-            }}
-            initial="hidden"
-            animate="show"
-            className="my-4 flex flex-col space-y-2"
-          >
-            {selectedPlan.name.startsWith("Business") && (
-              <motion.div
-                key="business-plan-feature"
-                variants={STAGGER_CHILD_VARIANTS}
-                className="text-sm text-gray-500"
-              >
-                Everything in Pro, plus:
-              </motion.div>
-            )}
-            {selectedPlan.features.map(({ text, footnote }, i) => (
-              <motion.div
-                key={i}
-                variants={STAGGER_CHILD_VARIANTS}
-                className="flex items-center space-x-2 text-sm text-gray-500"
-              >
-                <CheckCircleFill className="h-5 w-5 text-green-500" />
-
-                {footnote ? (
-                  <Tooltip
-                    content={
-                      typeof footnote === "string" ? (
-                        footnote
-                      ) : (
-                        <SimpleTooltipContent {...footnote} />
-                      )
-                    }
-                  >
-                    <p className="cursor-help text-gray-600 underline decoration-dotted underline-offset-2">
-                      {text}
-                    </p>
-                  </Tooltip>
-                ) : (
-                  <p className="text-gray-600">{text}</p>
-                )}
-              </motion.div>
-            ))}
-          </motion.div>
-          <Button
-            text={`Upgrade to ${selectedPlan.name} ${capitalize(period)}`}
-            loading={clicked}
-            onClick={() => {
-              setClicked(true);
-              fetch(`/api/workspaces/${slug}/billing/upgrade`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  plan,
-                  period,
-                  baseUrl: `${APP_DOMAIN}${pathname}`,
-                }),
-              })
-                .then(async (res) => {
-                  trackEvent("Opened Checkout");
-                  plausible("Opened Checkout");
-                  posthog.capture("checkout_opened", {
-                    currentPlan: capitalize(currentPlan),
-                    newPlan: selectedPlan.name,
-                  });
-                  if (currentPlan === "free") {
-                    const data = await res.json();
-                    const { id: sessionId } = data;
-                    const stripe = await getStripe();
-                    stripe?.redirectToCheckout({ sessionId });
-                  } else {
-                    const url = await res.json();
-                    router.push(url);
-                  }
-                })
-                .catch((err) => {
-                  alert(err);
-                  setClicked(false);
-                });
-            }}
+          <PlanFeatures plan={selectedPlan.name} className="my-4" />
+          <UpgradePlanButton
+            plan={selectedPlan.name}
+            period={period}
+            workspaceSlug={slug ?? undefined}
           />
           <div className="mt-2 flex items-center justify-center space-x-2">
             {currentPlan === "free" ? (
@@ -371,7 +284,7 @@ function UpgradePlanModal({
                     })
                     .catch((err) => {
                       alert(err);
-                      setClicked(false);
+                      setClickedCompare(false);
                     });
                 }}
                 disabled={clickedCompare}
