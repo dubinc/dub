@@ -61,7 +61,7 @@ export async function recordClick({
   );
 
   if (!success) {
-    return null;
+    // return null;
   }
 
   const isQr = detectQr(req);
@@ -142,11 +142,22 @@ export async function recordClick({
 
   // Send webhook events if link has webhooks enabled
   if (webhookIds && webhookIds.length > 0) {
-    await sendWebhooks({
-      trigger: "link.clicked",
-      webhooks: await webhookCache.mget(webhookIds),
-      // @ts-ignore
-      data: transformClickEventData(clickData),
-    });
+    const webhooks = await webhookCache.mget(webhookIds);
+
+    const linkWebhooks = webhooks.filter(
+      (webhook) =>
+        webhook.triggers &&
+        Array.isArray(webhook.triggers) &&
+        webhook.triggers.includes("link.clicked"),
+    );
+
+    if (linkWebhooks.length > 0) {
+      await sendWebhooks({
+        trigger: "link.clicked",
+        webhooks: linkWebhooks,
+        // @ts-ignore
+        data: transformClickEventData(clickData),
+      });
+    }
   }
 }
