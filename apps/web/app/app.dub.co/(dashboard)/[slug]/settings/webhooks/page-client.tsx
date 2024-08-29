@@ -6,7 +6,7 @@ import { WebhookProps } from "@/lib/types";
 import EmptyState from "@/ui/shared/empty-state";
 import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
-import { Button, TooltipContent } from "@dub/ui";
+import { Button, TooltipContent, useRouterStuff } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import { fetcher } from "@dub/utils";
 import { Webhook } from "lucide-react";
@@ -15,21 +15,44 @@ import useSWR from "swr";
 
 export default function WebhooksPageClient() {
   const router = useRouter();
-  const { slug, id: workspaceId, flags, role } = useWorkspace();
+  const workspace = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
-  if (!flags?.webhooks) {
-    redirect(`/${slug}/settings`);
+  if (!workspace.flags?.webhooks) {
+    redirect(`/${workspace.slug}/settings`);
   }
 
   const { data: webhooks, isLoading } = useSWR<WebhookProps[]>(
-    `/api/webhooks?workspaceId=${workspaceId}`,
+    `/api/webhooks?workspaceId=${workspace.id}`,
     fetcher,
   );
 
   const { error: permissionsError } = clientAccessCheck({
-    action: "webhooks.read",
-    role,
+    action: "webhooks.write",
+    role: workspace.role,
   });
+
+  const needsHigherPlan = workspace.plan === "free" || workspace.plan === "pro";
+
+  if (needsHigherPlan) {
+    return (
+      <div className="rounded-md border border-gray-200 bg-white p-10">
+        <EmptyState
+          icon={Webhook}
+          title="Webhooks"
+          description="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
+          learnMore="https://d.to/webhooks"
+          buttonText="Upgrade to Business"
+          buttonLink={queryParams({
+            set: {
+              upgrade: "business",
+            },
+            getNewPath: true,
+          })}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-5">
@@ -42,7 +65,7 @@ export default function WebhooksPageClient() {
             content={
               <TooltipContent
                 title="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
-                href="https://dub.co/docs/webhooks"
+                href="https://d.to/webhooks"
                 target="_blank"
                 cta="Learn more"
               />
@@ -53,8 +76,13 @@ export default function WebhooksPageClient() {
           <Button
             className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm"
             text="Add Webhook"
-            onClick={() => router.push(`/${slug}/settings/webhooks/new`)}
-            disabledTooltip={permissionsError}
+            onClick={() =>
+              router.push(`/${workspace.slug}/settings/webhooks/new`)
+            }
+            // disabledTooltip={permissionsError}
+            // {...(needsHigherPlan && {
+            //   disabledTooltip: permissionsError,
+            // })}
           />
         </div>
       </div>
