@@ -37,6 +37,9 @@ const config: Config = {
           "slide-right-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-down-fade": "slide-down-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-left-fade": "slide-left-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        // Sheet
+        "slide-in-from-right": "slide-in-from-right 0.2s ease",
+        "slide-out-to-right": "slide-out-to-right 0.2s ease",
         // Navigation menu
         "enter-from-right": "enter-from-right 0.15s ease",
         "enter-from-left": "enter-from-left 0.15s ease",
@@ -82,6 +85,15 @@ const config: Config = {
         "slide-left-fade": {
           "0%": { opacity: "0", transform: "translateX(var(--offset, 2px))" },
           "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        // Sheet
+        "slide-in-from-right": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "slide-out-to-right": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(100%)" },
         },
         // Navigation menu
         "enter-from-right": {

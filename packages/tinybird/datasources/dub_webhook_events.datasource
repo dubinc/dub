@@ -1,0 +1,14 @@
+SCHEMA >
+  `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
+  `event_id` String `json:$.event_id`,
+  `webhook_id` String `json:$.webhook_id`,
+  `url` String `json:$.url`,
+  `event` LowCardinality(String) `json:$.event`,
+  `http_status` UInt16 `json:$.http_status`,
+  `request_body` String `json:$.request_body`,
+  `response_body` String `json:$.response_body`,
+  `message_id` String `json:$.message_id`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "timestamp, webhook_id, event_id"

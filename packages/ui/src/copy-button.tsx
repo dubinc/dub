@@ -46,6 +46,7 @@ export function CopyButton({
         setTimeout(() => setCopied(false), 3000);
       }}
       className={cn(copyButtonVariants({ variant }), className)}
+      type="button"
     >
       <span className="sr-only">Copy</span>
       {copied ? (

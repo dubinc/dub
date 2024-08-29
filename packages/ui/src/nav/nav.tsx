@@ -153,12 +153,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
                             {name}
                           </Link>
                         ) : (
-                          <button
-                            className={cn(
-                              navItemStyles({ isActive }),
-                              "cursor-default",
-                            )}
-                          >
+                          <button className={navItemStyles({ isActive })}>
                             {name}
                           </button>
                         )}

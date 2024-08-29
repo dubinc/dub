@@ -1,0 +1,48 @@
+{
+  "id": "evt_d6QRfbCvrVFcZx2pJ3dUm8Aum",
+  "event": "sale.created",
+  "createdAt": "2024-08-26T13:30:57.703Z",
+  "data": {
+    "eventName": "Purchased",
+    "customerId": "cm0b0xkle0001qqydqe96vaj3",
+    "customerName": "Empty Apricot Hawk",
+    "customerEmail": null,
+    "customerAvatar": null,
+    "amount": 20000,
+    "paymentProcessor": "stripe",
+    "invoiceId": null,
+    "currency": "usd",
+    "click": {
+      "clickId": "woQlFnkMQxUyROL3",
+      "url": "https://suretriggers.com/docs/how-to-set-up-webhooks-in-postmark/",
+      "ip": "63.141.57.109",
+      "continent": "NA",
+      "country": "US",
+      "city": "San Francisco",
+      "region": "CA",
+      "latitude": "37.7695",
+      "longitude": "-122.385",
+      "device": "Desktop",
+      "deviceVendor": "Apple",
+      "deviceModel": "Macintosh",
+      "browser": "Chrome",
+      "browserVersion": "127.0.0.0",
+      "engine": "Blink",
+      "engineVersion": "127.0.0.0",
+      "os": "Mac OS",
+      "osVersion": "10.15.7",
+      "cpuArchitecture": "Unknown",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+      "bot": false,
+      "qr": false,
+      "referer": "(direct)",
+      "refererUrl": "(direct)"
+    },
+    "link": {
+      "id": "cm0atl8tk0001k15k4691jyga",
+      "externalId": null,
+      "domain": "dub.sh",
+      "key": "DUc7ENl"
+    }
+  }
+}

@@ -1,11 +1,17 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, Project } from "@prisma/client";
+import { Link, Project, Webhook } from "@prisma/client";
+import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { integrationSchema } from "./zod/schemas/integration";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import { tokenSchema } from "./zod/schemas/token";
+import {
+  createWebhookSchema,
+  webhookEventSchemaTB,
+  webhookSchema,
+} from "./zod/schemas/webhooks";
 
 export type LinkProps = Link;
 
@@ -40,6 +46,7 @@ export interface RedisLinkProps {
   geo?: object;
   doIndex?: boolean;
   projectId?: string;
+  webhookIds?: string[];
 }
 
 export interface EdgeLinkProps {
@@ -70,7 +77,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "dublink" | "referrals";
+export type BetaFeatures = "dublink" | "referrals" | "webhooks";
 
 export type AddOns = "conversion" | "sso";
 
@@ -238,3 +245,16 @@ export type InstalledIntegrationInfoProps = Pick<
     };
   } | null;
 };
+
+export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
+
+export type WebhookProps = z.infer<typeof webhookSchema>;
+
+export type NewWebhook = z.infer<typeof createWebhookSchema>;
+
+export type WebhookEventProps = z.infer<typeof webhookEventSchemaTB>;
+
+export type WebhookCacheProps = Pick<
+  Webhook,
+  "id" | "url" | "secret" | "triggers"
+>;
