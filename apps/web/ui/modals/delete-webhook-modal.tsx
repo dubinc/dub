@@ -69,7 +69,10 @@ function DeleteWebhookModal({
           <Logo />
         )}
         <h3 className="text-lg font-medium">Delete {webhook.name}</h3>
-        <p className="text-center text-sm text-gray-500">{webhook.url}</p>
+        <p className="text-center text-sm text-gray-500">
+          This will stop all events from being sent to the endpoint and remove
+          all webhook logs
+        </p>
       </div>
 
       <form
