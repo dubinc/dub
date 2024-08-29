@@ -86,7 +86,7 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
           </div>
         </button>
       </SheetTrigger>
-      <SheetContent className="overflow-y-scroll p-0">
+      <SheetContent className="overflow-y-scroll p-0 sm:max-w-screen-sm">
         <div className="p-6">
           <h3 className="text-lg font-semibold">{event.event}</h3>
           <div className="group flex items-center gap-2">

@@ -79,10 +79,7 @@ export default function WebhooksPageClient() {
             onClick={() =>
               router.push(`/${workspace.slug}/settings/webhooks/new`)
             }
-            // disabledTooltip={permissionsError}
-            // {...(needsHigherPlan && {
-            //   disabledTooltip: permissionsError,
-            // })}
+            disabledTooltip={permissionsError}
           />
         </div>
       </div>
