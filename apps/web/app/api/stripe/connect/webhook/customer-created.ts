@@ -51,10 +51,8 @@ export async function customerCreated(event: Stripe.Event) {
   }
 
   // Create customer
-  const customerId = nanoid(16);
   const customer = await prisma.customer.create({
     data: {
-      id: customerId,
       name: stripeCustomer.name,
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
