@@ -3,6 +3,7 @@ export const DEFAULT_LINK_PROPS: any = {
   url: "",
   domain: "",
   archived: false,
+  tags: [], // note: removing this breaks the link builder
 
   title: null,
   description: null,

@@ -106,7 +106,6 @@ export const POST = withWorkspace(
             await sendWorkspaceWebhook({
               trigger: "link.created",
               workspace,
-              // @ts-ignore
               data: transformLinkEventData(response),
             });
           })(),
