@@ -5,12 +5,15 @@ import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
+import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -47,6 +50,20 @@ export const POST = withWorkspaceEdge(
       throw new DubApiError({
         code: "not_found",
         message: `Click event not found for clickId: ${clickId}`,
+      });
+    }
+
+    const linkId = clickEvent.data[0].link_id;
+    const link = await prismaEdge.link.findUnique({
+      where: {
+        id: linkId,
+      },
+    });
+
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link not found for linkId: ${linkId}`,
       });
     }
 
@@ -136,6 +153,20 @@ export const POST = withWorkspaceEdge(
       customerAvatar: customer.avatar,
       metadata,
     });
+
+    waitUntil(
+      (async () => {
+        sendLinkWebhookOnEdge({
+          trigger: "lead.created",
+          linkId,
+          data: transformLeadEventData({
+            ...response,
+            ...clickData,
+            ...link,
+          }),
+        });
+      })(),
+    );
 
     return NextResponse.json(response);
   },
