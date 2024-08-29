@@ -1,6 +1,6 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { compositeAnalyticsResponse } from "@/lib/zod/schemas/composite-analytics";
+import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
@@ -22,8 +22,8 @@ describe
 
         const responseSchema =
           groupBy === "count"
-            ? compositeAnalyticsResponse[groupBy].strict()
-            : z.array(compositeAnalyticsResponse[groupBy].strict());
+            ? analyticsResponse[groupBy].strict()
+            : z.array(analyticsResponse[groupBy].strict());
 
         const parsed = responseSchema.safeParse(data);
 

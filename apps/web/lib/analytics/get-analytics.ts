@@ -5,19 +5,9 @@ import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
-import { clickAnalyticsResponse } from "../zod/schemas/clicks-analytics";
-import { compositeAnalyticsResponse } from "../zod/schemas/composite-analytics";
-import { leadAnalyticsResponse } from "../zod/schemas/leads-analytics";
-import { saleAnalyticsResponse } from "../zod/schemas/sales-analytics";
+import { analyticsResponse } from "../zod/schemas/analytics-response";
 import { INTERVAL_DATA } from "./constants";
 import { AnalyticsFilters } from "./types";
-
-const responseSchema = {
-  clicks: clickAnalyticsResponse,
-  leads: leadAnalyticsResponse,
-  sales: saleAnalyticsResponse,
-  composite: compositeAnalyticsResponse,
-};
 
 // Fetch data for /api/analytics
 export const getAnalytics = async (params: AnalyticsFilters) => {
@@ -84,7 +74,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `v1_${groupBy}`,
     parameters: analyticsFilterTB,
-    data: groupBy === "top_links" ? z.any() : responseSchema[event][groupBy],
+    data: groupBy === "top_links" ? z.any() : analyticsResponse[groupBy],
   });
 
   const response = await pipe({
@@ -139,10 +129,19 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       createdAt: link.createdAt,
     }));
 
-    return topLinksData.map((d) => ({
-      ...allLinks.find((l) => l.id === d.link),
-      ...d,
-    }));
+    return topLinksData.map((d) => {
+      const link = allLinks.find((l) => l.id === d.link);
+      if (!link) {
+        return null;
+      }
+      return {
+        ...analyticsResponse[groupBy].parse({
+          ...link,
+          createdAt: link.createdAt.toISOString(),
+          ...d,
+        }),
+      };
+    });
   }
 
   // Return array for other endpoints

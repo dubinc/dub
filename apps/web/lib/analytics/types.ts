@@ -11,13 +11,11 @@ import {
 } from "./constants";
 
 export type IntervalOptions = (typeof intervals)[number];
+
 export type AnalyticsGroupByOptions =
   (typeof VALID_ANALYTICS_ENDPOINTS)[number];
-export type CompositeAnalyticsResponseOptions =
-  | "clicks"
-  | "leads"
-  | "sales"
-  | "amount";
+
+export type AnalyticsResponseOptions = "clicks" | "leads" | "sales" | "amount";
 
 export type EventType = (typeof EVENT_TYPES)[number];
 

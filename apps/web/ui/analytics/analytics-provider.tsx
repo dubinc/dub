@@ -6,8 +6,8 @@ import {
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import {
+  AnalyticsResponseOptions,
   AnalyticsView,
-  CompositeAnalyticsResponseOptions,
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
@@ -41,7 +41,7 @@ export const AnalyticsContext = createContext<{
   interval?: string;
   tagId?: string;
   totalEvents?: {
-    [key in CompositeAnalyticsResponseOptions]: number;
+    [key in AnalyticsResponseOptions]: number;
   };
   adminPage?: boolean;
   demoPage?: boolean;
@@ -195,7 +195,7 @@ export default function AnalyticsProvider({
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { data: totalEvents } = useSWR<{
-    [key in CompositeAnalyticsResponseOptions]: number;
+    [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
       event: demoPage || conversionEnabled ? "composite" : "clicks",

@@ -1,4 +1,4 @@
-import { CompositeAnalyticsResponseOptions } from "@/lib/analytics/types";
+import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { MiniAreaChart } from "@dub/blocks";
@@ -29,7 +29,7 @@ export default function EventsTabs() {
     useContext(AnalyticsContext);
 
   const { data: totalEvents, isLoading: isLoadingTotalEvents } = useSWR<{
-    [key in CompositeAnalyticsResponseOptions]: number;
+    [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
       event: demoPage || conversionEnabled ? "composite" : "clicks",
