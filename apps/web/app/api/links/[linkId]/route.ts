@@ -128,7 +128,6 @@ export const PATCH = withWorkspace(
         sendWorkspaceWebhook({
           trigger: "link.updated",
           workspace,
-          // @ts-ignore
           data: transformLinkEventData(response),
         }),
       );
@@ -172,7 +171,6 @@ export const DELETE = withWorkspace(
       sendWorkspaceWebhook({
         trigger: "link.deleted",
         workspace,
-        // @ts-ignore
         data: transformLinkEventData(transformLink(link)),
       }),
     );
