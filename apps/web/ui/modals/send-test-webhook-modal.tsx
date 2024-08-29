@@ -53,11 +53,14 @@ function SendTestWebhookModal({
     <Modal
       showModal={showSendTestWebhookModal}
       setShowModal={setShowSendTestWebhookModal}
+      className="overflow-visible"
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
         <Logo />
         <h3 className="text-lg font-medium">Send test webhook event</h3>
-        <p className="text-center text-sm text-gray-500">{webhook?.url}</p>
+        <p className="text-center text-sm text-gray-500">
+          Choose a webhook event to send to your receiver endpoint
+        </p>
       </div>
       <form
         onSubmit={async (e) => {
