@@ -120,8 +120,6 @@ export const RESOURCE_SCOPES: {
       "tags.write",
       "domains.read",
       "domains.write",
-      "workspaces.read",
-      "workspaces.write",
       "analytics.read",
       "conversions.write",
     ],
