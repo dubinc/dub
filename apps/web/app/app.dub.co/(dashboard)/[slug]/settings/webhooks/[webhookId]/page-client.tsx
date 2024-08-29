@@ -29,7 +29,8 @@ export default function WebhookLogsPageClient({
   }
 
   const { data: events, isLoading } = useSWR<WebhookEventProps[]>(
-    `/api/webhooks/${webhookId}/events?workspaceId=${workspaceId}`,
+    !permissionsError &&
+      `/api/webhooks/${webhookId}/events?workspaceId=${workspaceId}`,
     fetcher,
     {
       keepPreviousData: true,

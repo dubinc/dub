@@ -20,6 +20,7 @@ export * from "./label";
 export * from "./modal";
 export * from "./popover";
 export * from "./radio-group";
+export * from "./sheet";
 export * from "./status-badge";
 export * from "./switch";
 export * from "./table";

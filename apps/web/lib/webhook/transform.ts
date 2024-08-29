@@ -44,7 +44,6 @@ export const transformClickEventData = (
 
   return clickEventSchema.parse({
     ...click,
-    id: click.clickId,
     link: {
       id: click.linkId,
     },
