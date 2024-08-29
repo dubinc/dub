@@ -6,9 +6,8 @@ export const RESOURCE_KEYS = [
   "tags",
   "tokens",
   "conversions",
+  "webhooks",
 ] as const;
-
-export type ResourceKey = (typeof RESOURCE_KEYS)[number];
 
 export const RESOURCES: {
   name: string;
@@ -52,4 +51,12 @@ export const RESOURCES: {
     description: "Track conversions (customer, lead, sales)",
     betaFeature: true,
   },
+  {
+    name: "Webhooks",
+    key: "webhooks",
+    description: "Create, read, update, and delete webhooks",
+    betaFeature: true,
+  },
 ];
+
+export type ResourceKey = (typeof RESOURCE_KEYS)[number];
