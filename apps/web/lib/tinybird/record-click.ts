@@ -61,7 +61,7 @@ export async function recordClick({
   );
 
   if (!success) {
-    // return null;
+    return null;
   }
 
   const isQr = detectQr(req);
