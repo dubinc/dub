@@ -127,16 +127,19 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
             />
           </Popover>
         </div>
-        <TabSelect
-          options={[
-            { id: "", label: "Webhook Logs" },
-            { id: "edit", label: "Update Details" },
-          ]}
-          selected={page}
-          onSelect={(id: "" | "edit") => {
-            router.push(`/${slug}/settings/webhooks/${webhookId}/${id}`);
-          }}
-        />
+        <div className="-ml-1.5 border-b border-gray-200">
+          <TabSelect
+            options={[
+              { id: "", label: "Webhook Logs" },
+              { id: "edit", label: "Update Details" },
+            ]}
+            selected={page}
+            onSelect={(id: "" | "edit") => {
+              router.push(`/${slug}/settings/webhooks/${webhookId}/${id}`);
+            }}
+            className="gap-2"
+          />
+        </div>
       </MaxWidthWrapper>
     </>
   );
