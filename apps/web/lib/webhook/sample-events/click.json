@@ -3,7 +3,7 @@
   "event": "link.clicked",
   "createdAt": "2024-08-26T16:37:15.889Z",
   "data": {
-    "id": "rgxOhhIKj8CEmyxn",
+    "clickId": "rgxOhhIKj8CEmyxn",
     "aliasLinkId": "",
     "url": "https://suretriggers.com/docs/how-to-set-up-webhooks-in-postmark/",
     "ip": "63.141.57.109",

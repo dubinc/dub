@@ -13,7 +13,7 @@
     "invoiceId": null,
     "currency": "usd",
     "click": {
-      "id": "woQlFnkMQxUyROL3",
+      "clickId": "woQlFnkMQxUyROL3",
       "url": "https://suretriggers.com/docs/how-to-set-up-webhooks-in-postmark/",
       "ip": "63.141.57.109",
       "continent": "NA",
