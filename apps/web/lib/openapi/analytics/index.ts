@@ -2,6 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { clickAnalyticsResponse } from "@/lib/zod/schemas/clicks-analytics";
+import { compositeAnalyticsResponse } from "@/lib/zod/schemas/composite-analytics";
 import { leadAnalyticsResponse } from "@/lib/zod/schemas/leads-analytics";
 import { saleAnalyticsResponse } from "@/lib/zod/schemas/sales-analytics";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
@@ -22,6 +23,35 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.union([
+            compositeAnalyticsResponse.count,
+            z
+              .array(compositeAnalyticsResponse.timeseries)
+              .openapi({ title: "CompositeTimeseries" }),
+            z
+              .array(compositeAnalyticsResponse.countries)
+              .openapi({ title: "CompositeCountries" }),
+            z
+              .array(compositeAnalyticsResponse.cities)
+              .openapi({ title: "CompositeCities" }),
+            z
+              .array(compositeAnalyticsResponse.devices)
+              .openapi({ title: "CompositeDevices" }),
+            z
+              .array(compositeAnalyticsResponse.browsers)
+              .openapi({ title: "CompositeBrowsers" }),
+            z
+              .array(compositeAnalyticsResponse.os)
+              .openapi({ title: "CompositeOS" }),
+            z
+              .array(compositeAnalyticsResponse.referers)
+              .openapi({ title: "CompositeReferers" }),
+            z
+              .array(compositeAnalyticsResponse.top_links)
+              .openapi({ title: "CompositeTopLinks" }),
+            z
+              .array(compositeAnalyticsResponse.top_urls)
+              .openapi({ title: "CompositeTopUrls" }),
+
             clickAnalyticsResponse.count,
             z
               .array(clickAnalyticsResponse.timeseries)
