@@ -1,17 +1,14 @@
 "use client";
 
 import useLinks from "@/lib/swr/use-links";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { Globe2 } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DomainSelector() {
-  const router = useRouter();
-
-  const { slug } = useWorkspace();
+  const { continueTo } = useOnboardingProgress();
 
   return (
     <div>
@@ -27,12 +24,12 @@ export function DomainSelector() {
         <Button
           type="button"
           variant="primary"
-          onClick={() => router.push(`/onboarding/domain/custom?slug=${slug}`)}
+          onClick={() => continueTo("domain/custom")}
           text="Continue"
         />
         <button
           type="button"
-          onClick={() => router.push(`/onboarding/invite?slug=${slug}`)}
+          onClick={() => continueTo("invite")}
           className="mt-4 w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700"
         >
           I'll do this later

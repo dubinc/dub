@@ -5,8 +5,12 @@ import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-const emailInviteSchema = z.object({
-  email: z.string().email(),
+const inviteTeammatesSchema = z.object({
+  teammates: z.array(
+    z.object({
+      email: z.string().email(),
+    }),
+  ),
 });
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
@@ -31,7 +35,14 @@ export const GET = withWorkspace(
 // POST /api/workspaces/[idOrSlug]/invites – invite a teammate
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { email } = emailInviteSchema.parse(await req.json());
+    const { teammates } = inviteTeammatesSchema.parse(await req.json());
+
+    if (teammates.length > 10) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "You can only invite up to 10 teammates at a time.",
+      });
+    }
 
     const [alreadyInWorkspace, workspaceUserCount, workspaceInviteCount] =
       await Promise.all([
@@ -39,7 +50,9 @@ export const POST = withWorkspace(
           where: {
             projectId: workspace.id,
             user: {
-              email,
+              email: {
+                in: teammates.map(({ email }) => email),
+              },
             },
           },
         }),
@@ -65,7 +78,10 @@ export const POST = withWorkspace(
       });
     }
 
-    if (workspaceUserCount + workspaceInviteCount >= workspace.usersLimit) {
+    if (
+      workspaceUserCount + workspaceInviteCount + teammates.length >
+      workspace.usersLimit
+    ) {
       throw new DubApiError({
         code: "exceeded_limit",
         message: exceededLimitError({
@@ -76,13 +92,28 @@ export const POST = withWorkspace(
       });
     }
 
-    await inviteUser({
-      email,
-      workspace,
-      session,
-    });
+    // We could update inviteUser to accept multiple emails but it's not trivial
+    const results = await Promise.allSettled(
+      teammates.map(({ email }) =>
+        inviteUser({
+          email,
+          workspace,
+          session,
+        }),
+      ),
+    );
 
-    return NextResponse.json({ message: "Invite sent" });
+    if (results.some((result) => result.status === "rejected")) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          teammates.length > 1
+            ? "Some invitations could not be sent."
+            : "Invitation could not be sent.",
+      });
+    }
+
+    return NextResponse.json({ message: "Invite(s) sent" });
   },
   {
     requiredPermissions: ["workspaces.write"],
@@ -92,7 +123,11 @@ export const POST = withWorkspace(
 // DELETE /api/workspaces/[idOrSlug]/invites – delete a pending invite
 export const DELETE = withWorkspace(
   async ({ searchParams, workspace }) => {
-    const { email } = emailInviteSchema.parse(searchParams);
+    const { email } = z
+      .object({
+        email: z.string().email(),
+      })
+      .parse(searchParams);
     const response = await prisma.projectInvite.delete({
       where: {
         email_projectId: {

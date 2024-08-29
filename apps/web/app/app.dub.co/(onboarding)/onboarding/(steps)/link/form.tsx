@@ -8,13 +8,13 @@ import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button } from "@dub/ui";
 import { LoadingCircle, Photo } from "@dub/ui/src/icons";
 import { getUrlWithoutUTMParams } from "@dub/utils";
-import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 type FormData = {
   url: string;
@@ -25,7 +25,7 @@ type FormData = {
 };
 
 export function Form() {
-  const router = useRouter();
+  const { continueTo } = useOnboardingProgress();
 
   const { id: workspaceId, nextPlan, slug } = useWorkspace();
 
@@ -119,7 +119,7 @@ export function Form() {
               toast.error(error.message);
             }
           }
-          return;
+          throw new Error(error);
         }
 
         await mutate(
@@ -130,7 +130,7 @@ export function Form() {
         const result = await res.json();
         posthog.capture("link_created", result);
 
-        router.push(`/onboarding/domain?slug=${slug}`);
+        continueTo("domain");
       })}
     >
       <DestinationUrlInput domains={domains} {...register("url")} />

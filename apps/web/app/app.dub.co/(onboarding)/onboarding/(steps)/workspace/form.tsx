@@ -1,16 +1,16 @@
 "use client";
 
 import { CreateWorkspaceForm } from "@/ui/workspaces/create-workspace-form";
-import { useRouter } from "next/navigation";
+import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function Form() {
-  const router = useRouter();
+  const { continueTo } = useOnboardingProgress();
 
   return (
     <CreateWorkspaceForm
       className="w-full"
       onSuccess={({ slug }) => {
-        router.push(`/onboarding/link?slug=${slug}`);
+        continueTo("link", { slug });
       }}
     />
   );

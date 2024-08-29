@@ -26,7 +26,7 @@ export default function Welcome() {
         Dub gives you marketing superpowers with short links that stand out.
       </p>
       <div className="animate-slide-up-fade mt-10 w-full [--offset:10px] [animation-delay:750ms] [animation-duration:1s] [animation-fill-mode:both]">
-        <NextButton text="Get started" href="/onboarding/workspace" />
+        <NextButton text="Get started" step="workspace" />
       </div>
     </div>
   );

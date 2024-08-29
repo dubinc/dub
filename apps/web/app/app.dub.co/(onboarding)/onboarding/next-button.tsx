@@ -1,16 +1,16 @@
 "use client";
 
 import { Button, ButtonProps } from "@dub/ui";
-import { useRouter } from "next/navigation";
+import { useOnboardingProgress } from "./use-onboarding-progress";
 
-export function NextButton({ href, ...rest }: { href: string } & ButtonProps) {
-  const router = useRouter();
+export function NextButton({ step, ...rest }: { step: string } & ButtonProps) {
+  const { continueTo } = useOnboardingProgress();
 
   return (
     <Button
       variant="primary"
       text="Next"
-      onClick={() => router.push(href)}
+      onClick={() => continueTo(step)}
       {...rest}
     />
   );
