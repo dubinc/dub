@@ -33,7 +33,7 @@ export const DestinationUrlInput = forwardRef<
     return (
       <div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <label
               htmlFor={inputId}
               className="block text-sm font-medium text-gray-700"
