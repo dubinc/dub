@@ -46,7 +46,7 @@ export function TokenAvatar({
 }) {
   return (
     <img
-      src={`https://api.dicebear.com/7.x/shapes/svg?seed=${id}`}
+      src={`https://api.dicebear.com/9.x/shapes/svg?seed=${id}`}
       alt="avatar"
       className={cn("h-10 w-10 rounded-full", className)}
       draggable={false}

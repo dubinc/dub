@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
+import { sendLinkWebhook } from "@/lib/webhook/publish";
+import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "customer.created"
@@ -20,6 +23,18 @@ export async function customerCreated(event: Stripe.Event) {
   const clickEvent = await getClickEvent({ clickId });
   if (!clickEvent || clickEvent.data.length === 0) {
     return `Click event with ID ${clickId} not found, skipping...`;
+  }
+
+  // Find link
+  const linkId = clickEvent.data[0].link_id;
+  const link = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+  });
+
+  if (!link) {
+    return `Link with ID ${linkId} not found, skipping...`;
   }
 
   // Check the customer is not already created
@@ -57,6 +72,13 @@ export async function customerCreated(event: Stripe.Event) {
     .omit({ timestamp: true })
     .parse(clickEvent.data[0]);
 
+  const leadData = {
+    ...clickData,
+    event_id: nanoid(16),
+    event_name: "New customer",
+    customer_id: customer.id,
+  };
+
   await Promise.all([
     // Record customer
     recordCustomer({
@@ -68,17 +90,12 @@ export async function customerCreated(event: Stripe.Event) {
     }),
 
     // Record lead
-    recordLead({
-      ...clickData,
-      event_id: nanoid(16),
-      event_name: "New customer",
-      customer_id: customer.id,
-    }),
+    recordLead(leadData),
 
     // update link leads count
     prisma.link.update({
       where: {
-        id: clickData.link_id,
+        id: linkId,
       },
       data: {
         leads: {
@@ -87,6 +104,23 @@ export async function customerCreated(event: Stripe.Event) {
       },
     }),
   ]);
+
+  waitUntil(
+    (async () => {
+      sendLinkWebhook({
+        trigger: "lead.created",
+        linkId,
+        data: transformLeadEventData({
+          ...leadData,
+          ...link,
+          customerId: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        }),
+      });
+    })(),
+  );
 
   return `Customer created: ${customer.id}`;
 }

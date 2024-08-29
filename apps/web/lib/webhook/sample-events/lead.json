@@ -1,0 +1,44 @@
+{
+  "id": "evt_LiTGZBn26j8XDpfbVtZyEWOtx",
+  "event": "lead.created",
+  "createdAt": "2024-08-26T17:50:25.001Z",
+  "data": {
+    "eventName": "Sign up",
+    "customerId": "3",
+    "customerName": "Determined Apricot Wombat",
+    "customerEmail": null,
+    "customerAvatar": null,
+    "click": {
+      "clickId": "xCl3mETSm37wndlM",
+      "url": "https://github.com/pilcrowOnPaper/astro-email-password-2fa?ref=facebook",
+      "ip": "63.141.57.109",
+      "continent": "NA",
+      "country": "US",
+      "city": "San Francisco",
+      "region": "CA",
+      "latitude": "37.7695",
+      "longitude": "-122.385",
+      "device": "Desktop",
+      "deviceVendor": "Apple",
+      "deviceModel": "Macintosh",
+      "browser": "Chrome",
+      "browserVersion": "127.0.0.0",
+      "engine": "Blink",
+      "engineVersion": "127.0.0.0",
+      "os": "Mac OS",
+      "osVersion": "10.15.7",
+      "cpuArchitecture": "Unknown",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+      "bot": false,
+      "qr": false,
+      "referer": "(direct)",
+      "refererUrl": "(direct)"
+    },
+    "link": {
+      "id": "cm0atl8tk0001k15k4691jyga",
+      "externalId": null,
+      "domain": "dub.sh",
+      "key": "DUc7ENl"
+    }
+  }
+}

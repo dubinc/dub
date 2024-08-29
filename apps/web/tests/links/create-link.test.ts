@@ -39,7 +39,6 @@ describe.sequential("POST /links", async () => {
       workspaceId: null,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
   });
 
@@ -71,7 +70,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -102,7 +100,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -136,7 +133,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -177,7 +173,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -208,7 +203,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -242,7 +236,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -277,7 +270,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -312,7 +304,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -402,7 +393,6 @@ describe.sequential("POST /links", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 
@@ -436,7 +426,6 @@ describe.sequential("POST /links?workspaceId=xxx", async () => {
       workspaceId,
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
-      tags: [],
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
 

@@ -37,7 +37,6 @@ import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
 import Markdown from "react-markdown";
-import "react-medium-image-zoom/dist/styles.css";
 import { toast } from "sonner";
 
 export default function IntegrationPageClient({

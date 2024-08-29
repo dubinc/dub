@@ -3,12 +3,15 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -57,6 +60,21 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
+    // Find link
+    const linkId = clickData.link_id;
+    const link = await prismaEdge.link.findUnique({
+      where: {
+        id: linkId,
+      },
+    });
+
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link with ID ${linkId} not found, skipping...`,
+      });
+    }
+
     await Promise.all([
       recordSale({
         ...clickData,
@@ -72,7 +90,7 @@ export const POST = withWorkspaceEdge(
       // update link sales count
       prismaEdge.link.update({
         where: {
-          id: leadEvent.data[0].link_id,
+          id: linkId,
         },
         data: {
           sales: {
@@ -108,6 +126,22 @@ export const POST = withWorkspaceEdge(
       metadata,
       eventName,
     });
+
+    waitUntil(
+      sendLinkWebhookOnEdge({
+        trigger: "sale.created",
+        linkId,
+        data: transformSaleEventData({
+          ...response,
+          ...clickData,
+          ...link,
+          customerId: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        }),
+      }),
+    );
 
     return NextResponse.json(response);
   },

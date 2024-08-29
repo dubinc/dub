@@ -122,6 +122,13 @@ export const POST = withWorkspace(
             },
           },
         }),
+
+        // Remove the webhooks associated with the link
+        prisma.linkWebhook.deleteMany({
+          where: {
+            linkId: link.id,
+          },
+        }),
       ]),
     );
 

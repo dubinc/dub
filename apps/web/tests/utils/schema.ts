@@ -1,7 +1,10 @@
 import { Link, Project, Tag } from "@prisma/client";
 import { expect } from "vitest";
 
-export const expectedLink: Partial<Link> & { tagId: string | null } = {
+export const expectedLink: Partial<Link> & {
+  tagId: string | null;
+  tags: [];
+} = {
   id: expect.any(String),
   key: expect.any(String),
   domain: "dub.sh",
@@ -32,6 +35,7 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   saleAmount: 0,
   tagId: null, // backwards compatibility
   comments: null,
+  tags: [],
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
   expiredUrl: null,
