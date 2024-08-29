@@ -75,7 +75,13 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
           </div>
 
           <div className="text-xs text-gray-400">
-            {new Date(event.timestamp).toLocaleString()}
+            {(() => {
+              const date = new Date(event.timestamp);
+              const localDate = new Date(
+                date.getTime() - date.getTimezoneOffset() * 60000,
+              );
+              return localDate.toLocaleString();
+            })()}
           </div>
         </button>
       </SheetTrigger>

@@ -77,7 +77,7 @@ export const webhookPayloadSchema = z.object({
     .describe("The type of event that triggered the webhook."),
   createdAt: z
     .string()
-    .describe("The date and time when the event was created."),
+    .describe("The date and time when the event was created in UTC."),
   data: z.union([
     linkEventSchema,
     clickEventSchema,
