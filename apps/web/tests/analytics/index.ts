@@ -4,8 +4,12 @@ import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
-import { filter } from "./utils";
 
+const filter = {
+  domain: "dub.sh",
+  key: "checkly-check",
+  interval: "30d",
+};
 describe
   .runIf(env.CI)
   .sequential("GET /analytics?event=composite", async () => {
