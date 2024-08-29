@@ -8,6 +8,7 @@ export default function Invite() {
       icon={Users}
       title="Invite teammates"
       description="Invite teammates to join your workspace. Invitations will be valid for 14 days."
+      paidPlanRequired
     >
       <Form />
     </StepPage>

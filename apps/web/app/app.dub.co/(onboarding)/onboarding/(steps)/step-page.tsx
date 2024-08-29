@@ -1,5 +1,6 @@
 import { Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Crown } from "lucide-react";
 import { PropsWithChildren, ReactNode } from "react";
 
 export function StepPage({
@@ -7,11 +8,13 @@ export function StepPage({
   icon: Icon,
   title,
   description,
+  paidPlanRequired,
   className,
 }: PropsWithChildren<{
   icon?: Icon;
   title: ReactNode;
   description: ReactNode;
+  paidPlanRequired?: boolean;
   className?: string;
 }>) {
   return (
@@ -23,6 +26,12 @@ export function StepPage({
       )}
     >
       {Icon && <StepIcon icon={Icon} />}
+      {paidPlanRequired && (
+        <div className="mt-6 flex items-center gap-1.5 rounded-full bg-gray-200/50 px-2.5 py-0.5 text-xs font-medium text-gray-700 shadow-inner">
+          <Crown className="size-3" />
+          Paid plan required
+        </div>
+      )}
       <h1 className="mt-4 text-center text-2xl font-medium leading-tight">
         {title}
       </h1>
