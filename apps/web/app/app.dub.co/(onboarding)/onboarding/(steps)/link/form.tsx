@@ -34,7 +34,7 @@ export function Form() {
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({
     defaultValues: {
       url: "",
@@ -50,7 +50,6 @@ export function Form() {
 
   useEffect(() => {
     if (!loading && primaryDomain && !link.domain) {
-      console.log("setting domain to", primaryDomain);
       setValue("link", { ...link, domain: primaryDomain });
     }
   }, [loading, primaryDomain, setValue, link]);
@@ -121,7 +120,11 @@ export function Form() {
           />
         )}
       />
-      <Button type="submit" text="Create link" loading={isSubmitting} />
+      <Button
+        type="submit"
+        text="Create link"
+        loading={isSubmitting || isSubmitSuccessful}
+      />
     </form>
   );
 }

@@ -31,7 +31,7 @@ export function CreateWorkspaceForm({
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>();
 
   const slug = watch("slug");
@@ -166,7 +166,7 @@ export function CreateWorkspaceForm({
 
       <Button
         disabled={slugError ? true : false}
-        loading={isSubmitting}
+        loading={isSubmitting || isSubmitSuccessful}
         text="Create workspace"
       />
     </form>
