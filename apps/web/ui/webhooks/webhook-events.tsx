@@ -6,6 +6,7 @@ import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
 import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
+import { toast } from "sonner";
 
 export type EventListProps = PropsWithChildren<{
   events: WebhookEventProps[];
@@ -85,12 +86,18 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
           </div>
         </button>
       </SheetTrigger>
-      <SheetContent className="overflow-y-scroll p-0 sm:max-w-screen-sm">
+      <SheetContent className="overflow-y-scroll p-0">
         <div className="p-6">
           <h3 className="text-lg font-semibold">{event.event}</h3>
           <div className="group flex items-center gap-2">
             <p className="font-mono text-sm text-gray-500">{event.event_id}</p>
-            <ButtonTooltip tooltipContent="Copy event ID">
+            <ButtonTooltip
+              tooltipContent="Copy event ID"
+              onClick={() => {
+                navigator.clipboard.writeText(event.event_id);
+                toast.success("Copied to clipboard");
+              }}
+            >
               <Copy className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
             </ButtonTooltip>
           </div>
