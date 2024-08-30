@@ -6,10 +6,7 @@ import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import {
-  trackSaleRequestSchema,
-  trackSaleResponseSchema,
-} from "@/lib/zod/schemas/sales";
+import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -102,33 +99,29 @@ export const POST = withWorkspaceEdge(
       }),
     ]);
 
-    const response = trackSaleResponseSchema.parse({
-      customerId: externalId,
+    const sale = transformSaleEventData({
+      ...clickData,
+      link,
+      eventName,
       paymentProcessor,
+      invoiceId,
       amount,
       currency,
-      invoiceId,
-      metadata,
-      eventName,
+      customerId: customer.id,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
     });
 
     waitUntil(
       sendLinkWebhookOnEdge({
         trigger: "sale.created",
         linkId: link.id,
-        data: transformSaleEventData({
-          ...response,
-          ...clickData,
-          link,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        }),
+        data: sale,
       }),
     );
 
-    return NextResponse.json(response);
+    return NextResponse.json(sale);
   },
   {
     requiredAddOn: "conversion",

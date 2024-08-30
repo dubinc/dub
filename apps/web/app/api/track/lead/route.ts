@@ -8,10 +8,7 @@ import { ratelimit } from "@/lib/upstash";
 import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import {
-  trackLeadRequestSchema,
-  trackLeadResponseSchema,
-} from "@/lib/zod/schemas/leads";
+import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -130,29 +127,25 @@ export const POST = withWorkspaceEdge(
       }),
     ]);
 
-    const response = trackLeadResponseSchema.parse({
-      clickId,
+    const lead = transformLeadEventData({
+      ...clickData,
+      link,
       eventName,
-      customerId: externalId,
+      customerId: customer.id,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,
-      metadata,
     });
 
     waitUntil(
       sendLinkWebhookOnEdge({
         trigger: "lead.created",
         linkId: link.id,
-        data: transformLeadEventData({
-          ...response,
-          ...clickData,
-          link,
-        }),
+        data: lead,
       }),
     );
 
-    return NextResponse.json(response);
+    return NextResponse.json(lead);
   },
   {
     requiredAddOn: "conversion",
