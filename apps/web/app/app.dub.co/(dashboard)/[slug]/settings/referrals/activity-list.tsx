@@ -15,7 +15,7 @@ import { capitalize, COUNTRIES, currencyFormatter, timeAgo } from "@dub/utils";
 import { ClickEvents } from "dub/dist/commonjs/models/components";
 import { useSearchParams } from "next/navigation";
 
-interface SaleEvent extends ClickEvents {
+interface SaleEvents extends ClickEvents {
   event_name: string;
   amount: number;
 }
@@ -25,7 +25,7 @@ export function ActivityList({
   totalEvents,
   demo,
 }: {
-  events: ClickEvents[] | SaleEvent[];
+  events: ClickEvents[] | SaleEvents[];
   totalEvents: number;
   demo?: boolean;
 }) {
