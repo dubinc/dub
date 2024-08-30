@@ -123,7 +123,7 @@ const saleText = {
   default: "made a payment",
 };
 
-function SaleDescription({ event }: { event: SaleEvent }) {
+function SaleDescription({ event }: { event: SaleEvents }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
