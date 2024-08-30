@@ -110,8 +110,6 @@
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.14",
     "@types/react-highlight-words": "^0.16.4",
-    "@types/topojson-client": "^3.1.1",
-    "array-to-ndjson": "^1.0.1",
     "autoprefixer": "^10.4.16",
     "dotenv-flow": "^4.0.0",
     "papaparse": "^5.4.1",
