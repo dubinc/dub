@@ -13,6 +13,7 @@ export * from "./chart-activity2";
 export * from "./chart-line";
 export * from "./check";
 export * from "./circle-check";
+export * from "./circle-dotted";
 export * from "./circle-half-dotted-clock";
 export * from "./circle-info";
 export * from "./circle-warning";
