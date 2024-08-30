@@ -31,6 +31,7 @@ export const clickEventSchemaTB = z.object({
 
 export const clickEventEnrichedSchema = z
   .object({
+    event: z.literal("click").default("click"),
     timestamp: z.string(),
     click_id: z.string(),
     link_id: z.string(),
@@ -47,4 +48,4 @@ export const clickEventEnrichedSchema = z
     ip: z.string().nullable(),
     qr: z.number().nullable(),
   })
-  .openapi({ ref: "ClickEvents" });
+  .openapi({ ref: "ClickEvent" });

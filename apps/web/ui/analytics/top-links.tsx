@@ -11,7 +11,7 @@ export default function TopLinks() {
   const { queryParams } = useRouterStuff();
 
   const { selectedTab, domain, key } = useContext(AnalyticsContext);
-  const dataKey = selectedTab === "sales" ? "amount" : "count";
+  const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
   const showUrls = domain && key;
 
   const data = useAnalyticsFilterOption({

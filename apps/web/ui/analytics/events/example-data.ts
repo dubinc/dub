@@ -70,6 +70,7 @@ export const exampleData = {
   clicks: [
     {
       ...common,
+      event: "click",
       timestamp: "2024-06-09T16:12:02.556Z",
       click_id: "1",
       continent: "NA",
@@ -79,6 +80,7 @@ export const exampleData = {
     },
     {
       ...common,
+      event: "click",
       timestamp: "2024-06-09T15:52:02.556Z",
       click_id: "2",
       continent: "NA",
@@ -88,6 +90,7 @@ export const exampleData = {
     },
     {
       ...common,
+      event: "click",
       timestamp: "2024-06-08T13:32:02.556Z",
       click_id: "3",
       continent: "NA",
@@ -99,6 +102,7 @@ export const exampleData = {
   leads: [
     {
       ...common,
+      event: "lead",
       click_id: "1",
       timestamp: "2024-06-11T17:03:56.000Z",
       event_id: "YbL8RwLTRRCxQz5H",
@@ -111,6 +115,7 @@ export const exampleData = {
     },
     {
       ...common,
+      event: "lead",
       click_id: "2",
       timestamp: "2024-06-10T16:07:56.000Z",
       event_id: "YbL8RwLTRRCxQz5H",
@@ -123,6 +128,7 @@ export const exampleData = {
     },
     {
       ...common,
+      event: "lead",
       click_id: "3",
       timestamp: "2024-06-10T16:07:56.000Z",
       event_id: "YbL8RwLTRRCxQz5H",
@@ -137,13 +143,14 @@ export const exampleData = {
   sales: [
     {
       ...common,
+      event: "sale",
       click_id: "1",
       timestamp: "2024-06-14T18:36:01.000Z",
       event_id: "Nffk2cwShKu5lQ7E",
       event_name: "Purchase",
       payment_processor: "stripe",
       invoice_id: "123456",
-      amount: 900,
+      saleAmount: 900,
       continent: "NA",
       country: "US",
       city: "San Francisco",
@@ -152,13 +159,14 @@ export const exampleData = {
     },
     {
       ...common,
+      event: "sale",
       click_id: "2",
       timestamp: "2024-06-13T20:36:06.000Z",
       event_id: "Nffk2cwShKu5lQ7E",
       event_name: "Purchase",
       payment_processor: "stripe",
       invoice_id: "123456",
-      amount: 700,
+      saleAmount: 700,
       continent: "NA",
       country: "US",
       city: "Pittsburgh",
@@ -167,13 +175,14 @@ export const exampleData = {
     },
     {
       ...common,
+      event: "sale",
       click_id: "2",
       timestamp: "2024-06-13T22:02:06.000Z",
       event_id: "Nffk2cwShKu5lQ7E",
       event_name: "Purchase",
       payment_processor: "stripe",
       invoice_id: "123456",
-      amount: 1000,
+      saleAmount: 1000,
       continent: "AS",
       country: "IN",
       city: "Kerala",

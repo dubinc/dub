@@ -20,6 +20,7 @@ export const getTotalEvents = unstable_cache(async (linkId: string) => {
     clicks: number;
     leads: number;
     sales: number;
+    // TODO update to saleAmount
     amount: number;
   }>;
 });
