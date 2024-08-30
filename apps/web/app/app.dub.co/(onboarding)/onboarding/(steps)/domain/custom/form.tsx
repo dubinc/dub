@@ -12,6 +12,7 @@ export function Form() {
         onSuccess={() => {
           continueTo("invite");
         }}
+        showAdvancedOptions={false}
       />
       <button
         type="button"

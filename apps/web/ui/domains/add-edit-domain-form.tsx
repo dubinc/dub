@@ -21,10 +21,12 @@ import DomainInput from "./domain-input";
 export function AddEditDomainForm({
   props,
   onSuccess,
+  showAdvancedOptions = true,
   className,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
+  showAdvancedOptions?: boolean;
   className?: string;
 }) {
   const { id: workspaceId } = useWorkspace();
@@ -87,8 +89,6 @@ export function AddEditDomainForm({
   const [showPlaceholderUrl, setShowPlaceholderUrl] = useState(
     !!data.placeholder,
   );
-
-  console.log(data);
 
   return (
     <form
@@ -185,109 +185,111 @@ export function AddEditDomainForm({
         )}
       </div>
 
-      <div className="flex flex-col gap-y-6">
-        <div>
-          <label className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-medium text-gray-900">
-                Default Expiration URL
-              </h2>
-              <ProBadgeTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Redirect users to a specific URL when any link under this domain has expired."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
-                  />
-                }
+      {showAdvancedOptions && (
+        <div className="flex flex-col gap-y-6">
+          <div>
+            <label className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Default Expiration URL
+                </h2>
+                <ProBadgeTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="Redirect users to a specific URL when any link under this domain has expired."
+                      cta="Learn more."
+                      href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
+                    />
+                  }
+                />
+              </div>
+              <Switch
+                checked={showDefaultExpirationUrl}
+                fn={(checked) => {
+                  setShowDefaultExpirationUrl(checked);
+                  if (!checked) setData((d) => ({ ...d, expiredUrl: "" }));
+                }}
               />
-            </div>
-            <Switch
-              checked={showDefaultExpirationUrl}
-              fn={(checked) => {
-                setShowDefaultExpirationUrl(checked);
-                if (!checked) setData((d) => ({ ...d, expiredUrl: "" }));
-              }}
-            />
-          </label>
-          <motion.div
-            animate={{ height: showDefaultExpirationUrl ? "auto" : 0 }}
-            transition={{ duration: 0.1 }}
-            initial={false}
-            className="-m-1 overflow-hidden p-1"
-          >
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                name="expiredUrl"
-                id="expiredUrl"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                placeholder="https://yourwebsite.com"
-                value={expiredUrl}
-                onChange={(e) =>
-                  setData((d) => ({ ...d, expiredUrl: e.target.value }))
-                }
-              />
-            </div>
-          </motion.div>
-        </div>
+            </label>
+            <motion.div
+              animate={{ height: showDefaultExpirationUrl ? "auto" : 0 }}
+              transition={{ duration: 0.1 }}
+              initial={false}
+              className="-m-1 overflow-hidden p-1"
+            >
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <input
+                  name="expiredUrl"
+                  id="expiredUrl"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  placeholder="https://yourwebsite.com"
+                  value={expiredUrl}
+                  onChange={(e) =>
+                    setData((d) => ({ ...d, expiredUrl: e.target.value }))
+                  }
+                />
+              </div>
+            </motion.div>
+          </div>
 
-        <div>
-          <label className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-medium text-gray-900">
-                Input Placeholder URL
-              </h2>
-              <InfoTooltip
-                content={
-                  <div className="flex max-w-sm flex-col items-center justify-center">
-                    <div className="border-b border-gray-200">
-                      <BlurImage
-                        src="https://assets.dub.co/help/domain-input-placeholder-url.png"
-                        alt="Input Placeholder URL"
-                        className="aspect-[782/506]"
-                        width={782}
-                        height={506}
-                      />
+          <div>
+            <label className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Input Placeholder URL
+                </h2>
+                <InfoTooltip
+                  content={
+                    <div className="flex max-w-sm flex-col items-center justify-center">
+                      <div className="border-b border-gray-200">
+                        <BlurImage
+                          src="https://assets.dub.co/help/domain-input-placeholder-url.png"
+                          alt="Input Placeholder URL"
+                          className="aspect-[782/506]"
+                          width={782}
+                          height={506}
+                        />
+                      </div>
+                      <p className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+                        Provide context to your teammates in the link creation
+                        modal by showing them an example of a link to be
+                        shortened.
+                      </p>
                     </div>
-                    <p className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
-                      Provide context to your teammates in the link creation
-                      modal by showing them an example of a link to be
-                      shortened.
-                    </p>
-                  </div>
-                }
-                side="right"
+                  }
+                  side="right"
+                />
+              </div>
+              <Switch
+                checked={showPlaceholderUrl}
+                fn={(checked) => {
+                  setShowPlaceholderUrl(checked);
+                  if (!checked) setData((d) => ({ ...d, placeholder: "" }));
+                }}
               />
-            </div>
-            <Switch
-              checked={showPlaceholderUrl}
-              fn={(checked) => {
-                setShowPlaceholderUrl(checked);
-                if (!checked) setData((d) => ({ ...d, placeholder: "" }));
-              }}
-            />
-          </label>
-          <motion.div
-            animate={{ height: showPlaceholderUrl ? "auto" : 0 }}
-            transition={{ duration: 0.1 }}
-            initial={false}
-            className="-m-1 overflow-hidden p-1"
-          >
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                name="placeholder"
-                id="placeholder"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                placeholder="https://dub.co/help/article/what-is-dub"
-                value={placeholder}
-                onChange={(e) =>
-                  setData((d) => ({ ...d, placeholder: e.target.value }))
-                }
-              />
-            </div>
-          </motion.div>
+            </label>
+            <motion.div
+              animate={{ height: showPlaceholderUrl ? "auto" : 0 }}
+              transition={{ duration: 0.1 }}
+              initial={false}
+              className="-m-1 overflow-hidden p-1"
+            >
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <input
+                  name="placeholder"
+                  id="placeholder"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  placeholder="https://dub.co/help/article/what-is-dub"
+                  value={placeholder}
+                  onChange={(e) =>
+                    setData((d) => ({ ...d, placeholder: e.target.value }))
+                  }
+                />
+              </div>
+            </motion.div>
+          </div>
         </div>
-      </div>
+      )}
       <Button
         text={props ? "Save changes" : "Add domain"}
         disabled={saveDisabled}
