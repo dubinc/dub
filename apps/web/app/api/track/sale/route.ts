@@ -112,25 +112,23 @@ export const POST = withWorkspaceEdge(
       eventName,
     });
 
-    const sale = transformSaleEventData({
-      ...response,
-      ...clickData,
-      link,
-      customerId: customer.id,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
-    });
-
     waitUntil(
       sendLinkWebhookOnEdge({
         trigger: "sale.created",
         linkId: link.id,
-        data: sale,
+        data: transformSaleEventData({
+          ...response,
+          ...clickData,
+          link,
+          customerId: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        }),
       }),
     );
 
-    return NextResponse.json(sale);
+    return NextResponse.json(response);
   },
   {
     requiredAddOn: "conversion",
