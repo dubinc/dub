@@ -11,7 +11,7 @@
       "avatar": "https://example.com/john.jpeg"
     },
     "click": {
-      "clickId": "d0UtZqE0BZuBPrJS",
+      "id": "d0UtZqE0BZuBPrJS",
       "url": "https://github.com/dubinc/dub",
       "ip": "63.141.57.109",
       "continent": "NA",
