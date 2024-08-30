@@ -107,7 +107,7 @@ export const POST = withWorkspaceEdge(
       invoiceId,
       amount,
       currency,
-      customerId: customer.id,
+      customerId: customer.externalId,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,

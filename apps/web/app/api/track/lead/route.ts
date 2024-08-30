@@ -131,7 +131,7 @@ export const POST = withWorkspaceEdge(
       ...clickData,
       link,
       eventName,
-      customerId: customer.id,
+      customerId: customer.externalId,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,
@@ -149,10 +149,10 @@ export const POST = withWorkspaceEdge(
       ...lead,
       // for backwards compatibility – will remove soon
       clickId: lead.click.id,
-      customerId: lead.customer.id,
-      customerName: lead.customer.name,
-      customerEmail: lead.customer.email,
-      customerAvatar: lead.customer.avatar,
+      customerId: customer.externalId,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
     });
   },
   {

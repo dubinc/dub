@@ -110,7 +110,7 @@ export async function customerCreated(event: Stripe.Event) {
       data: transformLeadEventData({
         ...leadData,
         link,
-        customerId: customer.id,
+        customerId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
         customerAvatar: customer.avatar,
