@@ -72,6 +72,7 @@ export const leadEventSchemaTB = clickEventSchemaTB
 
 export const leadEventEnrichedSchema = z
   .object({
+    event: z.literal("lead").default("lead"),
     timestamp: z.string(),
     event_id: z.string(),
     event_name: z.string(),
@@ -93,4 +94,4 @@ export const leadEventEnrichedSchema = z
     qr: z.number().nullable(),
     ip: z.string().nullable(),
   })
-  .openapi({ ref: "LeadEvents" });
+  .openapi({ ref: "LeadEvent" });

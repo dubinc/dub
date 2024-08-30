@@ -202,7 +202,7 @@ export const eventsFilterTB = analyticsFilterTB
       offset: z.coerce.number().default(0),
       limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
-      sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
+      sortBy: z.enum(["timestamp"]).default("timestamp"),
     }),
   );
 
@@ -213,6 +213,6 @@ export const eventsQuerySchema = analyticsQuerySchema
       page: z.coerce.number().default(0),
       limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
-      sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
+      sortBy: z.enum(["timestamp"]).default("timestamp"),
     }),
   );
