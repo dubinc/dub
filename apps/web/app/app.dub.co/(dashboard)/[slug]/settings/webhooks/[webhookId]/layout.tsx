@@ -9,9 +9,9 @@ export default function WebhookLayout({
   children: ReactNode;
 }) {
   return (
-    <>
+    <div className="max-w-screen grid gap-4">
       <WebhookHeader webhookId={params.webhookId} />
       {children}
-    </>
+    </div>
   );
 }
