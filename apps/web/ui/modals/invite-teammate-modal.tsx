@@ -1,5 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BlurImage, Logo, Modal, useMediaQuery } from "@dub/ui";
+import { Invite } from "@/lib/zod/schemas/invites";
+import { BlurImage, Logo, Modal } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui/src/icons";
+import { fetcher } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -7,19 +10,27 @@ import {
   useMemo,
   useState,
 } from "react";
+import useSWR from "swr";
 import { InviteTeammatesForm } from "../workspaces/invite-teammates-form";
 
 function InviteTeammateModal({
   showInviteTeammateModal,
   setShowInviteTeammateModal,
+  showSavedInvites,
 }: {
   showInviteTeammateModal: boolean;
   setShowInviteTeammateModal: Dispatch<SetStateAction<boolean>>;
+  showSavedInvites: boolean;
 }) {
-  const [inviting, setInviting] = useState(false);
-  const [email, setEmail] = useState("");
-  const { id, slug, logo } = useWorkspace();
-  const { isMobile } = useMediaQuery();
+  const { id: workspaceId, logo } = useWorkspace();
+
+  const { data: invites, isLoading } = useSWR<Invite[]>(
+    workspaceId &&
+      showInviteTeammateModal &&
+      showSavedInvites &&
+      `/api/workspaces/${workspaceId}/invites/saved`,
+    fetcher,
+  );
 
   return (
     <Modal
@@ -45,16 +56,27 @@ function InviteTeammateModal({
             for 14 days.
           </p>
         </div>
-        <InviteTeammatesForm
-          onSuccess={() => setShowInviteTeammateModal(false)}
-          className="bg-gray-50 px-4 py-8 sm:px-16"
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <LoadingSpinner />
+          </div>
+        ) : (
+          <InviteTeammatesForm
+            onSuccess={() => setShowInviteTeammateModal(false)}
+            className="bg-gray-50 px-4 py-8 sm:px-16"
+            invites={invites}
+          />
+        )}
       </div>
     </Modal>
   );
 }
 
-export function useInviteTeammateModal() {
+export function useInviteTeammateModal({
+  showSavedInvites = false,
+}: {
+  showSavedInvites?: boolean;
+} = {}) {
   const [showInviteTeammateModal, setShowInviteTeammateModal] = useState(false);
 
   const InviteTeammateModalCallback = useCallback(() => {
@@ -62,9 +84,10 @@ export function useInviteTeammateModal() {
       <InviteTeammateModal
         showInviteTeammateModal={showInviteTeammateModal}
         setShowInviteTeammateModal={setShowInviteTeammateModal}
+        showSavedInvites={showSavedInvites}
       />
     );
-  }, [showInviteTeammateModal, setShowInviteTeammateModal]);
+  }, [showInviteTeammateModal, setShowInviteTeammateModal, showSavedInvites]);
 
   return useMemo(
     () => ({

@@ -13,6 +13,7 @@ export function Form() {
         onSuccess={() => {
           continueTo("plan");
         }}
+        saveOnly
       />
       <LaterButton next="plan" className="mt-4" />
     </div>

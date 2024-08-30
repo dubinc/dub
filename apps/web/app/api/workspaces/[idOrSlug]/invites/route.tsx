@@ -2,18 +2,10 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { roles } from "@/lib/types";
+import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
+import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import { NextResponse } from "next/server";
-
-const inviteTeammatesSchema = z.object({
-  teammates: z.array(
-    z.object({
-      email: z.string().email(),
-      role: z.enum(roles),
-    }),
-  ),
-});
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
 export const GET = withWorkspace(
@@ -94,6 +86,9 @@ export const POST = withWorkspace(
         }),
       });
     }
+
+    // Delete saved invites
+    await redis.del(`invites:${workspace.id}`);
 
     // We could update inviteUser to accept multiple emails but it's not trivial
     const results = await Promise.allSettled(

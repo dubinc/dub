@@ -1,5 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Role, roles } from "@/lib/types";
+import { Invite } from "@/lib/zod/schemas/invites";
 import { Button, useMediaQuery } from "@dub/ui";
 import { Trash } from "@dub/ui/src/icons";
 import { capitalize, cn } from "@dub/utils";
@@ -18,9 +19,13 @@ type FormData = {
 
 export function InviteTeammatesForm({
   onSuccess,
+  saveOnly = false,
+  invites = [],
   className,
 }: {
   onSuccess?: () => void;
+  saveOnly?: boolean; // Whether to only save the data without actually sending invites
+  invites?: Invite[];
   className?: string;
 }) {
   const { id, slug } = useWorkspace();
@@ -33,7 +38,7 @@ export function InviteTeammatesForm({
     formState: { isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({
     defaultValues: {
-      teammates: [{ email: "", role: "member" }],
+      teammates: invites.length ? invites : [{ email: "", role: "member" }],
     },
   });
   const { fields, append, remove } = useFieldArray({
@@ -45,21 +50,30 @@ export function InviteTeammatesForm({
     <form
       onSubmit={handleSubmit(async (data) => {
         const teammates = data.teammates.filter(({ email }) => email);
-        const res = await fetch(`/api/workspaces/${id}/invites`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ teammates }),
-        });
+        const res = await fetch(
+          `/api/workspaces/${id}/invites${saveOnly ? "/saved" : ""}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ teammates }),
+          },
+        );
 
         if (res.ok) {
           await mutate(`/api/workspaces/${id}/invites`);
-          toast.success(`Invitation${teammates.length !== 1 ? "s" : ""} sent!`);
-          teammates.forEach(({ email }) =>
-            posthog.capture("teammate_invited", {
-              workspace: slug,
-              invitee_email: email,
-            }),
+
+          toast.success(
+            `Invitation${teammates.length !== 1 ? "s" : ""} ${saveOnly ? "saved" : "sent"}!`,
           );
+
+          if (!saveOnly) {
+            teammates.forEach(({ email }) =>
+              posthog.capture("teammate_invited", {
+                workspace: slug,
+                invitee_email: email,
+              }),
+            );
+          }
           onSuccess?.();
         } else {
           const { error } = await res.json();
@@ -127,7 +141,9 @@ export function InviteTeammatesForm({
       </div>
       <Button
         loading={isSubmitting || isSubmitSuccessful}
-        text={`Send invite${fields.length !== 1 ? "s" : ""}`}
+        text={
+          saveOnly ? "Continue" : `Send invite${fields.length !== 1 ? "s" : ""}`
+        }
       />
     </form>
   );
