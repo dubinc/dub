@@ -1,6 +1,7 @@
 import { setOnboardingProgress } from "@/lib/actions/set-onboarding-progress";
 import { OnboardingStep } from "@/lib/onboarding/types";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { waitUntil } from "@vercel/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
@@ -32,11 +33,11 @@ export function useOnboardingProgress() {
       step: OnboardingStep,
       { slug: slugParam }: { slug?: string } = {},
     ) => {
-      const result = await executeAsync({
-        onboardingStep: step,
-      });
-
-      if (result?.serverError) return;
+      waitUntil(
+        executeAsync({
+          onboardingStep: step,
+        }),
+      );
 
       const queryParams = PRE_SLUG_STEPS.includes(step)
         ? ""
