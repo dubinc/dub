@@ -1,7 +1,7 @@
 import { tagColors } from "@/lib/types";
 import z from "@/lib/zod";
 
-export const tagColorSchema = z
+const tagColorSchema = z
   .enum(tagColors, {
     errorMap: (issue, ctx) => {
       return {

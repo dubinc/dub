@@ -54,7 +54,7 @@ function LinkQRModalHelper({
   );
 }
 
-export function QRCodePicker({
+function QRCodePicker({
   props,
   setShowLinkQRModal,
 }: {

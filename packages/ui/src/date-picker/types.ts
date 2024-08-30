@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { Matcher } from "react-day-picker";
 import { PopoverProps } from "../popover";
 
-export type CalendarProps = {
+type CalendarProps = {
   fromYear?: number;
   toYear?: number;
   fromMonth?: Date;

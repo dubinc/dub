@@ -15,7 +15,7 @@ import {
 import { Link, Tag } from "@prisma/client";
 import { DubApiError } from "../errors";
 
-export type LinkWithTags = Link & {
+type LinkWithTags = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
 };
 
