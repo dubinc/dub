@@ -7,7 +7,6 @@ import slugify from "@sindresorhus/slugify";
 import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
 import posthog from "posthog-js";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -31,12 +30,12 @@ export function CreateWorkspaceForm({
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, isSubmitSuccessful },
+    setError,
+    clearErrors,
+    formState: { isSubmitting, isSubmitSuccessful, errors },
   } = useForm<FormData>();
 
   const slug = watch("slug");
-
-  const [slugError, setSlugError] = useState<string | null>(null);
 
   const { isMobile } = useMediaQuery();
 
@@ -68,13 +67,19 @@ export function CreateWorkspaceForm({
             const { error } = await res.json();
             const message = error.message;
 
-            if (message.toLowerCase().includes("slug")) setSlugError(message);
+            if (message.toLowerCase().includes("slug")) {
+              return setError("slug", { message });
+            }
 
             toast.error(error.message);
+            setError("root.serverError", { message: error.message });
           }
         } catch (e) {
           toast.error("Failed to create workspace.");
           console.error("Failed to create workspace", e);
+          setError("root.serverError", {
+            message: "Failed to create workspace",
+          });
         }
       })}
       className={cn("flex flex-col space-y-6 text-left", className)}
@@ -123,7 +128,7 @@ export function CreateWorkspaceForm({
             required
             autoComplete="off"
             className={`${
-              slugError
+              errors.slug
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
             } block w-full rounded-r-md focus:outline-none sm:text-sm`}
@@ -138,17 +143,17 @@ export function CreateWorkspaceForm({
               fetch(`/api/workspaces/${slug}/exists`).then(async (res) => {
                 if (res.status === 200) {
                   const exists = await res.json();
-                  setSlugError(
-                    exists === 1
-                      ? `The slug "${slug}" is already in use.`
-                      : null,
-                  );
+                  if (exists === 1)
+                    setError("slug", {
+                      message: `The slug "${slug}" is already in use.`,
+                    });
+                  else clearErrors("slug");
                 }
               });
             }}
             aria-invalid="true"
           />
-          {slugError && (
+          {errors.slug && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
               <AlertCircleFill
                 className="h-5 w-5 text-red-500"
@@ -157,15 +162,14 @@ export function CreateWorkspaceForm({
             </div>
           )}
         </div>
-        {slugError && (
+        {errors.slug && (
           <p className="mt-2 text-sm text-red-600" id="slug-error">
-            {slugError}
+            {errors.slug.message}
           </p>
         )}
       </div>
 
       <Button
-        disabled={slugError ? true : false}
         loading={isSubmitting || isSubmitSuccessful}
         text="Create workspace"
       />
