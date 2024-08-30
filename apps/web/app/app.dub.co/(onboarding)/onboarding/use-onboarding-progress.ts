@@ -2,7 +2,7 @@ import { setOnboardingProgress } from "@/lib/actions/set-onboarding-progress";
 import { OnboardingStep } from "@/lib/onboarding/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
@@ -10,7 +10,9 @@ const PRE_SLUG_STEPS = ["workspace"];
 
 export function useOnboardingProgress() {
   const router = useRouter();
-  const { slug } = useWorkspace();
+  const searchParams = useSearchParams();
+  const workspace = useWorkspace();
+  const slug = workspace?.slug || searchParams.get("slug");
 
   const { executeAsync, isExecuting, hasSucceeded } = useAction(
     setOnboardingProgress,
@@ -20,7 +22,7 @@ export function useOnboardingProgress() {
       },
       onError: ({ error }) => {
         toast.error("Failed to update onboarding progress. Please try again.");
-        console.error("Failed to update onboarding progress", Error);
+        console.error("Failed to update onboarding progress", error);
       },
     },
   );

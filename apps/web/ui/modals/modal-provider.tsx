@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
+import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
@@ -102,6 +103,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
+  const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -203,6 +205,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportShortModal />
       <ImportRebrandlyModal />
       <ImportCsvModal />
+      <WelcomeModal />
       {children}
     </ModalContext.Provider>
   );
