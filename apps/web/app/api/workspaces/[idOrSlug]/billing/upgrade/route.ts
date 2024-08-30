@@ -4,7 +4,7 @@ import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  let { plan, period, baseUrl, comparePlans } = await req.json();
+  let { plan, period, baseUrl, comparePlans, onboarding } = await req.json();
 
   if (!plan || !period) {
     return new Response("Invalid plan or period", { status: 400 });
@@ -23,11 +23,14 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       })
     : null;
 
+  const returnUrl = new URL(baseUrl);
+  if (!onboarding) returnUrl.searchParams.append("upgrade", plan);
+
   // if the user already has a subscription, create billing portal to upgrade
   if (workspace.stripeId && subscription && subscription.data.length > 0) {
     const { url } = await stripe.billingPortal.sessions.create({
       customer: workspace.stripeId,
-      return_url: `${baseUrl}?upgrade=${plan}`,
+      return_url: returnUrl.toString(),
       flow_data: comparePlans
         ? {
             type: "subscription_update",
@@ -54,11 +57,15 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
 
     // if the user does not have a subscription, create a new checkout session
   } else {
+    const successUrl = onboarding
+      ? `${APP_DOMAIN}/${workspace.slug}?onboarded=true`
+      : `${APP_DOMAIN}/${workspace.slug}/settings/billing?success=true&plan=${plan}&period=${period}`;
+
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
       billing_address_collection: "required",
-      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing?success=true&plan=${plan}&period=${period}`,
-      cancel_url: `${baseUrl}?upgrade=${plan}`,
+      success_url: successUrl,
+      cancel_url: returnUrl.toString(),
       line_items: [{ price: prices.data[0].id, quantity: 1 }],
       automatic_tax: {
         enabled: true,

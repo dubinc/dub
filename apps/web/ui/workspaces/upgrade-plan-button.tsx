@@ -5,7 +5,7 @@ import { Button } from "@dub/ui";
 import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useState } from "react";
 
@@ -14,14 +14,17 @@ export function UpgradePlanButton({
   period,
   workspaceSlug,
   text,
+  onboarding = false,
 }: {
   plan: string;
   period: "monthly" | "yearly";
   workspaceSlug?: string;
   text?: string;
+  onboarding?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const plausible = usePlausible();
 
   const selectedPlan =
@@ -30,6 +33,8 @@ export function UpgradePlanButton({
     ) ?? SELF_SERVE_PAID_PLANS[0];
 
   const [clicked, setClicked] = useState(false);
+
+  const queryString = searchParams.toString();
 
   return (
     <Button
@@ -46,7 +51,8 @@ export function UpgradePlanButton({
           body: JSON.stringify({
             plan,
             period,
-            baseUrl: `${APP_DOMAIN}${pathname}`,
+            baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
+            onboarding,
           }),
         })
           .then(async (res) => {
@@ -62,12 +68,14 @@ export function UpgradePlanButton({
               const stripe = await getStripe();
               stripe?.redirectToCheckout({ sessionId });
             } else {
-              const url = await res.json();
+              const { url } = await res.json();
               router.push(url);
             }
           })
           .catch((err) => {
             alert(err);
+          })
+          .finally(() => {
             setClicked(false);
           });
       }}

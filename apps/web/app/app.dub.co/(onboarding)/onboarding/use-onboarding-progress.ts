@@ -51,7 +51,7 @@ export function useOnboardingProgress() {
 
     if (result?.serverError) return;
 
-    router.push(`/${slug}`);
+    router.push(`/${slug}?onboarded=true`);
   }, [executeAsync, router, slug]);
 
   return {

@@ -249,7 +249,7 @@ function UpgradePlanModal({
           </div>
           <PlanFeatures plan={selectedPlan.name} className="my-4" />
           <UpgradePlanButton
-            plan={selectedPlan.name}
+            plan={selectedPlan.name.toLowerCase()}
             period={period}
             workspaceSlug={slug ?? undefined}
           />

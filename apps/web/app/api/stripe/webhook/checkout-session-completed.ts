@@ -63,8 +63,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         select: {
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
+              onboardingStep: true,
             },
           },
         },
@@ -87,12 +89,29 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   });
 
   const users = workspace.users.map(({ user }) => ({
+    id: user.id,
     name: user.name,
     email: user.email,
+    onboardingStep: user.onboardingStep,
   }));
 
-  await Promise.allSettled(
-    users.map((user) => {
+  const usersInOnboarding = users.filter(({ onboardingStep }) =>
+    Boolean(onboardingStep),
+  );
+
+  await Promise.allSettled([
+    // Complete onboarding for workspace users
+    prisma.user.updateMany({
+      where: {
+        id: {
+          in: usersInOnboarding.map(({ id }) => id),
+        },
+      },
+      data: {
+        onboardingStep: null,
+      },
+    }),
+    ...users.map((user) => {
       limiter.schedule(() =>
         sendEmail({
           email: user.email as string,
@@ -106,5 +125,5 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         }),
       );
     }),
-  );
+  ]);
 }
