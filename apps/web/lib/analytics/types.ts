@@ -15,7 +15,11 @@ export type IntervalOptions = (typeof intervals)[number];
 export type AnalyticsGroupByOptions =
   (typeof VALID_ANALYTICS_ENDPOINTS)[number];
 
-export type AnalyticsResponseOptions = "clicks" | "leads" | "sales" | "amount";
+export type AnalyticsResponseOptions =
+  | "clicks"
+  | "leads"
+  | "sales"
+  | "saleAmount";
 
 export type EventType = (typeof EVENT_TYPES)[number];
 

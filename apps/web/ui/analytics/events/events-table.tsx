@@ -349,6 +349,20 @@ export default function EventsTable() {
               </Tooltip>
             ),
         },
+        // Sale amount
+        {
+          id: "saleAmount",
+          header: "Sale Amount",
+          accessorKey: "saleAmount",
+          enableHiding: false,
+          minSize: 120,
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-2">
+              <span>${nFormatter(getValue() / 100)}</span>
+              <span className="text-gray-400">USD</span>
+            </div>
+          ),
+        },
         // Date
         {
           id: "timestamp",
@@ -378,20 +392,6 @@ export default function EventsTable() {
                 })}
               </div>
             </Tooltip>
-          ),
-        },
-        // Sales amount
-        {
-          id: "amount",
-          header: "Sales Amount",
-          accessorKey: "amount",
-          enableHiding: false,
-          minSize: 120,
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-2">
-              <span>${nFormatter(getValue() / 100)}</span>
-              <span className="text-gray-400">USD</span>
-            </div>
           ),
         },
         // Menu
@@ -465,7 +465,7 @@ export default function EventsTable() {
     rowCount: needsHigherPlan ? 0 : totalEvents?.[tab] ?? 0,
     columnVisibility: columnVisibility[tab],
     onColumnVisibilityChange: (args) => setColumnVisibility(tab, args),
-    sortableColumns: ["timestamp", "amount"],
+    sortableColumns: ["timestamp"],
     sortBy: sortBy,
     sortOrder: order,
     onSortChange: ({ sortBy, sortOrder }) =>

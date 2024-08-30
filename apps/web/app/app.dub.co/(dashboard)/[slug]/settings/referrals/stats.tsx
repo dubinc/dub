@@ -150,9 +150,11 @@ async function loadData(linkId: string) {
       date: new Date(d.start),
       value: d.clicks,
     })),
+    // TODO update to saleAmount
     totalSales: totalEvents.amount,
     sales: sales.map((d) => ({
       date: new Date(d.start),
+      // TODO update to saleAmount
       value: d.amount,
     })),
     referredSignups: Math.min(totalEvents.leads, 32),

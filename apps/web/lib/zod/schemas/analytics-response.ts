@@ -7,7 +7,7 @@ export const analyticsResponse = {
       clicks: z.number().describe("The total number of clicks").default(0),
       leads: z.number().describe("The total number of leads").default(0),
       sales: z.number().describe("The total number of sales").default(0),
-      amount: z.number().describe("The total amount of sales").default(0),
+      saleAmount: z.number().describe("The total amount of sales").default(0),
     })
     .openapi({ ref: "AnalyticsCount", title: "AnalyticsCount" }),
   timeseries: z
@@ -25,7 +25,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales in the interval")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales in the interval")
         .default(0),
@@ -51,7 +51,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this continent")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this continent")
         .default(0),
@@ -77,7 +77,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this country")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this country")
         .default(0),
@@ -102,7 +102,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this city")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this city")
         .default(0),
@@ -124,7 +124,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this device")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this device")
         .default(0),
@@ -146,7 +146,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this browser")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this browser")
         .default(0),
@@ -162,7 +162,7 @@ export const analyticsResponse = {
         .default(0),
       leads: z.number().describe("The number of leads from this OS").default(0),
       sales: z.number().describe("The number of sales from this OS").default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this OS")
         .default(0),
@@ -188,7 +188,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this referer")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this referer")
         .default(0),
@@ -221,7 +221,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this link")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this link")
         .default(0),
@@ -243,7 +243,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this URL")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this URL")
         .default(0),
@@ -267,7 +267,7 @@ export const analyticsResponse = {
         .number()
         .describe("The number of sales from this trigger method.")
         .default(0),
-      amount: z
+      saleAmount: z
         .number()
         .describe("The total amount of sales from this trigger method.")
         .default(0),

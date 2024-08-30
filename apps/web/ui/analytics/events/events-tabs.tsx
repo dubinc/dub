@@ -14,7 +14,7 @@ type TimeseriesData = {
   clicks: number;
   leads: number;
   sales: number;
-  amount: number;
+  saleAmount: number;
 }[];
 
 export default function EventsTabs() {
@@ -57,7 +57,7 @@ export default function EventsTabs() {
   const onEventTabClick = useCallback(
     (event: string) => {
       const sortOptions =
-        event === "sales" ? ["timestamp", "amount"] : ["date"];
+        event === "sales" ? ["timestamp", "saleAmount"] : ["date"];
       const currentSort = searchParams.get("sort");
       queryParams({
         set: { event },
@@ -109,7 +109,7 @@ export default function EventsTabs() {
                   {...(event === "sales" && { fullNumber: true })}
                 >
                   {event === "sales"
-                    ? (totalEvents?.amount ?? 0) / 100
+                    ? (totalEvents?.saleAmount ?? 0) / 100
                     : totalEvents?.[event] ?? 0}
                 </CountingNumbers>
               ) : (
@@ -129,7 +129,7 @@ export default function EventsTabs() {
                   timeseriesData?.map((d) => ({
                     date: new Date(d.start),
                     value:
-                      ((event === "sales" ? d?.amount : d?.[event]) as
+                      ((event === "sales" ? d?.saleAmount : d?.[event]) as
                         | number
                         | undefined) ?? 0,
                   })) || []

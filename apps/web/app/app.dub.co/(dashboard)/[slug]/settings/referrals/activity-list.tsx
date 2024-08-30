@@ -2,9 +2,6 @@
 
 import { EventType } from "@/lib/analytics/types";
 import { REFERRAL_REVENUE_SHARE } from "@/lib/referrals/constants";
-import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
-import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { EventList } from "@dub/blocks";
 import {
   CaretUpFill,
@@ -15,18 +12,20 @@ import {
   UserCheck,
 } from "@dub/ui/src/icons";
 import { capitalize, COUNTRIES, currencyFormatter, timeAgo } from "@dub/utils";
+import { ClickEvents } from "dub/dist/commonjs/models/components";
 import { useSearchParams } from "next/navigation";
-import { z } from "zod";
+
+interface SaleEvent extends ClickEvents {
+  event_name: string;
+  amount: number;
+}
 
 export function ActivityList({
   events,
   totalEvents,
   demo,
 }: {
-  events:
-    | z.infer<typeof clickEventEnrichedSchema>[]
-    | z.infer<typeof leadEventEnrichedSchema>[]
-    | z.infer<typeof saleEventEnrichedSchema>[];
+  events: ClickEvents[] | SaleEvent[];
   totalEvents: number;
   demo?: boolean;
 }) {
@@ -71,11 +70,7 @@ export function ActivityList({
   );
 }
 
-function ClickDescription({
-  event,
-}: {
-  event: z.infer<typeof clickEventEnrichedSchema>;
-}) {
+function ClickDescription({ event }: { event: ClickEvents }) {
   return (
     <>
       Someone from{" "}
@@ -98,11 +93,7 @@ function ClickDescription({
   );
 }
 
-function LeadDescription({
-  event,
-}: {
-  event: z.infer<typeof leadEventEnrichedSchema>;
-}) {
+function LeadDescription({ event }: { event: ClickEvents }) {
   return (
     <>
       Someone from{" "}
@@ -132,11 +123,7 @@ const saleText = {
   default: "made a payment",
 };
 
-function SaleDescription({
-  event,
-}: {
-  event: z.infer<typeof saleEventEnrichedSchema>;
-}) {
+function SaleDescription({ event }: { event: SaleEvent }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <div>

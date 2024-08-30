@@ -49,7 +49,7 @@ export const trackSaleRequestSchema = z.object({
 export const trackSaleResponseSchema = z.object({
   eventName: z.string(),
   customerId: z.string(),
-  amount: z.number(),
+  saleAmount: z.number(),
   paymentProcessor: z.string(),
   invoiceId: z.string().nullable(),
   currency: z.string(),
@@ -82,7 +82,7 @@ export const saleEventEnrichedSchema = z
     customer_avatar: z.string(),
     payment_processor: z.string(),
     invoice_id: z.string(),
-    amount: z.number(),
+    saleAmount: z.number(),
     click_id: z.string(),
     link_id: z.string(),
     domain: z.string(),

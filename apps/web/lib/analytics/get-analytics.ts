@@ -32,9 +32,9 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   if (linkId && groupBy === "count" && interval === "all_unfiltered") {
     const columns =
       event === "composite"
-        ? `clicks, leads, sales, saleAmount as amount`
+        ? `clicks, leads, sales, saleAmount`
         : event === "sales"
-          ? `sales, saleAmount as amount`
+          ? `sales, saleAmount`
           : `${event}`;
 
     let response = await conn.execute(

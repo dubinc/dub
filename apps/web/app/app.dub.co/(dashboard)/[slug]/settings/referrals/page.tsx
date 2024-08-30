@@ -157,7 +157,7 @@ const placeholderEvents = {
           "Subscription paid",
           "Plan upgraded",
         ][idx % 3],
-        amount: [1100, 4900, 2400][idx % 3],
+        saleAmount: [1100, 4900, 2400][idx % 3],
       }) as z.infer<typeof saleEventEnrichedSchema>,
   ),
 };
