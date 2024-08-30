@@ -15,6 +15,7 @@ import {
   getIdentityHash,
 } from "../middleware/utils";
 import { conn } from "../planetscale";
+import { prismaEdge } from "../prisma/edge";
 import { ratelimit } from "../upstash";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
@@ -114,7 +115,7 @@ export async function recordClick({
     referer_url: referer || "(direct)",
   };
 
-  await Promise.allSettled([
+  const [_tb, link, _project] = await Promise.allSettled([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -127,10 +128,13 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // increment the click count for the link (based on their ID)
-    conn.execute(
-      "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-      [linkId],
-    ),
+    prismaEdge.link.update({
+      where: { id: linkId },
+      data: {
+        clicks: { increment: 1 },
+        lastClicked: new Date(),
+      },
+    }),
     // if the link has a destination URL, increment the usage count for the workspace
     // and then we have a cron that will reset it at the start of new billing cycle
     url &&
@@ -156,7 +160,16 @@ export async function recordClick({
         trigger: "link.clicked",
         webhooks: linkWebhooks,
         // @ts-ignore
-        data: transformClickEventData(clickData),
+        data: transformClickEventData({
+          ...clickData,
+          // on the super rare case that the link failed to fetch, we'll use the link ID as a fallback
+          link:
+            link.status === "fulfilled"
+              ? link.value
+              : {
+                  id: linkId,
+                },
+        }),
       });
     }
   }

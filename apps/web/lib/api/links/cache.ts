@@ -3,6 +3,10 @@ import { formatRedisLink, redis } from "@/lib/upstash";
 
 class LinkCache {
   async mset(links: (LinkProps & { webhookIds?: string[] })[]) {
+    if (links.length === 0) {
+      return;
+    }
+
     const pipeline = redis.pipeline();
 
     const redisLinks = await Promise.all(

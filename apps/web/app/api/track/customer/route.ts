@@ -58,7 +58,7 @@ export const POST = withWorkspaceEdge(
     );
 
     const response = trackCustomerResponseSchema.parse({
-      customerId: externalId,
+      customerId: customer.externalId,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,

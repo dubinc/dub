@@ -179,7 +179,6 @@ export const PATCH = withWorkspace(
         const newLinkIds = webhook.links.map(({ linkId }) => linkId);
         const oldLinkIds = oldLinks.map(({ linkId }) => linkId);
 
-        // No changes in the links
         if (!newLinkIds.length && !oldLinkIds.length) {
           return;
         }
@@ -191,6 +190,11 @@ export const PATCH = withWorkspace(
         const linksRemoved = oldLinkIds.filter(
           (linkId) => !newLinkIds.includes(linkId),
         );
+
+        // No changes in the links
+        if (!linksAdded.length && !linksRemoved.length) {
+          return;
+        }
 
         const links = await prisma.link.findMany({
           where: {

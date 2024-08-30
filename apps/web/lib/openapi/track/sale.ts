@@ -1,8 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import {
-  trackSaleRequestSchema,
-  trackSaleResponseSchema,
-} from "@/lib/zod/schemas/sales";
+import { saleEventSchema } from "@/lib/webhook/schemas";
+import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const trackSale: ZodOpenApiOperationObject = {
@@ -22,7 +20,7 @@ export const trackSale: ZodOpenApiOperationObject = {
       description: "A sale was tracked.",
       content: {
         "application/json": {
-          schema: trackSaleResponseSchema,
+          schema: saleEventSchema,
         },
       },
     },
