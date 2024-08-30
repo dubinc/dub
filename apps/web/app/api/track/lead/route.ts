@@ -140,19 +140,21 @@ export const POST = withWorkspaceEdge(
       metadata,
     });
 
+    const lead = transformLeadEventData({
+      ...response,
+      ...clickData,
+      link,
+    });
+
     waitUntil(
       sendLinkWebhookOnEdge({
         trigger: "lead.created",
         linkId: link.id,
-        data: transformLeadEventData({
-          ...response,
-          ...clickData,
-          link,
-        }),
+        data: lead,
       }),
     );
 
-    return NextResponse.json(response);
+    return NextResponse.json(lead);
   },
   {
     requiredAddOn: "conversion",
