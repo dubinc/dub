@@ -32,7 +32,7 @@ export const clickEventSchema = z.object({
   refererUrl: z.string(),
   timestamp: z.string(),
   identityHash: z.string(),
-  link: z.object({ id: z.string() }),
+  link: LinkSchema,
 });
 
 export const leadEventSchema = z.object({
@@ -42,12 +42,7 @@ export const leadEventSchema = z.object({
   customerEmail: z.string().nullable(),
   customerAvatar: z.string().nullable(),
   click: clickEventSchema.partial(),
-  link: z.object({
-    id: z.string(),
-    externalId: z.string().nullable(),
-    domain: z.string(),
-    key: z.string(),
-  }),
+  link: LinkSchema,
 });
 
 export const saleEventSchema = z.object({
@@ -61,12 +56,7 @@ export const saleEventSchema = z.object({
   invoiceId: z.string().nullable(),
   currency: z.string(),
   click: clickEventSchema.partial(),
-  link: z.object({
-    id: z.string(),
-    externalId: z.string().nullable(),
-    domain: z.string(),
-    key: z.string(),
-  }),
+  link: LinkSchema,
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub

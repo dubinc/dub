@@ -1,6 +1,7 @@
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { nanoid, toCamelCase } from "@dub/utils";
 import type { Link, Webhook } from "@prisma/client";
+import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -37,7 +38,9 @@ export const transformLinkEventData = (data: Link) => {
 };
 
 export const transformClickEventData = (
-  data: z.infer<typeof clickEventSchemaTB>,
+  data: z.infer<typeof clickEventSchemaTB> & {
+    link: any;
+  },
 ) => {
   const click = Object.fromEntries(
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
@@ -45,9 +48,7 @@ export const transformClickEventData = (
 
   return clickEventSchema.parse({
     ...click,
-    link: {
-      id: click.linkId,
-    },
+    link: transformLinkEventData(transformLink(data.link as LinkWithTags)),
   });
 };
 
@@ -63,12 +64,9 @@ export const transformLeadEventData = (data: any) => {
       qr: lead.qr === 1,
       bot: lead.bot === 1,
     },
-    link: {
-      id: lead.linkId,
-      externalId: lead.externalId,
-      domain: lead.domain,
-      key: lead.key,
-    },
+    // transformLinkEventData -> normalize date to string
+    // transformLink -> add shortLink, qrCode, workspaceId, etc.
+    link: transformLinkEventData(transformLink(lead.link as LinkWithTags)),
   });
 };
 
@@ -84,12 +82,9 @@ export const transformSaleEventData = (data: any) => {
       qr: sale.qr === 1,
       bot: sale.bot === 1,
     },
-    link: {
-      id: sale.linkId,
-      externalId: sale.externalId,
-      domain: sale.domain,
-      key: sale.key,
-    },
+    // transformLinkEventData -> normalize date to string
+    // transformLink -> add shortLink, qrCode, workspaceId, etc.
+    link: transformLinkEventData(transformLink(sale.link as LinkWithTags)),
   });
 };
 

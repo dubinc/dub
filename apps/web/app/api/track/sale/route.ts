@@ -60,22 +60,7 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    // Find link
-    const linkId = clickData.link_id;
-    const link = await prismaEdge.link.findUnique({
-      where: {
-        id: linkId,
-      },
-    });
-
-    if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Link with ID ${linkId} not found, skipping...`,
-      });
-    }
-
-    await Promise.all([
+    const [_sale, link, _project] = await Promise.all([
       recordSale({
         ...clickData,
         event_id: nanoid(16),
@@ -90,7 +75,7 @@ export const POST = withWorkspaceEdge(
       // update link sales count
       prismaEdge.link.update({
         where: {
-          id: linkId,
+          id: clickData.link_id,
         },
         data: {
           sales: {
@@ -130,11 +115,11 @@ export const POST = withWorkspaceEdge(
     waitUntil(
       sendLinkWebhookOnEdge({
         trigger: "sale.created",
-        linkId,
+        linkId: link.id,
         data: transformSaleEventData({
           ...response,
           ...clickData,
-          ...link,
+          link,
           customerId: customer.id,
           customerName: customer.name,
           customerEmail: customer.email,

@@ -53,20 +53,6 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    const linkId = clickEvent.data[0].link_id;
-    const link = await prismaEdge.link.findUnique({
-      where: {
-        id: linkId,
-      },
-    });
-
-    if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Link not found for linkId: ${linkId}`,
-      });
-    }
-
     const clickData = clickEventSchemaTB
       .omit({ timestamp: true })
       .parse(clickEvent.data[0]);
@@ -104,7 +90,7 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    await Promise.all([
+    const [_lead, _customer, link, _project] = await Promise.all([
       recordLead({
         ...clickData,
         event_id: nanoid(16),
@@ -158,11 +144,11 @@ export const POST = withWorkspaceEdge(
       (async () => {
         sendLinkWebhookOnEdge({
           trigger: "lead.created",
-          linkId,
+          linkId: link.id,
           data: transformLeadEventData({
             ...response,
             ...clickData,
-            ...link,
+            link,
           }),
         });
       })(),
