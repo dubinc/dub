@@ -145,7 +145,15 @@ export const POST = withWorkspaceEdge(
       }),
     );
 
-    return NextResponse.json(lead);
+    return NextResponse.json({
+      ...lead,
+      // for backwards compatibility – will remove soon
+      clickId: lead.click.id,
+      customerId: lead.customer.id,
+      customerName: lead.customer.name,
+      customerEmail: lead.customer.email,
+      customerAvatar: lead.customer.avatar,
+    });
   },
   {
     requiredAddOn: "conversion",
