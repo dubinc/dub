@@ -74,6 +74,7 @@ export const saleEventSchemaTB = clickEventSchemaTB
 
 export const saleEventEnrichedSchema = z
   .object({
+    event: z.literal("sale").default("sale"),
     timestamp: z.string(),
     event_id: z.string(),
     event_name: z.string(),
@@ -98,4 +99,4 @@ export const saleEventEnrichedSchema = z
     qr: z.number().nullable(),
     ip: z.string().nullable(),
   })
-  .openapi({ ref: "SaleEvents" });
+  .openapi({ ref: "SaleEvent" });
