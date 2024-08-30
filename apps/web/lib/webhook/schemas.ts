@@ -2,37 +2,41 @@ import z from "@/lib/zod";
 import { LinkSchema } from "../zod/schemas/links";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
-export const linkEventSchema = LinkSchema;
+export const linkEventSchema = LinkSchema.omit({
+  tags: true,
+  tagId: true,
+  projectId: true,
+});
 
 export const clickEventSchema = z.object({
+  timestamp: z.string(),
   clickId: z.string(),
-  aliasLinkId: z.string(),
+  // aliasLinkId: z.string(),
   url: z.string(),
   ip: z.string(),
   continent: z.string(),
   country: z.string(),
   city: z.string(),
-  region: z.string(),
-  latitude: z.string(),
-  longitude: z.string(),
+  // region: z.string(),
+  // latitude: z.string(),
+  // longitude: z.string(),
   device: z.string(),
-  deviceVendor: z.string(),
-  deviceModel: z.string(),
+  // deviceVendor: z.string(),
+  // deviceModel: z.string(),
   browser: z.string(),
-  browserVersion: z.string(),
-  engine: z.string(),
-  engineVersion: z.string(),
+  // browserVersion: z.string(),
+  // engine: z.string(),
+  // engineVersion: z.string(),
   os: z.string(),
-  osVersion: z.string(),
-  cpuArchitecture: z.string(),
+  // osVersion: z.string(),
+  // cpuArchitecture: z.string(),
   ua: z.string(),
   bot: z.boolean(),
   qr: z.boolean(),
   referer: z.string(),
-  refererUrl: z.string(),
-  timestamp: z.string(),
-  identityHash: z.string(),
-  link: LinkSchema,
+  // refererUrl: z.string(),
+  // identityHash: z.string(),
+  link: linkEventSchema,
 });
 
 export const leadEventSchema = z.object({
@@ -41,8 +45,8 @@ export const leadEventSchema = z.object({
   customerName: z.string().nullable(),
   customerEmail: z.string().nullable(),
   customerAvatar: z.string().nullable(),
-  click: clickEventSchema.partial(),
-  link: LinkSchema,
+  click: clickEventSchema.omit({ link: true, timestamp: true }),
+  link: linkEventSchema,
 });
 
 export const saleEventSchema = z.object({
@@ -55,8 +59,8 @@ export const saleEventSchema = z.object({
   paymentProcessor: z.string(),
   invoiceId: z.string().nullable(),
   currency: z.string(),
-  click: clickEventSchema.partial(),
-  link: LinkSchema,
+  click: clickEventSchema.omit({ link: true, timestamp: true }),
+  link: linkEventSchema,
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub
