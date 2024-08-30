@@ -130,7 +130,10 @@ export async function recordClick({
     // increment the click count for the link (based on their ID)
     prismaEdge.link.update({
       where: { id: linkId },
-      data: { clicks: { increment: 1 } },
+      data: {
+        clicks: { increment: 1 },
+        lastClicked: new Date(),
+      },
     }),
     // if the link has a destination URL, increment the usage count for the workspace
     // and then we have a cron that will reset it at the start of new billing cycle
