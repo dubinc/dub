@@ -39,26 +39,31 @@ export const clickEventSchema = z.object({
   link: linkEventSchema,
 });
 
+const customerSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string().nullable(),
+  avatar: z.string().nullable(),
+});
+
 export const leadEventSchema = z.object({
   eventName: z.string(),
-  customerId: z.string(),
-  customerName: z.string().nullable(),
-  customerEmail: z.string().nullable(),
-  customerAvatar: z.string().nullable(),
+  customer: customerSchema,
   click: clickEventSchema.omit({ link: true, timestamp: true }),
   link: linkEventSchema,
 });
 
-export const saleEventSchema = z.object({
-  eventName: z.string(),
-  customerId: z.string(),
-  customerName: z.string().nullable(),
-  customerEmail: z.string().nullable(),
-  customerAvatar: z.string().nullable(),
+const saleSchema = z.object({
   amount: z.number(),
   paymentProcessor: z.string(),
   invoiceId: z.string().nullable(),
   currency: z.string(),
+});
+
+export const saleEventSchema = z.object({
+  eventName: z.string(),
+  customer: customerSchema,
+  sale: saleSchema,
   click: clickEventSchema.omit({ link: true, timestamp: true }),
   link: linkEventSchema,
 });

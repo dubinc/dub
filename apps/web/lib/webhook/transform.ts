@@ -59,6 +59,12 @@ export const transformLeadEventData = (data: any) => {
 
   return leadEventSchema.parse({
     ...lead,
+    customer: {
+      id: lead.customerId,
+      name: lead.customerName,
+      email: lead.customerEmail,
+      avatar: lead.customerAvatar,
+    },
     click: {
       ...lead,
       qr: lead.qr === 1,
@@ -77,6 +83,18 @@ export const transformSaleEventData = (data: any) => {
 
   return saleEventSchema.parse({
     ...sale,
+    customer: {
+      id: sale.customerId,
+      name: sale.customerName,
+      email: sale.customerEmail,
+      avatar: sale.customerAvatar,
+    },
+    sale: {
+      amount: sale.amount,
+      paymentProcessor: sale.paymentProcessor,
+      invoiceId: sale.invoiceId,
+      currency: sale.currency,
+    },
     click: {
       ...sale,
       qr: sale.qr === 1,
