@@ -99,13 +99,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     const topLinksData = response.data as {
       link: string;
     }[];
-    const linkIds = topLinksData.map((item) => item.link);
 
     const links = await prismaEdge.link.findMany({
       where: {
         projectId: workspaceId,
         id: {
-          in: linkIds,
+          in: topLinksData.map((item) => item.link),
         },
       },
       select: {
@@ -117,31 +116,21 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       },
     });
 
-    const allLinks = links.map((link) => ({
-      id: link.id,
-      domain: link.domain,
-      key: link.key,
-      shortLink: linkConstructor({
+    return links.map((link) =>
+      analyticsResponse[groupBy].parse({
+        id: link.id,
         domain: link.domain,
         key: link.key,
-      }),
-      url: link.url,
-      createdAt: link.createdAt,
-    }));
-
-    return topLinksData.map((d) => {
-      const link = allLinks.find((l) => l.id === d.link);
-      if (!link) {
-        return null;
-      }
-      return {
-        ...analyticsResponse[groupBy].parse({
-          ...link,
-          createdAt: link.createdAt.toISOString(),
-          ...d,
+        url: link.url,
+        shortLink: linkConstructor({
+          domain: link.domain,
+          key: link.key,
         }),
-      };
-    });
+        link: link.id,
+        createdAt: link.createdAt.toISOString(),
+        ...topLinksData.find((l) => l.link === link.id),
+      }),
+    );
   }
 
   // Return array for other endpoints
