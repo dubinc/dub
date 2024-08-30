@@ -4,31 +4,21 @@ import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
 export const analyticsResponse = {
   count: z
     .object({
-      clicks: z.number().describe("The total number of clicks").default(0),
-      leads: z.number().describe("The total number of leads").default(0),
-      sales: z.number().describe("The total number of sales").default(0),
-      saleAmount: z.number().describe("The total amount of sales").default(0),
+      clicks: z.number().describe("The total number of clicks"),
+      leads: z.number().describe("The total number of leads"),
+      sales: z.number().describe("The total number of sales"),
+      saleAmount: z.number().describe("The total amount of sales"),
     })
     .openapi({ ref: "AnalyticsCount", title: "AnalyticsCount" }),
   timeseries: z
     .object({
       start: z.string().describe("The starting timestamp of the interval"),
-      clicks: z
-        .number()
-        .describe("The number of clicks in the interval")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads in the interval")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales in the interval")
-        .default(0),
+      clicks: z.number().describe("The number of clicks in the interval"),
+      leads: z.number().describe("The number of leads in the interval"),
+      sales: z.number().describe("The number of sales in the interval"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales in the interval")
-        .default(0),
+        .describe("The total amount of sales in the interval"),
     })
     .openapi({ ref: "AnalyticsTimeseries" }),
 
@@ -39,22 +29,12 @@ export const analyticsResponse = {
         .describe(
           "The 2-letter ISO 3166-1 code representing the continent associated with the location of the user.",
         ),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this continent")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this continent")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this continent")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this continent"),
+      leads: z.number().describe("The number of leads from this continent"),
+      sales: z.number().describe("The number of sales from this continent"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this continent")
-        .default(0),
+        .describe("The total amount of sales from this continent"),
     })
     .openapi({ ref: "AnalyticsContinents" }),
 
@@ -66,22 +46,12 @@ export const analyticsResponse = {
           "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
         ),
       city: z.literal("*").default("*"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this country")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this country")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this country")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this country"),
+      leads: z.number().describe("The number of leads from this country"),
+      sales: z.number().describe("The number of sales from this country"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this country")
-        .default(0),
+        .describe("The total amount of sales from this country"),
     })
     .openapi({ ref: "AnalyticsCountries" }),
 
@@ -91,82 +61,46 @@ export const analyticsResponse = {
       country: z
         .enum(COUNTRY_CODES)
         .describe("The 2-letter country code of the city: https://d.to/geo"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this city")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this city")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this city")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this city"),
+      leads: z.number().describe("The number of leads from this city"),
+      sales: z.number().describe("The number of sales from this city"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this city")
-        .default(0),
+        .describe("The total amount of sales from this city"),
     })
     .openapi({ ref: "AnalyticsCities" }),
 
   devices: z
     .object({
       device: z.string().describe("The name of the device"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this device")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this device")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this device")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this device"),
+      leads: z.number().describe("The number of leads from this device"),
+      sales: z.number().describe("The number of sales from this device"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this device")
-        .default(0),
+        .describe("The total amount of sales from this device"),
     })
     .openapi({ ref: "AnalyticsDevices" }),
 
   browsers: z
     .object({
       browser: z.string().describe("The name of the browser"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this browser")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this browser")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this browser")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this browser"),
+      leads: z.number().describe("The number of leads from this browser"),
+      sales: z.number().describe("The number of sales from this browser"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this browser")
-        .default(0),
+        .describe("The total amount of sales from this browser"),
     })
     .openapi({ ref: "AnalyticsBrowsers" }),
 
   os: z
     .object({
       os: z.string().describe("The name of the OS"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this OS")
-        .default(0),
-      leads: z.number().describe("The number of leads from this OS").default(0),
-      sales: z.number().describe("The number of sales from this OS").default(0),
-      saleAmount: z
-        .number()
-        .describe("The total amount of sales from this OS")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this OS"),
+      leads: z.number().describe("The number of leads from this OS"),
+      sales: z.number().describe("The number of sales from this OS"),
+      saleAmount: z.number().describe("The total amount of sales from this OS"),
     })
     .openapi({ ref: "AnalyticsOS" }),
 
@@ -177,22 +111,12 @@ export const analyticsResponse = {
         .describe(
           "The name of the referer. If unknown, this will be `(direct)`",
         ),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this referer")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this referer")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this referer")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this referer"),
+      leads: z.number().describe("The number of leads from this referer"),
+      sales: z.number().describe("The number of sales from this referer"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this referer")
-        .default(0),
+        .describe("The total amount of sales from this referer"),
     })
     .openapi({ ref: "AnalyticsReferers" }),
 
@@ -210,44 +134,24 @@ export const analyticsResponse = {
       createdAt: z
         .string()
         .describe("The creation timestamp of the short link"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this link")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this link")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this link")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this link"),
+      leads: z.number().describe("The number of leads from this link"),
+      sales: z.number().describe("The number of sales from this link"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this link")
-        .default(0),
+        .describe("The total amount of sales from this link"),
     })
     .openapi({ ref: "AnalyticsTopLinks" }),
 
   top_urls: z
     .object({
       url: z.string().describe("The destination URL"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this URL")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this URL")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this URL")
-        .default(0),
+      clicks: z.number().describe("The number of clicks from this URL"),
+      leads: z.number().describe("The number of leads from this URL"),
+      sales: z.number().describe("The number of sales from this URL"),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this URL")
-        .default(0),
+        .describe("The total amount of sales from this URL"),
     })
     .openapi({ ref: "AnalyticsTopUrls" }),
 
@@ -258,20 +162,16 @@ export const analyticsResponse = {
         .describe("The type of trigger method: link click or QR scan"),
       clicks: z
         .number()
-        .describe("The number of clicks from this trigger method.")
-        .default(0),
+        .describe("The number of clicks from this trigger method."),
       leads: z
         .number()
-        .describe("The number of leads from this trigger method.")
-        .default(0),
+        .describe("The number of leads from this trigger method."),
       sales: z
         .number()
-        .describe("The number of sales from this trigger method.")
-        .default(0),
+        .describe("The number of sales from this trigger method."),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this trigger method.")
-        .default(0),
+        .describe("The total amount of sales from this trigger method."),
     })
     .openapi({ ref: "AnalyticsTrigger" }),
 } as const;
