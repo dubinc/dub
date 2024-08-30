@@ -1,7 +1,12 @@
+import { inviteUser } from "@/lib/api/users";
 import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { WorkspaceProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
+import { Invite } from "@/lib/zod/schemas/invites";
 import { getPlanFromPriceId, log } from "@dub/utils";
+import { User } from "@prisma/client";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import Stripe from "stripe";
@@ -100,17 +105,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   );
 
   await Promise.allSettled([
-    // Complete onboarding for workspace users
-    prisma.user.updateMany({
-      where: {
-        id: {
-          in: usersInOnboarding.map(({ id }) => id),
-        },
-      },
-      data: {
-        onboardingStep: null,
-      },
-    }),
+    completeOnboarding({ usersInOnboarding, workspaceId }),
     ...users.map((user) => {
       limiter.schedule(() =>
         sendEmail({
@@ -125,5 +120,57 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         }),
       );
     }),
+  ]);
+}
+
+async function completeOnboarding({
+  usersInOnboarding,
+  workspaceId,
+}: {
+  usersInOnboarding: Pick<User, "id">[];
+  workspaceId: string;
+}) {
+  await Promise.allSettled([
+    // Complete onboarding for workspace users
+    prisma.user.updateMany({
+      where: {
+        id: {
+          in: usersInOnboarding.map(({ id }) => id),
+        },
+      },
+      data: {
+        onboardingStep: null,
+      },
+    }),
+
+    // Send saved invite emails
+    (async () => {
+      const invites = await redis.get<Invite[]>(`invites:${workspaceId}`);
+
+      if (!invites?.length) return;
+
+      const workspace = (await prisma.project.findUnique({
+        where: {
+          id: workspaceId,
+        },
+        include: {
+          users: true,
+        },
+      })) as unknown as WorkspaceProps | null;
+
+      if (!workspace) return;
+
+      await Promise.allSettled(
+        invites.map(({ email, role }) =>
+          inviteUser({
+            email,
+            role,
+            workspace,
+          }),
+        ),
+      );
+
+      await redis.del(`invites:${workspaceId}`);
+    })(),
   ]);
 }

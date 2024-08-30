@@ -1,14 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
-import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
+import { Invite, inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
 export const GET = withWorkspace(
   async ({ workspace }) => {
     const invites = (
-      await redis.lrange(`invites:${workspace.id}`, 0, -1)
+      (await redis.get<Invite[]>(`invites:${workspace.id}`)) ?? []
     ).reverse();
     return NextResponse.json(invites);
   },
@@ -29,8 +29,9 @@ export const POST = withWorkspace(
       });
     }
 
-    await redis.del(`invites:${workspace.id}`);
-    await redis.lpush(`invites:${workspace.id}`, ...teammates);
+    await redis.set(`invites:${workspace.id}`, teammates, {
+      ex: 60 * 60 * 24 * 15, // 15 days
+    });
 
     return NextResponse.json({ message: "Invite(s) saved" });
   },
