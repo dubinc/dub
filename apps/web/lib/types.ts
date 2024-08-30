@@ -49,22 +49,6 @@ export interface RedisLinkProps {
   webhookIds?: string[];
 }
 
-export interface EdgeLinkProps {
-  id: string;
-  domain: string;
-  key: string;
-  url: string;
-  proxy: boolean;
-  title: string;
-  description: string;
-  image: string;
-  password: string;
-  clicks: number;
-  publicStats: boolean;
-  userId: string;
-  projectId: string;
-}
-
 export interface TagProps {
   id: string;
   name: string;
@@ -75,7 +59,7 @@ export type TagColorProps = (typeof tagColors)[number];
 
 export type PlanProps = (typeof plans)[number];
 
-export type RoleProps = (typeof roles)[number];
+type RoleProps = (typeof roles)[number];
 
 export type BetaFeatures = "dublink" | "referrals" | "webhooks";
 
@@ -202,10 +186,10 @@ export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
 export type ExistingOAuthApp = OAuthAppProps;
 
-export type IntegrationProps = z.infer<typeof integrationSchema>;
+type IntegrationProps = z.infer<typeof integrationSchema>;
 
 export type NewOrExistingIntegration = Omit<
-  IntegrationProps,
+  z.infer<typeof integrationSchema>,
   "id" | "verified" | "installations"
 > & {
   id?: string;

@@ -5,7 +5,7 @@ import { getStringWidth } from "@visx/text";
 import { useLayoutEffect, useMemo } from "react";
 import { useChartContext } from "./chart-context";
 
-export type YAxisProps = {
+type YAxisProps = {
   /**
    * Approximate number of ticks to generate (see d3-array's `ticks`)
    */

@@ -7,7 +7,7 @@ import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
 
-export type EventListProps = PropsWithChildren<{
+type EventListProps = PropsWithChildren<{
   events: WebhookEventProps[];
 }>;
 

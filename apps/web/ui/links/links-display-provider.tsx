@@ -28,7 +28,7 @@ export const sortOptions = [
   },
 ] as const;
 
-export type LinksSortSlug = (typeof sortOptions)[number]["slug"];
+type LinksSortSlug = (typeof sortOptions)[number]["slug"];
 
 export const linkDisplayPropertyIds = [
   "icon",
@@ -59,7 +59,7 @@ export const linkDisplayProperties: {
   { id: "analytics", label: "Analytics" },
 ];
 
-export type LinkDisplayProperty = (typeof linkDisplayPropertyIds)[number];
+type LinkDisplayProperty = (typeof linkDisplayPropertyIds)[number];
 
 export const defaultDisplayProperties: LinkDisplayProperty[] = [
   "icon",

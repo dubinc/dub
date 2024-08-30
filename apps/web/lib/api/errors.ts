@@ -65,7 +65,7 @@ const ErrorSchema = z.object({
   }),
 });
 
-export type ErrorResponse = z.infer<typeof ErrorSchema>;
+type ErrorResponse = z.infer<typeof ErrorSchema>;
 export type ErrorCodes = z.infer<typeof ErrorCode>;
 
 export class DubApiError extends Error {

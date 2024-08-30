@@ -59,7 +59,7 @@ export const mappableFields = {
   },
 } as const;
 
-export type ImportCsvFormData = {
+type ImportCsvFormData = {
   file: File | null;
 } & Record<keyof typeof mappableFields, string>;
 

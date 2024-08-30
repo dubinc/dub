@@ -1,6 +1,6 @@
 import { Role } from "@prisma/client";
 
-export const PERMISSION_ACTIONS = [
+const PERMISSION_ACTIONS = [
   "workspaces.read",
   "workspaces.write",
   "links.read",

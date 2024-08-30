@@ -6,7 +6,7 @@ import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
 import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
-export const listEvents: ZodOpenApiOperationObject = {
+const listEvents: ZodOpenApiOperationObject = {
   operationId: "listEvents",
   "x-speakeasy-name-override": "list",
   summary: "Retrieve a list of events",
