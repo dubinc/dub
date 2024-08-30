@@ -8,8 +8,8 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const E2E_USER_ID = "REPLACE_WITH_E2E_USER_ID";
-const E2E_WORKSPACE_ID = "REPLACE_WITH_E2E_WORKSPACE_ID";
+const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
+const E2E_WORKSPACE_ID = "clrei1gld0002vs9mzn93p8ik";
 
 // Cron to remove links and domains created during the E2E test.
 // Runs once every day at noon UTC (0 12 * * *)
@@ -31,6 +31,7 @@ export async function GET(req: Request) {
         select: {
           id: true,
         },
+        take: 100,
       }),
 
       prisma.domain.findMany({
@@ -50,6 +51,7 @@ export async function GET(req: Request) {
     ]);
 
     if (links.length > 0) {
+      // TODO: use bulk delete instead
       await Promise.all(links.map((link) => deleteLink(link.id)));
     }
 
