@@ -19,12 +19,6 @@ function WelcomeModal({
   setShowWelcomeModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { queryParams } = useRouterStuff();
-  const searchParams = useSearchParams();
-
-  useEffect(
-    () => setShowWelcomeModal(Boolean(searchParams?.get("onboarded"))),
-    [searchParams],
-  );
 
   return (
     <Modal
@@ -62,14 +56,11 @@ function WelcomeModal({
             links.
           </p>
           <Button
+            type="button"
             variant="primary"
             text="Get started"
             className="mt-8"
-            onClick={() =>
-              queryParams({
-                del: "onboarded",
-              })
-            }
+            onClick={() => setShowWelcomeModal(false)}
           />
         </div>
       </div>
@@ -79,6 +70,12 @@ function WelcomeModal({
 
 export function useWelcomeModal() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  const searchParams = useSearchParams();
+  useEffect(
+    () => setShowWelcomeModal(Boolean(searchParams?.get("onboarded"))),
+    [searchParams],
+  );
 
   const WelcomeModalCallback = useCallback(() => {
     return (
