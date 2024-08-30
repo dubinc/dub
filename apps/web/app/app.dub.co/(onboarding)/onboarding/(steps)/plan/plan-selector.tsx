@@ -100,7 +100,7 @@ function PlanCard({
       <div className="mt-10 flex grow flex-col justify-end">
         <UpgradePlanButton
           text={`Get started with ${selectedPlan.name}`}
-          plan={selectedPlan.name}
+          plan={selectedPlan.name.toLowerCase()}
           period={period}
           workspaceSlug={slug}
         />

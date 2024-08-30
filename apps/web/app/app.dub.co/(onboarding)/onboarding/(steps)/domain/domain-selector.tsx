@@ -10,7 +10,7 @@ import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DomainSelector() {
-  const { continueTo, isExecuting } = useOnboardingProgress();
+  const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
 
   return (
     <div>
@@ -27,7 +27,7 @@ export function DomainSelector() {
           type="button"
           variant="primary"
           onClick={() => continueTo("domain/custom")}
-          loading={isExecuting}
+          loading={isLoading || isSuccessful}
           text="Continue"
         />
         <LaterButton next="invite" className="mt-4" />
