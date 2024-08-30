@@ -456,20 +456,16 @@ export const authOptions: NextAuthOptions = {
         const clickId = cookies().get("dclid")?.value;
         if (clickId) {
           // send lead event to Dub
-          try {
-            waitUntil(
-              dub.track.lead({
-                clickId,
-                eventName: "Sign Up",
-                customerId: user.id,
-                customerName: user.name,
-                customerEmail: user.email,
-                customerAvatar: user.image,
-              }),
-            );
-          } catch (error) {
-            console.error("Error sending lead event to Dub", error);
-          }
+          waitUntil(
+            dub.track.lead({
+              clickId,
+              eventName: "Sign Up",
+              customerId: user.id,
+              customerName: user.name,
+              customerEmail: user.email,
+              customerAvatar: user.image,
+            }),
+          );
           // delete the clickId cookie
           cookies().delete("dclid");
         }
