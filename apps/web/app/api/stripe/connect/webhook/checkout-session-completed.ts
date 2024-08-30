@@ -121,20 +121,18 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   ]);
 
   waitUntil(
-    (async () => {
-      sendLinkWebhook({
-        trigger: "sale.created",
-        linkId,
-        data: transformSaleEventData({
-          ...saleData,
-          ...link,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        }),
-      });
-    })(),
+    sendLinkWebhook({
+      trigger: "sale.created",
+      linkId,
+      data: transformSaleEventData({
+        ...saleData,
+        ...link,
+        customerId: customer.id,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
   );
 
   return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId}`;

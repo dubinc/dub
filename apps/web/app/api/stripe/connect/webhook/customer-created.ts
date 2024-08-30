@@ -104,20 +104,18 @@ export async function customerCreated(event: Stripe.Event) {
   ]);
 
   waitUntil(
-    (async () => {
-      sendLinkWebhook({
-        trigger: "lead.created",
-        linkId,
-        data: transformLeadEventData({
-          ...leadData,
-          link,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        }),
-      });
-    })(),
+    sendLinkWebhook({
+      trigger: "lead.created",
+      linkId,
+      data: transformLeadEventData({
+        ...leadData,
+        link,
+        customerId: customer.id,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
   );
 
   return `Customer created: ${customer.id}`;

@@ -141,17 +141,15 @@ export const POST = withWorkspaceEdge(
     });
 
     waitUntil(
-      (async () => {
-        sendLinkWebhookOnEdge({
-          trigger: "lead.created",
-          linkId: link.id,
-          data: transformLeadEventData({
-            ...response,
-            ...clickData,
-            link,
-          }),
-        });
-      })(),
+      sendLinkWebhookOnEdge({
+        trigger: "lead.created",
+        linkId: link.id,
+        data: transformLeadEventData({
+          ...response,
+          ...clickData,
+          link,
+        }),
+      }),
     );
 
     return NextResponse.json(response);
