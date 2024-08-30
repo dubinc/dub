@@ -212,7 +212,7 @@ export function AnalyticsFunnelChartInner({
                 {tooltipStep.id === "sales" && (
                   <span className="text-gray-500">
                     {" "}
-                    (${nFormatter(totalEvents.amount / 100)})
+                    (${nFormatter(totalEvents.saleAmount / 100)})
                   </span>
                 )}
               </p>

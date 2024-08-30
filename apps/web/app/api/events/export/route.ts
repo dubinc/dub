@@ -22,7 +22,7 @@ const columnNames: Record<string, string> = {
   os: "OS",
   timestamp: "Date",
   invoiceId: "Invoice ID",
-  amount: "Sales Amount",
+  saleAmount: "Sale Amount",
 };
 
 const columnAccessors = {
@@ -34,7 +34,7 @@ const columnAccessors = {
   customer: (r: LeadEvent | SaleEvent) =>
     r.customer_name + (r.customer_email ? ` <${r.customer_email}>` : ""),
   invoiceId: (r: SaleEvent) => r.invoice_id,
-  amount: (r: SaleEvent) => "$" + (r.amount / 100).toFixed(2),
+  saleAmount: (r: SaleEvent) => "$" + (r.saleAmount / 100).toFixed(2),
 };
 
 // GET /api/events/export – get export data for analytics
