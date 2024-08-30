@@ -51,10 +51,8 @@ export async function customerCreated(event: Stripe.Event) {
   }
 
   // Create customer
-  const customerId = nanoid(16);
   const customer = await prisma.customer.create({
     data: {
-      id: customerId,
       name: stripeCustomer.name,
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
@@ -106,20 +104,18 @@ export async function customerCreated(event: Stripe.Event) {
   ]);
 
   waitUntil(
-    (async () => {
-      sendLinkWebhook({
-        trigger: "lead.created",
-        linkId,
-        data: transformLeadEventData({
-          ...leadData,
-          ...link,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        }),
-      });
-    })(),
+    sendLinkWebhook({
+      trigger: "lead.created",
+      linkId,
+      data: transformLeadEventData({
+        ...leadData,
+        link,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
   );
 
   return `Customer created: ${customer.id}`;

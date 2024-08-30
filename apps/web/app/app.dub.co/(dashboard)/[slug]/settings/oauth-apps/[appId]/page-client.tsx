@@ -79,20 +79,20 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
             Back to OAuth Apps
           </p>
         </Link>
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex justify-between gap-2 sm:items-center">
           {isLoading ? (
-            <div className="flex items-center gap-x-3">
-              <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
                 <TokenAvatar id="placeholder-oauth-app" className="size-8" />
               </div>
               <div className="flex flex-col gap-2">
                 <div className="h-3 w-20 rounded-full bg-gray-100"></div>
-                <div className="h-3 w-80 rounded-full bg-gray-100"></div>
+                <div className="h-3 w-40 rounded-full bg-gray-100"></div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-x-3">
-              <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
                 {oAuthApp?.logo ? (
                   <BlurImage
                     src={oAuthApp.logo}
@@ -107,7 +107,9 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
               </div>
               <div>
                 <p className="font-semibold text-gray-700">{oAuthApp?.name}</p>
-                <p className="text-sm text-gray-500">{oAuthApp?.description}</p>
+                <p className="text-pretty text-sm text-gray-500">
+                  {oAuthApp?.description}
+                </p>
               </div>
             </div>
           )}

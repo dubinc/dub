@@ -11,13 +11,15 @@ import {
 } from "./constants";
 
 export type IntervalOptions = (typeof intervals)[number];
+
 export type AnalyticsGroupByOptions =
   (typeof VALID_ANALYTICS_ENDPOINTS)[number];
-export type CompositeAnalyticsResponseOptions =
+
+export type AnalyticsResponseOptions =
   | "clicks"
   | "leads"
   | "sales"
-  | "amount";
+  | "saleAmount";
 
 export type EventType = (typeof EVENT_TYPES)[number];
 

@@ -104,20 +104,18 @@ export async function invoicePaid(event: Stripe.Event) {
   ]);
 
   waitUntil(
-    (async () => {
-      sendLinkWebhook({
-        trigger: "sale.created",
-        linkId,
-        data: transformSaleEventData({
-          ...saleData,
-          ...link,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        }),
-      });
-    })(),
+    sendLinkWebhook({
+      trigger: "sale.created",
+      linkId,
+      data: transformSaleEventData({
+        ...saleData,
+        link,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
   );
 
   return `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`;
