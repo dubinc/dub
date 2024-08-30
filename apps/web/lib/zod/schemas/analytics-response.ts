@@ -65,6 +65,7 @@ export const analyticsResponse = {
         .describe(
           "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
         ),
+      city: z.literal("*").default("*"),
       clicks: z
         .number()
         .describe("The number of clicks from this country")
