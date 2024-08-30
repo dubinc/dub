@@ -60,7 +60,11 @@ function WelcomeModal({
             variant="primary"
             text="Get started"
             className="mt-8"
-            onClick={() => setShowWelcomeModal(false)}
+            onClick={() =>
+              queryParams({
+                del: "onboarded",
+              })
+            }
           />
         </div>
       </div>
