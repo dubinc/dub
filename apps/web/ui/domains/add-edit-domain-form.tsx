@@ -3,10 +3,15 @@ import { DomainProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { BlurImage, Button, InfoTooltip, SimpleTooltipContent } from "@dub/ui";
-import { cn, FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
+import {
+  BlurImage,
+  Button,
+  InfoTooltip,
+  SimpleTooltipContent,
+  Switch,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
 import posthog from "posthog-js";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -76,7 +81,14 @@ export function AddEditDomainForm({
     }
   }, [props]);
 
-  const [expanded, setExpanded] = useState(false);
+  const [showDefaultExpirationUrl, setShowDefaultExpirationUrl] = useState(
+    !!data.expiredUrl,
+  );
+  const [showPlaceholderUrl, setShowPlaceholderUrl] = useState(
+    !!data.placeholder,
+  );
+
+  console.log(data);
 
   return (
     <form
@@ -173,25 +185,10 @@ export function AddEditDomainForm({
         )}
       </div>
 
-      <button
-        type="button"
-        className="flex items-center"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <ChevronRight
-          className={`h-5 w-5 text-gray-600 ${
-            expanded ? "rotate-90" : ""
-          } transition-all`}
-        />
-        <p className="text-sm text-gray-600">Advanced options</p>
-      </button>
-      {expanded && (
-        <motion.div
-          {...FADE_IN_ANIMATION_SETTINGS}
-          className="flex flex-col gap-y-6"
-        >
-          <div>
-            <label htmlFor="expiredUrl" className="flex items-center gap-x-2">
+      <div className="flex flex-col gap-y-6">
+        <div>
+          <label className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               <h2 className="text-sm font-medium text-gray-900">
                 Default Expiration URL
               </h2>
@@ -204,7 +201,21 @@ export function AddEditDomainForm({
                   />
                 }
               />
-            </label>
+            </div>
+            <Switch
+              checked={showDefaultExpirationUrl}
+              fn={(checked) => {
+                setShowDefaultExpirationUrl(checked);
+                if (!checked) setData((d) => ({ ...d, expiredUrl: "" }));
+              }}
+            />
+          </label>
+          <motion.div
+            animate={{ height: showDefaultExpirationUrl ? "auto" : 0 }}
+            transition={{ duration: 0.1 }}
+            initial={false}
+            className="-m-1 overflow-hidden p-1"
+          >
             <div className="relative mt-2 rounded-md shadow-sm">
               <input
                 name="expiredUrl"
@@ -213,14 +224,16 @@ export function AddEditDomainForm({
                 placeholder="https://yourwebsite.com"
                 value={expiredUrl}
                 onChange={(e) =>
-                  setData({ ...data, expiredUrl: e.target.value })
+                  setData((d) => ({ ...d, expiredUrl: e.target.value }))
                 }
               />
             </div>
-          </div>
+          </motion.div>
+        </div>
 
-          <div>
-            <label htmlFor="placeholder" className="flex items-center gap-x-2">
+        <div>
+          <label className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               <h2 className="text-sm font-medium text-gray-900">
                 Input Placeholder URL
               </h2>
@@ -245,7 +258,21 @@ export function AddEditDomainForm({
                 }
                 side="right"
               />
-            </label>
+            </div>
+            <Switch
+              checked={showPlaceholderUrl}
+              fn={(checked) => {
+                setShowPlaceholderUrl(checked);
+                if (!checked) setData((d) => ({ ...d, placeholder: "" }));
+              }}
+            />
+          </label>
+          <motion.div
+            animate={{ height: showPlaceholderUrl ? "auto" : 0 }}
+            transition={{ duration: 0.1 }}
+            initial={false}
+            className="-m-1 overflow-hidden p-1"
+          >
             <div className="relative mt-2 rounded-md shadow-sm">
               <input
                 name="placeholder"
@@ -254,14 +281,13 @@ export function AddEditDomainForm({
                 placeholder="https://dub.co/help/article/what-is-dub"
                 value={placeholder}
                 onChange={(e) =>
-                  setData({ ...data, placeholder: e.target.value })
+                  setData((d) => ({ ...d, placeholder: e.target.value }))
                 }
               />
             </div>
-          </div>
-        </motion.div>
-      )}
-
+          </motion.div>
+        </div>
+      </div>
       <Button
         text={props ? "Save changes" : "Add domain"}
         disabled={saveDisabled}
