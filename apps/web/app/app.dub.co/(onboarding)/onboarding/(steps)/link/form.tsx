@@ -62,24 +62,28 @@ export function Form() {
 
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
+  // Update preview image when URL changes
   useEffect(() => {
     if (debouncedUrl) {
-      try {
-        // If url is valid, continue to generate metatags, else return null
-        new URL(debouncedUrl);
-        setLoadingPreviewImage(true);
-        fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
+      const fn = async () => {
+        try {
+          // If url is valid, continue to generate metatags, else return null
+          new URL(debouncedUrl);
+          setLoadingPreviewImage(true);
+          const res = await fetch(`/api/metatags?url=${debouncedUrl}`);
           if (res.ok) {
             const results = await res.json();
             setPreviewImage(results.image);
-          }
-        });
-      } catch (_) {
-        setPreviewImage(null);
-      } finally {
-        // Timeout to prevent flickering
-        setTimeout(() => setLoadingPreviewImage(false), 200);
-      }
+          } else throw new Error(res.statusText);
+        } catch (_) {
+          setPreviewImage(null);
+        } finally {
+          // Timeout to prevent flickering
+          setTimeout(() => setLoadingPreviewImage(false), 200);
+        }
+      };
+
+      fn();
     }
   }, [debouncedUrl]);
 
@@ -158,18 +162,19 @@ export function Form() {
             <img
               src={previewImage}
               alt="Preview"
-              className="size-full rounded-[inherit] object-cover"
+              className="relative size-full rounded-[inherit] object-cover"
             />
-          ) : loadingPreviewImage ? (
-            <div className="absolute inset-0 z-[5] flex items-center justify-center rounded-[inherit] bg-white">
-              <LoadingCircle />
-            </div>
           ) : (
-            <div className="flex size-full flex-col items-center justify-center space-y-4 bg-white">
+            <div className="relative flex size-full flex-col items-center justify-center space-y-4 bg-white">
               <Photo className="h-8 w-8 text-gray-400" />
               <p className="text-sm text-gray-400">
                 Enter a link to generate a preview.
               </p>
+            </div>
+          )}
+          {loadingPreviewImage && (
+            <div className="absolute inset-0 z-[5] flex items-center justify-center rounded-[inherit] bg-white">
+              <LoadingCircle />
             </div>
           )}
         </div>
