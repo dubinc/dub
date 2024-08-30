@@ -1,6 +1,7 @@
 "use client";
 
 import useLinks from "@/lib/swr/use-links";
+import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
 import { Globe2 } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
@@ -71,13 +72,16 @@ function DomainOption({
   return (
     <div
       className={cn(
-        "transition-border flex flex-col gap-2 rounded-lg border border-gray-300 px-10 py-9",
+        "transition-border relative flex flex-col gap-2 rounded-lg border border-gray-300 px-10 py-9",
         isSelected && "border-2 border-black bg-black/[0.03]",
       )}
       role="button"
       onClick={onClick}
       aria-selected={isSelected}
     >
+      {isSelected && (
+        <CheckCircleFill className="absolute left-2 top-2 size-5 text-black" />
+      )}
       <div className="flex w-full flex-col gap-2 rounded-md border border-gray-300 bg-gray-100 p-2 [mask-image:linear-gradient(to_bottom,black_50%,transparent_95%)]">
         <div className="relative rounded border-gray-200 bg-white px-2 py-1.5 text-center text-sm font-medium text-gray-800">
           <Globe2 className="absolute left-2 top-1/2 size-4 -translate-y-1/2" />
