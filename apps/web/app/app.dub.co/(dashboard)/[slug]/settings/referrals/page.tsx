@@ -183,10 +183,5 @@ async function ActivityListRSC({
 
   const totalEvents = await getTotalEvents(link.id);
 
-  return (
-    <ActivityList
-      events={events as any}
-      totalEvents={totalEvents[event] ?? 0}
-    />
-  );
+  return <ActivityList events={events} totalEvents={totalEvents[event] ?? 0} />;
 }
