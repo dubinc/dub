@@ -14,6 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 type FormData = {
@@ -88,102 +89,105 @@ export function Form() {
   }, [debouncedUrl]);
 
   return (
-    <form
-      className="flex w-full flex-col gap-y-6"
-      onSubmit={handleSubmit(async (data) => {
-        if (!workspaceId) {
-          toast.error("Failed to get workspace data.");
-          return;
-        }
-
-        const {
-          url,
-          link: { domain, key },
-        } = data;
-
-        const res = await fetch(`/api/links?workspaceId=${workspaceId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ url, domain, key }),
-        });
-
-        if (!res.ok) {
-          const { error } = await res.json();
-          if (error) {
-            if (error.message.includes("Upgrade to")) {
-              toast.custom(() => (
-                <UpgradeRequiredToast
-                  title={`You've discovered a ${nextPlan.name} feature!`}
-                  message={error.message}
-                />
-              ));
-            } else {
-              toast.error(error.message);
-            }
+    <>
+      <form
+        className="flex w-full flex-col gap-y-6"
+        onSubmit={handleSubmit(async (data) => {
+          if (!workspaceId) {
+            toast.error("Failed to get workspace data.");
+            return;
           }
-          throw new Error(error);
-        }
 
-        await mutate(
-          (key) => typeof key === "string" && key.startsWith("/api/links"),
-          undefined,
-          { revalidate: true },
-        );
-        const result = await res.json();
-        posthog.capture("link_created", result);
+          const {
+            url,
+            link: { domain, key },
+          } = data;
 
-        continueTo("domain");
-      })}
-    >
-      <DestinationUrlInput domains={domains} {...register("url")} />
-      <Controller
-        control={control}
-        name="link"
-        render={({ field }) => (
-          <ShortLinkInput
-            onChange={(d) => field.onChange({ ...field.value, ...d })}
-            domain={link.domain}
-            _key={link.key}
-            data={{ url, title: "", description: "" }}
-            saving={isSubmitting}
-            loading={loading}
-            domains={domains}
-          />
-        )}
-      />
-      <div className="flex flex-col gap-2">
-        <span className="block text-sm font-medium text-gray-700">
-          Link Preview
-        </span>
-        <div className="relative aspect-[1.91/1] w-full overflow-hidden rounded-md border border-gray-300 bg-gray-100">
-          {previewImage ? (
-            <img
-              src={previewImage}
-              alt="Preview"
-              className="relative size-full rounded-[inherit] object-cover"
+          const res = await fetch(`/api/links?workspaceId=${workspaceId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ url, domain, key }),
+          });
+
+          if (!res.ok) {
+            const { error } = await res.json();
+            if (error) {
+              if (error.message.includes("Upgrade to")) {
+                toast.custom(() => (
+                  <UpgradeRequiredToast
+                    title={`You've discovered a ${nextPlan.name} feature!`}
+                    message={error.message}
+                  />
+                ));
+              } else {
+                toast.error(error.message);
+              }
+            }
+            throw new Error(error);
+          }
+
+          await mutate(
+            (key) => typeof key === "string" && key.startsWith("/api/links"),
+            undefined,
+            { revalidate: true },
+          );
+          const result = await res.json();
+          posthog.capture("link_created", result);
+
+          await continueTo("domain");
+        })}
+      >
+        <DestinationUrlInput domains={domains} {...register("url")} />
+        <Controller
+          control={control}
+          name="link"
+          render={({ field }) => (
+            <ShortLinkInput
+              onChange={(d) => field.onChange({ ...field.value, ...d })}
+              domain={link.domain}
+              _key={link.key}
+              data={{ url, title: "", description: "" }}
+              saving={isSubmitting}
+              loading={loading}
+              domains={domains}
             />
-          ) : (
-            <div className="relative flex size-full flex-col items-center justify-center space-y-4 bg-white">
-              <Photo className="h-8 w-8 text-gray-400" />
-              <p className="text-sm text-gray-400">
-                Enter a link to generate a preview.
-              </p>
-            </div>
           )}
-          {loadingPreviewImage && (
-            <div className="absolute inset-0 z-[5] flex items-center justify-center rounded-[inherit] bg-white">
-              <LoadingCircle />
-            </div>
-          )}
+        />
+        <div className="flex flex-col gap-2">
+          <span className="block text-sm font-medium text-gray-700">
+            Link Preview
+          </span>
+          <div className="relative aspect-[1.91/1] w-full overflow-hidden rounded-md border border-gray-300 bg-gray-100">
+            {previewImage ? (
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="relative size-full rounded-[inherit] object-cover"
+              />
+            ) : (
+              <div className="relative flex size-full flex-col items-center justify-center space-y-4 bg-white">
+                <Photo className="h-8 w-8 text-gray-400" />
+                <p className="text-sm text-gray-400">
+                  Enter a link to generate a preview.
+                </p>
+              </div>
+            )}
+            {loadingPreviewImage && (
+              <div className="absolute inset-0 z-[5] flex items-center justify-center rounded-[inherit] bg-white">
+                <LoadingCircle />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-      <Button
-        type="submit"
-        text="Create link"
-        loading={isSubmitting || isSubmitSuccessful}
-      />
-    </form>
+        <Button
+          type="submit"
+          text="Create link"
+          loading={isSubmitting || isSubmitSuccessful}
+        />
+      </form>
+      <LaterButton next="domain" className="mt-4" />
+    </>
   );
 }

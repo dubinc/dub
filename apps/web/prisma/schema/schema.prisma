@@ -19,6 +19,7 @@ model User {
   passwordHash         String?
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
+  onboardingStep       String?
 
   accounts              Account[]
   sessions              Session[]

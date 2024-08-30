@@ -2,6 +2,7 @@ import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import NewLinkMiddleware from "./new-link";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
+import { getRefreshedUser } from "./utils/get-refreshed-user";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
@@ -26,6 +27,8 @@ export default async function AppMiddleware(req: NextRequest) {
 
     // if there's a user
   } else if (user) {
+    const refreshedUser = await getRefreshedUser(user);
+
     // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
     if (path === "/new") {
       return NewLinkMiddleware(req, user);
@@ -36,11 +39,35 @@ export default async function AppMiddleware(req: NextRequest) {
       user.createdAt &&
       new Date(user.createdAt).getTime() > Date.now() - 10000 &&
       // here we include the root page + /new (since they're going through welcome flow already)
-      path !== "/welcome" &&
+      !path.startsWith("/onboarding") &&
       // if the user was invited to a workspace, don't show the welcome page – redirect straight to the workspace
       !isWorkspaceInvite
     ) {
-      return NextResponse.redirect(new URL("/welcome", req.url));
+      return NextResponse.redirect(new URL("/onboarding", req.url));
+
+      // Onboarding redirects
+    } else if (
+      !isWorkspaceInvite &&
+      !path.startsWith("/onboarding") &&
+      refreshedUser &&
+      // User has onboarding step
+      (refreshedUser.onboardingStep ||
+        // User has no workspaces and was created less than an hour ago
+        (refreshedUser.projects.length === 0 &&
+          new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 1000))
+    ) {
+      const defaultWorkspace = await getDefaultWorkspace(user);
+
+      let step = refreshedUser.onboardingStep;
+      if (defaultWorkspace) {
+        // Skip workspace step if user already has a workspace (maybe there was an error updating the onboarding step)
+        step = step === "workspace" ? "link" : step;
+        return NextResponse.redirect(
+          new URL(`/onboarding/${step}?slug=${defaultWorkspace}`, req.url),
+        );
+      } else {
+        return NextResponse.redirect(new URL(`/onboarding/${step}`, req.url));
+      }
 
       // if the path is / or /login or /register, redirect to the default workspace
     } else if (

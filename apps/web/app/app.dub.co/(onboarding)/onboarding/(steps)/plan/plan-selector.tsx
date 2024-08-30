@@ -7,6 +7,7 @@ import { Badge } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { PRO_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { useState } from "react";
+import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function PlanSelector() {
@@ -46,13 +47,7 @@ export function PlanSelector() {
         >
           Looking for enterprise?
         </a>
-        <button
-          type="button"
-          onClick={() => finish()}
-          className="w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700"
-        >
-          I'll pick a plan later
-        </button>
+        <LaterButton next="finish">I'll pick a plan later</LaterButton>
       </div>
     </div>
   );

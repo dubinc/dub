@@ -1,6 +1,7 @@
 "use client";
 
 import { InviteTeammatesForm } from "@/ui/workspaces/invite-teammates-form";
+import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function Form() {
@@ -13,13 +14,7 @@ export function Form() {
           continueTo("plan");
         }}
       />
-      <button
-        type="button"
-        onClick={() => continueTo("plan")}
-        className="mt-4 w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700"
-      >
-        I'll do this later
-      </button>
+      <LaterButton next="plan" className="mt-4" />
     </div>
   );
 }

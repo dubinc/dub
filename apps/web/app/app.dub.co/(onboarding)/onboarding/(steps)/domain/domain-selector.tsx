@@ -6,10 +6,11 @@ import { Button } from "@dub/ui";
 import { Globe2 } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useEffect, useState } from "react";
+import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DomainSelector() {
-  const { continueTo } = useOnboardingProgress();
+  const { continueTo, isExecuting } = useOnboardingProgress();
 
   return (
     <div>
@@ -26,15 +27,10 @@ export function DomainSelector() {
           type="button"
           variant="primary"
           onClick={() => continueTo("domain/custom")}
+          loading={isExecuting}
           text="Continue"
         />
-        <button
-          type="button"
-          onClick={() => continueTo("invite")}
-          className="mt-4 w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700"
-        >
-          I'll do this later
-        </button>
+        <LaterButton next="invite" className="mt-4" />
       </div>
     </div>
   );
