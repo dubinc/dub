@@ -1,5 +1,6 @@
 "use client";
 
+import { ConversionEvent } from "@/lib/actions/get-events";
 import { EventType } from "@/lib/analytics/types";
 import { REFERRAL_REVENUE_SHARE } from "@/lib/referrals/constants";
 import { EventList } from "@dub/blocks";
@@ -12,20 +13,19 @@ import {
   UserCheck,
 } from "@dub/ui/src/icons";
 import { capitalize, COUNTRIES, currencyFormatter, timeAgo } from "@dub/utils";
-import { ClickEvents } from "dub/dist/commonjs/models/components";
+import {
+  ClickEvent,
+  LeadEvent,
+  SaleEvent,
+} from "dub/dist/commonjs/models/components";
 import { useSearchParams } from "next/navigation";
-
-interface SaleEvents extends ClickEvents {
-  event_name: string;
-  amount: number;
-}
 
 export function ActivityList({
   events,
   totalEvents,
   demo,
 }: {
-  events: ClickEvents[] | SaleEvents[];
+  events: ConversionEvent[];
   totalEvents: number;
   demo?: boolean;
 }) {
@@ -44,9 +44,9 @@ export function ActivityList({
           return {
             icon: <Icon className="size-4.5" />,
             content: {
-              clicks: <ClickDescription event={e} />,
-              leads: <LeadDescription event={e} />,
-              sales: <SaleDescription event={e} />,
+              clicks: <ClickDescription event={e as ClickEvent} />,
+              leads: <LeadDescription event={e as LeadEvent} />,
+              sales: <SaleDescription event={e as SaleEvent} />,
             }[event],
             right: (
               <div className="whitespace-nowrap">
@@ -70,7 +70,7 @@ export function ActivityList({
   );
 }
 
-function ClickDescription({ event }: { event: ClickEvents }) {
+function ClickDescription({ event }: { event: ClickEvent }) {
   return (
     <>
       Someone from{" "}
@@ -93,7 +93,7 @@ function ClickDescription({ event }: { event: ClickEvents }) {
   );
 }
 
-function LeadDescription({ event }: { event: ClickEvents }) {
+function LeadDescription({ event }: { event: LeadEvent }) {
   return (
     <>
       Someone from{" "}
@@ -123,7 +123,7 @@ const saleText = {
   default: "made a payment",
 };
 
-function SaleDescription({ event }: { event: SaleEvents }) {
+function SaleDescription({ event }: { event: SaleEvent }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
@@ -142,15 +142,15 @@ function SaleDescription({ event }: { event: SaleEvents }) {
             {event.country ? COUNTRIES[event.country] : "Planet Earth"}
           </span>{" "}
         </div>
-        {saleText[event.event_name] || saleText.default}
+        {saleText[event.eventName] || saleText.default}
       </div>
-      {event.amount && event.amount > 0 && (
+      {event.saleAmount && event.saleAmount > 0 && (
         <span className="flex items-center gap-1 whitespace-nowrap font-medium text-gray-700 sm:pr-8 md:pr-12 lg:pr-20">
-          {event.event_name === "Plan upgraded" && (
+          {event.eventName === "Plan upgraded" && (
             <CaretUpFill className="size-3 text-green-600" />
           )}
           {currencyFormatter(
-            Math.floor(event.amount * REFERRAL_REVENUE_SHARE) / 100,
+            Math.floor(event.saleAmount * REFERRAL_REVENUE_SHARE) / 100,
             {
               maximumFractionDigits: 2,
             },

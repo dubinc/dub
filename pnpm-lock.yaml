@@ -189,8 +189,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.36.0
-        version: 0.36.0(zod@3.22.4)
+        specifier: ^0.36.4
+        version: 0.36.4(zod@3.22.4)
       fathom-client:
         specifier: ^3.7.2
         version: 3.7.2
@@ -11944,8 +11944,8 @@ packages:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
 
-  /dub@0.36.0(zod@3.22.4):
-    resolution: {integrity: sha512-nrZvRu9//GtHFT0xWwcV7mox4JHzBKdZK1CGuEOtMPklnILeEXMjO77JKAFzTgMp9F0dcWujgRmv/BH+J7s00w==}
+  /dub@0.36.4(zod@3.22.4):
+    resolution: {integrity: sha512-zXUipjQD3XKZJahqYpL2mqrw+Zg2FA+G4tEUR3PrUS8+iU1X/8v9U2XLf0wSUNv54EUhqrGAV0e79ON26w+V5A==}
     peerDependencies:
       zod: '>= 3'
     dependencies:
