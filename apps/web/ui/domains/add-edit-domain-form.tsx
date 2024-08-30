@@ -22,11 +22,13 @@ export function AddEditDomainForm({
   props,
   onSuccess,
   showAdvancedOptions = true,
+  showDomainTypeOptions = true,
   className,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
   showAdvancedOptions?: boolean;
+  showDomainTypeOptions?: boolean;
   className?: string;
 }) {
   const { id: workspaceId } = useWorkspace();
@@ -81,7 +83,7 @@ export function AddEditDomainForm({
         successMessage: "Successfully added domain!",
       };
     }
-  }, [props]);
+  }, [props, workspaceId]);
 
   const [showDefaultExpirationUrl, setShowDefaultExpirationUrl] = useState(
     !!data.expiredUrl,
@@ -101,43 +103,47 @@ export function AddEditDomainForm({
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
-        }).then(async (res) => {
-          if (res.ok) {
-            await Promise.all([
-              mutate(
-                (key) =>
-                  typeof key === "string" &&
-                  key.startsWith(`/api/domains?workspaceId=${workspaceId}`),
-              ),
-              mutate(
-                (key) =>
-                  typeof key === "string" && key.startsWith("/api/links"),
-                undefined,
-                { revalidate: true },
-              ),
-            ]);
-            const data = await res.json();
-            posthog.capture(props ? "domain_updated" : "domain_created", data);
-            toast.success(endpoint.successMessage);
-            onSuccess?.(data);
-          } else {
-            const { error } = await res.json();
-            if (res.status === 422) {
-              setDomainError(error.message);
-            }
-            if (error.message.includes("Upgrade to Pro")) {
-              toast.custom(() => (
-                <UpgradeRequiredToast
-                  title="You've discovered a Pro feature!"
-                  message={error.message}
-                />
-              ));
+        })
+          .then(async (res) => {
+            if (res.ok) {
+              await Promise.all([
+                mutate(
+                  (key) =>
+                    typeof key === "string" &&
+                    key.startsWith(`/api/domains?workspaceId=${workspaceId}`),
+                ),
+                mutate(
+                  (key) =>
+                    typeof key === "string" && key.startsWith("/api/links"),
+                  undefined,
+                  { revalidate: true },
+                ),
+              ]);
+              const data = await res.json();
+              posthog.capture(
+                props ? "domain_updated" : "domain_created",
+                data,
+              );
+              toast.success(endpoint.successMessage);
+              onSuccess?.(data);
             } else {
-              toast.error(error.message);
+              const { error } = await res.json();
+              if (res.status === 422) {
+                setDomainError(error.message);
+              }
+              if (error.message.includes("Upgrade to Pro")) {
+                toast.custom(() => (
+                  <UpgradeRequiredToast
+                    title="You've discovered a Pro feature!"
+                    message={error.message}
+                  />
+                ));
+              } else {
+                toast.error(error.message);
+              }
             }
-          }
-          setSaving(false);
-        });
+          })
+          .finally(() => setSaving(false));
       }}
       className={cn("flex flex-col gap-y-6 text-left", className)}
     >
@@ -181,6 +187,7 @@ export function AddEditDomainForm({
             setData={setData}
             domainError={domainError}
             setDomainError={setDomainError}
+            showDomainTypeOptions={showDomainTypeOptions}
           />
         )}
       </div>

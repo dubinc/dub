@@ -18,6 +18,7 @@ export default function DomainInput({
   setData,
   domainError,
   setDomainError,
+  showDomainTypeOptions = true,
 }) {
   const domain = data[identifier];
   const originalDomain = useMemo(() => domain, []);
@@ -137,7 +138,7 @@ export default function DomainInput({
             {domainError}
           </p>
         ))}
-      {domain && !domainError && (
+      {domain && !domainError && showDomainTypeOptions && (
         <motion.div {...FADE_IN_ANIMATION_SETTINGS}>
           <RadioGroup
             className="mt-2"

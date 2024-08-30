@@ -13,6 +13,7 @@ export function Form() {
           continueTo("invite");
         }}
         showAdvancedOptions={false}
+        showDomainTypeOptions={false}
       />
       <button
         type="button"
