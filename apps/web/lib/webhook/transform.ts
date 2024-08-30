@@ -67,6 +67,7 @@ export const transformLeadEventData = (data: any) => {
     },
     click: {
       ...lead,
+      id: lead.clickId,
       qr: lead.qr === 1,
       bot: lead.bot === 1,
     },
@@ -97,6 +98,7 @@ export const transformSaleEventData = (data: any) => {
     },
     click: {
       ...sale,
+      id: sale.clickId,
       qr: sale.qr === 1,
       bot: sale.bot === 1,
     },
