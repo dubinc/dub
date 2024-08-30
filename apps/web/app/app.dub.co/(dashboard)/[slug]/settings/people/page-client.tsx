@@ -24,7 +24,7 @@ const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
 export default function WorkspacePeopleClient() {
   const { setShowInviteTeammateModal, InviteTeammateModal } =
-    useInviteTeammateModal();
+    useInviteTeammateModal({ showSavedInvites: true });
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 

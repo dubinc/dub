@@ -59,6 +59,8 @@ export default async function AppMiddleware(req: NextRequest) {
       const defaultWorkspace = await getDefaultWorkspace(user);
 
       let step = refreshedUser.onboardingStep;
+      if (!step) return NextResponse.redirect(new URL(`/onboarding`, req.url));
+
       if (defaultWorkspace) {
         // Skip workspace step if user already has a workspace (maybe there was an error updating the onboarding step)
         step = step === "workspace" ? "link" : step;
