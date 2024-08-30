@@ -408,8 +408,6 @@ export default function EventsTable() {
     [tab],
   );
 
-  const defaultData = useMemo(() => [], []);
-
   const { pagination, setPagination } = usePagination();
 
   const { queryString: originalQueryString, totalEvents } =
@@ -456,7 +454,7 @@ export default function EventsTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: data ?? (needsHigherPlan ? exampleData[tab] : defaultData),
+    data: (data ?? (needsHigherPlan ? exampleData[tab] : [])) as EventDatum[],
     loading: isLoading,
     error: error && !needsHigherPlan ? "Failed to fetch events." : undefined,
     columns,
