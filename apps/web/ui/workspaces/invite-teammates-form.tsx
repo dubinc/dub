@@ -1,7 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Role, roles } from "@/lib/types";
 import { Button, useMediaQuery } from "@dub/ui";
 import { Trash } from "@dub/ui/src/icons";
-import { cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
 import { Plus } from "lucide-react";
 import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -11,6 +12,7 @@ import { mutate } from "swr";
 type FormData = {
   teammates: {
     email: string;
+    role: Role;
   }[];
 };
 
@@ -31,7 +33,7 @@ export function InviteTeammatesForm({
     formState: { isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({
     defaultValues: {
-      teammates: [{ email: "" }],
+      teammates: [{ email: "", role: "member" }],
     },
   });
   const { fields, append, remove } = useFieldArray({
@@ -76,17 +78,30 @@ export function InviteTeammatesForm({
                   Email{fields.length !== 1 ? "s" : ""}
                 </span>
               )}
-              <div className="relative rounded-md shadow-sm">
+              <div className="relative flex rounded-md shadow-sm">
                 <input
                   type="email"
                   placeholder="panic@thedis.co"
                   autoFocus={index === 0 && !isMobile}
                   autoComplete="off"
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  className="z-10 block w-full rounded-l-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                   {...register(`teammates.${index}.email`, {
                     required: index === 0,
                   })}
                 />
+                <select
+                  {...register(`teammates.${index}.role`, {
+                    required: index === 0,
+                  })}
+                  defaultValue="member"
+                  className="rounded-r-md border border-l-0 border-gray-300 bg-white pl-4 pr-8 text-gray-600 focus:border-gray-300 focus:outline-none focus:ring-0 sm:text-sm"
+                >
+                  {roles.map((role) => (
+                    <option key={role} value={role}>
+                      {capitalize(role)}
+                    </option>
+                  ))}
+                </select>
               </div>
             </label>
             {index > 0 && (
@@ -106,7 +121,7 @@ export function InviteTeammatesForm({
           variant="secondary"
           icon={<Plus className="size-4" />}
           text="Add email"
-          onClick={() => append({ email: "" })}
+          onClick={() => append({ email: "", role: "member" })}
           disabled={fields.length >= 10}
         />
       </div>

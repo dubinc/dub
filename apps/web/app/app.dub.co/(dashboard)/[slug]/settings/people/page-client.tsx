@@ -14,7 +14,7 @@ import {
   ThreeDots,
 } from "@/ui/shared/icons";
 import { Avatar, Badge, Button, Copy, IconMenu, Popover } from "@dub/ui";
-import { cn, timeAgo } from "@dub/utils";
+import { capitalize, cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -185,7 +185,7 @@ const UserCard = ({
 
           {expiredInvite && <Badge variant="gray">Expired</Badge>}
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-x-3">
           {currentTab === "Members" ? (
             session?.user?.email === email ? (
               <p className="text-xs capitalize text-gray-500">{role}</p>
@@ -212,9 +212,20 @@ const UserCard = ({
               )
             )
           ) : (
-            <p className="text-xs text-gray-500" suppressHydrationWarning>
-              Invited {timeAgo(createdAt)}
-            </p>
+            <>
+              <p
+                className="hidden text-xs text-gray-500 sm:block"
+                suppressHydrationWarning
+              >
+                {capitalize(user.role)}
+              </p>
+              <p
+                className="text-right text-xs text-gray-500 sm:min-w-28"
+                suppressHydrationWarning
+              >
+                Invited {timeAgo(createdAt)}
+              </p>
+            </>
           )}
 
           <Popover

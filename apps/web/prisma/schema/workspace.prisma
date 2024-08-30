@@ -50,20 +50,21 @@ model Project {
   @@index(usageLastChecked(sort: Asc))
 }
 
+enum Role {
+  owner
+  member
+}
+
 model ProjectInvite {
   email     String
   expires   DateTime
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String
+  role      Role     @default(member)
   createdAt DateTime @default(now())
 
   @@unique([email, projectId])
   @@index([projectId])
-}
-
-enum Role {
-  owner
-  member
 }
 
 model ProjectUsers {

@@ -2,6 +2,7 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { roles } from "@/lib/types";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
@@ -9,6 +10,7 @@ const inviteTeammatesSchema = z.object({
   teammates: z.array(
     z.object({
       email: z.string().email(),
+      role: z.enum(roles),
     }),
   ),
 });
@@ -22,6 +24,7 @@ export const GET = withWorkspace(
       },
       select: {
         email: true,
+        role: true,
         createdAt: true,
       },
     });
@@ -94,9 +97,10 @@ export const POST = withWorkspace(
 
     // We could update inviteUser to accept multiple emails but it's not trivial
     const results = await Promise.allSettled(
-      teammates.map(({ email }) =>
+      teammates.map(({ email, role }) =>
         inviteUser({
           email,
+          role,
           workspace,
           session,
         }),
