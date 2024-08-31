@@ -2,17 +2,23 @@ import { Suspense } from "react";
 import { HelpButton } from "./help/help-button";
 import { OnboardingButton } from "./onboarding/onboarding-button";
 
-export default function Toolbar() {
+const toolbarItems = ["onboarding", "help"] as const;
+
+type ToolbarProps = {
+  show?: (typeof toolbarItems)[number][];
+};
+
+export default function Toolbar(props: ToolbarProps) {
   return (
     <Suspense fallback={null}>
       <div className="fixed bottom-0 right-0 z-40 m-5">
-        <ToolbarRSC />
+        <ToolbarRSC {...props} />
       </div>
     </Suspense>
   );
 }
 
-async function ToolbarRSC() {
+async function ToolbarRSC({ show = ["onboarding", "help"] }: ToolbarProps) {
   const { popularHelpArticles, allHelpArticles } = await fetch(
     "https://dub.co/api/content",
     {
@@ -24,15 +30,19 @@ async function ToolbarRSC() {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="shrink-0">
-        <OnboardingButton />
-      </div>
-      <div className="shrink-0">
-        <HelpButton
-          popularHelpArticles={popularHelpArticles}
-          allHelpArticles={allHelpArticles}
-        />
-      </div>
+      {show.includes("onboarding") && (
+        <div className="shrink-0">
+          <OnboardingButton />
+        </div>
+      )}
+      {show.includes("help") && (
+        <div className="shrink-0">
+          <HelpButton
+            popularHelpArticles={popularHelpArticles}
+            allHelpArticles={allHelpArticles}
+          />
+        </div>
+      )}
     </div>
   );
 }
