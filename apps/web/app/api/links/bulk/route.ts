@@ -1,10 +1,6 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
-import {
-  bulkCreateLinks,
-  combineTagIds,
-  finalizeLinkDeletion,
-  processLink,
-} from "@/lib/api/links";
+import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -327,7 +323,11 @@ export const DELETE = withWorkspace(
         ],
       },
       include: {
-        tags: true,
+        tags: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -338,7 +338,12 @@ export const DELETE = withWorkspace(
       },
     });
 
-    waitUntil(Promise.all(links.map(finalizeLinkDeletion)));
+    waitUntil(
+      bulkDeleteLinks({
+        workspaceId: workspace.id,
+        links,
+      }),
+    );
 
     return NextResponse.json(
       {
