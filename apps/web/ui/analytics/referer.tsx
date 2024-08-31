@@ -12,7 +12,7 @@ export default function Referer() {
   const { queryParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
-  const dataKey = selectedTab === "sales" ? "amount" : "count";
+  const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
 
   const data = useAnalyticsFilterOption("referers");
 

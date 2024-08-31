@@ -10,8 +10,11 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { transformLinkEventData } from "@/lib/webhook/transform";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { deepEqual } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
@@ -121,6 +124,14 @@ export const PATCH = withWorkspace(
         updatedLink: processedLink,
       });
 
+      waitUntil(
+        sendWorkspaceWebhook({
+          trigger: "link.updated",
+          workspace,
+          data: transformLinkEventData(response),
+        }),
+      );
+
       return NextResponse.json(response, {
         headers,
       });
@@ -155,6 +166,14 @@ export const DELETE = withWorkspace(
     });
 
     await deleteLink(link.id);
+
+    waitUntil(
+      sendWorkspaceWebhook({
+        trigger: "link.deleted",
+        workspace,
+        data: transformLinkEventData(transformLink(link)),
+      }),
+    );
 
     return NextResponse.json({ id: link.id }, { headers });
   },

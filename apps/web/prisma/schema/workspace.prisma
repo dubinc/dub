@@ -10,8 +10,8 @@ model Project {
   stripeConnectId   String? @unique // for Stripe Connect
   inviteCode        String? @unique
 
-  usage      Int @default(0)
-  usageLimit Int @default(1000)
+  usage        Int @default(0)
+  usageLimit   Int @default(1000)
   linksUsage   Int @default(0)
   linksLimit   Int @default(25)
   salesUsage   Int @default(0)
@@ -45,6 +45,7 @@ model Project {
   oAuthCodes            OAuthCode[]
   integrations          Integration[] // Integrations workspace published
   installedIntegrations InstalledIntegration[] // Integrations workspace installed
+  webhooks              Webhook[]
 
   @@index(usageLastChecked(sort: Asc))
 }

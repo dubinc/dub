@@ -24,7 +24,7 @@ export default function AnalyticsAreaChart({
       clicks: number;
       leads: number;
       sales: number;
-      amount: number;
+      saleAmount: number;
     }[]
   >(
     `${baseApiPath}?${editQueryString(queryString, {
@@ -39,13 +39,13 @@ export default function AnalyticsAreaChart({
 
   const chartData = useMemo(
     () =>
-      data?.map(({ start, clicks, leads, sales, amount }) => ({
+      data?.map(({ start, clicks, leads, sales, saleAmount }) => ({
         date: new Date(start),
         values: {
           clicks,
           leads,
           sales,
-          amount: (amount ?? 0) / 100,
+          saleAmount: (saleAmount ?? 0) / 100,
         },
       })) ?? null,
     [data],
@@ -109,7 +109,7 @@ export default function AnalyticsAreaChart({
     },
     {
       id: "sales",
-      valueAccessor: (d) => d.values.amount,
+      valueAccessor: (d) => d.values.saleAmount,
       isActive: resource === "sales",
       colorClassName: "text-teal-400",
     },
@@ -126,7 +126,8 @@ export default function AnalyticsAreaChart({
           series={series}
           tooltipClassName="p-0"
           tooltipContent={(d) => {
-            const value = d.values[resource === "sales" ? "amount" : resource];
+            const value =
+              d.values[resource === "sales" ? "saleAmount" : resource];
             return (
               <>
                 <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">

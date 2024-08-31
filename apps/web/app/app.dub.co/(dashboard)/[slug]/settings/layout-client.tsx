@@ -15,6 +15,7 @@ import {
   Tag,
   Users6,
 } from "@dub/ui/src/icons";
+import { Webhook } from "lucide-react";
 import { ReactNode, useMemo } from "react";
 
 export default function WorkspaceSettingsLayoutClient({
@@ -85,6 +86,15 @@ export default function WorkspaceSettingsLayoutClient({
             icon: CubeSettings,
             segment: "oauth-apps",
           },
+          ...(flags?.webhooks
+            ? [
+                {
+                  name: "Webhooks",
+                  icon: Webhook,
+                  segment: "webhooks",
+                },
+              ]
+            : []),
         ],
       },
 

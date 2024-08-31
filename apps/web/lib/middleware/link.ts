@@ -105,6 +105,7 @@ export default async function LinkMiddleware(
     geo,
     expiredUrl,
     doIndex,
+    webhookIds,
   } = link;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
@@ -193,6 +194,7 @@ export default async function LinkMiddleware(
         linkId,
         clickId,
         url,
+        webhookIds,
       }),
     );
 
@@ -236,6 +238,7 @@ export default async function LinkMiddleware(
         linkId,
         clickId,
         url,
+        webhookIds,
       }),
     );
 
@@ -268,6 +271,7 @@ export default async function LinkMiddleware(
         linkId,
         clickId,
         url,
+        webhookIds,
       }),
     );
 
@@ -315,6 +319,7 @@ export default async function LinkMiddleware(
         linkId,
         clickId,
         url: ios,
+        webhookIds,
       }),
     );
 
@@ -343,6 +348,7 @@ export default async function LinkMiddleware(
         linkId,
         clickId,
         url: android,
+        webhookIds,
       }),
     );
 
@@ -371,6 +377,7 @@ export default async function LinkMiddleware(
         linkId,
         clickId,
         url: geo[country],
+        webhookIds,
       }),
     );
 
@@ -399,6 +406,7 @@ export default async function LinkMiddleware(
         linkId,
         clickId,
         url,
+        webhookIds,
       }),
     );
 

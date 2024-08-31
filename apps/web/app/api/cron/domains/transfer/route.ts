@@ -48,13 +48,25 @@ export async function POST(req: Request) {
 
       await Promise.all([
         prisma.link.updateMany({
-          where: { domain, projectId: currentWorkspaceId, id: { in: linkIds } },
+          where: {
+            domain,
+            projectId: currentWorkspaceId,
+            id: { in: linkIds },
+          },
           data: { projectId: newWorkspaceId },
         }),
+
         prisma.linkTag.deleteMany({
           where: { linkId: { in: linkIds } },
         }),
+
         updateLinksInRedis({ links, newWorkspaceId, domain }),
+
+        // Remove the webhooks associated with the links
+        prisma.linkWebhook.deleteMany({
+          where: { linkId: { in: linkIds } },
+        }),
+
         recordLink(
           links.map((link) => ({
             link_id: link.id,

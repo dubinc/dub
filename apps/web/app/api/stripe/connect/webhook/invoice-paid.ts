@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { sendLinkWebhook } from "@/lib/webhook/publish";
+import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "invoice.paid"
@@ -43,23 +46,37 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
-  await Promise.all([
-    recordSale({
-      ...leadEvent.data[0],
-      event_id: nanoid(16),
-      event_name: "Subscription update",
-      payment_processor: "stripe",
-      amount: invoice.amount_paid,
-      currency: invoice.currency,
-      invoice_id: invoiceId,
-      metadata: JSON.stringify({
-        invoice,
-      }),
+  const saleData = {
+    ...leadEvent.data[0],
+    event_id: nanoid(16),
+    event_name: "Subscription update",
+    payment_processor: "stripe",
+    amount: invoice.amount_paid,
+    currency: invoice.currency,
+    invoice_id: invoiceId,
+    metadata: JSON.stringify({
+      invoice,
     }),
+  };
+
+  const linkId = leadEvent.data[0].link_id;
+  const link = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+  });
+
+  if (!link) {
+    return `Link with ID ${linkId} not found, skipping...`;
+  }
+
+  await Promise.all([
+    recordSale(saleData),
+
     // update link sales count
     prisma.link.update({
       where: {
-        id: leadEvent.data[0].link_id,
+        id: linkId,
       },
       data: {
         sales: {
@@ -85,6 +102,21 @@ export async function invoicePaid(event: Stripe.Event) {
       },
     }),
   ]);
+
+  waitUntil(
+    sendLinkWebhook({
+      trigger: "sale.created",
+      linkId,
+      data: transformSaleEventData({
+        ...saleData,
+        link,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
+  );
 
   return `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`;
 }

@@ -3,12 +3,12 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import {
-  trackSaleRequestSchema,
-  trackSaleResponseSchema,
-} from "@/lib/zod/schemas/sales";
+import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -57,7 +57,7 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    await Promise.all([
+    const [_sale, link, _project] = await Promise.all([
       recordSale({
         ...clickData,
         event_id: nanoid(16),
@@ -72,7 +72,7 @@ export const POST = withWorkspaceEdge(
       // update link sales count
       prismaEdge.link.update({
         where: {
-          id: leadEvent.data[0].link_id,
+          id: clickData.link_id,
         },
         data: {
           sales: {
@@ -99,17 +99,29 @@ export const POST = withWorkspaceEdge(
       }),
     ]);
 
-    const response = trackSaleResponseSchema.parse({
-      customerId: externalId,
+    const sale = transformSaleEventData({
+      ...clickData,
+      link,
+      eventName,
       paymentProcessor,
+      invoiceId,
       amount,
       currency,
-      invoiceId,
-      metadata,
-      eventName,
+      customerId: customer.externalId,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
     });
 
-    return NextResponse.json(response);
+    waitUntil(
+      sendLinkWebhookOnEdge({
+        trigger: "sale.created",
+        linkId: link.id,
+        data: sale,
+      }),
+    );
+
+    return NextResponse.json(sale);
   },
   {
     requiredAddOn: "conversion",

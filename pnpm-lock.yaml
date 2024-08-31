@@ -189,8 +189,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.36.0
-        version: 0.36.0(zod@3.22.4)
+        specifier: ^0.36.5
+        version: 0.36.5(zod@3.22.4)
       fathom-client:
         specifier: ^3.7.2
         version: 3.7.2
@@ -278,9 +278,6 @@ importers:
       react-markdown:
         specifier: ^9.0.1
         version: 9.0.1(@types/react@18.2.48)(react@18.2.0)
-      react-medium-image-zoom:
-        specifier: ^5.1.7
-        version: 5.1.7(react-dom@18.2.0)(react@18.2.0)
       react-parallax-tilt:
         specifier: ^1.7.70
         version: 1.7.70(react-dom@18.2.0)(react@18.2.0)
@@ -298,7 +295,7 @@ importers:
         version: 6.1.1
       rehype-pretty-code:
         specifier: ^0.9.5
-        version: 0.9.5(shiki@0.14.1)
+        version: 0.9.5(shiki@1.14.1)
       rehype-slug:
         specifier: ^5.1.0
         version: 5.1.0
@@ -309,8 +306,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(react-dom@18.2.0)(react@18.2.0)
       shiki:
-        specifier: ^0.14.1
-        version: 0.14.1
+        specifier: ^1.14.1
+        version: 1.14.1
       sonner:
         specifier: ^1.4.41
         version: 1.4.41(react-dom@18.2.0)(react@18.2.0)
@@ -8280,6 +8277,12 @@ packages:
       selderee: 0.11.0
     dev: false
 
+  /@shikijs/core@1.14.1:
+    resolution: {integrity: sha512-KyHIIpKNaT20FtFPFjCQB5WVSTpLR/n+jQXhWHWVUMm9MaOaG9BGOG0MSyt7yA4+Lm+4c9rTc03tt3nYzeYSfw==}
+    dependencies:
+      '@types/hast': 3.0.4
+    dev: false
+
   /@shuding/opentype.js@1.4.0-beta.0:
     resolution: {integrity: sha512-3NgmNyH3l/Hv6EvsWJbsvpcpUba6R8IREQ83nH83cyakCw7uM1arZKNfHwv1Wz6jgqrF/j4x5ELvR6PnK9nTcA==}
     engines: {node: '>= 8.0.0'}
@@ -9178,7 +9181,7 @@ packages:
   /@types/hast@3.0.4:
     resolution: {integrity: sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==}
     dependencies:
-      '@types/unist': 2.0.8
+      '@types/unist': 3.0.2
     dev: false
 
   /@types/he@1.2.3:
@@ -9229,7 +9232,7 @@ packages:
   /@types/mdast@4.0.4:
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
     dependencies:
-      '@types/unist': 2.0.8
+      '@types/unist': 3.0.2
     dev: false
 
   /@types/ms@0.7.31:
@@ -10261,10 +10264,6 @@ packages:
   /ansi-regex@6.0.1:
     resolution: {integrity: sha512-n5M855fKb2SsfMIiFFoVrABHJC8QtHwVx+mHWP3QcEqBHYienj5dHSgjbxtC0WEZXYt4wcD6zrQElDPhFuZgfA==}
     engines: {node: '>=12'}
-    dev: false
-
-  /ansi-sequence-parser@1.1.1:
-    resolution: {integrity: sha512-vJXt3yiaUL4UU546s3rPXlsry/RnM730G1+HkpKE012AN0sx1eOrxSu95oKDIonskeLTijMgqWZ3uDEe3NFvyg==}
     dev: false
 
   /ansi-styles@3.2.1:
@@ -11945,8 +11944,8 @@ packages:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
 
-  /dub@0.36.0(zod@3.22.4):
-    resolution: {integrity: sha512-nrZvRu9//GtHFT0xWwcV7mox4JHzBKdZK1CGuEOtMPklnILeEXMjO77JKAFzTgMp9F0dcWujgRmv/BH+J7s00w==}
+  /dub@0.36.5(zod@3.22.4):
+    resolution: {integrity: sha512-rPtrwfdbmaLKC+M4VXNp04E5yRD/1xtxL3MkfA6rcSR2al67cG++/eT8Z3YVEhDOPQWKJt95PBEKC57HZj0ShQ==}
     peerDependencies:
       zod: '>= 3'
     dependencies:
@@ -18042,16 +18041,6 @@ packages:
       - supports-color
     dev: false
 
-  /react-medium-image-zoom@5.1.7(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-GV+0aB8WZvMRZLm05su29SbA3CL0H5D8xV57Q1EjsgV2OP+LdLPgWVI1rFNLyZgBMVevxZqL/+6ZGz9l4X0wKw==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-    dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-    dev: false
-
   /react-merge-refs@2.1.1:
     resolution: {integrity: sha512-jLQXJ/URln51zskhgppGJ2ub7b2WFKGq3cl3NYKtlHoTG+dN2q7EzWrn3hN3EgPsTMvpR9tpq5ijdp7YwFZkag==}
     dev: false
@@ -18569,7 +18558,7 @@ packages:
       unist-util-visit: 4.1.2
     dev: false
 
-  /rehype-pretty-code@0.9.5(shiki@0.14.1):
+  /rehype-pretty-code@0.9.5(shiki@1.14.1):
     resolution: {integrity: sha512-TYA4oDxxn4z/YZ6ZNz7BX5BuyeJzi7D6XxI44T/eqUOBYypwwOd7RZ+IBb1NkERpian/k7sZ1+KsdIbWDRenQw==}
     engines: {node: ^12.16.0 || >=13.2.0}
     peerDependencies:
@@ -18577,7 +18566,7 @@ packages:
     dependencies:
       hash-obj: 4.0.0
       parse-numeric-range: 1.3.0
-      shiki: 0.14.1
+      shiki: 1.14.1
     dev: false
 
   /rehype-slug@5.1.0:
@@ -19093,13 +19082,11 @@ packages:
     resolution: {integrity: sha512-6j1W9l1iAs/4xYBI1SYOVZyFcCis9b4KCLQ8fgAGG07QvzaRLVVRQvAy85yNmmZSjYjg4MWh4gNvlPujU/5LpA==}
     dev: false
 
-  /shiki@0.14.1:
-    resolution: {integrity: sha512-+Jz4nBkCBe0mEDqo1eKRcCdjRtrCjozmcbTUjbPTX7OOJfEbTZzlUWlZtGe3Gb5oV1/jnojhG//YZc3rs9zSEw==}
+  /shiki@1.14.1:
+    resolution: {integrity: sha512-FujAN40NEejeXdzPt+3sZ3F2dx1U24BY2XTY01+MG8mbxCiA2XukXdcbyMyLAHJ/1AUUnQd1tZlvIjefWWEJeA==}
     dependencies:
-      ansi-sequence-parser: 1.1.1
-      jsonc-parser: 3.2.0
-      vscode-oniguruma: 1.7.0
-      vscode-textmate: 8.0.0
+      '@shikijs/core': 1.14.1
+      '@types/hast': 3.0.4
     dev: false
 
   /side-channel@1.0.4:
@@ -21015,14 +21002,6 @@ packages:
 
   /vlq@1.0.1:
     resolution: {integrity: sha512-gQpnTgkubC6hQgdIcRdYGDSDc+SaujOdyesZQMv6JlfQee/9Mp0Qhnys6WxDWvQnL5WZdT7o2Ul187aSt0Rq+w==}
-    dev: false
-
-  /vscode-oniguruma@1.7.0:
-    resolution: {integrity: sha512-L9WMGRfrjOhgHSdOYgCt/yRMsXzLDJSL7BPrOZt73gU0iWO4mpqzqQzOz5srxqTvMBaR0XZTSrVWo4j55Rc6cA==}
-    dev: false
-
-  /vscode-textmate@8.0.0:
-    resolution: {integrity: sha512-AFbieoL7a5LMqcnOF04ji+rpXadgOXnZsxQr//r83kLPr7biP7am3g9zbaZIaBGwBRWeSvoMD4mgPdX3e4NWBg==}
     dev: false
 
   /vue@3.4.21(typescript@5.4.4):

@@ -6,7 +6,7 @@ import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
 import { analyticsPath } from "./analytics";
 import { domainsPaths } from "./domains";
-import { eventsPath } from "./events/list-events";
+import { eventsPath } from "./events";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";

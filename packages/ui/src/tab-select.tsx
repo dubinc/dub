@@ -6,15 +6,17 @@ export function TabSelect<T extends string>({
   options,
   selected,
   onSelect,
+  className,
 }: {
   options: { id: T; label: string }[];
   selected: string | null;
   onSelect?: Dispatch<SetStateAction<T>> | ((id: T) => void);
+  className?: string;
 }) {
   const layoutGroupId = useId();
 
   return (
-    <div className="flex text-sm">
+    <div className={cn("flex text-sm", className)}>
       <LayoutGroup id={layoutGroupId}>
         {options.map(({ id, label }) => (
           <div key={id} className="relative">
@@ -22,7 +24,7 @@ export function TabSelect<T extends string>({
               type="button"
               onClick={() => onSelect?.(id)}
               className={cn(
-                "px-3 py-4 transition-colors duration-75",
+                "p-4 transition-colors duration-75",
                 id === selected
                   ? "text-black"
                   : "text-gray-400 hover:text-gray-500",

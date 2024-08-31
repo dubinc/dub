@@ -19,11 +19,9 @@ export default function OAuthAppCredentials({
     <div className="flex flex-col space-y-3 text-left">
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-500">Client ID</label>
-        <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-3">
-          <p className="font-mono text-sm text-gray-500">{clientId}</p>
-          <div className="flex flex-col gap-2">
-            <CopyButton value={clientId} className="rounded-md" />
-          </div>
+        <div className="grid grid-cols-[1fr,auto] items-center gap-2 rounded-md border border-gray-300 bg-white p-3">
+          <p className="truncate font-mono text-sm text-gray-500">{clientId}</p>
+          <CopyButton value={clientId} className="rounded-md" />
         </div>
       </div>
 

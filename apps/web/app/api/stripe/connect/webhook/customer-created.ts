@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
+import { sendLinkWebhook } from "@/lib/webhook/publish";
+import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "customer.created"
@@ -22,6 +25,18 @@ export async function customerCreated(event: Stripe.Event) {
     return `Click event with ID ${clickId} not found, skipping...`;
   }
 
+  // Find link
+  const linkId = clickEvent.data[0].link_id;
+  const link = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+  });
+
+  if (!link) {
+    return `Link with ID ${linkId} not found, skipping...`;
+  }
+
   // Check the customer is not already created
   // Find customer using projectConnectId and externalId (the customer's ID in the client app)
   const customerFound = await prisma.customer.findFirst({
@@ -36,10 +51,8 @@ export async function customerCreated(event: Stripe.Event) {
   }
 
   // Create customer
-  const customerId = nanoid(16);
   const customer = await prisma.customer.create({
     data: {
-      id: customerId,
       name: stripeCustomer.name,
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
@@ -57,6 +70,13 @@ export async function customerCreated(event: Stripe.Event) {
     .omit({ timestamp: true })
     .parse(clickEvent.data[0]);
 
+  const leadData = {
+    ...clickData,
+    event_id: nanoid(16),
+    event_name: "New customer",
+    customer_id: customer.id,
+  };
+
   await Promise.all([
     // Record customer
     recordCustomer({
@@ -68,17 +88,12 @@ export async function customerCreated(event: Stripe.Event) {
     }),
 
     // Record lead
-    recordLead({
-      ...clickData,
-      event_id: nanoid(16),
-      event_name: "New customer",
-      customer_id: customer.id,
-    }),
+    recordLead(leadData),
 
     // update link leads count
     prisma.link.update({
       where: {
-        id: clickData.link_id,
+        id: linkId,
       },
       data: {
         leads: {
@@ -87,6 +102,21 @@ export async function customerCreated(event: Stripe.Event) {
       },
     }),
   ]);
+
+  waitUntil(
+    sendLinkWebhook({
+      trigger: "lead.created",
+      linkId,
+      data: transformLeadEventData({
+        ...leadData,
+        link,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
+  );
 
   return `Customer created: ${customer.id}`;
 }

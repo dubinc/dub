@@ -40,7 +40,6 @@ describe.sequential("GET /links/{linkId}", async () => {
       ...link,
       projectId,
       userId: user.id,
-      tags: [],
     });
   });
 
@@ -55,7 +54,6 @@ describe.sequential("GET /links/{linkId}", async () => {
       ...link,
       projectId,
       userId: user.id,
-      tags: [],
     });
   });
 });
@@ -97,7 +95,6 @@ describe.sequential("GET /links/info", async () => {
       userId: user.id,
       shortLink: `https://${domain}/${key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
-      tags: [],
     });
   });
 
@@ -113,7 +110,6 @@ describe.sequential("GET /links/info", async () => {
       ...link,
       projectId,
       userId: user.id,
-      tags: [],
     });
   });
 
@@ -129,7 +125,6 @@ describe.sequential("GET /links/info", async () => {
       ...link,
       projectId,
       userId: user.id,
-      tags: [],
     });
   });
 });

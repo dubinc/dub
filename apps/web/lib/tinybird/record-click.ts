@@ -16,6 +16,9 @@ import {
 } from "../middleware/utils";
 import { conn } from "../planetscale";
 import { ratelimit } from "../upstash";
+import { webhookCache } from "../webhook/cache";
+import { sendWebhooks } from "../webhook/qstash";
+import { transformClickEventData } from "../webhook/transform";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -25,11 +28,13 @@ export async function recordClick({
   linkId,
   clickId,
   url,
+  webhookIds,
 }: {
   req: NextRequest;
   linkId: string;
   clickId?: string;
   url?: string;
+  webhookIds?: string[];
 }) {
   const searchParams = req.nextUrl.searchParams;
 
@@ -76,7 +81,40 @@ export async function recordClick({
 
   const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
-  return await Promise.allSettled([
+  const clickData = {
+    timestamp: new Date(Date.now()).toISOString(),
+    identity_hash,
+    click_id: clickId || nanoid(16),
+    link_id: linkId,
+    alias_link_id: "",
+    url: finalUrl,
+    ip:
+      // only record IP if it's a valid IP and not from a EU country
+      typeof ip === "string" && ip.trim().length > 0 && !isEuCountry ? ip : "",
+    continent: continent || "",
+    country: geo?.country || "Unknown",
+    city: geo?.city || "Unknown",
+    region: geo?.region || "Unknown",
+    latitude: geo?.latitude || "Unknown",
+    longitude: geo?.longitude || "Unknown",
+    device: capitalize(ua.device.type) || "Desktop",
+    device_vendor: ua.device.vendor || "Unknown",
+    device_model: ua.device.model || "Unknown",
+    browser: ua.browser.name || "Unknown",
+    browser_version: ua.browser.version || "Unknown",
+    engine: ua.engine.name || "Unknown",
+    engine_version: ua.engine.version || "Unknown",
+    os: ua.os.name || "Unknown",
+    os_version: ua.os.version || "Unknown",
+    cpu_architecture: ua.cpu?.architecture || "Unknown",
+    ua: ua.ua || "Unknown",
+    bot: ua.isBot,
+    qr: isQr,
+    referer: referer ? getDomainWithoutWWW(referer) || "(direct)" : "(direct)",
+    referer_url: referer || "(direct)",
+  };
+
+  await Promise.allSettled([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -84,46 +122,12 @@ export async function recordClick({
         headers: {
           Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         },
-        body: JSON.stringify({
-          timestamp: new Date(Date.now()).toISOString(),
-          identity_hash,
-          click_id: clickId || nanoid(16),
-          link_id: linkId,
-          alias_link_id: "",
-          url: finalUrl,
-          ip:
-            // only record IP if it's a valid IP and not from a EU country
-            typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
-              ? ip
-              : "",
-          continent: continent || "",
-          country: geo?.country || "Unknown",
-          city: geo?.city || "Unknown",
-          region: geo?.region || "Unknown",
-          latitude: geo?.latitude || "Unknown",
-          longitude: geo?.longitude || "Unknown",
-          device: capitalize(ua.device.type) || "Desktop",
-          device_vendor: ua.device.vendor || "Unknown",
-          device_model: ua.device.model || "Unknown",
-          browser: ua.browser.name || "Unknown",
-          browser_version: ua.browser.version || "Unknown",
-          engine: ua.engine.name || "Unknown",
-          engine_version: ua.engine.version || "Unknown",
-          os: ua.os.name || "Unknown",
-          os_version: ua.os.version || "Unknown",
-          cpu_architecture: ua.cpu?.architecture || "Unknown",
-          ua: ua.ua || "Unknown",
-          bot: ua.isBot,
-          qr: isQr,
-          referer: referer
-            ? getDomainWithoutWWW(referer) || "(direct)"
-            : "(direct)",
-          referer_url: referer || "(direct)",
-        }),
+        body: JSON.stringify(clickData),
       },
     ).then((res) => res.json()),
 
     // increment the click count for the link (based on their ID)
+    // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
     conn.execute(
       "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
       [linkId],
@@ -136,4 +140,30 @@ export async function recordClick({
         [linkId],
       ),
   ]);
+
+  // Send webhook events if link has webhooks enabled
+  if (webhookIds && webhookIds.length > 0) {
+    const webhooks = await webhookCache.mget(webhookIds);
+
+    const linkWebhooks = webhooks.filter(
+      (webhook) =>
+        webhook.triggers &&
+        Array.isArray(webhook.triggers) &&
+        webhook.triggers.includes("link.clicked"),
+    );
+
+    if (linkWebhooks.length > 0) {
+      await sendWebhooks({
+        trigger: "link.clicked",
+        webhooks: linkWebhooks,
+        // @ts-ignore
+        data: transformClickEventData({
+          ...clickData,
+          link: {
+            id: linkId,
+          },
+        }),
+      });
+    }
+  }
 }

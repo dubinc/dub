@@ -37,7 +37,6 @@ import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
 import Markdown from "react-markdown";
-import "react-medium-image-zoom/dist/styles.css";
 import { toast } from "sonner";
 
 export default function IntegrationPageClient({
@@ -157,8 +156,8 @@ export default function IntegrationPageClient({
         )}
       </div>
 
-      <div className="flex justify-between rounded-lg border border-gray-200 bg-white p-4">
-        <div className="flex gap-12">
+      <div className="flex flex-col justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:gap-0">
+        <div className="flex flex-col gap-4 sm:flex-row sm:gap-12">
           {integration.installed && (
             <div className="flex items-center gap-2">
               <Avatar user={integration.installed.by} className="size-8" />
@@ -204,7 +203,7 @@ export default function IntegrationPageClient({
               href={`/${slug}/settings/integrations/${integration.slug}/manage`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
-                "flex h-full items-center rounded-md border px-4 text-sm",
+                "flex h-9 items-center rounded-md border px-4 text-sm",
               )}
             >
               Manage

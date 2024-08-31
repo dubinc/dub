@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import {
   isBlacklistedKey,
   isReservedKey,
@@ -5,36 +6,7 @@ import {
 } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
 import { WorkspaceProps } from "@/lib/types";
-import {
-  DEFAULT_REDIRECTS,
-  isDubDomain,
-  linkConstructor,
-  punyEncode,
-  validKeyRegex,
-} from "@dub/utils";
-import { Link, Tag } from "@prisma/client";
-import { DubApiError } from "../errors";
-
-export type LinkWithTags = Link & {
-  tags: { tag: Pick<Tag, "id" | "name" | "color"> }[];
-};
-
-/**
- * Combines tagIds into a single string array or undefined from tagId and tagIds arguments
- */
-export function combineTagIds({
-  tagId,
-  tagIds,
-}: {
-  tagId?: string | null;
-  tagIds?: string[];
-}): string[] | undefined {
-  // Use tagIds if present, fall back to tagId
-  if (tagIds && Array.isArray(tagIds)) {
-    return tagIds;
-  }
-  return tagId === null ? [] : tagId !== undefined ? [tagId] : undefined;
-}
+import { DEFAULT_REDIRECTS, isDubDomain } from "@dub/utils";
 
 export async function keyChecks({
   domain,
@@ -108,60 +80,3 @@ export async function keyChecks({
     error: null,
   };
 }
-
-export function processKey({ domain, key }: { domain: string; key: string }) {
-  // Skip if root domain
-  if (key === "_root") {
-    return key;
-  }
-
-  if (!validKeyRegex.test(key)) {
-    return null;
-  }
-  // if key starts with _, return null (reserved route for Dub internals)
-  if (key.startsWith("_")) {
-    return null;
-  }
-
-  // remove all leading and trailing slashes from key
-  key = key.replace(/^\/+|\/+$/g, "");
-  /* 
-    for default dub domains, remove all special characters + unicode normalization 
-      to remove accents / diacritical marks. this is to prevent phishing/typo squatting
-    for custom domains this is fine, since only the workspace can set the key
-  */
-  if (isDubDomain(domain)) {
-    key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  }
-  // encode the key to ascii
-  key = punyEncode(key);
-
-  return key;
-}
-
-// Transform link with additional properties
-export const transformLink = (link: LinkWithTags) => {
-  const tags = (link.tags || []).map(({ tag }) => tag);
-
-  const shortLink = linkConstructor({
-    domain: link.domain,
-    key: link.key,
-  });
-
-  const qrLink = linkConstructor({
-    domain: link.domain,
-    key: link.key,
-    searchParams: {
-      qr: "1",
-    },
-  });
-
-  return {
-    ...link,
-    shortLink,
-    tagId: tags?.[0]?.id ?? null, // backwards compatibility
-    tags,
-    qrCode: `https://api.dub.co/qr?url=${qrLink}`,
-    workspaceId: link.projectId ? `ws_${link.projectId}` : null,
-  };
-};

@@ -5,12 +5,12 @@ import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
+import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import {
-  trackLeadRequestSchema,
-  trackLeadResponseSchema,
-} from "@/lib/zod/schemas/leads";
+import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -87,7 +87,7 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    await Promise.all([
+    const [_lead, _customer, link, _project] = await Promise.all([
       recordLead({
         ...clickData,
         event_id: nanoid(16),
@@ -127,17 +127,33 @@ export const POST = withWorkspaceEdge(
       }),
     ]);
 
-    const response = trackLeadResponseSchema.parse({
-      clickId,
+    const lead = transformLeadEventData({
+      ...clickData,
+      link,
       eventName,
-      customerId: externalId,
+      customerId: customer.externalId,
       customerName: customer.name,
       customerEmail: customer.email,
       customerAvatar: customer.avatar,
-      metadata,
     });
 
-    return NextResponse.json(response);
+    waitUntil(
+      sendLinkWebhookOnEdge({
+        trigger: "lead.created",
+        linkId: link.id,
+        data: lead,
+      }),
+    );
+
+    return NextResponse.json({
+      ...lead,
+      // for backwards compatibility – will remove soon
+      clickId: lead.click.id,
+      customerId: customer.externalId,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
+    });
   },
   {
     requiredAddOn: "conversion",

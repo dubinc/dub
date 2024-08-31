@@ -5,11 +5,14 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { transformLinkEventData } from "@/lib/webhook/transform";
 import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
 } from "@/lib/zod/schemas/links";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
@@ -96,6 +99,16 @@ export const POST = withWorkspace(
 
     try {
       const response = await createLink(link);
+
+      if (response.projectId && response.userId) {
+        waitUntil(
+          sendWorkspaceWebhook({
+            trigger: "link.created",
+            workspace,
+            data: transformLinkEventData(response),
+          }),
+        );
+      }
 
       return NextResponse.json(response, { headers });
     } catch (error) {

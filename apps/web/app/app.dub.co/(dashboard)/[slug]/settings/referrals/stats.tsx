@@ -16,10 +16,7 @@ import { CountingNumbers } from "@dub/ui";
 import { User } from "@dub/ui/src/icons";
 import { nFormatter, randomValue } from "@dub/utils";
 import { subDays } from "date-fns";
-import {
-  ClicksTimeseries,
-  SalesTimeseries,
-} from "dub/dist/commonjs/models/components";
+import { AnalyticsTimeseries } from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
 
 export function Stats({ slug }: { slug: string }) {
@@ -130,7 +127,7 @@ async function loadData(linkId: string) {
       event: "clicks",
       interval: "30d",
       groupBy: "timeseries",
-    }) as Promise<ClicksTimeseries[]>,
+    }) as Promise<AnalyticsTimeseries[]>,
 
     // Sales timeseries
     dub.analytics.retrieve({
@@ -138,7 +135,7 @@ async function loadData(linkId: string) {
       event: "sales",
       interval: "30d",
       groupBy: "timeseries",
-    }) as Promise<SalesTimeseries[]>,
+    }) as Promise<AnalyticsTimeseries[]>,
 
     // Total events
     getTotalEvents(linkId),
@@ -150,14 +147,14 @@ async function loadData(linkId: string) {
       date: new Date(d.start),
       value: d.clicks,
     })),
-    totalSales: totalEvents.amount,
+    totalSales: totalEvents.saleAmount ?? 0,
     sales: sales.map((d) => ({
       date: new Date(d.start),
-      value: d.amount,
+      value: d.saleAmount ?? 0,
     })),
-    referredSignups: Math.min(totalEvents.leads, 32),
+    referredSignups: Math.min(totalEvents.leads ?? 0, 32),
     clicksQuotaBonus: Math.min(
-      totalEvents.leads * REFERRAL_CLICKS_QUOTA_BONUS,
+      (totalEvents.leads ?? 0) * REFERRAL_CLICKS_QUOTA_BONUS,
       REFERRAL_CLICKS_QUOTA_BONUS_MAX,
     ),
   };
