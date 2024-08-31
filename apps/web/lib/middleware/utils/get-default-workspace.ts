@@ -1,11 +1,28 @@
+import { prismaEdge } from "@/lib/prisma/edge";
 import { UserProps } from "@/lib/types";
-import { getRefreshedUser } from "./get-refreshed-user";
 
 export async function getDefaultWorkspace(user: UserProps) {
   let defaultWorkspace = user?.defaultWorkspace;
 
   if (!defaultWorkspace) {
-    const refreshedUser = await getRefreshedUser(user);
+    const refreshedUser = await prismaEdge.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        defaultWorkspace: true,
+        projects: {
+          select: {
+            project: {
+              select: {
+                slug: true,
+              },
+            },
+          },
+          take: 1,
+        },
+      },
+    });
 
     defaultWorkspace =
       refreshedUser?.defaultWorkspace ||

@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import NewLinkMiddleware from "./new-link";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
-import { getRefreshedUser } from "./utils/get-refreshed-user";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
@@ -28,8 +27,6 @@ export default async function AppMiddleware(req: NextRequest) {
 
     // if there's a user
   } else if (user) {
-    const refreshedUser = await getRefreshedUser(user);
-
     // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
     if (path === "/new") {
       return NewLinkMiddleware(req, user);

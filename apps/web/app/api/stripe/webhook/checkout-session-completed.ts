@@ -71,7 +71,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
               id: true,
               name: true,
               email: true,
-              onboardingStep: true,
             },
           },
         },
@@ -97,15 +96,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     id: user.id,
     name: user.name,
     email: user.email,
-    onboardingStep: user.onboardingStep,
   }));
 
-  const usersInOnboarding = users.filter(({ onboardingStep }) =>
-    Boolean(onboardingStep),
-  );
-
   await Promise.allSettled([
-    completeOnboarding({ usersInOnboarding, workspaceId }),
+    completeOnboarding({ users, workspaceId }),
     ...users.map((user) => {
       limiter.schedule(() =>
         sendEmail({
@@ -124,24 +118,15 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 }
 
 async function completeOnboarding({
-  usersInOnboarding,
+  users,
   workspaceId,
 }: {
-  usersInOnboarding: Pick<User, "id">[];
+  users: Pick<User, "id">[];
   workspaceId: string;
 }) {
   await Promise.allSettled([
     // Complete onboarding for workspace users
-    prisma.user.updateMany({
-      where: {
-        id: {
-          in: usersInOnboarding.map(({ id }) => id),
-        },
-      },
-      data: {
-        onboardingStep: null,
-      },
-    }),
+    ...users.map(({ id }) => redis.set(`onboarding-step:${id}`, "completed")),
 
     // Send saved invite emails
     (async () => {
