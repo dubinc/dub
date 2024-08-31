@@ -9,6 +9,7 @@ import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { CheckCircleFill } from "../shared/icons";
 
 type FormData = {
   teammates: {
@@ -64,9 +65,15 @@ export function InviteTeammatesForm({
         if (res.ok) {
           await mutate(`/api/workspaces/${id}/invites`);
 
-          toast.success(
-            `Invitation${teammates.length !== 1 ? "s" : ""} ${saveOnly ? "saved" : "sent"}!`,
-          );
+          if (saveOnly) {
+            toast.custom(
+              () => <InviteSavedToast plural={teammates.length !== 1} />,
+              { duration: 7000 },
+            );
+          } else
+            toast.success(
+              `Invitation${teammates.length !== 1 ? "s" : ""} sent!`,
+            );
 
           if (!saveOnly) {
             teammates.forEach(({ email }) =>
@@ -148,5 +155,24 @@ export function InviteTeammatesForm({
         }
       />
     </form>
+  );
+}
+
+function InviteSavedToast({ plural }: { plural: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
+      <CheckCircleFill className="size-5 shrink-0 text-black" />
+      <p className="text-[13px] font-medium text-gray-900">
+        Invitation{plural ? "s" : ""} saved. You'll need a pro plan to invite
+        teammates.{" "}
+        <a
+          href="https://dub.co/help/article/how-to-invite-teammates"
+          target="_blank"
+          className="text-gray-500 underline transition-colors hover:text-gray-800"
+        >
+          Learn more
+        </a>
+      </p>
+    </div>
   );
 }
