@@ -8,7 +8,6 @@ export async function getRefreshedUser(user: UserProps) {
     },
     select: {
       defaultWorkspace: true,
-      onboardingStep: true,
       projects: {
         select: {
           project: {

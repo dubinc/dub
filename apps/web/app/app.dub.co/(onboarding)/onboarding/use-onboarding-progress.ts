@@ -48,11 +48,9 @@ export function useOnboardingProgress() {
   );
 
   const finish = useCallback(async () => {
-    const result = await executeAsync({
-      onboardingStep: null,
+    await executeAsync({
+      onboardingStep: "completed",
     });
-
-    if (result?.serverError) return;
 
     router.push(`/${slug}?onboarded=true`);
   }, [executeAsync, router, slug]);

@@ -42,14 +42,6 @@ function OnboardingButtonInner({
   const loading =
     domainsLoading || linksLoading || usersLoading || invitesLoading;
 
-  console.log({
-    loading,
-    domainsLoading,
-    linksLoading,
-    usersLoading,
-    invitesLoading,
-  });
-
   const tasks = useMemo(() => {
     return [
       {

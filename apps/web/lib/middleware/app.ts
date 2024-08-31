@@ -2,6 +2,7 @@ import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import NewLinkMiddleware from "./new-link";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
+import { getOnboardingStep } from "./utils/get-onboarding-step";
 import { getRefreshedUser } from "./utils/get-refreshed-user";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
@@ -33,33 +34,25 @@ export default async function AppMiddleware(req: NextRequest) {
     if (path === "/new") {
       return NewLinkMiddleware(req, user);
 
-      // if the user was created in the last 10s
-      // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
-    } else if (
-      user.createdAt &&
-      new Date(user.createdAt).getTime() > Date.now() - 10000 &&
-      // here we include the root page + /new (since they're going through welcome flow already)
-      !path.startsWith("/onboarding") &&
-      // if the user was invited to a workspace, don't show the welcome page – redirect straight to the workspace
-      !isWorkspaceInvite
-    ) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
+      /* Onboarding redirects
 
-      // Onboarding redirects
+        - User was created less than a day ago
+        - User has no workspaces
+        - User is not invited to a workspace (redirect straight to the workspace)
+        - The path does not start with /onboarding
+      */
     } else if (
-      !isWorkspaceInvite &&
-      !path.startsWith("/onboarding") &&
-      refreshedUser &&
-      // User has onboarding step
-      (refreshedUser.onboardingStep ||
-        // User has no workspaces and was created less than an hour ago
-        (refreshedUser.projects.length === 0 &&
-          new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 1000))
+      new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
+      !path.startsWith("/onboarding")
     ) {
       const defaultWorkspace = await getDefaultWorkspace(user);
 
-      let step = refreshedUser.onboardingStep;
-      if (!step) return NextResponse.redirect(new URL(`/onboarding`, req.url));
+      let step = await getOnboardingStep(user);
+      if (!step) {
+        return NextResponse.redirect(new URL(`/onboarding`, req.url));
+      } else if (step === "completed") {
+        return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+      }
 
       if (defaultWorkspace) {
         // Skip workspace step if user already has a workspace (maybe there was an error updating the onboarding step)
