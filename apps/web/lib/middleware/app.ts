@@ -42,14 +42,14 @@ export default async function AppMiddleware(req: NextRequest) {
       new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
       !path.startsWith("/onboarding")
     ) {
-      const defaultWorkspace = await getDefaultWorkspace(user);
-
       let step = await getOnboardingStep(user);
       if (!step) {
         return NextResponse.redirect(new URL(`/onboarding`, req.url));
       } else if (step === "completed") {
         return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
       }
+
+      const defaultWorkspace = await getDefaultWorkspace(user);
 
       if (defaultWorkspace) {
         // Skip workspace step if user already has a workspace (maybe there was an error updating the onboarding step)
@@ -58,7 +58,7 @@ export default async function AppMiddleware(req: NextRequest) {
           new URL(`/onboarding/${step}?slug=${defaultWorkspace}`, req.url),
         );
       } else {
-        return NextResponse.redirect(new URL(`/onboarding/${step}`, req.url));
+        return NextResponse.redirect(new URL(`/onboarding`, req.url));
       }
 
       // if the path is / or /login or /register, redirect to the default workspace
