@@ -143,7 +143,10 @@ export function AddEditDomainForm({
               }
             }
           })
-          .finally(() => setSaving(false));
+          .catch(() => {
+            setSaving(false);
+            toast.error("Failed to add domain");
+          });
       }}
       className={cn("flex flex-col gap-y-6 text-left", className)}
     >
