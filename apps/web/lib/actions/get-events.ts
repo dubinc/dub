@@ -1,7 +1,15 @@
 "use server";
 
+import {
+  ClickEvent,
+  LeadEvent,
+  SaleEvent,
+} from "dub/dist/commonjs/models/components";
 import { unstable_cache } from "next/cache";
 import { EventType } from "../analytics/types";
+import { dub } from "../dub";
+
+export type ConversionEvent = ClickEvent | LeadEvent | SaleEvent;
 
 export const getEvents = unstable_cache(
   async ({
@@ -13,24 +21,11 @@ export const getEvents = unstable_cache(
     event: EventType;
     page: number;
   }) => {
-    // const eventsParams = {
-    //   linkId: link.id,
-    //   event,
-    // };
-
-    // const events = await dub.events.list({
-    //   ...eventsParams,
-    //   interval: "all",
-    //   page,
-    // });
-
-    return await fetch(
-      `https://api.dub.co/events?event=${event}&interval=all&linkId=${linkId}&page=${page}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.DUB_API_KEY}`,
-        },
-      },
-    ).then((res) => res.json());
+    return (await dub.events.list({
+      linkId,
+      event,
+      interval: "all",
+      page,
+    })) as ConversionEvent[];
   },
 );

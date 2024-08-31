@@ -127,6 +127,7 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // increment the click count for the link (based on their ID)
+    // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
     conn.execute(
       "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
       [linkId],
@@ -156,7 +157,12 @@ export async function recordClick({
         trigger: "link.clicked",
         webhooks: linkWebhooks,
         // @ts-ignore
-        data: transformClickEventData(clickData),
+        data: transformClickEventData({
+          ...clickData,
+          link: {
+            id: linkId,
+          },
+        }),
       });
     }
   }

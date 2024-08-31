@@ -13,7 +13,7 @@ export default function Devices() {
   const { queryParams } = useRouterStuff();
 
   const { selectedTab } = useContext(AnalyticsContext);
-  const dataKey = selectedTab === "sales" ? "amount" : "count";
+  const dataKey = selectedTab === "sales" ? "saleAmount" : "count";
 
   const [tab, setTab] = useState<DeviceTabs>("devices");
   const data = useAnalyticsFilterOption(tab);
