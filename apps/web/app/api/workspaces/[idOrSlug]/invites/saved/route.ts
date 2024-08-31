@@ -22,10 +22,10 @@ export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
 
-    if (teammates.length > 10) {
+    if (teammates.length > 4) {
       throw new DubApiError({
         code: "bad_request",
-        message: "You can only invite up to 10 teammates at a time.",
+        message: "You can only save up to 4 teammate invitations at a time.",
       });
     }
 

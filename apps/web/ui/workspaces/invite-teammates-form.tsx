@@ -31,6 +31,8 @@ export function InviteTeammatesForm({
   const { id, slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
+  const maxTeammates = saveOnly ? 4 : 10;
+
   const {
     control,
     register,
@@ -136,7 +138,7 @@ export function InviteTeammatesForm({
           icon={<Plus className="size-4" />}
           text="Add email"
           onClick={() => append({ email: "", role: "member" })}
-          disabled={fields.length >= 10}
+          disabled={fields.length >= maxTeammates}
         />
       </div>
       <Button
