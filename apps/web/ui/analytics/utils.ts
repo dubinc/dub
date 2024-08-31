@@ -54,7 +54,7 @@ export function useAnalyticsFilterOption(
     data?.map((d) => ({
       ...d,
       count: d[selectedTab] as number | undefined,
-      amount: d.amount as number | undefined,
+      saleAmount: d.saleAmount as number | undefined,
     })) ?? null
   );
 }

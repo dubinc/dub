@@ -80,12 +80,12 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
               const localDate = new Date(
                 date.getTime() - date.getTimezoneOffset() * 60000,
               );
-              return localDate.toLocaleString();
+              return localDate.toLocaleTimeString();
             })()}
           </div>
         </button>
       </SheetTrigger>
-      <SheetContent className="overflow-y-scroll p-0 sm:max-w-screen-sm">
+      <SheetContent className="w-full overflow-y-scroll p-0 sm:w-auto sm:max-w-screen-sm">
         <div className="p-6">
           <h3 className="text-lg font-semibold">{event.event}</h3>
           <div className="group flex items-center gap-2">

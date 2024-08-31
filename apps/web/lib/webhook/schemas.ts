@@ -2,71 +2,69 @@ import z from "@/lib/zod";
 import { LinkSchema } from "../zod/schemas/links";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
-export const linkEventSchema = LinkSchema;
+const customerSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string().nullable(),
+  avatar: z.string().nullable(),
+});
+
+const saleSchema = z.object({
+  amount: z.number(),
+  paymentProcessor: z.string(),
+  invoiceId: z.string().nullable(),
+  currency: z.string(),
+});
+
+export const linkEventSchema = LinkSchema.omit({
+  tags: true,
+  tagId: true,
+  projectId: true,
+});
 
 export const clickEventSchema = z.object({
+  timestamp: z.string(),
   clickId: z.string(),
-  aliasLinkId: z.string(),
   url: z.string(),
   ip: z.string(),
   continent: z.string(),
   country: z.string(),
   city: z.string(),
-  region: z.string(),
-  latitude: z.string(),
-  longitude: z.string(),
   device: z.string(),
-  deviceVendor: z.string(),
-  deviceModel: z.string(),
   browser: z.string(),
-  browserVersion: z.string(),
-  engine: z.string(),
-  engineVersion: z.string(),
   os: z.string(),
-  osVersion: z.string(),
-  cpuArchitecture: z.string(),
   ua: z.string(),
   bot: z.boolean(),
   qr: z.boolean(),
   referer: z.string(),
-  refererUrl: z.string(),
-  timestamp: z.string(),
-  identityHash: z.string(),
-  link: z.object({ id: z.string() }),
+  link: linkEventSchema,
 });
 
 export const leadEventSchema = z.object({
   eventName: z.string(),
-  customerId: z.string(),
-  customerName: z.string().nullable(),
-  customerEmail: z.string().nullable(),
-  customerAvatar: z.string().nullable(),
-  click: clickEventSchema.partial(),
-  link: z.object({
-    id: z.string(),
-    externalId: z.string().nullable(),
-    domain: z.string(),
-    key: z.string(),
-  }),
+  customer: customerSchema,
+  click: clickEventSchema
+    .omit({ link: true, timestamp: true, clickId: true })
+    .and(
+      z.object({
+        id: z.string(),
+      }),
+    ),
+  link: linkEventSchema,
 });
 
 export const saleEventSchema = z.object({
   eventName: z.string(),
-  customerId: z.string(),
-  customerName: z.string().nullable(),
-  customerEmail: z.string().nullable(),
-  customerAvatar: z.string().nullable(),
-  amount: z.number(),
-  paymentProcessor: z.string(),
-  invoiceId: z.string().nullable(),
-  currency: z.string(),
-  click: clickEventSchema.partial(),
-  link: z.object({
-    id: z.string(),
-    externalId: z.string().nullable(),
-    domain: z.string(),
-    key: z.string(),
-  }),
+  customer: customerSchema,
+  sale: saleSchema,
+  click: clickEventSchema
+    .omit({ link: true, timestamp: true, clickId: true })
+    .and(
+      z.object({
+        id: z.string(),
+      }),
+    ),
+  link: linkEventSchema,
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub
@@ -78,10 +76,5 @@ export const webhookPayloadSchema = z.object({
   createdAt: z
     .string()
     .describe("The date and time when the event was created in UTC."),
-  data: z.union([
-    linkEventSchema,
-    clickEventSchema,
-    leadEventSchema,
-    saleEventSchema,
-  ]),
+  data: z.any().describe("The data associated with the event."),
 });
