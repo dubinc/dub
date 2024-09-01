@@ -46,6 +46,23 @@ export const trackSaleRequestSchema = z.object({
     .describe("Additional metadata to be stored with the sale event."),
 });
 
+export const trackSaleResponseSchema = z.object({
+  eventName: z.string(),
+  customer: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+    avatar: z.string(),
+  }),
+  sale: z.object({
+    amount: z.number(),
+    currency: z.string(),
+    invoiceId: z.string().nullable(),
+    paymentProcessor: z.string(),
+    metadata: z.record(z.unknown()),
+  }),
+});
+
 export const saleEventSchemaTB = clickEventSchemaTB
   .omit({ timestamp: true })
   .and(

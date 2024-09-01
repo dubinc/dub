@@ -38,18 +38,13 @@ export const transformLinkEventData = (data: Link) => {
 };
 
 export const transformClickEventData = (
-  data: z.infer<typeof clickEventSchemaTB> & {
-    link: any;
-  },
+  data: z.infer<typeof clickEventSchemaTB>,
 ) => {
   const click = Object.fromEntries(
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return clickEventSchema.parse({
-    ...click,
-    link: transformLinkEventData(transformLink(data.link as LinkWithTags)),
-  });
+  return clickEventSchema.parse(click);
 };
 
 export const transformLeadEventData = (data: any) => {

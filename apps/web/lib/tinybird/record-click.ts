@@ -6,6 +6,7 @@ import {
   nanoid,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
+import { Link } from "@prisma/client";
 import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
 import {
@@ -18,7 +19,10 @@ import { conn } from "../planetscale";
 import { ratelimit } from "../upstash";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
-import { transformClickEventData } from "../webhook/transform";
+import {
+  transformClickEventData,
+  transformLinkEventData,
+} from "../webhook/transform";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -153,16 +157,21 @@ export async function recordClick({
     );
 
     if (linkWebhooks.length > 0) {
+      const link = (await conn
+        .execute("SELECT * FROM Link WHERE id = ?", [linkId])
+        .then((res) => res.rows[0])) as Link;
+
       await sendWebhooks({
         trigger: "link.clicked",
         webhooks: linkWebhooks,
-        // @ts-ignore
-        data: transformClickEventData({
-          ...clickData,
-          link: {
-            id: linkId,
-          },
-        }),
+        data: {
+          ...transformClickEventData({
+            ...clickData,
+            bot: clickData.bot ? 1 : 0,
+            qr: clickData.qr ? 1 : 0,
+          }),
+          link: transformLinkEventData(link),
+        },
       });
     }
   }
