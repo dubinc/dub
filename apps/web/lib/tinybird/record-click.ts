@@ -6,7 +6,6 @@ import {
   nanoid,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
-import { Link } from "@prisma/client";
 import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
 import {
@@ -154,9 +153,9 @@ export async function recordClick({
     );
 
     if (linkWebhooks.length > 0) {
-      const link = (await conn
+      const link = await conn
         .execute("SELECT * FROM Link WHERE id = ?", [linkId])
-        .then((res) => res.rows[0])) as Link;
+        .then((res) => res.rows[0]);
 
       await sendWebhooks({
         trigger: "link.clicked",
