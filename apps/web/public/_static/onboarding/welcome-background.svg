@@ -52,21 +52,101 @@
         d="M456 443.5V326.899C456 325.043 456.737 323.263 458.05 321.95L489.95 290.05C491.263 288.737 492 286.957 492 285.101V199C492 195.134 495.134 192 499 192H757"
         stroke="#CECED0" stroke-opacity="0.7" />
     <path
+        d="M456 443.5V326.899C456 325.043 456.737 323.263 458.05 321.95L489.95 290.05C491.263 288.737 492 286.957 492 285.101V199C492 195.134 495.134 192 499 192H807"
+        stroke="transparent" id="path2" />
+    <mask id="path2mask">
+        <rect x="0" y="0" width="1750" height="1046" fill="black" />
+        <path
+            d="M456 443.5V326.899C456 325.043 456.737 323.263 458.05 321.95L489.95 290.05C491.263 288.737 492 286.957 492 285.101V199C492 195.134 495.134 192 499 192H757"
+            stroke="white" />
+    </mask>
+    <g x="0" y="0" width="100%" height="100%" mask="url(#path2mask)">
+        <g id="path2glow" width="100" height="100" transform="translate(-50, 0)">
+            <rect x="-50" y="-50" width="100" height="100" fill="url(#glow)" />
+        </g>
+    </g>
+    <path
         d="M123 563.5H500.6C502.457 563.5 504.237 562.763 505.55 561.45L525.45 541.55C526.763 540.237 527.5 538.457 527.5 536.601V444"
         stroke="#CECED0" stroke-opacity="0.7" />
     <path
+        d="M70 563.5H500.6C502.457 563.5 504.237 562.763 505.55 561.45L525.45 541.55C526.763 540.237 527.5 538.457 527.5 536.601V394"
+        stroke="transparent" id="path5" />
+    <mask id="path5mask">
+        <rect x="0" y="0" width="1750" height="1046" fill="black" />
+        <path
+            d="M123 563.5H500.6C502.457 563.5 504.237 562.763 505.55 561.45L525.45 541.55C526.763 540.237 527.5 538.457 527.5 536.601V444"
+            stroke="white" />
+    </mask>
+    <g x="0" y="0" width="100%" height="100%" mask="url(#path5mask)">
+        <g id="path5glow" width="100" height="100" transform="translate(-50, 0)">
+            <rect x="-50" y="-50" width="100" height="100" fill="url(#glow)" />
+        </g>
+    </g>
+    <path
         d="M1604 132H1035.9C1034.04 132 1032.26 131.263 1030.95 129.95L998.55 97.5503C997.237 96.2375 995.457 95.5 993.601 95.5H774.5C770.634 95.5 767.5 98.634 767.5 102.5V268.5C767.5 272.366 764.366 275.5 760.5 275.5H715C711.134 275.5 708 278.634 708 282.5V311.5"
         stroke="#CECED0" stroke-opacity="0.7" />
+    <path
+        d="M1604 132H1035.9C1034.04 132 1032.26 131.263 1030.95 129.95L998.55 97.5503C997.237 96.2375 995.457 95.5 993.601 95.5H774.5C770.634 95.5 767.5 98.634 767.5 102.5V268.5C767.5 272.366 764.366 275.5 760.5 275.5H715C711.134 275.5 708 278.634 708 282.5V411.5"
+        stroke="transparent" id="path3" />
+    <mask id="path3mask">
+        <rect x="0" y="0" width="1750" height="1046" fill="black" />
+        <path
+            d="M1604 132H1035.9C1034.04 132 1032.26 131.263 1030.95 129.95L998.55 97.5503C997.237 96.2375 995.457 95.5 993.601 95.5H774.5C770.634 95.5 767.5 98.634 767.5 102.5V268.5C767.5 272.366 764.366 275.5 760.5 275.5H715C711.134 275.5 708 278.634 708 282.5V311.5"
+            stroke="white" />
+    </mask>
+    <g width="100%" height="100%" mask="url(#path3mask)">
+        <g id="path3glow" width="100" height="100" transform="translate(-50, 0)">
+            <rect x="-50" y="-50" width="100" height="100" fill="url(#glow)" />
+        </g>
+    </g>
     <path d="M136 444H664.5C668.366 444 671.5 440.866 671.5 437V311.5" stroke="#CECED0" stroke-opacity="0.7" />
     <path
         d="M98 263.5H524.6C526.457 263.5 528.237 262.763 529.55 261.45L537.45 253.55C538.763 252.237 540.543 251.5 542.399 251.5H592.5C596.366 251.5 599.5 254.634 599.5 258.5V304.5C599.5 308.366 602.634 311.5 606.5 311.5H838"
         stroke="url(#paint0_linear_3_21)" stroke-opacity="0.7" />
+    <path d="M0 263.5H600" stroke="transparent" id="path1" />
+    <mask id="path1mask">
+        <rect x="0" y="0" width="1750" height="1046" fill="black" />
+        <path d="M98 263.5H500.6" stroke="white" />
+    </mask>
+    <g width="100%" height="100%" mask="url(#path1mask)">
+        <g id="path1glow" width="100" height="100" transform="translate(-50, 0)">
+            <rect x="-50" y="-50" width="100" height="100" fill="url(#glow)" />
+        </g>
+    </g>
     <path
         d="M1607 684H1226.9C1225.04 684 1223.26 683.263 1221.95 681.95L1153.55 613.55C1152.24 612.237 1151.5 610.457 1151.5 608.601V366.5C1151.5 362.634 1148.37 359.5 1144.5 359.5H1110.5C1106.63 359.5 1103.5 356.366 1103.5 352.5V240"
         stroke="#CECED0" stroke-opacity="0.7" />
     <path
+        d="M1607 684H1226.9C1225.04 684 1223.26 683.263 1221.95 681.95L1153.55 613.55C1152.24 612.237 1151.5 610.457 1151.5 608.601V354"
+        stroke="transparent" id="path6" />
+    <mask id="path6mask">
+        <rect x="0" y="0" width="1750" height="1046" fill="black" />
+        <path
+            d="M1607 684H1226.9C1225.04 684 1223.26 683.263 1221.95 681.95L1153.55 613.55C1152.24 612.237 1151.5 610.457 1151.5 608.601V404"
+            stroke="white" />
+    </mask>
+    <g width="100%" height="100%" mask="url(#path6mask)">
+        <g id="path6glow" width="100" height="100" transform="translate(-50, 0)">
+            <rect x="-50" y="-50" width="100" height="100" fill="url(#glow)" />
+        </g>
+    </g>
+    <path
         d="M683.5 957V688.4C683.5 686.543 684.237 684.763 685.55 683.45L718.95 650.05C720.263 648.737 722.043 648 723.899 648H1003.1C1004.96 648 1006.74 647.263 1008.05 645.95L1029.45 624.55C1030.76 623.237 1031.5 621.457 1031.5 619.601V483.399C1031.5 481.543 1032.24 479.763 1033.55 478.45L1090.45 421.55C1091.76 420.237 1093.54 419.5 1095.4 419.5H1617"
         stroke="#CECED0" stroke-opacity="0.7" />
+    <path
+        d="M683.5 1000V688.4C683.5 686.543 684.237 684.763 685.55 683.45L718.95 650.05C720.263 648.737 722.043 648 723.899 648H1003.1C1004.96 648 1006.74 647.263 1008.05 645.95L1029.45 624.55C1030.76 623.237 1031.5 621.457 1031.5 619.601V550.399"
+        stroke="transparent" id="path4" />
+    <mask id="path4mask">
+        <rect x="0" y="0" width="1750" height="1046" fill="black" />
+        <path
+            d="M683.5 957V688.4C683.5 686.543 684.237 684.763 685.55 683.45L718.95 650.05C720.263 648.737 722.043 648 723.899 648H1003.1C1004.96 648 1006.74 647.263 1008.05 645.95L1029.45 624.55C1030.76 623.237 1031.5 621.457 1031.5 619.601V600"
+            stroke="white" />
+    </mask>
+    <g width="100%" height="100%" mask="url(#path4mask)">
+        <g id="path4glow" width="100" height="100" transform="translate(-50, 0)">
+            <rect x="-50" y="-50" width="100" height="100" fill="url(#glow)" />
+        </g>
+    </g>
     <path
         d="M876 974V616.857C876 615.026 876.718 613.267 877.999 611.959L922.001 567.041C923.282 565.733 924 563.974 924 562.143V372"
         stroke="url(#paint1_linear_3_21)" stroke-opacity="0.7" />
@@ -76,19 +156,6 @@
     <path
         d="M635.5 452V572.6C635.5 574.457 636.237 576.237 637.55 577.55L669.95 609.95C671.263 611.263 673.043 612 674.899 612H760.5C764.366 612 767.5 615.134 767.5 619V648"
         stroke="#CECED0" stroke-opacity="0.7" />
-    <path d="M291 263.5H351" stroke="url(#paint3_linear_3_21)" stroke-opacity="0.5" stroke-linecap="round" />
-    <path d="M624 192H684" stroke="url(#paint4_linear_3_21)" stroke-opacity="0.5" stroke-linecap="round" />
-    <path d="M928 95.5H988" stroke="url(#paint5_linear_3_21)" stroke-opacity="0.5" stroke-linecap="round" />
-    <path d="M1268 419.5H1208" stroke="url(#paint6_linear_3_21)" stroke-opacity="0.5" stroke-linecap="round" />
-    <path d="M1091 600H1031" stroke="url(#paint7_linear_3_21)" stroke-opacity="0.5" stroke-linecap="round" />
-    <path d="M752 648H812" stroke="url(#paint8_linear_3_21)" stroke-opacity="0.5" stroke-linecap="round" />
-    <path
-        d="M469 563.5H500.601C502.457 563.5 504.237 562.763 505.55 561.45L525.45 541.55C526.763 540.237 527.5 538.457 527.5 536.601V526"
-        stroke="url(#paint9_linear_3_21)" stroke-opacity="0.5" stroke-linecap="round" />
-    <path d="M1031.5 492.5L1031.5 483.4C1031.5 481.543 1032.24 479.763 1033.55 478.45L1065.5 446.5"
-        stroke="url(#paint10_linear_3_21)" stroke-opacity="0.5" stroke-linecap="round" />
-    <path d="M671.5 334V318.5C671.5 314.634 674.634 311.5 678.5 311.5H696" stroke="url(#paint11_linear_3_21)"
-        stroke-opacity="0.5" stroke-linecap="round" />
     <g filter="url(#filter8_d_3_21)">
         <rect x="1138" y="130.5" width="6" height="3" rx="1.5" fill="#C5C8CE" />
     </g>
@@ -353,6 +420,54 @@
         <circle cx="1.5" cy="1.5" r="1.5" transform="matrix(1 0 0 -1 707 313)" fill="black" fill-opacity="0.6" />
     </g>
     <defs>
+        <style>
+            #path1glow {
+                offset-path: url(#path1);
+                animation: move 5s linear infinite;
+            }
+
+            #path2glow {
+                offset-path: url(#path2);
+                animation: move 7s linear infinite;
+                animation-delay: 2.5s;
+            }
+
+            #path3glow {
+                offset-path: url(#path3);
+                animation: move 9s linear infinite;
+            }
+
+            #path4glow {
+                offset-path: url(#path4);
+                animation: move 7s linear infinite;
+            }
+
+            #path5glow {
+                offset-path: url(#path5);
+                animation: move 5s linear infinite;
+                animation-delay: 2s;
+            }
+
+            #path6glow {
+                offset-path: url(#path6);
+                animation: move 5s linear infinite;
+                animation-delay: 2.5s;
+            }
+
+            @keyframes move {
+                0% {
+                    offset-distance: 0%;
+                }
+
+                100% {
+                    offset-distance: 100%;
+                }
+            }
+        </style>
+        <radialGradient id="glow" cx="1" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+            <stop stop-color="#636568" offset="0" stop-opacity="0.8" />
+            <stop offset="1" stop-color="#636568" stop-opacity="0" />
+        </radialGradient>
         <filter id="filter0_bdi_3_21" x="420" y="540" width="47" height="47" filterUnits="userSpaceOnUse"
             color-interpolation-filters="sRGB">
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
@@ -1095,45 +1210,6 @@
             gradientUnits="userSpaceOnUse">
             <stop stop-color="#CECED0" stop-opacity="0" />
             <stop offset="0.54" stop-color="#CECED0" />
-        </linearGradient>
-        <linearGradient id="paint3_linear_3_21" x1="291" y1="264" x2="351" y2="264" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
-        </linearGradient>
-        <linearGradient id="paint4_linear_3_21" x1="624" y1="192.5" x2="684" y2="192.5" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
-        </linearGradient>
-        <linearGradient id="paint5_linear_3_21" x1="928" y1="96" x2="988" y2="96" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
-        </linearGradient>
-        <linearGradient id="paint6_linear_3_21" x1="1268" y1="420" x2="1208" y2="420" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
-        </linearGradient>
-        <linearGradient id="paint7_linear_3_21" x1="1091" y1="600.5" x2="1031" y2="600.5"
-            gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
-        </linearGradient>
-        <linearGradient id="paint8_linear_3_21" x1="752" y1="648.5" x2="812" y2="648.5" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
-        </linearGradient>
-        <linearGradient id="paint9_linear_3_21" x1="469" y1="563.5" x2="529" y2="563.5" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
-        </linearGradient>
-        <linearGradient id="paint10_linear_3_21" x1="1065.5" y1="446.5" x2="1032.5" y2="479.5"
-            gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
-        </linearGradient>
-        <linearGradient id="paint11_linear_3_21" x1="671.5" y1="322.75" x2="696" y2="322.75"
-            gradientUnits="userSpaceOnUse">
-            <stop stop-color="#636568" stop-opacity="0" />
-            <stop offset="1" stop-color="#636568" />
         </linearGradient>
         <linearGradient id="paint12_linear_3_21" x1="1127.5" y1="120" x2="1127.5" y2="143"
             gradientUnits="userSpaceOnUse">
