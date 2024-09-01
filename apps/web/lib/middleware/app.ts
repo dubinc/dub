@@ -34,12 +34,12 @@ export default async function AppMiddleware(req: NextRequest) {
       /* Onboarding redirects
 
         - User was created less than a day ago
-        - User has no workspaces
         - User is not invited to a workspace (redirect straight to the workspace)
         - The path does not start with /onboarding
       */
     } else if (
       new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
+      !isWorkspaceInvite &&
       !path.startsWith("/onboarding")
     ) {
       let step = await getOnboardingStep(user);
