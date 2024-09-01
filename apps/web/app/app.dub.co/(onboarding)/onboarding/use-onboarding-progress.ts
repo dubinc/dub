@@ -1,7 +1,6 @@
 import { setOnboardingProgress } from "@/lib/actions/set-onboarding-progress";
 import { OnboardingStep } from "@/lib/onboarding/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { waitUntil } from "@vercel/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
@@ -15,7 +14,7 @@ export function useOnboardingProgress() {
   const workspace = useWorkspace();
   const slug = workspace?.slug || searchParams.get("slug");
 
-  const { executeAsync, isExecuting, hasSucceeded } = useAction(
+  const { execute, executeAsync, isExecuting, hasSucceeded } = useAction(
     setOnboardingProgress,
     {
       onSuccess: () => {
@@ -33,18 +32,16 @@ export function useOnboardingProgress() {
       step: OnboardingStep,
       { slug: slugParam }: { slug?: string } = {},
     ) => {
-      waitUntil(
-        executeAsync({
-          onboardingStep: step,
-        }),
-      );
+      execute({
+        onboardingStep: step,
+      });
 
       const queryParams = PRE_SLUG_STEPS.includes(step)
         ? ""
         : `?slug=${slugParam || slug}`;
       router.push(`/onboarding/${step}${queryParams}`);
     },
-    [executeAsync, router, slug],
+    [execute, router, slug],
   );
 
   const finish = useCallback(async () => {
@@ -53,7 +50,7 @@ export function useOnboardingProgress() {
     });
 
     router.push(`/${slug}?onboarded=true`);
-  }, [executeAsync, router, slug]);
+  }, [execute, router, slug]);
 
   return {
     continueTo,

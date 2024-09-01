@@ -58,7 +58,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     // if the user does not have a subscription, create a new checkout session
   } else {
     const successUrl = onboarding
-      ? `${APP_DOMAIN}/${workspace.slug}?onboarded=true`
+      ? `${APP_DOMAIN}/${workspace.slug}?onboarded=true&plan=${plan}`
       : `${APP_DOMAIN}/${workspace.slug}/settings/billing?success=true&plan=${plan}&period=${period}`;
 
     const stripeSession = await stripe.checkout.sessions.create({
