@@ -1,5 +1,11 @@
-import { Button, Logo, Modal, useRouterStuff } from "@dub/ui";
-import { cn } from "@dub/utils";
+import {
+  Button,
+  Logo,
+  Modal,
+  useRouterStuff,
+  useScrollProgress,
+} from "@dub/ui";
+import { cn, PLANS, PRO_PLAN } from "@dub/utils";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import {
@@ -8,8 +14,10 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { PlanFeatures } from "../workspaces/plan-features";
 
 function WelcomeModal({
   showWelcomeModal,
@@ -19,6 +27,17 @@ function WelcomeModal({
   setShowWelcomeModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { queryParams } = useRouterStuff();
+  const searchParams = useSearchParams();
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
+  const planId = searchParams.get("plan");
+
+  const plan = planId
+    ? PLANS.find((p) => p.name.toLowerCase() === planId.toLowerCase()) ??
+      PRO_PLAN
+    : undefined;
 
   return (
     <Modal
@@ -47,19 +66,52 @@ function WelcomeModal({
           </div>
         </div>
         <div className="px-12 py-8">
-          <h1 className="text-center text-lg font-medium text-gray-950">
-            Welcome to Dub!
-          </h1>
-          <p className="mt-2 text-center text-sm text-gray-500">
-            Thanks for signing up &ndash; your account is ready to go! Now you
-            have one central, organized place to build and manage all your short
-            links.
-          </p>
+          <div className="relative">
+            <div
+              ref={scrollRef}
+              onScroll={updateScrollProgress}
+              className="scrollbar-hide max-h-[calc(100vh-350px)] overflow-y-auto pb-6"
+            >
+              <h1
+                className={cn(
+                  "text-lg font-medium text-gray-950",
+                  plan ? "text-left" : "text-center",
+                )}
+              >
+                {plan
+                  ? `Dub ${plan.name} looks good on you!`
+                  : "Welcome to Dub!"}
+              </h1>
+              <p
+                className={cn(
+                  "mt-2 text-sm text-gray-500",
+                  plan ? "text-left" : "text-center",
+                )}
+              >
+                Thanks for signing up &ndash; your account is ready to go! Now
+                you have one central, organized place to build and manage all
+                your short links.
+              </p>
+              {plan && (
+                <>
+                  <h2 className="mb-2 mt-6 text-base font-medium text-gray-950">
+                    Explore the benefits of Dub {plan.name}
+                  </h2>
+                  <PlanFeatures plan={plan.name} />
+                </>
+              )}
+            </div>
+            {/* Bottom scroll fade */}
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+              style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+            ></div>
+          </div>
           <Button
             type="button"
             variant="primary"
             text="Get started"
-            className="mt-8"
+            className="mt-2"
             onClick={() =>
               queryParams({
                 del: "onboarded",
