@@ -13,8 +13,6 @@ export const SCOPES = [
   "domains.read",
   "domains.write",
   "conversions.write",
-  "webhooks.read",
-  "webhooks.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -120,6 +118,8 @@ export const RESOURCE_SCOPES: {
       "tags.write",
       "domains.read",
       "domains.write",
+      "workspaces.read",
+      "workspaces.write",
       "analytics.read",
       "conversions.write",
     ],
