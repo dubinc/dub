@@ -57,71 +57,95 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    const [_sale, link, _project] = await Promise.all([
-      recordSale({
-        ...clickData,
-        event_id: nanoid(16),
-        event_name: eventName,
-        customer_id: customer.id,
-        payment_processor: paymentProcessor,
-        amount,
-        currency,
-        invoice_id: invoiceId || "",
-        metadata: metadata ? JSON.stringify(metadata) : "",
-      }),
-      // update link sales count
-      prismaEdge.link.update({
-        where: {
-          id: clickData.link_id,
-        },
-        data: {
-          sales: {
-            increment: 1,
-          },
-          saleAmount: {
-            increment: amount,
-          },
-        },
-      }),
-      // update workspace sales usage
-      prismaEdge.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          usage: {
-            increment: 1,
-          },
-          salesUsage: {
-            increment: amount,
-          },
-        },
-      }),
-    ]);
-
-    const sale = transformSaleEventData({
-      ...clickData,
-      link,
-      eventName,
-      paymentProcessor,
-      invoiceId,
-      amount,
-      currency,
-      customerId: customer.externalId,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
-    });
-
     waitUntil(
-      sendLinkWebhookOnEdge({
-        trigger: "sale.created",
-        linkId: link.id,
-        data: sale,
-      }),
+      (async () => {
+        const [_sale, link, _project] = await Promise.all([
+          recordSale({
+            ...clickData,
+            event_id: nanoid(16),
+            event_name: eventName,
+            customer_id: customer.id,
+            payment_processor: paymentProcessor,
+            amount,
+            currency,
+            invoice_id: invoiceId || "",
+            metadata: metadata ? JSON.stringify(metadata) : "",
+          }),
+          // update link sales count
+          prismaEdge.link.update({
+            where: {
+              id: clickData.link_id,
+            },
+            data: {
+              sales: {
+                increment: 1,
+              },
+              saleAmount: {
+                increment: amount,
+              },
+            },
+          }),
+          // update workspace sales usage
+          prismaEdge.project.update({
+            where: {
+              id: workspace.id,
+            },
+            data: {
+              usage: {
+                increment: 1,
+              },
+              salesUsage: {
+                increment: amount,
+              },
+            },
+          }),
+        ]);
+
+        const sale = transformSaleEventData({
+          ...clickData,
+          link,
+          eventName,
+          paymentProcessor,
+          invoiceId,
+          amount,
+          currency,
+          customerId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        });
+
+        await sendLinkWebhookOnEdge({
+          trigger: "sale.created",
+          linkId: link.id,
+          data: sale,
+        });
+      })(),
     );
 
-    return NextResponse.json(sale);
+    return NextResponse.json({
+      eventName,
+      customer: {
+        id: customer.externalId,
+        name: customer.name,
+        email: customer.email,
+        avatar: customer.avatar,
+      },
+      sale: {
+        amount,
+        currency,
+        invoiceId,
+        paymentProcessor,
+        metadata,
+      },
+      // for backwards compatibility – will remove soon
+      customerId: externalId,
+      amount,
+      currency,
+      invoiceId,
+      paymentProcessor,
+      metadata,
+    });
   },
   {
     requiredAddOn: "conversion",

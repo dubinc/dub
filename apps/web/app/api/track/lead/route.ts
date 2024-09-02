@@ -87,68 +87,78 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    const [_lead, _customer, link, _project] = await Promise.all([
-      recordLead({
-        ...clickData,
-        event_id: nanoid(16),
-        event_name: eventName,
-        customer_id: customer.id,
-        metadata: metadata ? JSON.stringify(metadata) : "",
-      }),
-
-      recordCustomer({
-        workspace_id: workspace.id,
-        customer_id: customer.id,
-        name: customer.name || "",
-        email: customer.email || "",
-        avatar: customer.avatar || "",
-      }),
-
-      // update link leads count
-      prismaEdge.link.update({
-        where: {
-          id: clickData.link_id,
-        },
-        data: {
-          leads: {
-            increment: 1,
-          },
-        },
-      }),
-      prismaEdge.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          usage: {
-            increment: 1,
-          },
-        },
-      }),
-    ]);
-
-    const lead = transformLeadEventData({
-      ...clickData,
-      link,
-      eventName,
-      customerId: customer.externalId,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
-    });
-
     waitUntil(
-      sendLinkWebhookOnEdge({
-        trigger: "lead.created",
-        linkId: link.id,
-        data: lead,
-      }),
+      (async () => {
+        const [_lead, _customer, link, _project] = await Promise.all([
+          recordLead({
+            ...clickData,
+            event_id: nanoid(16),
+            event_name: eventName,
+            customer_id: customer.id,
+            metadata: metadata ? JSON.stringify(metadata) : "",
+          }),
+
+          recordCustomer({
+            workspace_id: workspace.id,
+            customer_id: customer.id,
+            name: customer.name || "",
+            email: customer.email || "",
+            avatar: customer.avatar || "",
+          }),
+
+          // update link leads count
+          prismaEdge.link.update({
+            where: {
+              id: clickData.link_id,
+            },
+            data: {
+              leads: {
+                increment: 1,
+              },
+            },
+          }),
+          prismaEdge.project.update({
+            where: {
+              id: workspace.id,
+            },
+            data: {
+              usage: {
+                increment: 1,
+              },
+            },
+          }),
+        ]);
+
+        const lead = transformLeadEventData({
+          ...clickData,
+          link,
+          eventName,
+          customerId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        });
+
+        await sendLinkWebhookOnEdge({
+          trigger: "lead.created",
+          linkId: link.id,
+          data: lead,
+        });
+      })(),
     );
 
     return NextResponse.json({
-      ...lead,
+      click: {
+        id: clickId,
+      },
+      customer: {
+        id: customer.externalId,
+        name: customer.name,
+        email: customer.email,
+        avatar: customer.avatar,
+      },
       // for backwards compatibility – will remove soon
-      clickId: lead.click.id,
+      clickId,
       customerId: customer.externalId,
       customerName: customer.name,
       customerEmail: customer.email,
