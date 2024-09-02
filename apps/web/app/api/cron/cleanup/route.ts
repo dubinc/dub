@@ -62,7 +62,6 @@ export async function GET(req: Request) {
 
       // Post delete cleanup
       await bulkDeleteLinks({
-        workspaceId: E2E_WORKSPACE_ID,
         links,
       });
     }

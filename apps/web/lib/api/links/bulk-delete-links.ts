@@ -5,10 +5,8 @@ import { R2_URL } from "@dub/utils";
 import { Link, Tag } from "@prisma/client";
 
 export async function bulkDeleteLinks({
-  workspaceId,
   links,
 }: {
-  workspaceId: string;
   links: (Link & { tags: Pick<Tag, "id">[] })[];
 }) {
   if (links.length === 0) {
