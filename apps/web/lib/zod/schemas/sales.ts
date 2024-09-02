@@ -81,7 +81,7 @@ export const saleEventSchemaTB = clickEventSchemaTB
 
 export const saleEventEnrichedSchema = z
   .object({
-    event: z.literal("sale").default("sale"),
+    event: z.literal("sale"),
     timestamp: z.string(),
     event_id: z.string(),
     event_name: z.string(),

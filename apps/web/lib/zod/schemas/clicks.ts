@@ -31,7 +31,7 @@ export const clickEventSchemaTB = z.object({
 
 export const clickEventEnrichedSchema = z
   .object({
-    event: z.literal("click").default("click"),
+    event: z.literal("click"),
     timestamp: z.string(),
     click_id: z.string(),
     link_id: z.string(),
