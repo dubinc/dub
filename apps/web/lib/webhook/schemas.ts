@@ -43,13 +43,11 @@ export const clickEventSchema = z.object({
 export const leadEventSchema = z.object({
   eventName: z.string(),
   customer: customerSchema,
-  click: clickEventSchema
-    .omit({ link: true, timestamp: true, clickId: true })
-    .and(
-      z.object({
-        id: z.string(),
-      }),
-    ),
+  click: z
+    .object({
+      id: z.string(),
+    })
+    .and(clickEventSchema.omit({ link: true, timestamp: true, clickId: true })),
   link: linkEventSchema,
 });
 
@@ -57,13 +55,11 @@ export const saleEventSchema = z.object({
   eventName: z.string(),
   customer: customerSchema,
   sale: saleSchema,
-  click: clickEventSchema
-    .omit({ link: true, timestamp: true, clickId: true })
-    .and(
-      z.object({
-        id: z.string(),
-      }),
-    ),
+  click: z
+    .object({
+      id: z.string(),
+    })
+    .and(clickEventSchema.omit({ link: true, timestamp: true, clickId: true })),
   link: linkEventSchema,
 });
 

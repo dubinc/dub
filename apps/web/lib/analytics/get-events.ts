@@ -1,6 +1,12 @@
+import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { z } from "zod";
+import { Link } from "@prisma/client";
 import { tbDemo } from "../tinybird/demo-client";
+import {
+  transformClickEventData,
+  transformLeadEventData,
+  transformSaleEventData,
+} from "../webhook/transform";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import { clickEventEnrichedSchema } from "../zod/schemas/clicks";
 import { leadEventEnrichedSchema } from "../zod/schemas/leads";
@@ -8,14 +14,14 @@ import { saleEventEnrichedSchema } from "../zod/schemas/sales";
 import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
 
+// Promise<
+// | z.infer<typeof clickEventEnrichedSchema>[]
+// | z.infer<typeof leadEventEnrichedSchema>[]
+// | z.infer<typeof saleEventEnrichedSchema>[]
+// >
+
 // Fetch data for /api/events
-export const getEvents = async (
-  params: EventsFilters,
-): Promise<
-  | z.infer<typeof clickEventEnrichedSchema>[]
-  | z.infer<typeof leadEventEnrichedSchema>[]
-  | z.infer<typeof saleEventEnrichedSchema>[]
-> => {
+export const getEvents = async (params: EventsFilters) => {
   let { event, workspaceId, interval, start, end, isDemo } = params;
 
   if (start) {
@@ -51,6 +57,75 @@ export const getEvents = async (
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
   });
+
+  const linkIds = response.data.map((d) => d.link_id);
+
+  const links = await prisma.link.findMany({
+    where: {
+      id: {
+        in: linkIds,
+      },
+    },
+    include: {
+      tags: true,
+    },
+  });
+
+  const linksMap = links.reduce(
+    (acc, link) => {
+      acc[link.id] = link;
+      return acc;
+    },
+    {} as Record<string, Link>,
+  );
+
+  const events = response.data
+    .map((event) => (linksMap[event.link_id] ? event : null))
+    .filter((d) => d !== null);
+
+  // Click events
+  if (event === "clicks") {
+    return events.map((d) =>
+      transformClickEventData({
+        ...d,
+        link: linksMap[d.link_id],
+        bot: d.bot === 1,
+        qr: d.qr === 1,
+      }),
+    );
+  }
+
+  // Lead events
+  if (event === "leads") {
+    return response.data.map((d) =>
+      transformLeadEventData({
+        ...d,
+        bot: d.bot === 1,
+        qr: d.qr === 1,
+        link: linksMap[d.link_id],
+        customerId: "d.customer_id", // TODO: fix it,
+        customerName: d.customer_name,
+        customerEmail: d.customer_email,
+        customerAvatar: d.customer_avatar,
+      }),
+    );
+  }
+
+  // Sale events
+  if (event === "sales") {
+    return response.data.map((d) =>
+      transformSaleEventData({
+        ...d,
+        bot: d.bot === 1,
+        qr: d.qr === 1,
+        link: linksMap[d.link_id],
+        customerId: "d.customer_id",
+        customerName: d.customer_name,
+        customerEmail: d.customer_email,
+        customerAvatar: d.customer_avatar,
+      }),
+    );
+  }
 
   return response.data.map((d) => ({
     ...d,

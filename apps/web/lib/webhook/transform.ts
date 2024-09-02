@@ -63,7 +63,9 @@ export const transformLeadEventData = (data: any) => {
       id: lead.customerId,
       name: lead.customerName,
       email: lead.customerEmail,
-      avatar: lead.customerAvatar,
+      avatar:
+        lead.customerAvatar ||
+        `https://api.dicebear.com/7.x/micah/svg?seed=${lead.customerId}`,
     },
     click: {
       ...lead,
