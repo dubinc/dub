@@ -74,7 +74,7 @@ export default function TokensPageClient() {
           </div>
         ) : tokens.length > 0 ? (
           <div>
-            <div className="grid grid-cols-5 border-b border-gray-200 px-5 py-2 text-sm font-medium text-gray-500 sm:px-10">
+            <div className="hidden grid-cols-5 border-b border-gray-200 px-5 py-2 text-sm font-medium text-gray-500 sm:grid sm:px-10">
               <div className="col-span-3">Name</div>
               <div>Key</div>
               <div className="text-center">Last used</div>
@@ -119,8 +119,8 @@ const TokenRow = (token: TokenProps) => {
     <>
       <AddEditTokenModal />
       <DeleteTokenModal />
-      <div className="relative grid grid-cols-5 items-center px-5 py-3 sm:px-10">
-        <div className="col-span-3 flex items-center space-x-3">
+      <div className="relative flex flex-col gap-2 px-5 py-3 sm:grid sm:grid-cols-5 sm:items-center sm:px-10">
+        <div className="col-span-3 flex flex-col gap-3 sm:flex-row sm:items-center">
           <TokenAvatar id={token.id} />
           <div className="flex flex-col gap-y-px">
             <div className="flex items-center gap-x-2">
@@ -161,7 +161,7 @@ const TokenRow = (token: TokenProps) => {
         </div>
         <div className="font-mono text-sm">{token.partialKey}</div>
         <div
-          className="text-center text-sm text-gray-500"
+          className="text-sm text-gray-500 sm:text-center"
           suppressHydrationWarning
         >
           {timeAgo(token.lastUsed)}

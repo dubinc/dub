@@ -7,16 +7,12 @@ import {
   REFERRAL_CLICKS_QUOTA_BONUS_MAX,
   REFERRAL_REVENUE_SHARE,
 } from "@/lib/referrals/constants";
-import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
-import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
 import { EventListSkeleton } from "@dub/blocks";
 import { Wordmark } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
 import { nFormatter, randomValue } from "@dub/utils";
 import { subDays } from "date-fns";
 import { Suspense } from "react";
-import { z } from "zod";
 import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
 import { HeroBackground } from "./hero-background";
@@ -128,7 +124,7 @@ const placeholderEvents = {
         key: "",
         url: "https://dub.co",
         country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
-      }) as z.infer<typeof clickEventEnrichedSchema>,
+      }) as any,
   ),
   leads: [...Array(10)].map(
     (_, idx) =>
@@ -140,7 +136,7 @@ const placeholderEvents = {
         key: "",
         url: "https://dub.co",
         country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
-      }) as z.infer<typeof leadEventEnrichedSchema>,
+      }) as any,
   ),
   sales: [...Array(10)].map(
     (_, idx) =>
@@ -157,8 +153,9 @@ const placeholderEvents = {
           "Subscription paid",
           "Plan upgraded",
         ][idx % 3],
+        // TODO update to saleAmount
         amount: [1100, 4900, 2400][idx % 3],
-      }) as z.infer<typeof saleEventEnrichedSchema>,
+      }) as any,
   ),
 };
 
@@ -186,10 +183,5 @@ async function ActivityListRSC({
 
   const totalEvents = await getTotalEvents(link.id);
 
-  return (
-    <ActivityList
-      events={events as any}
-      totalEvents={totalEvents[event] ?? 0}
-    />
-  );
+  return <ActivityList events={events} totalEvents={totalEvents[event] ?? 0} />;
 }

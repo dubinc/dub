@@ -1,5 +1,5 @@
 import { getDomainWithoutWWW } from "@dub/utils";
-import { ratelimitRedis } from "./ratelimit";
+import { redis } from "./redis";
 
 /**
  * Recording metatags that were generated via `/api/metatags`
@@ -12,9 +12,9 @@ export async function recordMetatags(url: string, error: boolean) {
   }
 
   if (error) {
-    return await ratelimitRedis.zincrby("metatags-error-zset", 1, url);
+    return await redis.zincrby("metatags-error-zset", 1, url);
   }
 
   const domain = getDomainWithoutWWW(url);
-  return await ratelimitRedis.zincrby("metatags-zset", 1, domain);
+  return await redis.zincrby("metatags-zset", 1, domain);
 }

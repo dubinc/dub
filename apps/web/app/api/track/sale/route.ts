@@ -6,10 +6,7 @@ import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import {
-  trackSaleRequestSchema,
-  trackSaleResponseSchema,
-} from "@/lib/zod/schemas/sales";
+import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -60,22 +57,7 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    // Find link
-    const linkId = clickData.link_id;
-    const link = await prismaEdge.link.findUnique({
-      where: {
-        id: linkId,
-      },
-    });
-
-    if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Link with ID ${linkId} not found, skipping...`,
-      });
-    }
-
-    await Promise.all([
+    const [_sale, link, _project] = await Promise.all([
       recordSale({
         ...clickData,
         event_id: nanoid(16),
@@ -90,7 +72,7 @@ export const POST = withWorkspaceEdge(
       // update link sales count
       prismaEdge.link.update({
         where: {
-          id: linkId,
+          id: clickData.link_id,
         },
         data: {
           sales: {
@@ -117,33 +99,29 @@ export const POST = withWorkspaceEdge(
       }),
     ]);
 
-    const response = trackSaleResponseSchema.parse({
-      customerId: externalId,
+    const sale = transformSaleEventData({
+      ...clickData,
+      link,
+      eventName,
       paymentProcessor,
+      invoiceId,
       amount,
       currency,
-      invoiceId,
-      metadata,
-      eventName,
+      customerId: customer.externalId,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerAvatar: customer.avatar,
     });
 
     waitUntil(
       sendLinkWebhookOnEdge({
         trigger: "sale.created",
-        linkId,
-        data: transformSaleEventData({
-          ...response,
-          ...clickData,
-          ...link,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        }),
+        linkId: link.id,
+        data: sale,
       }),
     );
 
-    return NextResponse.json(response);
+    return NextResponse.json(sale);
   },
   {
     requiredAddOn: "conversion",
