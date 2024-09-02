@@ -1,6 +1,5 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
 import AddEditWebhookForm from "@/ui/webhooks/add-edit-webhook-form";
@@ -14,14 +13,9 @@ export default function UpdateWebhookPageClient({
 }: {
   webhookId: string;
 }) {
-  const { slug, flags, role, id: workspaceId } = useWorkspace();
+  const { slug, flags, id: workspaceId } = useWorkspace();
 
-  const { error: permissionsError } = clientAccessCheck({
-    action: "webhooks.write",
-    role,
-  });
-
-  if (!flags?.webhooks || permissionsError) {
+  if (!flags?.webhooks) {
     redirect(`/${slug}/settings`);
   }
 

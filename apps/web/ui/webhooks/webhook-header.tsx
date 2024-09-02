@@ -109,6 +109,8 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                   onClick={() => {
                     setDeleteWebhookModal(true);
                   }}
+                  disabled={!!permissionsError}
+                  disabledTooltip={permissionsError}
                 />
               </div>
             }
@@ -121,9 +123,6 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
               className="flex w-8 rounded-md border border-gray-200 px-2 transition-[border-color] duration-200"
               icon={<ThreeDots className="h-5 w-5 shrink-0 text-gray-500" />}
               onClick={() => setOpenPopover(!openPopover)}
-              {...(permissionsError && {
-                disabledTooltip: permissionsError,
-              })}
             />
           </Popover>
         </div>
