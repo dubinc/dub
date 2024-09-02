@@ -50,16 +50,16 @@ export const trackSaleResponseSchema = z.object({
   eventName: z.string(),
   customer: z.object({
     id: z.string(),
-    name: z.string(),
-    email: z.string(),
-    avatar: z.string(),
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    avatar: z.string().nullable(),
   }),
   sale: z.object({
     amount: z.number(),
     currency: z.string(),
-    invoiceId: z.string().nullable(),
     paymentProcessor: z.string(),
-    metadata: z.record(z.unknown()),
+    invoiceId: z.string().nullable(),
+    metadata: z.record(z.unknown()).nullable(),
   }),
 });
 
