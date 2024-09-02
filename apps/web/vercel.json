@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/usage",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 */6 * * *"
     }
   ],
   "functions": {

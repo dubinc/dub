@@ -50,45 +50,38 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    const clickData = clickEventSchemaTB
-      .omit({ timestamp: true })
-      .parse(clickEvent.data[0]);
-
-    const finalCustomerName =
-      customerName || customerEmail || generateRandomName();
-
-    // Find customer or create if not exists
-    const customer = await prismaEdge.customer.upsert({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId,
-        },
-      },
-      create: {
-        name: finalCustomerName,
-        email: customerEmail,
-        avatar: customerAvatar,
-        externalId,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-      },
-      update: {
-        name: finalCustomerName,
-        email: customerEmail,
-        avatar: customerAvatar,
-      },
-    });
-
-    if (!customer) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Failed to create customer with customerId: ${externalId}`,
-      });
-    }
-
     waitUntil(
       (async () => {
+        const clickData = clickEventSchemaTB
+          .omit({ timestamp: true })
+          .parse(clickEvent.data[0]);
+
+        const finalCustomerName =
+          customerName || customerEmail || generateRandomName();
+
+        // Find customer or create if not exists
+        const customer = await prismaEdge.customer.upsert({
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId,
+            },
+          },
+          create: {
+            name: finalCustomerName,
+            email: customerEmail,
+            avatar: customerAvatar,
+            externalId,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+          },
+          update: {
+            name: finalCustomerName,
+            email: customerEmail,
+            avatar: customerAvatar,
+          },
+        });
+
         const [_lead, _customer, link, _project] = await Promise.all([
           recordLead({
             ...clickData,
@@ -152,17 +145,17 @@ export const POST = withWorkspaceEdge(
         id: clickId,
       },
       customer: {
-        id: customer.externalId,
-        name: customer.name,
-        email: customer.email,
-        avatar: customer.avatar,
+        id: externalId,
+        name: customerName,
+        email: customerEmail,
+        avatar: customerAvatar,
       },
       // for backwards compatibility – will remove soon
       clickId,
-      customerId: customer.externalId,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
+      customerId: externalId,
+      customerName: customerName,
+      customerEmail: customerEmail,
+      customerAvatar: customerAvatar,
     });
   },
   {
