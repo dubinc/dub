@@ -153,15 +153,17 @@ export async function recordClick({
     );
 
     if (linkWebhooks.length > 0) {
+      const link = await conn
+        .execute("SELECT * FROM Link WHERE id = ?", [linkId])
+        .then((res) => res.rows[0]);
+
       await sendWebhooks({
         trigger: "link.clicked",
         webhooks: linkWebhooks,
-        // @ts-ignore
+        // @ts-ignore – bot & qr should be boolean
         data: transformClickEventData({
           ...clickData,
-          link: {
-            id: linkId,
-          },
+          link,
         }),
       });
     }
