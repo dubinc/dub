@@ -23,5 +23,6 @@ export type QRProps = {
   includeMargin?: boolean;
   imageSettings?: ImageSettings;
 };
-
+export type QRPropsCanvas = QRProps &
+  React.CanvasHTMLAttributes<HTMLCanvasElement>;
 export type QRPropsSVG = QRProps & React.SVGProps<SVGSVGElement>;
