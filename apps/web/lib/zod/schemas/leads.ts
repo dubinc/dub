@@ -74,7 +74,7 @@ export const leadEventSchemaTB = clickEventSchemaTB
 
 export const leadEventEnrichedSchema = z
   .object({
-    event: z.literal("lead").default("lead"),
+    event: z.literal("lead"),
     timestamp: z.string(),
     event_id: z.string(),
     event_name: z.string(),
