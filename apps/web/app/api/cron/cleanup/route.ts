@@ -1,6 +1,6 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { deleteLink } from "@/lib/api/links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
@@ -12,7 +12,7 @@ const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
 const E2E_WORKSPACE_ID = "clrei1gld0002vs9mzn93p8ik";
 
 // Cron to remove links and domains created during the E2E test.
-// Runs once every day at noon UTC (0 12 * * *)
+// Run every 6 hours (0 */6 * * *)
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
@@ -28,8 +28,8 @@ export async function GET(req: Request) {
             lt: oneHourAgo,
           },
         },
-        select: {
-          id: true,
+        include: {
+          tags: true,
         },
         take: 100,
       }),
@@ -50,11 +50,24 @@ export async function GET(req: Request) {
       }),
     ]);
 
+    // Delete the links
     if (links.length > 0) {
-      // TODO: use bulk delete instead
-      await Promise.all(links.map((link) => deleteLink(link.id)));
+      await prisma.link.deleteMany({
+        where: {
+          id: {
+            in: links.map((link) => link.id),
+          },
+        },
+      });
+
+      // Post delete cleanup
+      await bulkDeleteLinks({
+        workspaceId: E2E_WORKSPACE_ID,
+        links,
+      });
     }
 
+    // Delete the domains
     if (domains.length > 0) {
       await Promise.all(
         domains.map((domain) => deleteDomainAndLinks(domain.slug)),
