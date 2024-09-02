@@ -15,7 +15,7 @@ import {
 import Footer from "./components/footer";
 
 export default function ReferralInvite({
-  email = "panicking@thedis.co",
+  email = "panic@thedis.co",
   appName = "Dub.co",
   url = "https://dub.co",
   workspaceUser = "Brendon Urie",
