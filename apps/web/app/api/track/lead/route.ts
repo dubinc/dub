@@ -8,7 +8,10 @@ import { ratelimit } from "@/lib/upstash";
 import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
+import {
+  trackLeadRequestSchema,
+  trackLeadResponseSchema,
+} from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -140,7 +143,7 @@ export const POST = withWorkspaceEdge(
       })(),
     );
 
-    return NextResponse.json({
+    const lead = trackLeadResponseSchema.parse({
       click: {
         id: clickId,
       },
@@ -150,6 +153,11 @@ export const POST = withWorkspaceEdge(
         email: customerEmail,
         avatar: customerAvatar,
       },
+    });
+
+    return NextResponse.json({
+      ...lead,
+
       // for backwards compatibility – will remove soon
       clickId,
       customerId: externalId,

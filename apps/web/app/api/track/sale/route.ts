@@ -6,7 +6,10 @@ import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
+import {
+  trackSaleRequestSchema,
+  trackSaleResponseSchema,
+} from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -49,7 +52,7 @@ export const POST = withWorkspaceEdge(
     if (!leadEvent || leadEvent.data.length === 0) {
       throw new DubApiError({
         code: "not_found",
-        message: `Lead event not found for customerId: ${customer.id}`,
+        message: `Lead event not found for customerId: ${externalId}`,
       });
     }
 
@@ -123,7 +126,7 @@ export const POST = withWorkspaceEdge(
       })(),
     );
 
-    return NextResponse.json({
+    const sale = trackSaleResponseSchema.parse({
       eventName,
       customer: {
         id: customer.externalId,
@@ -138,6 +141,11 @@ export const POST = withWorkspaceEdge(
         paymentProcessor,
         metadata,
       },
+    });
+
+    return NextResponse.json({
+      ...sale,
+
       // for backwards compatibility – will remove soon
       customerId: externalId,
       amount,
