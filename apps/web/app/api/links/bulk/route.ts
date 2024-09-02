@@ -340,7 +340,6 @@ export const DELETE = withWorkspace(
 
     waitUntil(
       bulkDeleteLinks({
-        workspaceId: workspace.id,
         links,
       }),
     );
