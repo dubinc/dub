@@ -1,5 +1,6 @@
 import { TrackSaleResponse } from "@/lib/types";
 import { randomCustomer, randomId } from "tests/utils/helpers";
+import { clickId } from "tests/utils/resource";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -7,7 +8,6 @@ test("POST /track/sale", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
   const customer = randomCustomer();
-  const clickId = "avYirXJbt3gGALMk"; // TODO: Replace this with a valid clickId
 
   const sale = {
     eventName: "Subscription",

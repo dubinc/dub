@@ -1,5 +1,6 @@
 import { TrackLeadResponse } from "@/lib/types";
 import { randomCustomer } from "tests/utils/helpers";
+import { clickId } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -7,7 +8,6 @@ describe("POST /track/lead", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
   const customer = randomCustomer();
-  const clickId = "avYirXJbt3gGALMk"; // TODO: Replace this with a valid clickId
 
   test("track a lead", async () => {
     const response = await http.post<TrackLeadResponse>({

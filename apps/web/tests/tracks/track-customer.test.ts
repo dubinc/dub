@@ -12,7 +12,7 @@ describe("POST /track/customer", async () => {
     const response = await http.post<TrackCustomerResponse>({
       path: "/track/customer",
       body: {
-        customerId: customer.id, // We're only required params
+        customerId: customer.id,
       },
     });
 
