@@ -8,7 +8,7 @@ import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
 import { toast } from "sonner";
 
-export type EventListProps = PropsWithChildren<{
+type EventListProps = PropsWithChildren<{
   events: WebhookEventProps[];
 }>;
 

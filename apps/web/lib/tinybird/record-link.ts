@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { tb } from "./client";
 
-export const dubLinksMetadataSchema = z.object({
+const dubLinksMetadataSchema = z.object({
   link_id: z.string(),
   domain: z.string(),
   key: z.string(),

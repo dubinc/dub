@@ -20,7 +20,7 @@ export const SCOPES = [
 export type Scope = (typeof SCOPES)[number];
 
 // Scopes available for Workspace API keys
-export const RESOURCE_SCOPES: {
+const RESOURCE_SCOPES: {
   scope: Scope;
   roles: Role[];
   permissions: PermissionAction[];
@@ -126,32 +126,14 @@ export const RESOURCE_SCOPES: {
   },
 ];
 
-export const SCOPES_BY_RESOURCE = RESOURCE_SCOPES.reduce((acc, scope) => {
-  if (!scope.resource || !scope.type) {
-    return acc;
-  }
-
-  if (!acc[scope.resource]) {
-    acc[scope.resource] = [];
-  }
-
-  acc[scope.resource].push({
-    scope: scope.scope,
-    type: scope.type,
-    roles: scope.roles,
-  });
-
-  return acc;
-}, {});
-
 // Scope to permissions mapping
-export const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
+const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   acc[scope.scope] = scope.permissions;
   return acc;
 }, {});
 
 // Role to scopes mapping
-export const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
+const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   scope.roles.forEach((role) => {
     if (!acc[role]) {
       acc[role] = [];

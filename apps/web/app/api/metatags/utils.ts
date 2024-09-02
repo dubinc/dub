@@ -4,7 +4,7 @@ import { waitUntil } from "@vercel/functions";
 import he from "he";
 import { parse } from "node-html-parser";
 
-export const getHtml = async (url: string) => {
+const getHtml = async (url: string) => {
   return await fetchWithTimeout(url, {
     headers: {
       "User-Agent": "Dub.co Bot",
@@ -14,7 +14,7 @@ export const getHtml = async (url: string) => {
     .catch(() => null);
 };
 
-export const getHeadChildNodes = (html) => {
+const getHeadChildNodes = (html) => {
   const ast = parse(html); // parse the html into AST format with node-html-parser
   const metaTags = ast.querySelectorAll("meta").map(({ attributes }) => {
     const property = attributes.property || attributes.name || attributes.href;
@@ -35,7 +35,7 @@ export const getHeadChildNodes = (html) => {
   return { metaTags, title, linkTags };
 };
 
-export const getRelativeUrl = (url: string, imageUrl: string) => {
+const getRelativeUrl = (url: string, imageUrl: string) => {
   if (!imageUrl) {
     return null;
   }

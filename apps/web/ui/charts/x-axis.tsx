@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useChartContext, useChartTooltipContext } from "./chart-context";
 import { getFactors } from "./utils";
 
-export type XAxisProps = {
+type XAxisProps = {
   /**
    * Maximum number of ticks to generate
    */

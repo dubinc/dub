@@ -21,7 +21,7 @@ type SearchBoxProps = {
   inputClassName?: string;
 };
 
-export const SearchBox = forwardRef(
+const SearchBox = forwardRef(
   (
     {
       value,

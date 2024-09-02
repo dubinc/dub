@@ -11,7 +11,7 @@ export type TimeSeriesDatum<T extends Datum = any> = {
   values: T;
 };
 
-export type AccessorFn<T extends Datum, TValue = number> = (
+type AccessorFn<T extends Datum, TValue = number> = (
   datum: TimeSeriesDatum<T>,
 ) => TValue;
 
@@ -22,7 +22,7 @@ export type Series<T extends Datum = any, TValue = number> = {
   colorClassName?: string;
 };
 
-export type Data<T extends Datum> = TimeSeriesDatum<T>[];
+type Data<T extends Datum> = TimeSeriesDatum<T>[];
 
 type ChartRequiredProps<T extends Datum = any> = {
   data: Data<T>;

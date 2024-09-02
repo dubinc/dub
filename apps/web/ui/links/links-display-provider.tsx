@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-export const linkViewModes = ["cards", "rows"] as const;
+const linkViewModes = ["cards", "rows"] as const;
 
 export type LinksViewMode = (typeof linkViewModes)[number];
 
@@ -28,9 +28,9 @@ export const sortOptions = [
   },
 ] as const;
 
-export type LinksSortSlug = (typeof sortOptions)[number]["slug"];
+type LinksSortSlug = (typeof sortOptions)[number]["slug"];
 
-export const linkDisplayPropertyIds = [
+const linkDisplayPropertyIds = [
   "icon",
   "link",
   "url",
@@ -59,9 +59,9 @@ export const linkDisplayProperties: {
   { id: "analytics", label: "Analytics" },
 ];
 
-export type LinkDisplayProperty = (typeof linkDisplayPropertyIds)[number];
+type LinkDisplayProperty = (typeof linkDisplayPropertyIds)[number];
 
-export const defaultDisplayProperties: LinkDisplayProperty[] = [
+const defaultDisplayProperties: LinkDisplayProperty[] = [
   "icon",
   "link",
   "url",

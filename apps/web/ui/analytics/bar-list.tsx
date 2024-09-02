@@ -92,7 +92,7 @@ export default function BarList({
   }
 }
 
-export function LineItem({
+function LineItem({
   icon,
   title,
   href,

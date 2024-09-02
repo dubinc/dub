@@ -13,7 +13,8 @@
     "publish-ui": "turbo build --filter='@dub/ui' && cd packages/ui && npm publish && cd ../../",
     "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish && cd ../../",
     "script": "echo 'Run this script in apps/web'",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "knip": "npx knip"
   },
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
@@ -22,7 +23,8 @@
     "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.6.0",
     "tsconfig": "workspace:*",
-    "turbo": "^1.12.5"
+    "turbo": "^1.12.5",
+    "knip": "^5.27.4"
   },
   "packageManager": "pnpm@8.6.10"
 }

@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 
-export const passwordSchema = z
+const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
   .regex(
@@ -30,8 +30,3 @@ export const updatePasswordSchema = z
     message: "New password must be different from current password",
     path: ["newPassword"],
   });
-
-export const signInSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1),
-});

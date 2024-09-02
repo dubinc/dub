@@ -61,7 +61,7 @@ export function AnalyticsFunnelChart() {
   );
 }
 
-export function AnalyticsFunnelChartInner({
+function AnalyticsFunnelChartInner({
   width,
   height,
 }: {

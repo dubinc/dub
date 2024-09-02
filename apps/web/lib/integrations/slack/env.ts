@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 
-export const envSchema = z.object({
+const envSchema = z.object({
   SLACK_APP_INSTALL_URL: z.string(),
   SLACK_CLIENT_ID: z.string(),
   SLACK_CLIENT_SECRET: z.string(),

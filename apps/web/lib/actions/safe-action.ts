@@ -2,7 +2,7 @@ import { createSafeActionClient } from "next-safe-action";
 import { getSession } from "../auth";
 import { prisma } from "../prisma";
 
-export const actionClient = createSafeActionClient({
+const actionClient = createSafeActionClient({
   handleReturnedServerError: (e) => {
     if (e instanceof Error) {
       return {

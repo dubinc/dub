@@ -35,35 +35,6 @@ export const plainSpacer = {
   },
 };
 
-export const plainTextSection = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) => ({
-  componentRow: {
-    rowMainContent: [
-      {
-        componentText: {
-          textSize: "M",
-          textColor: "MUTED",
-          text: label,
-        },
-      },
-    ],
-    rowAsideContent: [
-      {
-        componentText: {
-          textSize: "M",
-          textColor: "NORMAL",
-          text: value,
-        },
-      },
-    ],
-  },
-});
-
 export const plainCopySection = ({
   label,
   value,

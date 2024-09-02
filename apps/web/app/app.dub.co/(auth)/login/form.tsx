@@ -27,14 +27,9 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-export const authMethods = [
-  "google",
-  "github",
-  "email",
-  "saml",
-  "password",
-] as const;
-export type AuthMethod = (typeof authMethods)[number];
+const authMethods = ["google", "github", "email", "saml", "password"] as const;
+
+type AuthMethod = (typeof authMethods)[number];
 
 const errorCodes = {
   "no-credentials": "Please provide an email and password.",
