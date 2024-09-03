@@ -6,7 +6,10 @@ import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
+import {
+  trackSaleRequestSchema,
+  trackSaleResponseSchema,
+} from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -49,7 +52,7 @@ export const POST = withWorkspaceEdge(
     if (!leadEvent || leadEvent.data.length === 0) {
       throw new DubApiError({
         code: "not_found",
-        message: `Lead event not found for customerId: ${customer.id}`,
+        message: `Lead event not found for customerId: ${externalId}`,
       });
     }
 
@@ -57,71 +60,100 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
-    const [_sale, link, _project] = await Promise.all([
-      recordSale({
-        ...clickData,
-        event_id: nanoid(16),
-        event_name: eventName,
-        customer_id: customer.id,
-        payment_processor: paymentProcessor,
-        amount,
-        currency,
-        invoice_id: invoiceId || "",
-        metadata: metadata ? JSON.stringify(metadata) : "",
-      }),
-      // update link sales count
-      prismaEdge.link.update({
-        where: {
-          id: clickData.link_id,
-        },
-        data: {
-          sales: {
-            increment: 1,
-          },
-          saleAmount: {
-            increment: amount,
-          },
-        },
-      }),
-      // update workspace sales usage
-      prismaEdge.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          usage: {
-            increment: 1,
-          },
-          salesUsage: {
-            increment: amount,
-          },
-        },
-      }),
-    ]);
-
-    const sale = transformSaleEventData({
-      ...clickData,
-      link,
-      eventName,
-      paymentProcessor,
-      invoiceId,
-      amount,
-      currency,
-      customerId: customer.externalId,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
-    });
-
     waitUntil(
-      sendLinkWebhookOnEdge({
-        trigger: "sale.created",
-        linkId: link.id,
-        data: sale,
-      }),
+      (async () => {
+        const [_sale, link, _project] = await Promise.all([
+          recordSale({
+            ...clickData,
+            event_id: nanoid(16),
+            event_name: eventName,
+            customer_id: customer.id,
+            payment_processor: paymentProcessor,
+            amount,
+            currency,
+            invoice_id: invoiceId || "",
+            metadata: metadata ? JSON.stringify(metadata) : "",
+          }),
+          // update link sales count
+          prismaEdge.link.update({
+            where: {
+              id: clickData.link_id,
+            },
+            data: {
+              sales: {
+                increment: 1,
+              },
+              saleAmount: {
+                increment: amount,
+              },
+            },
+          }),
+          // update workspace sales usage
+          prismaEdge.project.update({
+            where: {
+              id: workspace.id,
+            },
+            data: {
+              usage: {
+                increment: 1,
+              },
+              salesUsage: {
+                increment: amount,
+              },
+            },
+          }),
+        ]);
+
+        const sale = transformSaleEventData({
+          ...clickData,
+          link,
+          eventName,
+          paymentProcessor,
+          invoiceId,
+          amount,
+          currency,
+          customerId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        });
+
+        await sendLinkWebhookOnEdge({
+          trigger: "sale.created",
+          linkId: link.id,
+          data: sale,
+        });
+      })(),
     );
 
-    return NextResponse.json(sale);
+    const sale = trackSaleResponseSchema.parse({
+      eventName,
+      customer: {
+        id: customer.externalId,
+        name: customer.name,
+        email: customer.email,
+        avatar: customer.avatar,
+      },
+      sale: {
+        amount,
+        currency,
+        invoiceId,
+        paymentProcessor,
+        metadata,
+      },
+    });
+
+    return NextResponse.json({
+      ...sale,
+
+      // for backwards compatibility – will remove soon
+      customerId: externalId,
+      amount,
+      currency,
+      invoiceId,
+      paymentProcessor,
+      metadata,
+    });
   },
   {
     requiredAddOn: "conversion",

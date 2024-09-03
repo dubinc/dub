@@ -49,6 +49,18 @@ export const trackLeadRequestSchema = z.object({
     .describe("Additional metadata to be stored with the lead event"),
 });
 
+export const trackLeadResponseSchema = z.object({
+  click: z.object({
+    id: z.string(),
+  }),
+  customer: z.object({
+    id: z.string(),
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    avatar: z.string().nullable(),
+  }),
+});
+
 export const leadEventSchemaTB = clickEventSchemaTB
   .omit({ timestamp: true })
   .and(
@@ -62,7 +74,7 @@ export const leadEventSchemaTB = clickEventSchemaTB
 
 export const leadEventEnrichedSchema = z
   .object({
-    event: z.literal("lead").default("lead"),
+    event: z.literal("lead"),
     timestamp: z.string(),
     event_id: z.string(),
     event_name: z.string(),

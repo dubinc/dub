@@ -767,6 +767,7 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 md:px-16">
               <TagsSection {...{ props, data, setData }} />
+              <CommentsSection {...{ props, data, setData }} />
               {conversionEnabled && (
                 <ConversionSection {...{ data, setData }} />
               )}
@@ -782,7 +783,6 @@ function AddEditLinkModal({
               <AndroidSection {...{ props, data, setData }} />
               <GeoSection {...{ props, data, setData }} />
               <DoIndexSection {...{ data, setData }} />
-              <CommentsSection {...{ props, data, setData }} />
             </div>
 
             <div

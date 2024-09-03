@@ -46,9 +46,21 @@ export const transformClickEventData = (
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
+  // TODO: This is a bit flaky – e.g. if we add another boolean field to link schema
+  // this will still break. We should make it more robust.
+  const link = {
+    ...transformLink(data.link),
+    archived: data.link.archived === 1,
+    doIndex: data.link.doIndex === 1,
+    proxy: data.link.proxy === 1,
+    publicStats: data.link.publicStats === 1,
+    rewrite: data.link.rewrite === 1,
+    trackConversion: data.link.trackConversion === 1,
+  };
+
   return clickEventSchema.parse({
     ...click,
-    link: transformLinkEventData(transformLink(data.link as LinkWithTags)),
+    link,
   });
 };
 
