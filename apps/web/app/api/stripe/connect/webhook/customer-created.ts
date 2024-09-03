@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
-import { sendLinkWebhook } from "@/lib/webhook/publish";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
@@ -104,18 +104,30 @@ export async function customerCreated(event: Stripe.Event) {
   ]);
 
   waitUntil(
-    sendLinkWebhook({
-      trigger: "lead.created",
-      linkId,
-      data: transformLeadEventData({
-        ...leadData,
-        link,
-        customerId: customer.externalId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
-      }),
-    }),
+    (async () => {
+      const workspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: customer.projectId,
+        },
+        select: {
+          id: true,
+          webhookEnabled: true,
+        },
+      });
+
+      sendWorkspaceWebhook({
+        trigger: "lead.created",
+        workspace,
+        data: transformLeadEventData({
+          ...leadData,
+          link,
+          customerId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        }),
+      });
+    })(),
   );
 
   return `Customer created: ${customer.id}`;

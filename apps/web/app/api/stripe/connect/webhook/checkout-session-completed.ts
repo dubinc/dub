@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { sendLinkWebhook } from "@/lib/webhook/publish";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
@@ -121,18 +121,30 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   ]);
 
   waitUntil(
-    sendLinkWebhook({
-      trigger: "sale.created",
-      linkId,
-      data: transformSaleEventData({
-        ...saleData,
-        link,
-        customerId: customer.externalId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
-      }),
-    }),
+    (async () => {
+      const workspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: customer.projectId,
+        },
+        select: {
+          id: true,
+          webhookEnabled: true,
+        },
+      });
+
+      sendWorkspaceWebhook({
+        trigger: "sale.created",
+        workspace,
+        data: transformSaleEventData({
+          ...saleData,
+          link,
+          customerId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        }),
+      });
+    })(),
   );
 
   return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId}`;
