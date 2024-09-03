@@ -543,16 +543,6 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
   }),
 );
 
-// Used in API routes to parse the response before sending it back to the client
-// This is because Prisma returns a `Date` object
-// TODO: Find a better way to handle this
-export const LinkSchemaExtended = LinkSchema.extend({
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  expiresAt: z.date().nullable(),
-  lastClicked: z.date().nullable(),
-});
-
 export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
   z.object({
     // Only Dub UI uses includeUser query parameter

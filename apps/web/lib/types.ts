@@ -3,9 +3,12 @@ import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project, Webhook } from "@prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
+import { trackCustomerResponseSchema } from "./zod/schemas/customers";
 import { integrationSchema } from "./zod/schemas/integration";
+import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
+import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
 import {
   createWebhookSchema,
@@ -260,3 +263,9 @@ export type WebhookCacheProps = Pick<
   Webhook,
   "id" | "url" | "secret" | "triggers"
 >;
+
+export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
+
+export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
+
+export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;

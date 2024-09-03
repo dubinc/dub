@@ -1,4 +1,3 @@
-import ChangelogPopup from "@/ui/layout/changelog-popup";
 import { MainNav } from "@/ui/layout/main-nav";
 import NavTabs from "@/ui/layout/nav-tabs";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
@@ -25,7 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         {children}
       </div>
       {/* <UserSurveyPopup /> */}
-      <ChangelogPopup />
+      {/* <ChangelogPopup /> */}
       <Toolbar />
     </Providers>
   );

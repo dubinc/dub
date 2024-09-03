@@ -1,11 +1,12 @@
 "use client";
 
 import { WebhookEventProps } from "@/lib/types";
-import { Sheet, SheetContent, SheetTrigger } from "@dub/ui";
+import { Sheet, SheetContent, SheetTrigger, useMediaQuery } from "@dub/ui";
 import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
 import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { Highlighter } from "shiki";
+import { toast } from "sonner";
 
 export type EventListProps = PropsWithChildren<{
   events: WebhookEventProps[];
@@ -47,6 +48,7 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
   }, [highlighter, event]);
 
   const isSuccess = event.http_status >= 200 && event.http_status < 300;
+  const { isMobile } = useMediaQuery();
 
   return (
     <Sheet>
@@ -80,7 +82,9 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
               const localDate = new Date(
                 date.getTime() - date.getTimezoneOffset() * 60000,
               );
-              return localDate.toLocaleTimeString();
+              return isMobile
+                ? localDate.toLocaleTimeString()
+                : localDate.toLocaleString();
             })()}
           </div>
         </button>
@@ -90,7 +94,13 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
           <h3 className="text-lg font-semibold">{event.event}</h3>
           <div className="group flex items-center gap-2">
             <p className="font-mono text-sm text-gray-500">{event.event_id}</p>
-            <ButtonTooltip tooltipContent="Copy event ID">
+            <ButtonTooltip
+              tooltipContent="Copy event ID"
+              onClick={() => {
+                navigator.clipboard.writeText(event.event_id);
+                toast.success("Copied to clipboard");
+              }}
+            >
               <Copy className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
             </ButtonTooltip>
           </div>

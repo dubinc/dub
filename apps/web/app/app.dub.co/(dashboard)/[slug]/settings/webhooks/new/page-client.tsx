@@ -1,6 +1,5 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import AddEditWebhookForm from "@/ui/webhooks/add-edit-webhook-form";
 import { MaxWidthWrapper } from "@dub/ui";
@@ -13,15 +12,16 @@ export default function NewWebhookPageClient({
 }: {
   newSecret: string;
 }) {
-  const { slug, flags, role } = useWorkspace();
+  const { slug, flags, role, plan } = useWorkspace();
 
-  const { error: permissionsError } = clientAccessCheck({
-    action: "webhooks.write",
-    role,
-  });
+  const needsHigherPlan = plan === "free" || plan === "pro";
 
-  if (!flags?.webhooks || permissionsError) {
+  if (!flags?.webhooks) {
     redirect(`/${slug}/settings`);
+  }
+
+  if (needsHigherPlan) {
+    redirect(`/${slug}/settings/webhooks`);
   }
 
   return (

@@ -5,10 +5,13 @@ import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
-import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
+import {
+  trackLeadRequestSchema,
+  trackLeadResponseSchema,
+} from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -50,109 +53,117 @@ export const POST = withWorkspaceEdge(
       });
     }
 
-    const clickData = clickEventSchemaTB
-      .omit({ timestamp: true })
-      .parse(clickEvent.data[0]);
-
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
 
-    // Find customer or create if not exists
-    const customer = await prismaEdge.customer.upsert({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId,
-        },
-      },
-      create: {
-        name: finalCustomerName,
-        email: customerEmail,
-        avatar: customerAvatar,
-        externalId,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-      },
-      update: {
-        name: finalCustomerName,
-        email: customerEmail,
-        avatar: customerAvatar,
-      },
-    });
-
-    if (!customer) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Failed to create customer with customerId: ${externalId}`,
-      });
-    }
-
-    const [_lead, _customer, link, _project] = await Promise.all([
-      recordLead({
-        ...clickData,
-        event_id: nanoid(16),
-        event_name: eventName,
-        customer_id: customer.id,
-        metadata: metadata ? JSON.stringify(metadata) : "",
-      }),
-
-      recordCustomer({
-        workspace_id: workspace.id,
-        customer_id: customer.id,
-        name: customer.name || "",
-        email: customer.email || "",
-        avatar: customer.avatar || "",
-      }),
-
-      // update link leads count
-      prismaEdge.link.update({
-        where: {
-          id: clickData.link_id,
-        },
-        data: {
-          leads: {
-            increment: 1,
-          },
-        },
-      }),
-      prismaEdge.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          usage: {
-            increment: 1,
-          },
-        },
-      }),
-    ]);
-
-    const lead = transformLeadEventData({
-      ...clickData,
-      link,
-      eventName,
-      customerId: customer.externalId,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
-    });
-
     waitUntil(
-      sendLinkWebhookOnEdge({
-        trigger: "lead.created",
-        linkId: link.id,
-        data: lead,
-      }),
+      (async () => {
+        const clickData = clickEventSchemaTB
+          .omit({ timestamp: true })
+          .parse(clickEvent.data[0]);
+
+        // Find customer or create if not exists
+        const customer = await prismaEdge.customer.upsert({
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId,
+            },
+          },
+          create: {
+            name: finalCustomerName,
+            email: customerEmail,
+            avatar: customerAvatar,
+            externalId,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+          },
+          update: {
+            name: finalCustomerName,
+            email: customerEmail,
+            avatar: customerAvatar,
+          },
+        });
+
+        const [_lead, _customer, link, _project] = await Promise.all([
+          recordLead({
+            ...clickData,
+            event_id: nanoid(16),
+            event_name: eventName,
+            customer_id: customer.id,
+            metadata: metadata ? JSON.stringify(metadata) : "",
+          }),
+
+          recordCustomer({
+            workspace_id: workspace.id,
+            customer_id: customer.id,
+            name: customer.name || "",
+            email: customer.email || "",
+            avatar: customer.avatar || "",
+          }),
+
+          // update link leads count
+          prismaEdge.link.update({
+            where: {
+              id: clickData.link_id,
+            },
+            data: {
+              leads: {
+                increment: 1,
+              },
+            },
+          }),
+          prismaEdge.project.update({
+            where: {
+              id: workspace.id,
+            },
+            data: {
+              usage: {
+                increment: 1,
+              },
+            },
+          }),
+        ]);
+
+        const lead = transformLeadEventData({
+          ...clickData,
+          link,
+          eventName,
+          customerId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        });
+
+        await sendWorkspaceWebhookOnEdge({
+          trigger: "lead.created",
+          data: lead,
+          workspace,
+        });
+      })(),
     );
+
+    const lead = trackLeadResponseSchema.parse({
+      click: {
+        id: clickId,
+      },
+      customer: {
+        id: externalId,
+        name: finalCustomerName,
+        email: customerEmail,
+        avatar: customerAvatar,
+      },
+    });
 
     return NextResponse.json({
       ...lead,
+
       // for backwards compatibility – will remove soon
-      clickId: lead.click.id,
-      customerId: customer.externalId,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
+      clickId,
+      customerId: externalId,
+      customerName: finalCustomerName,
+      customerEmail: customerEmail,
+      customerAvatar: customerAvatar,
     });
   },
   {
