@@ -13,8 +13,6 @@ export const sendWorkspaceWebhookOnEdge = async ({
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   data: LeadEventDataProps | SaleEventDataProps;
 }) => {
-  console.log(workspace)
-
   if (!workspace.webhookEnabled) {
     return;
   }
