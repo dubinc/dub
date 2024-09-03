@@ -64,25 +64,28 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
           <ChevronLeft className="size-4" />
           <p className="text-sm font-medium text-gray-500">Back to webhooks</p>
         </Link>
-        <div className="flex items-center justify-between gap-2">
-          {isLoading ? (
-            <div className="flex items-center gap-x-3">
-              <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+        <div className="flex justify-between gap-2 sm:items-center">
+          {isLoading || !webhook ? (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
                 <TokenAvatar id="placeholder-oauth-app" className="size-8" />
               </div>
               <div className="flex flex-col gap-2">
-                <div className="h-3 w-20 rounded-full bg-gray-100"></div>
-                <div className="h-3 w-80 rounded-full bg-gray-100"></div>
+                <div className="h-5 w-28 rounded-full bg-gray-100"></div>
+                <div className="h-3 w-48 rounded-full bg-gray-100"></div>
+                <div className="h-3 w-40 rounded-full bg-gray-100"></div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-x-3">
-              <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
-                <TokenAvatar id={webhook?.name!} className="size-8" />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+                <TokenAvatar id={webhook.id} className="size-8" />
               </div>
               <div>
-                <p className="font-semibold text-gray-700">{webhook?.name}</p>
-                <p className="text-sm text-gray-500">{webhook?.url}</p>
+                <p className="font-semibold text-gray-700">{webhook.name}</p>
+                <p className="text-pretty text-sm text-gray-500">
+                  {webhook.url}
+                </p>
               </div>
             </div>
           )}
