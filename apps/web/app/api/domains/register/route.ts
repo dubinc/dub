@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import { searchDomainsAvailability } from "@/lib/dynadot/search-domains";
+import { registerDomain } from "@/lib/dynadot/register-domain";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
@@ -13,19 +13,12 @@ const schema = z.object({
 
 // GET /api/domains/register - register a domain
 export const POST = withWorkspace(
-  async ({ workspace, searchParams }) => {
+  async ({ searchParams }) => {
     const { domain } = schema.parse(searchParams);
 
-    const searchResult = await searchDomainsAvailability({ domain });
-
-    // TODO:
-    // Check domain is available
-    // If not available, return error
-    // If available, register domain
-
-    return NextResponse.json(searchResult);
+    return NextResponse.json(await registerDomain({ domain }));
   },
   {
-    requiredPermissions: ["domains.read"],
+    requiredPermissions: ["domains.write"],
   },
 );

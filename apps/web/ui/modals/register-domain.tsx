@@ -49,10 +49,24 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
   };
 
   // Register domain
-  const registerDomain = async () => {
-    // const response = await fetch(
-    //   `/api/domains/claim?domain=${domain}&workspaceId=${workspace.id}`,
-    // );
+  const registerDomain = async (domain: string) => {
+    const response = await fetch(
+      `/api/domains/register?domain=${domain}&workspaceId=${workspace.id}`,
+      {
+        method: "POST",
+      },
+    );
+
+    if (!response.ok) {
+      toast.error("Failed to register domain.");
+      return;
+    }
+
+    const data = await response.json();
+
+    console.log(data);
+
+    toast.success("Domain registered successfully!");
   };
 
   const searchedDomain = searchedDomains.find(
@@ -109,7 +123,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
               className="block w-full rounded-md rounded-r-none border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
               aria-invalid="true"
               autoFocus={!isMobile}
-              placeholder={`${slug}.link`}
+              placeholder={slug}
               value={slug}
               onChange={(e) => {
                 setSlug(e.target.value);
@@ -148,15 +162,19 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
                 {availableDomains.map((alternative) => (
                   <div
                     key={alternative.domain}
-                    className="flex items-center justify-between px-2 py-1 focus:outline-none"
+                    className="flex items-center justify-between px-3 py-2 focus:outline-none"
                   >
                     <div className="flex items-center gap-2">
-                      <CircleCheck className="size-4 text-green-500" />
+                      <CircleCheck className="size-5 fill-green-500 text-white" />
                       <span className="text-sm font-medium">
                         {alternative.domain}
                       </span>
                     </div>
-                    <Button text="Claim domain" className="h-8 w-fit" />
+                    <Button
+                      text="Claim domain"
+                      className="h-8 w-fit"
+                      onClick={() => registerDomain(alternative.domain)}
+                    />
                   </div>
                 ))}
               </div>
