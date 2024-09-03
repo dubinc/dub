@@ -12,13 +12,11 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.created",
   "link.updated",
   "link.deleted",
-] as const;
-
-export const LINK_LEVEL_WEBHOOK_TRIGGERS = [
-  "link.clicked",
   "lead.created",
   "sale.created",
 ] as const;
+
+export const LINK_LEVEL_WEBHOOK_TRIGGERS = ["link.clicked"] as const;
 
 export const WEBHOOK_TRIGGERS = [
   ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
