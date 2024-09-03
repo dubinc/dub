@@ -11,13 +11,14 @@ import {
   InfoTooltip,
   Logo,
   Modal,
+  Popover,
   SimpleTooltipContent,
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { FADE_IN_ANIMATION_SETTINGS, capitalize } from "@dub/utils";
+import { capitalize, FADE_IN_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Globe, Link } from "lucide-react";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -326,6 +327,8 @@ function AddDomainButton({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
+  const { queryParams } = useRouterStuff();
+  const [openPopover, setOpenPopover] = useState(false);
   const { plan, nextPlan, role, domainsLimit, exceededDomains } =
     useWorkspace();
 
@@ -334,34 +337,60 @@ function AddDomainButton({
     role,
   }).error;
 
-  const { queryParams } = useRouterStuff();
-
   return (
     <div>
-      <Button
-        text="Add Domain"
-        disabledTooltip={
-          exceededDomains ? (
-            <TooltipContent
-              title={`You can only add up to ${domainsLimit} domain${
-                domainsLimit === 1 ? "" : "s"
-              } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
-              cta="Upgrade"
-              onClick={() => {
-                queryParams({
-                  set: {
-                    upgrade: nextPlan.name.toLowerCase(),
-                  },
-                });
-              }}
+      <Popover
+        content={
+          <div className="grid w-screen gap-px p-2 sm:w-60">
+            <Button
+              text="Connect a domain you own"
+              variant="outline"
+              icon={<Globe className="h-4 w-4" />}
+              className="h-9 justify-start px-2"
+              onClick={() => setShowAddEditDomainModal(true)}
+              disabledTooltip={
+                exceededDomains ? (
+                  <TooltipContent
+                    title={`You can only add up to ${domainsLimit} domain${
+                      domainsLimit === 1 ? "" : "s"
+                    } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+                    cta="Upgrade"
+                    onClick={() => {
+                      queryParams({
+                        set: {
+                          upgrade: nextPlan.name.toLowerCase(),
+                        },
+                      });
+                    }}
+                  />
+                ) : (
+                  permissionsError || undefined
+                )
+              }
+              disabled={exceededDomains || !!permissionsError}
             />
-          ) : (
-            permissionsError || undefined
-          )
+            <Button
+              text="Claim free .link domain"
+              variant="outline"
+              icon={<Link className="h-4 w-4" />}
+              className="h-9 justify-start px-2"
+              // onClick={() => {
+              //   setShowRemoveOAuthAppModal(true);
+              // }}
+            />
+          </div>
         }
-        onClick={() => setShowAddEditDomainModal(true)}
-        {...buttonProps}
-      />
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <Button
+          className="flex rounded-md border border-gray-200 px-2 transition-[border-color] duration-200"
+          text="Add domain"
+          onClick={() => setOpenPopover(!openPopover)}
+          {...buttonProps}
+        />
+      </Popover>
     </div>
   );
 }
