@@ -1,6 +1,6 @@
 "use client";
 
-import { ConversionEvent } from "@/lib/actions/get-events";
+import { ConversionEvent } from "@/lib/actions/get-conversion-events";
 import { EventType } from "@/lib/analytics/types";
 import { REFERRAL_REVENUE_SHARE } from "@/lib/referrals/constants";
 import { EventList } from "@dub/blocks";
