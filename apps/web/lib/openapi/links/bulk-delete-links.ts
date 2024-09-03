@@ -10,11 +10,11 @@ export const bulkDeleteLinks: ZodOpenApiOperationObject = {
   requestParams: {
     query: z.object({
       linkIds: z
-        .string()
+        .array(z.string())
         .describe(
           "Comma-separated list of link IDs to delete. Maximum of 100 IDs. Non-existing IDs will be ignored.",
         )
-        .openapi({ example: "clux0rgak00011...,clux0rgak00022..." }),
+        .openapi({ example: ["clux0rgak00011...", "clux0rgak00022..."] }),
     }),
   },
   responses: {
