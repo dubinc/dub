@@ -33,3 +33,17 @@ model DefaultDomains {
   projectId   String  @unique
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
+
+model RegisteredDomain {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  projectId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index(projectId)
+  @@index(expiresAt(sort: Asc))
+}
