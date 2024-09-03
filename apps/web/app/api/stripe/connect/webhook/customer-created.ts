@@ -77,7 +77,7 @@ export async function customerCreated(event: Stripe.Event) {
     customer_id: customer.id,
   };
 
-  await Promise.all([
+  const [_customer, _lead, _link, workspace] = await Promise.all([
     // Record customer
     recordCustomer({
       workspace_id: customer.projectId,
@@ -101,33 +101,33 @@ export async function customerCreated(event: Stripe.Event) {
         },
       },
     }),
+
+    // update workspace usage
+    prisma.project.update({
+      where: {
+        id: customer.projectId,
+      },
+      data: {
+        usage: {
+          increment: 1,
+        },
+      },
+    }),
   ]);
 
   waitUntil(
-    (async () => {
-      const workspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          id: customer.projectId,
-        },
-        select: {
-          id: true,
-          webhookEnabled: true,
-        },
-      });
-
-      sendWorkspaceWebhook({
-        trigger: "lead.created",
-        workspace,
-        data: transformLeadEventData({
-          ...leadData,
-          link,
-          customerId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        }),
-      });
-    })(),
+    sendWorkspaceWebhook({
+      trigger: "lead.created",
+      workspace,
+      data: transformLeadEventData({
+        ...leadData,
+        link,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
   );
 
   return `Customer created: ${customer.id}`;

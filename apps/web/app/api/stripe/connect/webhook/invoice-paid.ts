@@ -70,7 +70,7 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
-  await Promise.all([
+  const [_sale, _link, workspace] = await Promise.all([
     recordSale(saleData),
 
     // update link sales count
@@ -104,30 +104,18 @@ export async function invoicePaid(event: Stripe.Event) {
   ]);
 
   waitUntil(
-    (async () => {
-      const workspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          id: customer.projectId,
-        },
-        select: {
-          id: true,
-          webhookEnabled: true,
-        },
-      });
-
-      sendWorkspaceWebhook({
-        trigger: "sale.created",
-        workspace,
-        data: transformSaleEventData({
-          ...saleData,
-          link,
-          customerId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        }),
-      });
-    })(),
+    sendWorkspaceWebhook({
+      trigger: "sale.created",
+      workspace,
+      data: transformSaleEventData({
+        ...saleData,
+        link,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
   );
 
   return `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`;
