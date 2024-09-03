@@ -7,7 +7,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
-import { useClaimDomainModal } from "@/ui/modals/claim-domain";
+import { useRegisterDomainModal } from "@/ui/modals/register-domain";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
@@ -45,7 +45,8 @@ export default function WorkspaceDomainsClient() {
       },
     });
 
-  const { ClaimDomainModal, setShowClaimDomainModal } = useClaimDomainModal();
+  const { RegisterDomainModal, setShowRegisterDomainModal } =
+    useRegisterDomainModal();
 
   const { error: permissionsError } = clientAccessCheck({
     action: "domains.write",
@@ -133,7 +134,7 @@ export default function WorkspaceDomainsClient() {
                     variant="outline"
                     icon={<Link className="h-4 w-4" />}
                     className="h-9 justify-start px-2"
-                    onClick={() => setShowClaimDomainModal(true)}
+                    onClick={() => setShowRegisterDomainModal(true)}
                   />
                 </div>
               }
@@ -153,7 +154,7 @@ export default function WorkspaceDomainsClient() {
         {workspaceId && (
           <>
             <AddEditDomainModal />
-            <ClaimDomainModal />
+            <RegisterDomainModal />
           </>
         )}
 

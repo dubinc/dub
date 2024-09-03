@@ -6,12 +6,12 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
-interface ClaimDomainProps {
+interface RegisterDomainProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
 
-const ClaimDomain = ({ showModal, setShowModal }: ClaimDomainProps) => {
+const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
   const workspace = useWorkspace();
   const { isMobile } = useMediaQuery();
   const [domain, setDomain] = useState<string | undefined>(undefined);
@@ -84,7 +84,7 @@ const ClaimDomain = ({ showModal, setShowModal }: ClaimDomainProps) => {
               type="text"
               required
               autoComplete="off"
-              className="block w-full rounded-md rounded-r-none border-0 text-gray-900 placeholder-gray-400 focus:ring-0 sm:text-sm focus:outline-none"
+              className="block w-full rounded-md rounded-r-none border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
               aria-invalid="true"
               autoFocus={!isMobile}
               placeholder={domain}
@@ -122,20 +122,20 @@ const ClaimDomain = ({ showModal, setShowModal }: ClaimDomainProps) => {
   );
 };
 
-export function useClaimDomainModal() {
-  const [showClaimDomainModal, setShowClaimDomainModal] = useState(false);
+export function useRegisterDomainModal() {
+  const [showRegisterDomainModal, setShowRegisterDomainModal] = useState(false);
 
-  const ClaimDomainModal = useCallback(() => {
+  const RegisterDomainModal = useCallback(() => {
     return (
-      <ClaimDomain
-        showModal={showClaimDomainModal}
-        setShowModal={setShowClaimDomainModal}
+      <RegisterDomain
+        showModal={showRegisterDomainModal}
+        setShowModal={setShowRegisterDomainModal}
       />
     );
-  }, [showClaimDomainModal, setShowClaimDomainModal]);
+  }, [showRegisterDomainModal, setShowRegisterDomainModal]);
 
   return useMemo(
-    () => ({ setShowClaimDomainModal, ClaimDomainModal }),
-    [setShowClaimDomainModal, ClaimDomainModal],
+    () => ({ setShowRegisterDomainModal, RegisterDomainModal }),
+    [setShowRegisterDomainModal, RegisterDomainModal],
   );
 }
