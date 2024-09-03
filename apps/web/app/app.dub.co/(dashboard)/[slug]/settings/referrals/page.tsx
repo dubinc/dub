@@ -1,4 +1,4 @@
-import { getEvents } from "@/lib/actions/get-events";
+import { getEvents } from "@/lib/actions/get-conversion-events";
 import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { EventType } from "@/lib/analytics/types";
