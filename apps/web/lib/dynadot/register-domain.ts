@@ -1,12 +1,11 @@
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
-export const searchDomains = async ({ domain }: { domain: string }) => {
+export const registerDomain = async ({ domain }: { domain: string }) => {
   const searchParams = new URLSearchParams({
     key: DYNADOT_API_KEY,
-    domain0: domain,
-    domain1: domain,
-    command: "search",
-    show_price: "1",
+    domain: domain,
+    command: "register",
+    duration: "12", // TODO: Is this month or year?
     currency: "USD",
   });
 
@@ -15,7 +14,7 @@ export const searchDomains = async ({ domain }: { domain: string }) => {
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to search domains: ${response.statusText}`);
+    throw new Error(`Failed to register domain: ${response.statusText}`);
   }
 
   return await response.json();
