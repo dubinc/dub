@@ -374,9 +374,6 @@ function AddDomainButton({
               variant="outline"
               icon={<Link className="h-4 w-4" />}
               className="h-9 justify-start px-2"
-              // onClick={() => {
-              //   setShowRemoveOAuthAppModal(true);
-              // }}
             />
           </div>
         }

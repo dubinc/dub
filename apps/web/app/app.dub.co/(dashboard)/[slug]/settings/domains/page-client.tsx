@@ -1,36 +1,56 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
+import { useClaimDomainModal } from "@/ui/modals/claim-domain";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
-import { Globe, usePagination, useRouterStuff } from "@dub/ui";
+import { Button, Globe, Popover, usePagination, useRouterStuff } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
+import { capitalize } from "@dub/utils";
+import { Link } from "lucide-react";
+import { useState } from "react";
 import { DefaultDomains } from "./default-domains";
 
 export default function WorkspaceDomainsClient() {
-  const { id: workspaceId } = useWorkspace();
+  const {
+    plan,
+    nextPlan,
+    role,
+    domainsLimit,
+    exceededDomains,
+    id: workspaceId,
+  } = useWorkspace();
 
-  const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal({
-    buttonProps: {
-      className: "h-9 rounded-lg",
-    },
-  });
-
+  const [openPopover, setOpenPopover] = useState(false);
   const { searchParams, queryParams } = useRouterStuff();
+  const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
+  const { data: domainsCount } = useDomainsCount();
+  const { pagination, setPagination } = usePagination(50);
+
   const archived = searchParams.get("archived");
   const search = searchParams.get("search");
 
-  const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
-  const { data: domainsCount } = useDomainsCount();
+  const { AddEditDomainModal, AddDomainButton, setShowAddEditDomainModal } =
+    useAddEditDomainModal({
+      buttonProps: {
+        className: "h-9 rounded-lg",
+      },
+    });
 
-  const { pagination, setPagination } = usePagination(50);
+  const { ClaimDomainModal, setShowClaimDomainModal } = useClaimDomainModal();
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "domains.write",
+    role,
+  });
 
   return (
     <>
@@ -76,10 +96,67 @@ export default function WorkspaceDomainsClient() {
                   : queryParams({ set: { archived: "true" }, del: "page" })
               }
             />
-            <AddDomainButton />
+            {/* <AddDomainButton /> */}
+
+            <Popover
+              content={
+                <div className="grid w-screen gap-px p-2 sm:w-60">
+                  <Button
+                    text="Connect a domain you own"
+                    variant="outline"
+                    icon={<Globe className="h-4 w-4" />}
+                    className="h-9 justify-start px-2"
+                    onClick={() => setShowAddEditDomainModal(true)}
+                    disabledTooltip={
+                      exceededDomains ? (
+                        <TooltipContent
+                          title={`You can only add up to ${domainsLimit} domain${
+                            domainsLimit === 1 ? "" : "s"
+                          } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+                          cta="Upgrade"
+                          onClick={() => {
+                            queryParams({
+                              set: {
+                                upgrade: nextPlan.name.toLowerCase(),
+                              },
+                            });
+                          }}
+                        />
+                      ) : (
+                        permissionsError || undefined
+                      )
+                    }
+                    disabled={exceededDomains || !!permissionsError}
+                  />
+                  <Button
+                    text="Claim free .link domain"
+                    variant="outline"
+                    icon={<Link className="h-4 w-4" />}
+                    className="h-9 justify-start px-2"
+                    onClick={() => setShowClaimDomainModal(true)}
+                  />
+                </div>
+              }
+              align="end"
+              openPopover={openPopover}
+              setOpenPopover={setOpenPopover}
+            >
+              <Button
+                className="flex rounded-md border border-gray-200 px-2 transition-[border-color] duration-200"
+                text="Add domain"
+                onClick={() => setOpenPopover(!openPopover)}
+              />
+            </Popover>
           </div>
         </div>
-        {workspaceId && <AddEditDomainModal />}
+
+        {workspaceId && (
+          <>
+            <AddEditDomainModal />
+            <ClaimDomainModal />
+          </>
+        )}
+
         <div key={archived} className="animate-fade-in">
           {!loading ? (
             allWorkspaceDomains.length > 0 ? (
