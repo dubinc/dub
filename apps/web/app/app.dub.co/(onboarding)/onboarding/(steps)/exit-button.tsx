@@ -16,7 +16,7 @@ export function ExitButton() {
       {(isLoading || isSuccessful) && (
         <LoadingSpinner className="mr-1 size-3" />
       )}
-      Exit to Dashboard
+      Skip onboarding
       <ExpandingArrow className="size-3" />
     </button>
   );
