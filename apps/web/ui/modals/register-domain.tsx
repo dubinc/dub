@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
+import { CircleCheck } from "@dub/ui/src/icons";
 
 interface RegisterDomainProps {
   showModal: boolean;
@@ -15,7 +16,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
   const workspace = useWorkspace();
   const { isMobile } = useMediaQuery();
   const [domain, setDomain] = useState<string | undefined>(undefined);
-  const [isDomainAvailable, setIsDomainAvailable] = useState<boolean>(true);
+  const [isDomainAvailable, setIsDomainAvailable] = useState<boolean>(false);
 
   useEffect(() => {
     setDomain(`${workspace.slug}.link`);
@@ -37,8 +38,8 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
     setIsDomainAvailable(data.available);
   };
 
-  // Claim domain
-  const claimDomain = async () => {
+  // Register domain
+  const registerDomain = async () => {
     const response = await fetch(
       `/api/domains/claim?domain=${domain}&workspaceId=${workspace.id}`,
     );
@@ -76,6 +77,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
             className={cn(
               "mt-2 flex rounded-md border border-gray-300 p-1.5",
               isDomainAvailable ? "bg-[#def5c6]" : "bg-white",
+              !isDomainAvailable ? "bg-[#F5E4C6]" : "bg-white",
             )}
           >
             <input
@@ -101,10 +103,15 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
             />
           </div>
 
-          {isDomainAvailable && (
-            <div className="bg-[#def5c6] p-2 text-sm">
+          {isDomainAvailable ? (
+            <div className="rounded-md bg-[#DEF5C6] p-2 text-sm">
               <strong>{domain}</strong> is available. Claim your free domain
               before it's gone!
+              <CircleCheck className="w-4 h-4" />
+            </div>
+          ) : (
+            <div className="rounded-md bg-[#F5E4C6] p-2 text-sm">
+              <strong>{domain}</strong> is not available.
             </div>
           )}
         </div>

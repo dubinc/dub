@@ -97,7 +97,6 @@ export default function WorkspaceDomainsClient() {
                   : queryParams({ set: { archived: "true" }, del: "page" })
               }
             />
-            {/* <AddDomainButton /> */}
 
             <Popover
               content={
