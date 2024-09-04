@@ -63,11 +63,15 @@ export default function AddOAuthAppForm({
   });
 
   useEffect(() => {
+    if (oAuthApp) {
+      return;
+    }
+
     setData((prev) => ({
       ...prev,
-      slug: slugify(name),
+      slug: slugify(prev.name),
     }));
-  }, [data.name]);
+  }, [data.name, oAuthApp]);
 
   useEffect(() => {
     if (oAuthApp) {
