@@ -30,7 +30,9 @@ export function Form() {
 
   const { id: workspaceId, nextPlan } = useWorkspace();
 
-  const { domains, loading, primaryDomain } = useAvailableDomains();
+  const { domains, loading, primaryDomain } = useAvailableDomains({
+    onboarding: true,
+  });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [loadingPreviewImage, setLoadingPreviewImage] = useState(false);
