@@ -5,9 +5,11 @@ import {
   useRouterStuff,
   useScrollProgress,
 } from "@dub/ui";
-import { cn, PLANS, PRO_PLAN } from "@dub/utils";
+import { cn, getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
+import { usePlausible } from "next-plausible";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -33,6 +35,23 @@ function WelcomeModal({
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const planId = searchParams.get("plan");
+  const upgraded = searchParams.get("upgraded");
+  const plausible = usePlausible();
+
+  useEffect(() => {
+    if (planId) {
+      const currentPlan = getPlanDetails(planId);
+      const period = searchParams.get("period");
+      if (currentPlan && period) {
+        plausible(`Upgraded to ${currentPlan.name}`);
+        posthog.capture("plan_upgraded", {
+          plan: currentPlan.name,
+          period,
+          revenue: currentPlan.price[period],
+        });
+      }
+    }
+  }, [searchParams, planId]);
 
   const plan = planId
     ? PLANS.find((p) => p.name.toLowerCase() === planId.toLowerCase()) ??
@@ -45,7 +64,7 @@ function WelcomeModal({
       setShowModal={setShowWelcomeModal}
       onClose={() =>
         queryParams({
-          del: ["onboarded", "plan"],
+          del: ["onboarded", "upgraded", "plan", "period"],
         })
       }
     >
@@ -88,14 +107,14 @@ function WelcomeModal({
                   plan ? "text-left" : "text-center",
                 )}
               >
-                Thanks for signing up &ndash; your account is ready to go! Now
-                you have one central, organized place to build and manage all
-                your short links.
+                {upgraded
+                  ? `Thank you for upgrading to the ${plan?.name} plan! You now have access to more powerful features and higher limits.`
+                  : "Thanks for signing up – your account is ready to go! Now you have one central, organized place to build and manage all your short links."}
               </p>
               {plan && (
                 <>
                   <h2 className="mb-2 mt-6 text-base font-medium text-gray-950">
-                    Explore the benefits of Dub {plan.name}
+                    Explore the benefits of your {plan.name} plan
                   </h2>
                   <PlanFeatures plan={plan.name} />
                 </>
@@ -126,12 +145,6 @@ function WelcomeModal({
 
 export function useWelcomeModal() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-
-  const searchParams = useSearchParams();
-  useEffect(
-    () => setShowWelcomeModal(Boolean(searchParams?.get("onboarded"))),
-    [searchParams],
-  );
 
   const WelcomeModalCallback = useCallback(() => {
     return (

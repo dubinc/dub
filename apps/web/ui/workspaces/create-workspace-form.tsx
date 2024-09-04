@@ -4,7 +4,6 @@ import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, InfoTooltip, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
 import posthog from "posthog-js";
 import { useForm } from "react-hook-form";
@@ -53,7 +52,6 @@ export function CreateWorkspaceForm({
 
           if (res.ok) {
             const { id: workspaceId } = await res.json();
-            trackEvent("Created Workspace");
             plausible("Created Workspace");
             // track workspace creation event
             posthog.capture("workspace_created", {

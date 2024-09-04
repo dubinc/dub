@@ -101,16 +101,24 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
   const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
 
+  useEffect(
+    () =>
+      setShowWelcomeModal(
+        searchParams.has("onboarded") || searchParams.has("upgraded"),
+      ),
+    [searchParams],
+  );
+
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
   });
 
-  const { id, error } = useWorkspace();
+  const { id: workspaceId, error } = useWorkspace();
 
   useEffect(() => {
-    if (hashes.length > 0 && id) {
+    if (hashes.length > 0 && workspaceId) {
       toast.promise(
-        fetch(`/api/links/sync?workspaceId=${id}`, {
+        fetch(`/api/links/sync?workspaceId=${workspaceId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -133,7 +141,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         },
       );
     }
-  }, [hashes, id]);
+  }, [hashes, workspaceId]);
 
   // handle invite and oauth modals
   useEffect(() => {

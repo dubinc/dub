@@ -4,7 +4,6 @@ import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
-import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -33,8 +32,6 @@ export function UpgradePlanButton({
 
   const [clicked, setClicked] = useState(false);
 
-  const queryString = searchParams.toString();
-
   return (
     <Button
       text={text || `Upgrade to ${selectedPlan.name} ${capitalize(period)}`}
@@ -50,12 +47,11 @@ export function UpgradePlanButton({
           body: JSON.stringify({
             plan,
             period,
-            baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
+            baseUrl: `${APP_DOMAIN}${pathname}`,
             onboarding: searchParams.get("workspace"),
           }),
         })
           .then(async (res) => {
-            trackEvent("Opened Checkout");
             plausible("Opened Checkout");
             posthog.capture("checkout_opened", {
               currentPlan: capitalize(plan),
