@@ -1,6 +1,7 @@
 "use client";
 
 import { getStripe } from "@/lib/stripe/client";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { trackEvent } from "fathom-client";
@@ -12,19 +13,17 @@ import { useState } from "react";
 export function UpgradePlanButton({
   plan,
   period,
-  workspaceSlug,
   text,
-  onboarding = false,
 }: {
   plan: string;
   period: "monthly" | "yearly";
-  workspaceSlug?: string;
   text?: string;
-  onboarding?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { slug: workspaceSlug, plan: currentPlan } = useWorkspace();
+
   const plausible = usePlausible();
 
   const selectedPlan =
@@ -52,7 +51,7 @@ export function UpgradePlanButton({
             plan,
             period,
             baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
-            onboarding,
+            // onboarding,
           }),
         })
           .then(async (res) => {
@@ -62,7 +61,7 @@ export function UpgradePlanButton({
               currentPlan: capitalize(plan),
               newPlan: selectedPlan.name,
             });
-            if (plan === "free") {
+            if (currentPlan === "free") {
               const data = await res.json();
               const { id: sessionId } = data;
               const stripe = await getStripe();

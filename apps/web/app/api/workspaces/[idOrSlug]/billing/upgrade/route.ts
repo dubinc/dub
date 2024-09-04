@@ -24,7 +24,6 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     : null;
 
   const returnUrl = new URL(baseUrl);
-  if (!onboarding) returnUrl.searchParams.append("upgrade", plan);
 
   // if the user already has a subscription, create billing portal to upgrade
   if (workspace.stripeId && subscription && subscription.data.length > 0) {
@@ -53,7 +52,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
           },
     });
 
-    return NextResponse.json(url);
+    return NextResponse.json({ url });
 
     // if the user does not have a subscription, create a new checkout session
   } else {

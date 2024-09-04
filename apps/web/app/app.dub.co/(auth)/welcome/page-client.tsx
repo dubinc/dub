@@ -1,7 +1,6 @@
 "use client";
 
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
-import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import Intro from "@/ui/welcome/intro";
 import { trackEvent } from "fathom-client";
 import { AnimatePresence } from "framer-motion";
@@ -17,7 +16,6 @@ export default function WelcomePageClient() {
 
   const { setShowAddWorkspaceModal, AddWorkspaceModal } =
     useAddWorkspaceModal();
-  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,19 +42,11 @@ export default function WelcomePageClient() {
     } else {
       setShowAddWorkspaceModal(false);
     }
-    if (searchParams.get("step") === "upgrade") {
-      setTimeout(() => {
-        setShowUpgradePlanModal(true);
-      }, 200);
-    } else {
-      setShowUpgradePlanModal(false);
-    }
   }, [searchParams.get("step")]);
 
   return (
     <div className="flex h-screen flex-col items-center">
       <AddWorkspaceModal />
-      <UpgradePlanModal />
       <AnimatePresence mode="wait">
         {!searchParams.get("step") ? (
           <Intro />

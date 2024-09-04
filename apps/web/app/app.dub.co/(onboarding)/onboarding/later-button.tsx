@@ -1,3 +1,5 @@
+"use client";
+
 import { OnboardingStep } from "@/lib/onboarding/types";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";

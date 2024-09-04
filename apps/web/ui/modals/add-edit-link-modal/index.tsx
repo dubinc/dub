@@ -446,8 +446,7 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { nextPlan, exceededLinks } = useWorkspace();
-  const { queryParams } = useRouterStuff();
+  const { slug, nextPlan, exceededLinks } = useWorkspace();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
@@ -513,13 +512,7 @@ function AddEditLinkButton({
           <TooltipContent
             title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
             cta={`Upgrade to ${nextPlan.name}`}
-            onClick={() => {
-              queryParams({
-                set: {
-                  upgrade: nextPlan.name.toLowerCase(),
-                },
-              });
-            }}
+            href={`/${slug}/upgrade`}
           />
         ) : undefined
       }

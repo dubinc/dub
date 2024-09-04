@@ -72,6 +72,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/integrations",
         "/domains",
         "/settings",
+        "/upgrade",
       ].includes(path) ||
       path.startsWith("/integrations/") ||
       path.startsWith("/settings/")

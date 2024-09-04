@@ -6,10 +6,17 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Divider } from "@/ui/shared/icons";
 import Infinity from "@/ui/shared/icons/infinity";
 import PlanBadge from "@/ui/workspaces/plan-badge";
-import { Button, InfoTooltip, ProgressBar, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  InfoTooltip,
+  ProgressBar,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn, getFirstAndLastDay, getPlanDetails, nFormatter } from "@dub/utils";
 import { trackEvent } from "fathom-client";
 import { usePlausible } from "next-plausible";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useMemo, useState } from "react";
@@ -22,6 +29,7 @@ export default function WorkspaceBillingClient() {
 
   const {
     id,
+    slug,
     plan,
     stripeId,
     nextPlan,
@@ -232,17 +240,15 @@ export default function WorkspaceBillingClient() {
                   Contact Sales
                 </a>
               ) : (
-                <Button
-                  text={`Upgrade to ${nextPlan.name}`}
-                  onClick={() =>
-                    queryParams({
-                      set: {
-                        upgrade: nextPlan.name.toLowerCase(),
-                      },
-                    })
-                  }
-                  variant="success"
-                />
+                <Link
+                  href={`/${slug}/upgrade`}
+                  className={cn(
+                    buttonVariants(),
+                    "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
+                  )}
+                >
+                  Upgrade to {nextPlan.name}
+                </Link>
               )
             ) : (
               <div className="h-10 w-24 animate-pulse rounded-md bg-gray-200" />

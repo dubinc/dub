@@ -100,13 +100,7 @@ export function DefaultDomains() {
                     <TooltipContent
                       title="You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain."
                       cta="Upgrade to Pro"
-                      onClick={() => {
-                        queryParams({
-                          set: {
-                            upgrade: "pro",
-                          },
-                        });
-                      }}
+                      href={`/${slug}/upgrade`}
                     />
                   ) : undefined)
                 }

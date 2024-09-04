@@ -7,7 +7,6 @@ import { Badge } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { PRO_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { useState } from "react";
-import { LaterButton } from "../../later-button";
 
 export function PlanSelector() {
   const [periodTab, setPeriodTab] = useState<"monthly" | "yearly">("yearly");
@@ -39,16 +38,6 @@ export function PlanSelector() {
           )}
           period={periodTab}
         />
-      </div>
-      <div className="mt-8 flex flex-col gap-3">
-        <a
-          href="https://dub.co/enterprise"
-          target="_blank"
-          className="w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700"
-        >
-          Looking for enterprise?
-        </a>
-        <LaterButton next="finish">I'll pick a plan later</LaterButton>
       </div>
     </div>
   );
@@ -103,8 +92,6 @@ function PlanCard({
           text={`Get started with ${selectedPlan.name}`}
           plan={selectedPlan.name.toLowerCase()}
           period={period}
-          workspaceSlug={slug}
-          onboarding
         />
       </div>
     </div>

@@ -11,7 +11,6 @@ import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
-import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useCookies } from "@dub/ui";
 import { DEFAULT_LINK_PROPS, getUrlFromString } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -37,7 +36,6 @@ export const ModalContext = createContext<{
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
-  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
@@ -48,7 +46,6 @@ export const ModalContext = createContext<{
   setShowAddEditDomainModal: () => {},
   setShowAddEditLinkModal: () => {},
   setShowAddEditTagModal: () => {},
-  setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
   setShowImportRebrandlyModal: () => {},
@@ -97,7 +94,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       : {},
   );
   const { setShowAddEditTagModal, AddEditTagModal } = useAddEditTagModal();
-  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
   const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
@@ -187,7 +183,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowAddEditDomainModal,
         setShowAddEditLinkModal,
         setShowAddEditTagModal,
-        setShowUpgradePlanModal,
         setShowImportBitlyModal,
         setShowImportShortModal,
         setShowImportRebrandlyModal,
@@ -200,7 +195,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <AddEditDomainModal />
       <AddEditLinkModal />
       <AddEditTagModal />
-      <UpgradePlanModal />
       <ImportBitlyModal />
       <ImportShortModal />
       <ImportRebrandlyModal />

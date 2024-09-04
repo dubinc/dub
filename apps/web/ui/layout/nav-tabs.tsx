@@ -1,20 +1,17 @@
 "use client";
 
-import useDomains from "@/lib/swr/use-domains";
-import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useScroll } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useMemo } from "react";
 
 export default function NavTabs() {
   const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
-  const domain = useSearchParams()?.get("domain");
-  const { loading, error, flags } = useWorkspace();
+  const { error, flags } = useWorkspace();
 
   const tabs = useMemo(
     () => [
@@ -25,9 +22,6 @@ export default function NavTabs() {
     ],
     [flags],
   );
-
-  const { loading: loadingDomains } = useDomains();
-  const { data: linksCount } = useLinksCount({ ignoreParams: true });
 
   const scrolled = useScroll(80);
 

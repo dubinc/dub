@@ -1,8 +1,9 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useMediaQuery, useRouterStuff } from "@dub/ui";
+import { useMediaQuery } from "@dub/ui";
 import Cookies from "js-cookie";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import ProBanner from "../workspaces/pro-banner";
@@ -37,28 +38,20 @@ export default function UpgradeBanner() {
     }
   }, [plan, id, name, slug, stripeId, createdAt]);
 
-  const { queryParams } = useRouterStuff();
-
   return (
     <>
       {!isMobile && showProBanner && (
         <ProBanner setShowProBanner={setShowProBanner} />
       )}
       {plan === "free" && (isMobile || showProBanner === false) && (
-        <button
-          onClick={() =>
-            queryParams({
-              set: {
-                upgrade: "pro",
-              },
-            })
-          }
+        <Link
+          href={`/${slug}/upgrade`}
           className="transition-all duration-75 active:scale-95"
         >
           <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-sm text-transparent">
             Upgrade
           </span>
-        </button>
+        </Link>
       )}
     </>
   );

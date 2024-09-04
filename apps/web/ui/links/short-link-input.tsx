@@ -10,7 +10,6 @@ import {
   Magic,
   Tooltip,
   Twitter,
-  useRouterStuff,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import {
@@ -71,10 +70,9 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
     const inputId = useId();
     const randomLinkedInNonce = useMemo(() => nanoid(8), []);
 
-    const { queryParams } = useRouterStuff();
-
     const {
       id: workspaceId,
+      slug,
       mutate: mutateWorkspace,
       aiUsage,
       aiLimit,
@@ -351,16 +349,9 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
           error.includes("Upgrade to") ? (
             <p className="mt-2 text-sm text-red-600" id="key-error">
               {error.split(`Upgrade to ${nextPlan.name}`)[0]}
-              <span
-                className="cursor-pointer underline"
-                onClick={() =>
-                  queryParams({
-                    set: { upgrade: nextPlan.name.toLowerCase() },
-                  })
-                }
-              >
+              <a className="cursor-pointer underline" href={`/${slug}/upgrade`}>
                 Upgrade to {nextPlan.name}
-              </span>
+              </a>
               {error.split(`Upgrade to ${nextPlan.name}`)[1]}
             </p>
           ) : (

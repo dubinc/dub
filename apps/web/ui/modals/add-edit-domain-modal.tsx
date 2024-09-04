@@ -9,7 +9,6 @@ import {
   Logo,
   Modal,
   TooltipContent,
-  useRouterStuff,
 } from "@dub/ui";
 import { capitalize } from "@dub/utils";
 import { useParams } from "next/navigation";
@@ -72,15 +71,12 @@ function AddDomainButton({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
-  const { plan, nextPlan, role, domainsLimit, exceededDomains } =
-    useWorkspace();
+  const { slug, plan, role, domainsLimit, exceededDomains } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "domains.write",
     role,
   }).error;
-
-  const { queryParams } = useRouterStuff();
 
   return (
     <div>
@@ -93,13 +89,7 @@ function AddDomainButton({
                 domainsLimit === 1 ? "" : "s"
               } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
               cta="Upgrade"
-              onClick={() => {
-                queryParams({
-                  set: {
-                    upgrade: nextPlan.name.toLowerCase(),
-                  },
-                });
-              }}
+              href={`/${slug}/upgrade`}
             />
           ) : (
             permissionsError || undefined
