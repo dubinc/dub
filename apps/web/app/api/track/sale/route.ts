@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
@@ -118,10 +118,10 @@ export const POST = withWorkspaceEdge(
           customerAvatar: customer.avatar,
         });
 
-        await sendLinkWebhookOnEdge({
+        await sendWorkspaceWebhookOnEdge({
           trigger: "sale.created",
-          linkId: link.id,
           data: sale,
+          workspace,
         });
       })(),
     );

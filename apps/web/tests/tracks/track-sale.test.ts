@@ -1,4 +1,4 @@
-import { TrackSaleResponse } from "@/lib/types";
+import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
 import { randomCustomer, randomId } from "tests/utils/helpers";
 import { clickId } from "tests/utils/resource";
 import { expect, test } from "vitest";
@@ -17,7 +17,7 @@ test("POST /track/sale", async () => {
     paymentProcessor: "stripe",
   };
 
-  await http.post({
+  const { data: lead } = await http.post<TrackLeadResponse>({
     path: "/track/lead",
     body: {
       clickId,
@@ -36,7 +36,7 @@ test("POST /track/sale", async () => {
   const response = await http.post<TrackSaleResponse>({
     path: "/track/sale",
     body: {
-      customerId: customer.id,
+      customerId: lead.customer.id,
       ...sale,
     },
   });

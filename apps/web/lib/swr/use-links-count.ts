@@ -50,7 +50,7 @@ export default function useLinksCount(
 
   return {
     data,
-    loading: !error && !data,
+    loading: !error && data === undefined,
     error,
   };
 }

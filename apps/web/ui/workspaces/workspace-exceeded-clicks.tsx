@@ -1,12 +1,13 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { MaxWidthWrapper, useRouterStuff } from "@dub/ui";
+import { buttonVariants, MaxWidthWrapper } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Lock } from "lucide-react";
+import Link from "next/link";
 
 export default function WorkspaceExceededClicks() {
-  const { nextPlan } = useWorkspace();
-  const { queryParams } = useRouterStuff();
+  const { slug, nextPlan } = useWorkspace();
 
   return (
     <MaxWidthWrapper>
@@ -22,24 +23,22 @@ export default function WorkspaceExceededClicks() {
           collecting data on your links, but you need to upgrade to view them.
         </p>
         <img
-          src="/_static/illustrations/video-park.svg"
+          src="https://assets.dub.co/misc/video-park.svg"
           alt="No links yet"
           width={400}
           height={400}
           className="-my-8"
         />
-        <button
-          onClick={() =>
-            queryParams({
-              set: {
-                upgrade: nextPlan.name.toLowerCase(),
-              },
-            })
-          }
-          className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
+
+        <Link
+          href={`/${slug}/upgrade`}
+          className={cn(
+            buttonVariants(),
+            "flex h-9 items-center justify-center rounded-md border px-4 text-sm",
+          )}
         >
           Upgrade to {nextPlan.name}
-        </button>
+        </Link>
       </div>
     </MaxWidthWrapper>
   );

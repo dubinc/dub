@@ -17,7 +17,7 @@ export default function useDomainsCount() {
 
   return {
     data,
-    loading: !error && !data,
+    loading: !error && data === undefined,
     error,
   };
 }

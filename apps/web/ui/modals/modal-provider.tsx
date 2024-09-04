@@ -11,7 +11,6 @@ import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
-import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useCookies } from "@dub/ui";
 import { DEFAULT_LINK_PROPS, getUrlFromString } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -29,6 +28,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
+import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
@@ -36,7 +36,6 @@ export const ModalContext = createContext<{
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
-  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
@@ -47,7 +46,6 @@ export const ModalContext = createContext<{
   setShowAddEditDomainModal: () => {},
   setShowAddEditLinkModal: () => {},
   setShowAddEditTagModal: () => {},
-  setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
   setShowImportRebrandlyModal: () => {},
@@ -96,23 +94,31 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       : {},
   );
   const { setShowAddEditTagModal, AddEditTagModal } = useAddEditTagModal();
-  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
   const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
+  const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
+
+  useEffect(
+    () =>
+      setShowWelcomeModal(
+        searchParams.has("onboarded") || searchParams.has("upgraded"),
+      ),
+    [searchParams],
+  );
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
   });
 
-  const { id, error } = useWorkspace();
+  const { id: workspaceId, error } = useWorkspace();
 
   useEffect(() => {
-    if (hashes.length > 0 && id) {
+    if (hashes.length > 0 && workspaceId) {
       toast.promise(
-        fetch(`/api/links/sync?workspaceId=${id}`, {
+        fetch(`/api/links/sync?workspaceId=${workspaceId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -135,7 +141,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         },
       );
     }
-  }, [hashes, id]);
+  }, [hashes, workspaceId]);
 
   // handle invite and oauth modals
   useEffect(() => {
@@ -185,7 +191,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowAddEditDomainModal,
         setShowAddEditLinkModal,
         setShowAddEditTagModal,
-        setShowUpgradePlanModal,
         setShowImportBitlyModal,
         setShowImportShortModal,
         setShowImportRebrandlyModal,
@@ -198,11 +203,11 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <AddEditDomainModal />
       <AddEditLinkModal />
       <AddEditTagModal />
-      <UpgradePlanModal />
       <ImportBitlyModal />
       <ImportShortModal />
       <ImportRebrandlyModal />
       <ImportCsvModal />
+      <WelcomeModal />
       {children}
     </ModalContext.Provider>
   );

@@ -1,0 +1,406 @@
+"use client";
+
+import useWorkspace from "@/lib/swr/use-workspace";
+import { DomainProps, LinkProps } from "@/lib/types";
+import { Lock, Random } from "@/ui/shared/icons";
+import {
+  ButtonTooltip,
+  LinkedIn,
+  LoadingCircle,
+  Magic,
+  Tooltip,
+  Twitter,
+} from "@dub/ui";
+import { ArrowTurnRight2 } from "@dub/ui/src/icons";
+import {
+  cn,
+  DUB_DOMAINS,
+  getApexDomain,
+  linkConstructor,
+  nanoid,
+  punycode,
+  truncate,
+} from "@dub/utils";
+import { useCompletion } from "ai/react";
+import { TriangleAlert } from "lucide-react";
+import posthog from "posthog-js";
+import {
+  forwardRef,
+  HTMLProps,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from "react";
+import { toast } from "sonner";
+import { AlertCircleFill } from "../shared/icons";
+import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+
+type ShortLinkInputProps = {
+  domain?: string;
+  _key?: string;
+  existingLinkProps?: Pick<LinkProps, "key">;
+  error?: string;
+  onChange: (data: { domain?: string; key?: string }) => void;
+  data: Pick<LinkProps, "url" | "title" | "description">;
+  saving: boolean;
+  domains: DomainProps[];
+  loading: boolean;
+} & Omit<HTMLProps<HTMLInputElement>, "onChange" | "data">;
+
+export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
+  (
+    {
+      domain,
+      _key: key,
+      existingLinkProps,
+      error: errorProp,
+      onChange,
+      data,
+      saving,
+      domains,
+      loading,
+      ...inputProps
+    }: ShortLinkInputProps,
+    ref,
+  ) => {
+    const existingLink = Boolean(existingLinkProps);
+
+    const inputId = useId();
+    const randomLinkedInNonce = useMemo(() => nanoid(8), []);
+
+    const {
+      id: workspaceId,
+      slug,
+      mutate: mutateWorkspace,
+      aiUsage,
+      aiLimit,
+      nextPlan,
+    } = useWorkspace();
+
+    const [lockKey, setLockKey] = useState(existingLink);
+    const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
+
+    const [keyError, setKeyError] = useState<string | null>(null);
+    const error = keyError || errorProp;
+
+    const generateRandomKey = async () => {
+      setKeyError(null);
+      setGeneratingRandomKey(true);
+      const res = await fetch(
+        `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
+      );
+      const key = await res.json();
+      onChange?.({ key });
+      setGeneratingRandomKey(false);
+    };
+
+    const runKeyChecks = async (value: string) => {
+      const res = await fetch(
+        `/api/links/verify?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
+      );
+      const { error } = await res.json();
+      if (error) {
+        setKeyError(error.message);
+      } else {
+        setKeyError(null);
+      }
+    };
+
+    const [generatedKeys, setGeneratedKeys] = useState<string[]>(
+      existingLink && key ? [key] : [],
+    );
+
+    const {
+      completion,
+      isLoading: generatingAIKey,
+      complete,
+    } = useCompletion({
+      api: `/api/ai/completion?workspaceId=${workspaceId}`,
+      onError: (error) => {
+        if (error.message.includes("Upgrade to Pro")) {
+          toast.custom(() => (
+            <UpgradeRequiredToast
+              title="You've exceeded your AI usage limit"
+              message={error.message}
+            />
+          ));
+        } else {
+          toast.error(error.message);
+        }
+      },
+      onFinish: (_, completion) => {
+        setGeneratedKeys((prev) => [...prev, completion]);
+        mutateWorkspace();
+        runKeyChecks(completion);
+        posthog.capture("ai_key_generated", {
+          key: completion,
+          url: data.url,
+        });
+      },
+    });
+
+    useEffect(() => {
+      if (completion) onChange?.({ key: completion });
+    }, [completion]);
+
+    const generateAIKey = useCallback(async () => {
+      setKeyError(null);
+      complete(
+        `For the following URL, suggest a relevant short link slug that is at most ${Math.max(25 - (domain?.length || 0), 12)} characters long. 
+                  
+            - URL: ${data.url}
+            - Meta title: ${data.title}
+            - Meta description: ${data.description}. 
+    
+          Only respond with the short link slug and nothing else. Don't use quotation marks or special characters (dash and slash are allowed).
+          
+          Make sure your answer does not exist in this list of generated slugs: ${generatedKeys.join(", ")}`,
+      );
+    }, [data.url, data.title, data.description, generatedKeys]);
+
+    const shortLink = useMemo(() => {
+      return linkConstructor({
+        key,
+        domain: domain,
+        pretty: true,
+      });
+    }, [key, domain]);
+
+    return (
+      <div>
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-medium text-gray-700"
+          >
+            Short Link
+          </label>
+          {lockKey ? (
+            <button
+              className="flex h-6 items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+              type="button"
+              onClick={() => {
+                window.confirm(
+                  "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
+                ) && setLockKey(false);
+              }}
+            >
+              <Lock className="h-3 w-3" />
+            </button>
+          ) : (
+            <div className="flex items-center">
+              <ButtonTooltip
+                tabIndex={-1}
+                tooltipContent="Generate a random key"
+                onClick={generateRandomKey}
+                disabled={generatingRandomKey || generatingAIKey}
+                className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+              >
+                {generatingRandomKey ? (
+                  <LoadingCircle />
+                ) : (
+                  <Random className="h-3 w-3" />
+                )}
+              </ButtonTooltip>
+              <ButtonTooltip
+                tabIndex={-1}
+                tooltipContent="Generate a key using AI"
+                onClick={generateAIKey}
+                disabled={
+                  generatingRandomKey ||
+                  generatingAIKey ||
+                  (aiLimit && aiUsage && aiUsage >= aiLimit) ||
+                  !data.url
+                }
+                className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+              >
+                {generatingAIKey ? (
+                  <LoadingCircle />
+                ) : (
+                  <Magic className="h-4 w-4" />
+                )}
+              </ButtonTooltip>
+            </div>
+          )}
+        </div>
+        <div className="relative mt-1 flex rounded-md shadow-sm">
+          <div>
+            <select
+              tabIndex={-1}
+              disabled={lockKey}
+              value={domain}
+              onChange={(e) => {
+                setKeyError(null);
+                onChange?.({ domain: e.target.value });
+              }}
+              className={cn(
+                "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0 sm:text-sm",
+                lockKey && "cursor-not-allowed",
+                loading && "w-[6rem] text-transparent",
+              )}
+            >
+              {domains?.map(({ slug }) => (
+                <option key={slug} value={slug}>
+                  {punycode(slug)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <input
+            ref={ref}
+            type="text"
+            name="key"
+            id={inputId}
+            // allow letters, numbers, '-', '_', '/' and emojis
+            pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_]+"
+            onInvalid={(e) => {
+              e.currentTarget.setCustomValidity(
+                "Only letters, numbers, '-', '_', '/', and emojis are allowed.",
+              );
+            }}
+            onBlur={(e) => {
+              // if the key is changed, check if key exists
+              if (e.target.value && existingLinkProps?.key !== e.target.value) {
+                runKeyChecks(e.target.value);
+              } else if (
+                domain &&
+                workspaceId &&
+                data.url.length > 0 &&
+                !saving
+              ) {
+                generateRandomKey();
+              }
+            }}
+            disabled={lockKey}
+            autoComplete="off"
+            autoCapitalize="none"
+            className={cn(
+              "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              {
+                "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                  error,
+                "border-amber-300 pr-10 text-amber-900 placeholder-amber-300 focus:border-amber-500 focus:ring-amber-500":
+                  shortLink.length > 25,
+                "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
+                  lockKey,
+              },
+            )}
+            placeholder="(optional)"
+            aria-invalid="true"
+            aria-describedby="key-error"
+            value={punycode(key)}
+            onChange={(e) => {
+              setKeyError(null);
+              e.currentTarget.setCustomValidity("");
+              onChange?.({ key: e.target.value });
+            }}
+            {...inputProps}
+          />
+          {(error || shortLink.length > 25) && (
+            <Tooltip
+              content={
+                error || (
+                  <div className="flex max-w-xs items-start space-x-2 bg-white p-4">
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-500" />
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Short links longer than 25 characters will show up
+                        differently on some platforms.
+                      </p>
+                      <div className="mt-2 flex items-center space-x-2">
+                        <LinkedIn className="h-4 w-4" />
+                        <p className="cursor-pointer text-sm font-semibold text-[#4783cf] hover:underline">
+                          {linkConstructor({
+                            domain: "lnkd.in",
+                            key: randomLinkedInNonce,
+                            pretty: true,
+                          })}
+                        </p>
+                      </div>
+                      {shortLink.length > 25 && (
+                        <div className="mt-1 flex items-center space-x-2">
+                          <Twitter className="h-4 w-4" />
+                          <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
+                            {truncate(shortLink, 25)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              }
+            >
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                {error ? (
+                  <AlertCircleFill
+                    className="h-5 w-5 text-red-500"
+                    aria-hidden="true"
+                  />
+                ) : shortLink.length > 25 ? (
+                  <AlertCircleFill className="h-5 w-5 text-amber-500" />
+                ) : null}
+              </div>
+            </Tooltip>
+          )}
+        </div>
+        {error ? (
+          error.includes("Upgrade to") ? (
+            <p className="mt-2 text-sm text-red-600" id="key-error">
+              {error.split(`Upgrade to ${nextPlan.name}`)[0]}
+              <a className="cursor-pointer underline" href={`/${slug}/upgrade`}>
+                Upgrade to {nextPlan.name}
+              </a>
+              {error.split(`Upgrade to ${nextPlan.name}`)[1]}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-red-600" id="key-error">
+              {error}
+            </p>
+          )
+        ) : (
+          <DefaultDomainPrompt
+            domain={domain}
+            url={data.url}
+            onChange={(domain) => onChange({ domain })}
+          />
+        )}
+      </div>
+    );
+  },
+);
+
+function DefaultDomainPrompt({
+  domain,
+  url,
+  onChange,
+}: {
+  domain?: string;
+  url?: string;
+  onChange: (domain: string) => void;
+}) {
+  if (!url || !domain) return null;
+
+  const apexDomain = getApexDomain(url);
+  const hostnameFor = DUB_DOMAINS.find((domain) =>
+    domain?.allowedHostnames?.includes(apexDomain),
+  );
+  const domainSlug = hostnameFor?.slug;
+
+  if (!domainSlug || domain === domainSlug) return null;
+
+  return (
+    <button
+      className="flex items-center gap-1 p-2 text-xs text-gray-500 transition-all duration-75 hover:text-gray-700 active:scale-[0.98]"
+      onClick={() => onChange(domainSlug)}
+      type="button"
+    >
+      <ArrowTurnRight2 className="size-3.5" />
+      <p>
+        Use <strong className="font-semibold">{domainSlug}</strong> domain
+        instead?
+      </p>
+    </button>
+  );
+}

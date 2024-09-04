@@ -9,7 +9,7 @@ export const DEFAULT_REDIRECTS = {
   dashboard: "https://app.dub.co",
   links: "https://app.dub.co/links",
   settings: "https://app.dub.co/settings",
-  welcome: "https://app.dub.co/welcome",
+  welcome: "https://app.dub.co/onboarding/welcome",
   discord: "https://twitter.com/dubdotco", // placeholder for now
 };
 

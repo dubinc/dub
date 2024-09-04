@@ -1,21 +1,5 @@
-import { Background } from "@dub/ui";
-import { constructMetadata } from "@dub/utils";
-import { Suspense } from "react";
-import WelcomePageClient from "./page-client";
+import { redirect } from "next/navigation";
 
-export const runtime = "nodejs";
-
-export const metadata = constructMetadata({
-  title: `Welcome to ${process.env.NEXT_PUBLIC_APP_NAME}`,
-});
-
-export default function WelcomePage() {
-  return (
-    <>
-      <Background />
-      <Suspense>
-        <WelcomePageClient />
-      </Suspense>
-    </>
-  );
+export default function OldWelcomePage() {
+  redirect("/onboarding");
 }
