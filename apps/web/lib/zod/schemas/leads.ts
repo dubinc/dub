@@ -31,21 +31,25 @@ export const trackLeadRequestSchema = z.object({
     .string()
     .max(100)
     .nullish()
+    .default(null)
     .describe("Name of the customer in the client's app."),
   customerEmail: z
     .string()
     .email()
     .max(100)
     .nullish()
+    .default(null)
     .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
     .max(100)
     .nullish()
+    .default(null)
     .describe("Avatar of the customer in the client's app."),
   metadata: z
     .record(z.unknown())
     .nullish()
+    .default(null)
     .describe("Additional metadata to be stored with the lead event"),
 });
 
