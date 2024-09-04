@@ -128,7 +128,7 @@ function LinksList({
           <div
             className={cn(
               "fixed bottom-4 left-1/2 w-full max-w-[768px] -translate-x-1/2 px-2.5",
-              "max-[920px]:bottom-5 max-[920px]:pr-20",
+              "max-[1216px]:left-2 max-[1216px]:translate-x-0 max-[920px]:bottom-5 max-[920px]:pr-20",
             )}
           >
             <div className="rounded-xl border border-gray-200 bg-white px-4 py-3.5 [filter:drop-shadow(0_5px_8px_#222A351d)]">
