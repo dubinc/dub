@@ -1,5 +1,5 @@
 import { Project } from "@prisma/client";
-import { DOTS_API_URL } from "./constants";
+import { getDotsEnv } from "./env";
 import { getEncodedCredentials } from "./utils";
 
 export const createDotsApp = async ({
@@ -7,6 +7,8 @@ export const createDotsApp = async ({
 }: {
   workspace: Pick<Project, "id" | "name">;
 }) => {
+  const { DOTS_API_URL } = getDotsEnv();
+
   const response = await fetch(`${DOTS_API_URL}/apps`, {
     method: "POST",
     headers: {
@@ -31,5 +33,3 @@ export const createDotsApp = async ({
 
   return data;
 };
-
-
