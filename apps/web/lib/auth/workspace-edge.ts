@@ -108,7 +108,7 @@ export const withWorkspaceEdge = (
           throw new DubApiError({
             code: "not_found",
             message:
-              "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
+              "Workspace ID not found. Did you forget to include a `workspaceId` query parameter? It looks like you might be using personal API keys, we also recommend refactoring to workspace API keys: https://d.to/keys",
           });
         }
 
