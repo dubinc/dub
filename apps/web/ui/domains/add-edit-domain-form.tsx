@@ -22,13 +22,11 @@ export function AddEditDomainForm({
   props,
   onSuccess,
   showAdvancedOptions = true,
-  showDomainTypeOptions = true,
   className,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
   showAdvancedOptions?: boolean;
-  showDomainTypeOptions?: boolean;
   className?: string;
 }) {
   const { id: workspaceId } = useWorkspace();
@@ -190,7 +188,6 @@ export function AddEditDomainForm({
             setData={setData}
             domainError={domainError}
             setDomainError={setDomainError}
-            showDomainTypeOptions={showDomainTypeOptions}
           />
         )}
       </div>

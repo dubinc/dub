@@ -1,14 +1,6 @@
 import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
-import { Label, RadioGroup, RadioGroupItem, useMediaQuery } from "@dub/ui";
-import { InfoTooltip } from "@dub/ui/src/tooltip";
-import {
-  FADE_IN_ANIMATION_SETTINGS,
-  cn,
-  getApexDomain,
-  getSubdomain,
-  getUrlFromString,
-} from "@dub/utils";
-import { motion } from "framer-motion";
+import { useMediaQuery } from "@dub/ui";
+import { cn, getApexDomain, getSubdomain, getUrlFromString } from "@dub/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function DomainInput({
@@ -17,7 +9,6 @@ export default function DomainInput({
   setData,
   domainError,
   setDomainError,
-  showDomainTypeOptions = true,
 }) {
   const domain = data[identifier];
   const originalDomain = useMemo(() => domain, []);
@@ -137,40 +128,6 @@ export default function DomainInput({
             {domainError}
           </p>
         ))}
-      {domain && !domainError && showDomainTypeOptions && (
-        <motion.div {...FADE_IN_ANIMATION_SETTINGS}>
-          <RadioGroup
-            className="mt-2"
-            name="domainType"
-            required
-            value={domainType}
-            onValueChange={(value) => {
-              setDomainType(value);
-            }}
-          >
-            <div className="flex items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
-              <RadioGroupItem value="spare" id="spare" className="ml-3" />
-              <Label
-                htmlFor="spare"
-                className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
-              >
-                <p className="text-gray-600">This is a spare domain</p>
-                <InfoTooltip content="If this is a separate domain that you're planning to use solely for short links, then you're good to go." />
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
-              <RadioGroupItem value="website" id="website" className="ml-3" />
-              <Label
-                htmlFor="website"
-                className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
-              >
-                <p className="text-gray-600">This is our website's domain</p>
-                <InfoTooltip content="If you're using this domain for your main website or app, you should be using a subdomain for your short links instead (e.g. go.acme.com)." />
-              </Label>
-            </div>
-          </RadioGroup>
-        </motion.div>
-      )}
       {(domain.includes("/") || domainType === "website") && (
         <p className="mt-2 text-sm text-gray-500">
           Want to set up Dub.co to handle redirects on a subpath instead?{" "}

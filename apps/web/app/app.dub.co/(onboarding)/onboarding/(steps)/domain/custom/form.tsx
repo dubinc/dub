@@ -14,7 +14,6 @@ export function Form() {
           continueTo("invite");
         }}
         showAdvancedOptions={false}
-        showDomainTypeOptions={false}
       />
       <LaterButton next="invite" className="mt-4" />
     </div>
