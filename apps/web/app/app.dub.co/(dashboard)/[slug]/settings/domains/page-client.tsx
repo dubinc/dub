@@ -142,7 +142,8 @@ export default function WorkspaceDomainsClient() {
               setOpenPopover={setOpenPopover}
             >
               <Button
-                className="flex rounded-md border border-gray-200 px-2 transition-[border-color] duration-200"
+                variant="primary"
+                className="w-fit"
                 text="Add domain"
                 onClick={() => setOpenPopover(!openPopover)}
               />

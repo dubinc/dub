@@ -78,7 +78,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
   );
 
   return (
-    <Modal showModal={true} setShowModal={setShowModal}>
+    <Modal showModal={showModal} setShowModal={setShowModal}>
       <h3 className="border-b border-gray-200 px-8 py-4 text-lg font-medium">
         Claim .link domain
       </h3>

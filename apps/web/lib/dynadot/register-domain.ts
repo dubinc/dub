@@ -40,6 +40,5 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
 
   // const data = schema.parse(json);
 
-
   // return data;
 };
