@@ -49,7 +49,7 @@ export function useOnboardingProgress() {
       onboardingStep: "completed",
     });
 
-    router.push(`/${slug}?onboarded=true`);
+    router.push(slug ? `/${slug}?onboarded=true` : "/");
   }, [execute, router, slug]);
 
   return {
