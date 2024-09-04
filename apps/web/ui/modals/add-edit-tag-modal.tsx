@@ -11,7 +11,6 @@ import {
   RadioGroupItem,
   TooltipContent,
   useMediaQuery,
-  useRouterStuff,
 } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import posthog from "posthog-js";
@@ -214,9 +213,8 @@ function AddTagButton({
 }: {
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { plan, nextPlan, tagsLimit } = useWorkspace();
+  const { slug, plan, tagsLimit } = useWorkspace();
   const { tags } = useTags();
-  const { queryParams } = useRouterStuff();
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
 
   return (
@@ -232,13 +230,7 @@ function AddTagButton({
                 tagsLimit === 1 ? "" : "s"
               } on the ${capitalize(plan)} plan. Upgrade to add more tags`}
               cta="Upgrade"
-              onClick={() => {
-                queryParams({
-                  set: {
-                    upgrade: nextPlan.name.toLowerCase(),
-                  },
-                });
-              }}
+              href={`/${slug}/upgrade`}
             />
           ) : undefined
         }

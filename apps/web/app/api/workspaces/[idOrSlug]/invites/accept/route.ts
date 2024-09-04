@@ -16,6 +16,7 @@ export const POST = withSession(async ({ session, params }) => {
     },
     select: {
       expires: true,
+      role: true,
       project: {
         select: {
           id: true,
@@ -64,7 +65,7 @@ export const POST = withSession(async ({ session, params }) => {
     prisma.projectUsers.create({
       data: {
         userId: session.user.id,
-        role: "member",
+        role: invite.role,
         projectId: workspace.id,
         notificationPreference: {
           create: {}, // by default, users are opted in to all notifications

@@ -12,4 +12,5 @@ export * from "./use-pagination";
 export * from "./use-resize-observer";
 export * from "./use-router-stuff";
 export * from "./use-scroll";
+export * from "./use-scroll-progress";
 export * from "./use-toast-with-undo";

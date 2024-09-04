@@ -2,6 +2,7 @@ import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import NewLinkMiddleware from "./new-link";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
+import { getOnboardingStep } from "./utils/get-onboarding-step";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 export default async function AppMiddleware(req: NextRequest) {
@@ -30,17 +31,35 @@ export default async function AppMiddleware(req: NextRequest) {
     if (path === "/new") {
       return NewLinkMiddleware(req, user);
 
-      // if the user was created in the last 10s
-      // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
+      /* Onboarding redirects
+
+        - User was created less than a day ago
+        - User is not invited to a workspace (redirect straight to the workspace)
+        - The path does not start with /onboarding
+      */
     } else if (
-      user.createdAt &&
-      new Date(user.createdAt).getTime() > Date.now() - 10000 &&
-      // here we include the root page + /new (since they're going through welcome flow already)
-      path !== "/welcome" &&
-      // if the user was invited to a workspace, don't show the welcome page – redirect straight to the workspace
-      !isWorkspaceInvite
+      new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
+      !isWorkspaceInvite &&
+      !path.startsWith("/onboarding")
     ) {
-      return NextResponse.redirect(new URL("/welcome", req.url));
+      let step = await getOnboardingStep(user);
+      if (!step) {
+        return NextResponse.redirect(new URL(`/onboarding`, req.url));
+      } else if (step === "completed") {
+        return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+      }
+
+      const defaultWorkspace = await getDefaultWorkspace(user);
+
+      if (defaultWorkspace) {
+        // Skip workspace step if user already has a workspace (maybe there was an error updating the onboarding step)
+        step = step === "workspace" ? "link" : step;
+        return NextResponse.redirect(
+          new URL(`/onboarding/${step}?workspace=${defaultWorkspace}`, req.url),
+        );
+      } else {
+        return NextResponse.redirect(new URL(`/onboarding`, req.url));
+      }
 
       // if the path is / or /login or /register, redirect to the default workspace
     } else if (
@@ -53,6 +72,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/integrations",
         "/domains",
         "/settings",
+        "/upgrade",
       ].includes(path) ||
       path.startsWith("/integrations/") ||
       path.startsWith("/settings/")

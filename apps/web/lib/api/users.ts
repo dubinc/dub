@@ -1,6 +1,6 @@
 import { Session, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { WorkspaceWithUsers } from "@/lib/types";
+import { Role, WorkspaceWithUsers } from "@/lib/types";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
@@ -9,10 +9,12 @@ import { DubApiError } from "./errors";
 
 export async function inviteUser({
   email,
+  role = "member",
   workspace,
   session,
 }: {
   email: string;
+  role?: Role;
   workspace: WorkspaceWithUsers;
   session?: Session;
 }) {
@@ -27,6 +29,7 @@ export async function inviteUser({
     await prisma.projectInvite.create({
       data: {
         email,
+        role,
         expires,
         projectId: workspace.id,
       },

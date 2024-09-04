@@ -5,7 +5,7 @@ export async function getDefaultWorkspace(user: UserProps) {
   let defaultWorkspace = user?.defaultWorkspace;
 
   if (!defaultWorkspace) {
-    const refereshedUser = await prismaEdge.user.findUnique({
+    const refreshedUser = await prismaEdge.user.findUnique({
       where: {
         id: user.id,
       },
@@ -23,9 +23,10 @@ export async function getDefaultWorkspace(user: UserProps) {
         },
       },
     });
+
     defaultWorkspace =
-      refereshedUser?.defaultWorkspace ||
-      refereshedUser?.projects[0]?.project?.slug ||
+      refreshedUser?.defaultWorkspace ||
+      refreshedUser?.projects[0]?.project?.slug ||
       undefined;
   }
 

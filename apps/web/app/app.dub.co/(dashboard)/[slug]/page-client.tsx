@@ -20,7 +20,6 @@ import {
   Tooltip,
   TooltipContent,
   useMediaQuery,
-  useRouterStuff,
 } from "@dub/ui";
 import { Download, TableIcon, Tag } from "@dub/ui/src/icons";
 import { useSession } from "next-auth/react";
@@ -295,8 +294,7 @@ function ImportOption({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
   onClick: () => void;
 }) {
-  const { queryParams } = useRouterStuff();
-  const { exceededLinks, nextPlan } = useWorkspace();
+  const { slug, exceededLinks, nextPlan } = useWorkspace();
 
   return exceededLinks ? (
     <Tooltip
@@ -304,14 +302,7 @@ function ImportOption({
         <TooltipContent
           title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
           cta={`Upgrade to ${nextPlan.name}`}
-          onClick={() => {
-            setOpenPopover(false);
-            queryParams({
-              set: {
-                upgrade: nextPlan.name.toLowerCase(),
-              },
-            });
-          }}
+          href={`/${slug}/upgrade`}
         />
       }
     >

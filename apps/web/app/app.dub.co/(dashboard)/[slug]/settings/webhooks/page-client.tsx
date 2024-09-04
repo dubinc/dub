@@ -6,7 +6,7 @@ import { WebhookProps } from "@/lib/types";
 import EmptyState from "@/ui/shared/empty-state";
 import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
-import { Button, TooltipContent, useRouterStuff } from "@dub/ui";
+import { Button, TooltipContent } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import { fetcher } from "@dub/utils";
 import { Webhook } from "lucide-react";
@@ -16,7 +16,6 @@ import useSWR from "swr";
 export default function WebhooksPageClient() {
   const router = useRouter();
   const workspace = useWorkspace();
-  const { queryParams } = useRouterStuff();
 
   if (!workspace.flags?.webhooks) {
     redirect(`/${workspace.slug}/settings`);
@@ -43,12 +42,7 @@ export default function WebhooksPageClient() {
           description="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
           learnMore="https://d.to/webhooks"
           buttonText="Upgrade to Business"
-          buttonLink={queryParams({
-            set: {
-              upgrade: "business",
-            },
-            getNewPath: true,
-          })}
+          buttonLink={`/${workspace.slug}/upgrade`}
         />
       </div>
     );

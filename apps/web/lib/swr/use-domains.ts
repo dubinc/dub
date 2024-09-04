@@ -33,7 +33,10 @@ export default function useDomains({
       dedupingInterval: 60000,
     },
   );
-  const { defaultDomains: workspaceDefaultDomains } = useDefaultDomains();
+  const {
+    defaultDomains: workspaceDefaultDomains,
+    loading: loadingDefaultDomains,
+  } = useDefaultDomains();
 
   const allWorkspaceDomains = data || [];
   const activeWorkspaceDomains = data?.filter((domain) => !domain.archived);
@@ -71,7 +74,7 @@ export default function useDomains({
     allActiveDomains, // all active domains (active workspace domains + active default Dub domains)
     allDomains, // all domains (all workspace domains + all default Dub domains)
     primaryDomain,
-    loading: !data && !error,
+    loading: (!data && !error) || loadingDefaultDomains,
     mutate,
     error,
   };

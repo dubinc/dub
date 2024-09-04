@@ -11,6 +11,7 @@ import {
   usePagination,
 } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
+import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -124,7 +125,12 @@ function LinksList({
       {links && (
         <>
           <div className="h-[90px]" />
-          <div className="fixed bottom-4 left-1/2 w-full max-w-[768px] -translate-x-1/2 px-2.5 max-[920px]:bottom-5 max-[920px]:pr-20">
+          <div
+            className={cn(
+              "fixed bottom-4 left-1/2 w-full max-w-[768px] -translate-x-1/2 px-2.5",
+              "max-[1216px]:bottom-5 max-[1216px]:left-2 max-[1216px]:max-w-[min(calc(100%-232px),768px)] max-[1216px]:translate-x-0",
+            )}
+          >
             <div className="rounded-xl border border-gray-200 bg-white px-4 py-3.5 [filter:drop-shadow(0_5px_8px_#222A351d)]">
               <PaginationControls
                 pagination={pagination}
