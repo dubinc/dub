@@ -1,4 +1,5 @@
 import { Wordmark } from "@dub/ui";
+import Link from "next/link";
 import { PlanSelector } from "../../onboarding/(steps)/plan/plan-selector";
 import { StepPage } from "../../onboarding/(steps)/step-page";
 import BackButton from "./back-button";
@@ -7,7 +8,9 @@ export default function Plan({ params }: { params: { slug: string } }) {
   return (
     <div className="relative flex flex-col items-center">
       <BackButton />
-      <Wordmark className="mt-6 h-8" />
+      <Link href="/">
+        <Wordmark className="mt-6 h-8" />
+      </Link>
       <div className="mt-8 flex w-full flex-col items-center px-3 pb-16 md:mt-20 lg:px-8">
         <StepPage
           title="Choose your plan"
