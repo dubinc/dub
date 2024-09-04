@@ -4,6 +4,7 @@ import NewLinkMiddleware from "./new-link";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
 import { getUserViaToken } from "./utils/get-user-via-token";
+import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(req: NextRequest) {
@@ -72,13 +73,11 @@ export default async function AppMiddleware(req: NextRequest) {
         "/register",
         "/analytics",
         "/events",
-        "/integrations",
-        "/domains",
         "/settings",
         "/upgrade",
       ].includes(path) ||
-      path.startsWith("/integrations/") ||
-      path.startsWith("/settings/")
+      path.startsWith("/settings/") ||
+      isTopLevelSettingsRedirect(path)
     ) {
       return WorkspacesMiddleware(req, user);
     }
