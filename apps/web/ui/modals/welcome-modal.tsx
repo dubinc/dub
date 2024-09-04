@@ -133,7 +133,7 @@ function WelcomeModal({
             className="mt-2"
             onClick={() =>
               queryParams({
-                del: "onboarded",
+                del: ["onboarded", "upgraded", "plan", "period"],
               })
             }
           />
