@@ -6,18 +6,11 @@ import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import { Badge } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { PRO_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LaterButton } from "../../later-button";
-import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function PlanSelector() {
-  const { finish } = useOnboardingProgress();
-  const { plan } = useWorkspace();
-  const [periodTab, setPeriodTab] = useState<"monthly" | "yearly">("monthly");
-
-  useEffect(() => {
-    if (plan !== "free") finish();
-  }, [finish, plan]);
+  const [periodTab, setPeriodTab] = useState<"monthly" | "yearly">("yearly");
 
   return (
     <div>

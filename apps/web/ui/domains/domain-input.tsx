@@ -10,7 +10,6 @@ import {
 } from "@dub/utils";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useDebounce } from "use-debounce";
 
 export default function DomainInput({
   identifier = "domain", // "domain" is the default, but when it's used in AddEditDomainModal, it's "slug"
@@ -22,19 +21,6 @@ export default function DomainInput({
 }) {
   const domain = data[identifier];
   const originalDomain = useMemo(() => domain, []);
-  const [debouncedDomain] = useDebounce(domain, 500);
-
-  useEffect(() => {
-    if (
-      debouncedDomain.length > 0 &&
-      debouncedDomain.toLowerCase() !== originalDomain.toLowerCase()
-    ) {
-      fetch(`/api/domains/${domain}/exists`).then(async (res) => {
-        const exists = await res.json();
-        setDomainError(exists === 1 ? "Domain is already in use." : null);
-      });
-    }
-  }, [debouncedDomain]);
 
   const [domainType, setDomainType] = useState<string | undefined>(undefined);
   const apexDomain = useMemo(
@@ -101,6 +87,19 @@ export default function DomainInput({
             onChange={(e) => {
               setDomainError(null);
               setData({ ...data, [identifier]: e.target.value });
+            }}
+            onBlur={() => {
+              if (
+                domain.length > 0 &&
+                domain.toLowerCase() !== originalDomain.toLowerCase()
+              ) {
+                fetch(`/api/domains/${domain}/exists`).then(async (res) => {
+                  const exists = await res.json();
+                  setDomainError(
+                    exists === 1 ? "Domain is already in use." : null,
+                  );
+                });
+              }
             }}
             aria-invalid="true"
           />

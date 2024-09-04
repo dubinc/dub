@@ -3,8 +3,8 @@
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
-import { CheckCircleFill, ThreeDots, X } from "@/ui/shared/icons";
-import { Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
+import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
+import { Button, Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { CircleDotted, ExpandingArrow } from "@dub/ui/src/icons";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
@@ -160,14 +160,13 @@ function OnboardingMenu({ onHideForever }: { onHideForever: () => void }) {
     <Popover
       align="end"
       content={
-        <div className="p-2">
-          <button
+        <div className="p-1">
+          <Button
             onClick={onHideForever}
-            className="flex w-full items-center gap-2 rounded-md p-2 text-sm text-gray-600 hover:bg-gray-100 active:bg-gray-200"
-          >
-            <X className="size-4" />
-            Dismiss forever
-          </button>
+            variant="outline"
+            text="Dismiss forever"
+            className="h-9"
+          />
         </div>
       }
       openPopover={isOpen}
