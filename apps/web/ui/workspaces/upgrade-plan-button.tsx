@@ -32,6 +32,8 @@ export function UpgradePlanButton({
 
   const [clicked, setClicked] = useState(false);
 
+  const queryString = searchParams.toString();
+
   return (
     <Button
       text={text || `Upgrade to ${selectedPlan.name} ${capitalize(period)}`}
@@ -47,7 +49,7 @@ export function UpgradePlanButton({
           body: JSON.stringify({
             plan,
             period,
-            baseUrl: `${APP_DOMAIN}${pathname}`,
+            baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
             onboarding: searchParams.get("workspace"),
           }),
         })

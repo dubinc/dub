@@ -56,7 +56,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
   } else {
     const successUrl = onboarding
       ? `${APP_DOMAIN}/${workspace.slug}?onboarded=true&plan=${plan}&period=${period}`
-      : `${baseUrl}?upgraded=true&plan=${plan}&period=${period}`;
+      : `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}${new URLSearchParams({ upgraded: "true", plan, period })}`;
 
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
