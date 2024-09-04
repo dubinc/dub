@@ -23,7 +23,7 @@ export function Background() {
       <BackgroundGradient className="opacity-15" />
       <div className="absolute left-1/2 top-0 -translate-x-1/2 opacity-50 transition-all sm:opacity-100">
         <Image
-          src="/_static/onboarding/welcome-background-grid.svg"
+          src="https://assets.dub.co/misc/welcome-background-grid.svg"
           onLoad={() => setIsGridLoaded(true)}
           alt=""
           width={1750}
@@ -31,7 +31,7 @@ export function Background() {
           className="absolute inset-0"
         />
         <Image
-          src="/_static/onboarding/welcome-background.svg"
+          src="https://assets.dub.co/misc/welcome-background.svg"
           onLoad={() => setIsBackgroundLoaded(true)}
           alt=""
           width={1750}
