@@ -16,7 +16,13 @@ export const POST = withWorkspace(
   async ({ searchParams }) => {
     const { domain } = schema.parse(searchParams);
 
-    return NextResponse.json(await registerDomain({ domain }));
+    const response = await registerDomain({ domain });
+
+    // TODO:
+    // Add domain to the workspace if registration is successful
+    // Add DNS records to the domain if registration is successful (in the background)
+
+    return NextResponse.json(response);
   },
   {
     requiredPermissions: ["domains.write"],
