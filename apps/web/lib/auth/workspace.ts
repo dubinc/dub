@@ -337,15 +337,12 @@ export const withWorkspace = (
 
         const url = new URL(req.url || "", API_DOMAIN);
 
-        // TODO:
-        // We should do plan check for Webhooks API too
-
         // plan checks
-        // special scenario – /events API is available for conversionEnabled workspaces
-        // (even if they're on a Pro plan)
+        // special scenario – /events and /webhooks API is available for conversionEnabled workspaces (even if they're on a Pro plan)
         if (
           !requiredPlan.includes(workspace.plan) &&
-          url.pathname.includes("/events") &&
+          (url.pathname.includes("/events") ||
+            url.pathname.includes("/webhooks")) &&
           !workspace.conversionEnabled
         ) {
           throw new DubApiError({

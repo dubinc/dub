@@ -15,23 +15,31 @@ import useSWR from "swr";
 
 export default function WebhooksPageClient() {
   const router = useRouter();
-  const workspace = useWorkspace();
+  const {
+    id: workspaceId,
+    slug,
+    plan,
+    role,
+    conversionEnabled,
+    flags,
+  } = useWorkspace();
 
-  if (!workspace.flags?.webhooks) {
-    redirect(`/${workspace.slug}/settings`);
+  if (!flags?.webhooks) {
+    redirect(`/${slug}/settings`);
   }
 
   const { data: webhooks, isLoading } = useSWR<WebhookProps[]>(
-    `/api/webhooks?workspaceId=${workspace.id}`,
+    `/api/webhooks?workspaceId=${workspaceId}`,
     fetcher,
   );
 
   const { error: permissionsError } = clientAccessCheck({
     action: "webhooks.write",
-    role: workspace.role,
+    role: role,
   });
 
-  const needsHigherPlan = workspace.plan === "free" || workspace.plan === "pro";
+  const needsHigherPlan =
+    (plan === "free" || plan === "pro") && !conversionEnabled;
 
   if (needsHigherPlan) {
     return (
@@ -42,7 +50,7 @@ export default function WebhooksPageClient() {
           description="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
           learnMore="https://d.to/webhooks"
           buttonText="Upgrade to Business"
-          buttonLink={`/${workspace.slug}/upgrade`}
+          buttonLink={`/${slug}/upgrade`}
         />
       </div>
     );
@@ -70,9 +78,7 @@ export default function WebhooksPageClient() {
           <Button
             className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm"
             text="Add Webhook"
-            onClick={() =>
-              router.push(`/${workspace.slug}/settings/webhooks/new`)
-            }
+            onClick={() => router.push(`/${slug}/settings/webhooks/new`)}
             disabledTooltip={permissionsError}
           />
         </div>
