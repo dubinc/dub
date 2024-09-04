@@ -6,13 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-const PRE_SLUG_STEPS = ["workspace"];
+const PRE_WORKSPACE_STEPS = ["workspace"];
 
 export function useOnboardingProgress() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const workspace = useWorkspace();
-  const slug = workspace?.slug || searchParams.get("slug");
+  const { slug: workspaceSlug } = useWorkspace();
+  const slug = workspaceSlug || searchParams.get("workspace");
 
   const { execute, executeAsync, isExecuting, hasSucceeded } = useAction(
     setOnboardingProgress,
@@ -30,15 +30,15 @@ export function useOnboardingProgress() {
   const continueTo = useCallback(
     async (
       step: OnboardingStep,
-      { slug: slugParam }: { slug?: string } = {},
+      { slug: providedSlug }: { slug?: string } = {},
     ) => {
       execute({
         onboardingStep: step,
       });
 
-      const queryParams = PRE_SLUG_STEPS.includes(step)
+      const queryParams = PRE_WORKSPACE_STEPS.includes(step)
         ? ""
-        : `?slug=${slugParam || slug}`;
+        : `?workspace=${providedSlug || slug}`;
       router.push(`/onboarding/${step}${queryParams}`);
     },
     [execute, router, slug],

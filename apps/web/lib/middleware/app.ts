@@ -55,7 +55,7 @@ export default async function AppMiddleware(req: NextRequest) {
         // Skip workspace step if user already has a workspace (maybe there was an error updating the onboarding step)
         step = step === "workspace" ? "link" : step;
         return NextResponse.redirect(
-          new URL(`/onboarding/${step}?slug=${defaultWorkspace}`, req.url),
+          new URL(`/onboarding/${step}?workspace=${defaultWorkspace}`, req.url),
         );
       } else {
         return NextResponse.redirect(new URL(`/onboarding`, req.url));

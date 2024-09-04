@@ -37,7 +37,6 @@ export function DomainSelector() {
 }
 
 function DomainOption({
-  title,
   example,
   onClick,
   isSelected,

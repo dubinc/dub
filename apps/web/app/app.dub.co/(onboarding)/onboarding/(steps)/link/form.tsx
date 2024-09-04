@@ -28,7 +28,7 @@ type FormData = {
 export function Form() {
   const { continueTo } = useOnboardingProgress();
 
-  const { id: workspaceId, nextPlan, slug } = useWorkspace();
+  const { id: workspaceId, nextPlan } = useWorkspace();
 
   const { domains, loading, primaryDomain } = useAvailableDomains();
 

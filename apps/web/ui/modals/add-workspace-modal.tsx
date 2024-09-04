@@ -56,9 +56,7 @@ function AddWorkspaceModalHelper({
       <CreateWorkspaceForm
         className="bg-gray-50 px-4 py-8 sm:px-16"
         onSuccess={({ slug }) => {
-          if (welcomeFlow) {
-            router.push(`/welcome?step=upgrade&slug=${slug}`);
-          } else if (oauthFlow) {
+          if (oauthFlow) {
             router.refresh();
             setShowAddWorkspaceModal(false);
           } else {

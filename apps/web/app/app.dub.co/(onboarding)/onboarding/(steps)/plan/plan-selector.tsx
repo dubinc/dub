@@ -18,7 +18,11 @@ export function PlanSelector() {
         <ToggleGroup
           options={[
             { value: "monthly", label: "Pay monthly" },
-            { value: "yearly", label: "Pay yearly" },
+            {
+              value: "yearly",
+              label: "Pay yearly",
+              badge: <Badge variant="blue">Save 20%</Badge>,
+            },
           ]}
           selected={periodTab}
           selectAction={(period) =>

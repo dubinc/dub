@@ -7,6 +7,7 @@ import { useId } from "react";
 interface ToggleOption {
   value: string;
   label: string;
+  badge?: React.ReactNode;
 }
 
 export function ToggleGroup({
@@ -39,7 +40,7 @@ export function ToggleGroup({
             key={option.value}
             type="button"
             className={cn(
-              "relative z-10 block px-3 py-1 text-sm font-medium capitalize",
+              "relative z-10 flex items-center gap-2 px-3 py-1 text-sm font-medium capitalize",
               {
                 "transition-all hover:text-gray-500": option.value !== selected,
               },
@@ -47,6 +48,7 @@ export function ToggleGroup({
             onClick={() => selectAction(option.value)}
           >
             <p>{option.label}</p>
+            {option.badge}
             {option.value === selected && (
               <motion.div
                 layoutId={layoutGroupId}
