@@ -10,6 +10,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { CheckCircleFill } from "../shared/icons";
+import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = {
   teammates: {
@@ -86,7 +87,19 @@ export function InviteTeammatesForm({
           onSuccess?.();
         } else {
           const { error } = await res.json();
-          toast.error(error.message);
+          if (error.message.includes("upgrade")) {
+            toast.custom(
+              () => (
+                <UpgradeRequiredToast
+                  title="Upgrade required"
+                  message="You've reached the invite limit for your plan. Please upgrade to invite more teammates."
+                />
+              ),
+              { duration: 4000 },
+            );
+          } else {
+            toast.error(error.message);
+          }
           throw error;
         }
       })}

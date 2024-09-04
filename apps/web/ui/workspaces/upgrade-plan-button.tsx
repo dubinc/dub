@@ -51,7 +51,7 @@ export function UpgradePlanButton({
             plan,
             period,
             baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
-            // onboarding,
+            onboarding: searchParams.get("workspace"),
           }),
         })
           .then(async (res) => {

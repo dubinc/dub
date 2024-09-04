@@ -20,7 +20,6 @@ function AddWorkspaceModalHelper({
   const router = useRouter();
   const pathname = usePathname();
 
-  const welcomeFlow = pathname === "/welcome";
   const oauthFlow = pathname.startsWith("/oauth/authorize");
 
   const searchParams = useSearchParams();
@@ -30,11 +29,8 @@ function AddWorkspaceModalHelper({
     <Modal
       showModal={showAddWorkspaceModal}
       setShowModal={setShowAddWorkspaceModal}
-      preventDefaultClose={welcomeFlow}
       onClose={() => {
-        if (welcomeFlow) {
-          router.back();
-        } else if (searchParams.has("newWorkspace")) {
+        if (searchParams.has("newWorkspace")) {
           queryParams({
             del: ["newWorkspace"],
           });

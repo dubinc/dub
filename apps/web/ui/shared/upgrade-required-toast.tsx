@@ -1,7 +1,6 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useRouterStuff } from "@dub/ui";
 import { Crown } from "lucide-react";
 import Link from "next/link";
 
@@ -12,7 +11,6 @@ export const UpgradeRequiredToast = ({
   title: string;
   message: string;
 }) => {
-  const { queryParams } = useRouterStuff();
   const { slug, nextPlan } = useWorkspace();
 
   return (
