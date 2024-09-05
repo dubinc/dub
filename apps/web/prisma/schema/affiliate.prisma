@@ -12,11 +12,26 @@ model Affiliate {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tokens  AffiliateToken[]
 
   @@unique([projectId, email])
   @@unique([projectId, externalId])
   @@unique([dotsUserId])
   @@index([projectId])
   @@index([externalId])
+}
+
+model AffiliateToken {
+  id          String   @id @default(cuid())
+  affiliateId String
+  token       String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([affiliateId])
 }
