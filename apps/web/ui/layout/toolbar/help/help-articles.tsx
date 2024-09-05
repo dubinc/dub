@@ -7,7 +7,7 @@ import posthog from "posthog-js";
 import { Dispatch, SetStateAction, useContext, useMemo, useRef } from "react";
 import Highlighter from "react-highlight-words";
 import { useDebouncedCallback } from "use-debounce";
-import { HelpContext } from "./portal";
+import { HelpContext } from "./help-button";
 
 export function HelpArticles({
   setScreen,

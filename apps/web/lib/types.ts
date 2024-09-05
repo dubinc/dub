@@ -185,6 +185,8 @@ export const plans = [
 
 export const roles = ["owner", "member"] as const;
 
+export type Role = (typeof roles)[number];
+
 export const tagColors = [
   "red",
   "yellow",

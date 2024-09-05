@@ -1,7 +1,7 @@
 "use client";
 
 import { WebhookEventProps } from "@/lib/types";
-import { Sheet, SheetContent, SheetTrigger } from "@dub/ui";
+import { Sheet, SheetContent, SheetTrigger, useMediaQuery } from "@dub/ui";
 import { CircleCheck, CircleHalfDottedClock, Copy } from "@dub/ui/src/icons";
 import { ButtonTooltip, Tooltip } from "@dub/ui/src/tooltip";
 import { PropsWithChildren, useEffect, useState } from "react";
@@ -48,6 +48,7 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
   }, [highlighter, event]);
 
   const isSuccess = event.http_status >= 200 && event.http_status < 300;
+  const { isMobile } = useMediaQuery();
 
   return (
     <Sheet>
@@ -81,7 +82,9 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
               const localDate = new Date(
                 date.getTime() - date.getTimezoneOffset() * 60000,
               );
-              return localDate.toLocaleTimeString();
+              return isMobile
+                ? localDate.toLocaleTimeString()
+                : localDate.toLocaleString();
             })()}
           </div>
         </button>

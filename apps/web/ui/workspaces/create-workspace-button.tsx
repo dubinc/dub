@@ -22,7 +22,7 @@ export default function CreateWorkspaceButton() {
               cta="Upgrade to Pro"
               href={
                 freeWorkspaces
-                  ? `/${freeWorkspaces[0].slug}/settings/billing?upgrade=pro`
+                  ? `/${freeWorkspaces[0].slug}/upgrade`
                   : "https://dub.co/pricing"
               }
             />

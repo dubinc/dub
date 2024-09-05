@@ -79,7 +79,7 @@ const FilterButton = ({ set }: { set: Record<string, any> }) => {
 };
 
 export default function EventsTable() {
-  const { plan, conversionEnabled } = useWorkspace();
+  const { slug, plan, conversionEnabled } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
   const { selectedTab: tab } = useContext(AnalyticsContext);
@@ -504,12 +504,7 @@ export default function EventsTable() {
               description={`Want more data on your link ${tab === "clicks" ? "clicks & QR code scans" : tab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
               learnMore="https://d.to/events"
               buttonText="Upgrade to Business"
-              buttonLink={queryParams({
-                set: {
-                  upgrade: "business",
-                },
-                getNewPath: true,
-              })}
+              buttonLink={`/${slug}/upgrade`}
             />
           </div>
           <div className="h-[400px]" />

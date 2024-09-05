@@ -5,7 +5,7 @@ import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
-import { sendLinkWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
@@ -53,14 +53,14 @@ export const POST = withWorkspaceEdge(
       });
     }
 
+    const finalCustomerName =
+      customerName || customerEmail || generateRandomName();
+
     waitUntil(
       (async () => {
         const clickData = clickEventSchemaTB
           .omit({ timestamp: true })
           .parse(clickEvent.data[0]);
-
-        const finalCustomerName =
-          customerName || customerEmail || generateRandomName();
 
         // Find customer or create if not exists
         const customer = await prismaEdge.customer.upsert({
@@ -135,10 +135,10 @@ export const POST = withWorkspaceEdge(
           customerAvatar: customer.avatar,
         });
 
-        await sendLinkWebhookOnEdge({
+        await sendWorkspaceWebhookOnEdge({
           trigger: "lead.created",
-          linkId: link.id,
           data: lead,
+          workspace,
         });
       })(),
     );
@@ -149,7 +149,7 @@ export const POST = withWorkspaceEdge(
       },
       customer: {
         id: externalId,
-        name: customerName,
+        name: finalCustomerName,
         email: customerEmail,
         avatar: customerAvatar,
       },
@@ -161,7 +161,7 @@ export const POST = withWorkspaceEdge(
       // for backwards compatibility – will remove soon
       clickId,
       customerId: externalId,
-      customerName: customerName,
+      customerName: finalCustomerName,
       customerEmail: customerEmail,
       customerAvatar: customerAvatar,
     });

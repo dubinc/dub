@@ -118,7 +118,7 @@ export const withWorkspace = (
             throw new DubApiError({
               code: "not_found",
               message:
-                "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
+                "Workspace ID not found. Did you forget to include a `workspaceId` query parameter? It looks like you might be using personal API keys, we also recommend refactoring to workspace API keys: https://d.to/keys",
             });
           }
         }
@@ -337,15 +337,12 @@ export const withWorkspace = (
 
         const url = new URL(req.url || "", API_DOMAIN);
 
-        // TODO:
-        // We should do plan check for Webhooks API too
-
         // plan checks
-        // special scenario – /events API is available for conversionEnabled workspaces
-        // (even if they're on a Pro plan)
+        // special scenario – /events and /webhooks API is available for conversionEnabled workspaces (even if they're on a Pro plan)
         if (
           !requiredPlan.includes(workspace.plan) &&
-          url.pathname.includes("/events") &&
+          (url.pathname.includes("/events") ||
+            url.pathname.includes("/webhooks")) &&
           !workspace.conversionEnabled
         ) {
           throw new DubApiError({

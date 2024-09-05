@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { sendLinkWebhook } from "@/lib/webhook/publish";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -70,7 +70,7 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
-  await Promise.all([
+  const [_sale, _link, workspace] = await Promise.all([
     recordSale(saleData),
 
     // update link sales count
@@ -104,9 +104,9 @@ export async function invoicePaid(event: Stripe.Event) {
   ]);
 
   waitUntil(
-    sendLinkWebhook({
+    sendWorkspaceWebhook({
       trigger: "sale.created",
-      linkId,
+      workspace,
       data: transformSaleEventData({
         ...saleData,
         link,

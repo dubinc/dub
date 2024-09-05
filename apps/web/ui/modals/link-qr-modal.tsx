@@ -18,14 +18,12 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import {
-  APP_HOSTNAMES,
   FADE_IN_ANIMATION_SETTINGS,
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Check, ChevronRight, Link2 } from "lucide-react";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -154,7 +152,6 @@ export function QRCodePicker({
           setFgColor={setFgColor}
           showLogo={showLogo}
           setShowLogo={setShowLogo}
-          setShowLinkQRModal={setShowLinkQRModal}
         />
 
         <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
@@ -286,15 +283,8 @@ export function QRCodePicker({
   );
 }
 
-function AdvancedSettings({
-  qrData,
-  setFgColor,
-  showLogo,
-  setShowLogo,
-  setShowLinkQRModal,
-}) {
-  const { slug } = useParams() as { slug?: string };
-  const { plan, logo } = useWorkspace();
+function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
+  const { slug, plan, logo } = useWorkspace();
   const [expanded, setExpanded] = useState(false);
 
   const debouncedSetFgColor = useDebouncedCallback((color) => {
@@ -363,18 +353,7 @@ function AdvancedSettings({
                   <TooltipContent
                     title="You need to be on the Pro plan and above to customize your QR Code logo."
                     cta="Upgrade to Pro"
-                    {...(APP_HOSTNAMES.has(window.location.hostname)
-                      ? {
-                          onClick: () => {
-                            setShowLinkQRModal(false);
-                            queryParams({
-                              set: {
-                                upgrade: "pro",
-                              },
-                            });
-                          },
-                        }
-                      : { href: "https://dub.co/pricing" })}
+                    href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
                   />
                 }
               >
