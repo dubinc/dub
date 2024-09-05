@@ -80,8 +80,20 @@ export const getEvents = async (params: EventsFilters) => {
   );
 
   const events = response.data
-    .map((event) => (linksMap[event.link_id] ? event : null))
+    .map((event) => {
+      const link = linksMap[event.link_id];
+      if (!link) {
+        return null;
+      }
+
+      return {
+        ...event,
+        link,
+      };
+    })
     .filter((d) => d !== null);
+
+  console.log({ events: JSON.stringify(events, null, 2) });
 
   // Click events
   if (event === "clicks") {
