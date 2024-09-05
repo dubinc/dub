@@ -339,8 +339,8 @@ importers:
         specifier: ^1.5.0
         version: 1.5.0
       zod-openapi:
-        specifier: ^2.12.0
-        version: 2.12.0(zod@3.22.4)
+        specifier: ^2.19.0
+        version: 2.19.0(zod@3.22.4)
     devDependencies:
       '@types/dotenv-flow':
         specifier: ^3.3.2
@@ -21512,8 +21512,8 @@ packages:
       zod: 3.22.4
     dev: false
 
-  /zod-openapi@2.12.0(zod@3.22.4):
-    resolution: {integrity: sha512-vTjUNJN7COtV36w5kVaKMpX6Anwn8fDWOBWkpJMnfbNJMjjM5IO8I//2N4cQbvB3EKOdX4ym/4Laa7lrtrWYLg==}
+  /zod-openapi@2.19.0(zod@3.22.4):
+    resolution: {integrity: sha512-OUAAyBDPPwZ9u61i4k/LieXUzP2re8kFjqdNh2AvHjsyi/aRNz9leDAtMGcSoSzUT5xUeQoACJufBI6FzzZyxA==}
     engines: {node: '>=16.11'}
     peerDependencies:
       zod: ^3.21.4
