@@ -1,0 +1,22 @@
+model Affiliate {
+  id          String   @id @default(cuid())
+  projectId   String
+  email       String
+  firstName   String?
+  lastName    String?
+  phoneNumber String?
+  countryCode String?
+  externalId  String?
+  dotsUserId  String?
+  dotsStatus  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, email])
+  @@unique([projectId, externalId])
+  @@unique([dotsUserId])
+  @@index([projectId])
+  @@index([externalId])
+}
