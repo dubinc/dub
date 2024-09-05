@@ -2,8 +2,15 @@ import { DubApiError } from "@/lib/api/errors";
 import { sendVerificationToken } from "@/lib/dots/send-verification-token";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import z from "@/lib/zod";
+import { parseRequestBody } from "@/lib/api/utils";
+import { verifyToken } from "@/lib/dots/verify-token";
 
-// POST /api/affiliates/flows/[token]/send-verification-token – send a verification token
+const verifyTokenSchema = z.object({
+  otp: z.string(),
+});
+
+// POST /api/affiliates/flows/[token]/verify - verify the otp
 export const POST = async (
   req: NextRequest,
   { params }: { params: { token: string } },
@@ -46,9 +53,15 @@ export const POST = async (
     });
   }
 
-  await sendVerificationToken({
+  const { otp } = verifyTokenSchema.parse(await parseRequestBody(req));
+
+  await verifyToken({
     dotsUserId: affiliate.dotsUserId,
+    token: otp,
   });
+
+  // TODO
+  // Handle the case where the token is invalid
 
   return NextResponse.json({ status: "OK" });
 };
