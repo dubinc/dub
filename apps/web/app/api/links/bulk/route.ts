@@ -279,8 +279,6 @@ export const PATCH = withWorkspace(
 // DELETE /api/links/bulk – bulk delete up to 100 links
 export const DELETE = withWorkspace(
   async ({ workspace, headers, searchParams, req }) => {
-    console.log(req.url);
-
     const searchParamsLinkIds = searchParams["linkIds"]
       ? searchParams["linkIds"].split(",")
       : [];
