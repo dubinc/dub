@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
 import { Link } from "@prisma/client";
+import { transformLink } from "../api/links";
 import { tbDemo } from "../tinybird/demo-client";
+import { clickEventSchema } from "../webhook/schemas";
 import {
   transformClickEventData,
   transformLeadEventData,
+  transformLinkEventData,
   transformSaleEventData,
 } from "../webhook/transform";
 import { eventsFilterTB } from "../zod/schemas/analytics";
@@ -14,15 +17,9 @@ import { saleEventEnrichedSchema } from "../zod/schemas/sales";
 import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
 
-// Promise<
-// | z.infer<typeof clickEventEnrichedSchema>[]
-// | z.infer<typeof leadEventEnrichedSchema>[]
-// | z.infer<typeof saleEventEnrichedSchema>[]
-// >
-
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
-  let { event, workspaceId, interval, start, end, isDemo } = params;
+  let { event: eventType, workspaceId, interval, start, end, isDemo } = params;
 
   if (start) {
     start = new Date(start);
@@ -46,28 +43,23 @@ export const getEvents = async (params: EventsFilters) => {
         clicks: clickEventEnrichedSchema,
         leads: leadEventEnrichedSchema,
         sales: saleEventEnrichedSchema,
-      }[event] ?? clickEventEnrichedSchema,
+      }[eventType] ?? clickEventEnrichedSchema,
   });
 
   const response = await pipe({
     ...params,
-    eventType: event,
+    eventType,
     workspaceId,
     offset: params.page * params.limit,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
   });
 
-  const linkIds = response.data.map((d) => d.link_id);
-
   const links = await prisma.link.findMany({
     where: {
       id: {
-        in: linkIds,
+        in: response.data.map((d) => d.link_id),
       },
-    },
-    include: {
-      tags: true,
     },
   });
 
@@ -86,75 +78,50 @@ export const getEvents = async (params: EventsFilters) => {
         return null;
       }
 
-      return {
+      const eventData = {
         ...event,
-        link,
+        // timestamp is always in UTC
+        timestamp: new Date(event.timestamp + "Z"),
+        click: clickEventSchema.parse({
+          ...event,
+          id: event.click_id,
+        }),
+        link: transformLinkEventData(transformLink(link)),
+        ...(eventType === "leads" || eventType === "sales"
+          ? {
+              customer: {
+                id: event.customer_id,
+                name: event.customer_name,
+                email: event.customer_email,
+                avatar:
+                  event.customer_avatar ||
+                  `https://api.dicebear.com/7.x/micah/svg?seed=${event.customer_id}`,
+              },
+              ...(eventType === "sales"
+                ? {
+                    sale: {
+                      amount: event.saleAmount,
+                      invoiceId: event.invoice_id,
+                      paymentProcessor: event.payment_processor,
+                      metadata: event.metadata,
+                    },
+                  }
+                : {}),
+            }
+          : {}),
       };
+
+      if (event === "clicks") {
+        return transformClickEventData(eventData);
+      } else if (event === "leads") {
+        return transformLeadEventData(eventData);
+      } else if (event === "sales") {
+        return transformSaleEventData(eventData);
+      }
+
+      return eventData;
     })
     .filter((d) => d !== null);
 
-  console.log({ events: JSON.stringify(events, null, 2) });
-
-  // Click events
-  if (event === "clicks") {
-    return events.map((d) =>
-      transformClickEventData({
-        ...d,
-        link: linksMap[d.link_id],
-        bot: d.bot === 1,
-        qr: d.qr === 1,
-      }),
-    );
-  }
-
-  // Lead events
-  if (event === "leads") {
-    return response.data.map((d) =>
-      transformLeadEventData({
-        ...d,
-        bot: d.bot === 1,
-        qr: d.qr === 1,
-        link: linksMap[d.link_id],
-        customerId: "d.customer_id", // TODO: fix it,
-        customerName: d.customer_name,
-        customerEmail: d.customer_email,
-        customerAvatar: d.customer_avatar,
-      }),
-    );
-  }
-
-  // Sale events
-  if (event === "sales") {
-    return response.data.map((d) =>
-      transformSaleEventData({
-        ...d,
-        bot: d.bot === 1,
-        qr: d.qr === 1,
-        link: linksMap[d.link_id],
-        customerId: "d.customer_id",
-        customerName: d.customer_name,
-        customerEmail: d.customer_email,
-        customerAvatar: d.customer_avatar,
-      }),
-    );
-  }
-
-  return response.data.map((d) => ({
-    ...d,
-    // timestamp is always in UTC
-    timestamp: new Date(d.timestamp + "Z"),
-    link: {
-      id: d.link_id,
-      domain: d.domain,
-      key: d.key,
-      url: d.url,
-    },
-    customer: {
-      name: d.customer_name,
-      email: d.customer_email,
-      avatar:
-        d.customer_avatar ||
-        `https://api.dicebear.com/7.x/micah/svg?seed=${d.customer_id}`,
-    },
-  }));
+  return events;
 };

@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { LinkSchema } from "./links";
 
 export const clickEventSchemaTB = z.object({
   timestamp: z.string(),
@@ -49,3 +50,17 @@ export const clickEventEnrichedSchema = z
     qr: z.number().nullable(),
   })
   .openapi({ ref: "ClickEvent" });
+
+export const clickEventResponseSchema = clickEventEnrichedSchema
+  .omit({
+    link_id: true,
+  })
+  .merge(
+    z.object({
+      link: LinkSchema,
+      link_id: z
+        .string()
+        .describe("Deprecated. Use `link.id` instead.")
+        .openapi({ deprecated: true }),
+    }),
+  );

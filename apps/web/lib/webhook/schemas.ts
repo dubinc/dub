@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { LinkSchema } from "../zod/schemas/links";
+import { parseUrlSchemaAllowEmpty } from "../zod/schemas/utils";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const customerSchema = z.object({
@@ -17,14 +18,31 @@ const saleSchema = z.object({
 });
 
 export const linkEventSchema = LinkSchema.omit({
+  url: true,
   tags: true,
   tagId: true,
   projectId: true,
-});
+  // boolean fields
+  archived: true,
+  doIndex: true,
+  proxy: true,
+  publicStats: true,
+  rewrite: true,
+  trackConversion: true,
+}).merge(
+  z.object({
+    url: parseUrlSchemaAllowEmpty,
+    archived: z.coerce.boolean(),
+    doIndex: z.coerce.boolean(),
+    proxy: z.coerce.boolean(),
+    publicStats: z.coerce.boolean(),
+    rewrite: z.coerce.boolean(),
+    trackConversion: z.coerce.boolean(),
+  }),
+);
 
 export const clickEventSchema = z.object({
-  timestamp: z.string(),
-  clickId: z.string(),
+  id: z.string(),
   url: z.string(),
   ip: z.string(),
   continent: z.string(),
@@ -33,21 +51,15 @@ export const clickEventSchema = z.object({
   device: z.string(),
   browser: z.string(),
   os: z.string(),
-  ua: z.string(),
-  bot: z.boolean(),
-  qr: z.boolean(),
+  bot: z.coerce.boolean(),
+  qr: z.coerce.boolean(),
   referer: z.string(),
-  link: linkEventSchema,
 });
 
 export const leadEventSchema = z.object({
   eventName: z.string(),
   customer: customerSchema,
-  click: z
-    .object({
-      id: z.string(),
-    })
-    .and(clickEventSchema.omit({ link: true, timestamp: true, clickId: true })),
+  click: clickEventSchema,
   link: linkEventSchema,
 });
 
@@ -55,11 +67,7 @@ export const saleEventSchema = z.object({
   eventName: z.string(),
   customer: customerSchema,
   sale: saleSchema,
-  click: z
-    .object({
-      id: z.string(),
-    })
-    .and(clickEventSchema.omit({ link: true, timestamp: true, clickId: true })),
+  click: clickEventSchema,
   link: linkEventSchema,
 });
 

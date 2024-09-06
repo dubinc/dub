@@ -187,12 +187,13 @@ export default function EventsTable() {
           header: "Customer",
           accessorKey: "customer",
           cell: ({ getValue }) => {
-            const display = getValue().name || getValue().email || "Unknown";
+            const customer = getValue();
+            const display = customer.name || customer.email || "Unknown";
             return (
               <div className="flex items-center gap-3" title={display}>
                 <img
                   alt={display}
-                  src={getValue().avatar}
+                  src={customer.avatar}
                   className="size-4 shrink-0 rounded-full border border-gray-200"
                 />
                 <span className="truncate">{display}</span>
@@ -353,12 +354,12 @@ export default function EventsTable() {
         {
           id: "saleAmount",
           header: "Sale Amount",
-          accessorKey: "saleAmount",
+          accessorKey: "sale",
           enableHiding: false,
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
-              <span>${nFormatter(getValue() / 100)}</span>
+              <span>${nFormatter(getValue().amount / 100)}</span>
               <span className="text-gray-400">USD</span>
             </div>
           ),

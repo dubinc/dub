@@ -1,5 +1,8 @@
+import { clickEventSchema } from "@/lib/webhook/schemas";
 import z from "@/lib/zod";
 import { clickEventSchemaTB } from "./clicks";
+import { customerSchema } from "./customers";
+import { LinkSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
   // Required
@@ -107,3 +110,60 @@ export const saleEventEnrichedSchema = z
     ip: z.string().nullable(),
   })
   .openapi({ ref: "SaleEvent" });
+
+export const saleEventResponseSchema = saleEventEnrichedSchema
+  .omit({
+    click_id: true,
+    link_id: true,
+    customer_name: true,
+    customer_email: true,
+    customer_avatar: true,
+    saleAmount: true,
+    invoice_id: true,
+    payment_processor: true,
+  })
+  .merge(
+    z.object({
+      // deprecated fields
+      link_id: z
+        .string()
+        .describe("Deprecated. Use `link.id` instead.")
+        .openapi({ deprecated: true }),
+      click_id: z
+        .string()
+        .describe("Deprecated. Use `click.id` instead.")
+        .openapi({ deprecated: true }),
+      customer_name: z
+        .string()
+        .describe("Deprecated. Use `customer.name` instead.")
+        .openapi({ deprecated: true }),
+      customer_email: z
+        .string()
+        .describe("Deprecated. Use `customer.email` instead.")
+        .openapi({ deprecated: true }),
+      customer_avatar: z
+        .string()
+        .describe("Deprecated. Use `customer.avatar` instead.")
+        .openapi({ deprecated: true }),
+      saleAmount: z
+        .number()
+        .describe("Deprecated. Use `sale.amount` instead.")
+        .openapi({ deprecated: true }),
+      invoice_id: z
+        .string()
+        .describe("Deprecated. Use `sale.invoiceId` instead.")
+        .openapi({ deprecated: true }),
+      payment_processor: z
+        .string()
+        .describe("Deprecated. Use `sale.paymentProcessor` instead."),
+      // nested objects
+      link: LinkSchema,
+      click: clickEventSchema,
+      customer: customerSchema,
+      sale: trackSaleRequestSchema.pick({
+        amount: true,
+        invoiceId: true,
+        paymentProcessor: true,
+      }),
+    }),
+  );

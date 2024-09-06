@@ -1,11 +1,10 @@
-import { webhookPayloadSchema } from "@/lib/webhook/schemas";
+import { linkEventSchema, webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { nanoid, toCamelCase } from "@dub/utils";
 import type { Link, Webhook } from "@prisma/client";
 import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { LinkSchema } from "../zod/schemas/links";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { clickEventSchema, leadEventSchema, saleEventSchema } from "./schemas";
 
@@ -28,7 +27,7 @@ export const transformWebhook = (webhook: TransformWebhookProps) => {
 
 // Note utm_* properties are not converted to camelCase
 export const transformLinkEventData = (data: Link) => {
-  return LinkSchema.parse({
+  return linkEventSchema.parse({
     ...data,
     expiresAt: data.expiresAt?.toISOString() || null,
     lastClicked: data.lastClicked?.toISOString() || null,
@@ -46,22 +45,16 @@ export const transformClickEventData = (
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  // TODO: This is a bit flaky – e.g. if we add another boolean field to link schema
-  // this will still break. We should make it more robust.
-  const link = {
-    ...transformLink(data.link),
-    archived: data.link.archived === 1,
-    doIndex: data.link.doIndex === 1,
-    proxy: data.link.proxy === 1,
-    publicStats: data.link.publicStats === 1,
-    rewrite: data.link.rewrite === 1,
-    trackConversion: data.link.trackConversion === 1,
-  };
-
-  return clickEventSchema.parse({
-    ...click,
-    link,
-  });
+  return clickEventSchema
+    .omit({ id: true })
+    .merge(
+      z.object({
+        timestamp: z.string(),
+        clickId: z.string(),
+        link: linkEventSchema,
+      }),
+    )
+    .parse(click);
 };
 
 export const transformLeadEventData = (data: any) => {
