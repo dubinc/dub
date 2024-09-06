@@ -13,7 +13,7 @@ import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLinkEventData } from "@/lib/webhook/transform";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
-import { deepEqual } from "@dub/utils";
+import { deepEqual, UTMTags } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -62,7 +62,7 @@ export const PATCH = withWorkspace(
       linkId: params.linkId,
     });
 
-    const body = updateLinkBodySchema.parse(await parseRequestBody(req));
+    const body = updateLinkBodySchema.parse(await parseRequestBody(req))!;
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
@@ -73,6 +73,13 @@ export const PATCH = withWorkspace(
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
       ...body,
+      // for UTM tags, we only pass them to processLink if they have changed
+      ...Object.fromEntries(
+        UTMTags.map((tag) => [
+          tag,
+          body[tag] === link[tag] ? undefined : body[tag],
+        ]),
+      ),
 
       // When root domain
       ...(link.key === "_root" && {
