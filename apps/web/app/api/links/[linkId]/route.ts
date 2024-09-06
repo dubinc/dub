@@ -62,7 +62,7 @@ export const PATCH = withWorkspace(
       linkId: params.linkId,
     });
 
-    const body = updateLinkBodySchema.parse(await parseRequestBody(req))!;
+    const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
@@ -73,7 +73,8 @@ export const PATCH = withWorkspace(
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
       ...body,
-      // for UTM tags, we only pass them to processLink if they have changed
+      // for UTM tags, we only pass them to processLink if they have changed from their previous value
+      // or else they will override any changes to the UTM params in the destination URL
       ...Object.fromEntries(
         UTMTags.map((tag) => [
           tag,
