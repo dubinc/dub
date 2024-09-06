@@ -103,41 +103,48 @@ export const leadEventEnrichedSchema = z.object({
   ip: z.string().nullable(),
 });
 
-export const leadEventResponseSchema = leadEventEnrichedSchema
-  .omit({
-    link_id: true,
-    click_id: true,
-    customer_name: true,
-    customer_email: true,
-    customer_avatar: true,
+export const leadEventResponseSchema = z
+  .object({
+    event: z.literal("lead"),
+    timestamp: z.string(),
+    event_id: z.string(),
+    event_name: z.string(),
+    // deprecated fields
+    link_id: z
+      .string()
+      .describe("Deprecated. Use `link.id` instead.")
+      .openapi({ deprecated: true }),
+    click_id: z
+      .string()
+      .describe("Deprecated. Use `click.id` instead.")
+      .openapi({ deprecated: true }),
+    customer_name: z
+      .string()
+      .describe("Deprecated. Use `customer.name` instead.")
+      .openapi({ deprecated: true }),
+    customer_email: z
+      .string()
+      .describe("Deprecated. Use `customer.email` instead.")
+      .openapi({ deprecated: true }),
+    customer_avatar: z
+      .string()
+      .describe("Deprecated. Use `customer.avatar` instead.")
+      .openapi({ deprecated: true }),
+    domain: z.string().describe("Deprecated. Use `link.domain` instead."),
+    key: z.string().describe("Deprecated. Use `link.key` instead."),
+    url: z.string().describe("Deprecated. Use `link.url` instead."),
+    continent: z.string().describe("Deprecated. Use `link.continent` instead."),
+    country: z.string().describe("Deprecated. Use `link.country` instead."),
+    city: z.string().describe("Deprecated. Use `link.city` instead."),
+    device: z.string().describe("Deprecated. Use `link.device` instead."),
+    browser: z.string().describe("Deprecated. Use `link.browser` instead."),
+    os: z.string().describe("Deprecated. Use `link.os` instead."),
+    referer: z.string().describe("Deprecated. Use `link.referer` instead."),
+    qr: z.number().describe("Deprecated. Use `link.qr` instead."),
+    ip: z.string().describe("Deprecated. Use `link.ip` instead."),
+    // nested objects
+    click: clickEventSchema,
+    link: LinkSchema,
+    customer: customerSchema,
   })
-  .merge(
-    z.object({
-      // deprecated fields
-      link_id: z
-        .string()
-        .describe("Deprecated. Use `link.id` instead.")
-        .openapi({ deprecated: true }),
-      click_id: z
-        .string()
-        .describe("Deprecated. Use `click.id` instead.")
-        .openapi({ deprecated: true }),
-      customer_name: z
-        .string()
-        .describe("Deprecated. Use `customer.name` instead.")
-        .openapi({ deprecated: true }),
-      customer_email: z
-        .string()
-        .describe("Deprecated. Use `customer.email` instead.")
-        .openapi({ deprecated: true }),
-      customer_avatar: z
-        .string()
-        .describe("Deprecated. Use `customer.avatar` instead.")
-        .openapi({ deprecated: true }),
-      // nested objects
-      link: LinkSchema,
-      click: clickEventSchema,
-      customer: customerSchema,
-    }),
-  )
   .openapi({ ref: "LeadEvent" });

@@ -49,17 +49,28 @@ export const clickEventEnrichedSchema = z.object({
   qr: z.number().nullable(),
 });
 
-export const clickEventResponseSchema = clickEventEnrichedSchema
-  .omit({
-    link_id: true,
+export const clickEventResponseSchema = z
+  .object({
+    event: z.literal("click"),
+    timestamp: z.string(),
+    click_id: z.string(),
+    link_id: z
+      .string()
+      .describe("Deprecated. Use `link.id` instead.")
+      .openapi({ deprecated: true }),
+    domain: z.string(),
+    key: z.string(),
+    url: z.string(),
+    continent: z.string(),
+    country: z.string(),
+    city: z.string(),
+    device: z.string(),
+    browser: z.string(),
+    os: z.string(),
+    referer: z.string(),
+    ip: z.string(),
+    bot: z.coerce.boolean(),
+    qr: z.coerce.boolean(),
+    link: LinkSchema,
   })
-  .merge(
-    z.object({
-      link: LinkSchema,
-      link_id: z
-        .string()
-        .describe("Deprecated. Use `link.id` instead.")
-        .openapi({ deprecated: true }),
-    }),
-  )
   .openapi({ ref: "ClickEvent" });

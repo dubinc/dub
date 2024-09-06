@@ -109,60 +109,104 @@ export const saleEventEnrichedSchema = z.object({
   ip: z.string().nullable(),
 });
 
-export const saleEventResponseSchema = saleEventEnrichedSchema
-  .omit({
-    click_id: true,
-    link_id: true,
-    customer_name: true,
-    customer_email: true,
-    customer_avatar: true,
-    saleAmount: true,
-    invoice_id: true,
-    payment_processor: true,
-  })
-  .merge(
-    z.object({
-      // deprecated fields
-      link_id: z
-        .string()
-        .describe("Deprecated. Use `link.id` instead.")
-        .openapi({ deprecated: true }),
-      click_id: z
-        .string()
-        .describe("Deprecated. Use `click.id` instead.")
-        .openapi({ deprecated: true }),
-      customer_name: z
-        .string()
-        .describe("Deprecated. Use `customer.name` instead.")
-        .openapi({ deprecated: true }),
-      customer_email: z
-        .string()
-        .describe("Deprecated. Use `customer.email` instead.")
-        .openapi({ deprecated: true }),
-      customer_avatar: z
-        .string()
-        .describe("Deprecated. Use `customer.avatar` instead.")
-        .openapi({ deprecated: true }),
-      saleAmount: z
-        .number()
-        .describe("Deprecated. Use `sale.amount` instead.")
-        .openapi({ deprecated: true }),
-      invoice_id: z
-        .string()
-        .describe("Deprecated. Use `sale.invoiceId` instead.")
-        .openapi({ deprecated: true }),
-      payment_processor: z
-        .string()
-        .describe("Deprecated. Use `sale.paymentProcessor` instead."),
-      // nested objects
-      link: LinkSchema,
-      click: clickEventSchema,
-      customer: customerSchema,
-      sale: trackSaleRequestSchema.pick({
-        amount: true,
-        invoiceId: true,
-        paymentProcessor: true,
-      }),
+export const saleEventResponseSchema = z
+  .object({
+    event: z.literal("sale"),
+    timestamp: z.string(),
+    event_id: z.string(),
+    event_name: z.string(),
+    // deprecated fields
+    link_id: z
+      .string()
+      .describe("Deprecated. Use `link.id` instead.")
+      .openapi({ deprecated: true }),
+    click_id: z
+      .string()
+      .describe("Deprecated. Use `click.id` instead.")
+      .openapi({ deprecated: true }),
+    customer_name: z
+      .string()
+      .describe("Deprecated. Use `customer.name` instead.")
+      .openapi({ deprecated: true }),
+    customer_email: z
+      .string()
+      .describe("Deprecated. Use `customer.email` instead.")
+      .openapi({ deprecated: true }),
+    customer_avatar: z
+      .string()
+      .describe("Deprecated. Use `customer.avatar` instead.")
+      .openapi({ deprecated: true }),
+    saleAmount: z
+      .number()
+      .describe("Deprecated. Use `sale.amount` instead.")
+      .openapi({ deprecated: true }),
+    invoice_id: z
+      .string()
+      .describe("Deprecated. Use `sale.invoiceId` instead.")
+      .openapi({ deprecated: true }),
+    payment_processor: z
+      .string()
+      .describe("Deprecated. Use `sale.paymentProcessor` instead."),
+    metadata: z
+      .string()
+      .describe("Deprecated. Use `sale.metadata` instead.")
+      .openapi({ deprecated: true }),
+    domain: z
+      .string()
+      .describe("Deprecated. Use `link.domain` instead.")
+      .openapi({ deprecated: true }),
+    key: z
+      .string()
+      .describe("Deprecated. Use `link.key` instead.")
+      .openapi({ deprecated: true }),
+    url: z
+      .string()
+      .describe("Deprecated. Use `link.url` instead.")
+      .openapi({ deprecated: true }),
+    continent: z
+      .string()
+      .describe("Deprecated. Use `link.continent` instead.")
+      .openapi({ deprecated: true }),
+    country: z
+      .string()
+      .describe("Deprecated. Use `link.country` instead.")
+      .openapi({ deprecated: true }),
+    city: z
+      .string()
+      .describe("Deprecated. Use `link.city` instead.")
+      .openapi({ deprecated: true }),
+    device: z
+      .string()
+      .describe("Deprecated. Use `link.device` instead.")
+      .openapi({ deprecated: true }),
+    browser: z
+      .string()
+      .describe("Deprecated. Use `link.browser` instead.")
+      .openapi({ deprecated: true }),
+    os: z
+      .string()
+      .describe("Deprecated. Use `link.os` instead.")
+      .openapi({ deprecated: true }),
+    referer: z
+      .string()
+      .describe("Deprecated. Use `link.referer` instead.")
+      .openapi({ deprecated: true }),
+    qr: z
+      .number()
+      .describe("Deprecated. Use `link.qr` instead.")
+      .openapi({ deprecated: true }),
+    ip: z
+      .string()
+      .describe("Deprecated. Use `link.ip` instead.")
+      .openapi({ deprecated: true }),
+    // nested objects
+    link: LinkSchema,
+    click: clickEventSchema,
+    customer: customerSchema,
+    sale: trackSaleRequestSchema.pick({
+      amount: true,
+      invoiceId: true,
+      paymentProcessor: true,
     }),
-  )
+  })
   .openapi({ ref: "SaleEvent" });

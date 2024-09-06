@@ -82,13 +82,13 @@ export const getEvents = async (params: EventsFilters) => {
         ...event,
         // timestamp is always in UTC
         timestamp: new Date(event.timestamp + "Z"),
-        click: clickEventSchema.parse({
-          ...event,
-          id: event.click_id,
-        }),
         link: transformLinkEventData(transformLink(link)),
         ...(eventType === "leads" || eventType === "sales"
           ? {
+              click: clickEventSchema.parse({
+                ...event,
+                id: event.click_id,
+              }),
               customer: {
                 id: event.customer_id,
                 name: event.customer_name,
