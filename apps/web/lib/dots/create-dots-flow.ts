@@ -26,7 +26,7 @@ export const createDotsFlow = async ({
       "Api-App-Id": "021a1077-0aae-4cdc-9cd3-fe661c4d7b73",
     },
     body: JSON.stringify({
-      steps: ["compliance"],
+      steps: ["compliance","manage-payouts", "manage-payments"],
       user_id: dotsUserId,
       hide_go_to_dashboard_on_complete: true,
       // require_auth: true,
@@ -34,7 +34,9 @@ export const createDotsFlow = async ({
   });
 
   if (!response.ok) {
-    throw new Error("Failed to create Dots user");
+    const error = await response.text();
+
+    throw new Error(`Failed to create Dots user: ${error}`);
   }
 
   const data = await response.json();
