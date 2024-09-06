@@ -30,26 +30,24 @@ export const clickEventSchemaTB = z.object({
   qr: z.number().nullable(),
 });
 
-export const clickEventEnrichedSchema = z
-  .object({
-    event: z.literal("click"),
-    timestamp: z.string(),
-    click_id: z.string(),
-    link_id: z.string(),
-    domain: z.string(),
-    key: z.string(),
-    url: z.string(),
-    continent: z.string().nullable(),
-    country: z.string().nullable(),
-    city: z.string().nullable(),
-    device: z.string().nullable(),
-    browser: z.string().nullable(),
-    os: z.string().nullable(),
-    referer: z.string().nullable(),
-    ip: z.string().nullable(),
-    qr: z.number().nullable(),
-  })
-  .openapi({ ref: "ClickEvent" });
+export const clickEventEnrichedSchema = z.object({
+  event: z.literal("click"),
+  timestamp: z.string(),
+  click_id: z.string(),
+  link_id: z.string(),
+  domain: z.string(),
+  key: z.string(),
+  url: z.string(),
+  continent: z.string().nullable(),
+  country: z.string().nullable(),
+  city: z.string().nullable(),
+  device: z.string().nullable(),
+  browser: z.string().nullable(),
+  os: z.string().nullable(),
+  referer: z.string().nullable(),
+  ip: z.string().nullable(),
+  qr: z.number().nullable(),
+});
 
 export const clickEventResponseSchema = clickEventEnrichedSchema
   .omit({
@@ -63,4 +61,5 @@ export const clickEventResponseSchema = clickEventEnrichedSchema
         .describe("Deprecated. Use `link.id` instead.")
         .openapi({ deprecated: true }),
     }),
-  );
+  )
+  .openapi({ ref: "ClickEvent" });
