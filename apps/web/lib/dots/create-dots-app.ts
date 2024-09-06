@@ -1,6 +1,9 @@
 import { Project } from "@prisma/client";
+import z from "../zod";
 import { getDotsEnv } from "./env";
 import { getEncodedCredentials } from "./utils";
+
+
 
 export const createDotsApp = async ({
   workspace,
@@ -32,5 +35,5 @@ export const createDotsApp = async ({
 
   console.log("createDotsApp", data);
 
-  return data;
+  return data
 };

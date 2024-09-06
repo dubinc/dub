@@ -24,6 +24,7 @@ model Project {
 
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
+  dotsAppId       String? @unique
 
   webhookEnabled    Boolean @default(false)
   conversionEnabled Boolean @default(false)

@@ -40,6 +40,8 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
+    return NextResponse.json([]);
+
     const response = await getEvents({
       ...parsedParams,
       event,

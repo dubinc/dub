@@ -7,12 +7,15 @@ model Affiliate {
   phoneNumber String?
   countryCode String?
   externalId  String?
+  linkId      String
   dotsUserId  String?
   dotsStatus  String?
+  dotsFlowId  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   project Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // link    ReferralLink     @relation(fields: [linkId], references: [id], onDelete: Cascade)
   tokens  AffiliateToken[]
 
   @@unique([projectId, email])
