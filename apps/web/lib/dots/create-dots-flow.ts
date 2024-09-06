@@ -23,6 +23,7 @@ export const createDotsFlow = async ({
     headers: {
       "Content-Type": "application/json",
       Authorization: `Basic ${authToken}`,
+      "Api-App-Id": "021a1077-0aae-4cdc-9cd3-fe661c4d7b73",
     },
     body: JSON.stringify({
       steps: ["compliance"],
@@ -32,13 +33,11 @@ export const createDotsFlow = async ({
     }),
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(`Failed to create Dots user: ${data}`);
+    throw new Error("Failed to create Dots user");
   }
 
-  console.log("createDotsFlow", data);
+  const data = await response.json();
 
   return dotsFlowSchema.parse(data);
 };
