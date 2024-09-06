@@ -20,19 +20,22 @@ export * from "./loading-spinner";
 // brand logos
 export * from "./facebook";
 export * from "./github";
-export * from "./go";
 export * from "./google";
 export * from "./linkedin";
 export * from "./prisma";
 export * from "./product-hunt";
-export * from "./python";
 export * from "./raycast";
-export * from "./ruby";
 export * from "./tinybird";
 export * from "./twitter";
-export * from "./typescript";
 export * from "./unsplash";
 export * from "./youtube";
+
+// SDKs
+export * from "./go";
+export * from "./php";
+export * from "./python";
+export * from "./ruby";
+export * from "./typescript";
 
 // continent icons
 export * from "./continents";
