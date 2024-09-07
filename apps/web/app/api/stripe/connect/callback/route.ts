@@ -3,7 +3,7 @@ import { installIntegration } from "@/lib/integrations/install";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import { APP_DOMAIN, getSearchParams } from "@dub/utils";
+import { APP_DOMAIN, getSearchParams, STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
@@ -69,7 +69,7 @@ export const GET = async (req: NextRequest) => {
     });
 
     await installIntegration({
-      integrationSlug: "stripe",
+      integrationId: STRIPE_INTEGRATION_ID,
       userId: session.user.id,
       workspaceId: workspace.id,
     });

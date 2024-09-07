@@ -10,6 +10,7 @@ import {
   Hyperlink,
   OfficeBuilding,
   Paintbrush,
+  Php,
   Prisma,
   Python,
   QRCode,
@@ -128,6 +129,13 @@ export const SDKS = [
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
     title: "Ruby",
     href: "/solutions/ruby",
+  },
+  {
+    icon: Php,
+    iconClassName:
+      "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
+    title: "PHP",
+    href: "/solutions/php",
   },
 ];
 

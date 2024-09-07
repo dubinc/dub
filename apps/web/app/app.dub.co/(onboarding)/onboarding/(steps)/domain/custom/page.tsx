@@ -9,7 +9,7 @@ export default function Custom() {
       title="Connect a custom domain"
       description={
         <a
-          href="https://dub.co/help/article/choosing-a-custom-domaine"
+          href="https://dub.co/help/article/choosing-a-custom-domain"
           target="_blank"
           className="underline transition-colors hover:text-gray-700"
         >

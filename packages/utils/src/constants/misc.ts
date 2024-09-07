@@ -33,6 +33,3 @@ export const PAGINATION_LIMIT = 100;
 export const TWO_WEEKS_IN_SECONDS = 60 * 60 * 24 * 14;
 
 export const DUB_FOUNDING_DATE = new Date("2022-09-22T00:00:00.000Z");
-
-export const SLACK_INTEGRATION_ID = "clzu59rx9000110bm5fnlzwuj";
-export const STRIPE_INTEGRATION_ID = "clzra1ya60001wnj4a89zcg9h";
