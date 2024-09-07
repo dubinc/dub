@@ -1,10 +1,7 @@
 import z from "../zod";
-import {
-  clickEventSchema,
-  leadEventSchema,
-  linkEventSchema,
-  saleEventSchema,
-} from "./schemas";
+import { clickEventSchema } from "../zod/schemas/clicks";
+import { linkEventSchema } from "../zod/schemas/links";
+import { leadEventSchema, saleEventSchema } from "./schemas";
 
 export type LinkEventDataProps = z.infer<typeof linkEventSchema>;
 
