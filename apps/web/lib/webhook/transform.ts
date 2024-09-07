@@ -1,13 +1,16 @@
-import { webhookPayloadSchema } from "@/lib/webhook/schemas";
+import {
+  clickWebhookEventSchema,
+  webhookPayloadSchema,
+} from "@/lib/webhook/schemas";
 import { nanoid, toCamelCase } from "@dub/utils";
-import type { Link, Webhook } from "@prisma/client";
+import type { Webhook } from "@prisma/client";
 import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
 import { linkEventSchema } from "../zod/schemas/links";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
-import { leadEventSchema, saleEventSchema } from "./schemas";
+import { leadWebhookEventSchema, saleWebhookEventSchema } from "./schemas";
 
 interface TransformWebhookProps
   extends Pick<Webhook, "id" | "name" | "url" | "secret" | "triggers"> {
@@ -26,17 +29,6 @@ export const transformWebhook = (webhook: TransformWebhookProps) => {
   };
 };
 
-// Note utm_* properties are not converted to camelCase
-export const transformLinkEventData = (data: Link) => {
-  return linkEventSchema.parse({
-    ...data,
-    expiresAt: data.expiresAt?.toISOString() || null,
-    lastClicked: data.lastClicked?.toISOString() || null,
-    createdAt: data.createdAt.toISOString(),
-    updatedAt: data.updatedAt.toISOString(),
-  });
-};
-
 export const transformClickEventData = (
   data: z.infer<typeof clickEventSchemaTB> & {
     link: any;
@@ -46,16 +38,13 @@ export const transformClickEventData = (
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return clickEventSchema
-    .omit({ id: true })
-    .merge(
-      z.object({
-        timestamp: z.string(),
-        clickId: z.string(),
-        link: linkEventSchema,
-      }),
-    )
-    .parse(click);
+  return clickWebhookEventSchema.parse({
+    ...click,
+    click: clickEventSchema.parse({
+      ...click,
+      id: data.click_id,
+    }),
+  });
 };
 
 export const transformLeadEventData = (data: any) => {
@@ -63,7 +52,7 @@ export const transformLeadEventData = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return leadEventSchema.parse({
+  return leadWebhookEventSchema.parse({
     ...lead,
     customer: {
       id: lead.customerId,
@@ -79,9 +68,8 @@ export const transformLeadEventData = (data: any) => {
       qr: lead.qr === 1,
       bot: lead.bot === 1,
     },
-    // transformLinkEventData -> normalize date to string
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
-    link: transformLinkEventData(transformLink(lead.link as LinkWithTags)),
+    link: linkEventSchema.parse(transformLink(lead.link as LinkWithTags)),
   });
 };
 
@@ -90,7 +78,7 @@ export const transformSaleEventData = (data: any) => {
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
-  return saleEventSchema.parse({
+  return saleWebhookEventSchema.parse({
     ...sale,
     customer: {
       id: sale.customerId,
@@ -110,9 +98,8 @@ export const transformSaleEventData = (data: any) => {
       qr: sale.qr === 1,
       bot: sale.bot === 1,
     },
-    // transformLinkEventData -> normalize date to string
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
-    link: transformLinkEventData(transformLink(sale.link as LinkWithTags)),
+    link: linkEventSchema.parse(transformLink(sale.link as LinkWithTags)),
   });
 };
 

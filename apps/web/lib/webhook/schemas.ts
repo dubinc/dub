@@ -15,7 +15,13 @@ const saleSchema = z.object({
   invoiceId: z.string().nullable(),
 });
 
-export const leadEventSchema = z.object({
+export const clickWebhookEventSchema = z.object({
+  timestamp: z.coerce.string(),
+  click: clickEventSchema,
+  link: linkEventSchema,
+});
+
+export const leadWebhookEventSchema = z.object({
   eventId: z.string(),
   eventName: z.string(),
   timestamp: z.date(),
@@ -24,7 +30,7 @@ export const leadEventSchema = z.object({
   link: linkEventSchema,
 });
 
-export const saleEventSchema = z.object({
+export const saleWebhookEventSchema = z.object({
   eventId: z.string(),
   eventName: z.string(),
   timestamp: z.date(),

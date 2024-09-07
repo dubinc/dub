@@ -6,10 +6,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { transformLinkEventData } from "@/lib/webhook/transform";
 import {
   createLinkBodySchema,
   getLinksQuerySchemaExtended,
+  linkEventSchema,
 } from "@/lib/zod/schemas/links";
 import { LOCALHOST_IP, getSearchParamsWithArray } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -105,7 +105,7 @@ export const POST = withWorkspace(
           sendWorkspaceWebhook({
             trigger: "link.created",
             workspace,
-            data: transformLinkEventData(response),
+            data: linkEventSchema.parse(response),
           }),
         );
       }
