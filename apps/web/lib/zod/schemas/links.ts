@@ -551,8 +551,8 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
 );
 
 export const linkEventSchema = LinkSchema.extend({
-  // coerce url field
-  url: parseUrlSchemaAllowEmpty,
+  // here we use string because url can be empty
+  url: z.string(),
   // coerce boolean fields
   archived: z.coerce.boolean(),
   doIndex: z.coerce.boolean(),
