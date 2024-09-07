@@ -109,9 +109,6 @@ export const leadEventResponseSchema = z
     timestamp: z.coerce.string(),
     eventId: z.string(),
     eventName: z.string(),
-    // deprecated fields
-    event_id: z.string().describe("Deprecated. Use `eventId` instead."),
-    event_name: z.string().describe("Deprecated. Use `eventName` instead."),
     customer_name: z
       .string()
       .describe("Deprecated. Use `customer.name` instead.")
