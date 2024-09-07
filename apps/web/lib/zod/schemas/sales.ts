@@ -115,6 +115,15 @@ export const saleEventResponseSchema = z
     timestamp: z.coerce.string(),
     eventId: z.string(),
     eventName: z.string(),
+    // nested objects
+    link: linkEventSchema,
+    click: clickEventSchema,
+    customer: customerSchema,
+    sale: trackSaleRequestSchema.pick({
+      amount: true,
+      invoiceId: true,
+      paymentProcessor: true,
+    }),
     customer_name: z
       .string()
       .describe("Deprecated. Use `customer.name` instead.")
@@ -138,15 +147,6 @@ export const saleEventResponseSchema = z
     payment_processor: z
       .string()
       .describe("Deprecated. Use `sale.paymentProcessor` instead."),
-    // nested objects
-    link: linkEventSchema,
-    click: clickEventSchema,
-    customer: customerSchema,
-    sale: trackSaleRequestSchema.pick({
-      amount: true,
-      invoiceId: true,
-      paymentProcessor: true,
-    }),
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent" });

@@ -109,6 +109,10 @@ export const leadEventResponseSchema = z
     timestamp: z.coerce.string(),
     eventId: z.string(),
     eventName: z.string(),
+    // nested objects
+    click: clickEventSchema,
+    link: linkEventSchema,
+    customer: customerSchema,
     customer_name: z
       .string()
       .describe("Deprecated. Use `customer.name` instead.")
@@ -121,10 +125,6 @@ export const leadEventResponseSchema = z
       .string()
       .describe("Deprecated. Use `customer.avatar` instead.")
       .openapi({ deprecated: true }),
-    // nested objects
-    click: clickEventSchema,
-    link: linkEventSchema,
-    customer: customerSchema,
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent" });
