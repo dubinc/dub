@@ -16,24 +16,19 @@ const saleSchema = z.object({
 });
 
 export const clickWebhookEventSchema = z.object({
-  timestamp: z.coerce.string(),
   click: clickEventSchema,
   link: linkEventSchema,
 });
 
 export const leadWebhookEventSchema = z.object({
-  eventId: z.string(),
   eventName: z.string(),
-  timestamp: z.date(),
-  customer: customerSchema,
   click: clickEventSchema,
   link: linkEventSchema,
+  customer: customerSchema,
 });
 
 export const saleWebhookEventSchema = z.object({
-  eventId: z.string(),
   eventName: z.string(),
-  timestamp: z.date(),
   click: clickEventSchema,
   link: linkEventSchema,
   customer: customerSchema,

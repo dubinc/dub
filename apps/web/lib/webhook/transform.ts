@@ -8,7 +8,6 @@ import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
-import { linkEventSchema } from "../zod/schemas/links";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { leadWebhookEventSchema, saleWebhookEventSchema } from "./schemas";
 
@@ -42,7 +41,7 @@ export const transformClickEventData = (
     ...click,
     click: clickEventSchema.parse({
       ...click,
-      id: data.click_id,
+      id: click.clickId,
     }),
   });
 };
@@ -65,11 +64,9 @@ export const transformLeadEventData = (data: any) => {
     click: {
       ...lead,
       id: lead.clickId,
-      qr: lead.qr === 1,
-      bot: lead.bot === 1,
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
-    link: linkEventSchema.parse(transformLink(lead.link as LinkWithTags)),
+    link: transformLink(lead.link as LinkWithTags),
   });
 };
 
@@ -99,7 +96,7 @@ export const transformSaleEventData = (data: any) => {
       bot: sale.bot === 1,
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
-    link: linkEventSchema.parse(transformLink(sale.link as LinkWithTags)),
+    link: transformLink(sale.link as LinkWithTags),
   });
 };
 
