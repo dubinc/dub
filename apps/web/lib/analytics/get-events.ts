@@ -39,7 +39,7 @@ export const getEvents = async (params: EventsFilters) => {
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: "v1_events",
+    pipe: "v2_events",
     parameters: eventsFilterTB,
     data:
       {
@@ -83,6 +83,9 @@ export const getEvents = async (params: EventsFilters) => {
 
       const eventData = {
         ...evt,
+        // use link domain & key from mysql instead of tinybird
+        domain: link.domain,
+        key: link.key,
         // timestamp is always in UTC
         timestamp: new Date(evt.timestamp + "Z"),
         click: clickEventSchema.parse({

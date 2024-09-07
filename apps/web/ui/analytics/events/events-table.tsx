@@ -2,9 +2,9 @@
 
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
-import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
+import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
+import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
+import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import EmptyState from "@/ui/shared/empty-state";
 import {
   LinkLogo,
@@ -46,9 +46,9 @@ import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
 export type EventDatum =
-  | z.infer<typeof clickEventEnrichedSchema>
-  | z.infer<typeof leadEventEnrichedSchema>
-  | z.infer<typeof saleEventEnrichedSchema>;
+  | z.infer<typeof clickEventResponseSchema>
+  | z.infer<typeof leadEventResponseSchema>
+  | z.infer<typeof saleEventResponseSchema>;
 
 type ColumnMeta = {
   filterParams?: (
@@ -128,19 +128,6 @@ export default function EventsTable() {
           header: "Event",
           accessorKey: "eventName",
           enableHiding: false,
-          cell: ({ getValue }) =>
-            (
-              <span className="truncate" title={getValue()}>
-                {getValue()}
-              </span>
-            ) || <span className="text-gray-400">-</span>,
-        },
-        // Sale invoice ID
-        {
-          id: "invoiceId",
-          header: "Invoice ID",
-          accessorKey: "invoice_id",
-          maxSize: 200,
           cell: ({ getValue }) =>
             (
               <span className="truncate" title={getValue()}>
@@ -363,6 +350,19 @@ export default function EventsTable() {
               <span className="text-gray-400">USD</span>
             </div>
           ),
+        },
+        // Sale invoice ID
+        {
+          id: "invoiceId",
+          header: "Invoice ID",
+          accessorKey: "sale.invoiceId",
+          maxSize: 200,
+          cell: ({ getValue }) =>
+            (
+              <span className="truncate" title={getValue()}>
+                {getValue()}
+              </span>
+            ) || <span className="text-gray-400">-</span>,
         },
         // Date
         {
