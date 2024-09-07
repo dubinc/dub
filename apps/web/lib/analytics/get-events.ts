@@ -3,17 +3,20 @@ import { tb } from "@/lib/tinybird";
 import { Link } from "@prisma/client";
 import { transformLink } from "../api/links";
 import { tbDemo } from "../tinybird/demo-client";
-import { clickEventSchema } from "../webhook/schemas";
-import {
-  transformClickEventData,
-  transformLeadEventData,
-  transformLinkEventData,
-  transformSaleEventData,
-} from "../webhook/transform";
 import { eventsFilterTB } from "../zod/schemas/analytics";
-import { clickEventEnrichedSchema } from "../zod/schemas/clicks";
-import { leadEventEnrichedSchema } from "../zod/schemas/leads";
-import { saleEventEnrichedSchema } from "../zod/schemas/sales";
+import {
+  clickEventEnrichedSchema,
+  clickEventResponseSchema,
+  clickEventSchema,
+} from "../zod/schemas/clicks";
+import {
+  leadEventEnrichedSchema,
+  leadEventResponseSchema,
+} from "../zod/schemas/leads";
+import {
+  saleEventEnrichedSchema,
+  saleEventResponseSchema,
+} from "../zod/schemas/sales";
 import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
 
@@ -72,38 +75,39 @@ export const getEvents = async (params: EventsFilters) => {
   );
 
   const events = response.data
-    .map((event) => {
-      const link = linksMap[event.link_id];
+    .map((evt) => {
+      const link = linksMap[evt.link_id];
       if (!link) {
         return null;
       }
 
       const eventData = {
-        ...event,
+        ...evt,
         // timestamp is always in UTC
-        timestamp: new Date(event.timestamp + "Z"),
-        link: transformLinkEventData(transformLink(link)),
-        ...(eventType === "leads" || eventType === "sales"
+        timestamp: new Date(evt.timestamp + "Z"),
+        click: clickEventSchema.parse({
+          ...evt,
+          id: evt.click_id,
+        }),
+        // transformLink -> add shortLink, qrCode, workspaceId, etc.
+        link: transformLink(link),
+        ...(evt.event === "lead" || evt.event === "sale"
           ? {
-              click: clickEventSchema.parse({
-                ...event,
-                id: event.click_id,
-              }),
+              eventId: evt.event_id,
+              eventName: evt.event_name,
               customer: {
-                id: event.customer_id,
-                name: event.customer_name,
-                email: event.customer_email,
+                name: evt.customer_name,
+                email: evt.customer_email,
                 avatar:
-                  event.customer_avatar ||
-                  `https://api.dicebear.com/7.x/micah/svg?seed=${event.customer_id}`,
+                  evt.customer_avatar ||
+                  `https://api.dicebear.com/7.x/micah/svg?seed=${evt.customer_email}`,
               },
-              ...(eventType === "sales"
+              ...(evt.event === "sale"
                 ? {
                     sale: {
-                      amount: event.saleAmount,
-                      invoiceId: event.invoice_id,
-                      paymentProcessor: event.payment_processor,
-                      metadata: event.metadata,
+                      amount: evt.saleAmount,
+                      invoiceId: evt.invoice_id,
+                      paymentProcessor: evt.payment_processor,
                     },
                   }
                 : {}),
@@ -111,12 +115,12 @@ export const getEvents = async (params: EventsFilters) => {
           : {}),
       };
 
-      if (event === "clicks") {
-        return transformClickEventData(eventData);
-      } else if (event === "leads") {
-        return transformLeadEventData(eventData);
-      } else if (event === "sales") {
-        return transformSaleEventData(eventData);
+      if (evt.event === "click") {
+        return clickEventResponseSchema.parse(eventData);
+      } else if (evt.event === "lead") {
+        return leadEventResponseSchema.parse(eventData);
+      } else if (evt.event === "sale") {
+        return saleEventResponseSchema.parse(eventData);
       }
 
       return eventData;

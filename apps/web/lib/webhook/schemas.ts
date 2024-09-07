@@ -1,10 +1,9 @@
 import z from "@/lib/zod";
-import { LinkSchema } from "../zod/schemas/links";
-import { parseUrlSchemaAllowEmpty } from "../zod/schemas/utils";
+import { clickEventSchema } from "../zod/schemas/clicks";
+import { linkEventSchema } from "../zod/schemas/links";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const customerSchema = z.object({
-  id: z.string(),
   name: z.string().nullable(),
   email: z.string().nullable(),
   avatar: z.string().nullable(),
@@ -14,61 +13,25 @@ const saleSchema = z.object({
   amount: z.number(),
   paymentProcessor: z.string(),
   invoiceId: z.string().nullable(),
-  currency: z.string(),
-});
-
-export const linkEventSchema = LinkSchema.omit({
-  url: true,
-  tags: true,
-  tagId: true,
-  projectId: true,
-  // boolean fields
-  archived: true,
-  doIndex: true,
-  proxy: true,
-  publicStats: true,
-  rewrite: true,
-  trackConversion: true,
-}).merge(
-  z.object({
-    url: parseUrlSchemaAllowEmpty,
-    archived: z.coerce.boolean(),
-    doIndex: z.coerce.boolean(),
-    proxy: z.coerce.boolean(),
-    publicStats: z.coerce.boolean(),
-    rewrite: z.coerce.boolean(),
-    trackConversion: z.coerce.boolean(),
-  }),
-);
-
-export const clickEventSchema = z.object({
-  id: z.string(),
-  url: z.string(),
-  ip: z.string(),
-  continent: z.string(),
-  country: z.string(),
-  city: z.string(),
-  device: z.string(),
-  browser: z.string(),
-  os: z.string(),
-  bot: z.coerce.boolean(),
-  qr: z.coerce.boolean(),
-  referer: z.string(),
 });
 
 export const leadEventSchema = z.object({
+  eventId: z.string(),
   eventName: z.string(),
+  timestamp: z.date(),
   customer: customerSchema,
   click: clickEventSchema,
   link: linkEventSchema,
 });
 
 export const saleEventSchema = z.object({
+  eventId: z.string(),
   eventName: z.string(),
-  customer: customerSchema,
-  sale: saleSchema,
+  timestamp: z.date(),
   click: clickEventSchema,
   link: linkEventSchema,
+  customer: customerSchema,
+  sale: saleSchema,
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub

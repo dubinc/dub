@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
-import { LinkSchema } from "./links";
+import { commonDeprecatedEventFields } from "./deprecated";
+import { linkEventSchema } from "./links";
 
 export const clickEventSchemaTB = z.object({
   timestamp: z.string(),
@@ -49,28 +50,26 @@ export const clickEventEnrichedSchema = z.object({
   qr: z.number().nullable(),
 });
 
+export const clickEventSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  continent: z.string(),
+  country: z.string(),
+  city: z.string(),
+  device: z.string(),
+  browser: z.string(),
+  os: z.string(),
+  referer: z.string(),
+  qr: z.coerce.boolean(),
+  ip: z.string(),
+});
+
 export const clickEventResponseSchema = z
   .object({
     event: z.literal("click"),
-    timestamp: z.string(),
-    click_id: z.string(),
-    link_id: z
-      .string()
-      .describe("Deprecated. Use `link.id` instead.")
-      .openapi({ deprecated: true }),
-    domain: z.string(),
-    key: z.string(),
-    url: z.string(),
-    continent: z.string(),
-    country: z.string(),
-    city: z.string(),
-    device: z.string(),
-    browser: z.string(),
-    os: z.string(),
-    referer: z.string(),
-    ip: z.string(),
-    bot: z.coerce.boolean(),
-    qr: z.coerce.boolean(),
-    link: LinkSchema,
+    timestamp: z.coerce.string(),
+    click: clickEventSchema,
+    link: linkEventSchema,
   })
+  .merge(commonDeprecatedEventFields)
   .openapi({ ref: "ClickEvent" });

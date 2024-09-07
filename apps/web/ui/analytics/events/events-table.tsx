@@ -126,7 +126,7 @@ export default function EventsTable() {
         {
           id: "event",
           header: "Event",
-          accessorKey: "event_name",
+          accessorKey: "eventName",
           enableHiding: false,
           cell: ({ getValue }) =>
             (
@@ -204,7 +204,7 @@ export default function EventsTable() {
         {
           id: "continent",
           header: "Continent",
-          accessorKey: "continent",
+          accessorKey: "click.continent",
           meta: {
             filterParams: ({ getValue }) => ({ continent: getValue() }),
           },
@@ -223,7 +223,7 @@ export default function EventsTable() {
         {
           id: "country",
           header: "Country",
-          accessorKey: "country",
+          accessorKey: "click.country",
           meta: {
             filterParams: ({ getValue }) => ({ country: getValue() }),
           },
@@ -250,7 +250,7 @@ export default function EventsTable() {
         {
           id: "city",
           header: "City",
-          accessorKey: "city",
+          accessorKey: "click.city",
           minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3" title={getValue()}>
@@ -270,7 +270,7 @@ export default function EventsTable() {
         {
           id: "device",
           header: "Device",
-          accessorKey: "device",
+          accessorKey: "click.device",
           meta: {
             filterParams: ({ getValue }) => ({ device: getValue() }),
           },
@@ -288,7 +288,7 @@ export default function EventsTable() {
         {
           id: "browser",
           header: "Browser",
-          accessorKey: "browser",
+          accessorKey: "click.browser",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               <DeviceIcon
@@ -303,7 +303,7 @@ export default function EventsTable() {
         {
           id: "os",
           header: "OS",
-          accessorKey: "os",
+          accessorKey: "click.os",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               <DeviceIcon
@@ -318,7 +318,7 @@ export default function EventsTable() {
         {
           id: "referer",
           header: "Referer",
-          accessorKey: "referer",
+          accessorKey: "click.referer",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               {getValue() === "(direct)" ? (
@@ -336,7 +336,7 @@ export default function EventsTable() {
         {
           id: "ip",
           header: "IP Address",
-          accessorKey: "ip",
+          accessorKey: "click.ip",
           cell: ({ getValue }) =>
             getValue() ? (
               <span className="truncate" title={getValue()}>
@@ -354,12 +354,12 @@ export default function EventsTable() {
         {
           id: "saleAmount",
           header: "Sale Amount",
-          accessorKey: "sale",
+          accessorKey: "sale.amount",
           enableHiding: false,
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
-              <span>${nFormatter(getValue().amount / 100)}</span>
+              <span>${nFormatter(getValue() / 100)}</span>
               <span className="text-gray-400">USD</span>
             </div>
           ),
@@ -368,7 +368,7 @@ export default function EventsTable() {
         {
           id: "timestamp",
           header: "Date",
-          accessorFn: (d) => new Date(d.timestamp),
+          accessorFn: (d: { timestamp: string }) => new Date(d.timestamp),
           enableHiding: false,
           minSize: 100,
           cell: ({ getValue }) => (

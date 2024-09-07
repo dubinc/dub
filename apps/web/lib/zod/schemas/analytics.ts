@@ -208,18 +208,22 @@ export const eventsFilterTB = analyticsFilterTB
   );
 
 export const eventsQuerySchema = analyticsQuerySchema
-  .omit({ groupBy: true, interval: true })
-  .merge(
-    z.object({
-      interval: z
-        .enum(eventIntervals)
-        .default("24h")
-        .describe(
-          "The interval to retrieve events for. Takes precedence over start and end. If undefined, defaults to 24h.",
-        ),
-      page: z.coerce.number().default(0),
-      limit: z.coerce.number().default(PAGINATION_LIMIT),
-      order: z.enum(["asc", "desc"]).default("desc"),
-      sortBy: z.enum(["timestamp"]).default("timestamp"),
-    }),
-  );
+  .omit({ groupBy: true })
+  .extend({
+    event: z
+      .enum(EVENT_TYPES)
+      .default("clicks")
+      .describe(
+        "The type of event to retrieve analytics for. Defaults to 'clicks'.",
+      ),
+    interval: z
+      .enum(eventIntervals)
+      .default("24h")
+      .describe(
+        "The interval to retrieve events for. Takes precedence over start and end. If undefined, defaults to 24h.",
+      ),
+    page: z.coerce.number().default(0),
+    limit: z.coerce.number().default(PAGINATION_LIMIT),
+    order: z.enum(["asc", "desc"]).default("desc"),
+    sortBy: z.enum(["timestamp"]).default("timestamp"),
+  });

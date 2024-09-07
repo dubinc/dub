@@ -1,8 +1,8 @@
-import { clickEventSchema } from "@/lib/webhook/schemas";
 import z from "@/lib/zod";
-import { clickEventSchemaTB } from "./clicks";
+import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { customerSchema } from "./customers";
-import { LinkSchema } from "./links";
+import { commonDeprecatedEventFields } from "./deprecated";
+import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
   // Required
@@ -112,18 +112,12 @@ export const saleEventEnrichedSchema = z.object({
 export const saleEventResponseSchema = z
   .object({
     event: z.literal("sale"),
-    timestamp: z.string(),
-    event_id: z.string(),
-    event_name: z.string(),
+    timestamp: z.coerce.string(),
+    eventId: z.string(),
+    eventName: z.string(),
     // deprecated fields
-    link_id: z
-      .string()
-      .describe("Deprecated. Use `link.id` instead.")
-      .openapi({ deprecated: true }),
-    click_id: z
-      .string()
-      .describe("Deprecated. Use `click.id` instead.")
-      .openapi({ deprecated: true }),
+    event_id: z.string().describe("Deprecated. Use `eventId` instead."),
+    event_name: z.string().describe("Deprecated. Use `eventName` instead."),
     customer_name: z
       .string()
       .describe("Deprecated. Use `customer.name` instead.")
@@ -147,60 +141,8 @@ export const saleEventResponseSchema = z
     payment_processor: z
       .string()
       .describe("Deprecated. Use `sale.paymentProcessor` instead."),
-    metadata: z
-      .string()
-      .describe("Deprecated. Use `sale.metadata` instead.")
-      .openapi({ deprecated: true }),
-    domain: z
-      .string()
-      .describe("Deprecated. Use `link.domain` instead.")
-      .openapi({ deprecated: true }),
-    key: z
-      .string()
-      .describe("Deprecated. Use `link.key` instead.")
-      .openapi({ deprecated: true }),
-    url: z
-      .string()
-      .describe("Deprecated. Use `link.url` instead.")
-      .openapi({ deprecated: true }),
-    continent: z
-      .string()
-      .describe("Deprecated. Use `link.continent` instead.")
-      .openapi({ deprecated: true }),
-    country: z
-      .string()
-      .describe("Deprecated. Use `link.country` instead.")
-      .openapi({ deprecated: true }),
-    city: z
-      .string()
-      .describe("Deprecated. Use `link.city` instead.")
-      .openapi({ deprecated: true }),
-    device: z
-      .string()
-      .describe("Deprecated. Use `link.device` instead.")
-      .openapi({ deprecated: true }),
-    browser: z
-      .string()
-      .describe("Deprecated. Use `link.browser` instead.")
-      .openapi({ deprecated: true }),
-    os: z
-      .string()
-      .describe("Deprecated. Use `link.os` instead.")
-      .openapi({ deprecated: true }),
-    referer: z
-      .string()
-      .describe("Deprecated. Use `link.referer` instead.")
-      .openapi({ deprecated: true }),
-    qr: z
-      .number()
-      .describe("Deprecated. Use `link.qr` instead.")
-      .openapi({ deprecated: true }),
-    ip: z
-      .string()
-      .describe("Deprecated. Use `link.ip` instead.")
-      .openapi({ deprecated: true }),
     // nested objects
-    link: LinkSchema,
+    link: linkEventSchema,
     click: clickEventSchema,
     customer: customerSchema,
     sale: trackSaleRequestSchema.pick({
@@ -209,4 +151,5 @@ export const saleEventResponseSchema = z
       paymentProcessor: true,
     }),
   })
+  .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent" });

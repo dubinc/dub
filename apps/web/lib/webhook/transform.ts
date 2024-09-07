@@ -1,12 +1,13 @@
-import { linkEventSchema, webhookPayloadSchema } from "@/lib/webhook/schemas";
+import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { nanoid, toCamelCase } from "@dub/utils";
 import type { Link, Webhook } from "@prisma/client";
 import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
 import { WebhookTrigger } from "../types";
 import z from "../zod";
-import { clickEventSchemaTB } from "../zod/schemas/clicks";
+import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
+import { linkEventSchema } from "../zod/schemas/links";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
-import { clickEventSchema, leadEventSchema, saleEventSchema } from "./schemas";
+import { leadEventSchema, saleEventSchema } from "./schemas";
 
 interface TransformWebhookProps
   extends Pick<Webhook, "id" | "name" | "url" | "secret" | "triggers"> {
