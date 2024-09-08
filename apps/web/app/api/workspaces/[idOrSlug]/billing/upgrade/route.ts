@@ -58,6 +58,17 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       ? `${APP_DOMAIN}/${workspace.slug}?onboarded=true&plan=${plan}&period=${period}`
       : `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}${new URLSearchParams({ upgraded: "true", plan, period })}`;
 
+    // let referralCoupon: string | undefined;
+    // if (session.user["referredBy"]) {
+    //   const coupon = await stripe.coupons.create({
+    //     percent_off: 10,
+    //     duration: "repeating",
+    //     duration_in_months: 12,
+    //     max_redemptions: 1,
+    //   });
+    //   referralCoupon = coupon.id;
+    // }
+
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
       billing_address_collection: "required",
@@ -76,6 +87,15 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       metadata: {
         dubCustomerId: session.user.id,
       },
+      ...(referralCoupon
+        ? {
+            discounts: [
+              {
+                coupon: referralCoupon,
+              },
+            ],
+          }
+        : {}),
     });
 
     return NextResponse.json(stripeSession);

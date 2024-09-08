@@ -16,20 +16,25 @@ model User {
   emailVerified        DateTime?
   image                String?
   isMachine            Boolean   @default(false)
+
+  // password data
   passwordHash         String?
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
 
+  createdAt             DateTime               @default(now())
+  subscribed            Boolean                @default(true) // email subscription
+  source                String? // where the user came from
+  defaultWorkspace      String? // slug of the user's default workspace
+  referredBy            String? // ID of the workspace that referred this user
+
+  // relational data
   accounts              Account[]
   sessions              Session[]
   projects              ProjectUsers[]
   links                 Link[]
   tokens                Token[]
   restrictedTokens      RestrictedToken[]
-  createdAt             DateTime               @default(now())
-  subscribed            Boolean                @default(true)
-  source                String?
-  defaultWorkspace      String?
   oAuthCodes            OAuthCode[]
   integrations          Integration[] // Integrations user created in their workspace
   installedIntegrations InstalledIntegration[] // Integrations user installed in their workspace

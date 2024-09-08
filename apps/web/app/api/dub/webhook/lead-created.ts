@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { REFERRAL_SIGNUPS_MAX } from "@/lib/referrals/constants";
 import { sendEmail } from "emails";
 import NewReferralSignup from "emails/new-referral-signup";
 
@@ -7,10 +8,6 @@ export async function leadCreated(data: any) {
 
   if (!referralLink) {
     return "Referral link not found in webhook payload";
-  }
-
-  if (referralLink.leads > 16) {
-    return `Referral limit reached for ${referralLink.id}. Skipping...`;
   }
 
   const [user, workspace] = await Promise.all([
@@ -40,26 +37,35 @@ export async function leadCreated(data: any) {
     return "User or workspace not found";
   }
 
-  const workspaceOwners = workspace.users.map(({ user }) => user);
-
   await Promise.all([
-    // Update the referrer's workspace usage
+    prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        referredBy: workspace.id,
+      },
+    }),
     prisma.project.update({
       where: {
         id: workspace.id,
       },
-
       data: {
         referredSignups: {
           increment: 1,
         },
-        usageLimit: {
-          increment: 500,
-        },
+        // If the referral link has less than the max number of signups,
+        // update the referrer's workspace usage
+        ...(referralLink.leads < REFERRAL_SIGNUPS_MAX && {
+          usageLimit: {
+            increment: 500,
+          },
+        }),
       },
     }),
-    workspaceOwners.map(
-      (owner) =>
+    // send notification email to workspace owners
+    workspace.users.map(
+      ({ user: owner }) =>
         owner.email &&
         sendEmail({
           email: owner.email,
