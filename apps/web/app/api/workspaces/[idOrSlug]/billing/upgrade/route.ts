@@ -87,15 +87,15 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       metadata: {
         dubCustomerId: session.user.id,
       },
-      ...(referralCoupon
-        ? {
-            discounts: [
-              {
-                coupon: referralCoupon,
-              },
-            ],
-          }
-        : {}),
+      // ...(referralCoupon
+      //   ? {
+      //       discounts: [
+      //         {
+      //           coupon: referralCoupon,
+      //         },
+      //       ],
+      //     }
+      //   : {}),
     });
 
     return NextResponse.json(stripeSession);
