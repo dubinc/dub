@@ -85,9 +85,9 @@ export const transformSaleEventData = (data: any) => {
     },
     sale: {
       amount: sale.amount,
+      currency: sale.currency,
       paymentProcessor: sale.paymentProcessor,
       invoiceId: sale.invoiceId,
-      currency: sale.currency,
     },
     click: {
       ...sale,
