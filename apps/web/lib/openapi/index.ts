@@ -12,6 +12,7 @@ import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { trackPaths } from "./track";
+import { webhooksPaths } from "./webhooks";
 import { workspacesPaths } from "./workspaces";
 
 export const document = createDocument({
@@ -66,5 +67,8 @@ export const document = createDocument({
     responses: {
       ...openApiErrorResponses,
     },
+  },
+  webhooks: {
+    ...webhooksPaths,
   },
 });
