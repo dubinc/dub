@@ -3,7 +3,7 @@ import { sendEmail } from "emails";
 import NewReferralSignup from "emails/new-referral-signup";
 
 export async function leadCreated(data: any) {
-  const referralLink = data.link;
+  const { customer: referredUser, link: referralLink } = data;
 
   if (!referralLink) {
     return "Referral link not found in webhook payload";
@@ -13,24 +13,31 @@ export async function leadCreated(data: any) {
     return `Referral limit reached for ${referralLink.id}. Skipping...`;
   }
 
-  const workspace = await prisma.project.findUnique({
-    where: {
-      referralLinkId: referralLink.id,
-    },
-    include: {
-      users: {
-        select: {
-          user: true,
-        },
-        where: {
-          role: "owner",
+  const [user, workspace] = await Promise.all([
+    prisma.user.findUnique({
+      where: {
+        id: referredUser.id,
+      },
+    }),
+    prisma.project.findUnique({
+      where: {
+        referralLinkId: referralLink.id,
+      },
+      include: {
+        users: {
+          select: {
+            user: true,
+          },
+          where: {
+            role: "owner",
+          },
         },
       },
-    },
-  });
+    }),
+  ]);
 
-  if (!workspace) {
-    return "Workspace not found";
+  if (!user || !workspace) {
+    return "User or workspace not found";
   }
 
   const workspaceOwners = workspace.users.map(({ user }) => user);
