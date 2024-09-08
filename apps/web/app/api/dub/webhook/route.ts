@@ -1,6 +1,7 @@
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import crypto from "crypto";
 import { leadCreated } from "./lead-created";
+import { saleCreated } from "./sale-created";
 
 // POST /api/dub/webhook - receive webhooks for Dub Referrals
 export const POST = async (req: Request) => {
@@ -27,6 +28,9 @@ export const POST = async (req: Request) => {
   switch (event) {
     case "lead.created": // new signup via referral link (lead event)
       response = await leadCreated(data);
+      break;
+    case "sale.created": // new sale via referral link (sale event)
+      response = await saleCreated(data);
       break;
   }
 
