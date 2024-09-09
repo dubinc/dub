@@ -1,9 +1,9 @@
 import { saleWebhookEventSchema } from "@/lib/webhook/schemas";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
-export const saleCreatedEvent: ZodOpenApiOperationObject = {
-  operationId: "saleCreatedEvent",
-  "x-speakeasy-name-override": "saleCreated",
+export const SaleCreatedEvent: ZodOpenApiOperationObject = {
+  "x-speakeasy-include": true,
+  "x-speakeasy-name-override": "SaleCreatedEvent",
   summary: "Sale created",
   description: "A webhook that is called when a sale is created.",
   requestBody: {

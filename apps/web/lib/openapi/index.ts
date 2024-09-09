@@ -12,7 +12,7 @@ import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 import { trackPaths } from "./track";
-import { webhooksPaths } from "./webhooks";
+import { LeadCreatedEvent, SaleCreatedEvent } from "./webhooks";
 import { workspacesPaths } from "./workspaces";
 
 export const document = createDocument({
@@ -55,6 +55,8 @@ export const document = createDocument({
       WorkspaceSchema,
       TagSchema,
       DomainSchema,
+      LeadCreatedEvent,
+      SaleCreatedEvent,
     },
     securitySchemes: {
       token: {
@@ -67,8 +69,5 @@ export const document = createDocument({
     responses: {
       ...openApiErrorResponses,
     },
-  },
-  webhooks: {
-    ...webhooksPaths,
   },
 });
