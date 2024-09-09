@@ -10,7 +10,6 @@ export interface Session {
     name: string;
     image?: string;
     isMachine: boolean;
-    referredBy?: string;
   };
 }
 
