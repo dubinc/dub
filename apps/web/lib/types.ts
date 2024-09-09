@@ -110,7 +110,6 @@ export interface UserProps {
   image?: string;
   createdAt: Date;
   source: string | null;
-  migratedWorkspace: string | null;
   defaultWorkspace?: string;
   isMachine: boolean;
   hasPassword: boolean;

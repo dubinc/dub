@@ -67,9 +67,6 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The ID of the referral link of the workspace."),
-    referredSignups: z
-      .number()
-      .describe("The number of signups referred by the workspace."),
 
     conversionEnabled: z
       .boolean()

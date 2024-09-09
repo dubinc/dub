@@ -1,6 +1,5 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanFeatures } from "@/ui/workspaces/plan-features";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import { Badge } from "@dub/ui";
@@ -52,8 +51,6 @@ function PlanCard({
   plans: (typeof SELF_SERVE_PAID_PLANS)[number][];
   period: "monthly" | "yearly";
 }) {
-  const { slug } = useWorkspace();
-
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = plans[selectedPlanIndex];
 

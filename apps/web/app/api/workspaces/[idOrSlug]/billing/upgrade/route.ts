@@ -54,16 +54,13 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
 
     // if the user does not have a subscription, create a new checkout session
   } else {
-    const successUrl = onboarding
-      ? `${APP_DOMAIN}/${workspace.slug}?onboarded=true&plan=${plan}&period=${period}`
-      : `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}${new URLSearchParams({ upgraded: "true", plan, period })}`;
-
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
       billing_address_collection: "required",
-      success_url: successUrl,
+      success_url: `${APP_DOMAIN}/${workspace.slug}?${onboarding ? "onboarded" : "upgraded"}=true&plan=${plan}&period=${period}`,
       cancel_url: baseUrl,
       line_items: [{ price: prices.data[0].id, quantity: 1 }],
+      allow_promotion_codes: true,
       automatic_tax: {
         enabled: true,
       },
@@ -71,7 +68,6 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
         enabled: true,
       },
       mode: "subscription",
-      allow_promotion_codes: true,
       client_reference_id: workspace.id,
       metadata: {
         dubCustomerId: session.user.id,

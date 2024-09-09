@@ -1,58 +1,75 @@
 import { prisma } from "@/lib/prisma";
+import { REFERRAL_SIGNUPS_MAX } from "@/lib/referrals/constants";
 import { sendEmail } from "emails";
 import NewReferralSignup from "emails/new-referral-signup";
 
 export async function leadCreated(data: any) {
-  const referralLink = data.link;
+  const { customer: referredUser, link: referralLink } = data;
 
   if (!referralLink) {
     return "Referral link not found in webhook payload";
   }
 
-  if (referralLink.leads > 16) {
-    return `Referral limit reached for ${referralLink.id}. Skipping...`;
-  }
-
-  const workspace = await prisma.project.findUnique({
-    where: {
-      referralLinkId: referralLink.id,
-    },
-    include: {
-      users: {
-        select: {
-          user: true,
-        },
-        where: {
-          role: "owner",
+  const [user, workspace] = await Promise.all([
+    prisma.user.findUnique({
+      where: {
+        id: referredUser.id,
+      },
+    }),
+    prisma.project.findUnique({
+      where: {
+        referralLinkId: referralLink.id,
+      },
+      include: {
+        users: {
+          select: {
+            user: true,
+          },
+          where: {
+            role: "owner",
+          },
         },
       },
-    },
-  });
+    }),
+  ]);
 
-  if (!workspace) {
-    return "Workspace not found";
+  if (!user) {
+    return "referredUser not found";
   }
 
-  const workspaceOwners = workspace.users.map(({ user }) => user);
+  if (!workspace) {
+    return `Referral link workspace not found for ${referralLink.shortLink}`;
+  }
 
   await Promise.all([
-    // Update the referrer's workspace usage
+    prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        referredByWorkspaceId: workspace.id,
+      },
+    }),
     prisma.project.update({
       where: {
         id: workspace.id,
       },
-
       data: {
         referredSignups: {
           increment: 1,
         },
-        usageLimit: {
-          increment: 500,
-        },
+        // If the referral link has less than the max number of signups,
+        // update the referrer's workspace usage
+        ...(referralLink.leads < REFERRAL_SIGNUPS_MAX && {
+          usageLimit: {
+            increment: 500,
+          },
+        }),
       },
     }),
-    workspaceOwners.map(
-      (owner) =>
+    // send notification email to workspace owners
+    workspace.users.map(
+      ({ user: owner }) =>
         owner.email &&
         sendEmail({
           email: owner.email,
@@ -68,5 +85,5 @@ export async function leadCreated(data: any) {
     //   sendMerchLink(workspace.id),
   ]);
 
-  return `Successfully tracked referral signup for ${workspace.name} (slug: ${workspace.slug})`;
+  return `Successfully handled referral signup event for ${workspace.name} (slug: ${workspace.slug})`;
 }
