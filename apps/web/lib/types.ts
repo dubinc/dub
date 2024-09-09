@@ -137,6 +137,7 @@ export interface DomainProps {
   placeholder?: string;
   expiredUrl?: string;
   projectId: string;
+  registeredDomainId?: string;
 }
 
 export interface BitlyGroupProps {

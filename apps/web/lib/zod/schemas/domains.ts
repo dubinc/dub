@@ -34,6 +34,10 @@ export const DomainSchema = z.object({
       "The URL to redirect to when a link under this domain has expired.",
     )
     .openapi({ example: "https://acme.com/expired" }),
+  registeredDomainId: z
+    .string()
+    .nullable()
+    .describe("The ID of the registered domain record."),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
 });
