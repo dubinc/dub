@@ -70,7 +70,6 @@ export const expectedWorkspace: Partial<Project> = {
   usersLimit: expect.any(Number),
 
   referralLinkId: expect.any(String),
-  referredSignups: expect.any(Number),
 
   createdAt: expect.any(String),
 };

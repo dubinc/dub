@@ -98,7 +98,7 @@ export default function WebhooksPageClient() {
                 icon={Webhook}
                 title="You haven't set up any webhooks yet."
                 description="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
-                learnMore="https://dub.co/docs/webhooks"
+                learnMore="https://d.to/webhooks"
               />
             </div>
           )

@@ -1,6 +1,7 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
 
 import { createTag } from "./create-tag";
+import { deleteTag } from "./delete-tag";
 import { getTags } from "./get-tags";
 import { updateTag } from "./update-tag";
 
@@ -11,5 +12,6 @@ export const tagsPaths: ZodOpenApiPathsObject = {
   },
   "/tags/{id}": {
     patch: updateTag,
+    delete: deleteTag,
   },
 };
