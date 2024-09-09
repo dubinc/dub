@@ -4,7 +4,7 @@ import { PlanSelector } from "../../onboarding/(steps)/plan/plan-selector";
 import { StepPage } from "../../onboarding/(steps)/step-page";
 import BackButton from "./back-button";
 
-export default function Plan({ params }: { params: { slug: string } }) {
+export default function Plan() {
   return (
     <div className="relative flex flex-col items-center">
       <BackButton />

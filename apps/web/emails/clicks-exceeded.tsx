@@ -23,7 +23,6 @@ export default function ClicksExceeded({
     slug: "acme",
     usage: 2410,
     usageLimit: 1000,
-    referredSignups: 0,
     plan: "business",
   },
   type = "firstUsageLimitEmail",

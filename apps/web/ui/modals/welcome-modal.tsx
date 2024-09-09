@@ -38,7 +38,7 @@ function WelcomeModal({
   const upgraded = searchParams.get("upgraded");
   const plausible = usePlausible();
 
-  useEffect(() => {
+  const handlePlanUpgrade = async () => {
     if (planId) {
       const currentPlan = getPlanDetails(planId);
       const period = searchParams.get("period");
@@ -51,11 +51,15 @@ function WelcomeModal({
         });
       }
     }
+  };
+  useEffect(() => {
+    handlePlanUpgrade();
   }, [searchParams, planId]);
 
   const plan = planId
-    ? PLANS.find((p) => p.name.toLowerCase() === planId.toLowerCase()) ??
-      PRO_PLAN
+    ? PLANS.find(
+        (p) => p.name.toLowerCase() === planId.replace("+", " ").toLowerCase(),
+      ) ?? PRO_PLAN
     : undefined;
 
   return (

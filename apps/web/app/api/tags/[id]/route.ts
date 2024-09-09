@@ -55,7 +55,7 @@ export const PATCH = withWorkspace(
 
 export const PUT = PATCH;
 
-// DELETE /api/workspaces/[idOrSlug]/tags/[id] – delete a tag for a workspace
+// DELETE /api/tags/[id] – delete a tag for a workspace
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { id } = params;

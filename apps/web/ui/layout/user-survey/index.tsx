@@ -1,10 +1,10 @@
 "use client";
 
-import useUser from "@/lib/swr/use-user";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Popup, PopupContext, useResizeObserver } from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { createContext, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
 import SurveyForm from "./survey-form";
@@ -16,11 +16,11 @@ export const UserSurveyContext = createContext<{ status: UserSurveyStatus }>({
 });
 
 export default function UserSurveyPopup() {
-  const { user } = useUser();
+  const { data: session } = useSession();
 
   return (
-    user &&
-    !user.source && (
+    session?.user &&
+    !session.user["source"] && (
       <Popup hiddenCookieId="hideUserSurveyPopup">
         <UserSurveyPopupInner />
       </Popup>
@@ -30,6 +30,7 @@ export default function UserSurveyPopup() {
 
 export function UserSurveyPopupInner() {
   const { hidePopup } = useContext(PopupContext);
+  const { update } = useSession();
 
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const resizeObserverEntry = useResizeObserver(contentWrapperRef);
@@ -72,7 +73,10 @@ export function UserSurveyPopupInner() {
                     body: JSON.stringify({ source }),
                   });
                   setStatus("success");
-                  setTimeout(hidePopup, 3000);
+                  setTimeout(() => {
+                    update();
+                    hidePopup();
+                  }, 3000);
                 } catch (e) {
                   toast.error("Error saving response. Please try again.");
                   setStatus("idle");
