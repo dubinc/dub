@@ -24,6 +24,8 @@ export const clickWebhookEventSchema = z
   })
   .openapi({
     title: "ClickWebhookEvent",
+    description: "Webhook payload for a click event",
+    "x-speakeasy-include": true,
   });
 
 export const leadWebhookEventSchema = z
@@ -35,6 +37,8 @@ export const leadWebhookEventSchema = z
   })
   .openapi({
     title: "LeadWebhookEvent",
+    description: "Webhook payload for a lead event",
+    "x-speakeasy-include": true,
   });
 
 export const saleWebhookEventSchema = z
@@ -47,6 +51,8 @@ export const saleWebhookEventSchema = z
   })
   .openapi({
     title: "SaleWebhookEvent",
+    description: "Webhook payload for a sale event",
+    "x-speakeasy-include": true,
   });
 
 // Schema of the payload sent to the webhook endpoint by Dub
