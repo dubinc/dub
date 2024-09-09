@@ -2,9 +2,9 @@
 
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
-import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
+import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
+import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
+import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import EmptyState from "@/ui/shared/empty-state";
 import {
   LinkLogo,
@@ -46,9 +46,9 @@ import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
 export type EventDatum =
-  | z.infer<typeof clickEventEnrichedSchema>
-  | z.infer<typeof leadEventEnrichedSchema>
-  | z.infer<typeof saleEventEnrichedSchema>;
+  | z.infer<typeof clickEventResponseSchema>
+  | z.infer<typeof leadEventResponseSchema>
+  | z.infer<typeof saleEventResponseSchema>;
 
 type ColumnMeta = {
   filterParams?: (
@@ -126,21 +126,8 @@ export default function EventsTable() {
         {
           id: "event",
           header: "Event",
-          accessorKey: "event_name",
+          accessorKey: "eventName",
           enableHiding: false,
-          cell: ({ getValue }) =>
-            (
-              <span className="truncate" title={getValue()}>
-                {getValue()}
-              </span>
-            ) || <span className="text-gray-400">-</span>,
-        },
-        // Sale invoice ID
-        {
-          id: "invoiceId",
-          header: "Invoice ID",
-          accessorKey: "invoice_id",
-          maxSize: 200,
           cell: ({ getValue }) =>
             (
               <span className="truncate" title={getValue()}>
@@ -187,12 +174,13 @@ export default function EventsTable() {
           header: "Customer",
           accessorKey: "customer",
           cell: ({ getValue }) => {
-            const display = getValue().name || getValue().email || "Unknown";
+            const customer = getValue();
+            const display = customer.name || customer.email || "Unknown";
             return (
               <div className="flex items-center gap-3" title={display}>
                 <img
                   alt={display}
-                  src={getValue().avatar}
+                  src={customer.avatar}
                   className="size-4 shrink-0 rounded-full border border-gray-200"
                 />
                 <span className="truncate">{display}</span>
@@ -203,7 +191,7 @@ export default function EventsTable() {
         {
           id: "continent",
           header: "Continent",
-          accessorKey: "continent",
+          accessorKey: "click.continent",
           meta: {
             filterParams: ({ getValue }) => ({ continent: getValue() }),
           },
@@ -222,7 +210,7 @@ export default function EventsTable() {
         {
           id: "country",
           header: "Country",
-          accessorKey: "country",
+          accessorKey: "click.country",
           meta: {
             filterParams: ({ getValue }) => ({ country: getValue() }),
           },
@@ -249,7 +237,7 @@ export default function EventsTable() {
         {
           id: "city",
           header: "City",
-          accessorKey: "city",
+          accessorKey: "click.city",
           minSize: 160,
           cell: ({ getValue, row }) => (
             <div className="flex items-center gap-3" title={getValue()}>
@@ -269,7 +257,7 @@ export default function EventsTable() {
         {
           id: "device",
           header: "Device",
-          accessorKey: "device",
+          accessorKey: "click.device",
           meta: {
             filterParams: ({ getValue }) => ({ device: getValue() }),
           },
@@ -287,7 +275,7 @@ export default function EventsTable() {
         {
           id: "browser",
           header: "Browser",
-          accessorKey: "browser",
+          accessorKey: "click.browser",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               <DeviceIcon
@@ -302,7 +290,7 @@ export default function EventsTable() {
         {
           id: "os",
           header: "OS",
-          accessorKey: "os",
+          accessorKey: "click.os",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               <DeviceIcon
@@ -317,7 +305,7 @@ export default function EventsTable() {
         {
           id: "referer",
           header: "Referer",
-          accessorKey: "referer",
+          accessorKey: "click.referer",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               {getValue() === "(direct)" ? (
@@ -335,7 +323,7 @@ export default function EventsTable() {
         {
           id: "ip",
           header: "IP Address",
-          accessorKey: "ip",
+          accessorKey: "click.ip",
           cell: ({ getValue }) =>
             getValue() ? (
               <span className="truncate" title={getValue()}>
@@ -353,7 +341,7 @@ export default function EventsTable() {
         {
           id: "saleAmount",
           header: "Sale Amount",
-          accessorKey: "saleAmount",
+          accessorKey: "sale.amount",
           enableHiding: false,
           minSize: 120,
           cell: ({ getValue }) => (
@@ -363,11 +351,24 @@ export default function EventsTable() {
             </div>
           ),
         },
+        // Sale invoice ID
+        {
+          id: "invoiceId",
+          header: "Invoice ID",
+          accessorKey: "sale.invoiceId",
+          maxSize: 200,
+          cell: ({ getValue }) =>
+            (
+              <span className="truncate" title={getValue()}>
+                {getValue()}
+              </span>
+            ) || <span className="text-gray-400">-</span>,
+        },
         // Date
         {
           id: "timestamp",
           header: "Date",
-          accessorFn: (d) => new Date(d.timestamp),
+          accessorFn: (d: { timestamp: string }) => new Date(d.timestamp),
           enableHiding: false,
           minSize: 100,
           cell: ({ getValue }) => (

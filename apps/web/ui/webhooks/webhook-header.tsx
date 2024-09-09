@@ -83,9 +83,13 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
               </div>
               <div>
                 <p className="font-semibold text-gray-700">{webhook.name}</p>
-                <p className="text-pretty text-sm text-gray-500">
+                <a
+                  href={webhook.url}
+                  target="_blank"
+                  className="text-pretty text-sm text-gray-500 underline-offset-4 hover:text-gray-700 hover:underline"
+                >
                   {webhook.url}
-                </p>
+                </a>
               </div>
             </div>
           )}

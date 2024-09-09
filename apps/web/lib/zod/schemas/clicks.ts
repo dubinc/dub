@@ -1,4 +1,6 @@
 import z from "@/lib/zod";
+import { commonDeprecatedEventFields } from "./deprecated";
+import { linkEventSchema } from "./links";
 
 export const clickEventSchemaTB = z.object({
   timestamp: z.string(),
@@ -29,23 +31,43 @@ export const clickEventSchemaTB = z.object({
   qr: z.number().nullable(),
 });
 
-export const clickEventEnrichedSchema = z
+export const clickEventEnrichedSchema = z.object({
+  event: z.literal("click"),
+  timestamp: z.string(),
+  click_id: z.string(),
+  link_id: z.string(),
+  url: z.string(),
+  continent: z.string().nullable(),
+  country: z.string().nullable(),
+  city: z.string().nullable(),
+  device: z.string().nullable(),
+  browser: z.string().nullable(),
+  os: z.string().nullable(),
+  referer: z.string().nullable(),
+  ip: z.string().nullable(),
+  qr: z.number().nullable(),
+});
+
+export const clickEventSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  continent: z.string(),
+  country: z.string(),
+  city: z.string(),
+  device: z.string(),
+  browser: z.string(),
+  os: z.string(),
+  referer: z.string(),
+  qr: z.coerce.boolean(),
+  ip: z.string(),
+});
+
+export const clickEventResponseSchema = z
   .object({
     event: z.literal("click"),
-    timestamp: z.string(),
-    click_id: z.string(),
-    link_id: z.string(),
-    domain: z.string(),
-    key: z.string(),
-    url: z.string(),
-    continent: z.string().nullable(),
-    country: z.string().nullable(),
-    city: z.string().nullable(),
-    device: z.string().nullable(),
-    browser: z.string().nullable(),
-    os: z.string().nullable(),
-    referer: z.string().nullable(),
-    ip: z.string().nullable(),
-    qr: z.number().nullable(),
+    timestamp: z.coerce.string(),
+    click: clickEventSchema,
+    link: linkEventSchema,
   })
+  .merge(commonDeprecatedEventFields)
   .openapi({ ref: "ClickEvent" });

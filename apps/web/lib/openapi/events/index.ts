@@ -1,9 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
-import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
+import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
+import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
+import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
 export const listEvents: ZodOpenApiOperationObject = {
@@ -21,9 +21,9 @@ export const listEvents: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.union([
-            z.array(clickEventEnrichedSchema).openapi({ title: "ClickEvents" }),
-            z.array(leadEventEnrichedSchema).openapi({ title: "LeadEvents" }),
-            z.array(saleEventEnrichedSchema).openapi({ title: "SaleEvents" }),
+            z.array(clickEventResponseSchema).openapi({ title: "ClickEvents" }),
+            z.array(leadEventResponseSchema).openapi({ title: "LeadEvents" }),
+            z.array(saleEventResponseSchema).openapi({ title: "SaleEvents" }),
           ]),
         },
       },

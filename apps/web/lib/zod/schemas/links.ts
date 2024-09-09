@@ -549,3 +549,20 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
     includeUser: booleanQuerySchema.default("false"),
   }),
 );
+
+export const linkEventSchema = LinkSchema.extend({
+  // here we use string because url can be empty
+  url: z.string(),
+  // coerce boolean fields
+  archived: z.coerce.boolean(),
+  doIndex: z.coerce.boolean(),
+  proxy: z.coerce.boolean(),
+  publicStats: z.coerce.boolean(),
+  rewrite: z.coerce.boolean(),
+  trackConversion: z.coerce.boolean(),
+  // coerce date fields
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  lastClicked: z.coerce.date(),
+  expiresAt: z.coerce.date(),
+});

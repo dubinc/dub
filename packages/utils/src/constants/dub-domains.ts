@@ -106,6 +106,7 @@ export const DUB_DOMAINS = [
             "chromewebstore.google.com",
             "play.google.com",
             "blog.google",
+            "g.page",
             "youtube.com",
             "youtu.be",
           ],
