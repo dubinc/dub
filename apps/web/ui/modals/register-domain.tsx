@@ -79,18 +79,18 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
-      <h3 className="border-b border-gray-200 px-8 py-4 text-lg font-medium">
+      <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
         Claim .link domain
       </h3>
       <form
-        className="flex flex-col space-y-6 bg-white px-4 py-8 text-left sm:px-8"
+        className="flex flex-col space-y-6 bg-white px-4 pb-8 pt-6 text-left sm:px-6"
         onSubmit={async (e: FormEvent<HTMLFormElement>) => {
           e.preventDefault();
         }}
       >
         <div>
           <div className="flex items-center gap-2">
-            <p className="block text-sm font-medium text-gray-700">
+            <p className="block text-sm font-medium text-gray-800">
               Search domains
             </p>
 
@@ -98,9 +98,9 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
               <ProBadgeTooltip
                 content={
                   <SimpleTooltipContent
-                    title="Redirect users to a specific URL when any link under this domain has expired."
+                    title="Search for a free .link domain to use for your short links."
                     cta="Learn more."
-                    href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
+                    href="https://dub.co/help/article/how-to-add-custom-domain" // TODO: Update this link
                   />
                 }
               />
@@ -109,7 +109,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
 
           <div
             className={cn(
-              "mt-2 flex rounded-md border border-gray-300 p-1.5",
+              "mt-2 flex rounded-md border border-gray-300",
               //  searchedDomain?.available ? "bg-[#def5c6]" : "bg-white",
               // !searchedDomain?.available ? "bg-[#F5E4C6]" : "bg-white",
             )}
@@ -123,7 +123,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
               className="block w-full rounded-md rounded-r-none border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
               aria-invalid="true"
               autoFocus={!isMobile}
-              placeholder={slug}
+              placeholder={workspace.slug}
               value={slug}
               onChange={(e) => {
                 setSlug(e.target.value);
@@ -132,13 +132,15 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
             <span className="inline-flex items-center rounded-md rounded-l-none bg-white px-3 font-medium text-gray-500 sm:text-sm">
               .link
             </span>
-            <Button
-              className="w-fit border-gray-300"
-              icon={<Search className="h-4 w-4" />}
-              onClick={searchDomainAvailability}
-              disabled={!slug || isSearching}
-              loading={isSearching}
-            />
+            <div className="p-0.5">
+              <Button
+                className="h-8 w-fit border-gray-300 px-2"
+                icon={<Search className="mx-0.5 size-4" />}
+                onClick={searchDomainAvailability}
+                disabled={!slug || isSearching}
+                loading={isSearching}
+              />
+            </div>
           </div>
 
           {searchedDomain &&
@@ -181,16 +183,20 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
             </div>
           </div>
         )}
-
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            text="Cancel"
-            onClick={() => setShowModal(false)}
-          />
-          <Button text="Claim domain" disabled={!searchedDomain?.available} />
-        </div>
       </form>
+      <div className="flex justify-end gap-2 border-t border-gray-200 px-4 py-4 sm:px-6">
+        <Button
+          variant="secondary"
+          text="Cancel"
+          className="h-9 w-fit"
+          onClick={() => setShowModal(false)}
+        />
+        <Button
+          text="Claim domain"
+          className="h-9 w-fit"
+          disabled={!searchedDomain?.available}
+        />
+      </div>
     </Modal>
   );
 };
