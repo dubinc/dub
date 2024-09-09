@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { REFERRAL_SIGNUPS_MAX } from "@/lib/referrals/constants";
+import { getPrettyUrl } from "@dub/utils";
 import { sendEmail } from "emails";
 import NewReferralSignup from "emails/new-referral-signup";
 
@@ -43,7 +44,7 @@ export async function leadCreated(data: any) {
         id: user.id,
       },
       data: {
-        referredBy: workspace.id,
+        referredBy: getPrettyUrl(referralLink.shortLink),
       },
     }),
     prisma.project.update({

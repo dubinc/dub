@@ -1,5 +1,7 @@
-import { withWorkspace } from "@/lib/auth";
+import { Session, withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { redis } from "@/lib/upstash";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -54,25 +56,12 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
 
     // if the user does not have a subscription, create a new checkout session
   } else {
-    const successUrl = onboarding
-      ? `${APP_DOMAIN}/${workspace.slug}?onboarded=true&plan=${plan}&period=${period}`
-      : `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}${new URLSearchParams({ upgraded: "true", plan, period })}`;
-
-    // let referralCoupon: string | undefined;
-    // if (session.user["referredBy"]) {
-    //   const coupon = await stripe.coupons.create({
-    //     percent_off: 10,
-    //     duration: "repeating",
-    //     duration_in_months: 12,
-    //     max_redemptions: 1,
-    //   });
-    //   referralCoupon = coupon.id;
-    // }
+    const referralCoupon = await getReferralCoupon(session);
 
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
       billing_address_collection: "required",
-      success_url: successUrl,
+      success_url: `${APP_DOMAIN}/${workspace.slug}?${onboarding ? "onboarded" : "upgraded"}=true&plan=${plan}&period=${period}`,
       cancel_url: baseUrl,
       line_items: [{ price: prices.data[0].id, quantity: 1 }],
       automatic_tax: {
@@ -82,22 +71,61 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
         enabled: true,
       },
       mode: "subscription",
-      allow_promotion_codes: true,
       client_reference_id: workspace.id,
       metadata: {
         dubCustomerId: session.user.id,
       },
-      // ...(referralCoupon
-      //   ? {
-      //       discounts: [
-      //         {
-      //           coupon: referralCoupon,
-      //         },
-      //       ],
-      //     }
-      //   : {}),
+      ...(referralCoupon && referralCoupon !== "expired"
+        ? {
+            discounts: [
+              {
+                coupon: referralCoupon,
+              },
+            ],
+          }
+        : { allow_promotion_codes: true }),
     });
 
     return NextResponse.json(stripeSession);
   }
 });
+
+/**
+ * Get a referral coupon for the user if they were referred via a refer.dub.co link.
+ * @param session The session object.
+ * @returns The coupon ID if the user has a referrer, otherwise null.
+ */
+const getReferralCoupon = async (session: Session) => {
+  let referredBy: string | null = session.user["referredBy"] || null;
+  if (!referredBy) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        referredBy: true,
+      },
+    });
+    referredBy = user?.referredBy || null;
+    if (referredBy) {
+      const referralCoupon = await redis.get<string>(
+        `referralCoupon:${session.user.id}`,
+      );
+      if (referralCoupon) {
+        return referralCoupon;
+      } else {
+        const coupon = await stripe.coupons.create({
+          name: `Referral Discount (${referredBy})`,
+          percent_off: 10,
+          duration: "repeating",
+          duration_in_months: 12,
+          max_redemptions: 1,
+        });
+        const couponId = coupon.id;
+        await redis.set(`referralCoupon:${session.user.id}`, couponId);
+        return couponId;
+      }
+    }
+  }
+  return null;
+};
