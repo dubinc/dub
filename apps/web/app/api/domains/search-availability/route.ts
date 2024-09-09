@@ -13,7 +13,7 @@ const schema = z.object({
 
 // GET /api/domains/search-availability - search the domain
 export const GET = withWorkspace(
-  async ({ workspace, searchParams }) => {
+  async ({ searchParams }) => {
     const { domain } = schema.parse(searchParams);
 
     return NextResponse.json(await searchDomainsAvailability({ domain }));

@@ -2,11 +2,9 @@ import z from "@/lib/zod";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
 const schema = z.object({
-  RegisterResponse: z.object({
-    // ResponseCode: z.enum(["0", "-1", ""]),
-    Status: z.enum(["success", "insufficient_funds"]),
-    DomainName: z.string(),
-    // Expiration: z.number(),
+  SetDnsResponse: z.object({
+    ResponseCode: z.number(),
+    Status: z.string(),
   }),
 });
 
@@ -15,7 +13,7 @@ export const configureDNS = async ({ domain }: { domain: string }) => {
     key: DYNADOT_API_KEY,
     domain: domain,
     command: "set_dns2",
-    main_record_type0: "aaaa",
+    main_record_type0: "a",
     main_record0: "76.76.21.21",
   });
 
@@ -32,13 +30,7 @@ export const configureDNS = async ({ domain }: { domain: string }) => {
     throw new Error(`Failed to register domain: ${response.statusText}`);
   }
 
-  const json = await response.json();
+  const data = schema.parse(await response.json());
 
-  console.log("registerDomain", json);
-
-  return json;
-
-  // const data = schema.parse(json);
-
-  // return data;
+  return data;
 };

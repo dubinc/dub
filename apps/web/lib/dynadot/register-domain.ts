@@ -3,10 +3,9 @@ import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
 const schema = z.object({
   RegisterResponse: z.object({
-    // ResponseCode: z.enum(["0", "-1", ""]),
-    Status: z.enum(["success", "insufficient_funds"]),
+    Status: z.string(),
     DomainName: z.string(),
-    // Expiration: z.number(),
+    Expiration: z.number(),
   }),
 });
 
@@ -17,6 +16,7 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
     command: "register",
     duration: "1", // TODO: Is this month or year?
     currency: "USD",
+    coupon: "DUBCOLINK",
   });
 
   const response = await fetch(
@@ -32,13 +32,12 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
     throw new Error(`Failed to register domain: ${response.statusText}`);
   }
 
-  const json = await response.json();
+  const data = schema.parse(await response.json());
 
-  console.log("registerDomain", json);
+  if (data.RegisterResponse.Status !== "success")
+    throw new Error(
+      `Failed to register domain: ${data.RegisterResponse.Status}`,
+    );
 
-  return json;
-
-  // const data = schema.parse(json);
-
-  // return data;
+  return data;
 };

@@ -1,6 +1,11 @@
+import { createLink } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
+import { configureDNS } from "@/lib/dynadot/configure-dns";
 import { registerDomain } from "@/lib/dynadot/register-domain";
+import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
+import { DEFAULT_LINK_PROPS } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 const schema = z.object({
@@ -13,14 +18,52 @@ const schema = z.object({
 
 // GET /api/domains/register - register a domain
 export const POST = withWorkspace(
-  async ({ searchParams }) => {
+  async ({ searchParams, workspace, session }) => {
     const { domain } = schema.parse(searchParams);
 
     const response = await registerDomain({ domain });
+    const slug = response.RegisterResponse.DomainName;
 
-    // TODO:
-    // Add domain to the workspace if registration is successful
-    // Add DNS records to the domain if registration is successful (in the background)
+    const registeredDomain = await prisma.registeredDomain.create({
+      data: {
+        projectId: workspace.id,
+        slug,
+        expiresAt: new Date(response.RegisterResponse.Expiration),
+      },
+    });
+
+    const totalDomains = await prisma.domain.count({
+      where: {
+        projectId: workspace.id,
+      },
+    });
+
+    await Promise.all([
+      // Create the workspace domain
+      prisma.domain.create({
+        data: {
+          projectId: workspace.id,
+          slug,
+          verified: true,
+          lastChecked: new Date(),
+          registeredDomainId: registeredDomain.id,
+          primary: totalDomains === 0,
+        },
+      }),
+      // Create the root link
+      createLink({
+        ...DEFAULT_LINK_PROPS,
+        domain: slug,
+        key: "_root",
+        url: "",
+        tags: undefined,
+        userId: session.user.id,
+        projectId: workspace.id,
+      }),
+    ]);
+
+    // Configure the DNS in the background
+    waitUntil(configureDNS({ domain: slug }));
 
     return NextResponse.json(response);
   },
