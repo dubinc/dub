@@ -1,4 +1,3 @@
-import { invalidateReferralCoupon } from "@/lib/actions/invalidate-referral-coupon";
 import {
   Button,
   Logo,
@@ -8,7 +7,6 @@ import {
 } from "@dub/ui";
 import { cn, getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
 import { usePlausible } from "next-plausible";
-import { useAction } from "next-safe-action/hooks";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -40,8 +38,6 @@ function WelcomeModal({
   const upgraded = searchParams.get("upgraded");
   const plausible = usePlausible();
 
-  const { executeAsync } = useAction(invalidateReferralCoupon);
-
   const handlePlanUpgrade = async () => {
     if (planId) {
       const currentPlan = getPlanDetails(planId);
@@ -54,8 +50,6 @@ function WelcomeModal({
           revenue: currentPlan.price[period],
         });
       }
-      // invalidate referral coupon
-      await executeAsync();
     }
   };
   useEffect(() => {

@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { REFERRAL_SIGNUPS_MAX } from "@/lib/referrals/constants";
-import { getPrettyUrl } from "@dub/utils";
 import { sendEmail } from "emails";
 import NewReferralSignup from "emails/new-referral-signup";
 
@@ -34,8 +33,12 @@ export async function leadCreated(data: any) {
     }),
   ]);
 
-  if (!user || !workspace) {
-    return "User or workspace not found";
+  if (!user) {
+    return "referredUser not found";
+  }
+
+  if (!workspace) {
+    return `Referral link workspace not found for ${referralLink.shortLink}`;
   }
 
   await Promise.all([
@@ -44,7 +47,7 @@ export async function leadCreated(data: any) {
         id: user.id,
       },
       data: {
-        referredBy: getPrettyUrl(referralLink.shortLink),
+        referredByWorkspaceId: workspace.id,
       },
     }),
     prisma.project.update({

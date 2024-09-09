@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "emails";
-import NewReferralSignup from "emails/new-referral-signup";
+import NewReferralSale from "emails/new-referral-sale";
 
 export async function saleCreated(data: any) {
   const referralLink = data.link;
@@ -37,10 +37,11 @@ export async function saleCreated(data: any) {
         owner.email &&
         sendEmail({
           email: owner.email,
-          subject: `Congrats! You just made a $${Math.round(data.sale.amount / 100).toLocaleString()} sale via your referral link!`,
-          react: NewReferralSignup({
+          subject: `Congrats! You just made a $${(data.sale.amount / 100).toFixed(2)} sale via your Dub referral link!`,
+          react: NewReferralSale({
             email: owner.email,
             workspace,
+            saleAmount: data.sale.amount,
           }),
         }),
     ),

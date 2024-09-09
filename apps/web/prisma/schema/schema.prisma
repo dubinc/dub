@@ -10,23 +10,24 @@ generator client {
 }
 
 model User {
-  id                   String    @id @default(cuid())
-  name                 String?
-  email                String?   @unique
-  emailVerified        DateTime?
-  image                String?
-  isMachine            Boolean   @default(false)
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  isMachine     Boolean   @default(false)
 
   // password data
   passwordHash         String?
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
 
-  createdAt             DateTime               @default(now())
-  subscribed            Boolean                @default(true) // email subscription
+  createdAt             DateTime @default(now())
+  subscribed            Boolean  @default(true) // email subscription
   source                String? // where the user came from
   defaultWorkspace      String? // slug of the user's default workspace
-  referredBy            String? // ID of the workspace that referred this user
+  referredByWorkspace   Project? @relation(fields: [referredByWorkspaceId], references: [id])
+  referredByWorkspaceId String? // ID of the workspace that referred this user
 
   // relational data
   accounts              Account[]
@@ -41,6 +42,7 @@ model User {
 
   @@index(source)
   @@index(defaultWorkspace)
+  @@index([referredByWorkspaceId])
 }
 
 model Account {
