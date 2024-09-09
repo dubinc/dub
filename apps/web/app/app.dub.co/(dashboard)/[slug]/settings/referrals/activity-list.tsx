@@ -48,11 +48,11 @@ export function ActivityList({
               leads: <LeadDescription event={e as LeadEvent} />,
               sales: <SaleDescription event={e as SaleEvent} />,
             }[event],
-            right: (
+            right: e.timestamp ? (
               <div className="whitespace-nowrap">
                 {timeAgo(new Date(e.timestamp), { withAgo: true })}
               </div>
-            ),
+            ) : null,
           };
         })}
         totalEvents={totalEvents}
