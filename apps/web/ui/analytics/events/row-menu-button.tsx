@@ -17,13 +17,13 @@ export function RowMenuButton({ row }: { row: Row<EventDatum> }) {
       content={
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1 text-sm sm:w-auto sm:min-w-[130px]">
-            {"event_id" in row.original && (
+            {"eventId" in row.original && (
               <MenuItem
                 icon={Copy}
                 label="Copy event ID"
                 onSelect={() => {
-                  if (!("event_id" in row.original)) return;
-                  navigator.clipboard.writeText(row.original.event_id);
+                  if (!("eventId" in row.original)) return;
+                  navigator.clipboard.writeText(row.original.eventId as string);
                   toast.success("Copied to clipboard");
                   setIsOpen(false);
                 }}

@@ -5,15 +5,15 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { clickEventEnrichedSchema } from "@/lib/zod/schemas/clicks";
-import { leadEventEnrichedSchema } from "@/lib/zod/schemas/leads";
-import { saleEventEnrichedSchema } from "@/lib/zod/schemas/sales";
+import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
+import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
+import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { COUNTRIES, capitalize } from "@dub/utils";
 import { z } from "zod";
 
-type ClickEvent = z.infer<typeof clickEventEnrichedSchema>;
-type LeadEvent = z.infer<typeof leadEventEnrichedSchema>;
-type SaleEvent = z.infer<typeof saleEventEnrichedSchema>;
+type ClickEvent = z.infer<typeof clickEventResponseSchema>;
+type LeadEvent = z.infer<typeof leadEventResponseSchema>;
+type SaleEvent = z.infer<typeof saleEventResponseSchema>;
 
 type Row = ClickEvent | LeadEvent | SaleEvent;
 
@@ -27,14 +27,14 @@ const columnNames: Record<string, string> = {
 
 const columnAccessors = {
   trigger: (r: Row) => (r.qr ? "QR scan" : "Link click"),
-  event: (r: LeadEvent | SaleEvent) => r.event_name,
+  event: (r: LeadEvent | SaleEvent) => r.eventName,
   link: (r: Row) => r.domain + (r.key === "_root" ? "" : `/${r.key}`),
   country: (r: Row) =>
     r.country ? COUNTRIES[r.country] ?? r.country : r.country,
   customer: (r: LeadEvent | SaleEvent) =>
-    r.customer_name + (r.customer_email ? ` <${r.customer_email}>` : ""),
-  invoiceId: (r: SaleEvent) => r.invoice_id,
-  saleAmount: (r: SaleEvent) => "$" + (r.saleAmount / 100).toFixed(2),
+    r.customer.name + (r.customer.email ? ` <${r.customer.email}>` : ""),
+  invoiceId: (r: SaleEvent) => r.sale.invoiceId,
+  saleAmount: (r: SaleEvent) => "$" + (r.sale.amount / 100).toFixed(2),
 };
 
 // GET /api/events/export – get export data for analytics

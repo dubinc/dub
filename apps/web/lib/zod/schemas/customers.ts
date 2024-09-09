@@ -51,3 +51,10 @@ export const customersMetadataSchema = z.object({
   avatar: z.string().default(""),
   deleted: z.number().default(0),
 });
+
+// simple schema returned by /events API
+export const customerSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  avatar: z.string(),
+});
