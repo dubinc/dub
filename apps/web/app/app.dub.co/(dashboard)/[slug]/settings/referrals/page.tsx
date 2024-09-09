@@ -1,4 +1,4 @@
-import { getEvents } from "@/lib/actions/get-conversion-events";
+import { getConversionEvents } from "@/lib/actions/get-conversion-events";
 import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { EventType } from "@/lib/analytics/types";
@@ -179,9 +179,10 @@ async function ActivityListRSC({
     );
   }
 
-  const events = await getEvents({ linkId: link.id, event, page });
-
-  const totalEvents = await getTotalEvents(link.id);
+  const [events, totalEvents] = await Promise.all([
+    getConversionEvents({ linkId: link.id, event, page }),
+    getTotalEvents(link.id),
+  ]);
 
   return <ActivityList events={events} totalEvents={totalEvents[event] ?? 0} />;
 }

@@ -10,7 +10,7 @@ import { dub } from "../dub";
 
 export type ConversionEvent = ClickEvent | LeadEvent | SaleEvent;
 
-export const getEvents = async ({
+export const getConversionEvents = async ({
   linkId,
   event,
   page,
