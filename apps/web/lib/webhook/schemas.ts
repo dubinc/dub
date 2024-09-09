@@ -17,25 +17,37 @@ const saleSchema = z.object({
   invoiceId: z.string().nullable(),
 });
 
-export const clickWebhookEventSchema = z.object({
-  click: clickEventSchema,
-  link: linkEventSchema,
-});
+export const clickWebhookEventSchema = z
+  .object({
+    click: clickEventSchema,
+    link: linkEventSchema,
+  })
+  .openapi({
+    title: "ClickWebhookEvent",
+  });
 
-export const leadWebhookEventSchema = z.object({
-  eventName: z.string(),
-  customer: customerSchema,
-  click: clickEventSchema,
-  link: linkEventSchema,
-});
+export const leadWebhookEventSchema = z
+  .object({
+    eventName: z.string(),
+    customer: customerSchema,
+    click: clickEventSchema,
+    link: linkEventSchema,
+  })
+  .openapi({
+    title: "LeadWebhookEvent",
+  });
 
-export const saleWebhookEventSchema = z.object({
-  eventName: z.string(),
-  customer: customerSchema,
-  click: clickEventSchema,
-  link: linkEventSchema,
-  sale: saleSchema,
-});
+export const saleWebhookEventSchema = z
+  .object({
+    eventName: z.string(),
+    customer: customerSchema,
+    click: clickEventSchema,
+    link: linkEventSchema,
+    sale: saleSchema,
+  })
+  .openapi({
+    title: "SaleWebhookEvent",
+  });
 
 // Schema of the payload sent to the webhook endpoint by Dub
 export const webhookPayloadSchema = z.object({
