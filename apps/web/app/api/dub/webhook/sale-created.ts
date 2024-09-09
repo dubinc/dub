@@ -3,7 +3,7 @@ import { sendEmail } from "emails";
 import NewReferralSale from "emails/new-referral-sale";
 
 export async function saleCreated(data: any) {
-  const { link: referralLink } = data.sale;
+  const { link: referralLink } = data;
 
   if (!referralLink) {
     return "Referral link not found in webhook payload";
