@@ -3,7 +3,7 @@ import { sendEmail } from "emails";
 import NewReferralSale from "emails/new-referral-sale";
 
 export async function saleCreated(data: any) {
-  const referralLink = data.link;
+  const { link: referralLink } = data.sale;
 
   if (!referralLink) {
     return "Referral link not found in webhook payload";
@@ -26,7 +26,7 @@ export async function saleCreated(data: any) {
   });
 
   if (!workspace) {
-    return "Workspace not found";
+    return `Referral link workspace not found for ${referralLink.shortLink}`;
   }
 
   const workspaceOwners = workspace.users.map(({ user }) => user);
@@ -37,7 +37,7 @@ export async function saleCreated(data: any) {
         owner.email &&
         sendEmail({
           email: owner.email,
-          subject: `Congrats! You just made a $${(data.sale.amount / 100).toFixed(2)} sale via your Dub referral link!`,
+          subject: `Congrats! You just made a $${Math.round(data.sale.amount / 100).toLocaleString()} sale via your Dub referral link!`,
           react: NewReferralSale({
             email: owner.email,
             workspace,
@@ -47,5 +47,5 @@ export async function saleCreated(data: any) {
     ),
   );
 
-  return `Successfully tracked referral sale for ${workspace.name} (slug: ${workspace.slug})`;
+  return `Successfully handled referral sale event for ${workspace.name} (slug: ${workspace.slug})`;
 }

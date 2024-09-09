@@ -85,5 +85,5 @@ export async function leadCreated(data: any) {
     //   sendMerchLink(workspace.id),
   ]);
 
-  return `Successfully tracked referral signup for ${workspace.name} (slug: ${workspace.slug})`;
+  return `Successfully handled referral signup event for ${workspace.name} (slug: ${workspace.slug})`;
 }
