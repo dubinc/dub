@@ -3,7 +3,6 @@ import { withSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { unsubscribe } from "@/lib/resend";
 import { storage } from "@/lib/storage";
-import { redis } from "@/lib/upstash";
 import { R2_URL, nanoid, trim } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -47,18 +46,8 @@ export const GET = withSession(async ({ session }) => {
     }),
   ]);
 
-  const migratedWorkspace = await redis.hget(
-    "migrated_links_users",
-    session.user.id,
-  );
-
-  if (migratedWorkspace) {
-    await redis.hdel("migrated_links_users", session.user.id);
-  }
-
   return NextResponse.json({
     ...user,
-    migratedWorkspace,
     provider: account?.provider,
     hasPassword: user?.passwordHash !== null,
     passwordHash: undefined,

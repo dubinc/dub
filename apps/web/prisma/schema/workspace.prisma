@@ -23,7 +23,8 @@ model Project {
   aiLimit      Int @default(10)
 
   referralLinkId  String? @unique
-  referredSignups Int @default(0)
+  referredSignups Int     @default(0)
+  referredUsers   User[]
 
   webhookEnabled    Boolean @default(false)
   conversionEnabled Boolean @default(false)
@@ -62,7 +63,7 @@ model ProjectInvite {
   projectId String
   role      Role     @default(member)
   createdAt DateTime @default(now())
-  
+
   @@unique([email, projectId])
   @@index([projectId])
 }

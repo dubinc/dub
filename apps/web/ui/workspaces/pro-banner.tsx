@@ -1,4 +1,4 @@
-import { Button, buttonVariants, useRouterStuff } from "@dub/ui";
+import { Button, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Cookies from "js-cookie";
 import Link from "next/link";
@@ -12,7 +12,6 @@ export default function ProBanner({
   setShowProBanner: Dispatch<SetStateAction<boolean>>;
 }) {
   const { slug } = useParams() as { slug: string };
-  const { queryParams } = useRouterStuff();
 
   return (
     <div className="fixed bottom-24 z-10 mx-5 flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white p-5 shadow-lg sm:right-5 sm:mx-auto sm:max-w-sm">

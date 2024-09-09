@@ -4,15 +4,16 @@ import {
   Google,
   Label,
   LinkedIn,
-  Logo,
   ProductHunt,
   RadioGroup,
   RadioGroupItem,
   Twitter,
   useMediaQuery,
+  Wordmark,
 } from "@dub/ui";
+import { Globe } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
-import { ChevronRight, Globe } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useContext, useState } from "react";
 import { UserSurveyContext } from ".";
 
@@ -62,8 +63,8 @@ export default function SurveyForm({
   const { status } = useContext(UserSurveyContext);
 
   return (
-    <div className="flex flex-col space-y-4">
-      <Logo className="h-8 w-8" />
+    <div className="grid gap-4">
+      <Wordmark className="h-8" />
       <p className="text-sm font-medium text-gray-800">
         Where did you hear about Dub?
       </p>
@@ -100,7 +101,7 @@ export default function SurveyForm({
               />
               <Label
                 htmlFor={option.value}
-                className="flex h-full cursor-pointer select-none items-center space-x-4 px-4 py-2 text-gray-600"
+                className="flex h-full cursor-pointer select-none items-center gap-2 px-4 py-2 text-gray-600"
               >
                 <option.icon
                   className={cn(
