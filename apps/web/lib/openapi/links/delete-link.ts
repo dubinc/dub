@@ -18,7 +18,7 @@ export const deleteLink: ZodOpenApiOperationObject = {
   },
   responses: {
     "200": {
-      description: "The deleted link",
+      description: "The deleted link ID.",
       content: {
         "application/json": {
           schema: z.object({
