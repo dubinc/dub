@@ -1,11 +1,13 @@
 import z from "@/lib/zod";
+import { DubApiError } from "../api/errors";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL, DYNADOT_COUPON } from "./constants";
 
 const schema = z.object({
   RegisterResponse: z.object({
     Status: z.string(),
     DomainName: z.string(),
-    Expiration: z.number(),
+    Error: z.string().optional(),
+    Expiration: z.number().optional(),
   }),
 });
 
@@ -35,9 +37,10 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
   const data = schema.parse(await response.json());
 
   if (data.RegisterResponse.Status !== "success")
-    throw new Error(
-      `Failed to register domain: ${data.RegisterResponse.Status}`,
-    );
+    throw new DubApiError({
+      code: "forbidden",
+      message: `Failed to register domain: ${data.RegisterResponse.Error}`,
+    });
 
   return data;
 };

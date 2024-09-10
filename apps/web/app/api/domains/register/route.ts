@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { configureDNS } from "@/lib/dynadot/configure-dns";
@@ -20,7 +21,10 @@ const schema = z.object({
 export const POST = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     if (workspace.plan === "free")
-      throw new Error("Free workspaces cannot register .link domains.");
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Free workspaces cannot register .link domains.",
+      });
 
     const { domain } = schema.parse(searchParams);
 
@@ -35,7 +39,10 @@ export const POST = withWorkspace(
       });
 
     if (existingRegisteredDotLinkDomain)
-      throw new Error("Workspace is limited to one free .link domain.");
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Workspace is limited to one free .link domain.",
+      });
 
     const response = await registerDomain({ domain });
     const slug = response.RegisterResponse.DomainName;
@@ -58,7 +65,7 @@ export const POST = withWorkspace(
           registeredDomain: {
             create: {
               slug,
-              expiresAt: new Date(response.RegisterResponse.Expiration),
+              expiresAt: new Date(response.RegisterResponse.Expiration || ""),
               projectId: workspace.id,
             },
           },

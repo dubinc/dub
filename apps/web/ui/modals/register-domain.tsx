@@ -68,7 +68,8 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
     );
 
     if (!response.ok) {
-      toast.error("Failed to register domain.");
+      const { error } = await response.json();
+      toast.error(error.message);
       setIsRegistering(false);
       return;
     }
