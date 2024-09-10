@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
@@ -20,6 +21,19 @@ export const searchDomainsAvailability = async ({
 }: {
   domain: string;
 }) => {
+  const domainOnDub = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+  });
+  if (domainOnDub) {
+    return {
+      domain: domainOnDub.slug,
+      available: false,
+      price: null,
+    };
+  }
+
   const searchParams = new URLSearchParams({
     key: DYNADOT_API_KEY,
     domain0: domain,
