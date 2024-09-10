@@ -1,10 +1,12 @@
 import useDomainsCount from "@/lib/swr/use-domains-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Grid, useLocalStorage } from "@dub/ui";
 import { LinkBroken } from "@dub/ui/src/icons";
 import { useRegisterDomainModal } from "../modals/register-domain";
 import { X } from "../shared/icons";
 
 export function FreeDotLinkBanner() {
+  const { plan } = useWorkspace();
   const [hide, setHide] = useLocalStorage("free-dot-link-banner-hide", false);
 
   const { RegisterDomainModal, setShowRegisterDomainModal } =
@@ -33,7 +35,7 @@ export function FreeDotLinkBanner() {
           </div>
           <p className="text-sm text-gray-900">
             Claim a free <span className="font-semibold">.link</span> domain,
-            free for one year.{" "}
+            free for one year{plan === "free" && " with any paid plan"}.{" "}
             <a
               href="https://dub.co/help/article/how-to-add-custom-domain" // TODO: Update link
               target="_blank"
