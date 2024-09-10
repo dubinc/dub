@@ -116,8 +116,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       },
     });
 
-    return links.map((link) =>
-      analyticsResponse[groupBy].parse({
+    return topLinksData.map((topLink) => {
+      const link = links.find((l) => l.id === topLink.link);
+      if (!link) {
+        return null;
+      }
+      return analyticsResponse[groupBy].parse({
         id: link.id,
         domain: link.domain,
         key: link.key,
@@ -126,11 +130,10 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           domain: link.domain,
           key: link.key,
         }),
-        link: link.id,
         createdAt: link.createdAt.toISOString(),
-        ...topLinksData.find((l) => l.link === link.id),
-      }),
-    );
+        ...topLink,
+      });
+    });
   }
 
   // Return array for other endpoints
