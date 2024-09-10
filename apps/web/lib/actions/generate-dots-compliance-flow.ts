@@ -8,8 +8,8 @@ const schema = z.object({
   workspaceId: z.string(),
 });
 
-// Refresh the Dots app KYB compliance flow.
-export const generateDotsComplianceFlow = authActionClient
+// Generate a URL to refresh the Dots app KYB compliance flow.
+export const generateDotsComplianceFlowAction = authActionClient
   .schema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;

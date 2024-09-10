@@ -29,17 +29,14 @@ export const refreshDotsKYBComplianceFlow = async ({
 
   const data = await response.text();
 
-  console.log("refreshDotsKYBComplianceFlow", data, appId, getEncodedCredentials());
-
+  console.log(
+    "refreshDotsKYBComplianceFlow",
+    data,
+    appId,
+    getEncodedCredentials(),
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to refresh Dots KYB compliance flow ${data}`);
   }
-
-
-  // const data = await response.json();
-
-  // console.log({ data });
-
-  // return dotsFlowSchema.parse(data);
 };

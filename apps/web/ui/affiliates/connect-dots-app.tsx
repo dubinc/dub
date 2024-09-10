@@ -1,7 +1,7 @@
 "use client";
 
-import { createDotsApp } from "@/lib/actions/create-dots-app";
-import { generateDotsComplianceFlow } from "@/lib/actions/generate-dots-compliance-flow";
+import { createDotsAppAction } from "@/lib/actions/create-dots-app";
+import { generateDotsComplianceFlowAction } from "@/lib/actions/generate-dots-compliance-flow";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export const ConnectDotsApp = () => {
   const { id, dotsAppId } = useWorkspace();
 
-  const createDotsAppAction = useAction(createDotsApp, {
+  const createDotsApp = useAction(createDotsAppAction, {
     onSuccess: () => {
       toast.success("Payout settings enabled successfully.");
     },
@@ -19,9 +19,9 @@ export const ConnectDotsApp = () => {
     },
   });
 
-  const updateKYBAction = useAction(generateDotsComplianceFlow, {
+  const generateURL = useAction(generateDotsComplianceFlowAction, {
     onSuccess: () => {
-      toast.success("KYB updated successfully.");
+     // Redirect to the URL
     },
     onError: ({ error }) => {
       toast.error(error.serverError?.serverError);
@@ -44,7 +44,7 @@ export const ConnectDotsApp = () => {
               <Button
                 text="Update your KYB info"
                 onClick={() => {
-                  updateKYBAction.execute({ workspaceId: id! });
+                  generateURL.execute({ workspaceId: id! });
                 }}
               />
             </div>
@@ -53,7 +53,7 @@ export const ConnectDotsApp = () => {
               <Button
                 text="Enable Payout"
                 onClick={() => {
-                  createDotsAppAction.execute({ workspaceId: id! });
+                  createDotsApp.execute({ workspaceId: id! });
                 }}
               />
             </div>

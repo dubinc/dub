@@ -31,7 +31,8 @@ export const createNewDotsApp = async ({
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to create Dots app: ${await response.text()}`);
+    console.error(await response.text());
+    throw new Error("Failed to create Dots app.");
   }
 
   return dotsAppSchema.parse(await response.json());

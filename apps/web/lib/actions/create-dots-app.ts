@@ -10,7 +10,7 @@ const schema = z.object({
 });
 
 // Create a new Dots app for a workspace
-export const createDotsApp = authActionClient
+export const createDotsAppAction = authActionClient
   .schema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
