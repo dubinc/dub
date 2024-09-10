@@ -137,7 +137,7 @@ export interface DomainProps {
   placeholder?: string;
   expiredUrl?: string;
   projectId: string;
-  registeredDomain: RegisteredDomainProps;
+  registeredDomain?: RegisteredDomainProps;
 }
 
 export interface RegisteredDomainProps {
