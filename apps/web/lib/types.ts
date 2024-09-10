@@ -137,7 +137,13 @@ export interface DomainProps {
   placeholder?: string;
   expiredUrl?: string;
   projectId: string;
-  registeredDomainId?: string;
+  registeredDomain: RegisteredDomainProps;
+}
+
+export interface RegisteredDomainProps {
+  id: string;
+  createdAt: Date;
+  expiresAt: Date;
 }
 
 export interface BitlyGroupProps {

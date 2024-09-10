@@ -48,9 +48,9 @@ import { DomainCardTitleColumn } from "./domain-card-title-column";
 import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
-  const { slug: domain, primary, registeredDomainId } = props || {};
+  const { slug: domain, primary, registeredDomain } = props || {};
 
-  const isDubProvisioned = !!registeredDomainId;
+  const isDubProvisioned = !!registeredDomain;
 
   const { id: workspaceId, slug } = useWorkspace();
 
@@ -271,8 +271,8 @@ function Menu({
   };
   groupHover: boolean;
 }) {
-  const { primary, archived, slug: domain, registeredDomainId } = props;
-  const isDubProvisioned = !!registeredDomainId;
+  const { primary, archived, slug: domain, registeredDomain } = props;
+  const isDubProvisioned = !!registeredDomain;
 
   const { isMobile } = useMediaQuery();
 

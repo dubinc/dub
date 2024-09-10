@@ -24,14 +24,6 @@ export const POST = withWorkspace(
     const response = await registerDomain({ domain });
     const slug = response.RegisterResponse.DomainName;
 
-    const registeredDomain = await prisma.registeredDomain.create({
-      data: {
-        projectId: workspace.id,
-        slug,
-        expiresAt: new Date(response.RegisterResponse.Expiration),
-      },
-    });
-
     const totalDomains = await prisma.domain.count({
       where: {
         projectId: workspace.id,
@@ -46,8 +38,14 @@ export const POST = withWorkspace(
           slug,
           verified: true,
           lastChecked: new Date(),
-          registeredDomainId: registeredDomain.id,
           primary: totalDomains === 0,
+          registeredDomain: {
+            create: {
+              slug,
+              expiresAt: new Date(response.RegisterResponse.Expiration),
+              projectId: workspace.id,
+            },
+          },
         },
       }),
       // Create the root link

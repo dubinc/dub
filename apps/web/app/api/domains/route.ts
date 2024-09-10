@@ -30,6 +30,9 @@ export const GET = withWorkspace(
           },
         }),
       },
+      include: {
+        registeredDomain: true,
+      },
       take: pageSize,
       skip: (page - 1) * pageSize,
     });
