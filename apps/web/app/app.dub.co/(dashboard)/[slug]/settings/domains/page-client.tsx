@@ -16,7 +16,7 @@ import { Button, Globe, Popover, usePagination, useRouterStuff } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { capitalize } from "@dub/utils";
-import { Link } from "lucide-react";
+import { ChevronDown, Link } from "lucide-react";
 import { useState } from "react";
 import { DefaultDomains } from "./default-domains";
 
@@ -100,58 +100,70 @@ export default function WorkspaceDomainsClient() {
               }
             />
 
-            <Popover
-              content={
-                <div className="grid w-screen gap-px p-2 sm:w-60">
-                  <Button
-                    text="Connect a domain you own"
-                    variant="outline"
-                    icon={<Globe className="h-4 w-4" />}
-                    className="h-9 justify-start px-2"
-                    onClick={() => setShowAddEditDomainModal(true)}
-                    disabledTooltip={
-                      exceededDomains ? (
-                        <TooltipContent
-                          title={`You can only add up to ${domainsLimit} domain${
-                            domainsLimit === 1 ? "" : "s"
-                          } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
-                          cta="Upgrade"
-                          onClick={() => {
-                            queryParams({
-                              set: {
-                                upgrade: nextPlan.name.toLowerCase(),
-                              },
-                            });
-                          }}
-                        />
-                      ) : (
-                        permissionsError || undefined
-                      )
-                    }
-                    disabled={exceededDomains || !!permissionsError}
-                  />
-                  {flags?.dotlink && (
+            {flags?.dotlink ? (
+              <Popover
+                content={
+                  <div className="grid w-screen gap-px p-2 sm:w-60">
+                    <Button
+                      text="Connect a domain you own"
+                      variant="outline"
+                      icon={<Globe className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 text-gray-800"
+                      onClick={() => setShowAddEditDomainModal(true)}
+                      disabledTooltip={
+                        exceededDomains ? (
+                          <TooltipContent
+                            title={`You can only add up to ${domainsLimit} domain${
+                              domainsLimit === 1 ? "" : "s"
+                            } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+                            cta="Upgrade"
+                            onClick={() => {
+                              queryParams({
+                                set: {
+                                  upgrade: nextPlan.name.toLowerCase(),
+                                },
+                              });
+                            }}
+                          />
+                        ) : (
+                          permissionsError || undefined
+                        )
+                      }
+                      disabled={exceededDomains || !!permissionsError}
+                    />
                     <Button
                       text="Claim free .link domain"
                       variant="outline"
                       icon={<Link className="h-4 w-4" />}
-                      className="h-9 justify-start px-2"
+                      className="h-9 justify-start px-2 text-gray-800"
                       onClick={() => setShowRegisterDomainModal(true)}
                     />
-                  )}
-                </div>
-              }
-              align="end"
-              openPopover={openPopover}
-              setOpenPopover={setOpenPopover}
-            >
+                  </div>
+                }
+                align="end"
+                openPopover={openPopover}
+                setOpenPopover={setOpenPopover}
+              >
+                <Button
+                  variant="primary"
+                  className="w-fit"
+                  text={
+                    <div className="flex items-center gap-2">
+                      Add domain{" "}
+                      <ChevronDown className="size-4 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                    </div>
+                  }
+                  onClick={() => setOpenPopover(!openPopover)}
+                />
+              </Popover>
+            ) : (
               <Button
                 variant="primary"
                 className="w-fit"
                 text="Add domain"
-                onClick={() => setOpenPopover(!openPopover)}
+                onClick={() => setShowAddEditDomainModal(true)}
               />
-            </Popover>
+            )}
           </div>
         </div>
 
