@@ -1,3 +1,4 @@
+import { affiliateSchema } from "@/lib/affiliates/schemas";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -16,16 +17,34 @@ const createAffiliateSchema = z.object({
   externalId: z.string().nullish(),
 });
 
-const affiliateSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  linkId: z.string(),
-  firstName: z.string().nullish(),
-  lastName: z.string().nullish(),
-  phoneNumber: z.string().nullish(),
-  countryCode: z.string().nullish(),
-  externalId: z.string().nullish(),
-});
+// GET /api/affiliates – get all affiliates for a workspace
+export const GET = withWorkspace(
+  async ({ workspace }) => {
+    const affiliates = await prisma.affiliate.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      include: {
+        link: {
+          select: {
+            id: true,
+            key: true,
+            url: true,
+            domain: true,
+          },
+        },
+      },
+    });
+
+    const response = affiliateSchema.array().parse(affiliates);
+
+    return NextResponse.json(response);
+  },
+  {
+    // requiredAddOn: "conversion",
+    // requiredPermissions: ["conversions.write"],
+  },
+);
 
 // POST /api/affiliates – create an affiliate
 export const POST = withWorkspace(
@@ -67,6 +86,16 @@ export const POST = withWorkspace(
         countryCode,
         externalId,
       },
+      include: {
+        link: {
+          select: {
+            id: true,
+            key: true,
+            url: true,
+            domain: true,
+          },
+        },
+      },
     });
 
     // Create a Dots user
@@ -95,7 +124,9 @@ export const POST = withWorkspace(
       },
     });
 
-    return NextResponse.json(affiliateSchema.parse(affiliate), { status: 201 });
+    const response = affiliateSchema.parse(affiliate);
+
+    return NextResponse.json(response, { status: 201 });
   },
   {
     // requiredAddOn: "conversion",

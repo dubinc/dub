@@ -60,7 +60,8 @@ model Link {
   webhooks LinkWebhook[]
 
   // Comments on the particular shortlink
-  comments String? @db.LongText
+  comments  String?    @db.LongText
+  affiliate Affiliate?
 
   @@unique([domain, key])
   @@unique([projectId, externalId])

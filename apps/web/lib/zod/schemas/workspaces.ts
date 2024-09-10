@@ -68,6 +68,11 @@ export const WorkspaceSchema = z
       .nullable()
       .describe("The ID of the referral link of the workspace."),
 
+    dotsAppId: z
+      .string()
+      .nullable()
+      .describe("The ID of the Dots app of the workspace."),
+
     conversionEnabled: z
       .boolean()
       .describe(

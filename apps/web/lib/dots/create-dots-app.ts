@@ -1,20 +1,26 @@
 import { Project } from "@prisma/client";
+import z from "../zod";
 import { getDotsEnv } from "./env";
 import { getEncodedCredentials } from "./utils";
 
-export const createDotsApp = async ({
+const dotsAppSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  status: z.string(),
+});
+
+export const createNewDotsApp = async ({
   workspace,
 }: {
   workspace: Pick<Project, "id" | "name">;
 }) => {
   const { DOTS_API_URL } = getDotsEnv();
-  const authToken = getEncodedCredentials();
 
   const response = await fetch(`${DOTS_API_URL}/apps`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Basic ${authToken}`,
+      Authorization: `Basic ${getEncodedCredentials()}`,
     },
     body: JSON.stringify({
       name: workspace.name,
@@ -24,13 +30,9 @@ export const createDotsApp = async ({
     }),
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(`Failed to create Dots app: ${data}`);
+    throw new Error(`Failed to create Dots app: ${await response.text()}`);
   }
 
-  console.log("createDotsApp", data);
-
-  return data;
+  return dotsAppSchema.parse(await response.json());
 };

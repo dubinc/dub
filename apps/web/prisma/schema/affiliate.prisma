@@ -7,34 +7,47 @@ model Affiliate {
   phoneNumber String?
   countryCode String?
   externalId  String?
-  linkId      String
-  dotsUserId  String?
+  linkId      String?  @unique
+  dotsUserId  String?  @unique
   dotsStatus  String?
   dotsFlowId  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  // link    ReferralLink     @relation(fields: [linkId], references: [id], onDelete: Cascade)
-  tokens  AffiliateToken[]
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  link    Link?   @relation(fields: [linkId], references: [id], onDelete: SetNull)
 
   @@unique([projectId, email])
   @@unique([projectId, externalId])
-  @@unique([dotsUserId])
   @@index([projectId])
   @@index([externalId])
 }
 
-model AffiliateToken {
-  id          String   @id @default(cuid())
-  affiliateId String
-  token       String
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Payout {
+  id           String   @id @default(cuid())
+  affiliateId  String
+  amount       Int
+  currency     String
+  currencyRate String
+  status       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  referrals Referral[]
+}
 
-  @@unique([token])
-  @@index([affiliateId])
+model Referral {
+  id           String   @id @default(cuid())
+  payoutId     String?
+  clickId      String
+  amount       Int
+  currency     String
+  currencyRate String
+  status       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  payout Payout? @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+
+  @@index([payoutId])
 }

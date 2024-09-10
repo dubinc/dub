@@ -109,6 +109,28 @@ export default function WorkspaceSettingsLayoutClient({
           },
         ],
       },
+
+      // Affiliate Settings
+      {
+        group: "Affiliate Settings",
+        tabs: [
+          {
+            name: "General",
+            icon: Gear2,
+            segment: "affiliates/settings",
+          },
+          {
+            name: "Affiliates",
+            icon: Users6,
+            segment: "affiliates",
+          },
+          {
+            name: "Payouts",
+            icon: Receipt2,
+            segment: "affiliates/payouts",
+          },
+        ],
+      },
     ],
     [flags],
   );
