@@ -24,17 +24,18 @@ export const POST = withWorkspace(
 
     const { domain } = schema.parse(searchParams);
 
-    const existingDotLinkDomain = await prisma.domain.findFirst({
-      where: {
-        projectId: workspace.id,
-        slug: {
-          endsWith: ".link",
+    const existingRegisteredDotLinkDomain =
+      await prisma.registeredDomain.findFirst({
+        where: {
+          projectId: workspace.id,
+          slug: {
+            endsWith: ".link",
+          },
         },
-      },
-    });
+      });
 
-    if (existingDotLinkDomain)
-      throw new Error("Workspace is limited to one .link domain.");
+    if (existingRegisteredDotLinkDomain)
+      throw new Error("Workspace is limited to one free .link domain.");
 
     const response = await registerDomain({ domain });
     const slug = response.RegisterResponse.DomainName;
