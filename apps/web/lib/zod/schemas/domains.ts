@@ -42,7 +42,7 @@ export const DomainSchema = z.object({
       createdAt: z.date().describe("The date the domain was created."),
       expiresAt: z.date().describe("The date the domain expires."),
     })
-    .nullable()
+    .nullish()
     .describe("The registered domain record."),
 });
 
