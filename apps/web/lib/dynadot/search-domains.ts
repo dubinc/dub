@@ -24,6 +24,7 @@ export const searchDomainsAvailability = async ({
   const domainOnDub = await prisma.domain.findUnique({
     where: {
       slug: domain,
+      verified: true,
     },
   });
   if (domainOnDub) {
