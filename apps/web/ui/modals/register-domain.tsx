@@ -10,6 +10,7 @@ import { cn } from "@dub/utils";
 import { CircleCheck, Search } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { AlertCircleFill, CheckCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
@@ -73,6 +74,21 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
     }
 
     toast.success("Domain registered successfully!");
+
+    // Mutate domains and links
+    await Promise.all([
+      mutate(
+        (key) =>
+          typeof key === "string" &&
+          key.startsWith(`/api/domains?workspaceId=${workspace.id}`),
+      ),
+      mutate(
+        (key) => typeof key === "string" && key.startsWith("/api/links"),
+        undefined,
+        { revalidate: true },
+      ),
+    ]);
+
     setShowModal(false);
     setIsRegistering(false);
   };
