@@ -19,7 +19,22 @@ const schema = z.object({
 // GET /api/domains/register - register a domain
 export const POST = withWorkspace(
   async ({ searchParams, workspace, session }) => {
+    if (workspace.plan === "free")
+      throw new Error("Free workspaces cannot register .link domains.");
+
     const { domain } = schema.parse(searchParams);
+
+    const existingDotLinkDomain = await prisma.domain.findFirst({
+      where: {
+        projectId: workspace.id,
+        slug: {
+          endsWith: ".link",
+        },
+      },
+    });
+
+    if (existingDotLinkDomain)
+      throw new Error("Workspace is limited to one .link domain.");
 
     const response = await registerDomain({ domain });
     const slug = response.RegisterResponse.DomainName;

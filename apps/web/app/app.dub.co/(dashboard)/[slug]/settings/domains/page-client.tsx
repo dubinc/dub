@@ -12,11 +12,19 @@ import { useRegisterDomainModal } from "@/ui/modals/register-domain";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
-import { Button, Globe, Popover, usePagination, useRouterStuff } from "@dub/ui";
+import {
+  Badge,
+  Button,
+  Globe,
+  Popover,
+  usePagination,
+  useRouterStuff,
+} from "@dub/ui";
+import { LinkBroken } from "@dub/ui/src/icons";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { capitalize } from "@dub/utils";
-import { ChevronDown, Link } from "lucide-react";
+import { ChevronDown, Crown } from "lucide-react";
 import { useState } from "react";
 import { DefaultDomains } from "./default-domains";
 
@@ -35,6 +43,10 @@ export default function WorkspaceDomainsClient() {
   const { searchParams, queryParams } = useRouterStuff();
   const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
   const { data: domainsCount } = useDomainsCount();
+  const { data: dotLinkDomainsCount } = useDomainsCount({
+    includeParams: false,
+    params: { search: ".link" },
+  });
   const { pagination, setPagination } = usePagination(50);
 
   const archived = searchParams.get("archived");
@@ -103,7 +115,7 @@ export default function WorkspaceDomainsClient() {
             {flags?.dotlink ? (
               <Popover
                 content={
-                  <div className="grid w-screen gap-px p-2 sm:w-60">
+                  <div className="grid w-screen gap-px p-2 sm:w-fit sm:min-w-60">
                     <Button
                       text="Connect a domain you own"
                       variant="outline"
@@ -132,11 +144,29 @@ export default function WorkspaceDomainsClient() {
                       disabled={exceededDomains || !!permissionsError}
                     />
                     <Button
-                      text="Claim free .link domain"
+                      text={
+                        <div className="flex items-center gap-3">
+                          Claim free .link domain
+                          {plan === "free" ? (
+                            <Badge
+                              variant="neutral"
+                              className="flex items-center gap-1"
+                            >
+                              <Crown className="size-3" />
+                              <span className="uppercase">Pro</span>
+                            </Badge>
+                          ) : dotLinkDomainsCount ? (
+                            <span className="rounded-md border border-green-200 bg-green-500/10 px-1 py-0.5 text-xs text-green-900">
+                              Claimed
+                            </span>
+                          ) : null}
+                        </div>
+                      }
                       variant="outline"
-                      icon={<Link className="h-4 w-4" />}
-                      className="h-9 justify-start px-2 text-gray-800"
+                      icon={<LinkBroken className="size-4" />}
+                      className="h-9 justify-start px-2 text-gray-800 disabled:border-none disabled:bg-transparent disabled:text-gray-500"
                       onClick={() => setShowRegisterDomainModal(true)}
+                      disabled={Boolean(dotLinkDomainsCount)}
                     />
                   </div>
                 }
