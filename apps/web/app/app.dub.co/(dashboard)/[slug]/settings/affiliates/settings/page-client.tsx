@@ -1,3 +1,3 @@
 export const AffiliateSettingClient = () => {
-  return <>Hello</>
-}
+  return <>Hello</>;
+};

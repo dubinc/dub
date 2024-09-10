@@ -33,7 +33,6 @@ export const AffiliatesClient = () => {
         </div>
       </div>
 
-              
       <AffiliateTable />
     </>
   );

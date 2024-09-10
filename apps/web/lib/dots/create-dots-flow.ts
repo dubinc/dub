@@ -26,7 +26,7 @@ export const createDotsFlow = async ({
       "Api-App-Id": "021a1077-0aae-4cdc-9cd3-fe661c4d7b73",
     },
     body: JSON.stringify({
-      steps: ["compliance","manage-payouts", "manage-payments"],
+      steps: ["compliance", "manage-payouts", "manage-payments"],
       user_id: dotsUserId,
       hide_go_to_dashboard_on_complete: true,
       // require_auth: true,

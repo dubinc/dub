@@ -1,4 +1,3 @@
-import { Project } from "@prisma/client";
 import z from "../zod";
 import { getDotsEnv } from "./env";
 import { getEncodedCredentials } from "./utils";
@@ -26,7 +25,7 @@ export const sendPayout = async ({
       user_id: dotsUserId,
       amount,
       platform: "default",
-      fund: true
+      fund: true,
     }),
   });
 

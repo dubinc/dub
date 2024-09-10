@@ -1,6 +1,5 @@
 "use client";
 
-import { createDotsFlow } from "@/lib/dots/create-dots-flow";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { useState } from "react";
@@ -12,13 +11,16 @@ export const PayoutSettings = () => {
   const handleCreateFlow = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/affiliates/flows?workspaceId=${workspaceId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/affiliates/flows?workspaceId=${workspaceId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ affiliateId: "xxx" }),
         },
-        body: JSON.stringify({ affiliateId: "xxx" }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to create flow");
