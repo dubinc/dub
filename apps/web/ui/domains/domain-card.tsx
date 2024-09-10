@@ -345,40 +345,33 @@ function Menu({
 
       <motion.div
         animate={{
-          width:
-            groupHover && !isMobile
-              ? "auto"
-              : isMobile && !isDubProvisioned
-                ? 79
-                : 38,
+          width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 39,
         }}
         initial={false}
         className="flex items-center justify-end divide-x divide-gray-200 overflow-hidden rounded-md border border-gray-200 sm:divide-transparent sm:group-hover:divide-gray-200"
       >
+        <Button
+          icon={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
+          variant="outline"
+          className="h-8 rounded-none border-0 px-3"
+          onClick={() => setShowAddEditDomainModal(true)}
+        />
         {!isDubProvisioned && (
-          <>
+          <Tooltip content="Refresh">
             <Button
-              icon={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
+              icon={
+                <Refresh2
+                  className={cn(
+                    "h-4 w-4 shrink-0 -scale-100 transition-colors [animation-duration:0.25s]",
+                    refreshProps.isValidating && "animate-spin text-gray-500",
+                  )}
+                />
+              }
               variant="outline"
-              className="h-8 rounded-none border-0 px-3"
-              onClick={() => setShowAddEditDomainModal(true)}
+              className="h-8 rounded-none border-0 px-3 text-gray-600"
+              onClick={() => refreshProps.mutate()}
             />
-            <Tooltip content="Refresh">
-              <Button
-                icon={
-                  <Refresh2
-                    className={cn(
-                      "h-4 w-4 shrink-0 -scale-100 transition-colors [animation-duration:0.25s]",
-                      refreshProps.isValidating && "animate-spin text-gray-500",
-                    )}
-                  />
-                }
-                variant="outline"
-                className="h-8 rounded-none border-0 px-3 text-gray-600"
-                onClick={() => refreshProps.mutate()}
-              />
-            </Tooltip>
-          </>
+          </Tooltip>
         )}
         <Popover
           content={
@@ -435,18 +428,16 @@ function Menu({
                 <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
                   Domain Settings
                 </p>
-                {!isDubProvisioned && (
-                  <Button
-                    text="Edit Domain"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowAddEditDomainModal(true);
-                    }}
-                    icon={<PenWriting className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
-                )}
+                <Button
+                  text="Edit Domain"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowAddEditDomainModal(true);
+                  }}
+                  icon={<PenWriting className="h-4 w-4" />}
+                  className="h-9 justify-start px-2 font-medium"
+                />
                 {!primary && (
                   <Button
                     text="Set as Primary"

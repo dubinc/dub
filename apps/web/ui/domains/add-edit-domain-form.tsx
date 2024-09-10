@@ -31,6 +31,8 @@ export function AddEditDomainForm({
 }) {
   const { id: workspaceId } = useWorkspace();
 
+  const isDubProvisioned = !!props?.registeredDomain;
+
   const [data, setData] = useState<DomainProps>(
     props || {
       id: "",
@@ -162,7 +164,7 @@ export function AddEditDomainForm({
               }
             />
           </label>
-          {props && lockDomain && (
+          {props && lockDomain && !isDubProvisioned && (
             <button
               className="flex items-center gap-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
               type="button"
