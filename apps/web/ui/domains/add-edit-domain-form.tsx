@@ -109,8 +109,7 @@ export function AddEditDomainForm({
               await Promise.all([
                 mutate(
                   (key) =>
-                    typeof key === "string" &&
-                    key.startsWith(`/api/domains?workspaceId=${workspaceId}`),
+                    typeof key === "string" && key.startsWith("/api/domains"),
                 ),
                 mutate(
                   (key) =>

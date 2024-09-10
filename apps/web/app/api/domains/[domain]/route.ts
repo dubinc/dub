@@ -37,7 +37,7 @@ export const GET = withWorkspace(
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
-    const { slug: domain, registeredDomainId } = await getDomainOrThrow({
+    const { slug: domain, registeredDomain } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
@@ -84,7 +84,7 @@ export const PATCH = withWorkspace(
       },
       data: {
         archived,
-        ...(domainUpdated && !registeredDomainId && { slug: newDomain }),
+        ...(domainUpdated && !registeredDomain && { slug: newDomain }),
         ...(placeholder && { placeholder }),
         ...(workspace.plan != "free" && {
           expiredUrl,
