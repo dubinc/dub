@@ -6,6 +6,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
+import { FreeDotLinkBanner } from "@/ui/domains/free-dot-link-banner";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useRegisterDomainModal } from "@/ui/modals/register-domain";
 import EmptyState from "@/ui/shared/empty-state";
@@ -160,6 +161,8 @@ export default function WorkspaceDomainsClient() {
             <RegisterDomainModal />
           </>
         )}
+
+        <FreeDotLinkBanner />
 
         <div key={archived} className="animate-fade-in">
           {!loading ? (
