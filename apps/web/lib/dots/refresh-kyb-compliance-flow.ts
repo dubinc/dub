@@ -37,6 +37,7 @@ export const refreshDotsKYBComplianceFlow = async ({
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to refresh Dots KYB compliance flow ${data}`);
+    console.error(await response.text());
+    throw new Error("Failed to generate Dots KYB compliance flow URL.");
   }
 };
