@@ -27,6 +27,7 @@ export default function WorkspaceDomainsClient() {
     domainsLimit,
     exceededDomains,
     id: workspaceId,
+    flags,
   } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -128,13 +129,15 @@ export default function WorkspaceDomainsClient() {
                     }
                     disabled={exceededDomains || !!permissionsError}
                   />
-                  <Button
-                    text="Claim free .link domain"
-                    variant="outline"
-                    icon={<Link className="h-4 w-4" />}
-                    className="h-9 justify-start px-2"
-                    onClick={() => setShowRegisterDomainModal(true)}
-                  />
+                  {flags?.dotlink && (
+                    <Button
+                      text="Claim free .link domain"
+                      variant="outline"
+                      icon={<Link className="h-4 w-4" />}
+                      className="h-9 justify-start px-2"
+                      onClick={() => setShowRegisterDomainModal(true)}
+                    />
+                  )}
                 </div>
               }
               align="end"
