@@ -356,23 +356,21 @@ function Menu({
           className="h-8 rounded-none border-0 px-3"
           onClick={() => setShowAddEditDomainModal(true)}
         />
-        {!isDubProvisioned && (
-          <Tooltip content="Refresh">
-            <Button
-              icon={
-                <Refresh2
-                  className={cn(
-                    "h-4 w-4 shrink-0 -scale-100 transition-colors [animation-duration:0.25s]",
-                    refreshProps.isValidating && "animate-spin text-gray-500",
-                  )}
-                />
-              }
-              variant="outline"
-              className="h-8 rounded-none border-0 px-3 text-gray-600"
-              onClick={() => refreshProps.mutate()}
-            />
-          </Tooltip>
-        )}
+        <Tooltip content="Refresh">
+          <Button
+            icon={
+              <Refresh2
+                className={cn(
+                  "h-4 w-4 shrink-0 -scale-100 transition-colors [animation-duration:0.25s]",
+                  refreshProps.isValidating && "animate-spin text-gray-500",
+                )}
+              />
+            }
+            variant="outline"
+            className="h-8 rounded-none border-0 px-3 text-gray-600"
+            onClick={() => refreshProps.mutate()}
+          />
+        </Tooltip>
         <Popover
           content={
             <div className="w-full sm:w-48">
