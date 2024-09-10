@@ -20,8 +20,10 @@ export const ConnectDotsApp = () => {
   });
 
   const generateURL = useAction(generateDotsComplianceFlowAction, {
-    onSuccess: () => {
-     // Redirect to the URL
+    onSuccess: ({ data }) => {
+      if (data?.link) {
+        window.location.href = data.link;
+      }
     },
     onError: ({ error }) => {
       toast.error(error.serverError?.serverError);
@@ -46,6 +48,8 @@ export const ConnectDotsApp = () => {
                 onClick={() => {
                   generateURL.execute({ workspaceId: id! });
                 }}
+                loading={generateURL.isExecuting}
+                disabled={generateURL.isExecuting}
               />
             </div>
           ) : (

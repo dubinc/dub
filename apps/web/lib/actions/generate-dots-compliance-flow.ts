@@ -1,6 +1,6 @@
 "use server";
 
-import { refreshDotsKYBComplianceFlow } from "../dots/refresh-kyb-compliance-flow";
+import { generateDotsKYBComplianceFlow } from "../dots/generate-kyb-compliance-flow";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
 
@@ -14,9 +14,13 @@ export const generateDotsComplianceFlowAction = authActionClient
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
 
-    await refreshDotsKYBComplianceFlow({
-      appId: "94a1dca4-11b2-4e46-b957-b9b5860773d5",
+    if (!workspace.dotsAppId) {
+      throw new Error("Enable Payouts in settings to use this feature.");
+    }
+
+    const response = await generateDotsKYBComplianceFlow({
+      appId: workspace.dotsAppId,
     });
 
-    return { success: true };
+    return response;
   });

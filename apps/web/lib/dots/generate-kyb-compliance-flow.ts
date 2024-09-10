@@ -2,15 +2,11 @@ import z from "../zod";
 import { getDotsEnv } from "./env";
 import { getEncodedCredentials } from "./utils";
 
-const dotsFlowSchema = z.object({
-  id: z.string(),
-  user_id: z.string(),
-  steps: z.array(z.string()),
-  completed_steps: z.array(z.string()),
+const complianceFlowSchema = z.object({
   link: z.string(),
 });
 
-export const refreshDotsKYBComplianceFlow = async ({
+export const generateDotsKYBComplianceFlow = async ({
   appId,
 }: {
   appId: string;
@@ -23,21 +19,16 @@ export const refreshDotsKYBComplianceFlow = async ({
       method: "POST",
       headers: {
         Authorization: `Basic ${getEncodedCredentials()}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({}),
     },
-  );
-
-  const data = await response.text();
-
-  console.log(
-    "refreshDotsKYBComplianceFlow",
-    data,
-    appId,
-    getEncodedCredentials(),
   );
 
   if (!response.ok) {
     console.error(await response.text());
     throw new Error("Failed to generate Dots KYB compliance flow URL.");
   }
+
+  return complianceFlowSchema.parse(await response.json());
 };

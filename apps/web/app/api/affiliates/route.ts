@@ -2,7 +2,7 @@ import { affiliateSchema } from "@/lib/affiliates/schemas";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { createDotsUser } from "@/lib/dots/create-dots.user";
+import { createDotsUser } from "@/lib/dots/create-dots-user";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
