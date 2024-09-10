@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
+import { DYNADOT_API_KEY, DYNADOT_BASE_URL, DYNADOT_COUPON } from "./constants";
 
 const schema = z.object({
   RegisterResponse: z.object({
@@ -16,7 +16,7 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
     command: "register",
     duration: "1", // TODO: Is this month or year?
     currency: "USD",
-    coupon: "DUBCOLINK",
+    coupon: DYNADOT_COUPON,
   });
 
   const response = await fetch(
