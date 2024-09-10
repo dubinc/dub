@@ -1,5 +1,8 @@
 import z from "@/lib/zod";
-import { clickEventSchemaTB } from "./clicks";
+import { clickEventSchema, clickEventSchemaTB } from "./clicks";
+import { customerSchema } from "./customers";
+import { commonDeprecatedEventFields } from "./deprecated";
+import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
   // Required
@@ -79,31 +82,69 @@ export const saleEventSchemaTB = clickEventSchemaTB
     }),
   );
 
-export const saleEventEnrichedSchema = z
+export const saleEventEnrichedSchema = z.object({
+  event: z.literal("sale"),
+  timestamp: z.string(),
+  event_id: z.string(),
+  event_name: z.string(),
+  customer_name: z.string(),
+  customer_email: z.string(),
+  customer_avatar: z.string(),
+  payment_processor: z.string(),
+  invoice_id: z.string(),
+  saleAmount: z.number(),
+  click_id: z.string(),
+  link_id: z.string(),
+  url: z.string(),
+  continent: z.string().nullable(),
+  country: z.string().nullable(),
+  city: z.string().nullable(),
+  device: z.string().nullable(),
+  browser: z.string().nullable(),
+  os: z.string().nullable(),
+  referer: z.string().nullable(),
+  qr: z.number().nullable(),
+  ip: z.string().nullable(),
+});
+
+export const saleEventResponseSchema = z
   .object({
     event: z.literal("sale"),
-    timestamp: z.string(),
-    event_id: z.string(),
-    event_name: z.string(),
-    customer_name: z.string(),
-    customer_email: z.string(),
-    customer_avatar: z.string(),
-    payment_processor: z.string(),
-    invoice_id: z.string(),
-    saleAmount: z.number(),
-    click_id: z.string(),
-    link_id: z.string(),
-    domain: z.string(),
-    key: z.string(),
-    url: z.string(),
-    continent: z.string().nullable(),
-    country: z.string().nullable(),
-    city: z.string().nullable(),
-    device: z.string().nullable(),
-    browser: z.string().nullable(),
-    os: z.string().nullable(),
-    referer: z.string().nullable(),
-    qr: z.number().nullable(),
-    ip: z.string().nullable(),
+    timestamp: z.coerce.string(),
+    eventId: z.string(),
+    eventName: z.string(),
+    // nested objects
+    link: linkEventSchema,
+    click: clickEventSchema,
+    customer: customerSchema,
+    sale: trackSaleRequestSchema.pick({
+      amount: true,
+      invoiceId: true,
+      paymentProcessor: true,
+    }),
+    customer_name: z
+      .string()
+      .describe("Deprecated. Use `customer.name` instead.")
+      .openapi({ deprecated: true }),
+    customer_email: z
+      .string()
+      .describe("Deprecated. Use `customer.email` instead.")
+      .openapi({ deprecated: true }),
+    customer_avatar: z
+      .string()
+      .describe("Deprecated. Use `customer.avatar` instead.")
+      .openapi({ deprecated: true }),
+    saleAmount: z
+      .number()
+      .describe("Deprecated. Use `sale.amount` instead.")
+      .openapi({ deprecated: true }),
+    invoice_id: z
+      .string()
+      .describe("Deprecated. Use `sale.invoiceId` instead.")
+      .openapi({ deprecated: true }),
+    payment_processor: z
+      .string()
+      .describe("Deprecated. Use `sale.paymentProcessor` instead."),
   })
+  .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent" });

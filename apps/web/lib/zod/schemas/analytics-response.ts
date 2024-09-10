@@ -7,7 +7,10 @@ export const analyticsResponse = {
       clicks: z.number().describe("The total number of clicks").default(0),
       leads: z.number().describe("The total number of leads").default(0),
       sales: z.number().describe("The total number of sales").default(0),
-      saleAmount: z.number().describe("The total amount of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales, in cents")
+        .default(0),
     })
     .openapi({ ref: "AnalyticsCount", title: "AnalyticsCount" }),
   timeseries: z
@@ -27,7 +30,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales in the interval")
+        .describe("The total amount of sales in the interval, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsTimeseries" }),
@@ -53,7 +56,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this continent")
+        .describe("The total amount of sales from this continent, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsContinents" }),
@@ -80,7 +83,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this country")
+        .describe("The total amount of sales from this country, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsCountries" }),
@@ -105,7 +108,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this city")
+        .describe("The total amount of sales from this city, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsCities" }),
@@ -127,7 +130,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this device")
+        .describe("The total amount of sales from this device, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsDevices" }),
@@ -149,7 +152,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this browser")
+        .describe("The total amount of sales from this browser, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsBrowsers" }),
@@ -165,7 +168,7 @@ export const analyticsResponse = {
       sales: z.number().describe("The number of sales from this OS").default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this OS")
+        .describe("The total amount of sales from this OS, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsOS" }),
@@ -191,7 +194,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this referer")
+        .describe("The total amount of sales from this referer, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsReferers" }),
@@ -224,7 +227,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this link")
+        .describe("The total amount of sales from this link, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsTopLinks" }),
@@ -246,7 +249,7 @@ export const analyticsResponse = {
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this URL")
+        .describe("The total amount of sales from this URL, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsTopUrls" }),
@@ -258,19 +261,21 @@ export const analyticsResponse = {
         .describe("The type of trigger method: link click or QR scan"),
       clicks: z
         .number()
-        .describe("The number of clicks from this trigger method.")
+        .describe("The number of clicks from this trigger method")
         .default(0),
       leads: z
         .number()
-        .describe("The number of leads from this trigger method.")
+        .describe("The number of leads from this trigger method")
         .default(0),
       sales: z
         .number()
-        .describe("The number of sales from this trigger method.")
+        .describe("The number of sales from this trigger method")
         .default(0),
       saleAmount: z
         .number()
-        .describe("The total amount of sales from this trigger method.")
+        .describe(
+          "The total amount of sales from this trigger method, in cents",
+        )
         .default(0),
     })
     .openapi({ ref: "AnalyticsTrigger" }),

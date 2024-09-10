@@ -76,7 +76,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "conversions.write",
     description: "track conversions",
-    roles: ["owner"],
+    roles: ["owner", "member"],
   },
   {
     action: "tokens.read",

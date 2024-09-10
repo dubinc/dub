@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
-import { LinkSchema } from "../zod/schemas/links";
+import { clickEventSchema } from "../zod/schemas/clicks";
+import { linkEventSchema } from "../zod/schemas/links";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const customerSchema = z.object({
@@ -11,60 +12,29 @@ const customerSchema = z.object({
 
 const saleSchema = z.object({
   amount: z.number(),
+  currency: z.string(),
   paymentProcessor: z.string(),
   invoiceId: z.string().nullable(),
-  currency: z.string(),
 });
 
-export const linkEventSchema = LinkSchema.omit({
-  tags: true,
-  tagId: true,
-  projectId: true,
-});
-
-export const clickEventSchema = z.object({
-  timestamp: z.string(),
-  clickId: z.string(),
-  url: z.string(),
-  ip: z.string(),
-  continent: z.string(),
-  country: z.string(),
-  city: z.string(),
-  device: z.string(),
-  browser: z.string(),
-  os: z.string(),
-  ua: z.string(),
-  bot: z.boolean(),
-  qr: z.boolean(),
-  referer: z.string(),
+export const clickWebhookEventSchema = z.object({
+  click: clickEventSchema,
   link: linkEventSchema,
 });
 
-export const leadEventSchema = z.object({
+export const leadWebhookEventSchema = z.object({
   eventName: z.string(),
   customer: customerSchema,
-  click: clickEventSchema
-    .omit({ link: true, timestamp: true, clickId: true })
-    .and(
-      z.object({
-        id: z.string(),
-      }),
-    ),
+  click: clickEventSchema,
   link: linkEventSchema,
 });
 
-export const saleEventSchema = z.object({
+export const saleWebhookEventSchema = z.object({
   eventName: z.string(),
   customer: customerSchema,
+  click: clickEventSchema,
+  link: linkEventSchema,
   sale: saleSchema,
-  click: clickEventSchema
-    .omit({ link: true, timestamp: true, clickId: true })
-    .and(
-      z.object({
-        id: z.string(),
-      }),
-    ),
-  link: linkEventSchema,
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub

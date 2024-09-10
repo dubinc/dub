@@ -48,6 +48,7 @@ model Project {
   installedIntegrations InstalledIntegration[] // Integrations workspace installed
   webhooks              Webhook[]
   affiliates            Affiliate[]
+  referredUsers         User[]
 
   @@index(usageLastChecked(sort: Asc))
 }

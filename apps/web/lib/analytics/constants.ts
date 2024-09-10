@@ -11,6 +11,16 @@ export const intervals = [
   "all_unfiltered",
 ] as const;
 
+export const eventIntervals = [
+  "24h",
+  "7d",
+  "30d",
+  "90d",
+  "ytd",
+  "1y",
+  "all",
+] as const;
+
 export const INTERVAL_DISPLAYS = [
   {
     display: "Last 24 hours",

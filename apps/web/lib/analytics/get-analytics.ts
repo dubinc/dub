@@ -116,21 +116,26 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       },
     });
 
-    return links.map((link) =>
-      analyticsResponse[groupBy].parse({
-        id: link.id,
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        shortLink: linkConstructor({
+    return topLinksData
+      .map((topLink) => {
+        const link = links.find((l) => l.id === topLink.link);
+        if (!link) {
+          return null;
+        }
+        return analyticsResponse[groupBy].parse({
+          id: link.id,
           domain: link.domain,
           key: link.key,
-        }),
-        link: link.id,
-        createdAt: link.createdAt.toISOString(),
-        ...topLinksData.find((l) => l.link === link.id),
-      }),
-    );
+          url: link.url,
+          shortLink: linkConstructor({
+            domain: link.domain,
+            key: link.key,
+          }),
+          createdAt: link.createdAt.toISOString(),
+          ...topLink,
+        });
+      })
+      .filter((d) => d !== null);
   }
 
   // Return array for other endpoints

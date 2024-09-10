@@ -92,7 +92,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "conversions.write",
-    roles: ["owner"],
+    roles: ["owner", "member"],
     permissions: ["conversions.write"],
     type: "write",
     resource: "conversions",
