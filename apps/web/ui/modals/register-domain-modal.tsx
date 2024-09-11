@@ -11,6 +11,7 @@ import { CircleCheck, Search } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useDebounce } from "use-debounce";
 import { AlertCircleFill, CheckCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
@@ -31,6 +32,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [slug, setSlug] = useState<string | undefined>(undefined);
+  const [debouncedSlug] = useDebounce(slug, 500);
   const [searchedDomains, setSearchedDomains] = useState<DomainSearchResult[]>(
     [],
   );
@@ -56,6 +58,11 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
 
     setSearchedDomains(await response.json());
   };
+
+  // Search automatically when the debounced slug changes
+  useEffect(() => {
+    if (debouncedSlug?.trim()) searchDomainAvailability();
+  }, [debouncedSlug]);
 
   // Register domain
   const registerDomain = async (domain: string) => {
@@ -159,13 +166,20 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
                     onChange={(e) => {
                       setSlug(e.target.value);
                     }}
+                    onKeyUp={(e) => {
+                      if (e.key === "Enter" && !searchedDomain) {
+                        e.preventDefault();
+                        searchDomainAvailability();
+                      }
+                    }}
                   />
                   <span className="inline-flex items-center rounded-md rounded-l-none bg-white px-3 font-medium text-gray-500 sm:text-sm">
                     .link
                   </span>
                   <div className="p-0.5">
                     <Button
-                      className="h-8 w-fit border-gray-300 px-2"
+                      variant="primary"
+                      className="h-8 w-fit border-gray-300 px-2 hover:ring-0"
                       icon={<Search className="mx-0.5 size-4" />}
                       onClick={searchDomainAvailability}
                       disabled={!slug || isSearching}
