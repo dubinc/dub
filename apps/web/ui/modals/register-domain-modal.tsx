@@ -7,8 +7,9 @@ import {
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { CircleCheck, Search } from "lucide-react";
+import { LoadingSpinner } from "@dub/ui/src/icons";
+import { cn, truncate } from "@dub/utils";
+import { CircleCheck } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -103,11 +104,11 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
   };
 
   const searchedDomain = searchedDomains.find(
-    (d) => d.domain === `${slug}.link`,
+    (d) => d.domain === `${slug}.link`.toLowerCase(),
   );
 
   const availableDomains = searchedDomains.filter(
-    (d) => d.domain !== `${slug}.link` && d.available,
+    (d) => d.domain !== `${slug}.link`.toLowerCase() && d.available,
   );
 
   return (
@@ -146,10 +147,11 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
               <div
                 className={cn(
                   "-m-1 rounded-[0.625rem] p-1",
-                  searchedDomain &&
-                    (searchedDomain.available
+                  searchedDomain
+                    ? searchedDomain.available
                       ? "bg-[#def5c6]"
-                      : "bg-orange-100"),
+                      : "bg-orange-100"
+                    : "bg-gray-100",
                 )}
               >
                 <div className="flex rounded-md border border-gray-300 bg-white">
@@ -174,29 +176,19 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
                       }
                     }}
                   />
-                  <span className="inline-flex items-center rounded-md rounded-l-none bg-white px-3 font-medium text-gray-500 sm:text-sm">
+                  <span className="inline-flex items-center rounded-md rounded-l-none bg-white pr-3 font-medium text-gray-500 sm:text-sm">
                     .link
                   </span>
-                  <div className="p-0.5">
-                    <Button
-                      variant="primary"
-                      className="h-8 w-fit border-gray-300 px-2 hover:ring-0"
-                      icon={<Search className="mx-0.5 size-4" />}
-                      onClick={searchDomainAvailability}
-                      disabled={!slug || isSearching}
-                      loading={isSearching}
-                    />
-                  </div>
                 </div>
 
                 <AnimatedSizeContainer
                   height
                   transition={{ ease: "easeInOut", duration: 0.1 }}
                 >
-                  {searchedDomain && (
-                    <div className="flex justify-between gap-3 px-2 pb-2 pt-3 text-sm text-gray-700">
-                      <p>
-                        {searchedDomain.available ? (
+                  <div className="flex justify-between gap-3 px-2 pb-2 pt-3 text-sm text-gray-700">
+                    <p>
+                      {searchedDomain ? (
+                        searchedDomain.available ? (
                           <>
                             <span className="font-semibold text-gray-800">
                               {searchedDomain.domain}
@@ -211,15 +203,28 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
                             </span>{" "}
                             is not available.
                           </>
-                        )}
-                      </p>
-                      {searchedDomain.available ? (
+                        )
+                      ) : slug?.trim() ? (
+                        <>
+                          Checking availability for{" "}
+                          <strong className="font-semibold">
+                            {truncate(`${slug}.link`, 25)}
+                          </strong>
+                        </>
+                      ) : (
+                        <>&nbsp;</>
+                      )}
+                    </p>
+                    {isSearching || (!searchedDomain && slug?.trim()) ? (
+                      <LoadingSpinner className="mr-0.5 mt-0.5 size-4 shrink-0" />
+                    ) : searchedDomain ? (
+                      searchedDomain?.available ? (
                         <CheckCircleFill className="size-5 shrink-0 text-green-500" />
                       ) : (
                         <AlertCircleFill className="size-5 shrink-0 text-amber-500" />
-                      )}
-                    </div>
-                  )}
+                      )
+                    ) : null}
+                  </div>
                 </AnimatedSizeContainer>
               </div>
             </div>
