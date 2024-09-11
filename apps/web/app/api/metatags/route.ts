@@ -15,11 +15,17 @@ export async function GET(req: NextRequest) {
     await ratelimitOrThrow(req, "metatags");
 
     const metatags = await getMetaTags(url);
-    return NextResponse.json(metatags, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
+    return NextResponse.json(
+      {
+        ...metatags,
+        poweredBy: "Dub.co - Link management for modern marketing teams",
       },
-    });
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      },
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
