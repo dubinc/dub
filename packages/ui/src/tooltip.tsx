@@ -70,7 +70,7 @@ export function TooltipContent({
   target,
   onClick,
 }: {
-  title: string;
+  title: ReactNode;
   cta?: string;
   href?: string;
   target?: string;

@@ -4,6 +4,7 @@ import {
   Button,
   Modal,
   SimpleTooltipContent,
+  TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -248,7 +249,12 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
                           text="Claim domain"
                           className="h-8 w-fit"
                           onClick={() => registerDomain(alternative.domain)}
-                          disabled={isRegistering}
+                          disabled={isRegistering || workspace.plan === "free"}
+                          disabledTooltip={
+                            workspace.plan === "free" ? (
+                              <UpgradeTooltipContent />
+                            ) : undefined
+                          }
                         />
                       </div>
                     ))}
@@ -269,14 +275,33 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
             type="submit"
             text="Claim domain"
             className="h-9 w-fit"
-            disabled={!searchedDomain?.available}
+            disabled={!searchedDomain?.available || workspace.plan === "free"}
             loading={isRegistering}
+            disabledTooltip={
+              workspace.plan === "free" ? <UpgradeTooltipContent /> : undefined
+            }
           />
         </div>
       </form>
     </Modal>
   );
 };
+
+function UpgradeTooltipContent() {
+  const { slug } = useWorkspace();
+  return (
+    <TooltipContent
+      title={
+        <>
+          You can only claim a free <span className="font-semibold">.link</span>{" "}
+          domain on a Pro plan and above.
+        </>
+      }
+      cta="Upgrade to Pro"
+      onClick={() => window.open(`/${slug}/upgrade?exit=close`)}
+    />
+  );
+}
 
 export function useRegisterDomainModal() {
   const [showRegisterDomainModal, setShowRegisterDomainModal] = useState(false);
