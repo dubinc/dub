@@ -48,3 +48,43 @@ export const webhookPayloadSchema = z.object({
     .describe("The date and time when the event was created in UTC."),
   data: z.any().describe("The data associated with the event."),
 });
+
+export const webhookEventSchema = z
+  .union([
+    z.object({
+      id: z.string(),
+      event: z.union([
+        z.literal("link.created"),
+        z.literal("link.updated"),
+        z.literal("link.deleted"),
+      ]),
+      createdAt: z.string(),
+      data: linkEventSchema,
+    }),
+
+    z.object({
+      id: z.string(),
+      event: z.literal("link.clicked"),
+      createdAt: z.string(),
+      data: clickWebhookEventSchema,
+    }),
+
+    z.object({
+      id: z.string(),
+      event: z.literal("lead.created"),
+      createdAt: z.string(),
+      data: leadWebhookEventSchema,
+    }),
+
+    z.object({
+      id: z.string(),
+      event: z.literal("sale.created"),
+      createdAt: z.string(),
+      data: saleWebhookEventSchema,
+    }),
+  ])
+  .openapi({
+    ref: "WebhookEvent",
+    description: "Webhook event schema",
+    "x-speakeasy-include": true,
+  });
