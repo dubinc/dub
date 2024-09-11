@@ -1,0 +1,26 @@
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  projectId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  links   LinkFolder[]
+
+  @@unique([name, projectId])
+  @@index(projectId)
+}
+
+model LinkFolder {
+  id        String   @id @default(cuid())
+  folderId  String
+  linkId    String
+  createdAt DateTime @default(now())
+
+  link   Link   @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  folder Folder @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@unique(linkId)
+  @@index(folderId)
+}

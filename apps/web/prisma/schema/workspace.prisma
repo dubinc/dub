@@ -47,6 +47,7 @@ model Project {
   integrations          Integration[] // Integrations workspace published
   installedIntegrations InstalledIntegration[] // Integrations workspace installed
   webhooks              Webhook[]
+  folders               Folder[]
 
   @@index(usageLastChecked(sort: Asc))
 }
