@@ -27,7 +27,7 @@ export const configureDNS = async ({ domain }: { domain: string }) => {
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to register domain: ${response.statusText}`);
+    throw new Error(`Failed to configure domain DNS: ${response.statusText}`);
   }
 
   const data = schema.parse(await response.json());

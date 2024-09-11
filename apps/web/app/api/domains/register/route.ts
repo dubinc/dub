@@ -53,6 +53,14 @@ export const POST = withWorkspace(
       },
     });
 
+    // Delete any matching unverified domain
+    await prisma.domain.delete({
+      where: {
+        slug,
+        verified: false,
+      },
+    });
+
     await Promise.all([
       // Create the workspace domain
       prisma.domain.create({
