@@ -461,6 +461,10 @@ export const LinkSchema = z
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
+    folderId: z
+      .string()
+      .nullable()
+      .describe("The unique ID of the folder assigned to the short link."),
     comments: z
       .string()
       .nullable()

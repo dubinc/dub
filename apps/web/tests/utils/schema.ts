@@ -40,6 +40,7 @@ export const expectedLink: Partial<Link> & {
   updatedAt: expect.any(String),
   expiredUrl: null,
   externalId: null,
+  folderId: null,
 };
 
 export const expectedTag: Partial<Tag> = {
