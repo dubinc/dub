@@ -7,6 +7,8 @@ export const PERMISSION_ACTIONS = [
   "links.write",
   "tags.read",
   "tags.write",
+  "folders.read",
+  "folders.write",
   "analytics.read",
   "domains.read",
   "domains.write",
@@ -71,6 +73,16 @@ export const ROLE_PERMISSIONS: {
   {
     action: "tags.write",
     description: "create, update, or delete tags",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "folders.read",
+    description: "access folders",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "folders.write",
+    description: "create, update, or delete folders",
     roles: ["owner", "member"],
   },
   {

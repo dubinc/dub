@@ -5,7 +5,7 @@ import { recordLink } from "@/lib/tinybird";
 import { TagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
 
-// PATCH /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace
+// PATCH /api/tags/[id] – update a tag for a workspace
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
     const { id } = params;
