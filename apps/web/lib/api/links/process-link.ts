@@ -142,6 +142,9 @@ export async function processLink<T extends Record<string, any>>({
   const domains = workspace
     ? await prisma.domain.findMany({
         where: { projectId: workspace.id },
+        include: {
+          registeredDomain: true,
+        },
       })
     : [];
 
@@ -213,6 +216,19 @@ export async function processLink<T extends Record<string, any>>({
     return {
       link: payload,
       error: "Domain does not belong to workspace.",
+      code: "forbidden",
+    };
+
+    // else, check if the domain is a free .link and whether the workspace is pro+
+  } else if (
+    domain.endsWith(".link") &&
+    workspace?.plan === "free" &&
+    domains?.find((d) => d.slug === domain)?.registeredDomain
+  ) {
+    return {
+      link: payload,
+      error:
+        "You can only use your free .link domain on a Pro plan and above. Upgrade to Pro to use this domain.",
       code: "forbidden",
     };
   }
