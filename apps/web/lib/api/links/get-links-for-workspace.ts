@@ -9,6 +9,7 @@ export async function getLinksForWorkspace({
   tagId,
   tagIds,
   tagNames,
+  folderIds,
   search,
   sort = "createdAt",
   page,
@@ -60,6 +61,13 @@ export async function getLinksForWorkspace({
             }
           : {}),
       ...(userId && { userId }),
+
+      // Filter by folderId
+      ...(folderIds && folderIds.length > 0
+        ? {
+            folderId: { in: folderIds },
+          }
+        : {}),
     },
     include: {
       user: includeUser,
