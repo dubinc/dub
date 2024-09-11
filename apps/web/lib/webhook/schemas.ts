@@ -61,18 +61,21 @@ export const webhookEventSchema = z
       createdAt: z.string(),
       data: linkEventSchema,
     }),
+
     z.object({
       id: z.string(),
       event: z.literal("link.clicked"),
       createdAt: z.string(),
       data: clickWebhookEventSchema,
     }),
+
     z.object({
       id: z.string(),
       event: z.literal("lead.created"),
       createdAt: z.string(),
       data: leadWebhookEventSchema,
     }),
+
     z.object({
       id: z.string(),
       event: z.literal("sale.created"),
