@@ -44,6 +44,9 @@ model Link {
   // Relational reference to the project domain
   projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
 
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+
   publicStats Boolean   @default(false) // whether to show public stats or not
   clicks      Int       @default(0) // number of clicks
   lastClicked DateTime? // when the link was last clicked
@@ -55,9 +58,6 @@ model Link {
 
   // Link tags
   tags LinkTag[]
-
-  // Link folder
-  folder LinkFolder?
 
   // Link webhooks
   webhooks LinkWebhook[]
@@ -77,5 +77,6 @@ model Link {
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
   @@index(userId)
+  @@index([folderId])
   @@fulltext([key, url])
 }

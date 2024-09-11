@@ -201,6 +201,10 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
     ),
+  folderId: z
+    .string()
+    .nullish()
+    .describe("The unique ID existing folder to assign the short link to."),
   comments: z.string().nullish().describe("The comments for the short link."),
   expiresAt: z
     .string()

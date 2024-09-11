@@ -64,6 +64,7 @@ export async function processLink<T extends Record<string, any>>({
     geo,
     doIndex,
     tagNames,
+    folderId,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
@@ -316,6 +317,24 @@ export async function processLink<T extends Record<string, any>>({
                 tags.find(({ name }) => tagName === name) === undefined,
             )
             .join(", "),
+        code: "unprocessable_entity",
+      };
+    }
+  }
+
+  // Folder checks
+  if (folderId && workspace) {
+    const folder = await prisma.folder.findUnique({
+      where: {
+        id: folderId,
+        projectId: workspace.id,
+      },
+    });
+
+    if (!folder) {
+      return {
+        link: payload,
+        error: "Folder does not exist.",
         code: "unprocessable_entity",
       };
     }

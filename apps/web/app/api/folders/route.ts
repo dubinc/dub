@@ -18,8 +18,6 @@ export const GET = withWorkspace(
       select: {
         id: true,
         name: true,
-        createdAt: true,
-        updatedAt: true,
       },
       orderBy: {
         name: "asc",
@@ -52,7 +50,7 @@ export const POST = withWorkspace(
     if (existingFolder) {
       throw new DubApiError({
         code: "conflict",
-        message: `A folder with the name "${name}" already exists.`,
+        message: `A folder with the name ${name} already exists.`,
       });
     }
 
