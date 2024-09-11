@@ -17,6 +17,7 @@ import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
 import { HeroBackground } from "./hero-background";
 import ReferralsPageClient from "./page-client";
+import { PayoutSettings } from "./payout-settings";
 import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
 import { Stats } from "./stats";
 
@@ -109,6 +110,7 @@ export default function ReferralsPage({
           </Suspense>
         </div>
       </div>
+      <PayoutSettings />
     </ReferralsPageClient>
   );
 }

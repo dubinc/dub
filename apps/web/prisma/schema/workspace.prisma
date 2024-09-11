@@ -24,7 +24,7 @@ model Project {
 
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
-  referredUsers   User[]
+  dotsAppId       String? @unique
 
   webhookEnabled    Boolean @default(false)
   conversionEnabled Boolean @default(false)
@@ -47,6 +47,8 @@ model Project {
   integrations          Integration[] // Integrations workspace published
   installedIntegrations InstalledIntegration[] // Integrations workspace installed
   webhooks              Webhook[]
+  affiliates            Affiliate[]
+  referredUsers         User[]
 
   @@index(usageLastChecked(sort: Asc))
 }
