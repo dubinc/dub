@@ -163,7 +163,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                         ? "pending"
                         : "error"
                   }
-                  onClick={() => setShowDetails((s) => !s)}
+                  onClick={
+                    isDubProvisioned
+                      ? undefined
+                      : () => setShowDetails((s) => !s)
+                  }
                 >
                   {data.status === "Valid Configuration"
                     ? "Active"
