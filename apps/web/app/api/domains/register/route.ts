@@ -14,6 +14,7 @@ const schema = z.object({
     .string()
     .min(1)
     .endsWith(".link")
+    .transform((domain) => domain.toLowerCase())
     .describe("We only support .link domains for now."),
 });
 
