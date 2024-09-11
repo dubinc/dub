@@ -17,45 +17,27 @@ const saleSchema = z.object({
   invoiceId: z.string().nullable(),
 });
 
-export const clickWebhookEventSchema = z
-  .object({
-    click: clickEventSchema,
-    link: linkEventSchema,
-  })
-  .openapi({
-    title: "ClickWebhookEvent",
-    description: "Webhook payload for a click event",
-    "x-speakeasy-include": true,
-  });
+export const clickWebhookEventSchema = z.object({
+  click: clickEventSchema,
+  link: linkEventSchema,
+});
 
-export const leadWebhookEventSchema = z
-  .object({
-    eventName: z.string(),
-    customer: customerSchema,
-    click: clickEventSchema,
-    link: linkEventSchema,
-  })
-  .openapi({
-    title: "LeadWebhookEvent",
-    description: "Webhook payload for a lead event",
-    "x-speakeasy-include": true,
-  });
+export const leadWebhookEventSchema = z.object({
+  eventName: z.string(),
+  customer: customerSchema,
+  click: clickEventSchema,
+  link: linkEventSchema,
+});
 
-export const saleWebhookEventSchema = z
-  .object({
-    eventName: z.string(),
-    customer: customerSchema,
-    click: clickEventSchema,
-    link: linkEventSchema,
-    sale: saleSchema,
-  })
-  .openapi({
-    title: "SaleWebhookEvent",
-    description: "Webhook payload for a sale event",
-    "x-speakeasy-include": true,
-  });
+export const saleWebhookEventSchema = z.object({
+  eventName: z.string(),
+  customer: customerSchema,
+  click: clickEventSchema,
+  link: linkEventSchema,
+  sale: saleSchema,
+});
 
-// Schema of the payload sent to the webhook endpoint by Dub
+// Schema of the payload sent to the webhook endpoint by Dub¬
 export const webhookPayloadSchema = z.object({
   id: z.string().describe("Unique identifier for the event."),
   event: z
@@ -66,3 +48,40 @@ export const webhookPayloadSchema = z.object({
     .describe("The date and time when the event was created in UTC."),
   data: z.any().describe("The data associated with the event."),
 });
+
+export const webhookEventSchema = z
+  .union([
+    z.object({
+      id: z.string(),
+      event: z.union([
+        z.literal("link.created"),
+        z.literal("link.updated"),
+        z.literal("link.deleted"),
+      ]),
+      createdAt: z.string(),
+      data: linkEventSchema,
+    }),
+    z.object({
+      id: z.string(),
+      event: z.literal("link.clicked"),
+      createdAt: z.string(),
+      data: clickWebhookEventSchema,
+    }),
+    z.object({
+      id: z.string(),
+      event: z.literal("lead.created"),
+      createdAt: z.string(),
+      data: leadWebhookEventSchema,
+    }),
+    z.object({
+      id: z.string(),
+      event: z.literal("sale.created"),
+      createdAt: z.string(),
+      data: saleWebhookEventSchema,
+    }),
+  ])
+  .openapi({
+    ref: "WebhookEvent",
+    description: "Webhook event schema",
+    "x-speakeasy-include": true,
+  });
