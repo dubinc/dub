@@ -4,6 +4,7 @@ import { LinkSchema } from "@/lib/zod/schemas/links";
 import { TagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
+import { webhookEventSchema } from "../webhook/schemas";
 import { analyticsPath } from "./analytics";
 import { domainsPaths } from "./domains";
 import { eventsPath } from "./events";
@@ -54,6 +55,7 @@ export const document = createDocument({
       WorkspaceSchema,
       TagSchema,
       DomainSchema,
+      webhookEventSchema,
     },
     securitySchemes: {
       token: {
