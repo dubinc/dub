@@ -69,7 +69,10 @@ export const searchDomainsAvailability = async ({
 
   return data.SearchResponse.SearchResults.map((result) => ({
     domain: result.DomainName,
-    available: result.Available === "yes",
+    available:
+      result.Available === "yes" &&
+      result.Price &&
+      !/is\s+a Premium Domain/.test(result.Price),
     price: result.Price,
   }));
 };
