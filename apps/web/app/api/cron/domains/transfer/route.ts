@@ -74,6 +74,7 @@ export async function POST(req: Request) {
             key: link.key,
             url: link.url,
             tag_ids: [],
+            folder_id: null,
             workspace_id: newWorkspaceId,
             created_at: link.createdAt,
           })),

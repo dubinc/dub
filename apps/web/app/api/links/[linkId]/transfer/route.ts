@@ -74,6 +74,8 @@ export const POST = withWorkspace(
         tags: {
           deleteMany: {},
         },
+        // remove folder when transferring link
+        folderId: null,
       },
     });
 
@@ -91,6 +93,7 @@ export const POST = withWorkspace(
           key: link.key,
           url: link.url,
           tag_ids: [],
+          folder_id: null,
           workspace_id: newWorkspaceId,
           created_at: link.createdAt,
         }),

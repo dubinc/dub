@@ -98,6 +98,7 @@ export async function createLink(link: ProcessedLinkProps) {
         key: response.key,
         url: response.url,
         tag_ids: response.tags.map(({ tag }) => tag.id),
+        folder_id: response.folderId,
         workspace_id: response.projectId,
         created_at: response.createdAt,
       }),

@@ -2,10 +2,12 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
 import {
   folderSchema,
   updateFolderBodySchema,
 } from "@/lib/zod/schemas/folders";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/folders/[id] – update a folder for a workspace
@@ -59,15 +61,47 @@ export const DELETE = withWorkspace(
     const { id } = params;
 
     try {
-      await prisma.folder.delete({
+      const folder = await prisma.folder.delete({
         where: {
           id,
           projectId: workspace.id,
         },
+        include: {
+          links: {
+            select: {
+              id: true,
+              domain: true,
+              key: true,
+              url: true,
+              createdAt: true,
+              tags: {
+                select: {
+                  tagId: true,
+                },
+              },
+            },
+          },
+        },
       });
 
-      // TODO:
-      // Record the deletion of the folder in Tinybird
+      waitUntil(
+        (async () => {
+          if (folder.links.length > 0) {
+            recordLink(
+              folder.links.map((link) => ({
+                link_id: link.id,
+                domain: link.domain,
+                key: link.key,
+                url: link.url,
+                tag_ids: link.tags.map((tag) => tag.tagId),
+                folder_id: null,
+                workspace_id: workspace.id,
+                created_at: link.createdAt,
+              })),
+            );
+          }
+        })(),
+      );
 
       return NextResponse.json({ id });
     } catch (error) {
