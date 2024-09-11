@@ -2,7 +2,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Grid, useLocalStorage } from "@dub/ui";
 import { LinkBroken } from "@dub/ui/src/icons";
-import { useRegisterDomainModal } from "../modals/register-domain";
+import { useRegisterDomainModal } from "../modals/register-domain-modal";
 import { X } from "../shared/icons";
 
 export function FreeDotLinkBanner() {

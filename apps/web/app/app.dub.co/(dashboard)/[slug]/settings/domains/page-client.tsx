@@ -8,7 +8,7 @@ import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { FreeDotLinkBanner } from "@/ui/domains/free-dot-link-banner";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
-import { useRegisterDomainModal } from "@/ui/modals/register-domain";
+import { useRegisterDomainModal } from "@/ui/modals/register-domain-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
