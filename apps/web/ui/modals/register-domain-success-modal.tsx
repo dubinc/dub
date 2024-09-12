@@ -25,7 +25,7 @@ const RegisterDomainSuccess = ({
     >
       <div className="flex flex-col">
         <ModalHero />
-        <div className="px-12 py-8">
+        <div className="px-6 py-8 sm:px-12">
           <div className="relative text-center">
             <h1 className="text-base font-medium text-gray-950">
               Congratulations! You've claimed

@@ -68,7 +68,7 @@ function WelcomeModal({
     >
       <div className="flex flex-col">
         <ModalHero />
-        <div className="px-12 py-8">
+        <div className="px-6 py-8 sm:px-12">
           <div className="relative">
             <div
               ref={scrollRef}
