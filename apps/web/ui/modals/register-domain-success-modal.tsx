@@ -28,7 +28,7 @@ const RegisterDomainSuccess = ({
         <div className="px-12 py-8">
           <div className="relative text-center">
             <h1 className="text-base font-medium text-gray-950">
-              Congratulations on claiming
+              Congratulations! You've claimed
             </h1>
             <p
               className="animate-gradient-move mt-4 bg-clip-text text-lg font-semibold text-transparent"
@@ -42,6 +42,17 @@ const RegisterDomainSuccess = ({
             </p>
             <p className="mt-4 text-sm text-gray-500">
               Your domain is now registered and ready to use.
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              It may take some time for the domain configuration to propagate
+              globally.{" "}
+              <a
+                href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
+                target="_blank"
+                className="underline transition-colors hover:text-gray-700"
+              >
+                Learn more.
+              </a>
             </p>
           </div>
           <div className="mt-8">
