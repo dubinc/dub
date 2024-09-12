@@ -61,8 +61,6 @@ export const searchDomainsAvailability = async ({
 
   const data = schema.parse(await response.json());
 
-  console.log(JSON.stringify(data, null, 2));
-
   if (data.SearchResponse.ResponseCode === "-1") {
     throw new Error(`Failed to search domains: ${data.SearchResponse}`);
   }

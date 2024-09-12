@@ -61,10 +61,10 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
     setSearchedDomains(await response.json());
   };
 
-  // Search automatically when the debounced slug changes
+  // Search automatically when the modal is open and the debounced slug changes
   useEffect(() => {
-    if (debouncedSlug?.trim()) searchDomainAvailability();
-  }, [debouncedSlug]);
+    if (showModal && debouncedSlug?.trim()) searchDomainAvailability();
+  }, [showModal, debouncedSlug]);
 
   // Register domain
   const registerDomain = async (domain: string) => {
