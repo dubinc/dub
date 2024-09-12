@@ -7,7 +7,10 @@ export const dubLinksMetadataSchema = z.object({
   key: z.string(),
   url: z.string().default(""),
   tag_ids: z.array(z.string()).default([]),
-  folder_id: z.string().nullish(),
+  folder_id: z
+    .string()
+    .nullable()
+    .transform((v) => (v === null ? "" : v)),
   workspace_id: z
     .string()
     .nullish()
