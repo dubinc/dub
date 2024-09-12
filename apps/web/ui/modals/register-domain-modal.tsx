@@ -6,6 +6,7 @@ import {
   SimpleTooltipContent,
   TooltipContent,
   useMediaQuery,
+  useRouterStuff,
 } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { cn, truncate } from "@dub/utils";
@@ -31,6 +32,7 @@ interface DomainSearchResult {
 const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
   const workspace = useWorkspace();
   const { isMobile } = useMediaQuery();
+  const { queryParams } = useRouterStuff();
   const [isSearching, setIsSearching] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [slug, setSlug] = useState<string | undefined>(undefined);
@@ -84,6 +86,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
     }
 
     toast.success("Domain registered successfully!");
+    queryParams({ set: { registered: domain.toLowerCase() } });
 
     // Mutate domains and links
     await Promise.all([

@@ -9,6 +9,7 @@ import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { FreeDotLinkBanner } from "@/ui/domains/free-dot-link-banner";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useRegisterDomainModal } from "@/ui/modals/register-domain-modal";
+import { useRegisterDomainSuccessModal } from "@/ui/modals/register-domain-success-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
@@ -25,7 +26,7 @@ import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { capitalize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DefaultDomains } from "./default-domains";
 
 export default function WorkspaceDomainsClient() {
@@ -62,6 +63,14 @@ export default function WorkspaceDomainsClient() {
   const { RegisterDomainModal, setShowRegisterDomainModal } =
     useRegisterDomainModal();
 
+  const { RegisterDomainSuccessModal, setShowRegisterDomainSuccessModal } =
+    useRegisterDomainSuccessModal();
+
+  useEffect(
+    () => setShowRegisterDomainSuccessModal(searchParams.has("registered")),
+    [searchParams],
+  );
+
   const { error: permissionsError } = clientAccessCheck({
     action: "domains.write",
     role,
@@ -69,6 +78,7 @@ export default function WorkspaceDomainsClient() {
 
   return (
     <>
+      <RegisterDomainSuccessModal />
       <div className="grid gap-5">
         <div className="flex flex-wrap justify-between gap-6">
           <div className="flex items-center gap-x-2">
