@@ -31,7 +31,7 @@ const RegisterDomainSuccess = ({
               Congratulations! You've claimed
             </h1>
             <p
-              className="animate-gradient-move mt-4 bg-clip-text text-lg font-semibold text-transparent"
+              className="animate-gradient-move font-display mt-4 bg-clip-text text-xl font-semibold text-transparent"
               style={{
                 backgroundImage:
                   "linear-gradient(45deg, #7c3aed, #db2777, #7c3aed, #db2777, #7c3aed)",
