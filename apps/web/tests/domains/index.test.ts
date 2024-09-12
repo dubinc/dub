@@ -19,6 +19,7 @@ const expectedDomain = {
   archived: false,
   placeholder: domainRecord.placeholder,
   expiredUrl: domainRecord.expiredUrl,
+  registeredDomain: null,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
 };
