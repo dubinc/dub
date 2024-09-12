@@ -47,6 +47,7 @@ export const publishWebhookEventToQStash = async ({
     body: payload,
     headers: {
       "Dub-Signature": signature,
+      "Upstash-Hide-Headers": "true",
     },
     callback: callbackUrl,
     failureCallback: callbackUrl,
