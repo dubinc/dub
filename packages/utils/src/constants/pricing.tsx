@@ -300,7 +300,8 @@ export const PLANS = [
     cta: {
       text: "Contact us",
       href: "/enterprise",
-      color: "bg-violet-600 hover:bg-violet-700 hover:ring-violet-100",
+      color:
+        "bg-gradient-to-r from-violet-600 to-pink-600 hover:ring-violet-100",
     },
     featureTitle: "Everything in Business, plus:",
     features: [
