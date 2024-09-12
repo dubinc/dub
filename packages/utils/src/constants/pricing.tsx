@@ -54,7 +54,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     {
       text: `${nFormatter(clicks)} tracked clicks/mo`,
     },
-    { text: "2-year analytics retention" },
+    { text: "3-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
     {
@@ -67,7 +67,13 @@ const BUSINESS_PLAN_MODIFIER = ({
       },
     },
     {
-      text: "Priority support",
+      text: "Event webhooks (beta)",
+      footnote: {
+        title:
+          "Get notified when a link is clicked or a QR code is scanned using webhooks.",
+        cta: "Learn more.",
+        href: "https://d.to/webhooks",
+      },
     },
   ],
 });
@@ -107,7 +113,6 @@ export const PLANS = [
       { text: "30-day analytics retention" },
       { text: "3 custom domains" },
       { text: "1 user" },
-      { text: "10 AI credits/mo" },
       {
         text: "API Access",
         footnote: {
@@ -116,6 +121,16 @@ export const PLANS = [
           href: "https://dub.co/docs/api-reference/introduction",
         },
       },
+      {
+        text: "Advanced analytics",
+        footnote: {
+          title:
+            "Get location (country, city, continent), device (type, browser, OS), and referer data on your clicks.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/dub-analytics",
+        },
+      },
+      { text: "10 AI credits/mo" },
       {
         text: "Basic support",
       },
@@ -166,15 +181,6 @@ export const PLANS = [
       { text: "10 custom domains" },
       { text: "5 users" },
       {
-        text: "Unlimited AI credits",
-        footnote: {
-          title:
-            "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
-          cta: "Learn more.",
-          href: "https://dub.co/blog/introducing-dub-ai",
-        },
-      },
-      {
         text: "Root domain redirect",
         footnote: {
           title:
@@ -188,7 +194,18 @@ export const PLANS = [
         footnote:
           "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
       },
-      { text: "Elevated support" },
+      {
+        text: "Unlimited AI credits",
+        footnote: {
+          title:
+            "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
+          cta: "Learn more.",
+          href: "https://dub.co/blog/introducing-dub-ai",
+        },
+      },
+      {
+        text: "Priority support",
+      },
     ],
   },
   BUSINESS_PLAN_MODIFIER({
