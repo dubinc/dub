@@ -5,9 +5,11 @@ import { TagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
+import { folderSchema } from "../zod/schemas/folders";
 import { analyticsPath } from "./analytics";
 import { domainsPaths } from "./domains";
 import { eventsPath } from "./events";
+import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
 import { metatagsPath } from "./metatags";
 import { qrCodePaths } from "./qr";
@@ -45,6 +47,7 @@ export const document = createDocument({
     ...eventsPath,
     ...workspacesPaths,
     ...tagsPaths,
+    ...foldersPaths,
     ...domainsPaths,
     ...trackPaths,
     ...metatagsPath,
@@ -54,6 +57,7 @@ export const document = createDocument({
       LinkSchema,
       WorkspaceSchema,
       TagSchema,
+      folderSchema,
       DomainSchema,
       webhookEventSchema,
     },
