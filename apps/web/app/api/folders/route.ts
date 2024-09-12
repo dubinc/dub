@@ -1,4 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
+import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -38,6 +38,23 @@ export const GET = withWorkspace(
 // POST /api/folders - create a folder for a workspace
 export const POST = withWorkspace(
   async ({ req, workspace, headers }) => {
+    const foldersCount = await prisma.folder.count({
+      where: {
+        projectId: workspace.id,
+      },
+    });
+
+    if (foldersCount >= workspace.foldersLimit) {
+      throw new DubApiError({
+        code: "exceeded_limit",
+        message: exceededLimitError({
+          plan: workspace.plan,
+          limit: workspace.foldersLimit,
+          type: "folders",
+        }),
+      });
+    }
+
     const { name } = createFolderBodySchema.parse(await parseRequestBody(req));
 
     const existingFolder = await prisma.folder.findFirst({
