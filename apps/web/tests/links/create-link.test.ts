@@ -1,3 +1,5 @@
+import z from "@/lib/zod";
+import { folderSchema } from "@/lib/zod/schemas/folders";
 import { LinkSchema } from "@/lib/zod/schemas/links";
 import { Link, Tag } from "@prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
@@ -6,6 +8,8 @@ import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { link } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
+
+type FolderRecord = z.infer<typeof folderSchema>;
 
 const { domain, url } = link;
 
@@ -365,6 +369,40 @@ describe.sequential("POST /links", async () => {
         ...tagIds.map((id) => h.deleteTag(id)),
         h.deleteLink(link.id),
       ]);
+    });
+  });
+
+  test("folders", async () => {
+    const { data: folder } = await http.post<FolderRecord>({
+      path: "/folders",
+      body: { name: randomId() },
+    });
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        folderId: folder.id,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link.folderId).toEqual(folder.id);
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      folderId: folder.id,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+    });
+
+    afterAll(async () => {
+      await Promise.all([h.deleteFolder(folder.id), h.deleteLink(link.id)]);
     });
   });
 
