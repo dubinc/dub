@@ -27,7 +27,7 @@ model RegisteredDomain {
   updatedAt DateTime @updatedAt
   expiresAt DateTime
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id])
   projectId String
   domain    Domain @relation(fields: [domainId], references: [id])
   domainId  String @unique
