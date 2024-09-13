@@ -1,0 +1,65 @@
+enum CommissionType {
+  fixed
+  percentage
+}
+
+enum AffiliateStatus {
+  pending
+  active
+}
+
+enum AffiliateType {
+  user
+  workspace
+  external
+}
+
+model Program {
+  id               String         @id @default(cuid())
+  projectId        String
+  name             String
+  slug             String         @unique
+  logo             String?
+  website          String?
+  description      String?        @db.MediumText
+  country          String?
+  currency         String?
+  category         String?
+  status           String         @default("pending")
+  commissionAmount Int?
+  commissionType   CommissionType @default(fixed)
+  minimumPayout    Int?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index(projectId)
+}
+
+model Affiliate {
+  id           String          @id @default(cuid())
+  userId       String?         @unique // if affiliate is a Dub user
+  businessName String?
+  firstName    String?
+  lastName     String?
+  email        String?
+  bio          String?         @db.Text
+  website      String?
+  country      String?
+  city         String?
+  status       AffiliateStatus @default(pending)
+  type         AffiliateType
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model AffiliateProgram {
+  id          String          @id @default(cuid())
+  affiliateId String
+  programId   String
+  status      AffiliateStatus @default(pending)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([affiliateId, programId])
+  @@index(programId)
+}
