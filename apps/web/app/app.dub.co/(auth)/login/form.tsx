@@ -299,8 +299,7 @@ const SignInWithEmail = () => {
   const [password, setPassword] = useState("");
   const [checkingEmailPassword, setCheckingEmailPassword] = useState(false);
 
-  const { executeAsync, isExecuting, hasSucceeded } =
-    useAction(checkAccountExists);
+  const { executeAsync } = useAction(checkAccountExists);
 
   const {
     showPasswordField,
@@ -327,7 +326,6 @@ const SignInWithEmail = () => {
               setCheckingEmailPassword(true);
               const result = await executeAsync({ email });
               const { accountExists, hasPassword } = result?.data ?? {};
-
               setCheckingEmailPassword(false);
 
               if (accountExists && hasPassword) {
@@ -342,56 +340,50 @@ const SignInWithEmail = () => {
 
         setClickedMethod("email");
 
-        fetch("/api/auth/account-exists", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        }).then(async (res) => {
-          if (!res.ok) {
-            const error = await res.text();
-            toast.error(error);
-            setClickedMethod(undefined);
-            return;
-          }
-          const { accountExists, hasPassword } = await res.json();
-          if (accountExists) {
-            const provider = hasPassword && password ? "credentials" : "email";
+        const result = await executeAsync({ email });
+        const { accountExists, hasPassword } = result?.data ?? {};
 
-            signIn(provider, {
-              email,
-              redirect: false,
-              ...(password && { password }),
-              ...(next ? { callbackUrl: next } : {}),
-            }).then((res) => {
-              if (!res) return;
+        if (accountExists) {
+          const provider = hasPassword && password ? "credentials" : "email";
 
-              // Handle errors
-              if (!res.ok && res.error) {
-                if (errorCodes[res.error]) {
-                  toast.error(errorCodes[res.error]);
-                } else {
-                  toast.error(res.error);
-                }
-                setClickedMethod(undefined);
+          signIn(provider, {
+            email,
+            redirect: false,
+            ...(password && { password }),
+            ...(next ? { callbackUrl: next } : {}),
+          }).then((res) => {
+            if (!res) return;
 
-                return;
+            // Handle errors
+            if (!res.ok && res.error) {
+              if (errorCodes[res.error]) {
+                toast.error(errorCodes[res.error]);
+              } else {
+                toast.error(res.error);
               }
+              setClickedMethod(undefined);
 
-              // Handle success
-              setLastUsedAuthMethod("email");
-              if (provider === "email") {
-                toast.success("Email sent - check your inbox!");
-                setEmail("");
-                setClickedMethod(undefined);
-              } else if (provider === "credentials") {
-                router.push(next ?? "/");
-              }
-            });
-          } else {
-            setClickedMethod(undefined);
-            toast.error("No account found with that email address.");
-          }
-        });
+              return;
+            }
+
+            // Handle success
+            setLastUsedAuthMethod("email");
+            if (provider === "email") {
+              toast.success(
+                "If an account exists with this email, you'll receive an email with a link to sign in.",
+              );
+              setEmail("");
+              setClickedMethod(undefined);
+            } else if (provider === "credentials") {
+              router.push(next ?? "/");
+            }
+          });
+        } else {
+          setClickedMethod(undefined);
+          toast.success(
+            "If an account exists with this email, you'll receive an email with a link to sign in.",
+          );
+        }
       }}
       className="flex flex-col space-y-3"
     >
