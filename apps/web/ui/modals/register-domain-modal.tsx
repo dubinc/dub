@@ -15,13 +15,16 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
       <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
         Claim .link domain
       </h3>
-      <RegisterDomainForm
-        onSuccess={(domain) => {
-          setShowModal(false);
-          queryParams({ set: { registered: domain.toLowerCase() } });
-        }}
-        onCancel={() => setShowModal(false)}
-      />
+      <div className="mt-6">
+        <RegisterDomainForm
+          variant="modal"
+          onSuccess={(domain) => {
+            setShowModal(false);
+            queryParams({ set: { registered: domain.toLowerCase() } });
+          }}
+          onCancel={() => setShowModal(false)}
+        />
+      </div>
     </Modal>
   );
 };

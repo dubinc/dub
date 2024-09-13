@@ -23,9 +23,13 @@ interface DomainSearchResult {
 }
 
 export function RegisterDomainForm({
+  variant = "default",
+  saveOnly = false,
   onSuccess,
   onCancel,
 }: {
+  variant?: "default" | "modal";
+  saveOnly?: boolean; // Whether to only save the data without actually sending invites
   onSuccess: (domain: string) => void;
   onCancel?: () => void;
 }) {
@@ -58,7 +62,14 @@ export function RegisterDomainForm({
       return;
     }
 
-    setSearchedDomains(await response.json());
+    const data = await response.json();
+
+    if (!Array.isArray(data)) {
+      toast.error("Failed to search for domain availability.");
+      return;
+    }
+
+    setSearchedDomains(data);
   };
 
   // Search automatically when the debounced slug changes
@@ -69,8 +80,11 @@ export function RegisterDomainForm({
   // Register domain
   const registerDomain = async (domain: string) => {
     setIsRegistering(true);
+
+    const baseUrl = saveOnly ? "/api/domains/saved" : "/api/domains/register";
+
     const response = await fetch(
-      `/api/domains/register?domain=${domain}&workspaceId=${workspace.id}`,
+      `${baseUrl}?domain=${domain}&workspaceId=${workspace.id}`,
       {
         method: "POST",
       },
@@ -83,24 +97,27 @@ export function RegisterDomainForm({
       return;
     }
 
-    toast.success("Domain registered successfully!");
+    if (saveOnly) {
+      toast.custom(() => <DomainSavedToast />, { duration: 7000 });
+    } else {
+      toast.success("Domain registered successfully!");
 
-    // Mutate domains and links
-    await Promise.all([
-      mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.startsWith(`/api/domains?workspaceId=${workspace.id}`),
-      ),
-      mutate(
-        (key) => typeof key === "string" && key.startsWith("/api/links"),
-        undefined,
-        { revalidate: true },
-      ),
-    ]);
+      // Mutate domains and links
+      await Promise.all([
+        mutate(
+          (key) =>
+            typeof key === "string" &&
+            key.startsWith(`/api/domains?workspaceId=${workspace.id}`),
+        ),
+        mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/links"),
+          undefined,
+          { revalidate: true },
+        ),
+      ]);
+    }
 
     onSuccess(domain.toLowerCase());
-    setIsRegistering(false);
   };
 
   const searchedDomain = searchedDomains.find(
@@ -119,14 +136,19 @@ export function RegisterDomainForm({
           await registerDomain(searchedDomain.domain);
       }}
     >
-      <div className="flex flex-col space-y-6 bg-white px-4 pb-8 pt-6 text-left sm:px-6">
+      <div
+        className={cn(
+          "flex flex-col gap-y-6 text-left",
+          variant === "modal" && "px-4 sm:px-6",
+        )}
+      >
         <div>
           <div className="flex items-center gap-2">
             <p className="block text-sm font-medium text-gray-800">
               Search domains
             </p>
 
-            {workspace.plan != "free" && (
+            {workspace.plan === "free" && variant === "modal" && (
               <ProBadgeTooltip
                 content={
                   <SimpleTooltipContent
@@ -249,9 +271,12 @@ export function RegisterDomainForm({
                         text="Claim domain"
                         className="h-8 w-fit"
                         onClick={() => registerDomain(alternative.domain)}
-                        disabled={isRegistering || workspace.plan === "free"}
+                        disabled={
+                          isRegistering ||
+                          (workspace.plan === "free" && !saveOnly)
+                        }
                         disabledTooltip={
-                          workspace.plan === "free" ? (
+                          workspace.plan === "free" && !saveOnly ? (
                             <UpgradeTooltipContent />
                           ) : undefined
                         }
@@ -263,8 +288,13 @@ export function RegisterDomainForm({
             </div>
           )}
       </div>
-      <div className="flex justify-end gap-2 border-t border-gray-200 px-4 py-4 sm:px-6">
-        {onCancel && (
+      <div
+        className={cn(
+          "mt-8 flex justify-end gap-2",
+          variant === "modal" && "border-t border-gray-200 px-4 py-4 sm:px-6",
+        )}
+      >
+        {onCancel && variant === "modal" && (
           <Button
             type="button"
             variant="secondary"
@@ -276,11 +306,16 @@ export function RegisterDomainForm({
         <Button
           type="submit"
           text="Claim domain"
-          className="h-9 w-fit"
-          disabled={!searchedDomain?.available || workspace.plan === "free"}
+          className={cn("h-9", variant === "modal" && "w-fit")}
+          disabled={
+            !searchedDomain?.available ||
+            (workspace.plan === "free" && !saveOnly)
+          }
           loading={isRegistering}
           disabledTooltip={
-            workspace.plan === "free" ? <UpgradeTooltipContent /> : undefined
+            workspace.plan === "free" && !saveOnly ? (
+              <UpgradeTooltipContent />
+            ) : undefined
           }
         />
       </div>
@@ -301,5 +336,23 @@ function UpgradeTooltipContent() {
       cta="Upgrade to Pro"
       onClick={() => window.open(`/${slug}/upgrade?exit=close`)}
     />
+  );
+}
+
+function DomainSavedToast() {
+  return (
+    <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
+      <CheckCircleFill className="size-5 shrink-0 text-black" />
+      <p className="text-[13px] font-medium text-gray-900">
+        Domain saved. You'll need a pro plan to complete the registration.{" "}
+        <a
+          href="https://dub.co/help/article/how-to-add-custom-domain" // TODO: Update this link
+          target="_blank"
+          className="text-gray-500 underline transition-colors hover:text-gray-800"
+        >
+          Learn more
+        </a>
+      </p>
+    </div>
   );
 }
