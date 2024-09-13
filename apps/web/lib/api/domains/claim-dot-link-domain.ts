@@ -48,7 +48,7 @@ export async function claimDotLinkDomain({
   });
 
   // Delete any matching unverified domain
-  await prisma.domain.delete({
+  await prisma.domain.deleteMany({
     where: {
       slug,
       verified: false,
@@ -87,4 +87,6 @@ export async function claimDotLinkDomain({
 
   // Configure the DNS in the background
   waitUntil(configureDNS({ domain: slug }));
+
+  return response;
 }
