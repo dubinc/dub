@@ -27,6 +27,10 @@ model RegisteredDomain {
   updatedAt DateTime @updatedAt
   expiresAt DateTime
 
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId String
+  domain    Domain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  domainId  String? @unique
 
   @@index(projectId)
   @@index(expiresAt(sort: Asc))

@@ -107,7 +107,8 @@ export function RegisterDomainForm({
         mutate(
           (key) =>
             typeof key === "string" &&
-            key.startsWith(`/api/domains?workspaceId=${workspace.id}`),
+            (key.startsWith(`/api/domains?workspaceId=${workspace.id}`) ||
+              key.startsWith(`/api/domains/count?workspaceId=${workspace.id}`)),
         ),
         mutate(
           (key) => typeof key === "string" && key.startsWith("/api/links"),
