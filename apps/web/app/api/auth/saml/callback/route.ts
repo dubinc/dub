@@ -6,8 +6,8 @@ export async function POST(req: Request) {
 
   const formData = await req.formData();
 
-  const RelayState = formData.get("RelayState");
-  const SAMLResponse = formData.get("SAMLResponse");
+  const RelayState = formData.get("RelayState") || "";
+  const SAMLResponse = formData.get("SAMLResponse") || "";
 
   const { redirect_url } = await oauthController.samlResponse({
     RelayState: RelayState as string,
