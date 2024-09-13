@@ -1,5 +1,6 @@
 "use client";
 
+import { checkAccountExists } from "@/lib/actions/check-account-exists";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
   AnimatedSizeContainer,
@@ -15,6 +16,7 @@ import { InputPassword } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -297,6 +299,9 @@ const SignInWithEmail = () => {
   const [password, setPassword] = useState("");
   const [checkingEmailPassword, setCheckingEmailPassword] = useState(false);
 
+  const { executeAsync, isExecuting, hasSucceeded } =
+    useAction(checkAccountExists);
+
   const {
     showPasswordField,
     setShowPasswordField,
@@ -320,14 +325,11 @@ const SignInWithEmail = () => {
           if (success) {
             try {
               setCheckingEmailPassword(true);
-              const res = await fetch("/api/auth/account-exists", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-              });
+              const result = await executeAsync({ email });
+              const { accountExists, hasPassword } = result?.data ?? {};
+
               setCheckingEmailPassword(false);
 
-              const { accountExists, hasPassword } = await res.json();
               if (accountExists && hasPassword) {
                 setShowPasswordField(true);
                 return;
