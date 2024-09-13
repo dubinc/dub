@@ -52,7 +52,7 @@ model Affiliate {
   updatedAt    DateTime        @updatedAt
 }
 
-model AffiliateProgram {
+model ProgramEnrollment {
   id          String          @id @default(cuid())
   affiliateId String
   programId   String
@@ -62,4 +62,12 @@ model AffiliateProgram {
 
   @@unique([affiliateId, programId])
   @@index(programId)
+}
+
+model AffiliateReferralLinks {
+  id                  String   @id @default(cuid())
+  programEnrollmentId String
+  linkId              String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
