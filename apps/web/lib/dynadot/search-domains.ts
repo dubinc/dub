@@ -28,11 +28,13 @@ export const searchDomainsAvailability = async ({
     },
   });
   if (domainOnDub) {
-    return {
-      domain: domainOnDub.slug,
-      available: false,
-      price: null,
-    };
+    return [
+      {
+        domain: domainOnDub.slug,
+        available: false,
+        price: null,
+      },
+    ];
   }
 
   const searchParams = new URLSearchParams({
