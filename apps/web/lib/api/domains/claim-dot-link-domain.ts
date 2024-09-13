@@ -52,6 +52,9 @@ export async function claimDotLinkDomain({
     where: {
       slug,
       verified: false,
+      registeredDomain: {
+        is: null,
+      },
     },
   });
 
