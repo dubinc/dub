@@ -480,16 +480,18 @@ function Menu({
                   icon={<Archive className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                 />
-                <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteDomainModal(true);
-                  }}
-                  icon={<Delete className="h-4 w-4" />}
-                  className="h-9 justify-start px-2 font-medium"
-                />
+                {!isDubProvisioned && (
+                  <Button
+                    text="Delete"
+                    variant="danger-outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowDeleteDomainModal(true);
+                    }}
+                    icon={<Delete className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
               </div>
             </div>
           }
