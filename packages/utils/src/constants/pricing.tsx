@@ -46,7 +46,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     text: "Get started with Business",
     shortText: "Get started",
     href: "https://app.dub.co/register",
-    color: "bg-sky-900 hover:bg-sky-800 hover:ring-sky-100",
+    color: "bg-black hover:bg-gray-800 hover:ring-gray-200",
   },
   featureTitle: "Everything in Pro, plus:",
   features: [
@@ -169,7 +169,7 @@ export const PLANS = [
       text: "Get started with Pro",
       shortText: "Get started",
       href: "https://app.dub.co/register",
-      color: "bg-blue-500 hover:bg-blue-600 hover:ring-blue-100",
+      color: "bg-blue-600 hover:bg-blue-700 hover:ring-blue-100",
     },
     featureTitle: "Everything in Free, plus:",
     features: [
@@ -300,7 +300,8 @@ export const PLANS = [
     cta: {
       text: "Contact us",
       href: "/enterprise",
-      color: "bg-violet-600 hover:bg-violet-700 hover:ring-violet-100",
+      color:
+        "bg-gradient-to-r from-violet-600 to-pink-600 hover:ring-violet-100",
     },
     featureTitle: "Everything in Business, plus:",
     features: [

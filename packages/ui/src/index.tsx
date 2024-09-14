@@ -25,6 +25,7 @@ export * from "./sheet";
 export * from "./status-badge";
 export * from "./switch";
 export * from "./table";
+export * from "./toggle-group";
 export * from "./tooltip";
 
 // hooks
