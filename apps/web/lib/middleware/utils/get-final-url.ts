@@ -22,6 +22,7 @@ export const getFinalUrl = (
 
   if (clickId) {
     // add clickId to the final url if it exists
+    urlObj.searchParams.set("dubId", clickId);
     urlObj.searchParams.set("dclid", clickId);
   }
 

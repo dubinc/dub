@@ -4,7 +4,7 @@ export function createResponseWithCookie(
   response: NextResponse,
   { clickId, path }: { clickId: string; path: string },
 ): NextResponse {
-  response.cookies.set("dclid", clickId, {
+  response.cookies.set("dubId", clickId, {
     path,
     maxAge: 60 * 60, // 1 hour
   });
