@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
+import { DubApiError } from "../api/errors";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
 const schema = z.object({
@@ -58,21 +59,29 @@ export const searchDomainsAvailability = async ({
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to search domains: ${response.statusText}`);
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Failed to search domains: ${response.statusText}`,
+    });
   }
 
   const data = schema.parse(await response.json());
 
   if (data.SearchResponse.ResponseCode === "-1") {
-    throw new Error(`Failed to search domains: ${data.SearchResponse}`);
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Failed to search domains: ${data.SearchResponse}`,
+    });
   }
 
-  return data.SearchResponse.SearchResults.map((result) => ({
-    domain: result.DomainName,
-    available:
-      result.Available === "yes" &&
-      result.Price &&
-      !/is\s+a Premium Domain/.test(result.Price),
-    price: result.Price,
-  }));
+  return data.SearchResponse.SearchResults.map((result) => {
+    console.log({ result });
+    const premium = result.Price && /is\s+a Premium Domain/.test(result.Price);
+    return {
+      domain: result.DomainName,
+      available: result.Available === "yes" && !premium,
+      price: result.Price,
+      premium,
+    };
+  });
 };

@@ -2,13 +2,15 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
   Button,
+  buttonVariants,
   SimpleTooltipContent,
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { cn, truncate } from "@dub/utils";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Star } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -20,6 +22,7 @@ interface DomainSearchResult {
   domain: string;
   available: boolean;
   price: string;
+  premium: boolean;
 }
 
 export function RegisterDomainForm({
@@ -58,7 +61,8 @@ export function RegisterDomainForm({
     setIsSearching(false);
 
     if (!response.ok) {
-      toast.error("Failed to search for domain availability.");
+      const { error } = await response.json();
+      toast.error(error.message);
       return;
     }
 
@@ -217,9 +221,12 @@ export function RegisterDomainForm({
                       ) : (
                         <>
                           <span className="font-semibold text-gray-800">
-                            {searchedDomain?.domain}
+                            {searchedDomain.domain}
                           </span>{" "}
-                          is not available.
+                          is{" "}
+                          {searchedDomain.premium
+                            ? "a premium domain, which is not available for free, but you can register it on Dynadot."
+                            : "not available."}
                         </>
                       )
                     ) : slug?.trim() ? (
@@ -238,6 +245,11 @@ export function RegisterDomainForm({
                   ) : searchedDomain ? (
                     searchedDomain?.available ? (
                       <CheckCircleFill className="size-5 shrink-0 text-green-500" />
+                    ) : searchedDomain.premium ? (
+                      <Star
+                        className="size-5 shrink-0 text-amber-500"
+                        fill="currentColor"
+                      />
                     ) : (
                       <AlertCircleFill className="size-5 shrink-0 text-amber-500" />
                     )
@@ -304,21 +316,35 @@ export function RegisterDomainForm({
             onClick={onCancel}
           />
         )}
-        <Button
-          type="submit"
-          text="Claim domain"
-          className={cn("h-9", variant === "modal" && "w-fit")}
-          disabled={
-            !searchedDomain?.available ||
-            (workspace.plan === "free" && !saveOnly)
-          }
-          loading={isRegistering}
-          disabledTooltip={
-            workspace.plan === "free" && !saveOnly ? (
-              <UpgradeTooltipContent />
-            ) : undefined
-          }
-        />
+        {searchedDomain && searchedDomain.premium ? (
+          <Link
+            href={`https://www.dynadot.com/domain/search?domain=${searchedDomain.domain}`}
+            target="_blank"
+            className={cn(
+              buttonVariants(),
+              "flex h-9 items-center justify-center rounded-md border px-4 text-sm",
+              variant === "modal" && "w-fit",
+            )}
+          >
+            Register on Dynadot
+          </Link>
+        ) : (
+          <Button
+            type="submit"
+            text="Claim domain"
+            className={cn("h-9", variant === "modal" && "w-fit")}
+            disabled={
+              !searchedDomain?.available ||
+              (workspace.plan === "free" && !saveOnly)
+            }
+            loading={isRegistering}
+            disabledTooltip={
+              workspace.plan === "free" && !saveOnly ? (
+                <UpgradeTooltipContent />
+              ) : undefined
+            }
+          />
+        )}
       </div>
     </form>
   );
