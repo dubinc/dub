@@ -30,7 +30,7 @@ export default function ReferralsPage({
   searchParams: { event?: string; page?: string };
 }) {
   const event = (searchParams.event ?? "clicks") as EventType;
-  const page = parseInt(searchParams.page ?? "0") || 0;
+  const page = parseInt(searchParams.page ?? "1") || 1;
 
   return (
     <ReferralsPageClient>

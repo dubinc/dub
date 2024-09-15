@@ -4,12 +4,12 @@ import {
   Column,
   ColumnDef,
   ColumnPinningState,
-  PaginationState,
-  Table as TableType,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
+  PaginationState,
+  Table as TableType,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -287,9 +287,9 @@ export function Table<T>({
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">
-              {pagination.pageIndex * pagination.pageSize + 1}-
+              {(pagination.pageIndex - 1) * pagination.pageSize + 1}-
               {Math.min(
-                pagination.pageIndex * pagination.pageSize +
+                (pagination.pageIndex - 1) * pagination.pageSize +
                   pagination.pageSize,
                 table.getRowCount(),
               )}
@@ -306,14 +306,16 @@ export function Table<T>({
               text="Previous"
               className="h-7 px-2"
               onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              // disabled={!table.getCanPreviousPage()}
+              disabled={pagination.pageIndex === 1}
             />
             <Button
               variant="secondary"
               text="Next"
               className="h-7 px-2"
               onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              // disabled={!table.getCanNextPage()}
+              disabled={pagination.pageIndex === table.getPageCount()}
             />
           </div>
         </div>
