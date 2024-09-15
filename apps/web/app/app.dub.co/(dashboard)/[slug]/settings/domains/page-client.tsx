@@ -138,70 +138,60 @@ export default function WorkspaceDomainsClient() {
               }
             />
 
-            {flags?.dotlink ? (
-              <Popover
-                content={
-                  <div className="grid w-screen gap-px p-2 sm:w-fit sm:min-w-[17rem]">
-                    <Button
-                      text="Connect a domain you own"
-                      variant="outline"
-                      icon={<Globe className="h-4 w-4" />}
-                      className="h-9 justify-start px-2 text-gray-800"
-                      onClick={() => setShowAddEditDomainModal(true)}
-                    />
-                    <Button
-                      text={
-                        <div className="flex items-center gap-3">
-                          Claim free .link domain
-                          {plan === "free" ? (
-                            <Badge
-                              variant="neutral"
-                              className="flex items-center gap-1"
-                            >
-                              <Crown className="size-3" />
-                              <span className="uppercase">Pro</span>
-                            </Badge>
-                          ) : dotLinkClaimed ? (
-                            <span className="rounded-md border border-green-200 bg-green-500/10 px-1 py-0.5 text-xs text-green-900">
-                              Claimed
-                            </span>
-                          ) : null}
-                        </div>
-                      }
-                      variant="outline"
-                      icon={<LinkBroken className="size-4" />}
-                      className="h-9 justify-start px-2 text-gray-800 disabled:border-none disabled:bg-transparent disabled:text-gray-500"
-                      onClick={() => setShowRegisterDomainModal(true)}
-                      disabled={dotLinkClaimed}
-                    />
-                  </div>
-                }
-                align="end"
-                openPopover={openPopover}
-                setOpenPopover={setOpenPopover}
-              >
-                <Button
-                  variant="primary"
-                  className="w-fit"
-                  text={
-                    <div className="flex items-center gap-2">
-                      Add domain{" "}
-                      <ChevronDown className="size-4 transition-transform duration-75 group-data-[state=open]:rotate-180" />
-                    </div>
-                  }
-                  onClick={() => setOpenPopover(!openPopover)}
-                  disabledTooltip={disabledTooltip}
-                />
-              </Popover>
-            ) : (
+            <Popover
+              content={
+                <div className="grid w-screen gap-px p-2 sm:w-fit sm:min-w-[17rem]">
+                  <Button
+                    text="Connect a domain you own"
+                    variant="outline"
+                    icon={<Globe className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 text-gray-800"
+                    onClick={() => setShowAddEditDomainModal(true)}
+                  />
+                  <Button
+                    text={
+                      <div className="flex items-center gap-3">
+                        Claim free .link domain
+                        {plan === "free" ? (
+                          <Badge
+                            variant="neutral"
+                            className="flex items-center gap-1"
+                          >
+                            <Crown className="size-3" />
+                            <span className="uppercase">Pro</span>
+                          </Badge>
+                        ) : dotLinkClaimed ? (
+                          <span className="rounded-md border border-green-200 bg-green-500/10 px-1 py-0.5 text-xs text-green-900">
+                            Claimed
+                          </span>
+                        ) : null}
+                      </div>
+                    }
+                    variant="outline"
+                    icon={<LinkBroken className="size-4" />}
+                    className="h-9 justify-start px-2 text-gray-800 disabled:border-none disabled:bg-transparent disabled:text-gray-500"
+                    onClick={() => setShowRegisterDomainModal(true)}
+                    disabled={dotLinkClaimed}
+                  />
+                </div>
+              }
+              align="end"
+              openPopover={openPopover}
+              setOpenPopover={setOpenPopover}
+            >
               <Button
                 variant="primary"
                 className="w-fit"
-                text="Add domain"
-                onClick={() => setShowAddEditDomainModal(true)}
+                text={
+                  <div className="flex items-center gap-2">
+                    Add domain{" "}
+                    <ChevronDown className="size-4 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                  </div>
+                }
+                onClick={() => setOpenPopover(!openPopover)}
                 disabledTooltip={disabledTooltip}
               />
-            )}
+            </Popover>
           </div>
         </div>
 
@@ -212,7 +202,7 @@ export default function WorkspaceDomainsClient() {
           </>
         )}
 
-        {flags?.dotlink && !dotLinkClaimed && <FreeDotLinkBanner />}
+        {!dotLinkClaimed && <FreeDotLinkBanner />}
 
         <div key={archived} className="animate-fade-in">
           {!loading ? (

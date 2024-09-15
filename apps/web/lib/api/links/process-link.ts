@@ -1,8 +1,4 @@
-import {
-  getFeatureFlags,
-  isBlacklistedDomain,
-  updateConfig,
-} from "@/lib/edge-config";
+import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -181,18 +177,6 @@ export async function processLink<T extends Record<string, any>>({
         code: "forbidden",
       };
     }
-    const flags = await getFeatureFlags({
-      workspaceId: workspace.id,
-    });
-    if (!flags.dublink) {
-      return {
-        link: payload,
-        error:
-          "dub.link is still currently in beta. Please contact support@dub.co if you need access.",
-        code: "forbidden",
-      };
-    }
-
     // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
