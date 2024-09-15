@@ -425,8 +425,6 @@ export default function EventsTable() {
     [originalQueryString, tab, pagination, sortBy, order],
   );
 
-  console.log({ page: pagination.pageIndex });
-
   // Update export query string
   useEffect(
     () =>
