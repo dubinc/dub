@@ -92,7 +92,12 @@ export function TooltipContent({
             {cta}
           </Link>
         ) : onClick ? (
-          <Button onClick={onClick} text={cta} variant="primary" />
+          <Button
+            onClick={onClick}
+            text={cta}
+            variant="primary"
+            className="h-9"
+          />
         ) : null)}
     </div>
   );

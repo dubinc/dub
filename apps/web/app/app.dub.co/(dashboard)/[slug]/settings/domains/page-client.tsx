@@ -88,6 +88,24 @@ export default function WorkspaceDomainsClient() {
     role,
   });
 
+  const disabledTooltip = exceededDomains ? (
+    <TooltipContent
+      title={`You can only add up to ${domainsLimit} domain${
+        domainsLimit === 1 ? "" : "s"
+      } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+      cta="Upgrade"
+      onClick={() => {
+        queryParams({
+          set: {
+            upgrade: nextPlan.name.toLowerCase(),
+          },
+        });
+      }}
+    />
+  ) : (
+    permissionsError || undefined
+  );
+
   return (
     <>
       <RegisterDomainSuccessModal />
@@ -144,26 +162,6 @@ export default function WorkspaceDomainsClient() {
                       icon={<Globe className="h-4 w-4" />}
                       className="h-9 justify-start px-2 text-gray-800"
                       onClick={() => setShowAddEditDomainModal(true)}
-                      disabledTooltip={
-                        exceededDomains ? (
-                          <TooltipContent
-                            title={`You can only add up to ${domainsLimit} domain${
-                              domainsLimit === 1 ? "" : "s"
-                            } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
-                            cta="Upgrade"
-                            onClick={() => {
-                              queryParams({
-                                set: {
-                                  upgrade: nextPlan.name.toLowerCase(),
-                                },
-                              });
-                            }}
-                          />
-                        ) : (
-                          permissionsError || undefined
-                        )
-                      }
-                      disabled={exceededDomains || !!permissionsError}
                     />
                     <Button
                       text={
@@ -206,6 +204,7 @@ export default function WorkspaceDomainsClient() {
                     </div>
                   }
                   onClick={() => setOpenPopover(!openPopover)}
+                  disabledTooltip={disabledTooltip}
                 />
               </Popover>
             ) : (
@@ -214,6 +213,7 @@ export default function WorkspaceDomainsClient() {
                 className="w-fit"
                 text="Add domain"
                 onClick={() => setShowAddEditDomainModal(true)}
+                disabledTooltip={disabledTooltip}
               />
             )}
           </div>
