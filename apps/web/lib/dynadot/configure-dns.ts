@@ -9,18 +9,9 @@ export const configureDNS = async ({ domain }: { domain: string }) => {
     main_record0: "76.76.21.21",
   });
 
-  const response = await fetch(
-    `${DYNADOT_BASE_URL}?${searchParams.toString()}`,
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+  return fetch(`${DYNADOT_BASE_URL}?${searchParams.toString()}`, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
     },
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to configure domain DNS: ${response.statusText}`);
-  }
-
-  return response.json();
+  });
 };
