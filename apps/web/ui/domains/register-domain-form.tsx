@@ -106,8 +106,9 @@ export function RegisterDomainForm({
     } else {
       toast.success("Domain registered successfully!");
 
-      // Mutate domains and links
+      // Mutate workspace, domains links
       await Promise.all([
+        mutate(`/api/workspaces/${workspace.slug}`),
         mutate(
           (key) =>
             typeof key === "string" &&

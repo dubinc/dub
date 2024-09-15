@@ -1,6 +1,5 @@
 "use client";
 
-import { checkDotlinkClaimed } from "@/lib/actions/check-dotlink-claimed";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
@@ -27,7 +26,6 @@ import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
 import { capitalize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { DefaultDomains } from "./default-domains";
 
@@ -40,25 +38,13 @@ export default function WorkspaceDomainsClient() {
     domainsLimit,
     exceededDomains,
     flags,
+    dotLinkClaimed,
   } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
   const { searchParams, queryParams } = useRouterStuff();
   const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
   const { data: domainsCount } = useDomainsCount();
-
-  const [dotLinkClaimed, setDotLinkClaimed] = useState(false);
-  const { executeAsync, isExecuting } = useAction(checkDotlinkClaimed);
-
-  useEffect(() => {
-    const checkDotLink = async () => {
-      if (workspaceId && flags?.dotlink) {
-        const result = await executeAsync({ workspaceId });
-        setDotLinkClaimed(Boolean(result?.data));
-      }
-    };
-    checkDotLink();
-  }, [workspaceId, flags?.dotlink]);
 
   const { pagination, setPagination } = usePagination(50);
 
@@ -186,7 +172,7 @@ export default function WorkspaceDomainsClient() {
                       icon={<LinkBroken className="size-4" />}
                       className="h-9 justify-start px-2 text-gray-800 disabled:border-none disabled:bg-transparent disabled:text-gray-500"
                       onClick={() => setShowRegisterDomainModal(true)}
-                      disabled={isExecuting || dotLinkClaimed}
+                      disabled={dotLinkClaimed}
                     />
                   </div>
                 }
