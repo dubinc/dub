@@ -155,7 +155,7 @@ export function RegisterDomainForm({
                   <SimpleTooltipContent
                     title="Search for a free .link domain to use for your short links."
                     cta="Learn more."
-                    href="https://dub.co/help/article/free-dot-link-domain" // TODO: Update link
+                    href="https://dub.co/help/article/free-dot-link-domain"
                   />
                 }
               />
@@ -347,7 +347,7 @@ function DomainSavedToast() {
       <p className="text-[13px] font-medium text-gray-900">
         Domain saved. You'll need a pro plan to complete the registration.{" "}
         <a
-          href="https://dub.co/help/article/free-dot-link-domain" // TODO: Update link
+          href="https://dub.co/help/article/free-dot-link-domain"
           target="_blank"
           className="text-gray-500 underline transition-colors hover:text-gray-800"
         >
