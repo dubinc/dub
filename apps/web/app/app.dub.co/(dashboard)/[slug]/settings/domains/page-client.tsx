@@ -1,39 +1,114 @@
 "use client";
 
+import { checkDotlinkClaimed } from "@/lib/actions/check-dotlink-claimed";
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
+import { FreeDotLinkBanner } from "@/ui/domains/free-dot-link-banner";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
+import { useRegisterDomainModal } from "@/ui/modals/register-domain-modal";
+import { useRegisterDomainSuccessModal } from "@/ui/modals/register-domain-success-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
-import { Globe, usePagination, useRouterStuff } from "@dub/ui";
+import {
+  Badge,
+  Button,
+  Globe,
+  Popover,
+  usePagination,
+  useRouterStuff,
+} from "@dub/ui";
+import { LinkBroken } from "@dub/ui/src/icons";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { InfoTooltip, TooltipContent } from "@dub/ui/src/tooltip";
+import { capitalize } from "@dub/utils";
+import { ChevronDown, Crown } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useEffect, useState } from "react";
 import { DefaultDomains } from "./default-domains";
 
 export default function WorkspaceDomainsClient() {
-  const { id: workspaceId } = useWorkspace();
+  const {
+    id: workspaceId,
+    plan,
+    nextPlan,
+    role,
+    domainsLimit,
+    exceededDomains,
+    flags,
+  } = useWorkspace();
 
-  const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal({
-    buttonProps: {
-      className: "h-9 rounded-lg",
-    },
-  });
-
+  const [openPopover, setOpenPopover] = useState(false);
   const { searchParams, queryParams } = useRouterStuff();
-  const archived = searchParams.get("archived");
-  const search = searchParams.get("search");
-
   const { allWorkspaceDomains, loading } = useDomains({ includeParams: true });
   const { data: domainsCount } = useDomainsCount();
 
+  const [dotLinkClaimed, setDotLinkClaimed] = useState(false);
+  const { executeAsync, isExecuting } = useAction(checkDotlinkClaimed);
+
+  useEffect(() => {
+    const checkDotLink = async () => {
+      if (workspaceId && flags?.dotlink) {
+        const result = await executeAsync({ workspaceId });
+        setDotLinkClaimed(Boolean(result?.data));
+      }
+    };
+    checkDotLink();
+  }, [workspaceId, flags?.dotlink]);
+
   const { pagination, setPagination } = usePagination(50);
+
+  const archived = searchParams.get("archived");
+  const search = searchParams.get("search");
+
+  const { AddEditDomainModal, AddDomainButton, setShowAddEditDomainModal } =
+    useAddEditDomainModal({
+      buttonProps: {
+        className: "h-9 rounded-lg",
+      },
+    });
+
+  const { RegisterDomainModal, setShowRegisterDomainModal } =
+    useRegisterDomainModal();
+
+  const { RegisterDomainSuccessModal, setShowRegisterDomainSuccessModal } =
+    useRegisterDomainSuccessModal();
+
+  useEffect(
+    () => setShowRegisterDomainSuccessModal(searchParams.has("registered")),
+    [searchParams],
+  );
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "domains.write",
+    role,
+  });
+
+  const disabledTooltip = exceededDomains ? (
+    <TooltipContent
+      title={`You can only add up to ${domainsLimit} domain${
+        domainsLimit === 1 ? "" : "s"
+      } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+      cta="Upgrade"
+      onClick={() => {
+        queryParams({
+          set: {
+            upgrade: nextPlan.name.toLowerCase(),
+          },
+        });
+      }}
+    />
+  ) : (
+    permissionsError || undefined
+  );
 
   return (
     <>
+      <RegisterDomainSuccessModal />
       <div className="grid gap-5">
         <div className="flex flex-wrap justify-between gap-6">
           <div className="flex items-center gap-x-2">
@@ -76,10 +151,83 @@ export default function WorkspaceDomainsClient() {
                   : queryParams({ set: { archived: "true" }, del: "page" })
               }
             />
-            <AddDomainButton />
+
+            {flags?.dotlink ? (
+              <Popover
+                content={
+                  <div className="grid w-screen gap-px p-2 sm:w-fit sm:min-w-[17rem]">
+                    <Button
+                      text="Connect a domain you own"
+                      variant="outline"
+                      icon={<Globe className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 text-gray-800"
+                      onClick={() => setShowAddEditDomainModal(true)}
+                    />
+                    <Button
+                      text={
+                        <div className="flex items-center gap-3">
+                          Claim free .link domain
+                          {plan === "free" ? (
+                            <Badge
+                              variant="neutral"
+                              className="flex items-center gap-1"
+                            >
+                              <Crown className="size-3" />
+                              <span className="uppercase">Pro</span>
+                            </Badge>
+                          ) : dotLinkClaimed ? (
+                            <span className="rounded-md border border-green-200 bg-green-500/10 px-1 py-0.5 text-xs text-green-900">
+                              Claimed
+                            </span>
+                          ) : null}
+                        </div>
+                      }
+                      variant="outline"
+                      icon={<LinkBroken className="size-4" />}
+                      className="h-9 justify-start px-2 text-gray-800 disabled:border-none disabled:bg-transparent disabled:text-gray-500"
+                      onClick={() => setShowRegisterDomainModal(true)}
+                      disabled={isExecuting || dotLinkClaimed}
+                    />
+                  </div>
+                }
+                align="end"
+                openPopover={openPopover}
+                setOpenPopover={setOpenPopover}
+              >
+                <Button
+                  variant="primary"
+                  className="w-fit"
+                  text={
+                    <div className="flex items-center gap-2">
+                      Add domain{" "}
+                      <ChevronDown className="size-4 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                    </div>
+                  }
+                  onClick={() => setOpenPopover(!openPopover)}
+                  disabledTooltip={disabledTooltip}
+                />
+              </Popover>
+            ) : (
+              <Button
+                variant="primary"
+                className="w-fit"
+                text="Add domain"
+                onClick={() => setShowAddEditDomainModal(true)}
+                disabledTooltip={disabledTooltip}
+              />
+            )}
           </div>
         </div>
-        {workspaceId && <AddEditDomainModal />}
+
+        {workspaceId && (
+          <>
+            <AddEditDomainModal />
+            <RegisterDomainModal />
+          </>
+        )}
+
+        {flags?.dotlink && <FreeDotLinkBanner />}
+
         <div key={archived} className="animate-fade-in">
           {!loading ? (
             allWorkspaceDomains.length > 0 ? (

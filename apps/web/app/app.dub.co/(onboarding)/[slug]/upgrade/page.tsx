@@ -2,12 +2,12 @@ import { Wordmark } from "@dub/ui";
 import Link from "next/link";
 import { PlanSelector } from "../../onboarding/(steps)/plan/plan-selector";
 import { StepPage } from "../../onboarding/(steps)/step-page";
-import BackButton from "./back-button";
+import ExitButton from "./exit-button";
 
 export default function Plan() {
   return (
     <div className="relative flex flex-col items-center">
-      <BackButton />
+      <ExitButton />
       <Link href="/">
         <Wordmark className="mt-6 h-8" />
       </Link>

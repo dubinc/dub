@@ -9,7 +9,7 @@ const common = {
 
 const dubLink = {
   id: "1",
-  domain: "dub.sh", // TODO: update to dub.link
+  domain: "dub.link",
   key: "uxUrVCz",
   url: "https://dub.co/",
 };

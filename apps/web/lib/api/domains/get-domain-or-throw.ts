@@ -14,6 +14,9 @@ export const getDomainOrThrow = async ({
 }) => {
   const domainRecord = await prisma.domain.findUnique({
     where: { slug: domain },
+    include: {
+      registeredDomain: true,
+    },
   });
 
   if (!domainRecord) {

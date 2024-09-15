@@ -26,6 +26,7 @@ const config: Pick<Config, "presets"> = {
               "table-pinned-shadow cubic-bezier(0, 0, 1, 0)",
             // Pulse scale animation used for onboarding/welcome
             "pulse-scale": "pulse-scale 6s ease-out infinite",
+            "gradient-move": "gradient-move 5s linear infinite",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -55,6 +56,11 @@ const config: Pick<Config, "presets"> = {
               "0%": { transform: "scale(0.8)", opacity: "0" },
               "30%": { opacity: "1" },
               "100%": { transform: "scale(2)", opacity: "0" },
+            },
+            // Gradient move animation for gradient text
+            "gradient-move": {
+              "0%": { backgroundPosition: "0% 50%" },
+              "100%": { backgroundPosition: "200% 50%" },
             },
           },
         },

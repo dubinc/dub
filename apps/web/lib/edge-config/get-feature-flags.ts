@@ -20,6 +20,7 @@ export const getFeatureFlags = async ({
     dublink: false,
     referrals: false,
     webhooks: false,
+    dotlink: false,
   };
 
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
