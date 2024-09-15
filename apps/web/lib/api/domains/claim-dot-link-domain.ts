@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { getRegisteredDotlinkDomain } from "./get-registered-dotlink-domain";
 
 export async function claimDotLinkDomain({
   domain,
@@ -22,17 +23,11 @@ export async function claimDotLinkDomain({
       message: "Free workspaces cannot register .link domains.",
     });
 
-  const existingRegisteredDotLinkDomain =
-    await prisma.registeredDomain.findFirst({
-      where: {
-        projectId: workspace.id,
-        slug: {
-          endsWith: ".link",
-        },
-      },
-    });
+  const registeredDotLinkDomain = await getRegisteredDotlinkDomain(
+    workspace.id,
+  );
 
-  if (existingRegisteredDotLinkDomain)
+  if (registeredDotLinkDomain)
     throw new DubApiError({
       code: "forbidden",
       message: "Workspace is limited to one free .link domain.",
