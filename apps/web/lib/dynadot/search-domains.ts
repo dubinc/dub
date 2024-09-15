@@ -75,7 +75,6 @@ export const searchDomainsAvailability = async ({
   }
 
   return data.SearchResponse.SearchResults.map((result) => {
-    console.log({ result });
     const premium = result.Price && /is\s+a Premium Domain/.test(result.Price);
     return {
       domain: result.DomainName,
