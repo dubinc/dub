@@ -6,6 +6,9 @@ import { prisma } from "@/lib/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { sendEmail } from "emails";
+import DomainClaimed from "emails/domain-claimed";
+import { deleteDomainAndLinks } from "./delete-domain-links";
 import { getRegisteredDotlinkDomain } from "./get-registered-dotlink-domain";
 
 export async function claimDotLinkDomain({
@@ -33,38 +36,39 @@ export async function claimDotLinkDomain({
       message: "Workspace is limited to one free .link domain.",
     });
 
-  const response = await registerDomain({ domain });
-  const slug = response.RegisterResponse.DomainName;
-
-  const totalDomains = await prisma.domain.count({
-    where: {
-      projectId: workspace.id,
-    },
-  });
-
-  // Delete any matching unverified domain
-  await prisma.domain.deleteMany({
-    where: {
-      slug,
-      verified: false,
-      registeredDomain: {
-        is: null,
+  const [response, totalDomains, matchingUnverifiedDomain] = await Promise.all([
+    registerDomain({ domain }),
+    prisma.domain.count({
+      where: {
+        projectId: workspace.id,
       },
-    },
-  });
+    }),
+    prisma.domain.findUnique({
+      where: {
+        slug: domain,
+      },
+      include: {
+        registeredDomain: true,
+      },
+    }),
+  ]);
+
+  if (matchingUnverifiedDomain) {
+    await deleteDomainAndLinks(matchingUnverifiedDomain.slug);
+  }
 
   await Promise.all([
     // Create the workspace domain
     prisma.domain.create({
       data: {
         projectId: workspace.id,
-        slug,
+        slug: domain,
         verified: true,
         lastChecked: new Date(),
         primary: totalDomains === 0,
         registeredDomain: {
           create: {
-            slug,
+            slug: domain,
             expiresAt: new Date(response.RegisterResponse.Expiration || ""),
             projectId: workspace.id,
           },
@@ -74,7 +78,7 @@ export async function claimDotLinkDomain({
     // Create the root link
     createLink({
       ...DEFAULT_LINK_PROPS,
-      domain: slug,
+      domain,
       key: "_root",
       url: "",
       tags: undefined,
@@ -83,8 +87,43 @@ export async function claimDotLinkDomain({
     }),
   ]);
 
-  // Configure the DNS in the background
-  waitUntil(configureDNS({ domain: slug }));
+  waitUntil(
+    (async () => {
+      // configure the DNS in the background
+      await configureDNS({ domain });
+
+      // once domain is provisioned, send email
+      const workspaceWithOwner = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: workspace.id,
+        },
+        include: {
+          users: {
+            where: {
+              role: "owner",
+            },
+            select: {
+              user: true,
+            },
+          },
+        },
+      });
+
+      workspaceWithOwner.users.map(({ user }) => {
+        if (user.email) {
+          sendEmail({
+            email: user.email,
+            subject: "Successfully claimed your .link domain!",
+            react: DomainClaimed({
+              email: user.email,
+              domain,
+              workspaceSlug: workspace.slug,
+            }),
+          });
+        }
+      });
+    })(),
+  );
 
   return response;
 }

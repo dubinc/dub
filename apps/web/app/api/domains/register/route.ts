@@ -9,7 +9,7 @@ const schema = z.object({
     .min(1)
     .endsWith(".link")
     .transform((domain) => domain.toLowerCase())
-    .describe("We only support .link domains for now."),
+    .describe("The domain to claim. We only support .link domains for now."),
 });
 
 // POST /api/domains/register - register a domain
