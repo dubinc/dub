@@ -1,4 +1,3 @@
-import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Grid, useLocalStorage } from "@dub/ui";
 import { LinkBroken } from "@dub/ui/src/icons";
@@ -12,14 +11,7 @@ export function FreeDotLinkBanner() {
   const { RegisterDomainModal, setShowRegisterDomainModal } =
     useRegisterDomainModal();
 
-  const { data: domainsCount } = useDomainsCount({
-    includeParams: false,
-    params: {
-      search: ".link",
-    },
-  });
-
-  return hide || domainsCount !== 0 ? null : (
+  return hide ? null : (
     <>
       <RegisterDomainModal />
       <div className="relative isolate flex flex-col justify-between gap-3 overflow-hidden rounded-lg border border-green-600/15 bg-gradient-to-r from-lime-100/80 to-emerald-100/80 py-3 pl-4 pr-12 sm:flex-row sm:items-center sm:py-2">
