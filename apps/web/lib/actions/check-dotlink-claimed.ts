@@ -18,7 +18,5 @@ export const checkDotlinkClaimed = authActionClient
       workspace.id,
     );
 
-    console.log({ registeredDotLinkDomain });
-
     return registeredDotLinkDomain ? true : false;
   });
