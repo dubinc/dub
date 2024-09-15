@@ -37,7 +37,7 @@ export function FreeDotLinkBanner() {
             Claim a free <span className="font-semibold">.link</span> domain,
             free for one year{plan === "free" && " with any paid plan"}.{" "}
             <a
-              href="https://dub.co/help/article/how-to-add-custom-domain" // TODO: Update link
+              href="https://dub.co/help/article/free-dot-link-domain" // TODO: Update link
               target="_blank"
               className="text-gray-700 underline transition-colors hover:text-black"
             >

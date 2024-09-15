@@ -112,7 +112,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </span>
             </div>
             <a
-              href="https://dub.co/help/article/how-to-add-custom-domain" // TODO: Update link
+              href="https://dub.co/help/article/free-dot-link-domain"
               target="_blank"
               className="text-gray-500 underline transition-colors hover:text-gray-800"
             >

@@ -52,22 +52,6 @@ export interface RedisLinkProps {
   webhookIds?: string[];
 }
 
-export interface EdgeLinkProps {
-  id: string;
-  domain: string;
-  key: string;
-  url: string;
-  proxy: boolean;
-  title: string;
-  description: string;
-  image: string;
-  password: string;
-  clicks: number;
-  publicStats: boolean;
-  userId: string;
-  projectId: string;
-}
-
 export interface TagProps {
   id: string;
   name: string;
