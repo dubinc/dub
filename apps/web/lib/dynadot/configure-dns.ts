@@ -1,12 +1,4 @@
-import z from "@/lib/zod";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
-
-const schema = z.object({
-  SetDnsResponse: z.object({
-    ResponseCode: z.number(),
-    Status: z.string(),
-  }),
-});
 
 export const configureDNS = async ({ domain }: { domain: string }) => {
   const searchParams = new URLSearchParams({
@@ -30,7 +22,5 @@ export const configureDNS = async ({ domain }: { domain: string }) => {
     throw new Error(`Failed to configure domain DNS: ${response.statusText}`);
   }
 
-  const data = schema.parse(await response.json());
-
-  return data;
+  return response.json();
 };

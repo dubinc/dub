@@ -41,13 +41,10 @@ const RegisterDomainSuccess = ({
               {registered}
             </p>
             <p className="mt-4 text-sm text-gray-500">
-              Your domain is now registered and ready to use.
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              It may take some time for the domain configuration to propagate
-              globally.{" "}
+              Your domain is now registered and ready to use, though it may take
+              some time for the domain configuration to propagate globally.{" "}
               <a
-                href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
+                href="https://dub.co/help/article/free-dot-link-domain#claim-your-domain-and-wait-for-it-to-be-provisioned"
                 target="_blank"
                 className="underline transition-colors hover:text-gray-700"
               >
