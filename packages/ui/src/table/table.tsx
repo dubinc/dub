@@ -287,9 +287,9 @@ export function Table<T>({
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">
-              {pagination.pageIndex * pagination.pageSize + 1}-
+              {(pagination.pageIndex - 1) * pagination.pageSize + 1}-
               {Math.min(
-                pagination.pageIndex * pagination.pageSize +
+                (pagination.pageIndex - 1) * pagination.pageSize +
                   pagination.pageSize,
                 table.getRowCount(),
               )}

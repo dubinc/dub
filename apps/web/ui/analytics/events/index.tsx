@@ -21,10 +21,7 @@ export default function AnalyticsEvents({
   const event = searchParams.get("event");
 
   return (
-    <AnalyticsProvider
-      {...{ staticDomain, staticUrl, adminPage, demoPage }}
-      eventsPage
-    >
+    <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage, demoPage }}>
       <div className="py-10">
         <Toggle page="events" />
         <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-2.5 lg:px-20">
