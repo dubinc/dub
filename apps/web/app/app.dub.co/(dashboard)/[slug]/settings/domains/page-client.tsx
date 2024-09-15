@@ -226,7 +226,7 @@ export default function WorkspaceDomainsClient() {
           </>
         )}
 
-        {flags?.dotlink && <FreeDotLinkBanner />}
+        {flags?.dotlink && !dotLinkClaimed && <FreeDotLinkBanner />}
 
         <div key={archived} className="animate-fade-in">
           {!loading ? (
