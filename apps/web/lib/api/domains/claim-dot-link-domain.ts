@@ -8,6 +8,7 @@ import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import DomainClaimed from "emails/domain-claimed";
+import { addDomainToVercel } from "./add-domain-vercel";
 import { deleteDomainAndLinks } from "./delete-domain-links";
 import { getRegisteredDotlinkDomain } from "./get-registered-dotlink-domain";
 
@@ -30,22 +31,25 @@ export async function claimDotLinkDomain({
     workspace.id,
   );
 
-  if (registeredDotLinkDomain)
+  if (registeredDotLinkDomain) {
     throw new DubApiError({
       code: "forbidden",
       message: "Workspace is limited to one free .link domain.",
     });
+  }
 
   const [response, totalDomains, matchingUnverifiedDomain] = await Promise.all([
+    // register the domain
     registerDomain({ domain }),
     prisma.domain.count({
       where: {
         projectId: workspace.id,
       },
     }),
-    prisma.domain.findUnique({
+    prisma.domain.findFirst({
       where: {
         slug: domain,
+        verified: false,
       },
       include: {
         registeredDomain: true,
@@ -53,6 +57,16 @@ export async function claimDotLinkDomain({
     }),
   ]);
 
+  // if for some reason the domain is already registered, we should fail
+  if (response.RegisterResponse.Error) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: response.RegisterResponse.Error,
+    });
+  }
+
+  // if the domain was added to a different workspace but is not verified
+  // we should remove it to free up the domain for the current workspace
   if (matchingUnverifiedDomain) {
     await deleteDomainAndLinks(matchingUnverifiedDomain.slug);
   }
@@ -89,8 +103,12 @@ export async function claimDotLinkDomain({
 
   waitUntil(
     (async () => {
-      // configure the DNS in the background
-      await configureDNS({ domain });
+      await Promise.all([
+        // configure the DNS with Dynadot
+        configureDNS({ domain }),
+        // add domain to Vercel
+        addDomainToVercel(domain),
+      ]);
 
       // once domain is provisioned, send email
       const workspaceWithOwner = await prisma.project.findUniqueOrThrow({
