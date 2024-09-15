@@ -22,7 +22,7 @@ export const getFinalUrl = (
 
   if (clickId) {
     // add clickId to the final url if it exists
-    urlObj.searchParams.set("dubId", clickId);
+    urlObj.searchParams.set("dub_id", clickId);
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)

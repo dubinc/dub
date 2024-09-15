@@ -454,7 +454,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const clickId =
-          cookies().get("dubId")?.value || cookies().get("dclid")?.value;
+          cookies().get("dub_id")?.value || cookies().get("dclid")?.value;
         if (clickId) {
           // send lead event to Dub
           waitUntil(
@@ -468,7 +468,7 @@ export const authOptions: NextAuthOptions = {
             }),
           );
           // delete the clickId cookie
-          cookies().delete("dubId");
+          cookies().delete("dub_id");
         }
       }
       // lazily backup user avatar to R2
