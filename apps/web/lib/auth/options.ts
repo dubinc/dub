@@ -453,7 +453,8 @@ export const authOptions: NextAuthOptions = {
           );
         }
 
-        const clickId = cookies().get("dclid")?.value;
+        const clickId =
+          cookies().get("dub_id")?.value || cookies().get("dclid")?.value;
         if (clickId) {
           // send lead event to Dub
           waitUntil(
@@ -467,7 +468,7 @@ export const authOptions: NextAuthOptions = {
             }),
           );
           // delete the clickId cookie
-          cookies().delete("dclid");
+          cookies().delete("dub_id");
         }
       }
       // lazily backup user avatar to R2
