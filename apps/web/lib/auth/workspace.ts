@@ -102,6 +102,8 @@ export const withWorkspace = (
           params?.slug ||
           searchParams.projectSlug;
 
+        console.log({ apiKey, isRestrictedToken, idOrSlug });
+
         // if there's no workspace ID or slug and it's not a restricted token
         // For restricted tokens, we find the workspaceId from the token
         if (!idOrSlug && !isRestrictedToken) {
