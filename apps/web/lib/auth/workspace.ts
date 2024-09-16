@@ -106,6 +106,7 @@ export const withWorkspace = (
         authorizationHeader,
         apiKey,
         hostname: req.headers.get("host"),
+        path: req.url,
         DUB_API_KEY: process.env.DUB_API_KEY,
         isRestrictedToken,
         idOrSlug,

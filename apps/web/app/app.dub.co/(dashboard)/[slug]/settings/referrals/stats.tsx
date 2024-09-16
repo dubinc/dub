@@ -1,6 +1,5 @@
 import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
-import { dub } from "@/lib/dub";
 import {
   REFERRAL_CLICKS_QUOTA_BONUS,
   REFERRAL_CLICKS_QUOTA_BONUS_MAX,
@@ -14,7 +13,7 @@ import {
 } from "@dub/blocks";
 import { CountingNumbers } from "@dub/ui";
 import { User } from "@dub/ui/src/icons";
-import { nFormatter, randomValue } from "@dub/utils";
+import { API_DOMAIN, nFormatter, randomValue } from "@dub/utils";
 import { subDays } from "date-fns";
 import { AnalyticsTimeseries } from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
@@ -122,20 +121,38 @@ async function StatsInner({ slug }: { slug: string }) {
 async function loadData(linkId: string) {
   const [clicks, sales, totalEvents] = await Promise.all([
     // Clicks timeseries
-    dub.analytics.retrieve({
-      linkId,
-      event: "clicks",
-      interval: "30d",
-      groupBy: "timeseries",
-    }) as Promise<AnalyticsTimeseries[]>,
+    // dub.analytics.retrieve({
+    //   linkId,
+    //   event: "clicks",
+    //   interval: "30d",
+    //   groupBy: "timeseries",
+    // }) as Promise<AnalyticsTimeseries[]>,
+    fetch(
+      `${API_DOMAIN}/analytics?linkId=${linkId}&event=clicks&interval=30d&groupBy=timeseries`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.DUB_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      },
+    ).then((res) => res.json()) as Promise<AnalyticsTimeseries[]>,
 
     // Sales timeseries
-    dub.analytics.retrieve({
-      linkId,
-      event: "sales",
-      interval: "30d",
-      groupBy: "timeseries",
-    }) as Promise<AnalyticsTimeseries[]>,
+    // dub.analytics.retrieve({
+    //   linkId,
+    //   event: "sales",
+    //   interval: "30d",
+    //   groupBy: "timeseries",
+    // }) as Promise<AnalyticsTimeseries[]>,
+    fetch(
+      `${API_DOMAIN}/analytics?linkId=${linkId}&event=sales&interval=30d&groupBy=timeseries`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.DUB_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      },
+    ).then((res) => res.json()) as Promise<AnalyticsTimeseries[]>,
 
     // Total events
     getTotalEvents(linkId),
