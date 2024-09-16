@@ -103,12 +103,13 @@ export const withWorkspace = (
           searchParams.projectSlug;
 
         console.log({
+          headers: req.headers,
           authorizationHeader,
           apiKey,
+          hostname: req.headers.get("host"),
           DUB_API_KEY: process.env.DUB_API_KEY,
           isRestrictedToken,
           idOrSlug,
-          req,
         });
 
         // if there's no workspace ID or slug and it's not a restricted token
