@@ -222,7 +222,7 @@ export const eventsQuerySchema = analyticsQuerySchema
       .describe(
         "The interval to retrieve events for. Takes precedence over start and end. If undefined, defaults to 24h.",
       ),
-    page: z.coerce.number().default(0),
+    page: z.coerce.number().default(1),
     limit: z.coerce.number().default(PAGINATION_LIMIT),
     order: z.enum(["asc", "desc"]).default("desc"),
     sortBy: z.enum(["timestamp"]).default("timestamp"),

@@ -1,5 +1,5 @@
 import { tb } from "@/lib/tinybird";
-import { getDaysDifference, linkConstructor } from "@dub/utils";
+import { getDaysDifference, linkConstructor, punyEncode } from "@dub/utils";
 import { conn } from "../planetscale";
 import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
@@ -125,11 +125,11 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         return analyticsResponse[groupBy].parse({
           id: link.id,
           domain: link.domain,
-          key: link.key,
+          key: punyEncode(link.key),
           url: link.url,
           shortLink: linkConstructor({
             domain: link.domain,
-            key: link.key,
+            key: punyEncode(link.key),
           }),
           createdAt: link.createdAt.toISOString(),
           ...topLink,

@@ -40,6 +40,7 @@ export default function OGSection({
       "Paste an image URL to use for your link's social media cards.",
     label: "Image URL",
     inputProps: {
+      type: "url",
       placeholder: "https://example.com/og.png",
     },
     onSubmit: (image) => {

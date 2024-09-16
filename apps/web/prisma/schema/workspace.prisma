@@ -30,6 +30,7 @@ model Project {
   webhookEnabled    Boolean @default(false)
   conversionEnabled Boolean @default(false)
   ssoEnabled        Boolean @default(false)
+  dotLinkClaimed    Boolean @default(false)
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -49,6 +50,7 @@ model Project {
   installedIntegrations InstalledIntegration[] // Integrations workspace installed
   webhooks              Webhook[]
   folders               Folder[]
+  registeredDomains     RegisteredDomain[]
 
   @@index(usageLastChecked(sort: Asc))
 }

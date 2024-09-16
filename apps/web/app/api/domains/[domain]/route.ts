@@ -37,7 +37,7 @@ export const GET = withWorkspace(
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
-    const { slug: domain } = await getDomainOrThrow({
+    const { slug: domain, registeredDomain } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
@@ -84,7 +84,7 @@ export const PATCH = withWorkspace(
       },
       data: {
         archived,
-        ...(domainUpdated && { slug: newDomain }),
+        ...(domainUpdated && !registeredDomain && { slug: newDomain }),
         ...(placeholder && { placeholder }),
         ...(workspace.plan != "free" && {
           expiredUrl,
@@ -138,11 +138,18 @@ export const PATCH = withWorkspace(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const { slug: domain } = await getDomainOrThrow({
+    const { slug: domain, registeredDomain } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
     });
+
+    if (registeredDomain) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You cannot delete a Dub-provisioned domain.",
+      });
+    }
 
     await deleteDomainAndLinks(domain);
 

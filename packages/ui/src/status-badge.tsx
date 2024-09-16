@@ -42,6 +42,7 @@ function StatusBadge({
   className,
   variant,
   icon,
+  onClick,
   children,
   ...props
 }: BadgeProps) {
@@ -49,7 +50,13 @@ function StatusBadge({
     icon !== null ? icon ?? defaultIcons[variant ?? "neutral"] : null;
   return (
     <span
-      className={cn(statusBadgeVariants({ variant }), className)}
+      className={cn(
+        statusBadgeVariants({ variant }),
+        onClick &&
+          "cursor-pointer select-none transition-[filter] duration-150 hover:brightness-75 hover:saturate-[1.25]",
+        className,
+      )}
+      onClick={onClick}
       {...props}
     >
       {Icon && <Icon className="h-3 w-3 shrink-0" />}

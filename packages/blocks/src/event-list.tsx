@@ -11,12 +11,6 @@ export type EventListProps = PropsWithChildren<{
   emptyState: EmptyStateProps;
 }>;
 
-const buttonClassName = [
-  "flex h-7 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-600",
-  "outline-none hover:bg-gray-50 focus-visible:border-gray-500",
-  "disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:bg-white",
-].join(" ");
-
 export function EventList({ events, totalEvents, emptyState }: EventListProps) {
   const { pagination, setPagination } = usePagination();
 

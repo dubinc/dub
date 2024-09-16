@@ -65,14 +65,12 @@ export default function AnalyticsProvider({
   staticUrl,
   adminPage,
   demoPage,
-  eventsPage,
   children,
 }: PropsWithChildren<{
   staticDomain?: string;
   staticUrl?: string;
   adminPage?: boolean;
   demoPage?: boolean;
-  eventsPage?: boolean;
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();

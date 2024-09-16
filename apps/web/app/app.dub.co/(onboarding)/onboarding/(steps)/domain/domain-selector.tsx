@@ -1,50 +1,86 @@
 "use client";
 
 import useLinks from "@/lib/swr/use-links";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
-import { Globe2 } from "@dub/ui/src/icons";
+import { Globe2, LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
-import { useEffect, useState } from "react";
+import { Crown } from "lucide-react";
+import { ReactNode, useEffect, useState } from "react";
 import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DomainSelector() {
+  const { loading: isWorkspaceLoading, flags } = useWorkspace();
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
 
-  return (
-    <div>
-      <div className="mx-auto w-full max-w-[312px]">
+  const [selectedOption, setSelectedOption] = useState<"custom" | "register">(
+    "custom",
+  );
+
+  return isWorkspaceLoading ? (
+    <div className="mt-12 flex w-full justify-center">
+      <LoadingSpinner />
+    </div>
+  ) : (
+    <>
+      <div
+        className={cn(
+          "animate-fade-in mx-auto grid w-full max-w-[312px] gap-4",
+          flags?.dotlink && "sm:max-w-2xl sm:grid-cols-2",
+        )}
+      >
         <DomainOption
           title="Connect a custom domain"
           example="acme.com"
-          onClick={() => {}}
-          isSelected={true}
+          onClick={() => setSelectedOption("custom")}
+          isSelected={selectedOption === "custom"}
         />
+        {flags?.dotlink && (
+          <DomainOption
+            title={
+              <>
+                Claim a free{" "}
+                <span className="rounded border border-green-800/10 bg-lime-100 p-1 font-mono text-xs">
+                  .link
+                </span>{" "}
+                domain
+              </>
+            }
+            example="acme.link"
+            onClick={() => setSelectedOption("register")}
+            isSelected={selectedOption === "register"}
+            paidPlanRequired={true}
+          />
+        )}
       </div>
-      <div className="mt-8">
+      <div className="mx-auto mt-8 w-full max-w-sm">
         <Button
           type="button"
           variant="primary"
-          onClick={() => continueTo("domain/custom")}
+          onClick={() => continueTo(`domain/${selectedOption}`)}
           loading={isLoading || isSuccessful}
           text="Continue"
         />
         <LaterButton next="invite" className="mt-4" />
       </div>
-    </div>
+    </>
   );
 }
 
 function DomainOption({
+  title,
   example,
   onClick,
   isSelected,
+  paidPlanRequired,
 }: {
-  title: string;
+  title: ReactNode;
   example: string;
   onClick: () => void;
   isSelected: boolean;
+  paidPlanRequired?: boolean;
 }) {
   const { links } = useLinks({ sort: "createdAt", pageSize: 1 });
 
@@ -67,8 +103,8 @@ function DomainOption({
   return (
     <div
       className={cn(
-        "transition-border relative flex flex-col gap-2 rounded-lg border border-gray-300 px-10 py-9",
-        isSelected && "border-2 border-black bg-black/[0.03]",
+        "relative flex flex-col gap-2 rounded-lg border border-gray-300 px-10 pb-4 pt-9 transition-all",
+        isSelected && "border-transparent bg-black/[0.03] ring-2 ring-black",
       )}
       role="button"
       onClick={onClick}
@@ -95,8 +131,14 @@ function DomainOption({
         </div>
       </div>
       <span className="text-center text-sm font-medium text-gray-800">
-        Connect a custom domain
+        {title}
       </span>
+      {paidPlanRequired && (
+        <span className="flex items-center justify-center gap-1 text-center text-xs font-normal text-gray-500/80">
+          <Crown className="size-4" />
+          Paid plan required
+        </span>
+      )}
     </div>
   );
 }

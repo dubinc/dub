@@ -1,13 +1,6 @@
-import {
-  Button,
-  Logo,
-  Modal,
-  useRouterStuff,
-  useScrollProgress,
-} from "@dub/ui";
+import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
 import { cn, getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
 import { usePlausible } from "next-plausible";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -19,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { ModalHero } from "../shared/modal-hero";
 import { PlanFeatures } from "../workspaces/plan-features";
 
 function WelcomeModal({
@@ -73,22 +67,8 @@ function WelcomeModal({
       }
     >
       <div className="flex flex-col">
-        <div className="relative h-48 w-full overflow-hidden bg-white">
-          <BackgroundGradient className="opacity-15" />
-          <Image
-            src="https://assets.dub.co/misc/welcome-modal-background.svg"
-            alt="Welcome to Dub"
-            fill
-            className="object-cover object-top"
-          />
-          <BackgroundGradient className="opacity-100 mix-blend-soft-light" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="aspect-square h-1/2 rounded-full bg-white">
-              <Logo className="size-full" />
-            </div>
-          </div>
-        </div>
-        <div className="px-12 py-8">
+        <ModalHero />
+        <div className="px-6 py-8 sm:px-12">
           <div className="relative">
             <div
               ref={scrollRef}
@@ -165,25 +145,5 @@ export function useWelcomeModal() {
       WelcomeModal: WelcomeModalCallback,
     }),
     [setShowWelcomeModal, WelcomeModalCallback],
-  );
-}
-
-function BackgroundGradient({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "absolute left-0 top-0 aspect-square w-full overflow-hidden sm:aspect-[2/1]",
-        "[mask-image:radial-gradient(70%_100%_at_50%_30%,_black_70%,_#0009)]",
-        className,
-      )}
-    >
-      <div
-        className="absolute inset-0 saturate-150"
-        style={{
-          backgroundImage: `conic-gradient(from -25deg at 65% -10%, #3A8BFD 0deg, #FF0000 172.98deg, #855AFC 215.14deg, #FF7B00 257.32deg, #3A8BFD 360deg)`,
-        }}
-      />
-      <div className="absolute inset-0 backdrop-blur-[50px]" />
-    </div>
   );
 }

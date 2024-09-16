@@ -216,6 +216,24 @@ export async function processLink<T extends Record<string, any>>({
       error: "Domain does not belong to workspace.",
       code: "forbidden",
     };
+
+    // else, check if the domain is a free .link and whether the workspace is pro+
+  } else if (domain.endsWith(".link") && workspace?.plan === "free") {
+    // Dub provisioned .link domains can only be used on a Pro plan and above
+    const domainId = domains?.find((d) => d.slug === domain)?.id;
+    const registeredDomain = await prisma.registeredDomain.findUnique({
+      where: {
+        domainId,
+      },
+    });
+    if (registeredDomain) {
+      return {
+        link: payload,
+        error:
+          "You can only use your free .link domain on a Pro plan and above. Upgrade to Pro to use this domain.",
+        code: "forbidden",
+      };
+    }
   }
 
   if (!key) {

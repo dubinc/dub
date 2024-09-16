@@ -12,7 +12,7 @@ export function usePagination(pageSize = PAGINATION_LIMIT) {
   const { searchParams, queryParams } = useRouterStuff();
 
   const page = useMemo(
-    () => parseInt(searchParams.get("page") || "0") || 0,
+    () => parseInt(searchParams.get("page") || "1") || 1,
     [searchParams.get("page")],
   );
 
@@ -21,7 +21,7 @@ export function usePagination(pageSize = PAGINATION_LIMIT) {
     page,
     onPageChange: (p) => {
       queryParams(
-        p === 0
+        p === 1
           ? { del: "page" }
           : {
               set: {
@@ -34,7 +34,7 @@ export function usePagination(pageSize = PAGINATION_LIMIT) {
 
   // Update state when URL parameter changes
   useEffect(() => {
-    const page = parseInt(searchParams.get("page") || "0") || 0;
+    const page = parseInt(searchParams.get("page") || "1") || 1;
     setPagination((p) => ({
       ...p,
       pageIndex: page,
@@ -44,7 +44,7 @@ export function usePagination(pageSize = PAGINATION_LIMIT) {
   // Update URL parameter when state changes
   useEffect(() => {
     queryParams(
-      pagination.pageIndex === 0
+      pagination.pageIndex === 1
         ? { del: "page" }
         : {
             set: {

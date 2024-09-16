@@ -49,7 +49,7 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domain).toStrictEqual(expectedDomain);
+    expect(domain).toStrictEqual({ ...expectedDomain, registeredDomain: null });
   });
 
   test("GET /domains", async () => {
@@ -59,7 +59,10 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domains).toContainEqual(expectedDomain);
+    expect(domains).toContainEqual({
+      ...expectedDomain,
+      registeredDomain: null,
+    });
   });
 
   test("POST /domains/{slug}/primary", { retry: 3 }, async () => {
