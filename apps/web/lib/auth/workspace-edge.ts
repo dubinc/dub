@@ -105,11 +105,18 @@ export const withWorkspaceEdge = (
         // if there's no workspace ID or slug and it's not a restricted token
         // For restricted tokens, we find the workspaceId from the token
         if (!idOrSlug && !isRestrictedToken) {
-          throw new DubApiError({
-            code: "not_found",
-            message:
-              "Workspace ID not found. Did you forget to include a `workspaceId` query parameter? It looks like you might be using personal API keys, we also recommend refactoring to workspace API keys: https://d.to/keys",
-          });
+          if (!authorizationHeader) {
+            throw new DubApiError({
+              code: "unauthorized",
+              message: "Missing Authorization header.",
+            });
+          } else {
+            throw new DubApiError({
+              code: "not_found",
+              message:
+                "Workspace ID not found. Did you forget to include a `workspaceId` query parameter? It looks like you might be using personal API keys, we also recommend refactoring to workspace API keys: https://d.to/keys",
+            });
+          }
         }
 
         if (idOrSlug) {
