@@ -17,12 +17,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import { cookies } from "next/headers";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
+import { trackLead } from "./track-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -448,41 +448,9 @@ export const authOptions: NextAuthOptions = {
                 scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
                 marketing: true,
               }),
+              trackLead(user),
             ]),
           );
-        }
-
-        const clickId =
-          cookies().get("dub_id")?.value || cookies().get("dclid")?.value;
-        if (clickId) {
-          // send lead event to Dub
-          waitUntil(
-            // dub.track.lead({
-            //   clickId,
-            //   eventName: "Sign Up",
-            //   customerId: user.id,
-            //   customerName: user.name,
-            //   customerEmail: user.email,
-            //   customerAvatar: user.image,
-            // }),
-            fetch("https://api.dub.co/track/lead", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${process.env.DUB_API_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                clickId,
-                eventName: "Sign Up",
-                customerId: user.id,
-                customerName: user.name,
-                customerEmail: user.email,
-                customerAvatar: user.image,
-              }),
-            }).then((res) => res.json()),
-          );
-          // delete the clickId cookie
-          cookies().delete("dub_id");
         }
       }
       // lazily backup user avatar to R2
