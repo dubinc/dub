@@ -94,7 +94,7 @@ export const withWorkspace = (
         let workspaceSlug: string | undefined;
         let permissions: PermissionAction[] = [];
         let token: any | null = null;
-        const isRestrictedToken = apiKey?.startsWith("dub_");
+        const isRestrictedToken = apiKey?.startsWith("dub_") ? true : false;
 
         const idOrSlug =
           params?.idOrSlug ||
@@ -102,7 +102,13 @@ export const withWorkspace = (
           params?.slug ||
           searchParams.projectSlug;
 
-        console.log({ apiKey, isRestrictedToken, idOrSlug });
+        console.log({
+          authorizationHeader,
+          apiKey,
+          isRestrictedToken,
+          idOrSlug,
+          req,
+        });
 
         // if there's no workspace ID or slug and it's not a restricted token
         // For restricted tokens, we find the workspaceId from the token
