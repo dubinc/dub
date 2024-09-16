@@ -1,7 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
-import { dub } from "@/lib/dub";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import {
@@ -75,9 +74,17 @@ export const PATCH = withWorkspace(
         // Update the workspace's referral link to use the new slug
         if (workspace.referralLinkId) {
           waitUntil(
-            dub.links.update(workspace.referralLinkId, {
-              key: slug,
-            }),
+            // dub.links.update(workspace.referralLinkId, {
+            //   key: slug,
+            // }),
+            fetch(`https://api.dub.co/links/${workspace.referralLinkId}`, {
+              method: "PATCH",
+              body: JSON.stringify({ key: slug }),
+              headers: {
+                Authorization: `Bearer ${process.env.DUB_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+            }).then((res) => res.json()),
           );
         }
       }
