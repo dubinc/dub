@@ -100,8 +100,12 @@ export const withWorkspace = (
           params?.slug ||
           searchParams.projectSlug;
 
-        // if there's no workspace ID or slug and it's not a restricted token
-        // For restricted tokens, we find the workspaceId from the token
+        /*
+          if there's no workspace ID or slug and it's not a restricted token:
+          - special case for anonymous link creation
+          - missing authorization header
+          - user is still using personal API keys
+        */
         if (!idOrSlug && !isRestrictedToken) {
           // special case for anonymous link creation
           if (req.headers.has("dub-anonymous-link-creation")) {
