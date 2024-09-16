@@ -38,6 +38,10 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import {
+  AddEditLinkButton as AddEditLinkButtonNew,
+  AddEditLinkModal as AddEditLinkModalNew,
+} from "../add-edit-link-modal-new";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -530,10 +534,19 @@ export function useAddEditLinkModal({
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
+  const { flags } = useWorkspace();
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
   const AddEditLinkModalCallback = useCallback(() => {
-    return (
+    return flags?.newlinkbuilder ? (
+      <AddEditLinkModalNew
+        showAddEditLinkModal={showAddEditLinkModal}
+        setShowAddEditLinkModal={setShowAddEditLinkModal}
+        props={props}
+        duplicateProps={duplicateProps}
+        homepageDemo={homepageDemo}
+      />
+    ) : (
       <AddEditLinkModal
         showAddEditLinkModal={showAddEditLinkModal}
         setShowAddEditLinkModal={setShowAddEditLinkModal}
@@ -542,13 +555,15 @@ export function useAddEditLinkModal({
         homepageDemo={homepageDemo}
       />
     );
-  }, [showAddEditLinkModal, setShowAddEditLinkModal]);
+  }, [flags, showAddEditLinkModal, setShowAddEditLinkModal]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
-    return (
+    return flags?.newlinkbuilder ? (
+      <AddEditLinkButtonNew setShowAddEditLinkModal={setShowAddEditLinkModal} />
+    ) : (
       <AddEditLinkButton setShowAddEditLinkModal={setShowAddEditLinkModal} />
     );
-  }, [setShowAddEditLinkModal]);
+  }, [flags, setShowAddEditLinkModal]);
 
   return useMemo(
     () => ({

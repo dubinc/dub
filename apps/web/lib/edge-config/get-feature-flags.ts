@@ -21,6 +21,7 @@ export const getFeatureFlags = async ({
     referrals: false,
     webhooks: false,
     dotlink: false,
+    newlinkbuilder: false,
   };
 
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
