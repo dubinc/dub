@@ -105,6 +105,7 @@ export const withWorkspace = (
         console.log({
           authorizationHeader,
           apiKey,
+          DUB_API_KEY: process.env.DUB_API_KEY,
           isRestrictedToken,
           idOrSlug,
           req,
