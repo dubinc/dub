@@ -209,9 +209,6 @@ export async function deleteWorkspaceAdmin(
         archived: true,
       }),
     // delete the workspace
-    //   archived: true,
-    // }),
-    // delete the workspace
     prisma.project.delete({
       where: {
         slug: workspace.slug,
