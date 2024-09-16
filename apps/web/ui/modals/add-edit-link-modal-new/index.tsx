@@ -9,8 +9,10 @@ import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
+  InfoTooltip,
   LinkLogo,
   Modal,
+  SimpleTooltipContent,
   TooltipContent,
   useKeyboardShortcut,
   useRouterStuff,
@@ -27,6 +29,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
+import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
@@ -260,7 +263,7 @@ export function AddEditLinkModal({
 
         <div className="grid max-h-[95dvh] w-full gap-y-6 md:grid-cols-[2fr_1fr] md:overflow-hidden">
           <div className="scrollbar-hide px-6 md:overflow-auto">
-            <div className="grid gap-6 pt-8">
+            <div className="grid gap-6 py-4">
               <div className="grid gap-6">
                 <Controller
                   name="url"
@@ -300,6 +303,40 @@ export function AddEditLinkModal({
                     domains={domains}
                   />
                 )}
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="comments"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Comments
+                    </label>
+                    <InfoTooltip
+                      content={
+                        <SimpleTooltipContent
+                          title="Use comments to add context to your short links – for you and your team."
+                          cta="Learn more."
+                          href="https://dub.co/help/article/link-comments"
+                        />
+                      }
+                    />
+                  </div>
+                  <Controller
+                    name="comments"
+                    control={control}
+                    render={({ field }) => (
+                      <TextareaAutosize
+                        name="comments"
+                        minRows={3}
+                        className="mt-2 block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                        placeholder="Add comments"
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    )}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -310,7 +347,7 @@ export function AddEditLinkModal({
             </div>
           </div>
         </div>
-        <div className="mt-4 flex items-center justify-between border-t border-gray-100 bg-gray-50 p-4">
+        <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 p-4">
           <div></div>
           {homepageDemo ? (
             <Button
