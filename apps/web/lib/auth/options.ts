@@ -1,4 +1,3 @@
-import { dub } from "@/lib/dub";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
@@ -458,14 +457,29 @@ export const authOptions: NextAuthOptions = {
         if (clickId) {
           // send lead event to Dub
           waitUntil(
-            dub.track.lead({
-              clickId,
-              eventName: "Sign Up",
-              customerId: user.id,
-              customerName: user.name,
-              customerEmail: user.email,
-              customerAvatar: user.image,
-            }),
+            // dub.track.lead({
+            //   clickId,
+            //   eventName: "Sign Up",
+            //   customerId: user.id,
+            //   customerName: user.name,
+            //   customerEmail: user.email,
+            //   customerAvatar: user.image,
+            // }),
+            fetch("https://api.dub.co/track/lead", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${process.env.DUB_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                clickId,
+                eventName: "Sign Up",
+                customerId: user.id,
+                customerName: user.name,
+                customerEmail: user.email,
+                customerAvatar: user.image,
+              }),
+            }).then((res) => res.json()),
           );
           // delete the clickId cookie
           cookies().delete("dub_id");

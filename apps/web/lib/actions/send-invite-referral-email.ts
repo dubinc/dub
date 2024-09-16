@@ -1,10 +1,8 @@
 "use server";
 
-import { linkConstructor } from "@dub/utils";
 import { sendEmail } from "emails";
 import ReferralInvite from "emails/referral-invite";
 import { z } from "zod";
-import { dub } from "../dub";
 import { ratelimit } from "../upstash";
 import { emailSchema } from "../zod/schemas/auth";
 import { authActionClient } from "./safe-action";
@@ -35,22 +33,13 @@ export const sendInviteReferralEmail = authActionClient
       throw new Error("Failed to send: rate limit exceeded");
 
     try {
-      const link = await dub.links.get({
-        externalId: `ext_ws_${workspace.id}`,
-      });
-
-      const url = linkConstructor({
-        domain: link.domain,
-        key: link.key,
-      });
-
       return await sendEmail({
         subject: `You've been invited to start using ${process.env.NEXT_PUBLIC_APP_NAME}`,
         email,
         react: ReferralInvite({
           email,
           appName: process.env.NEXT_PUBLIC_APP_NAME as string,
-          url,
+          url: `https://refer.dub.co/${workspace.slug}`,
           workspaceUser: ctx.user.name || null,
           workspaceUserEmail: ctx.user.email || null,
         }),

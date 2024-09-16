@@ -6,7 +6,6 @@ import {
   SaleEvent,
 } from "dub/dist/commonjs/models/components";
 import { EventType } from "../analytics/types";
-import { dub } from "../dub";
 
 export type ConversionEvent = ClickEvent | LeadEvent | SaleEvent;
 
@@ -19,10 +18,19 @@ export const getConversionEvents = async ({
   event: EventType;
   page: number;
 }) => {
-  return (await dub.events.list({
-    linkId,
-    event,
-    interval: "all",
-    page,
-  })) as ConversionEvent[];
+  // return (await dub.events.list({
+  //   linkId,
+  //   event,
+  //   interval: "all",
+  //   page,
+  // })) as ConversionEvent[];
+  return (await fetch(
+    `https://api.dub.co/events?linkId=${linkId}&event=${event}&interval=all&page=${page}`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.DUB_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    },
+  ).then((res) => res.json())) as ConversionEvent[];
 };
