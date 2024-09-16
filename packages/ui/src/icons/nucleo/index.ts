@@ -1,5 +1,6 @@
 export * from "./apple";
 export * from "./arrow-right";
+export * from "./arrow-turn-left";
 export * from "./arrow-turn-right2";
 export * from "./arrows-opposite-direction-y";
 export * from "./blog";

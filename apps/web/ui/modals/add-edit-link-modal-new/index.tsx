@@ -17,6 +17,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   DEFAULT_LINK_PROPS,
   deepEqual,
@@ -357,8 +358,15 @@ export function AddEditLinkModal({
             <Button
               disabled={saveDisabled}
               loading={isSubmitting || isSubmitSuccessful}
-              text={props ? "Save changes" : "Create link"}
-              className="h-8 w-fit"
+              text={
+                <span className="flex items-center gap-2">
+                  {props ? "Save changes" : "Create link"}
+                  <div className="rounded border border-white/20 p-1">
+                    <ArrowTurnLeft className="size-3.5" />
+                  </div>
+                </span>
+              }
+              className="h-8 w-fit pl-2.5 pr-1.5"
             />
           )}
         </div>
