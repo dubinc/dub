@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { API_DOMAIN } from "@dub/utils";
-import { Link } from "@prisma/client";
+import { Link } from "dub/dist/commonjs/models/components";
 
 export const getReferralLink = async (slug: string) => {
   const workspace = await prisma.project.findUnique({
