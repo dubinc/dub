@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { canUpdateFolder } from "@/lib/link-folder/acl";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import {
@@ -12,9 +13,38 @@ import { NextResponse } from "next/server";
 
 // PATCH /api/folders/[id] – update a folder for a workspace
 export const PATCH = withWorkspace(
-  async ({ req, params, workspace }) => {
+  async ({ req, params, workspace, session }) => {
     const { id } = params;
     const { name } = updateFolderBodySchema.parse(await parseRequestBody(req));
+
+    const folder = await prisma.folder.findUnique({
+      where: {
+        id,
+        projectId: workspace.id,
+      },
+      include: {
+        permissions: true,
+      },
+    });
+
+    if (!folder) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Folder not found.",
+      });
+    }
+
+    const can = canUpdateFolder({
+      folder,
+      userId: session.user.id,
+    });
+
+    if (!can) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not allowed to update this folder.",
+      });
+    }
 
     try {
       const folder = await prisma.folder.update({

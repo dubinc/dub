@@ -39,7 +39,7 @@ model User {
   oAuthCodes            OAuthCode[]
   integrations          Integration[] // Integrations user created in their workspace
   installedIntegrations InstalledIntegration[] // Integrations user installed in their workspace
-  folderPermissions     FolderAccessControl[]
+  folderPermissions     FolderPermission[]
 
   @@index(source)
   @@index(defaultWorkspace)
