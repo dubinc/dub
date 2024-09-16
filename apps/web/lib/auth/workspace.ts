@@ -104,6 +104,7 @@ export const withWorkspace = (
 
         console.log({
           headers: req.headers,
+          vercelHeaders: req.headers.get("x-vercel-sc-headers"),
           authorizationHeader,
           apiKey,
           hostname: req.headers.get("host"),
