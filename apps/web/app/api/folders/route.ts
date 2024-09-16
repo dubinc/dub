@@ -55,7 +55,9 @@ export const POST = withWorkspace(
       });
     }
 
-    const { name } = createFolderBodySchema.parse(await parseRequestBody(req));
+    const { name, users } = createFolderBodySchema.parse(
+      await parseRequestBody(req),
+    );
 
     const existingFolder = await prisma.folder.findFirst({
       where: {
@@ -71,10 +73,44 @@ export const POST = withWorkspace(
       });
     }
 
+    // Check the given users has access to the workspace
+    let usersWithAccess: { userId: string; accessLevel: string | null }[] = [];
+
+    if (users) {
+      const workspaceUsers = await prisma.projectUsers.findMany({
+        where: {
+          projectId: workspace.id,
+          AND: {
+            userId: {
+              in: users?.map((user) => user.userId) || [],
+            },
+          },
+        },
+        select: {
+          id: true,
+          userId: true,
+        },
+      });
+
+      usersWithAccess = workspaceUsers?.map(({ userId }) => {
+        const userAccess = users?.find((u) => u.userId === userId);
+
+        return {
+          userId,
+          accessLevel: userAccess?.accessLevel || null,
+        };
+      });
+    }
+
     const folder = await prisma.folder.create({
       data: {
         projectId: workspace.id,
         name,
+        ...(usersWithAccess.length > 0 && {
+          accessControls: {
+            create: usersWithAccess,
+          },
+        }),
       },
     });
 

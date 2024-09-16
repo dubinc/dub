@@ -5,9 +5,25 @@ model Folder {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  links   Link[]
+  project        Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  links          Link[]
+  accessControls FolderAccessControl[]
 
   @@unique([name, projectId])
   @@index(projectId)
+}
+
+model FolderAccessControl {
+  id          String   @id @default(cuid())
+  folderId    String
+  userId      String
+  accessLevel String? // READ, WRITE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([folderId, userId])
+  @@index([userId])
 }

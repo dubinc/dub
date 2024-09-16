@@ -30,7 +30,6 @@ model RestrictedToken {
 
   user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  // authorizedApp OAuthAuthorizedApp? @relation(fields: [installationId], references: [id], onDelete: Cascade)
   refreshTokens        OAuthRefreshToken[]
   installedIntegration InstalledIntegration? @relation(fields: [installationId], references: [id], onDelete: Cascade)
 
