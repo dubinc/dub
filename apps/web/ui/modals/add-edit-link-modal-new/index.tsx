@@ -29,25 +29,48 @@ import {
 import { useParams, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
-import { Controller, useForm } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+} from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { LinkPreview } from "./link-preview";
+import { useMetatags } from "./use-metatags";
 
-export function AddEditLinkModal({
-  showAddEditLinkModal,
-  setShowAddEditLinkModal,
-  props,
-  duplicateProps,
-  homepageDemo,
-}: {
+export type LinkFormData = LinkWithTagsProps;
+
+type AddEditLinkModalProps = {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkWithTagsProps;
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
-}) {
+};
+
+export function AddEditLinkModal(props: AddEditLinkModalProps) {
+  const form = useForm<LinkFormData>({
+    defaultValues: props.props || props.duplicateProps || DEFAULT_LINK_PROPS,
+  });
+
+  return (
+    <FormProvider {...form}>
+      <AddEditLinkModalInner {...props} />
+    </FormProvider>
+  );
+}
+
+function AddEditLinkModalInner({
+  showAddEditLinkModal,
+  setShowAddEditLinkModal,
+  props,
+  duplicateProps,
+  homepageDemo,
+}: AddEditLinkModalProps) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
   const searchParams = useSearchParams();
@@ -62,9 +85,7 @@ export function AddEditLinkModal({
     setError,
     clearErrors,
     formState: { isSubmitting, isSubmitSuccessful, errors },
-  } = useForm<LinkWithTagsProps>({
-    defaultValues: props || duplicateProps || DEFAULT_LINK_PROPS,
-  });
+  } = useFormContext<LinkFormData>();
 
   const data = watch();
   const { url, domain, key, proxy } = data;
@@ -83,6 +104,11 @@ export function AddEditLinkModal({
           },
     [props, slug, domain, workspaceId],
   );
+
+  const { generatingMetatags } = useMetatags({
+    initial: Boolean(props),
+    enabled: showAddEditLinkModal && !proxy && debouncedUrl.length > 0,
+  });
 
   const saveDisabled = useMemo(() => {
     /* 
@@ -343,7 +369,9 @@ export function AddEditLinkModal({
           <div className="scrollbar-hide px-6 md:max-h-[95dvh] md:overflow-auto md:pl-0 md:pr-4">
             <div className="relative">
               <div className="absolute inset-0 rounded-xl border border-gray-200 bg-gray-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
-              <div className="relative min-h-[300px] p-4"></div>
+              <div className="relative min-h-[300px] p-4">
+                <LinkPreview generatingMetatags={generatingMetatags} />
+              </div>
             </div>
           </div>
         </div>
