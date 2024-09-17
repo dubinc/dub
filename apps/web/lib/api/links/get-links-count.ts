@@ -23,6 +23,8 @@ export async function getLinksCount({
     withTags,
   } = searchParams;
 
+  console.log({ groupBy });
+
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
@@ -90,7 +92,34 @@ export async function getLinksCount({
           : {}),
     };
 
-    if (groupBy === "domain" || groupBy === "userId") {
+    // Get the counts for each folder
+    if (groupBy === "folderId") {
+      const response = await prisma.folder.findMany({
+        where: {
+          projectId: workspaceId,
+        },
+        include: {
+          _count: {
+            select: {
+              links: {
+                where: linksWhere,
+              },
+            },
+          },
+        },
+      });
+
+      return response.map((folder) => ({
+        folderId: folder.id,
+        count: folder._count.links,
+      }));
+    }
+
+    if (
+      groupBy === "domain" ||
+      groupBy === "userId" ||
+      groupBy === "folderId"
+    ) {
       return await prisma.link.groupBy({
         by: [groupBy],
         where,

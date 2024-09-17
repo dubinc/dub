@@ -18,6 +18,8 @@ export const GET = withWorkspace(
       select: {
         id: true,
         name: true,
+        createdAt: true,
+        updatedAt: true,
       },
       orderBy: {
         name: "asc",

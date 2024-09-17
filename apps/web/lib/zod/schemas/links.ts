@@ -91,7 +91,12 @@ export const getLinksQuerySchema = LinksQuerySchema.merge(
 export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   z.object({
     groupBy: z
-      .union([z.literal("domain"), z.literal("tagId"), z.literal("userId")])
+      .union([
+        z.literal("domain"),
+        z.literal("tagId"),
+        z.literal("userId"),
+        z.literal("folderId"),
+      ])
       .optional()
       .describe("The field to group the links by."),
   }),

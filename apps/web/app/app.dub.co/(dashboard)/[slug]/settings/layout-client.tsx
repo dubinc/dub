@@ -15,7 +15,7 @@ import {
   Tag,
   Users6,
 } from "@dub/ui/src/icons";
-import { Webhook } from "lucide-react";
+import { Folder, Webhook } from "lucide-react";
 import { ReactNode, useMemo } from "react";
 
 export default function WorkspaceSettingsLayoutClient({
@@ -40,6 +40,11 @@ export default function WorkspaceSettingsLayoutClient({
             name: "Domains",
             icon: Globe,
             segment: "domains",
+          },
+          {
+            name: "Folders",
+            icon: Folder,
+            segment: "folders",
           },
           {
             name: "Tags",
