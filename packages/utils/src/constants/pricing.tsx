@@ -114,14 +114,6 @@ export const PLANS = [
       { text: "3 custom domains" },
       { text: "1 user" },
       {
-        text: "API Access",
-        footnote: {
-          title: "Programatically manage your links using our REST API.",
-          cta: "Learn more.",
-          href: "https://dub.co/docs/api-reference/introduction",
-        },
-      },
-      {
         text: "Advanced analytics",
         footnote: {
           title:
@@ -133,6 +125,14 @@ export const PLANS = [
       { text: "10 AI credits/mo" },
       {
         text: "Basic support",
+      },
+      {
+        text: "API Access",
+        footnote: {
+          title: "Programatically manage your links using our REST API.",
+          cta: "Learn more.",
+          href: "https://dub.co/docs/api-reference/introduction",
+        },
       },
     ],
   },
@@ -186,6 +186,18 @@ export const PLANS = [
           "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
       },
       {
+        text: "Unlimited AI credits",
+        footnote: {
+          title:
+            "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
+          cta: "Learn more.",
+          href: "https://dub.co/blog/introducing-dub-ai",
+        },
+      },
+      {
+        text: "Priority support",
+      },
+      {
         text: "Premium dub.link domain",
         footnote: {
           title: "Stand out from the crowd with a premium dub.link domain.",
@@ -201,18 +213,6 @@ export const PLANS = [
           cta: "Learn more.",
           href: "https://dub.co/help/article/free-dot-link-domain",
         },
-      },
-      {
-        text: "Unlimited AI credits",
-        footnote: {
-          title:
-            "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
-          cta: "Learn more.",
-          href: "https://dub.co/blog/introducing-dub-ai",
-        },
-      },
-      {
-        text: "Priority support",
       },
     ],
   },
