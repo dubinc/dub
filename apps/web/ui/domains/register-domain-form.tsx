@@ -311,8 +311,9 @@ export function RegisterDomainForm({
               target="_blank"
               className="underline transition-colors hover:text-gray-700"
             >
-              terms and conditions
+              terms
             </a>
+            .
           </p>
         )}
       </div>
