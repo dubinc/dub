@@ -106,7 +106,7 @@ export async function deleteWorkspace(
         ),
       ]);
 
-      await Promise.all([
+      await Promise.allSettled([
         // delete workspace logo if it's a custom logo stored in R2
         workspace.logo &&
           workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
@@ -197,7 +197,7 @@ export async function deleteWorkspaceAdmin(
     ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
   ]);
 
-  const deleteWorkspaceResponse = await Promise.all([
+  const deleteWorkspaceResponse = await Promise.allSettled([
     // delete workspace logo if it's a custom logo stored in R2
     workspace.logo &&
       workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
@@ -210,9 +210,6 @@ export async function deleteWorkspaceAdmin(
         key: `/deleted/${workspace.slug}-${workspace.id}`,
         archived: true,
       }),
-    // delete the workspace
-    //   archived: true,
-    // }),
     // delete the workspace
     prisma.project.delete({
       where: {

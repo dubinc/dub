@@ -128,7 +128,6 @@ export const POST = withWorkspace(
     }
   },
   {
-    allowAnonymous: true,
     requiredPermissions: ["links.write"],
   },
 );

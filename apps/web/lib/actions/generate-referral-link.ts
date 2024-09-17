@@ -6,7 +6,7 @@ import { dub } from "../dub";
 import { prisma } from "../prisma";
 import { authActionClient } from "./safe-action";
 
-// Generate a new client secret for an integration
+// Generate a referral link for a workspace
 export const generateReferralLink = authActionClient
   .schema(
     z.object({

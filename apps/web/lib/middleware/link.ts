@@ -181,13 +181,11 @@ export default async function LinkMiddleware(
   }
 
   const cookieStore = cookies();
-  let clickId = cookieStore.get("dclid")?.value;
-  console.log("clickId", clickId);
+  let clickId =
+    cookieStore.get("dub_id")?.value || cookieStore.get("dclid")?.value;
   if (!clickId) {
     clickId = nanoid(16);
   }
-
-
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {

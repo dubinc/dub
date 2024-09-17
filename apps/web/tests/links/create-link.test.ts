@@ -29,6 +29,7 @@ describe.sequential("POST /links", async () => {
       },
       headers: {
         Authorization: "",
+        "dub-anonymous-link-creation": "1",
       },
     });
 
