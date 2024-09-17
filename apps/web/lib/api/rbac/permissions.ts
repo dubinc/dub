@@ -7,8 +7,6 @@ export const PERMISSION_ACTIONS = [
   "links.write",
   "tags.read",
   "tags.write",
-  "folders.read",
-  "folders.write",
   "analytics.read",
   "domains.read",
   "domains.write",
@@ -21,6 +19,8 @@ export const PERMISSION_ACTIONS = [
   "integrations.write",
   "webhooks.read",
   "webhooks.write",
+  "folders.read",
+  "folders.write",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -76,16 +76,6 @@ export const ROLE_PERMISSIONS: {
     roles: ["owner", "member"],
   },
   {
-    action: "folders.read",
-    description: "access folders",
-    roles: ["owner", "member"],
-  },
-  {
-    action: "folders.write",
-    description: "create, update, or delete folders",
-    roles: ["owner", "member"],
-  },
-  {
     action: "conversions.write",
     description: "track conversions",
     roles: ["owner", "member"],
@@ -129,6 +119,16 @@ export const ROLE_PERMISSIONS: {
     action: "webhooks.write",
     description: "create, update, or delete webhooks",
     roles: ["owner"],
+  },
+  {
+    action: "folders.read",
+    description: "access folders",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "folders.write",
+    description: "create, update, or delete folders",
+    roles: ["owner", "member"],
   },
 ];
 
