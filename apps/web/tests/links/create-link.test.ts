@@ -24,7 +24,8 @@ describe.sequential("POST /links", async () => {
         publicStats: true,
       },
       headers: {
-        Authorization: "",
+        "Content-Type": "application/json",
+        "dub-anonymous-link-creation": "1",
       },
     });
 
