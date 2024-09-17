@@ -102,14 +102,29 @@ export const withWorkspaceEdge = (
           params?.slug ||
           searchParams.projectSlug;
 
-        // if there's no workspace ID or slug and it's not a restricted token
-        // For restricted tokens, we find the workspaceId from the token
+        /*
+          if there's no workspace ID or slug and it's not a restricted token:
+          - special case for anonymous link creation
+          - missing authorization header
+          - user is still using personal API keys
+        */
         if (!idOrSlug && !isRestrictedToken) {
-          if (!authorizationHeader) {
+          // special case for anonymous link creation
+          if (req.headers.has("dub-anonymous-link-creation")) {
+            // @ts-expect-error
+            return await handler({
+              req,
+              params,
+              searchParams,
+              headers,
+            });
+            // missing authorization header
+          } else if (!authorizationHeader) {
             throw new DubApiError({
               code: "unauthorized",
               message: "Missing Authorization header.",
             });
+            // in case user is still using personal API keys
           } else {
             throw new DubApiError({
               code: "not_found",
