@@ -2,6 +2,7 @@
 
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { FolderSwitcher } from "@/ui/folders/folder-switcher";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
@@ -19,7 +20,6 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
-  useMediaQuery,
 } from "@dub/ui";
 import { Download, TableIcon, Tag } from "@dub/ui/src/icons";
 import { useSession } from "next-auth/react";
@@ -72,9 +72,7 @@ function WorkspaceLinks() {
       <div className="mt-10 flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap">
-            <h1 className="order-1 text-2xl font-semibold tracking-tight text-black">
-              Links
-            </h1>
+            <FolderSwitcher />
             <div className="order-4 flex w-full grow flex-wrap justify-end gap-2 md:order-2 md:w-auto">
               <div className="w-full md:w-56 lg:w-64">
                 <SearchBoxPersisted
@@ -164,7 +162,6 @@ function WorkspaceLinks() {
 const MoreLinkOptions = () => {
   const router = useRouter();
   const { slug } = useWorkspace();
-  const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
   const [state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
