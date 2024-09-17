@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://dub.link";
+const CHANGELOG_URL = "https://dub.link/free";
 const CHANGELOG_IMAGE_URL =
   "https://assets.dub.co/blog/introducing-free-domains.jpg";
 const CHANGELOG_TITLE = "Introducing 1-year Free .Link Domains";
