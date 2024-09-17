@@ -138,8 +138,9 @@ export function RegisterDomainForm({
     <form
       onSubmit={async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (searchedDomain && searchedDomain.available)
+        if (searchedDomain && searchedDomain.available) {
           await registerDomain(searchedDomain.domain);
+        }
       }}
     >
       <div
@@ -193,7 +194,6 @@ export function RegisterDomainForm({
                   onChange={(e) => {
                     setSlug(e.target.value);
                   }}
-                  // disable enter submit (prevent accidental claims)
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -282,7 +282,6 @@ export function RegisterDomainForm({
                         </span>
                       </div>
                       <Button
-                        type="button"
                         text="Claim domain"
                         className="h-8 w-fit"
                         onClick={() => registerDomain(alternative.domain)}
@@ -346,7 +345,7 @@ export function RegisterDomainForm({
           </Link>
         ) : (
           <Button
-            type="button"
+            type="submit"
             text="Claim domain"
             className={cn("h-9", variant === "modal" && "w-fit")}
             disabled={!searchedDomain?.available}
