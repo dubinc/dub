@@ -1,5 +1,6 @@
 import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { getTotalEvents } from "@/lib/actions/get-total-events";
+import { dub } from "@/lib/dub";
 import {
   REFERRAL_CLICKS_QUOTA_BONUS,
   REFERRAL_CLICKS_QUOTA_BONUS_MAX,
@@ -121,38 +122,20 @@ async function StatsInner({ slug }: { slug: string }) {
 async function loadData(linkId: string) {
   const [clicks, sales, totalEvents] = await Promise.all([
     // Clicks timeseries
-    // dub.analytics.retrieve({
-    //   linkId,
-    //   event: "clicks",
-    //   interval: "30d",
-    //   groupBy: "timeseries",
-    // }) as Promise<AnalyticsTimeseries[]>,
-    fetch(
-      `https://api.dub.co/analytics?linkId=${linkId}&event=clicks&interval=30d&groupBy=timeseries`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.DUB_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
-    ).then((res) => res.json()) as Promise<AnalyticsTimeseries[]>,
+    dub.analytics.retrieve({
+      linkId,
+      event: "clicks",
+      interval: "30d",
+      groupBy: "timeseries",
+    }) as Promise<AnalyticsTimeseries[]>,
 
     // Sales timeseries
-    // dub.analytics.retrieve({
-    //   linkId,
-    //   event: "sales",
-    //   interval: "30d",
-    //   groupBy: "timeseries",
-    // }) as Promise<AnalyticsTimeseries[]>,
-    fetch(
-      `https://api.dub.co/analytics?linkId=${linkId}&event=sales&interval=30d&groupBy=timeseries`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.DUB_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
-    ).then((res) => res.json()) as Promise<AnalyticsTimeseries[]>,
+    dub.analytics.retrieve({
+      linkId,
+      event: "sales",
+      interval: "30d",
+      groupBy: "timeseries",
+    }) as Promise<AnalyticsTimeseries[]>,
 
     // Total events
     getTotalEvents(linkId),
