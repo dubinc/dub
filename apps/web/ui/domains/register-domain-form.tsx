@@ -193,10 +193,10 @@ export function RegisterDomainForm({
                   onChange={(e) => {
                     setSlug(e.target.value);
                   }}
-                  onKeyUp={(e) => {
-                    if (e.key === "Enter" && !searchedDomain) {
+                  // disable enter submit (prevent accidental claims)
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
                       e.preventDefault();
-                      searchDomainAvailability();
                     }
                   }}
                 />
@@ -282,6 +282,7 @@ export function RegisterDomainForm({
                         </span>
                       </div>
                       <Button
+                        type="button"
                         text="Claim domain"
                         className="h-8 w-fit"
                         onClick={() => registerDomain(alternative.domain)}
@@ -301,6 +302,19 @@ export function RegisterDomainForm({
               </div>
             </div>
           )}
+
+        {searchedDomain && (
+          <p className="-my-2 text-pretty text-left text-sm text-gray-400">
+            By claiming your .link domain, you agree to our{" "}
+            <a
+              href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
+              target="_blank"
+              className="underline transition-colors hover:text-gray-700"
+            >
+              terms and conditions
+            </a>
+          </p>
+        )}
       </div>
       <div
         className={cn(
@@ -331,13 +345,10 @@ export function RegisterDomainForm({
           </Link>
         ) : (
           <Button
-            type="submit"
+            type="button"
             text="Claim domain"
             className={cn("h-9", variant === "modal" && "w-fit")}
-            disabled={
-              !searchedDomain?.available ||
-              (workspace.plan === "free" && !saveOnly)
-            }
+            disabled={!searchedDomain?.available}
             loading={isRegistering}
             disabledTooltip={
               workspace.plan === "free" && !saveOnly ? (
