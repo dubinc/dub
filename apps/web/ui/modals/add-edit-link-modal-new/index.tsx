@@ -247,6 +247,7 @@ export function AddEditLinkModal({
           </div>
           {!homepageDemo && (
             <button
+              type="button"
               onClick={() => {
                 setShowAddEditLinkModal(false);
                 if (searchParams.has("newLink")) {
@@ -356,6 +357,7 @@ export function AddEditLinkModal({
             />
           ) : (
             <Button
+              type="submit"
               disabled={saveDisabled}
               loading={isSubmitting || isSubmitSuccessful}
               text={
