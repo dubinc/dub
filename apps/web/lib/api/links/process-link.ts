@@ -146,10 +146,20 @@ export async function processLink<T extends Record<string, any>>({
     domain = domains?.find((d) => d.primary)?.slug || "dub.sh";
   }
 
-  // checks for dub.sh links
-  if (domain === "dub.sh") {
-    // check if user exists (if userId is passed)
-    if (userId) {
+  // checks for dub.sh and dub.link links
+  if (domain === "dub.sh" || domain === "dub.link") {
+    // for dub.link: check if workspace plan is pro+
+    if (domain === "dub.link" && (!workspace || workspace.plan === "free")) {
+      return {
+        link: payload,
+        error:
+          "You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain.",
+        code: "forbidden",
+      };
+    }
+
+    // for dub.sh: check if user exists (if userId is passed)
+    if (domain === "dub.sh" && userId) {
       const userExists = await checkIfUserExists(userId);
       if (!userExists) {
         return {
@@ -166,15 +176,6 @@ export async function processLink<T extends Record<string, any>>({
         link: payload,
         error: "Malicious URL detected",
         code: "unprocessable_entity",
-      };
-    }
-  } else if (domain === "dub.link") {
-    if (!workspace || workspace.plan === "free") {
-      return {
-        link: payload,
-        error:
-          "You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain.",
-        code: "forbidden",
       };
     }
     // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
