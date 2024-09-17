@@ -74,12 +74,7 @@ export function DefaultDomains() {
         </p>
       </div>
       <div className="mt-2 grid grid-cols-1 gap-3">
-        {DUB_DOMAINS.filter(({ slug }) => {
-          if (slug === "dub.link") {
-            return flags?.dublink;
-          }
-          return true;
-        }).map(({ slug, description }) => {
+        {DUB_DOMAINS.map(({ slug, description }) => {
           return (
             <div
               key={slug}
