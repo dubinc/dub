@@ -62,7 +62,7 @@ export function PaginationControls({
               pageIndex: pagination.pageIndex - 1,
             })
           }
-          disabled={pagination.pageIndex === 0}
+          disabled={pagination.pageIndex === 1}
         >
           Previous
         </button>
@@ -76,7 +76,8 @@ export function PaginationControls({
             })
           }
           disabled={
-            pagination.pageIndex * pagination.pageSize + pagination.pageSize >=
+            (pagination.pageIndex - 1) * pagination.pageSize +
+              pagination.pageSize >=
             totalCount
           }
         >
