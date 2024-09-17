@@ -6,7 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import EmptyState from "@/ui/shared/empty-state";
-import { CardList, TooltipContent } from "@dub/ui";
+import { TooltipContent } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import { Folder } from "lucide-react";
 
@@ -18,14 +18,6 @@ export const FoldersPageClient = () => {
     groupBy: "folderId",
     showArchived: true,
   });
-
-  // const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
-  // const [openMenuTagId, setOpenMenuTagId] = useState<string | null>(null);
-  // const { tags, loading } = useTags();
-  // const { data: tagsCount } = useLinksCount({
-  //   groupBy: "tagId",
-  //   showArchived: true,
-  // });
 
   return (
     <>
@@ -51,34 +43,24 @@ export const FoldersPageClient = () => {
           </div>
         </div>
 
-        {/* {workspaceId && <AddEditTagModal />} */}
-
-        {isLoading || folders?.length ? (
-          <CardList variant="loose" loading={isLoading}>
-            {folders?.length
-              ? folders.map((folder) => (
-                  <FolderCard
-                    key={folder.id}
-                    folder={folder}
-                    linksCount={
-                      linksCount?.find((c) => c.folderId === folder.id)
-                        ?.count ?? 0
-                    }
-                  />
-                ))
-              : Array.from({ length: 6 }).map((_, idx) => (
-                  <FolderCardPlaceholder key={idx} />
-                ))}
-          </CardList>
-        ) : (
+        {!isLoading && !folders?.length && (
           <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
             <EmptyState
               icon={Folder}
-              title="No folders found for this workspace."
+              title="No folders found for this workspace"
             />
-            {/* <AddTagButton /> */}
           </div>
         )}
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, idx) => (
+                <FolderCardPlaceholder key={idx} />
+              ))
+            : folders?.map((folder) => (
+                <FolderCard key={folder.id} folder={folder} />
+              ))}
+        </div>
       </div>
     </>
   );
