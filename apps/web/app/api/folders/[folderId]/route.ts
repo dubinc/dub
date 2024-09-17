@@ -11,15 +11,15 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// PATCH /api/folders/[id] – update a folder for a workspace
+// PATCH /api/folders/[folderId] – update a folder for a workspace
 export const PATCH = withWorkspace(
   async ({ req, params, workspace, session }) => {
-    const { id } = params;
+    const { folderId } = params;
     const { name } = updateFolderBodySchema.parse(await parseRequestBody(req));
 
     const folder = await prisma.folder.findUnique({
       where: {
-        id,
+        id: folderId,
         projectId: workspace.id,
       },
       include: {
@@ -49,7 +49,7 @@ export const PATCH = withWorkspace(
     try {
       const folder = await prisma.folder.update({
         where: {
-          id,
+          id: folderId,
           projectId: workspace.id,
         },
         data: {
@@ -83,17 +83,15 @@ export const PATCH = withWorkspace(
   },
 );
 
-export const PUT = PATCH;
-
-// DELETE /api/folders/[id] – delete a folder for a workspace
+// DELETE /api/folders/[folderId] – delete a folder for a workspace
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const { id } = params;
+    const { folderId } = params;
 
     try {
       const folder = await prisma.folder.delete({
         where: {
-          id,
+          id: folderId,
           projectId: workspace.id,
         },
         include: {
@@ -133,7 +131,7 @@ export const DELETE = withWorkspace(
         })(),
       );
 
-      return NextResponse.json({ id });
+      return NextResponse.json({ id: folderId });
     } catch (error) {
       if (error.code === "P2025") {
         throw new DubApiError({
