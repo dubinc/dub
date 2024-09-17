@@ -65,7 +65,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "dublink" | "referrals" | "webhooks" | "dotlink";
+export type BetaFeatures = "referrals" | "webhooks";
 
 export type AddOns = "conversion" | "sso";
 
