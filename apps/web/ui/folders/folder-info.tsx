@@ -59,7 +59,7 @@ export function FolderInfo({
                 <Link className="h-4 w-4" />
                 {linksCount} link{linksCount > 1 ? "s" : ""}
               </span>
-              <Avatar user={null} className="h-5 w-5" />
+              {/* <Avatar user={null} className="h-5 w-5" /> */}
             </div>
           </div>
         </div>
