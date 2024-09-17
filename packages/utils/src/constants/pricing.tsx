@@ -181,18 +181,26 @@ export const PLANS = [
       { text: "10 custom domains" },
       { text: "5 users" },
       {
-        text: "Root domain redirect",
-        footnote: {
-          title:
-            "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/how-to-redirect-root-domain",
-        },
-      },
-      {
         text: "Advanced link features",
         footnote:
           "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
+      },
+      {
+        text: "Premium dub.link domain",
+        footnote: {
+          title: "Stand out from the crowd with a premium dub.link domain.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/default-dub-domains#premium-dublink-domain",
+        },
+      },
+      {
+        text: "Complimentary custom domain",
+        footnote: {
+          title:
+            "All our paid plans come with a free .link custom domain, which helps improve click-through rates.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/free-dot-link-domain",
+        },
       },
       {
         text: "Unlimited AI credits",
