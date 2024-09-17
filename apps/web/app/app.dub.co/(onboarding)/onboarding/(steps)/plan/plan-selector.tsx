@@ -2,7 +2,7 @@
 
 import { PlanFeatures } from "@/ui/workspaces/plan-features";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
-import { Badge } from "@dub/ui";
+import { Badge, CountingNumbers } from "@dub/ui";
 import { ToggleGroup } from "@dub/ui/src/toggle-group";
 import { PRO_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { useState } from "react";
@@ -61,7 +61,9 @@ function PlanCard({
         {name === "Pro" && <Badge variant="blue">Most popular</Badge>}
       </div>
       <p className="mt-2 text-3xl font-medium text-gray-900">
-        ${selectedPlan.price[period]}{" "}
+        <CountingNumbers className="tabular-nums" prefix="$">
+          {selectedPlan.price[period]}
+        </CountingNumbers>{" "}
         <span className="text-sm font-medium">
           per month
           {period === "yearly" && ", billed yearly"}

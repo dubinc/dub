@@ -25,35 +25,28 @@ export function DomainSelector() {
     </div>
   ) : (
     <>
-      <div
-        className={cn(
-          "animate-fade-in mx-auto grid w-full max-w-[312px] gap-4",
-          flags?.dotlink && "sm:max-w-2xl sm:grid-cols-2",
-        )}
-      >
+      <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-2xl sm:grid-cols-2">
         <DomainOption
           title="Connect a custom domain"
           example="acme.com"
           onClick={() => setSelectedOption("custom")}
           isSelected={selectedOption === "custom"}
         />
-        {flags?.dotlink && (
-          <DomainOption
-            title={
-              <>
-                Claim a free{" "}
-                <span className="rounded border border-green-800/10 bg-lime-100 p-1 font-mono text-xs">
-                  .link
-                </span>{" "}
-                domain
-              </>
-            }
-            example="acme.link"
-            onClick={() => setSelectedOption("register")}
-            isSelected={selectedOption === "register"}
-            paidPlanRequired={true}
-          />
-        )}
+        <DomainOption
+          title={
+            <>
+              Claim a free{" "}
+              <span className="rounded border border-green-800/10 bg-lime-100 p-1 font-mono text-xs">
+                .link
+              </span>{" "}
+              domain
+            </>
+          }
+          example="acme.link"
+          onClick={() => setSelectedOption("register")}
+          isSelected={selectedOption === "register"}
+          paidPlanRequired={true}
+        />
       </div>
       <div className="mx-auto mt-8 w-full max-w-sm">
         <Button

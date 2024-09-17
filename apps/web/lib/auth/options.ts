@@ -1,4 +1,3 @@
-import { dub } from "@/lib/dub";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
@@ -18,12 +17,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import { cookies } from "next/headers";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
+import { trackLead } from "./track-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -449,26 +448,9 @@ export const authOptions: NextAuthOptions = {
                 scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
                 marketing: true,
               }),
+              trackLead(user),
             ]),
           );
-        }
-
-        const clickId =
-          cookies().get("dub_id")?.value || cookies().get("dclid")?.value;
-        if (clickId) {
-          // send lead event to Dub
-          waitUntil(
-            dub.track.lead({
-              clickId,
-              eventName: "Sign Up",
-              customerId: user.id,
-              customerName: user.name,
-              customerEmail: user.email,
-              customerAvatar: user.image,
-            }),
-          );
-          // delete the clickId cookie
-          cookies().delete("dub_id");
         }
       }
       // lazily backup user avatar to R2
