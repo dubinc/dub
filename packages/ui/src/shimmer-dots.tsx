@@ -119,8 +119,8 @@ export function ShimmerDots({
 
     gl.enable(gl.DEPTH_TEST);
 
-    gl.uniform1f(dotSizeUniform, dotSize);
-    gl.uniform1f(cellSizeUniform, cellSize);
+    gl.uniform1f(dotSizeUniform, dotSize * window.devicePixelRatio);
+    gl.uniform1f(cellSizeUniform, cellSize * window.devicePixelRatio);
     gl.uniform1f(speedUniform, speed);
 
     function render(timestamp: number) {
