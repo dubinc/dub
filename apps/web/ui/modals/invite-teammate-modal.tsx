@@ -22,11 +22,14 @@ function InviteTeammateModal({
   setShowInviteTeammateModal: Dispatch<SetStateAction<boolean>>;
   showSavedInvites: boolean;
 }) {
-  const { id: workspaceId, logo } = useWorkspace();
+  const { id: workspaceId, plan, logo } = useWorkspace();
 
+  // we only need to fetch saved invites if the workspace is on the free plan
+  // (or else we would've already sent the invites)
   const { data: invites, isLoading } = useSWR<Invite[]>(
-    workspaceId &&
-      showInviteTeammateModal &&
+    showInviteTeammateModal &&
+      workspaceId &&
+      plan === "free" &&
       showSavedInvites &&
       `/api/workspaces/${workspaceId}/invites/saved`,
     fetcher,
@@ -42,7 +45,7 @@ function InviteTeammateModal({
           {logo ? (
             <BlurImage
               src={logo}
-              alt={"Invite Teammates"}
+              alt="Invite Teammates"
               className="h-10 w-10 rounded-full"
               width={20}
               height={20}
@@ -52,8 +55,15 @@ function InviteTeammateModal({
           )}
           <h3 className="text-lg font-medium">Invite Teammates</h3>
           <p className="text-center text-sm text-gray-500">
-            Invite teammates to join your workspace. Invitations will be valid
-            for 14 days.
+            Invite teammates with{" "}
+            <a
+              href="https://dub.co/help/article/workspace-roles"
+              target="_blank"
+              className="underline hover:text-gray-900"
+            >
+              different roles and permissions
+            </a>
+            . Invitations will be valid for 14 days.
           </p>
         </div>
         {isLoading ? (

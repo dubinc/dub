@@ -14,11 +14,18 @@ import { NextResponse } from "next/server";
 // POST /api/domains/[domain]/transfer – transfer a domain to another workspace
 export const POST = withWorkspace(
   async ({ req, headers, session, params, workspace }) => {
-    const { slug: domain } = await getDomainOrThrow({
+    const { slug: domain, registeredDomain } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
     });
+
+    if (registeredDomain) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You cannot delete a Dub-provisioned domain.",
+      });
+    }
 
     const { newWorkspaceId } = transferDomainBodySchema.parse(await req.json());
 

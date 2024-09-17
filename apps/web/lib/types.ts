@@ -52,22 +52,6 @@ export interface RedisLinkProps {
   webhookIds?: string[];
 }
 
-export interface EdgeLinkProps {
-  id: string;
-  domain: string;
-  key: string;
-  url: string;
-  proxy: boolean;
-  title: string;
-  description: string;
-  image: string;
-  password: string;
-  clicks: number;
-  publicStats: boolean;
-  userId: string;
-  projectId: string;
-}
-
 export interface TagProps {
   id: string;
   name: string;
@@ -80,7 +64,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "dublink" | "referrals" | "webhooks";
+export type BetaFeatures = "dublink" | "referrals" | "webhooks" | "dotlink";
 
 export type AddOns = "conversion" | "sso";
 
@@ -137,6 +121,13 @@ export interface DomainProps {
   placeholder?: string;
   expiredUrl?: string;
   projectId: string;
+  registeredDomain?: RegisteredDomainProps;
+}
+
+export interface RegisteredDomainProps {
+  id: string;
+  createdAt: Date;
+  expiresAt: Date;
 }
 
 export interface BitlyGroupProps {

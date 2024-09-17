@@ -35,9 +35,9 @@ export function PaginationControls({
           {totalCount > 0 && (
             <>
               <span className="font-medium">
-                {pagination.pageIndex * pagination.pageSize + 1}-
+                {(pagination.pageIndex - 1) * pagination.pageSize + 1}-
                 {Math.min(
-                  pagination.pageIndex * pagination.pageSize +
+                  (pagination.pageIndex - 1) * pagination.pageSize +
                     pagination.pageSize,
                   totalCount,
                 )}

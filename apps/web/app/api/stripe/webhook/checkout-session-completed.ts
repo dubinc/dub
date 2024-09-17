@@ -1,3 +1,4 @@
+import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
 import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
@@ -124,6 +125,20 @@ async function completeOnboarding({
   users: Pick<User, "id">[];
   workspaceId: string;
 }) {
+  const workspace = (await prisma.project.findUnique({
+    where: {
+      id: workspaceId,
+    },
+    include: {
+      users: true,
+    },
+  })) as unknown as WorkspaceProps | null;
+
+  if (!workspace) {
+    console.error("Failed to complete onboarding for workspace", workspaceId);
+    return;
+  }
+
   await Promise.allSettled([
     // Complete onboarding for workspace users
     ...users.map(({ id }) => redis.set(`onboarding-step:${id}`, "completed")),
@@ -133,15 +148,6 @@ async function completeOnboarding({
       const invites = await redis.get<Invite[]>(`invites:${workspaceId}`);
 
       if (!invites?.length) return;
-
-      const workspace = (await prisma.project.findUnique({
-        where: {
-          id: workspaceId,
-        },
-        include: {
-          users: true,
-        },
-      })) as unknown as WorkspaceProps | null;
 
       if (!workspace) return;
 
@@ -156,6 +162,30 @@ async function completeOnboarding({
       );
 
       await redis.del(`invites:${workspaceId}`);
+    })(),
+
+    // Register saved domain
+    (async () => {
+      const data = await redis.get<{ domain: string; userId: string }>(
+        `onboarding-domain:${workspaceId}`,
+      );
+      if (!data || !data.domain || !data.userId) return;
+      const { domain, userId } = data;
+
+      try {
+        await claimDotLinkDomain({
+          domain,
+          userId,
+          workspace,
+        });
+        await redis.del(`onboarding-domain:${workspaceId}`);
+      } catch (e) {
+        console.error(
+          "Failed to register saved domain from onboarding",
+          { domain, userId, workspace },
+          e,
+        );
+      }
     })(),
   ]);
 }

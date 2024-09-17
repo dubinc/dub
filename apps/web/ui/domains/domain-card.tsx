@@ -18,6 +18,7 @@ import {
   Tooltip,
   useInViewport,
   useMediaQuery,
+  Wordmark,
 } from "@dub/ui";
 import {
   CursorRays,
@@ -47,7 +48,9 @@ import { DomainCardTitleColumn } from "./domain-card-title-column";
 import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
-  const { slug: domain, primary } = props || {};
+  const { slug: domain, primary, registeredDomain } = props || {};
+
+  const isDubProvisioned = !!registeredDomain;
 
   const { id: workspaceId, slug } = useWorkspace();
 
@@ -96,133 +99,164 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     <>
       <div
         ref={domainRef}
-        className="hover:drop-shadow-card-hover group rounded-xl border border-gray-200 bg-white p-4 transition-[filter] sm:p-5"
+        className="hover:drop-shadow-card-hover group rounded-xl border border-gray-200 bg-white transition-[filter]"
         onPointerEnter={() => setGroupHover(true)}
         onPointerLeave={() => setGroupHover(false)}
       >
-        <div className="grid grid-cols-[1.5fr_1fr] items-center gap-3 sm:grid-cols-[3fr_1fr_1.5fr] sm:gap-4 md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
-          <DomainCardTitleColumn
-            domain={domain}
-            icon={tab === "active" ? Globe : Archive}
-            url={linkProps?.url}
-            primary={primary}
-          />
-
-          {/* Clicks */}
-          <div className="hidden md:flex">
-            {totalEvents ? (
-              <NumberTooltip value={totalEvents?.clicks}>
-                <Link
-                  href={`/${slug}/analytics?domain=${domain}&key=_root`}
-                  className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
-                >
-                  <CursorRays className="h-4 w-4 text-gray-700" />
-                  <p className="text-xs font-medium text-gray-900">
-                    {nFormatter(totalEvents?.clicks)}
-                    <span className="ml-1 hidden sm:inline-block">clicks</span>
-                  </p>
-                </Link>
-              </NumberTooltip>
-            ) : (
-              <div className="h-6 w-16 animate-pulse rounded-md bg-gray-200" />
-            )}
+        {isDubProvisioned && (
+          <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-gray-100 bg-gray-50 px-5 py-2 text-xs">
+            <div className="flex items-center gap-1.5">
+              <Wordmark className="h-4" />
+              <span className="font-medium text-gray-900">
+                Provisioned by Dub
+              </span>
+            </div>
+            <a
+              href="https://dub.co/help/article/free-dot-link-domain"
+              target="_blank"
+              className="text-gray-500 underline transition-colors hover:text-gray-800"
+            >
+              Learn more
+            </a>
           </div>
-
-          {/* Status */}
-          <div className="hidden sm:block">
-            {data ? (
-              <StatusBadge
-                variant={
-                  data.status === "Valid Configuration"
-                    ? "success"
-                    : data.status === "Pending Verification"
-                      ? "pending"
-                      : "error"
-                }
-              >
-                {data.status === "Valid Configuration"
-                  ? "Active"
-                  : data.status === "Pending Verification"
-                    ? "Pending"
-                    : "Invalid"}
-              </StatusBadge>
-            ) : (
-              <div className="h-6 w-16 animate-pulse rounded-md bg-gray-200" />
-            )}
-          </div>
-
-          <div className="flex justify-end gap-2 sm:gap-3">
-            <Button
-              icon={
-                <div className="flex items-center gap-1">
-                  <div className="relative">
-                    <Gear
-                      className={cn(
-                        "h-4 w-4",
-                        showDetails ? "text-gray-800" : "text-gray-600",
-                      )}
-                    />
-                    {/* Error indicator */}
-                    {data && isInvalid && (
-                      <div className="absolute -right-px -top-px h-[5px] w-[5px] rounded-full bg-red-500">
-                        <div className="h-full w-full animate-pulse rounded-full ring-2 ring-red-500/30" />
-                      </div>
-                    )}
-                  </div>
-                  <ChevronDown
-                    className={cn(
-                      "hidden h-4 w-4 text-gray-400 transition-transform sm:block",
-                      showDetails && "rotate-180",
-                    )}
-                  />
-                </div>
-              }
-              variant="secondary"
-              className={cn(
-                "h-8 w-auto px-2.5 opacity-100 transition-opacity",
-                !showDetails &&
-                  !isInvalid &&
-                  "sm:opacity-0 sm:group-hover:opacity-100",
-              )}
-              onClick={() => setShowDetails((s) => !s)}
-              data-state={showDetails ? "open" : "closed"}
+        )}
+        <div className="p-4 sm:p-5">
+          <div className="grid grid-cols-[1.5fr_1fr] items-center gap-3 sm:grid-cols-[3fr_1fr_1.5fr] sm:gap-4 md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
+            <DomainCardTitleColumn
+              domain={domain}
+              icon={tab === "active" ? Globe : Archive}
+              url={linkProps?.url}
+              primary={primary}
             />
-            <Menu
-              props={props}
-              linkProps={linkProps}
-              refreshProps={{ isValidating, mutate }}
-              groupHover={groupHover}
-            />
-          </div>
-        </div>
-        <motion.div
-          initial={false}
-          animate={{ height: showDetails ? "auto" : 0 }}
-          className="overflow-hidden"
-        >
-          {data ? (
-            data.status === "Valid Configuration" ? (
-              <div className="mt-6 flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
-                <CircleCheck className="h-5 w-5 shrink-0" />
-                <div>
-                  Good news! Your DNS records are set up correctly, but it can
-                  take some time for them to propagate globally.{" "}
+
+            {/* Clicks */}
+            <div className="hidden md:flex">
+              {totalEvents ? (
+                <NumberTooltip value={totalEvents?.clicks}>
                   <Link
-                    href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
-                    target="_blank"
-                    className="underline transition-colors hover:text-green-800"
+                    href={`/${slug}/analytics?domain=${domain}&key=_root`}
+                    className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-3 py-1 transition-colors hover:bg-gray-100"
                   >
-                    Learn more.
+                    <CursorRays className="h-4 w-4 text-gray-700" />
+                    <p className="text-xs font-medium text-gray-900">
+                      {nFormatter(totalEvents?.clicks)}
+                      <span className="ml-1 hidden sm:inline-block">
+                        clicks
+                      </span>
+                    </p>
                   </Link>
+                </NumberTooltip>
+              ) : (
+                <div className="h-6 w-16 animate-pulse rounded-md bg-gray-200" />
+              )}
+            </div>
+
+            {/* Status */}
+            <div className="hidden sm:block">
+              {data ? (
+                <StatusBadge
+                  variant={
+                    data.status === "Valid Configuration"
+                      ? "success"
+                      : data.status === "Pending Verification" ||
+                          isDubProvisioned
+                        ? "pending"
+                        : "error"
+                  }
+                  onClick={
+                    isDubProvisioned
+                      ? undefined
+                      : () => setShowDetails((s) => !s)
+                  }
+                >
+                  {data.status === "Valid Configuration"
+                    ? "Active"
+                    : data.status === "Pending Verification"
+                      ? "Pending"
+                      : isDubProvisioned
+                        ? "Provisioning"
+                        : "Invalid"}
+                </StatusBadge>
+              ) : (
+                <div className="h-6 w-16 animate-pulse rounded-md bg-gray-200" />
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 sm:gap-3">
+              {!isDubProvisioned && (
+                <Button
+                  icon={
+                    <div className="flex items-center gap-1">
+                      <div className="relative">
+                        <Gear
+                          className={cn(
+                            "h-4 w-4",
+                            showDetails ? "text-gray-800" : "text-gray-600",
+                          )}
+                        />
+                        {/* Error indicator */}
+                        {data && isInvalid && (
+                          <div className="absolute -right-px -top-px h-[5px] w-[5px] rounded-full bg-red-500">
+                            <div className="h-full w-full animate-pulse rounded-full ring-2 ring-red-500/30" />
+                          </div>
+                        )}
+                      </div>
+                      <ChevronDown
+                        className={cn(
+                          "hidden h-4 w-4 text-gray-400 transition-transform sm:block",
+                          showDetails && "rotate-180",
+                        )}
+                      />
+                    </div>
+                  }
+                  variant="secondary"
+                  className={cn(
+                    "h-8 w-auto px-2.5 opacity-100 transition-opacity",
+                    !showDetails &&
+                      !isInvalid &&
+                      "sm:opacity-0 sm:group-hover:opacity-100",
+                  )}
+                  onClick={() => setShowDetails((s) => !s)}
+                  data-state={showDetails ? "open" : "closed"}
+                />
+              )}
+              <Menu
+                props={props}
+                linkProps={linkProps}
+                refreshProps={{ isValidating, mutate }}
+                groupHover={groupHover}
+              />
+            </div>
+          </div>
+          <motion.div
+            initial={false}
+            animate={{ height: showDetails ? "auto" : 0 }}
+            className="overflow-hidden"
+          >
+            {data ? (
+              data.status === "Valid Configuration" ? (
+                <div className="mt-6 flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
+                  <CircleCheck className="h-5 w-5 shrink-0" />
+                  <div>
+                    Good news! Your DNS records are set up correctly, but it can
+                    take some time for them to propagate globally.{" "}
+                    <Link
+                      href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
+                      target="_blank"
+                      className="underline transition-colors hover:text-green-800"
+                    >
+                      Learn more.
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <DomainConfiguration data={data} />
+              )
             ) : (
-              <DomainConfiguration data={data} />
-            )
-          ) : (
-            <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
-          )}
-        </motion.div>
+              <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
+            )}
+          </motion.div>
+        </div>
       </div>
     </>
   );
@@ -242,7 +276,8 @@ function Menu({
   };
   groupHover: boolean;
 }) {
-  const { primary, archived, slug: domain } = props;
+  const { primary, archived, slug: domain, registeredDomain } = props;
+  const isDubProvisioned = !!registeredDomain;
 
   const { isMobile } = useMediaQuery();
 
@@ -315,7 +350,7 @@ function Menu({
 
       <motion.div
         animate={{
-          width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 38,
+          width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 39,
         }}
         initial={false}
         className="flex items-center justify-end divide-x divide-gray-200 overflow-hidden rounded-md border border-gray-200 sm:divide-transparent sm:group-hover:divide-gray-200"
@@ -418,21 +453,23 @@ function Menu({
                     className="h-9 justify-start px-2 font-medium"
                   />
                 )}
-                <Button
-                  text="Transfer"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowTransferDomainModal(true);
-                  }}
-                  icon={<FolderInput className="h-4 w-4" />}
-                  className="h-9 justify-start px-2 font-medium"
-                  disabledTooltip={
-                    primary && activeDomainsCount > 1
-                      ? "You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
-                      : undefined
-                  }
-                />
+                {!isDubProvisioned && (
+                  <Button
+                    text="Transfer"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowTransferDomainModal(true);
+                    }}
+                    icon={<FolderInput className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                    disabledTooltip={
+                      primary && activeDomainsCount > 1
+                        ? "You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
+                        : undefined
+                    }
+                  />
+                )}
                 <Button
                   text={archived ? "Unarchive" : "Archive"}
                   variant="outline"
@@ -443,16 +480,18 @@ function Menu({
                   icon={<Archive className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                 />
-                <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteDomainModal(true);
-                  }}
-                  icon={<Delete className="h-4 w-4" />}
-                  className="h-9 justify-start px-2 font-medium"
-                />
+                {!isDubProvisioned && (
+                  <Button
+                    text="Delete"
+                    variant="danger-outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowDeleteDomainModal(true);
+                    }}
+                    icon={<Delete className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
               </div>
             </div>
           }

@@ -73,6 +73,12 @@ export const WorkspaceSchema = z
       .describe(
         "Whether the workspace has conversion tracking enabled (d.to/conversions).",
       ),
+    dotLinkClaimed: z
+      .boolean()
+      .describe(
+        "Whether the workspace has claimed a free .link domain. (dub.link/free)",
+      ),
+
     createdAt: z
       .date()
       .describe("The date and time when the workspace was created."),

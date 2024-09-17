@@ -5,7 +5,7 @@ import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { Logo, Switch, useRouterStuff } from "@dub/ui";
+import { Logo, Switch } from "@dub/ui";
 import {
   Amazon,
   ChatGPT,
@@ -55,7 +55,6 @@ export function DefaultDomains() {
     }
   }, [initialDefaultDomains]);
   const [submitting, setSubmitting] = useState(false);
-  const { queryParams } = useRouterStuff();
 
   return (
     <div className="my-10 grid gap-5 border-t border-gray-200 py-10">
