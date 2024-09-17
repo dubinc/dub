@@ -53,14 +53,12 @@ export const withWorkspace = (
       "enterprise",
     ], // if the action needs a specific plan
     requiredAddOn,
-    allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
     skipPermissionChecks, // if the action doesn't need to check for required permission(s)
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredAddOn?: AddOns;
-    allowAnonymous?: boolean;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
     skipPermissionChecks?: boolean;
@@ -102,11 +100,15 @@ export const withWorkspace = (
           params?.slug ||
           searchParams.projectSlug;
 
-        // if there's no workspace ID or slug and it's not a restricted token
-        // For restricted tokens, we find the workspaceId from the token
+        /*
+          if there's no workspace ID or slug and it's not a restricted token:
+          - special case for anonymous link creation
+          - missing authorization header
+          - user is still using personal API keys
+        */
         if (!idOrSlug && !isRestrictedToken) {
-          // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
-          if (allowAnonymous && !apiKey) {
+          // special case for anonymous link creation
+          if (req.headers.has("dub-anonymous-link-creation")) {
             // @ts-expect-error
             return await handler({
               req,
@@ -114,19 +116,19 @@ export const withWorkspace = (
               searchParams,
               headers,
             });
+            // missing authorization header
+          } else if (!authorizationHeader) {
+            throw new DubApiError({
+              code: "unauthorized",
+              message: "Missing Authorization header.",
+            });
+            // in case user is still using personal API keys
           } else {
-            if (!authorizationHeader) {
-              throw new DubApiError({
-                code: "unauthorized",
-                message: "Missing Authorization header.",
-              });
-            } else {
-              throw new DubApiError({
-                code: "not_found",
-                message:
-                  "Workspace ID not found. Did you forget to include a `workspaceId` query parameter? It looks like you might be using personal API keys, we also recommend refactoring to workspace API keys: https://d.to/keys",
-              });
-            }
+            throw new DubApiError({
+              code: "not_found",
+              message:
+                "Workspace ID not found. Did you forget to include a `workspaceId` query parameter? It looks like you might be using personal API keys, we also recommend refactoring to workspace API keys: https://d.to/keys",
+            });
           }
         }
 
