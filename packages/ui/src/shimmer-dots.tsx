@@ -29,7 +29,7 @@ void main(void) {
   vec2 uv = gl_FragCoord.xy;
 
   vec2 cellUv = vec2(int(uv.x / cellSize), int(uv.y / cellSize));
-  float id = random(cellUv);
+  float id = random(cellUv + 1.0);
 
   float fadeEffect = (sin(time * speed + id * 20.0) + 1.0) * 0.5;
   
