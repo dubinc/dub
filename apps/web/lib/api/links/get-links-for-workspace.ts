@@ -9,7 +9,7 @@ export async function getLinksForWorkspace({
   tagId,
   tagIds,
   tagNames,
-  folderIds,
+  folderId,
   search,
   sort = "createdAt",
   page,
@@ -63,9 +63,9 @@ export async function getLinksForWorkspace({
       ...(userId && { userId }),
 
       // Filter by folderId
-      ...(folderIds && folderIds.length > 0
+      ...(folderId
         ? {
-            folderId: { in: folderIds },
+            folderId,
           }
         : {}),
     },

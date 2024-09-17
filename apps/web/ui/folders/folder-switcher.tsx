@@ -1,38 +1,51 @@
 import useFolders from "@/lib/swr/use-folders";
 import { FolderProps } from "@/lib/types";
-import { Popover, Tick } from "@dub/ui";
+import { Popover, Tick, useRouterStuff } from "@dub/ui";
 import { ChevronsUpDown, FolderCheck, FolderPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
 type Folder = Pick<FolderProps, "id" | "name">;
 
+const allLinksFolder: Folder = {
+  id: "all-links",
+  name: "All links",
+};
+
 export const FolderSwitcher = () => {
-  const [openPopover, setOpenPopover] = useState(true);
-  const { folders, isLoading, isValidating } = useFolders();
-  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
+  const { folders, isLoading } = useFolders();
+  const [openPopover, setOpenPopover] = useState(false);
+  const { queryParams, searchParamsObj } = useRouterStuff();
+
+  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(
+    allLinksFolder,
+  );
 
   const handleFolderSelect = useCallback((folder: Folder) => {
     setSelectedFolder(folder);
+
+    if (folder.id === "all-links") {
+      return queryParams({
+        del: "folderId",
+      });
+    }
+
+    queryParams({
+      set: {
+        folderId: folder.id,
+      },
+    });
   }, []);
 
   if (isLoading || !folders) {
     return <FolderSwitcherPlaceholder />;
   }
 
-  const folderList = [
-    {
-      id: "all-links",
-      name: "All links",
-    },
-    ...(folders || []),
-  ];
-
   return (
     <Popover
       content={
         <FolderList
-          folders={folderList}
+          folders={[allLinksFolder, ...folders]}
           setOpenPopover={setOpenPopover}
           onFolderSelect={handleFolderSelect}
           selectedFolder={selectedFolder}
@@ -44,7 +57,7 @@ export const FolderSwitcher = () => {
     >
       <button className="flex items-center justify-between space-x-2 rounded-md px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100">
         <h1 className="text-2xl font-semibold tracking-tight text-black">
-          {selectedFolder?.name || "All links"}
+          {selectedFolder?.name}
         </h1>
         <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
       </button>
