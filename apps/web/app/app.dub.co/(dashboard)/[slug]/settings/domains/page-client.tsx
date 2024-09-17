@@ -37,7 +37,6 @@ export default function WorkspaceDomainsClient() {
     role,
     domainsLimit,
     exceededDomains,
-    flags,
     dotLinkClaimed,
   } = useWorkspace();
 
