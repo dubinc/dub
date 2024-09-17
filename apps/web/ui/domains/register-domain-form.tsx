@@ -323,7 +323,7 @@ export function RegisterDomainForm({
             target="_blank"
             className={cn(
               buttonVariants(),
-              "flex h-9 items-center justify-center rounded-md border px-4 text-sm",
+              "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
               variant === "modal" && "w-fit",
             )}
           >
