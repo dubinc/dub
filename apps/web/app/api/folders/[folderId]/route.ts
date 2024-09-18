@@ -85,11 +85,11 @@ export const DELETE = withWorkspace(
       },
     });
 
-    throwIfNotAllowed({
-      folder,
-      userId: session.user.id,
-      action: "folders.delete",
-    });
+    // throwIfNotAllowed({
+    //   folder,
+    //   userId: session.user.id,
+    //   action: "folders.delete",
+    // });
 
     const deletedFolder = await prisma.folder.delete({
       where: {

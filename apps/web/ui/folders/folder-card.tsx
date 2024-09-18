@@ -6,6 +6,7 @@ import { Globe } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
 import { FolderIcon } from "lucide-react";
 import { useState } from "react";
+import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
 
@@ -25,12 +26,16 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
   const { RenameFolderModal, setShowRenameFolderModal } =
     useRenameFolderModal(folder);
 
+  const { DeleteFolderModal, setShowDeleteFolderModal } =
+    useDeleteFolderModal(folder);
+
   const linkCount =
     linksCount?.find((link) => link.folderId === folder.id)?.count || 0;
 
   return (
     <>
       <RenameFolderModal />
+      <DeleteFolderModal />
       <div className="hover:drop-shadow-card-hover rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36">
         <div className="flex items-center justify-between">
           <div className="rounded-full bg-green-200 p-0.5 sm:block">
@@ -70,6 +75,7 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
                     variant="danger-outline"
                     onClick={() => {
                       setOpenPopover(false);
+                      setShowDeleteFolderModal(true);
                     }}
                     icon={<Delete className="h-4 w-4" />}
                     shortcut="X"
