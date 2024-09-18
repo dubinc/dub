@@ -138,8 +138,9 @@ export function RegisterDomainForm({
     <form
       onSubmit={async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (searchedDomain && searchedDomain.available)
+        if (searchedDomain && searchedDomain.available) {
           await registerDomain(searchedDomain.domain);
+        }
       }}
     >
       <div
@@ -193,10 +194,9 @@ export function RegisterDomainForm({
                   onChange={(e) => {
                     setSlug(e.target.value);
                   }}
-                  onKeyUp={(e) => {
-                    if (e.key === "Enter" && !searchedDomain) {
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
                       e.preventDefault();
-                      searchDomainAvailability();
                     }
                   }}
                 />
@@ -301,6 +301,20 @@ export function RegisterDomainForm({
               </div>
             </div>
           )}
+
+        {searchedDomain && (
+          <p className="-my-2 text-pretty text-left text-sm text-gray-400">
+            By claiming your .link domain, you agree to our{" "}
+            <a
+              href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
+              target="_blank"
+              className="underline transition-colors hover:text-gray-700"
+            >
+              terms
+            </a>
+            .
+          </p>
+        )}
       </div>
       <div
         className={cn(
@@ -334,10 +348,7 @@ export function RegisterDomainForm({
             type="submit"
             text="Claim domain"
             className={cn("h-9", variant === "modal" && "w-fit")}
-            disabled={
-              !searchedDomain?.available ||
-              (workspace.plan === "free" && !saveOnly)
-            }
+            disabled={!searchedDomain?.available}
             loading={isRegistering}
             disabledTooltip={
               workspace.plan === "free" && !saveOnly ? (
