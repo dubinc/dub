@@ -41,6 +41,7 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { LinkPreview } from "./link-preview";
 import { useMetatags } from "./use-metatags";
+import { UTMBuilder } from "./utm-builder";
 
 export type LinkFormData = LinkWithTagsProps;
 
@@ -330,6 +331,8 @@ function AddEditLinkModalInner({
                   domains={domains}
                 />
               )}
+
+              <UTMBuilder />
 
               <div>
                 <div className="flex items-center gap-2">
