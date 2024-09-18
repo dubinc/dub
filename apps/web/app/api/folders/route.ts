@@ -18,6 +18,7 @@ export const GET = withWorkspace(
       select: {
         id: true,
         name: true,
+        accessLevel: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -57,7 +58,7 @@ export const POST = withWorkspace(
       });
     }
 
-    const { name, users } = createFolderBodySchema.parse(
+    const { name, accessLevel } = createFolderBodySchema.parse(
       await parseRequestBody(req),
     );
 
@@ -75,48 +76,15 @@ export const POST = withWorkspace(
       });
     }
 
-    // Check the given users has access to the workspace
-    let usersWithAccess: { userId: string; accessLevel: string | null }[] = [];
-
-    if (users) {
-      const workspaceUsers = await prisma.projectUsers.findMany({
-        where: {
-          projectId: workspace.id,
-          AND: {
-            userId: {
-              in: users?.map((user) => user.userId) || [],
-            },
-          },
-        },
-        select: {
-          id: true,
-          userId: true,
-        },
-      });
-
-      usersWithAccess = workspaceUsers?.map(({ userId }) => {
-        const userAccess = users?.find((u) => u.userId === userId);
-
-        return {
-          userId,
-          accessLevel: userAccess?.accessLevel || null,
-        };
-      });
-    }
-
-    const folder = await prisma.folder.create({
+    const newFolder = await prisma.folder.create({
       data: {
         projectId: workspace.id,
         name,
-        ...(usersWithAccess.length > 0 && {
-          users: {
-            create: usersWithAccess,
-          },
-        }),
+        accessLevel,
       },
     });
 
-    const response = folderSchema.parse(folder);
+    const response = folderSchema.parse(newFolder);
 
     return NextResponse.json(response, {
       headers,

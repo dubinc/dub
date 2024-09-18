@@ -44,7 +44,7 @@ const DeleteFolderModal = ({
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
-      <div className="space-y-4 border-b border-gray-200 px-4 py-4 sm:px-6">
+      <div className="space-y-2 border-b border-gray-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">Delete {folder.name}</h3>
         <p className="text-sm text-gray-500">
           All links within this folder will return to the main folder and will

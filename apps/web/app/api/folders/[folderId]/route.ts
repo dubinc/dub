@@ -1,7 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfNotAllowed } from "@/lib/link-folder/access";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import {
@@ -34,7 +33,7 @@ export const PATCH = withWorkspace(
     // });
 
     try {
-      const folder = await prisma.folder.update({
+      const updatedFolder = await prisma.folder.update({
         where: {
           id: folderId,
           projectId: workspace.id,
@@ -44,7 +43,7 @@ export const PATCH = withWorkspace(
         },
       });
 
-      const response = folderSchema.parse(folder);
+      const response = folderSchema.parse(updatedFolder);
 
       return NextResponse.json(response);
     } catch (error) {

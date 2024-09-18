@@ -1,6 +1,12 @@
 import { DubApiError } from "../api/errors";
 import { FolderWithPermissions } from "./types";
 
+export const FOLDER_WORKSPACE_ACCESS = {
+  CAN_VIEW: "can_view",
+  CAN_EDIT: "can_edit",
+  NO_ACCESS: "no_access",
+} as const;
+
 export const FOLDER_ROLES = {
   OWNER: "owner",
   MEMBER: "member",

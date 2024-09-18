@@ -1,5 +1,8 @@
+import { FOLDER_WORKSPACE_ACCESS } from "@/lib/link-folder/access";
+import { FolderWorkspaceAccess } from "@/lib/link-folder/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, useMediaQuery } from "@dub/ui";
+import { BlurImage, Button, useMediaQuery } from "@dub/ui";
+import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -11,17 +14,21 @@ interface AddFolderFormProps {
 
 export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
   const workspace = useWorkspace();
+  const [step, setStep] = useState(1);
   const { isMobile } = useMediaQuery();
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState<string | undefined>(undefined);
+  const [accessLevel, setAccessLevel] =
+    useState<FolderWorkspaceAccess>("can_view");
 
+  // Create new folder
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsCreating(true);
 
     const response = await fetch(`/api/folders?workspaceId=${workspace.id}`, {
       method: "POST",
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, accessLevel }),
     });
 
     if (!response.ok) {
@@ -37,55 +44,114 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
   };
 
   return (
-    <form onSubmit={onSubmit}>
-      <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="block text-sm font-medium text-gray-800">Name</p>
-          </div>
+    <>
+      <div className="space-y-2 border-b border-gray-200 px-4 py-4 sm:px-6">
+        <h3 className="text-lg font-medium">
+          {step === 1 ? "Create new folder" : `${name} access`}
+        </h3>
 
-          <div className="mt-2">
-            <div className="-m-1 rounded-[0.625rem] p-1">
-              <div className="flex rounded-md border border-gray-300 bg-white">
-                <input
-                  type="text"
-                  required
-                  autoComplete="off"
-                  className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
-                  aria-invalid="true"
-                  placeholder="Marketing"
-                  autoFocus={!isMobile}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                    }
-                  }}
-                />
+        {step === 2 && (
+          <p className="text-sm text-gray-500">
+            Set the default folder access for the workspace. For individual
+            folder permissions, those can be changed in folder settings.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-6">
+        <form onSubmit={onSubmit}>
+          <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
+            {step === 1 ? (
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="block text-sm font-medium text-gray-800">
+                    Name
+                  </p>
+                </div>
+                <div className="mt-2">
+                  <div className="-m-1 rounded-[0.625rem] p-1">
+                    <div className="flex rounded-md border border-gray-300 bg-white">
+                      <input
+                        type="text"
+                        required
+                        autoComplete="off"
+                        className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+                        aria-invalid="true"
+                        placeholder="Marketing"
+                        autoFocus={!isMobile}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            setStep(2);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label className="text-sm font-normal text-gray-500">
+                  Workspace access
+                </label>
+                <div className="mt-2 flex items-center justify-between rounded-md border border-gray-300 bg-white p-2">
+                  <div className="flex items-center gap-2">
+                    <BlurImage
+                      src={workspace.logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                      alt={workspace.name || "Workspace logo"}
+                      className="size-7 shrink-0 overflow-hidden rounded-full"
+                      width={20}
+                      height={20}
+                    />
+                    <span>{workspace.name}</span>
+                  </div>
+                  <select
+                    className="rounded-md border-gray-300"
+                    value={accessLevel}
+                    onChange={(e) =>
+                      setAccessLevel(e.target.value as FolderWorkspaceAccess)
+                    }
+                  >
+                    {Object.values(FOLDER_WORKSPACE_ACCESS).map((access) => (
+                      <option value={access}>{access}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
 
-      <div className="mt-8 flex justify-end gap-2 border-t border-gray-200 px-4 py-4 sm:px-6">
-        <Button
-          type="button"
-          variant="secondary"
-          text="Cancel"
-          className="h-9 w-fit"
-          onClick={onCancel}
-        />
-        <Button
-          type="submit"
-          text="Next"
-          disabled={!name}
-          loading={isCreating}
-          className="h-9 w-fit"
-        />
+          <div className="mt-8 flex justify-end gap-2 border-t border-gray-200 px-4 py-4 sm:px-6">
+            <Button
+              type="button"
+              variant="secondary"
+              text={step === 1 ? "Cancel" : "Back"}
+              className="h-9 w-fit"
+              onClick={step === 1 ? onCancel : () => setStep(1)}
+              disabled={step === 2 && isCreating}
+            />
+            <Button
+              type={step === 1 ? "button" : "submit"}
+              text={step === 1 ? "Next" : "Create folder"}
+              disabled={step === 1 && !name}
+              loading={step === 2 && isCreating}
+              className="h-9 w-fit"
+              onClick={(e) => {
+                e.preventDefault();
+
+                if (step === 1) {
+                  setStep(2);
+                } else {
+                  onSubmit(e as unknown as FormEvent<HTMLFormElement>);
+                }
+              }}
+            />
+          </div>
+        </form>
       </div>
-    </form>
+    </>
   );
 };

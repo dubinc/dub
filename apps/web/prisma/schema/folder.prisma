@@ -1,9 +1,10 @@
 model Folder {
-  id        String   @id @default(cuid())
-  name      String
-  projectId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  projectId   String
+  accessLevel String?  @default("no_access") // Access level of the folder within the workspace
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   links   Link[]
@@ -17,7 +18,7 @@ model FolderUser {
   id          String   @id @default(cuid())
   folderId    String
   userId      String
-  accessLevel String?
+  accessLevel String? // Access level of the user in the folder
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

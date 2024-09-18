@@ -17,15 +17,10 @@ interface AddFolderModalProps {
 const AddFolderModal = ({ showModal, setShowModal }: AddFolderModalProps) => {
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
-      <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
-        Create new folder
-      </h3>
-      <div className="mt-6">
-        <AddFolderForm
-          onSuccess={() => setShowModal(false)}
-          onCancel={() => setShowModal(false)}
-        />
-      </div>
+      <AddFolderForm
+        onSuccess={() => setShowModal(false)}
+        onCancel={() => setShowModal(false)}
+      />
     </Modal>
   );
 };
