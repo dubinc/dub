@@ -290,7 +290,7 @@ function AddEditLinkModalInner({
           )}
         </div>
 
-        <div className="grid max-h-[95dvh] w-full gap-y-6 md:grid-cols-[2fr_1fr] md:overflow-hidden">
+        <div className="grid w-full gap-y-6 max-md:max-h-[calc(100dvh-200px)] max-md:overflow-auto md:grid-cols-[2fr_1fr] md:[&>div]:max-h-[calc(100dvh-200px)]">
           <div className="scrollbar-hide px-6 md:overflow-auto">
             <div className="grid gap-8 py-4">
               <Controller
@@ -369,7 +369,7 @@ function AddEditLinkModalInner({
               </div>
             </div>
           </div>
-          <div className="scrollbar-hide px-6 md:max-h-[95dvh] md:overflow-auto md:pl-0 md:pr-4">
+          <div className="scrollbar-hide px-6 md:overflow-auto md:pl-0 md:pr-4">
             <div className="relative">
               <div className="absolute inset-0 rounded-xl border border-gray-200 bg-gray-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
               <div className="relative min-h-[300px] p-4">
