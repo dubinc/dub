@@ -5,6 +5,7 @@ import { Button, PenWriting, Popover, Users } from "@dub/ui";
 import { Globe } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
 import { FolderIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
@@ -21,6 +22,7 @@ interface FolderCardProps {
 }
 
 export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
+  const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
 
   const { RenameFolderModal, setShowRenameFolderModal } =
@@ -64,6 +66,7 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
                     variant="outline"
                     onClick={() => {
                       setOpenPopover(false);
+                      router.push(`/settings/folders/${folder.id}/members`);
                     }}
                     icon={<Users className="h-4 w-4" />}
                     shortcut="M"
