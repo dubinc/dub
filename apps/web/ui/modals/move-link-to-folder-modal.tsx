@@ -1,5 +1,6 @@
 import { Modal } from "@dub/ui";
 import { useCallback, useMemo, useState } from "react";
+import { AddFolderForm } from "../folders/add-folder-form";
 
 interface MoveLinkToFolderModalProps {
   showModal: boolean;
@@ -12,7 +13,10 @@ const MoveLinkToFolderModal = ({
 }: MoveLinkToFolderModalProps) => {
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
-      <>{/* Form goes here */}</>
+      <AddFolderForm
+        onSuccess={() => setShowModal(false)}
+        onCancel={() => setShowModal(false)}
+      />
     </Modal>
   );
 };
