@@ -97,19 +97,21 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                 <label className="text-sm font-normal text-gray-500">
                   Workspace access
                 </label>
-                <div className="mt-2 flex items-center justify-between rounded-md border border-gray-300 bg-white p-2">
-                  <div className="flex items-center gap-2">
+                <div className="mt-2 flex h-10 items-center justify-between rounded-md border border-gray-300 bg-white">
+                  <div className="flex items-center gap-2 pl-2">
                     <BlurImage
                       src={workspace.logo || `${DICEBEAR_AVATAR_URL}${name}`}
                       alt={workspace.name || "Workspace logo"}
-                      className="size-7 shrink-0 overflow-hidden rounded-full"
+                      className="size-5 shrink-0 overflow-hidden rounded-full"
                       width={20}
                       height={20}
                     />
-                    <span>{workspace.name}</span>
+                    <span className="text-sm font-normal text-gray-500">
+                      {workspace.name}
+                    </span>
                   </div>
                   <select
-                    className="rounded-md border-gray-300"
+                    className="rounded-md rounded-l-none border-0 border-l border-gray-300 bg-white py-2 pl-2 pr-8 text-xs text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0"
                     value={accessLevel}
                     onChange={(e) =>
                       setAccessLevel(e.target.value as FolderWorkspaceAccess)
