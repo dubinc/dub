@@ -1,6 +1,6 @@
-import "dotenv-flow/config";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
+import "dotenv-flow/config";
 
 async function main() {
   const users = [
