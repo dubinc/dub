@@ -2,24 +2,31 @@ import {
   Button,
   FileUpload,
   Icon,
-  LoadingCircle,
   ShimmerDots,
+  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import {
   Facebook,
   GlobePointer,
   LinkedIn,
+  LoadingCircle,
   NucleoPhoto,
   Pen2,
   Twitter,
 } from "@dub/ui/src/icons";
-import { cn, getDomainWithoutWWW, resizeImage } from "@dub/utils";
+import {
+  cn,
+  getDomainWithoutWWW,
+  isValidUrl as isValidUrlFn,
+  resizeImage,
+} from "@dub/utils";
 import {
   ChangeEvent,
   ComponentType,
   PropsWithChildren,
   useCallback,
+  useContext,
   useMemo,
   useRef,
   useState,
@@ -28,7 +35,8 @@ import { useFormContext } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
-import { LinkFormData } from ".";
+import { LinkFormData, LinkModalContext } from ".";
+import { useOGModal } from "./og-modal";
 
 const tabs = ["default", "facebook", "linkedin", "x"] as const;
 type Tab = (typeof tabs)[number];
@@ -61,11 +69,7 @@ const tabComponents: Record<Tab, ComponentType<OGPreviewProps>> = {
   x: XOGPreview,
 };
 
-export function LinkPreview({
-  generatingMetatags,
-}: {
-  generatingMetatags: boolean;
-}) {
+export function LinkPreview() {
   const { watch, setValue } = useFormContext<LinkFormData>();
   const { title, description, image, url, password } = watch();
 
@@ -74,6 +78,14 @@ export function LinkPreview({
     if (password) return "dub.co";
     return getDomainWithoutWWW(debouncedUrl) ?? null;
   }, [password, debouncedUrl]);
+
+  const isValidUrl = useMemo(() => isValidUrlFn(debouncedUrl), [debouncedUrl]);
+
+  const { OGModal, setShowOGModal } = useOGModal();
+  useKeyboardShortcut("d", () => setShowOGModal(true), {
+    modal: true,
+    enabled: isValidUrl,
+  });
 
   const [selectedTab, setSelectedTab] = useState<Tab>("default");
 
@@ -86,6 +98,7 @@ export function LinkPreview({
 
   return (
     <div>
+      <OGModal />
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-gray-700">Link Preview</h2>
         <Button
@@ -93,7 +106,8 @@ export function LinkPreview({
           variant="outline"
           icon={<Pen2 className="mx-px size-4" />}
           className="h-7 w-fit px-1"
-          onClick={() => toast.info("WIP")}
+          onClick={() => setShowOGModal(true)}
+          //disabledTooltip={isValidUrl ? undefined : "Enter a URL to customize"}
         />
       </div>
       <div className="mt-2.5 grid grid-cols-4 gap-2">
@@ -125,27 +139,23 @@ export function LinkPreview({
           hostname={hostname}
           password={password}
         >
-          <ImagePreview
-            image={image}
-            onImageChange={onImageChange}
-            generatingMetatags={generatingMetatags}
-          />
+          <ImagePreview image={image} onImageChange={onImageChange} />
         </OGPreview>
       </div>
     </div>
   );
 }
 
-const ImagePreview = ({
+export const ImagePreview = ({
   image,
   onImageChange,
-  generatingMetatags,
 }: {
   image: string | null;
   onImageChange: (image: string) => void;
-  generatingMetatags?: boolean;
 }) => {
   const { isMobile } = useMediaQuery();
+
+  const { generatingMetatags } = useContext(LinkModalContext);
 
   const inputFileRef = useRef<HTMLInputElement>(null);
 
