@@ -1,7 +1,7 @@
 "use client";
 
 import { FolderProps } from "@/lib/types";
-import { Avatar, TokenAvatar } from "@dub/ui";
+import { TokenAvatar } from "@dub/ui";
 import {
   Apple,
   Cards,
