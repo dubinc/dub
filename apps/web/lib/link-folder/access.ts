@@ -7,6 +7,12 @@ export const FOLDER_WORKSPACE_ACCESS = {
   NO_ACCESS: "no_access",
 } as const;
 
+export const FOLDER_WORKSPACE_ACCESS_DESCRIPTION = {
+  [FOLDER_WORKSPACE_ACCESS.CAN_VIEW]: "Can view",
+  [FOLDER_WORKSPACE_ACCESS.CAN_EDIT]: "Can edit",
+  [FOLDER_WORKSPACE_ACCESS.NO_ACCESS]: "No access",
+} as const;
+
 export const FOLDER_ROLES = {
   OWNER: "owner",
   MEMBER: "member",

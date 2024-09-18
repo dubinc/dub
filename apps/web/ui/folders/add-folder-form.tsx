@@ -1,4 +1,7 @@
-import { FOLDER_WORKSPACE_ACCESS } from "@/lib/link-folder/access";
+import {
+  FOLDER_WORKSPACE_ACCESS,
+  FOLDER_WORKSPACE_ACCESS_DESCRIPTION,
+} from "@/lib/link-folder/access";
 import { FolderWorkspaceAccess } from "@/lib/link-folder/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, useMediaQuery } from "@dub/ui";
@@ -118,7 +121,9 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                     }
                   >
                     {Object.values(FOLDER_WORKSPACE_ACCESS).map((access) => (
-                      <option value={access}>{access}</option>
+                      <option value={access}>
+                        {FOLDER_WORKSPACE_ACCESS_DESCRIPTION[access]}
+                      </option>
                     ))}
                   </select>
                 </div>
