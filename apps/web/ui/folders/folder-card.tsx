@@ -21,9 +21,7 @@ export const FolderCard = ({ folder }: { folder: FolderProps }) => {
       </div>
 
       <div className="sm:mt-6">
-        <span className="text-sm font-semibold text-gray-900 sm:text-base">
-          {folder.name}
-        </span>
+        <span className="text-sm font-medium text-gray-900">{folder.name}</span>
         <div className="mt-1 flex flex-col gap-1 text-gray-500 sm:flex-row sm:items-center sm:gap-5">
           <div className="flex items-center gap-1 sm:gap-2">
             <Link2 className="size-3 rotate-90 transform sm:size-4" />
