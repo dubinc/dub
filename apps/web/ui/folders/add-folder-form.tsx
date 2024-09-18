@@ -4,15 +4,12 @@ import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-interface CreateFolderFormProps {
+interface AddFolderFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const CreateFolderForm = ({
-  onSuccess,
-  onCancel,
-}: CreateFolderFormProps) => {
+export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
   const workspace = useWorkspace();
   const { isMobile } = useMediaQuery();
   const [isCreating, setIsCreating] = useState(false);
@@ -51,8 +48,6 @@ export const CreateFolderForm = ({
             <div className="-m-1 rounded-[0.625rem] p-1">
               <div className="flex rounded-md border border-gray-300 bg-white">
                 <input
-                  name="domain"
-                  id="domain"
                   type="text"
                   required
                   autoComplete="off"

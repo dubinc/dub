@@ -4,7 +4,7 @@ import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
-import { useCreateFolderModal } from "@/ui/modals/create-folder-modal";
+import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { TooltipContent } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
@@ -12,7 +12,7 @@ import { Folder } from "lucide-react";
 
 export const FoldersPageClient = () => {
   const { folders, isLoading } = useFolders();
-  const { AddFolderButton, CreateFolderModal } = useCreateFolderModal();
+  const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
   const { data: linksCount } = useLinksCount({
     groupBy: "folderId",
@@ -21,7 +21,7 @@ export const FoldersPageClient = () => {
 
   return (
     <>
-      <CreateFolderModal />
+      <AddFolderModal />
       <div className="grid gap-5">
         <div className="flex flex-wrap justify-between gap-6">
           <div className="flex items-center gap-x-2">

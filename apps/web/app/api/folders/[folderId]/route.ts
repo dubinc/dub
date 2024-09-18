@@ -27,11 +27,11 @@ export const PATCH = withWorkspace(
       },
     });
 
-    throwIfNotAllowed({
-      folder,
-      userId: session.user.id,
-      action: "folders.update",
-    });
+    // throwIfNotAllowed({
+    //   folder,
+    //   userId: session.user.id,
+    //   action: "folders.update",
+    // });
 
     try {
       const folder = await prisma.folder.update({

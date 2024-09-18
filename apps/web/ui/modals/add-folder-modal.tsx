@@ -7,24 +7,21 @@ import {
   useMemo,
   useState,
 } from "react";
-import { CreateFolderForm } from "../folders/create-folder-form";
+import { AddFolderForm } from "../folders/add-folder-form";
 
-interface CreateFolderModalProps {
+interface AddFolderModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
 
-const CreateFolderModal = ({
-  showModal,
-  setShowModal,
-}: CreateFolderModalProps) => {
+const AddFolderModal = ({ showModal, setShowModal }: AddFolderModalProps) => {
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
         Create new folder
       </h3>
       <div className="mt-6">
-        <CreateFolderForm
+        <AddFolderForm
           onSuccess={() => setShowModal(false)}
           onCancel={() => setShowModal(false)}
         />
@@ -34,16 +31,16 @@ const CreateFolderModal = ({
 };
 
 function AddFolderButton({
-  setShowCreateFolderModal,
+  setShowAddFolderModal,
 }: {
-  setShowCreateFolderModal: Dispatch<SetStateAction<boolean>>;
+  setShowAddFolderModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const existingModalBackdrop = document.getElementById("modal-backdrop");
 
     if (e.key.toLowerCase() === "c" && !existingModalBackdrop) {
       e.preventDefault();
-      setShowCreateFolderModal(true);
+      setShowAddFolderModal(true);
     }
   }, []);
 
@@ -58,39 +55,33 @@ function AddFolderButton({
     <Button
       text="Create folder"
       shortcut="C"
-      onClick={() => setShowCreateFolderModal(true)}
+      onClick={() => setShowAddFolderModal(true)}
     />
   );
 }
 
-export function useCreateFolderModal() {
-  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+export function useAddFolderModal() {
+  const [showAddFolderModal, setShowAddFolderModal] = useState(false);
 
-  const CreateFolderModalCallback = useCallback(() => {
+  const AddFolderModalCallback = useCallback(() => {
     return (
-      <CreateFolderModal
-        showModal={showCreateFolderModal}
-        setShowModal={setShowCreateFolderModal}
+      <AddFolderModal
+        showModal={showAddFolderModal}
+        setShowModal={setShowAddFolderModal}
       />
     );
-  }, [showCreateFolderModal, setShowCreateFolderModal]);
+  }, [showAddFolderModal, setShowAddFolderModal]);
 
   const AddFolderButtonCallback = useCallback(() => {
-    return (
-      <AddFolderButton setShowCreateFolderModal={setShowCreateFolderModal} />
-    );
-  }, [setShowCreateFolderModal]);
+    return <AddFolderButton setShowAddFolderModal={setShowAddFolderModal} />;
+  }, [setShowAddFolderModal]);
 
   return useMemo(
     () => ({
-      setShowCreateFolderModal,
-      CreateFolderModal: CreateFolderModalCallback,
+      setShowAddFolderModal,
+      AddFolderModal: AddFolderModalCallback,
       AddFolderButton: AddFolderButtonCallback,
     }),
-    [
-      setShowCreateFolderModal,
-      CreateFolderModalCallback,
-      AddFolderButtonCallback,
-    ],
+    [setShowAddFolderModal, AddFolderModalCallback, AddFolderButtonCallback],
   );
 }
