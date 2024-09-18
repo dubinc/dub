@@ -5,15 +5,15 @@ model Folder {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project     Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  links       Link[]
-  permissions FolderPermission[]
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  links   Link[]
+  users   FolderUser[]
 
   @@unique([name, projectId])
   @@index(projectId)
 }
 
-model FolderPermission {
+model FolderUser {
   id          String   @id @default(cuid())
   folderId    String
   userId      String

@@ -1,5 +1,5 @@
-import { Folder, FolderPermission } from "@prisma/client";
+import { Folder, FolderUser } from "@prisma/client";
 
 export type FolderWithPermissions = Folder & {
-  permissions: FolderPermission[];
+  users: FolderUser[];
 };

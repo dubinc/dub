@@ -27,7 +27,7 @@ export const DELETE = withWorkspace(
       },
     });
 
-    const { count: deletedCount } = await prisma.folderPermission.deleteMany({
+    const { count: deletedCount } = await prisma.folderUser.deleteMany({
       where: {
         folderId,
         userId: {

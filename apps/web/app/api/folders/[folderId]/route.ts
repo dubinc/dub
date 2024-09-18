@@ -23,7 +23,7 @@ export const PATCH = withWorkspace(
         projectId: workspace.id,
       },
       include: {
-        permissions: true,
+        users: true,
       },
     });
 
@@ -81,7 +81,7 @@ export const DELETE = withWorkspace(
         projectId: workspace.id,
       },
       include: {
-        permissions: true,
+        users: true,
       },
     });
 

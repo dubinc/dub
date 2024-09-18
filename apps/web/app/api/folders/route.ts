@@ -109,7 +109,7 @@ export const POST = withWorkspace(
         projectId: workspace.id,
         name,
         ...(usersWithAccess.length > 0 && {
-          accessControls: {
+          users: {
             create: usersWithAccess,
           },
         }),
