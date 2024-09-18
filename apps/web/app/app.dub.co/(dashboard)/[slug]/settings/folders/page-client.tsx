@@ -5,6 +5,7 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
+import { useCreateFolderModal } from "@/ui/modals/create-folder-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { TooltipContent } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
@@ -14,6 +15,9 @@ export const FoldersPageClient = () => {
   const { id: workspaceId } = useWorkspace();
   const { folders, isLoading, isValidating } = useFolders();
 
+  const { setShowCreateFolderModal, AddFolderButton, CreateFolderModal } =
+    useCreateFolderModal();
+
   const { data: linksCount } = useLinksCount({
     groupBy: "folderId",
     showArchived: true,
@@ -21,6 +25,7 @@ export const FoldersPageClient = () => {
 
   return (
     <>
+      <CreateFolderModal />
       <div className="grid gap-5">
         <div className="flex flex-wrap justify-between gap-6">
           <div className="flex items-center gap-x-2">
@@ -39,7 +44,7 @@ export const FoldersPageClient = () => {
             />
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
-            {/* <AddTagButton /> */}
+            <AddFolderButton />
           </div>
         </div>
 

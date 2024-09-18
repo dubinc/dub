@@ -22,7 +22,7 @@ export const GET = withWorkspace(
         updatedAt: true,
       },
       orderBy: {
-        name: "asc",
+        createdAt: "desc",
       },
     });
 

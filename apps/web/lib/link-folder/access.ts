@@ -49,7 +49,7 @@ export const canPerformActionOnFolder = ({
   action: keyof typeof FOLDER_PERMISSIONS;
 }) => {
   const allowedRoles = FOLDER_PERMISSIONS[action].roles;
-  const currentUser = folder.permissions.find((p) => p.userId === userId);
+  const currentUser = folder.users.find((user) => user.userId === userId);
 
   if (!currentUser || !currentUser.accessLevel) {
     return false;
