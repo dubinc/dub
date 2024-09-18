@@ -2,7 +2,6 @@
 
 import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useCreateFolderModal } from "@/ui/modals/create-folder-modal";
@@ -12,11 +11,8 @@ import { InfoTooltip } from "@dub/ui/src/tooltip";
 import { Folder } from "lucide-react";
 
 export const FoldersPageClient = () => {
-  const { id: workspaceId } = useWorkspace();
-  const { folders, isLoading, isValidating } = useFolders();
-
-  const { setShowCreateFolderModal, AddFolderButton, CreateFolderModal } =
-    useCreateFolderModal();
+  const { folders, isLoading } = useFolders();
+  const { AddFolderButton, CreateFolderModal } = useCreateFolderModal();
 
   const { data: linksCount } = useLinksCount({
     groupBy: "folderId",
@@ -63,7 +59,11 @@ export const FoldersPageClient = () => {
                 <FolderCardPlaceholder key={idx} />
               ))
             : folders?.map((folder) => (
-                <FolderCard key={folder.id} folder={folder} />
+                <FolderCard
+                  key={folder.id}
+                  folder={folder}
+                  linksCount={linksCount}
+                />
               ))}
         </div>
       </div>

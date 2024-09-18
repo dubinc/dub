@@ -34,8 +34,8 @@ export const CreateFolderForm = ({
       return;
     }
 
+    await mutate(`/api/folders?workspaceId=${workspace.id}`);
     toast.success("Folder created successfully!");
-    mutate(`/api/folders?workspaceId=${workspace.id}`);
     onSuccess();
   };
 
