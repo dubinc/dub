@@ -107,7 +107,7 @@ export function LinkPreview() {
           icon={<Pen2 className="mx-px size-4" />}
           className="h-7 w-fit px-1"
           onClick={() => setShowOGModal(true)}
-          //disabledTooltip={isValidUrl ? undefined : "Enter a URL to customize"}
+          disabledTooltip={isValidUrl ? undefined : "Enter a URL to customize"}
         />
       </div>
       <div className="mt-2.5 grid grid-cols-4 gap-2">
