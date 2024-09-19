@@ -215,7 +215,7 @@ function OGModalInner({
                 }
                 side="right"
               >
-                <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 text-xs text-gray-950">
+                <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
                   D
                 </kbd>
               </Tooltip>

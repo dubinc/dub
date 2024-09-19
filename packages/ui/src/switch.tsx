@@ -7,6 +7,7 @@ import { Tooltip } from "./tooltip";
 
 export function Switch({
   fn,
+  id,
   trackDimensions,
   thumbDimensions,
   thumbTranslate,
@@ -16,6 +17,7 @@ export function Switch({
   disabledTooltip,
 }: {
   fn?: Dispatch<SetStateAction<boolean>> | ((checked: boolean) => void);
+  id?: string;
   trackDimensions?: string;
   thumbDimensions?: string;
   thumbTranslate?: string;
@@ -32,6 +34,7 @@ export function Switch({
     <SwitchPrimitive.Root
       checked={loading ? false : checked}
       name="switch"
+      id={id}
       {...(fn && { onCheckedChange: fn })}
       disabled={switchDisabled}
       className={cn(

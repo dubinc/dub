@@ -52,6 +52,9 @@ import { useMetatags } from "./use-metatags";
 import { UTMBuilder } from "./utm-builder";
 
 export const LinkModalContext = createContext<{
+  workspaceId?: string;
+  workspacePlan?: string;
+  workspaceLogo?: string;
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
@@ -88,7 +91,7 @@ function AddEditLinkModalInner({
   const { slug } = params;
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, nextPlan } = useWorkspace();
+  const { id: workspaceId, plan, nextPlan, logo } = useWorkspace();
 
   const {
     control,
@@ -200,7 +203,14 @@ function AddEditLinkModalInner({
           });
       }}
     >
-      <LinkModalContext.Provider value={{ generatingMetatags }}>
+      <LinkModalContext.Provider
+        value={{
+          workspaceId,
+          workspacePlan: plan,
+          workspaceLogo: logo ?? undefined,
+          generatingMetatags,
+        }}
+      >
         <form
           onSubmit={handleSubmit(async (data) => {
             // @ts-ignore – exclude extra attributes from `data` object before sending to API
