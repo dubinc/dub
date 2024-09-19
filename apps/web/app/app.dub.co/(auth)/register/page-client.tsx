@@ -18,10 +18,11 @@ export default function RegisterPageClient() {
 const RegisterFlow = () => {
   const { step } = useRegisterContext();
 
-  return (
-    <>
-      {step === "signup" && <SignUpForm />}
-      {step === "verify" && <VerifyEmailForm />}
-    </>
-  );
+  if (step === "signup") {
+    return <SignUpForm />;
+  }
+
+  if (step === "verify") {
+    return <VerifyEmailForm />;
+  }
 };
