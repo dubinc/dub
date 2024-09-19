@@ -18,7 +18,7 @@ export const SignUpEmail = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     getValues,
   } = useForm<SignUpProps>({
     resolver: zodResolver(signUpSchema),
@@ -59,7 +59,7 @@ export const SignUpEmail = () => {
           <Button
             type="submit"
             text={isExecuting ? "Submitting..." : "Sign Up"}
-            disabled={isExecuting}
+            disabled={isExecuting || !isValid}
             loading={isExecuting}
           />
         </div>

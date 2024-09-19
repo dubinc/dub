@@ -35,6 +35,7 @@ export const authMethods = [
   "saml",
   "password",
 ] as const;
+
 export type AuthMethod = (typeof authMethods)[number];
 
 const errorCodes = {

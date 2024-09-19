@@ -1,3 +1,4 @@
+import { AuthLayout } from "@/ui/layout/auth-layout";
 import { constructMetadata } from "@dub/utils";
 import RegisterPageClient from "./page-client";
 
@@ -6,5 +7,9 @@ export const metadata = constructMetadata({
 });
 
 export default function RegisterPage() {
-  return <RegisterPageClient />;
+  return (
+    <AuthLayout>
+      <RegisterPageClient />
+    </AuthLayout>
+  );
 }
