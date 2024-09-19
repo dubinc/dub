@@ -17,6 +17,7 @@
     "@boxyhq/saml-jackson": "1.23.9",
     "@chronark/zod-bird": "^0.3.9",
     "@dub/analytics": "^0.0.14",
+    "@dub/blocks": "workspace:*",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
@@ -63,7 +64,7 @@
     "csv-parse": "^5.5.6",
     "d3-array": "^3.2.4",
     "date-fns": "^3.6.0",
-    "dub": "^0.36.0",
+    "dub": "^0.40.0",
     "fathom-client": "^3.7.2",
     "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",
@@ -94,7 +95,6 @@
     "react-highlight-words": "^0.20.0",
     "react-hook-form": "^7.52.1",
     "react-markdown": "^9.0.1",
-    "react-medium-image-zoom": "^5.1.7",
     "react-parallax-tilt": "^1.7.70",
     "react-spring": "^9.5.5",
     "react-textarea-autosize": "^8.4.0",
@@ -104,7 +104,7 @@
     "rehype-slug": "^5.1.0",
     "remark-gfm": "^3.0.1",
     "resend": "^4.0.0",
-    "shiki": "^0.14.1",
+    "shiki": "^1.14.1",
     "sonner": "^1.4.41",
     "stripe": "^12.12.0",
     "swr": "^2.1.5",
@@ -115,7 +115,7 @@
     "vaul": "^0.6.8",
     "zod": "^3.22.4",
     "zod-error": "^1.5.0",
-    "zod-openapi": "^2.12.0"
+    "zod-openapi": "^2.19.0"
   },
   "devDependencies": {
     "@types/dotenv-flow": "^3.3.2",

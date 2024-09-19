@@ -9,16 +9,12 @@ import EmptyState from "@/ui/shared/empty-state";
 import { Button, Cube, TooltipContent } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import { fetcher } from "@dub/utils";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
 export default function OAuthAppsPageClient() {
   const router = useRouter();
-  const { slug, id: workspaceId, flags, role } = useWorkspace();
-
-  if (!flags?.integrations) {
-    redirect(`/${slug}/settings`);
-  }
+  const { slug, id: workspaceId, role } = useWorkspace();
 
   const { data: oAuthApps, isLoading } = useSWR<OAuthAppProps[]>(
     `/api/oauth/apps?workspaceId=${workspaceId}`,
@@ -51,7 +47,7 @@ export default function OAuthAppsPageClient() {
         <div className="flex w-full items-center gap-3 sm:w-auto">
           <Button
             className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm"
-            text="Add OAuth App"
+            text="Create OAuth App"
             onClick={() => router.push(`/${slug}/settings/oauth-apps/new`)}
             disabledTooltip={permissionsError}
           />

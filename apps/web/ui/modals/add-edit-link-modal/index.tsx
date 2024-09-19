@@ -1,43 +1,28 @@
 "use client";
 
-import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
-import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
-import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import { DestinationUrlInput } from "@/ui/links/destination-url-input";
+import { ShortLinkInput } from "@/ui/links/short-link-input";
+import { useAvailableDomains } from "@/ui/links/use-available-domains";
+import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
-  ButtonTooltip,
   LinkLogo,
-  LinkedIn,
-  LoadingCircle,
-  Magic,
   Modal,
-  SimpleTooltipContent,
-  Tooltip,
   TooltipContent,
-  Twitter,
-  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { ArrowTurnRight2 } from "@dub/ui/src/icons";
-import { InfoTooltip } from "@dub/ui/src/tooltip";
 import {
   DEFAULT_LINK_PROPS,
-  DUB_DOMAINS,
-  cn,
   deepEqual,
   getApexDomain,
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
-  nanoid,
-  punycode,
   truncate,
 } from "@dub/utils";
-import { useCompletion } from "ai/react";
-import { TriangleAlert } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -82,132 +67,17 @@ function AddEditLinkModal({
 }) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const {
-    id: workspaceId,
-    nextPlan,
-    aiUsage,
-    aiLimit,
-    mutate: mutateWorkspace,
-    flags,
-  } = useWorkspace();
+  const { id: workspaceId, nextPlan, conversionEnabled } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
-  const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const { allActiveDomains, primaryDomain, allDomains, loading } = useDomains();
-
-  const domains = useMemo(() => {
-    // edge case where the link's current domain has been archived
-    if (
-      props?.domain &&
-      !allActiveDomains.find((domain) => domain.slug === props.domain)
-    ) {
-      const currentDomain = allDomains.find(
-        (domain) => domain.slug === props.domain,
-      );
-      if (currentDomain) {
-        return [...allActiveDomains, currentDomain].filter(Boolean);
-      } else {
-        return allActiveDomains;
-      }
-    }
-    return allActiveDomains;
-  }, [allDomains, allActiveDomains, props]);
 
   const [data, setData] = useState<LinkWithTagsProps>(
     props || duplicateProps || DEFAULT_LINK_PROPS,
   );
 
-  useEffect(() => {
-    // for a new link (no props or duplicateProps), set the domain to the primary domain
-    if (!loading && primaryDomain && !props && !duplicateProps) {
-      setData((prev) => ({
-        ...prev,
-        domain: primaryDomain,
-      }));
-    }
-  }, [loading, primaryDomain, props, duplicateProps]);
-
   const { domain, key, url, password, proxy } = data;
-
-  const generateRandomKey = async () => {
-    setKeyError(null);
-    setGeneratingRandomKey(true);
-    const res = await fetch(
-      `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
-    );
-    const key = await res.json();
-    setData((prev) => ({ ...prev, key }));
-    setGeneratingRandomKey(false);
-  };
-
-  const runKeyChecks = async (value: string) => {
-    const res = await fetch(
-      `/api/links/verify?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
-    );
-    const { error } = await res.json();
-    if (error) {
-      setKeyError(error.message);
-    } else {
-      setKeyError(null);
-    }
-  };
-
-  const [generatedKeys, setGeneratedKeys] = useState<string[]>(
-    props ? [props.key] : [],
-  );
-
-  const {
-    completion,
-    isLoading: generatingAIKey,
-    complete,
-  } = useCompletion({
-    api: `/api/ai/completion?workspaceId=${workspaceId}`,
-    onError: (error) => {
-      if (error.message.includes("Upgrade to Pro")) {
-        toast.custom(() => (
-          <UpgradeRequiredToast
-            title="You've exceeded your AI usage limit"
-            message={error.message}
-          />
-        ));
-      } else {
-        toast.error(error.message);
-      }
-    },
-    onFinish: (_, completion) => {
-      setGeneratedKeys((prev) => [...prev, completion]);
-      mutateWorkspace();
-      runKeyChecks(completion);
-      posthog.capture("ai_key_generated", {
-        key: completion,
-        url: data.url,
-      });
-    },
-  });
-
-  const generateAIKey = useCallback(async () => {
-    setKeyError(null);
-    complete(
-      `For the following URL, suggest a relevant short link slug that is at most ${Math.max(25 - domain.length, 12)} characters long. 
-              
-        - URL: ${data.url}
-        - Meta title: ${data.title}
-        - Meta description: ${data.description}. 
-
-      Only respond with the short link slug and nothing else. Don't use quotation marks or special characters (dash and slash are allowed).
-      
-      Make sure your answer does not exist in this list of generated slugs: ${generatedKeys.join(", ")}`,
-    );
-  }, [data.url, data.title, data.description, generatedKeys]);
-
-  useEffect(() => {
-    if (completion) {
-      setData((prev) => ({ ...prev, key: completion }));
-    }
-  }, [completion]);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -324,10 +194,6 @@ function AddEditLinkModal({
     }
   }, [showAddEditLinkModal, saving, keyError, urlError, props, data]);
 
-  const randomIdx = Math.floor(Math.random() * 100);
-
-  const [lockKey, setLockKey] = useState(true);
-
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (key?.endsWith("-copy")) {
@@ -335,7 +201,19 @@ function AddEditLinkModal({
     }
   }, []);
 
-  const { isMobile } = useMediaQuery();
+  const { domains, loading, primaryDomain } = useAvailableDomains({
+    currentDomain: domain,
+  });
+
+  useEffect(() => {
+    // for a new link (no props or duplicateProps), set the domain to the primary domain
+    if (!loading && primaryDomain && !props && !duplicateProps) {
+      setData((prev) => ({
+        ...prev,
+        domain: primaryDomain,
+      }));
+    }
+  }, [loading, primaryDomain, props, duplicateProps]);
 
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
@@ -347,8 +225,6 @@ function AddEditLinkModal({
       pretty: true,
     });
   }, [data.key, data.domain]);
-
-  const randomLinkedInNonce = useMemo(() => nanoid(8), []);
 
   return (
     <Modal
@@ -466,285 +342,35 @@ function AddEditLinkModal({
             className="grid gap-6 bg-gray-50 pt-8"
           >
             <div className="grid gap-6 px-4 md:px-16">
-              <div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <label
-                      htmlFor={`url-${randomIdx}`}
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Destination URL
-                    </label>
-                    {key === "_root" ? (
-                      <ProBadgeTooltip
-                        content={
-                          <SimpleTooltipContent
-                            title="The URL your users will get redirected to when they visit your root domain link."
-                            cta="Learn more."
-                            href="https://dub.co/help/article/how-to-redirect-root-domain"
-                          />
-                        }
-                      />
-                    ) : (
-                      <InfoTooltip
-                        content={
-                          <SimpleTooltipContent
-                            title="The URL your users will get redirected to when they visit your short link."
-                            cta="Learn more."
-                            href="https://dub.co/help/article/how-to-create-link"
-                          />
-                        }
-                      />
-                    )}
-                  </div>
-                  <div className="animate-text-appear text-xs font-normal text-gray-500">
-                    press <strong>Enter</strong> ↵ to submit
-                  </div>
-                </div>
-                <div className="relative mt-2 flex rounded-md shadow-sm">
-                  <input
-                    name="url"
-                    id={`url-${randomIdx}`}
-                    required={key !== "_root"}
-                    placeholder={
-                      domains?.find(({ slug }) => slug === domain)
-                        ?.placeholder ||
-                      "https://dub.co/help/article/what-is-dub"
-                    }
-                    value={url}
-                    autoFocus={!key && !isMobile}
-                    autoComplete="off"
-                    onChange={(e) => {
-                      setUrlError(null);
-                      setData({ ...data, url: e.target.value });
-                    }}
-                    className={`${
-                      urlError
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                    } block w-full rounded-md focus:outline-none sm:text-sm`}
-                    aria-invalid="true"
-                  />
-                  {urlError && (
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <AlertCircleFill
-                        className="h-5 w-5 text-red-500"
-                        aria-hidden="true"
-                      />
-                    </div>
-                  )}
-                </div>
-                {urlError && (
-                  <p className="mt-2 text-sm text-red-600" id="key-error">
-                    {urlError}
-                  </p>
-                )}
-              </div>
+              <DestinationUrlInput
+                domain={domain}
+                _key={key}
+                value={url}
+                domains={domains}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setUrlError(null);
+                  setData({ ...data, url: e.target.value });
+                }}
+                required={key !== "_root"}
+                error={urlError || undefined}
+              />
 
               {key !== "_root" && (
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor={`key-${randomIdx}`}
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Short Link
-                    </label>
-                    {props && lockKey ? (
-                      <button
-                        className="flex h-6 items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                        type="button"
-                        onClick={() => {
-                          window.confirm(
-                            "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
-                          ) && setLockKey(false);
-                        }}
-                      >
-                        <Lock className="h-3 w-3" />
-                      </button>
-                    ) : (
-                      <div className="flex items-center">
-                        <ButtonTooltip
-                          tabIndex={-1}
-                          tooltipContent="Generate a random key"
-                          onClick={generateRandomKey}
-                          disabled={generatingRandomKey || generatingAIKey}
-                          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                        >
-                          {generatingRandomKey ? (
-                            <LoadingCircle />
-                          ) : (
-                            <Random className="h-3 w-3" />
-                          )}
-                        </ButtonTooltip>
-                        <ButtonTooltip
-                          tabIndex={-1}
-                          tooltipContent="Generate a key using AI"
-                          onClick={generateAIKey}
-                          disabled={
-                            generatingRandomKey ||
-                            generatingAIKey ||
-                            (aiLimit && aiUsage && aiUsage >= aiLimit) ||
-                            !url
-                          }
-                          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                        >
-                          {generatingAIKey ? (
-                            <LoadingCircle />
-                          ) : (
-                            <Magic className="h-4 w-4" />
-                          )}
-                        </ButtonTooltip>
-                      </div>
-                    )}
-                  </div>
-                  <div className="relative mt-1 flex rounded-md shadow-sm">
-                    <div>
-                      <select
-                        tabIndex={-1}
-                        disabled={props && lockKey}
-                        value={domain}
-                        onChange={(e) => {
-                          setKeyError(null);
-                          setData({ ...data, domain: e.target.value });
-                        }}
-                        className={cn(
-                          "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0 sm:text-sm",
-                          props && lockKey && "cursor-not-allowed",
-                          loading && "w-[6rem] text-transparent",
-                        )}
-                      >
-                        {domains?.map(({ slug }) => (
-                          <option key={slug} value={slug}>
-                            {punycode(slug)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <input
-                      ref={keyRef}
-                      type="text"
-                      name="key"
-                      id={`key-${randomIdx}`}
-                      // allow letters, numbers, '-', '_', '/' and emojis
-                      pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_]+"
-                      onInvalid={(e) => {
-                        e.currentTarget.setCustomValidity(
-                          "Only letters, numbers, '-', '_', '/', and emojis are allowed.",
-                        );
-                      }}
-                      onBlur={(e) => {
-                        // if the key is changed, check if key exists
-                        if (e.target.value && props?.key !== e.target.value) {
-                          runKeyChecks(e.target.value);
-                        } else if (
-                          domain &&
-                          workspaceId &&
-                          url.length > 0 &&
-                          !saving
-                        ) {
-                          generateRandomKey();
-                        }
-                      }}
-                      disabled={props && lockKey}
-                      autoComplete="off"
-                      autoCapitalize="none"
-                      className={cn(
-                        "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
-                        {
-                          "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
-                            keyError,
-                          "border-amber-300 pr-10 text-amber-900 placeholder-amber-300 focus:border-amber-500 focus:ring-amber-500":
-                            shortLink.length > 25,
-                          "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
-                            props && lockKey,
-                        },
-                      )}
-                      placeholder="(optional)"
-                      value={punycode(key)}
-                      onChange={(e) => {
-                        setKeyError(null);
-                        e.currentTarget.setCustomValidity("");
-                        setData({
-                          ...data,
-                          key: e.target.value.replace(" ", "-"),
-                        });
-                      }}
-                      aria-invalid="true"
-                      aria-describedby="key-error"
-                    />
-                    {(keyError || shortLink.length > 25) && (
-                      <Tooltip
-                        content={
-                          keyError || (
-                            <div className="flex max-w-xs items-start space-x-2 bg-white p-4">
-                              <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-500" />
-                              <div>
-                                <p className="text-sm text-gray-700">
-                                  Short links longer than 25 characters will
-                                  show up differently on some platforms.
-                                </p>
-                                <div className="mt-2 flex items-center space-x-2">
-                                  <LinkedIn className="h-4 w-4" />
-                                  <p className="cursor-pointer text-sm font-semibold text-[#4783cf] hover:underline">
-                                    {linkConstructor({
-                                      domain: "lnkd.in",
-                                      key: randomLinkedInNonce,
-                                      pretty: true,
-                                    })}
-                                  </p>
-                                </div>
-                                {shortLink.length > 25 && (
-                                  <div className="mt-1 flex items-center space-x-2">
-                                    <Twitter className="h-4 w-4" />
-                                    <p className="cursor-pointer text-sm text-[#34a2f1] hover:underline">
-                                      {truncate(shortLink, 25)}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        }
-                      >
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                          {keyError ? (
-                            <AlertCircleFill
-                              className="h-5 w-5 text-red-500"
-                              aria-hidden="true"
-                            />
-                          ) : shortLink.length > 25 ? (
-                            <AlertCircleFill className="h-5 w-5 text-amber-500" />
-                          ) : null}
-                        </div>
-                      </Tooltip>
-                    )}
-                  </div>
-                  {keyError ? (
-                    keyError.includes("Upgrade to") ? (
-                      <p className="mt-2 text-sm text-red-600" id="key-error">
-                        {keyError.split(`Upgrade to ${nextPlan.name}`)[0]}
-                        <span
-                          className="cursor-pointer underline"
-                          onClick={() =>
-                            queryParams({
-                              set: { upgrade: nextPlan.name.toLowerCase() },
-                            })
-                          }
-                        >
-                          Upgrade to {nextPlan.name}
-                        </span>
-                        {keyError.split(`Upgrade to ${nextPlan.name}`)[1]}
-                      </p>
-                    ) : (
-                      <p className="mt-2 text-sm text-red-600" id="key-error">
-                        {keyError}
-                      </p>
-                    )
-                  ) : (
-                    <DefaultDomainPrompt data={data} setData={setData} />
-                  )}
-                </div>
+                <ShortLinkInput
+                  ref={keyRef}
+                  domain={domain}
+                  _key={key}
+                  existingLinkProps={props}
+                  error={keyError || undefined}
+                  onChange={(d) => {
+                    setKeyError(null);
+                    setData((data) => ({ ...data, ...d }));
+                  }}
+                  data={data}
+                  saving={saving}
+                  loading={loading}
+                  domains={domains}
+                />
               )}
             </div>
 
@@ -765,7 +391,8 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 md:px-16">
               <TagsSection {...{ props, data, setData }} />
-              {flags?.conversions && (
+              <CommentsSection {...{ props, data, setData }} />
+              {conversionEnabled && (
                 <ConversionSection {...{ data, setData }} />
               )}
               <OGSection
@@ -780,7 +407,6 @@ function AddEditLinkModal({
               <AndroidSection {...{ props, data, setData }} />
               <GeoSection {...{ props, data, setData }} />
               <DoIndexSection {...{ data, setData }} />
-              <CommentsSection {...{ props, data, setData }} />
             </div>
 
             <div
@@ -815,42 +441,12 @@ function AddEditLinkModal({
   );
 }
 
-function DefaultDomainPrompt({
-  data,
-  setData,
-}: {
-  data: LinkWithTagsProps;
-  setData: Dispatch<SetStateAction<LinkWithTagsProps>>;
-}) {
-  const apexDomain = getApexDomain(data.url);
-  const hostnameFor = DUB_DOMAINS.find((domain) =>
-    domain?.allowedHostnames?.includes(apexDomain),
-  );
-  const domain = hostnameFor?.slug;
-
-  if (!domain || data.domain === domain) return null;
-
-  return (
-    <button
-      className="flex items-center gap-1 p-2 text-xs text-gray-500 transition-all duration-75 hover:text-gray-700 active:scale-[0.98]"
-      onClick={() => setData({ ...data, domain })}
-      type="button"
-    >
-      <ArrowTurnRight2 className="size-3.5" />
-      <p>
-        Use <strong className="font-semibold">{domain}</strong> domain instead?
-      </p>
-    </button>
-  );
-}
-
 function AddEditLinkButton({
   setShowAddEditLinkModal,
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { nextPlan, exceededLinks } = useWorkspace();
-  const { queryParams } = useRouterStuff();
+  const { slug, nextPlan, exceededLinks } = useWorkspace();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
@@ -916,13 +512,7 @@ function AddEditLinkButton({
           <TooltipContent
             title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
             cta={`Upgrade to ${nextPlan.name}`}
-            onClick={() => {
-              queryParams({
-                set: {
-                  upgrade: nextPlan.name.toLowerCase(),
-                },
-              });
-            }}
+            href={`/${slug}/upgrade`}
           />
         ) : undefined
       }

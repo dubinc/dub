@@ -3,7 +3,7 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
-import { BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
+import { AddOns, BetaFeatures, PlanProps, WorkspaceProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -54,15 +54,13 @@ export const withWorkspaceEdge = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
-    needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
-    needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
+    requiredAddOn,
     needNotExceededAI, // if the action needs the user to not have exceeded their AI usage
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
   }: {
     requiredPlan?: Array<PlanProps>;
-    needNotExceededClicks?: boolean;
-    needNotExceededLinks?: boolean;
+    requiredAddOn?: AddOns;
     needNotExceededAI?: boolean;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
@@ -104,14 +102,36 @@ export const withWorkspaceEdge = (
           params?.slug ||
           searchParams.projectSlug;
 
-        // if there's no workspace ID or slug and it's not a restricted token
-        // For restricted tokens, we find the workspaceId from the token
+        /*
+          if there's no workspace ID or slug and it's not a restricted token:
+          - special case for anonymous link creation
+          - missing authorization header
+          - user is still using personal API keys
+        */
         if (!idOrSlug && !isRestrictedToken) {
-          throw new DubApiError({
-            code: "not_found",
-            message:
-              "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
-          });
+          // special case for anonymous link creation
+          if (req.headers.has("dub-anonymous-link-creation")) {
+            // @ts-expect-error
+            return await handler({
+              req,
+              params,
+              searchParams,
+              headers,
+            });
+            // missing authorization header
+          } else if (!authorizationHeader) {
+            throw new DubApiError({
+              code: "unauthorized",
+              message: "Missing Authorization header.",
+            });
+            // in case user is still using personal API keys
+          } else {
+            throw new DubApiError({
+              code: "not_found",
+              message:
+                "Workspace ID not found. Did you forget to include a `workspaceId` query parameter? It looks like you might be using personal API keys, we also recommend refactoring to workspace API keys: https://d.to/keys",
+            });
+          }
         }
 
         if (idOrSlug) {
@@ -333,34 +353,6 @@ export const withWorkspaceEdge = (
           }
         }
 
-        // clicks usage overage checks
-        if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: exceededLimitError({
-              plan: workspace.plan,
-              limit: workspace.usageLimit,
-              type: "clicks",
-            }),
-          });
-        }
-
-        // links usage overage checks
-        if (
-          needNotExceededLinks &&
-          workspace.linksUsage > workspace.linksLimit &&
-          (workspace.plan === "free" || workspace.plan === "pro")
-        ) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: exceededLimitError({
-              plan: workspace.plan,
-              limit: workspace.linksLimit,
-              type: "links",
-            }),
-          });
-        }
-
         // AI usage overage checks
         if (needNotExceededAI && workspace.aiUsage > workspace.aiLimit) {
           throw new DubApiError({
@@ -373,16 +365,32 @@ export const withWorkspaceEdge = (
           });
         }
 
+        const url = new URL(req.url || "", API_DOMAIN);
+
         // plan checks
-        if (!requiredPlan.includes(workspace.plan)) {
+        // special scenario – /events API is available for conversionEnabled workspaces
+        // (even if they're on a Pro plan)
+        if (
+          !requiredPlan.includes(workspace.plan) &&
+          url.pathname.includes("/events") &&
+          !workspace.conversionEnabled
+        ) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
           });
         }
 
+        // add-ons checks
+        if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "Unauthorized: This feature is not available on your plan.",
+          });
+        }
+
         // analytics API checks
-        const url = new URL(req.url || "", API_DOMAIN);
         if (
           workspace.plan === "free" &&
           apiKey &&

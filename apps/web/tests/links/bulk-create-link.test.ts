@@ -38,7 +38,6 @@ test("POST /links/bulk", async (ctx) => {
     workspaceId,
     shortLink: `https://${domain}/${firstLink?.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink?.key}?qr=1`,
-    tags: [],
   });
   expect(secondLink).toStrictEqual({
     ...expectedLink,
@@ -48,7 +47,6 @@ test("POST /links/bulk", async (ctx) => {
     workspaceId,
     shortLink: `https://${domain}/${secondLink?.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${secondLink?.key}?qr=1`,
-    tags: [],
   });
   expect(z.array(LinkSchema.strict()).parse(links)).toBeTruthy();
 

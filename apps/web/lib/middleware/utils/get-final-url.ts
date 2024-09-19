@@ -1,5 +1,15 @@
 import { NextRequest } from "next/server";
 
+// Only add query params to the final URL if they are in this list
+const allowedQueryParams = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "ref",
+];
+
 export const getFinalUrl = (
   url: string,
   { req, clickId }: { req: NextRequest; clickId?: string },
@@ -12,7 +22,7 @@ export const getFinalUrl = (
 
   if (clickId) {
     // add clickId to the final url if it exists
-    urlObj.searchParams.set("dclid", clickId);
+    urlObj.searchParams.set("dub_id", clickId);
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)
@@ -29,8 +39,28 @@ export const getFinalUrl = (
     urlObj.searchParams.delete("qr");
   }
 
-  // construct final url
-  const finalUrl = urlObj.toString();
+  return urlObj.toString();
+};
 
-  return finalUrl;
+// Get final cleaned url for storing in TB
+export const getFinalUrlForRecordClick = ({
+  req,
+  url,
+}: {
+  req: NextRequest;
+  url: string;
+}) => {
+  const searchParams = req.nextUrl.searchParams;
+  const urlObj = new URL(url);
+
+  // Filter out query params that are not in the allowed list
+  if (searchParams.size > 0) {
+    for (const [key, value] of searchParams) {
+      if (allowedQueryParams.includes(key)) {
+        urlObj.searchParams.set(key, value);
+      }
+    }
+  }
+
+  return urlObj.toString();
 };

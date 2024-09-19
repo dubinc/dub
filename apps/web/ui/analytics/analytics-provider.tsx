@@ -6,8 +6,8 @@ import {
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import {
+  AnalyticsResponseOptions,
   AnalyticsView,
-  CompositeAnalyticsResponseOptions,
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
@@ -41,7 +41,7 @@ export const AnalyticsContext = createContext<{
   interval?: string;
   tagId?: string;
   totalEvents?: {
-    [key in CompositeAnalyticsResponseOptions]: number;
+    [key in AnalyticsResponseOptions]: number;
   };
   adminPage?: boolean;
   demoPage?: boolean;
@@ -65,18 +65,16 @@ export default function AnalyticsProvider({
   staticUrl,
   adminPage,
   demoPage,
-  eventsPage,
   children,
 }: PropsWithChildren<{
   staticDomain?: string;
   staticUrl?: string;
   adminPage?: boolean;
   demoPage?: boolean;
-  eventsPage?: boolean;
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, flags } = useWorkspace();
+  const { id: workspaceId, slug, conversionEnabled } = useWorkspace();
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   let { key } = useParams() as {
@@ -110,15 +108,15 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const selectedTab: EventType = useMemo(() => {
-    if (!demoPage && !flags?.conversions) return "clicks";
+    if (!demoPage && !conversionEnabled) return "clicks";
 
-    const tab = searchParams.get("tab");
+    const event = searchParams.get("event");
 
-    return EVENT_TYPES.find((t) => t === tab) ?? "clicks";
-  }, [searchParams.get("tab")]);
+    return EVENT_TYPES.find((t) => t === event) ?? "clicks";
+  }, [searchParams.get("event")]);
 
   const view: AnalyticsView = useMemo(() => {
-    if (!demoPage && !flags?.conversions) return "default";
+    if (!demoPage && !conversionEnabled) return "default";
 
     const view = searchParams.get("view");
 
@@ -195,10 +193,10 @@ export default function AnalyticsProvider({
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { data: totalEvents } = useSWR<{
-    [key in CompositeAnalyticsResponseOptions]: number;
+    [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demoPage || flags?.conversions ? "composite" : "clicks",
+      event: demoPage || conversionEnabled ? "composite" : "clicks",
     })}`,
     fetcher,
     {
@@ -232,7 +230,7 @@ export default function AnalyticsProvider({
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
         baseApiPath, // baseApiPath for analytics API endpoints (e.g. /api/analytics)
-        selectedTab, // selected tab (clicks, leads, sales)
+        selectedTab, // selected event tab (clicks, leads, sales)
         view,
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)

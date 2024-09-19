@@ -1,8 +1,6 @@
 import { EventType } from "@/lib/analytics/types";
 import { useLocalStorage } from "@dub/ui";
 import { VisibilityState } from "@tanstack/react-table";
-import { useContext } from "react";
-import { AnalyticsContext } from "../analytics-provider";
 
 export const eventColumns: Record<
   EventType,
@@ -63,14 +61,14 @@ export const eventColumns: Record<
       "referer",
       "ip",
       "timestamp",
-      "amount",
+      "saleAmount",
     ],
     defaultVisible: [
       "event",
       "link",
       "customer",
       "country",
-      "amount",
+      "saleAmount",
       "timestamp",
     ],
   },
@@ -85,8 +83,6 @@ const getDefaultColumnVisibility = (tab: EventType) =>
   );
 
 export function useColumnVisibility() {
-  const { selectedTab } = useContext(AnalyticsContext);
-
   const [columnVisibility, setColumnVisibility] = useLocalStorage<
     Record<EventType, VisibilityState>
   >("events-columns", {

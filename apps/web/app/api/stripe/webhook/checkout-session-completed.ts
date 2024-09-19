@@ -1,7 +1,13 @@
+import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
+import { inviteUser } from "@/lib/api/users";
 import { limiter } from "@/lib/cron/limiter";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { WorkspaceProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
+import { Invite } from "@/lib/zod/schemas/invites";
 import { getPlanFromPriceId, log } from "@dub/utils";
+import { User } from "@prisma/client";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import Stripe from "stripe";
@@ -63,6 +69,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         select: {
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
             },
@@ -87,12 +94,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   });
 
   const users = workspace.users.map(({ user }) => ({
+    id: user.id,
     name: user.name,
     email: user.email,
   }));
 
-  await Promise.allSettled(
-    users.map((user) => {
+  await Promise.allSettled([
+    completeOnboarding({ users, workspaceId }),
+    ...users.map((user) => {
       limiter.schedule(() =>
         sendEmail({
           email: user.email as string,
@@ -106,5 +115,77 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         }),
       );
     }),
-  );
+  ]);
+}
+
+async function completeOnboarding({
+  users,
+  workspaceId,
+}: {
+  users: Pick<User, "id">[];
+  workspaceId: string;
+}) {
+  const workspace = (await prisma.project.findUnique({
+    where: {
+      id: workspaceId,
+    },
+    include: {
+      users: true,
+    },
+  })) as unknown as WorkspaceProps | null;
+
+  if (!workspace) {
+    console.error("Failed to complete onboarding for workspace", workspaceId);
+    return;
+  }
+
+  await Promise.allSettled([
+    // Complete onboarding for workspace users
+    ...users.map(({ id }) => redis.set(`onboarding-step:${id}`, "completed")),
+
+    // Send saved invite emails
+    (async () => {
+      const invites = await redis.get<Invite[]>(`invites:${workspaceId}`);
+
+      if (!invites?.length) return;
+
+      if (!workspace) return;
+
+      await Promise.allSettled(
+        invites.map(({ email, role }) =>
+          inviteUser({
+            email,
+            role,
+            workspace,
+          }),
+        ),
+      );
+
+      await redis.del(`invites:${workspaceId}`);
+    })(),
+
+    // Register saved domain
+    (async () => {
+      const data = await redis.get<{ domain: string; userId: string }>(
+        `onboarding-domain:${workspaceId}`,
+      );
+      if (!data || !data.domain || !data.userId) return;
+      const { domain, userId } = data;
+
+      try {
+        await claimDotLinkDomain({
+          domain,
+          userId,
+          workspace,
+        });
+        await redis.del(`onboarding-domain:${workspaceId}`);
+      } catch (e) {
+        console.error(
+          "Failed to register saved domain from onboarding",
+          { domain, userId, workspace },
+          e,
+        );
+      }
+    })(),
+  ]);
 }

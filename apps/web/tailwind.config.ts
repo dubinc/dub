@@ -10,6 +10,7 @@ const config: Pick<Config, "presets"> = {
         "./ui/**/*.{js,ts,jsx,tsx}",
         // h/t to https://www.willliu.com/blog/Why-your-Tailwind-styles-aren-t-working-in-your-Turborepo
         "../../packages/ui/src/**/*{.js,.ts,.jsx,.tsx}",
+        "../../packages/blocks/src/**/*{.js,.ts,.jsx,.tsx}",
       ],
       theme: {
         extend: {
@@ -25,6 +26,9 @@ const config: Pick<Config, "presets"> = {
               "table-pinned-shadow cubic-bezier(0, 0, 1, 0)",
             // OTP caret blink animation
             "caret-blink": "caret-blink 1s ease-out infinite",
+            // Pulse scale animation used for onboarding/welcome
+            "pulse-scale": "pulse-scale 6s ease-out infinite",
+            "gradient-move": "gradient-move 5s linear infinite",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -53,6 +57,17 @@ const config: Pick<Config, "presets"> = {
             "caret-blink": {
               "0%,70%,100%": { opacity: "0" },
               "20%,50%": { opacity: "1" },
+            },
+            // Pulse scale animation used for onboarding/welcome
+            "pulse-scale": {
+              "0%": { transform: "scale(0.8)", opacity: "0" },
+              "30%": { opacity: "1" },
+              "100%": { transform: "scale(2)", opacity: "0" },
+            },
+            // Gradient move animation for gradient text
+            "gradient-move": {
+              "0%": { backgroundPosition: "0% 50%" },
+              "100%": { backgroundPosition: "200% 50%" },
             },
           },
         },

@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
+import { Customer } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "checkout.session.completed"
@@ -16,7 +20,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return "Customer ID not found in Stripe checkout session metadata, skipping...";
   }
 
-  let customer;
+  let customer: Customer;
   try {
     // Update customer with stripe customerId if exists
     customer = await prisma.customer.update({
@@ -58,31 +62,78 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
-  await Promise.all([
-    recordSale({
-      ...leadEvent.data[0],
-      event_id: nanoid(16),
-      event_name: "Subscription creation",
-      payment_processor: "stripe",
-      amount: charge.amount_total!,
-      currency: charge.currency!,
-      invoice_id: invoiceId || "",
-      metadata: JSON.stringify({
-        charge,
-      }),
+  const saleData = {
+    ...leadEvent.data[0],
+    event_id: nanoid(16),
+    event_name: "Subscription creation",
+    payment_processor: "stripe",
+    amount: charge.amount_total!,
+    currency: charge.currency!,
+    invoice_id: invoiceId || "",
+    metadata: JSON.stringify({
+      charge,
     }),
+  };
+
+  // Find link
+  const linkId = leadEvent.data[0].link_id;
+  const link = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+  });
+
+  if (!link) {
+    return `Link with ID ${linkId} not found, skipping...`;
+  }
+
+  const [_sale, _link, workspace] = await Promise.all([
+    recordSale(saleData),
+
     // update link sales count
     prisma.link.update({
       where: {
-        id: leadEvent.data[0].link_id,
+        id: linkId,
       },
       data: {
         sales: {
           increment: 1,
         },
+        saleAmount: {
+          increment: charge.amount_total!,
+        },
+      },
+    }),
+    // update workspace sales usage
+    prisma.project.update({
+      where: {
+        id: customer.projectId,
+      },
+      data: {
+        usage: {
+          increment: 1,
+        },
+        salesUsage: {
+          increment: charge.amount_total!,
+        },
       },
     }),
   ]);
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      trigger: "sale.created",
+      workspace,
+      data: transformSaleEventData({
+        ...saleData,
+        link,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
+  );
 
   return `Checkout session completed for customer with external ID ${dubCustomerId} and invoice ID ${invoiceId}`;
 }

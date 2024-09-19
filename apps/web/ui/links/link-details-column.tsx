@@ -9,7 +9,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/src/icons";
-import { cn, nFormatter, timeAgo } from "@dub/utils";
+import { cn, currencyFormatter, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -129,14 +129,14 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 }
 
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
-  const { id, domain, key, trackConversion } = link;
+  const { domain, key, trackConversion } = link;
 
-  const { id: workspaceId, slug, exceededClicks } = useWorkspace();
+  const { slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { variant } = useContext(CardList.Context);
 
-  const [hoveredId, setHoveredId] = useState<string>("clicks");
-  const hoveredValue = link[hoveredId];
+  const [hoveredTab, setHoveredTab] = useState<string>("clicks");
+  const hoveredValue = link[hoveredTab === "sales" ? "saleAmount" : hoveredTab];
 
   return isMobile ? (
     <Link
@@ -151,16 +151,18 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
       content={
         <AnimatedSizeContainer width height>
           <div
-            key={hoveredId}
+            key={hoveredTab}
             className="whitespace-nowrap px-3 py-2 text-gray-600"
           >
             <p className="text-sm">
               <span className="font-medium text-gray-950">
-                {nFormatter(hoveredValue)}
+                {hoveredTab === "sales"
+                  ? currencyFormatter(hoveredValue / 100)
+                  : nFormatter(hoveredValue)}
               </span>{" "}
-              {hoveredValue !== 1 ? hoveredId : hoveredId.slice(0, -1)}
+              {hoveredValue !== 1 ? hoveredTab : hoveredTab.slice(0, -1)}
             </p>
-            {hoveredId === "clicks" && (
+            {hoveredTab === "clicks" && (
               <p className="mt-1 text-xs text-gray-500">
                 {link.lastClicked
                   ? `Last clicked ${timeAgo(link.lastClicked, {
@@ -193,28 +195,30 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   {
                     id: "sales",
                     icon: InvoiceDollar,
-                    value: link.sales,
+                    value: link.saleAmount,
                     className: "hidden sm:flex",
                   },
                 ]
               : []),
-          ].map(({ id, icon: Icon, value, className, label }) => (
+          ].map(({ id: tab, icon: Icon, value, className, label }) => (
             <Link
-              key={id}
-              href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${id}`}
+              key={tab}
+              href={`/${slug}/analytics?domain=${domain}&key=${key}&tab=${tab}`}
               className={cn(
                 "flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 transition-colors",
                 variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
                 className,
               )}
-              onPointerEnter={() => setHoveredId(id)}
+              onPointerEnter={() => setHoveredTab(tab)}
               onPointerLeave={() =>
-                setHoveredId((i) => (i === id ? "clicks" : i))
+                setHoveredTab((i) => (i === tab ? "clicks" : i))
               }
             >
               <Icon className="text-gray-6000 h-4 w-4 shrink-0" />
               <span>
-                {nFormatter(value)}
+                {tab === "sales"
+                  ? currencyFormatter(value / 100)
+                  : nFormatter(value)}
                 {label && (
                   <span className="hidden md:inline-block">&nbsp;{label}</span>
                 )}

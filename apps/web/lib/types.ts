@@ -1,11 +1,20 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link, Project } from "@prisma/client";
+import { Link, Project, Webhook } from "@prisma/client";
+import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
+import { trackCustomerResponseSchema } from "./zod/schemas/customers";
 import { integrationSchema } from "./zod/schemas/integration";
+import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
-import { oAuthAppSchema } from "./zod/schemas/oauth";
+import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
+import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
+import {
+  createWebhookSchema,
+  webhookEventSchemaTB,
+  webhookSchema,
+} from "./zod/schemas/webhooks";
 
 export type LinkProps = Link;
 
@@ -40,22 +49,7 @@ export interface RedisLinkProps {
   geo?: object;
   doIndex?: boolean;
   projectId?: string;
-}
-
-export interface EdgeLinkProps {
-  id: string;
-  domain: string;
-  key: string;
-  url: string;
-  proxy: boolean;
-  title: string;
-  description: string;
-  image: string;
-  password: string;
-  clicks: number;
-  publicStats: boolean;
-  userId: string;
-  projectId: string;
+  webhookIds?: string[];
 }
 
 export interface TagProps {
@@ -70,11 +64,9 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures =
-  | "conversions"
-  | "integrations"
-  | "dublink"
-  | "referrals";
+export type BetaFeatures = "referrals" | "webhooks";
+
+export type AddOns = "conversion" | "sso";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -102,7 +94,6 @@ export interface UserProps {
   image?: string;
   createdAt: Date;
   source: string | null;
-  migratedWorkspace: string | null;
   defaultWorkspace?: string;
   isMachine: boolean;
   hasPassword: boolean;
@@ -130,6 +121,13 @@ export interface DomainProps {
   placeholder?: string;
   expiredUrl?: string;
   projectId: string;
+  registeredDomain?: RegisteredDomainProps;
+}
+
+export interface RegisteredDomainProps {
+  id: string;
+  createdAt: Date;
+  expiresAt: Date;
 }
 
 export interface BitlyGroupProps {
@@ -177,6 +175,8 @@ export const plans = [
 
 export const roles = ["owner", "member"] as const;
 
+export type Role = (typeof roles)[number];
+
 export const tagColors = [
   "red",
   "yellow",
@@ -193,15 +193,7 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type NewOAuthApp = Omit<
-  OAuthAppProps,
-  | "id"
-  | "clientId"
-  | "verified"
-  | "installations"
-  | "screenshots"
-  | "installUrl"
->;
+export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
 export type ExistingOAuthApp = OAuthAppProps;
 
@@ -216,7 +208,7 @@ export type NewOrExistingIntegration = Omit<
 
 export type InstalledIntegrationProps = Pick<
   IntegrationProps,
-  "id" | "slug" | "logo" | "name" | "developer" | "description"
+  "id" | "slug" | "logo" | "name" | "developer" | "description" | "verified"
 > & {
   installations: number;
   installed?: boolean;
@@ -230,6 +222,7 @@ export type InstalledIntegrationInfoProps = Pick<
   | "name"
   | "developer"
   | "description"
+  | "verified"
   | "readme"
   | "website"
   | "screenshots"
@@ -247,3 +240,22 @@ export type InstalledIntegrationInfoProps = Pick<
     };
   } | null;
 };
+
+export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
+
+export type WebhookProps = z.infer<typeof webhookSchema>;
+
+export type NewWebhook = z.infer<typeof createWebhookSchema>;
+
+export type WebhookEventProps = z.infer<typeof webhookEventSchemaTB>;
+
+export type WebhookCacheProps = Pick<
+  Webhook,
+  "id" | "url" | "secret" | "triggers"
+>;
+
+export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
+
+export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
+
+export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;

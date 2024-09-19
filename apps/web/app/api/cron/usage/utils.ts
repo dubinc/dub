@@ -92,6 +92,7 @@ export const updateUsage = async () => {
             usage: 0,
           }),
           linksUsage: 0,
+          salesUsage: 0,
           aiUsage: 0,
           sentEmails: {
             deleteMany: {
@@ -122,6 +123,7 @@ export const updateUsage = async () => {
           event: "clicks",
           groupBy: "top_links",
           interval: "30d",
+          root: false,
         }).then(async (data) => {
           const topFive = data.slice(0, 5);
           const topFiveLinkIds = topFive.map(({ link }) => link);

@@ -6,7 +6,11 @@ import { SlackCredential } from "@/lib/integrations/slack/type";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import { APP_DOMAIN_WITH_NGROK, getSearchParams } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  getSearchParams,
+  SLACK_INTEGRATION_ID,
+} from "@dub/utils";
 import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
 
@@ -80,7 +84,7 @@ export const GET = async (req: Request) => {
     };
 
     await installIntegration({
-      integrationSlug: "slack",
+      integrationId: SLACK_INTEGRATION_ID,
       userId: session.user.id,
       workspaceId,
       credentials,

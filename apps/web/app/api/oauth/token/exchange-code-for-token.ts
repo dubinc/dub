@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken, generateCodeChallengeHash } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
+import { installIntegration } from "@/lib/integrations/install";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
@@ -172,24 +173,13 @@ export const exchangeAuthCodeForToken = async (
   );
 
   const { userId, projectId, scopes } = accessCode;
-  const { integrationId } = app;
 
   // Install the app
   // We only support one token per client per user per workspace at a time
-  const installation = await prisma.installedIntegration.upsert({
-    create: {
-      userId,
-      projectId,
-      integrationId,
-    },
-    update: {},
-    where: {
-      userId_integrationId_projectId: {
-        userId,
-        projectId,
-        integrationId,
-      },
-    },
+  const installation = await installIntegration({
+    userId,
+    workspaceId: projectId,
+    integrationId: app.integrationId,
   });
 
   await prisma.$transaction([

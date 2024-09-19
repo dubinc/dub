@@ -1,5 +1,8 @@
 import z from "@/lib/zod";
-import { clickEventSchemaTB } from "./clicks";
+import { clickEventSchema, clickEventSchemaTB } from "./clicks";
+import { customerSchema } from "./customers";
+import { commonDeprecatedEventFields } from "./deprecated";
+import { linkEventSchema } from "./links";
 
 export const trackLeadRequestSchema = z.object({
   // Required
@@ -8,7 +11,7 @@ export const trackLeadRequestSchema = z.object({
     .trim()
     .min(1, "clickId is required")
     .describe(
-      "The ID of the click in th Dub. You can read this value from `dclid` cookie.",
+      "The ID of the click in th Dub. You can read this value from `dub_id` cookie.",
     ),
   eventName: z
     .string({ required_error: "eventName is required" })
@@ -31,32 +34,38 @@ export const trackLeadRequestSchema = z.object({
     .string()
     .max(100)
     .nullish()
+    .default(null)
     .describe("Name of the customer in the client's app."),
   customerEmail: z
     .string()
     .email()
     .max(100)
     .nullish()
+    .default(null)
     .describe("Email of the customer in the client's app."),
   customerAvatar: z
     .string()
     .max(100)
     .nullish()
+    .default(null)
     .describe("Avatar of the customer in the client's app."),
   metadata: z
     .record(z.unknown())
     .nullish()
+    .default(null)
     .describe("Additional metadata to be stored with the lead event"),
 });
 
 export const trackLeadResponseSchema = z.object({
-  clickId: z.string(),
-  eventName: z.string(),
-  customerId: z.string(),
-  customerName: z.string().nullable(),
-  customerEmail: z.string().nullable(),
-  customerAvatar: z.string().nullable(),
-  metadata: z.record(z.unknown()).optional(),
+  click: z.object({
+    id: z.string(),
+  }),
+  customer: z.object({
+    id: z.string(),
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    avatar: z.string().nullable(),
+  }),
 });
 
 export const leadEventSchemaTB = clickEventSchemaTB
@@ -70,27 +79,50 @@ export const leadEventSchemaTB = clickEventSchemaTB
     }),
   );
 
-export const leadEventEnrichedSchema = z
+export const leadEventEnrichedSchema = z.object({
+  event: z.literal("lead"),
+  timestamp: z.string(),
+  event_id: z.string(),
+  event_name: z.string(),
+  customer_name: z.string(),
+  customer_email: z.string(),
+  customer_avatar: z.string(),
+  click_id: z.string(),
+  link_id: z.string(),
+  url: z.string(),
+  continent: z.string().nullable(),
+  country: z.string().nullable(),
+  city: z.string().nullable(),
+  device: z.string().nullable(),
+  browser: z.string().nullable(),
+  os: z.string().nullable(),
+  referer: z.string().nullable(),
+  qr: z.number().nullable(),
+  ip: z.string().nullable(),
+});
+
+export const leadEventResponseSchema = z
   .object({
-    timestamp: z.string(),
-    event_id: z.string(),
-    event_name: z.string(),
-    customer_name: z.string(),
-    customer_email: z.string(),
-    customer_avatar: z.string(),
-    click_id: z.string(),
-    link_id: z.string(),
-    domain: z.string(),
-    key: z.string(),
-    url: z.string(),
-    continent: z.string().nullable(),
-    country: z.string().nullable(),
-    city: z.string().nullable(),
-    device: z.string().nullable(),
-    browser: z.string().nullable(),
-    os: z.string().nullable(),
-    referer: z.string().nullable(),
-    qr: z.number().nullable(),
-    ip: z.string().nullable(),
+    event: z.literal("lead"),
+    timestamp: z.coerce.string(),
+    eventId: z.string(),
+    eventName: z.string(),
+    // nested objects
+    click: clickEventSchema,
+    link: linkEventSchema,
+    customer: customerSchema,
+    customer_name: z
+      .string()
+      .describe("Deprecated. Use `customer.name` instead.")
+      .openapi({ deprecated: true }),
+    customer_email: z
+      .string()
+      .describe("Deprecated. Use `customer.email` instead.")
+      .openapi({ deprecated: true }),
+    customer_avatar: z
+      .string()
+      .describe("Deprecated. Use `customer.avatar` instead.")
+      .openapi({ deprecated: true }),
   })
-  .openapi({ ref: "LeadEvents" });
+  .merge(commonDeprecatedEventFields)
+  .openapi({ ref: "LeadEvent" });

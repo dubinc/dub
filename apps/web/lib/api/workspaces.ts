@@ -1,4 +1,5 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
+import { dub } from "@/lib/dub";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
@@ -14,7 +15,10 @@ import {
 import { waitUntil } from "@vercel/functions";
 
 export async function deleteWorkspace(
-  workspace: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
+  workspace: Pick<
+    WorkspaceProps,
+    "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
+  >,
 ) {
   const [customDomains, defaultDomainLinks] = await Promise.all([
     prisma.domain.findMany({
@@ -100,18 +104,19 @@ export async function deleteWorkspace(
         ),
       ]);
 
-      await Promise.all([
+      await Promise.allSettled([
         // delete workspace logo if it's a custom logo stored in R2
         workspace.logo &&
           workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
           storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
         // if they have a Stripe subscription, cancel it
         workspace.stripeId && cancelSubscription(workspace.stripeId),
-        // SOON: set the referral link to `/deleted/[slug]`
-        // dub.links.update(`ext_ws_${workspace.id}`, {
-        //   key: `/deleted/${workspace.slug}`,
-        //   archived: true,
-        // }),
+        // set the referral link to `/deleted/[slug]`
+        workspace.referralLinkId &&
+          dub.links.update(workspace.referralLinkId, {
+            key: `/deleted/${workspace.slug}-${workspace.id}`,
+            archived: true,
+          }),
         // delete the workspace
         prisma.project.delete({
           where: {
@@ -134,7 +139,10 @@ export async function deleteWorkspace(
 }
 
 export async function deleteWorkspaceAdmin(
-  workspace: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
+  workspace: Pick<
+    WorkspaceProps,
+    "id" | "slug" | "logo" | "stripeId" | "referralLinkId"
+  >,
 ) {
   const [customDomains, defaultDomainLinks] = await Promise.all([
     prisma.domain.findMany({
@@ -187,18 +195,19 @@ export async function deleteWorkspaceAdmin(
     ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
   ]);
 
-  const deleteWorkspaceResponse = await Promise.all([
+  const deleteWorkspaceResponse = await Promise.allSettled([
     // delete workspace logo if it's a custom logo stored in R2
     workspace.logo &&
       workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
       storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
-    // SOON: set the referral link to `/deleted/[slug]`
-    // dub.links.update(`ext_ws_${workspace.id}`, {
-    //   key: `/deleted/${workspace.slug}`,
-    //   archived: true,
-    // }),
+    // set the referral link to `/deleted/[slug]`
+    workspace.referralLinkId &&
+      dub.links.update(workspace.referralLinkId, {
+        key: `/deleted/${workspace.slug}-${workspace.id}`,
+        archived: true,
+      }),
     // delete the workspace
     prisma.project.delete({
       where: {

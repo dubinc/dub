@@ -1,5 +1,4 @@
 import { FileX2 } from "lucide-react";
-import Link from "next/link";
 
 export default function LinkNotFound() {
   return (
@@ -20,12 +19,6 @@ export default function LinkNotFound() {
         width={300}
         height={300}
       />
-      <Link
-        href="/links"
-        className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
-      >
-        Back to my links
-      </Link>
     </div>
   );
 }

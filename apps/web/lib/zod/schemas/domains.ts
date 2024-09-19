@@ -36,6 +36,14 @@ export const DomainSchema = z.object({
     .openapi({ example: "https://acme.com/expired" }),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
+  registeredDomain: z
+    .object({
+      id: z.string().describe("The ID of the registered domain record."),
+      createdAt: z.date().describe("The date the domain was created."),
+      expiresAt: z.date().describe("The date the domain expires."),
+    })
+    .nullish()
+    .describe("The registered domain record."),
 });
 
 export const getDomainsQuerySchema = z

@@ -1,34 +1,26 @@
-import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
+import IntegrationCard from "@/ui/integrations/integration-card";
 import OAuthAppPlaceholder from "@/ui/oauth-apps/oauth-app-placeholder";
 import { Suspense } from "react";
-import IntegrationsPageClient from "./page-client";
 import IntegrationsPageHeader from "./page-header";
 
 export const revalidate = 300; // 5 minutes
 
-export default async function IntegrationsPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default function IntegrationsPage() {
   return (
     <>
       <IntegrationsPageHeader />
       <Suspense fallback={<Loader />}>
-        <Integrations workspaceSlug={params.slug} />
+        <Integrations />
       </Suspense>
     </>
   );
 }
 
-const Integrations = async ({ workspaceSlug }: { workspaceSlug: string }) => {
-  const flags = await getFeatureFlags({ workspaceSlug });
-
+const Integrations = async () => {
   const integrations = await prisma.integration.findMany({
     where: {
       verified: true,
-      ...(!flags.conversions ? { slug: { notIn: ["stripe"] } } : {}),
     },
     include: {
       _count: {
@@ -50,12 +42,15 @@ const Integrations = async ({ workspaceSlug }: { workspaceSlug: string }) => {
   });
 
   return (
-    <IntegrationsPageClient
-      integrations={integrations.map((integration) => ({
-        ...integration,
-        installations: integration._count.installations,
-      }))}
-    />
+    <div className="grid gap-3 sm:grid-cols-2">
+      {integrations.map((integration) => (
+        <IntegrationCard
+          key={integration.id}
+          {...integration}
+          installations={integration._count.installations}
+        />
+      ))}
+    </div>
   );
 };
 

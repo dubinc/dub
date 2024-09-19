@@ -5,6 +5,7 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";
+import { useSubmitOAuthAppModal } from "@/ui/modals/submit-oauth-app-modal";
 import AddOAuthAppForm from "@/ui/oauth-apps/add-edit-app-form";
 import OAuthAppCredentials from "@/ui/oauth-apps/oauth-app-credentials";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -16,7 +17,7 @@ import {
   TokenAvatar,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, RefreshCcw, Trash } from "lucide-react";
+import { ChevronLeft, RefreshCcw, Trash, Upload } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound, useSearchParams } from "next/navigation";
@@ -50,6 +51,11 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
       oAuthApp,
     });
 
+  const { SubmitOAuthAppModal, setShowSubmitOAuthAppModal } =
+    useSubmitOAuthAppModal({
+      oAuthApp,
+    });
+
   const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
     role,
@@ -63,6 +69,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
     <>
       <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
         <RemoveOAuthAppModal />
+        <SubmitOAuthAppModal />
         <Link
           href={`/${slug}/settings/oauth-apps`}
           className="flex items-center gap-x-1"
@@ -72,20 +79,20 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
             Back to OAuth Apps
           </p>
         </Link>
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex justify-between gap-2 sm:items-center">
           {isLoading ? (
-            <div className="flex items-center gap-x-3">
-              <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
                 <TokenAvatar id="placeholder-oauth-app" className="size-8" />
               </div>
               <div className="flex flex-col gap-2">
                 <div className="h-3 w-20 rounded-full bg-gray-100"></div>
-                <div className="h-3 w-80 rounded-full bg-gray-100"></div>
+                <div className="h-3 w-40 rounded-full bg-gray-100"></div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-x-3">
-              <div className="rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="w-fit flex-none rounded-md border border-gray-200 bg-gradient-to-t from-gray-100 p-2">
                 {oAuthApp?.logo ? (
                   <BlurImage
                     src={oAuthApp.logo}
@@ -100,7 +107,9 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
               </div>
               <div>
                 <p className="font-semibold text-gray-700">{oAuthApp?.name}</p>
-                <p className="text-sm text-gray-500">{oAuthApp?.description}</p>
+                <p className="text-pretty text-sm text-gray-500">
+                  {oAuthApp?.description}
+                </p>
               </div>
             </div>
           )}
@@ -119,10 +128,21 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
                       workspaceId: workspaceId!,
                       appId,
                     });
-
                     setOpenPopover(false);
                   }}
                 />
+                {!oAuthApp?.verified && (
+                  <Button
+                    text="Submit for review"
+                    variant="outline"
+                    icon={<Upload className="h-4 w-4" />}
+                    className="h-9 justify-start px-2"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowSubmitOAuthAppModal(true);
+                    }}
+                  />
+                )}
                 <Button
                   text="Remove application"
                   variant="danger-outline"

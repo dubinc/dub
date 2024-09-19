@@ -3,13 +3,15 @@
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
+import { PaginationControls } from "@dub/blocks/src/pagination-controls";
 import {
   CardList,
   MaxWidthWrapper,
   useInputFocused,
-  useRouterStuff,
+  usePagination,
 } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
+import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -75,11 +77,10 @@ function LinksList({
   loading?: boolean;
   compact: boolean;
 }) {
-  const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
   const showHoverStates = !useInputFocused();
 
-  const page = (parseInt(searchParams?.get("page") || "1") || 1) - 1;
+  const { pagination, setPagination } = usePagination();
 
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
@@ -122,31 +123,32 @@ function LinksList({
 
       {/* Pagination */}
       {links && (
-        <CardList.Pagination
-          page={page}
-          onPageChange={(p) => {
-            const newPage = p(page);
-            queryParams(
-              newPage === 0
-                ? { del: "page" }
-                : {
-                    set: {
-                      page: (newPage + 1).toString(),
-                    },
-                  },
-            );
-          }}
-          totalCount={count ?? links?.length ?? 0}
-          resourceName={(plural) => `${plural ? "links" : "link"}`}
-        >
-          {loading ? (
-            <LoadingSpinner className="size-3.5" />
-          ) : (
-            <div className="hidden sm:block">
-              <ArchivedLinksHint />
+        <>
+          <div className="h-[90px]" />
+          <div
+            className={cn(
+              "fixed bottom-4 left-1/2 w-full max-w-[768px] -translate-x-1/2 px-2.5",
+              "max-[1216px]:left-2 max-[1216px]:translate-x-0 max-[920px]:bottom-5 max-[920px]:pr-20",
+            )}
+          >
+            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3.5 [filter:drop-shadow(0_5px_8px_#222A351d)]">
+              <PaginationControls
+                pagination={pagination}
+                setPagination={setPagination}
+                totalCount={count ?? links?.length ?? 0}
+                unit={(plural) => `${plural ? "links" : "link"}`}
+              >
+                {loading ? (
+                  <LoadingSpinner className="size-3.5" />
+                ) : (
+                  <div className="hidden sm:block">
+                    <ArchivedLinksHint />
+                  </div>
+                )}
+              </PaginationControls>
             </div>
-          )}
-        </CardList.Pagination>
+          </div>
+        </>
       )}
     </>
   );

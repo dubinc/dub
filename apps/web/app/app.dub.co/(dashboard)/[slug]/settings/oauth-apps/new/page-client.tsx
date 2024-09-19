@@ -9,14 +9,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default function NewOAuthAppPageClient() {
-  const { slug, flags, role } = useWorkspace();
+  const { slug, role } = useWorkspace();
 
   const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
     role,
   });
 
-  if (!flags?.integrations || permissionsError) {
+  if (permissionsError) {
     redirect(`/${slug}/settings`);
   }
 

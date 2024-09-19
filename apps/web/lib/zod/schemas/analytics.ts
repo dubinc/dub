@@ -3,6 +3,7 @@ import {
   OLD_ANALYTICS_ENDPOINTS,
   OLD_TO_NEW_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
+  eventIntervals,
   intervals,
 } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
@@ -202,17 +203,27 @@ export const eventsFilterTB = analyticsFilterTB
       offset: z.coerce.number().default(0),
       limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
-      sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
+      sortBy: z.enum(["timestamp"]).default("timestamp"),
     }),
   );
 
 export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
-  .merge(
-    z.object({
-      page: z.coerce.number().default(0),
-      limit: z.coerce.number().default(PAGINATION_LIMIT),
-      order: z.enum(["asc", "desc"]).default("desc"),
-      sortBy: z.enum(["timestamp", "amount"]).default("timestamp"),
-    }),
-  );
+  .extend({
+    event: z
+      .enum(EVENT_TYPES)
+      .default("clicks")
+      .describe(
+        "The type of event to retrieve analytics for. Defaults to 'clicks'.",
+      ),
+    interval: z
+      .enum(eventIntervals)
+      .default("24h")
+      .describe(
+        "The interval to retrieve events for. Takes precedence over start and end. If undefined, defaults to 24h.",
+      ),
+    page: z.coerce.number().default(1),
+    limit: z.coerce.number().default(PAGINATION_LIMIT),
+    order: z.enum(["asc", "desc"]).default("desc"),
+    sortBy: z.enum(["timestamp"]).default("timestamp"),
+  });

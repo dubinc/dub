@@ -2,50 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
-[data-mdx-container] {
-  .anchor {
-    @apply invisible absolute -ml-8 w-full cursor-pointer !no-underline;
-  }
-
-  .anchor:after {
-    content: "🔗";
-  }
-
-  :hover > .anchor {
-    @apply visible;
-  }
+code {
+  counter-reset: step;
+  counter-increment: step 0;
 }
 
-/* Hide the react-medium-image-zoom unzoom button */
-[data-rmiz-btn-unzoom] {
-  visibility: hidden;
-}
-
-/* Style the react-medium-image-zoom image */
-[data-rmiz-modal-img] {
-  @apply border border-gray-200;
-
-  @media screen and (min-width: 768px) {
-    @apply rounded-lg;
-  }
+code .line::before {
+  content: counter(step);
+  counter-increment: step;
+  width: 1rem;
+  padding-right: 1.5rem;
+  display: inline-block;
+  position: sticky;
+  left: 0;
+  background-color: white;
+  text-align: right;
+  color: rgba(115, 138, 148, 0.4);
 }
 
 /* Implement a custom scrollbar to preventing ugly looking scroll-overflows */
 .dub-scrollbar {
-	scrollbar-width: auto;
-	scrollbar-color: #d1d5db #ffffff;
+  scrollbar-width: auto;
+  scrollbar-color: #d1d5db #ffffff;
 }
 
 .dub-scrollbar::-webkit-scrollbar {
-	width: 8px;
-	height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 .dub-scrollbar::-webkit-scrollbar-track {
-	background: transparent;
+  background: transparent;
 }
 
 .dub-scrollbar::-webkit-scrollbar-thumb {
-	background-color: #d1d5db;
-	border-radius: 10px;
+  background-color: #d1d5db;
+  border-radius: 10px;
 }

@@ -505,6 +505,12 @@ export const LinkSchema = z
       .number()
       .default(0)
       .describe("[BETA]: The number of sales the short links has generated."),
+    saleAmount: z
+      .number()
+      .default(0)
+      .describe(
+        "[BETA]: The total dollar amount of sales the short links has generated (in cents).",
+      ),
     createdAt: z
       .string()
       .describe("The date and time when the short link was created."),
@@ -537,19 +543,28 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
   }),
 );
 
-// Used in API routes to parse the response before sending it back to the client
-// This is because Prisma returns a `Date` object
-// TODO: Find a better way to handle this
-export const LinkSchemaExtended = LinkSchema.extend({
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  expiresAt: z.date().nullable(),
-  lastClicked: z.date().nullable(),
-});
-
 export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
   z.object({
     // Only Dub UI uses includeUser query parameter
     includeUser: booleanQuerySchema.default("false"),
   }),
 );
+
+export const linkEventSchema = LinkSchema.extend({
+  // here we use string because url can be empty
+  url: z.string(),
+  // coerce boolean fields
+  archived: z.coerce.boolean(),
+  doIndex: z.coerce.boolean(),
+  proxy: z.coerce.boolean(),
+  publicStats: z.coerce.boolean(),
+  rewrite: z.coerce.boolean(),
+  trackConversion: z.coerce.boolean(),
+  // coerce date fields
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  lastClicked: z.coerce.date(),
+  expiresAt: z.coerce.date(),
+  // userId can be null
+  userId: z.string().nullable(),
+});

@@ -50,13 +50,13 @@ function Tabs({ tabs }: Pick<SettingsLayoutProps, "tabs">) {
   return (
     <>
       {tabs.map(({ group, tabs }) => (
-        <div className="flex flex-col gap-y-0.5">
+        <div key={group} className="flex flex-col gap-y-0.5">
           {group && (
             <span className="pb-1.5 text-sm text-gray-500">{group}</span>
           )}
 
           {tabs.map(({ name, icon, segment }) => (
-            <NavLink segment={segment} icon={icon}>
+            <NavLink key={name} segment={segment} icon={icon}>
               {name}
             </NavLink>
           ))}

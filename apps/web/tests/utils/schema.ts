@@ -1,7 +1,10 @@
 import { Link, Project, Tag } from "@prisma/client";
 import { expect } from "vitest";
 
-export const expectedLink: Partial<Link> & { tagId: string | null } = {
+export const expectedLink: Partial<Link> & {
+  tagId: string | null;
+  tags: [];
+} = {
   id: expect.any(String),
   key: expect.any(String),
   domain: "dub.sh",
@@ -29,8 +32,10 @@ export const expectedLink: Partial<Link> & { tagId: string | null } = {
   lastClicked: null,
   leads: 0,
   sales: 0,
+  saleAmount: 0,
   tagId: null, // backwards compatibility
   comments: null,
+  tags: [],
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
   expiredUrl: null,
@@ -48,16 +53,23 @@ export const expectedWorkspace: Partial<Project> = {
   name: expect.any(String),
   slug: expect.any(String),
   logo: expect.any(String),
-  usage: expect.any(Number),
-  usageLimit: expect.any(Number),
-  linksUsage: expect.any(Number),
-  linksLimit: expect.any(Number),
-  domainsLimit: expect.any(Number),
-  tagsLimit: expect.any(Number),
-  usersLimit: expect.any(Number),
+
   plan: expect.any(String),
   stripeId: expect.any(String),
   billingCycleStart: expect.any(Number),
   inviteCode: expect.any(String),
+
+  usage: expect.any(Number),
+  usageLimit: expect.any(Number),
+  linksUsage: expect.any(Number),
+  linksLimit: expect.any(Number),
+  salesUsage: expect.any(Number),
+  salesLimit: expect.any(Number),
+  domainsLimit: expect.any(Number),
+  tagsLimit: expect.any(Number),
+  usersLimit: expect.any(Number),
+
+  referralLinkId: expect.any(String),
+
   createdAt: expect.any(String),
 };

@@ -7,7 +7,7 @@ export default function useWorkspace() {
   let { slug } = useParams() as { slug: string | null };
   const searchParams = useSearchParams();
   if (!slug) {
-    slug = searchParams.get("slug");
+    slug = searchParams.get("slug") || searchParams.get("workspace");
   }
 
   const {

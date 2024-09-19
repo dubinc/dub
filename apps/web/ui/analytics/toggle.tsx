@@ -11,7 +11,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import {
   BlurImage,
-  DatePickerContext,
   DateRangePicker,
   ExpandingArrow,
   Filter,
@@ -648,11 +647,7 @@ export default function Toggle({
                         },
                         requiresUpgrade,
                         tooltipContent: requiresUpgrade ? (
-                          <UpgradeTooltip
-                            rangeLabel={display}
-                            plan={plan}
-                            isPublicStatsPage={isPublicStatsPage}
-                          />
+                          <UpgradeTooltip rangeLabel={display} plan={plan} />
                         ) : undefined,
                         shortcut,
                       };
@@ -709,15 +704,11 @@ export default function Toggle({
 function UpgradeTooltip({
   rangeLabel,
   plan,
-  isPublicStatsPage,
 }: {
   rangeLabel: string;
   plan?: string;
-  isPublicStatsPage: boolean;
 }) {
-  const { queryParams } = useRouterStuff();
-
-  const { setIsOpen } = useContext(DatePickerContext);
+  const { slug } = useWorkspace();
 
   const isAllTime = rangeLabel === "All Time";
 
@@ -725,22 +716,7 @@ function UpgradeTooltip({
     <TooltipContent
       title={`${rangeLabel} can only be viewed on a ${isAllTime ? "Business" : getNextPlan(plan).name} plan or higher. Upgrade now to view more stats.`}
       cta={`Upgrade to ${isAllTime ? "Business" : getNextPlan(plan).name}`}
-      {...(isPublicStatsPage
-        ? {
-            href: APP_DOMAIN,
-          }
-        : {
-            onClick: () => {
-              setIsOpen(false);
-              queryParams({
-                set: {
-                  upgrade: isAllTime
-                    ? "business"
-                    : getNextPlan(plan).name.toLowerCase(),
-                },
-              });
-            },
-          })}
+      href={slug ? `/${slug}/upgrade` : APP_DOMAIN}
     />
   );
 }

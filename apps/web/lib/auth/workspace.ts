@@ -1,6 +1,11 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
-import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
+import {
+  AddOns,
+  BetaFeatures,
+  PlanProps,
+  WorkspaceWithUsers,
+} from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -47,13 +52,13 @@ export const withWorkspace = (
       "business extra",
       "enterprise",
     ], // if the action needs a specific plan
-    allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
+    requiredAddOn,
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
     skipPermissionChecks, // if the action doesn't need to check for required permission(s)
   }: {
     requiredPlan?: Array<PlanProps>;
-    allowAnonymous?: boolean;
+    requiredAddOn?: AddOns;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
     skipPermissionChecks?: boolean;
@@ -95,11 +100,15 @@ export const withWorkspace = (
           params?.slug ||
           searchParams.projectSlug;
 
-        // if there's no workspace ID or slug and it's not a restricted token
-        // For restricted tokens, we find the workspaceId from the token
+        /*
+          if there's no workspace ID or slug and it's not a restricted token:
+          - special case for anonymous link creation
+          - missing authorization header
+          - user is still using personal API keys
+        */
         if (!idOrSlug && !isRestrictedToken) {
-          // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
-          if (allowAnonymous && !apiKey) {
+          // special case for anonymous link creation
+          if (req.headers.has("dub-anonymous-link-creation")) {
             // @ts-expect-error
             return await handler({
               req,
@@ -107,11 +116,18 @@ export const withWorkspace = (
               searchParams,
               headers,
             });
+            // missing authorization header
+          } else if (!authorizationHeader) {
+            throw new DubApiError({
+              code: "unauthorized",
+              message: "Missing Authorization header.",
+            });
+            // in case user is still using personal API keys
           } else {
             throw new DubApiError({
               code: "not_found",
               message:
-                "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
+                "Workspace ID not found. Did you forget to include a `workspaceId` query parameter? It looks like you might be using personal API keys, we also recommend refactoring to workspace API keys: https://d.to/keys",
             });
           }
         }
@@ -328,16 +344,32 @@ export const withWorkspace = (
           }
         }
 
+        const url = new URL(req.url || "", API_DOMAIN);
+
         // plan checks
-        if (!requiredPlan.includes(workspace.plan)) {
+        // special scenario – /events and /webhooks API is available for conversionEnabled workspaces (even if they're on a Pro plan)
+        if (
+          !requiredPlan.includes(workspace.plan) &&
+          (url.pathname.includes("/events") ||
+            url.pathname.includes("/webhooks")) &&
+          !workspace.conversionEnabled
+        ) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
           });
         }
 
+        // add-ons checks
+        if (requiredAddOn && !workspace[`${requiredAddOn}Enabled`]) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "Unauthorized: This feature is not available on your plan.",
+          });
+        }
+
         // analytics API checks
-        const url = new URL(req.url || "", API_DOMAIN);
         if (
           workspace.plan === "free" &&
           apiKey &&

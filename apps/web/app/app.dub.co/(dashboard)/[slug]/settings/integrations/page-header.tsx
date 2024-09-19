@@ -4,14 +4,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 export default function IntegrationsPageHeader() {
-  const { slug, flags } = useWorkspace();
-
-  if (!flags?.integrations) {
-    redirect(`/${slug}/settings`);
-  }
+  const { slug } = useWorkspace();
 
   return (
     <div className="flex flex-wrap justify-between gap-2">

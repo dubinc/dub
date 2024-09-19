@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import { waitUntil } from "@vercel/functions";
+import { sendEmail } from "emails";
+import IntegrationInstalled from "emails/integration-installed";
 
-interface InstallIntegrationArgs {
+interface InstallIntegration {
   userId: string;
   workspaceId: string;
-  integrationSlug: string;
+  integrationId: string;
   credentials?: Record<string, any>;
 }
 
@@ -11,23 +14,14 @@ interface InstallIntegrationArgs {
 export const installIntegration = async ({
   userId,
   workspaceId,
-  integrationSlug,
+  integrationId,
   credentials,
-}: InstallIntegrationArgs) => {
-  const integration = await prisma.integration.findUniqueOrThrow({
-    where: {
-      slug: integrationSlug,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  await prisma.installedIntegration.upsert({
+}: InstallIntegration) => {
+  const installation = await prisma.installedIntegration.upsert({
     create: {
       userId,
       projectId: workspaceId,
-      integrationId: integration.id,
+      integrationId,
       credentials,
     },
     update: {
@@ -37,12 +31,69 @@ export const installIntegration = async ({
       userId_integrationId_projectId: {
         userId,
         projectId: workspaceId,
-        integrationId: integration.id,
+        integrationId,
       },
     },
   });
 
-  console.info(
-    `Installed integration ${integrationSlug} for user ${userId} in workspace ${workspaceId}`,
+  waitUntil(
+    (async () => {
+      const [integration, workspace] = await Promise.all([
+        prisma.integration.findUniqueOrThrow({
+          where: {
+            id: integrationId,
+          },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        }),
+
+        prisma.project.findUniqueOrThrow({
+          where: {
+            id: workspaceId,
+            users: {
+              some: {
+                role: "owner",
+              },
+            },
+          },
+          select: {
+            name: true,
+            slug: true,
+            users: {
+              select: {
+                user: {
+                  select: { email: true },
+                },
+              },
+            },
+          },
+        }),
+      ]);
+
+      await Promise.all(
+        workspace.users.map(({ user: { email } }) =>
+          sendEmail({
+            email: email!,
+            subject: `The "${integration.name}" integration has been added to your workspace`,
+            react: IntegrationInstalled({
+              email: email!,
+              workspace: {
+                name: workspace.name,
+                slug: workspace.slug,
+              },
+              integration: {
+                name: integration.name,
+                slug: integration.slug,
+              },
+            }),
+          }),
+        ),
+      );
+    })(),
   );
+
+  return installation;
 };

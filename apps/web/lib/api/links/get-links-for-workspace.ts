@@ -79,9 +79,7 @@ export async function getLinksForWorkspace({
       [sort]: "desc",
     },
     take: pageSize,
-    ...(page && {
-      skip: (page - 1) * pageSize,
-    }),
+    skip: (page - 1) * pageSize,
   });
 
   return links.map((link) => transformLink(link));

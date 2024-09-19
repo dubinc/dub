@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "customer.created"
@@ -11,7 +14,7 @@ export async function customerCreated(event: Stripe.Event) {
   const externalId = stripeCustomer.metadata?.dubCustomerId;
   const clickId = stripeCustomer.metadata?.dubClickId;
 
-  // The client app should always send dclid via metadata
+  // The client app should always send dubClickId (dub_id) via metadata
   if (!clickId) {
     return "Click ID not found in Stripe customer metadata, skipping...";
   }
@@ -20,6 +23,18 @@ export async function customerCreated(event: Stripe.Event) {
   const clickEvent = await getClickEvent({ clickId });
   if (!clickEvent || clickEvent.data.length === 0) {
     return `Click event with ID ${clickId} not found, skipping...`;
+  }
+
+  // Find link
+  const linkId = clickEvent.data[0].link_id;
+  const link = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+  });
+
+  if (!link) {
+    return `Link with ID ${linkId} not found, skipping...`;
   }
 
   // Check the customer is not already created
@@ -36,10 +51,8 @@ export async function customerCreated(event: Stripe.Event) {
   }
 
   // Create customer
-  const customerId = nanoid(16);
   const customer = await prisma.customer.create({
     data: {
-      id: customerId,
       name: stripeCustomer.name,
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
@@ -57,7 +70,14 @@ export async function customerCreated(event: Stripe.Event) {
     .omit({ timestamp: true })
     .parse(clickEvent.data[0]);
 
-  await Promise.all([
+  const leadData = {
+    ...clickData,
+    event_id: nanoid(16),
+    event_name: "New customer",
+    customer_id: customer.id,
+  };
+
+  const [_customer, _lead, _link, workspace] = await Promise.all([
     // Record customer
     recordCustomer({
       workspace_id: customer.projectId,
@@ -68,17 +88,12 @@ export async function customerCreated(event: Stripe.Event) {
     }),
 
     // Record lead
-    recordLead({
-      ...clickData,
-      event_id: nanoid(16),
-      event_name: "New customer",
-      customer_id: customer.id,
-    }),
+    recordLead(leadData),
 
     // update link leads count
     prisma.link.update({
       where: {
-        id: clickData.link_id,
+        id: linkId,
       },
       data: {
         leads: {
@@ -86,7 +101,34 @@ export async function customerCreated(event: Stripe.Event) {
         },
       },
     }),
+
+    // update workspace usage
+    prisma.project.update({
+      where: {
+        id: customer.projectId,
+      },
+      data: {
+        usage: {
+          increment: 1,
+        },
+      },
+    }),
   ]);
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      trigger: "lead.created",
+      workspace,
+      data: transformLeadEventData({
+        ...leadData,
+        link,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      }),
+    }),
+  );
 
   return `Customer created: ${customer.id}`;
 }

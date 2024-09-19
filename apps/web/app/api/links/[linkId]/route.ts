@@ -10,8 +10,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
-import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
-import { deepEqual } from "@dub/utils";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
+import { deepEqual, UTMTags } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
@@ -59,7 +61,7 @@ export const PATCH = withWorkspace(
       linkId: params.linkId,
     });
 
-    const body = updateLinkBodySchema.parse(await parseRequestBody(req));
+    const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
@@ -70,6 +72,14 @@ export const PATCH = withWorkspace(
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
       ...body,
+      // for UTM tags, we only pass them to processLink if they have changed from their previous value
+      // or else they will override any changes to the UTM params in the destination URL
+      ...Object.fromEntries(
+        UTMTags.map((tag) => [
+          tag,
+          body[tag] === link[tag] ? undefined : body[tag],
+        ]),
+      ),
 
       // When root domain
       ...(link.key === "_root" && {
@@ -121,6 +131,14 @@ export const PATCH = withWorkspace(
         updatedLink: processedLink,
       });
 
+      waitUntil(
+        sendWorkspaceWebhook({
+          trigger: "link.updated",
+          workspace,
+          data: linkEventSchema.parse(response),
+        }),
+      );
+
       return NextResponse.json(response, {
         headers,
       });
@@ -155,6 +173,14 @@ export const DELETE = withWorkspace(
     });
 
     await deleteLink(link.id);
+
+    waitUntil(
+      sendWorkspaceWebhook({
+        trigger: "link.deleted",
+        workspace,
+        data: linkEventSchema.parse(transformLink(link)),
+      }),
+    );
 
     return NextResponse.json({ id: link.id }, { headers });
   },

@@ -6,12 +6,13 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 
-const CHANGELOG_URL = "https://d.to/events";
-const CHANGELOG_IMAGE_URL = "https://assets.dub.co/blog/events-stream.jpg";
-const CHANGELOG_TITLE = "Introducing Real-time Events Stream";
+const CHANGELOG_URL = "https://dub.link/free";
+const CHANGELOG_IMAGE_URL =
+  "https://assets.dub.co/blog/introducing-free-domains.jpg";
+const CHANGELOG_TITLE = "Introducing 1-year Free .Link Domains";
 const CHANGELOG_DESCRIPTION =
-  "Gain deeper insights into your clicks with a detailed, real-time stream of events across your entire Dub workspace.";
-const CHANGELOG_ID = "hideChangelogPopup08012024";
+  "Today, we're excited to launch 1-year complimentary .link domains on all paid plans + a new premium domain: dub.link.";
+const CHANGELOG_ID = "hideChangelogPopup09172024";
 
 export default function ChangelogPopup() {
   return (

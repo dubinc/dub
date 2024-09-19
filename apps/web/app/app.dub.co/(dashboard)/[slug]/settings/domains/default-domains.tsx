@@ -5,7 +5,7 @@ import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { Logo, Switch, useRouterStuff } from "@dub/ui";
+import { Logo, Switch } from "@dub/ui";
 import {
   Amazon,
   ChatGPT,
@@ -55,7 +55,6 @@ export function DefaultDomains() {
     }
   }, [initialDefaultDomains]);
   const [submitting, setSubmitting] = useState(false);
-  const { queryParams } = useRouterStuff();
 
   return (
     <div className="my-10 grid gap-5 border-t border-gray-200 py-10">
@@ -75,12 +74,7 @@ export function DefaultDomains() {
         </p>
       </div>
       <div className="mt-2 grid grid-cols-1 gap-3">
-        {DUB_DOMAINS.filter(({ slug }) => {
-          if (slug === "dub.link") {
-            return flags?.dublink;
-          }
-          return true;
-        }).map(({ slug, description }) => {
+        {DUB_DOMAINS.map(({ slug, description }) => {
           return (
             <div
               key={slug}
@@ -100,13 +94,7 @@ export function DefaultDomains() {
                     <TooltipContent
                       title="You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain."
                       cta="Upgrade to Pro"
-                      onClick={() => {
-                        queryParams({
-                          set: {
-                            upgrade: "pro",
-                          },
-                        });
-                      }}
+                      href={`/${slug}/upgrade`}
                     />
                   ) : undefined)
                 }

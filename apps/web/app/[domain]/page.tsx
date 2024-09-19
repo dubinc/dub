@@ -1,7 +1,8 @@
-import { prisma } from "@/lib/prisma";
 import { Background } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import PlaceholderContent from "./placeholder";
+
+export const revalidate = 0;
 
 export async function generateMetadata({
   params,
@@ -19,33 +20,6 @@ export async function generateMetadata({
     title,
     description,
   });
-}
-
-export async function generateStaticParams() {
-  if (process.env.VERCEL_ENV != "production") {
-    return [];
-  }
-
-  const domains = await prisma.domain.findMany({
-    where: {
-      verified: true,
-      NOT: {
-        slug: "dub.sh",
-      },
-      links: {
-        some: {
-          url: "",
-        },
-      },
-    },
-    select: {
-      slug: true,
-    },
-  });
-
-  return domains.map(({ slug: domain }) => ({
-    domain,
-  }));
 }
 
 export default function CustomDomainPage() {

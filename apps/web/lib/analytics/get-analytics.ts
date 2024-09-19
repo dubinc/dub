@@ -1,23 +1,13 @@
 import { tb } from "@/lib/tinybird";
-import { getDaysDifference, linkConstructor } from "@dub/utils";
+import { getDaysDifference, linkConstructor, punyEncode } from "@dub/utils";
 import { conn } from "../planetscale";
 import { prismaEdge } from "../prisma/edge";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
-import { clickAnalyticsResponse } from "../zod/schemas/clicks-analytics";
-import { compositeAnalyticsResponse } from "../zod/schemas/composite-analytics";
-import { leadAnalyticsResponse } from "../zod/schemas/leads-analytics";
-import { saleAnalyticsResponse } from "../zod/schemas/sales-analytics";
+import { analyticsResponse } from "../zod/schemas/analytics-response";
 import { INTERVAL_DATA } from "./constants";
 import { AnalyticsFilters } from "./types";
-
-const responseSchema = {
-  clicks: clickAnalyticsResponse,
-  leads: leadAnalyticsResponse,
-  sales: saleAnalyticsResponse,
-  composite: compositeAnalyticsResponse,
-};
 
 // Fetch data for /api/analytics
 export const getAnalytics = async (params: AnalyticsFilters) => {
@@ -40,7 +30,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 3. interval is all time
   // 4. call is made from dashboard
   if (linkId && groupBy === "count" && interval === "all_unfiltered") {
-    const columns = event === "composite" ? `clicks, leads, sales` : `${event}`;
+    const columns =
+      event === "composite"
+        ? `clicks, leads, sales, saleAmount`
+        : event === "sales"
+          ? `sales, saleAmount`
+          : `${event}`;
 
     let response = await conn.execute(
       `SELECT ${columns} FROM Link WHERE id = ?`,
@@ -79,7 +74,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `v1_${groupBy}`,
     parameters: analyticsFilterTB,
-    data: groupBy === "top_links" ? z.any() : responseSchema[event][groupBy],
+    data: groupBy === "top_links" ? z.any() : analyticsResponse[groupBy],
   });
 
   const response = await pipe({
@@ -104,13 +99,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     const topLinksData = response.data as {
       link: string;
     }[];
-    const linkIds = topLinksData.map((item) => item.link);
 
     const links = await prismaEdge.link.findMany({
       where: {
         projectId: workspaceId,
         id: {
-          in: linkIds,
+          in: topLinksData.map((item) => item.link),
         },
       },
       select: {
@@ -122,22 +116,26 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       },
     });
 
-    const allLinks = links.map((link) => ({
-      id: link.id,
-      domain: link.domain,
-      key: link.key,
-      shortLink: linkConstructor({
-        domain: link.domain,
-        key: link.key,
-      }),
-      url: link.url,
-      createdAt: link.createdAt,
-    }));
-
-    return topLinksData.map((d) => ({
-      ...allLinks.find((l) => l.id === d.link),
-      ...d,
-    }));
+    return topLinksData
+      .map((topLink) => {
+        const link = links.find((l) => l.id === topLink.link);
+        if (!link) {
+          return null;
+        }
+        return analyticsResponse[groupBy].parse({
+          id: link.id,
+          domain: link.domain,
+          key: punyEncode(link.key),
+          url: link.url,
+          shortLink: linkConstructor({
+            domain: link.domain,
+            key: punyEncode(link.key),
+          }),
+          createdAt: link.createdAt.toISOString(),
+          ...topLink,
+        });
+      })
+      .filter((d) => d !== null);
   }
 
   // Return array for other endpoints

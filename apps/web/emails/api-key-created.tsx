@@ -15,7 +15,7 @@ import {
 import Footer from "./components/footer";
 
 export default function APIKeyCreated({
-  email = "panicking@thedis.co",
+  email = "panic@thedis.co",
   workspace = {
     name: "Acme, Inc",
     slug: "acme",

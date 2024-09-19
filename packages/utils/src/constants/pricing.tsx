@@ -46,7 +46,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     text: "Get started with Business",
     shortText: "Get started",
     href: "https://app.dub.co/register",
-    color: "bg-sky-900 hover:bg-sky-800 hover:ring-sky-100",
+    color: "bg-black hover:bg-gray-800 hover:ring-gray-200",
   },
   featureTitle: "Everything in Pro, plus:",
   features: [
@@ -54,7 +54,7 @@ const BUSINESS_PLAN_MODIFIER = ({
     {
       text: `${nFormatter(clicks)} tracked clicks/mo`,
     },
-    { text: "2-year analytics retention" },
+    { text: "3-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
     {
@@ -67,7 +67,13 @@ const BUSINESS_PLAN_MODIFIER = ({
       },
     },
     {
-      text: "Priority support",
+      text: "Event webhooks (beta)",
+      footnote: {
+        title:
+          "Get notified when a link is clicked or a QR code is scanned using webhooks.",
+        cta: "Learn more.",
+        href: "https://d.to/webhooks",
+      },
     },
   ],
 });
@@ -107,7 +113,19 @@ export const PLANS = [
       { text: "30-day analytics retention" },
       { text: "3 custom domains" },
       { text: "1 user" },
+      {
+        text: "Advanced analytics",
+        footnote: {
+          title:
+            "Get location (country, city, continent), device (type, browser, OS), and referer data on your clicks.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/dub-analytics",
+        },
+      },
       { text: "10 AI credits/mo" },
+      {
+        text: "Basic support",
+      },
       {
         text: "API Access",
         footnote: {
@@ -115,9 +133,6 @@ export const PLANS = [
           cta: "Learn more.",
           href: "https://dub.co/docs/api-reference/introduction",
         },
-      },
-      {
-        text: "Basic support",
       },
     ],
   },
@@ -154,7 +169,7 @@ export const PLANS = [
       text: "Get started with Pro",
       shortText: "Get started",
       href: "https://app.dub.co/register",
-      color: "bg-blue-500 hover:bg-blue-600 hover:ring-blue-100",
+      color: "bg-blue-600 hover:bg-blue-700 hover:ring-blue-100",
     },
     featureTitle: "Everything in Free, plus:",
     features: [
@@ -166,6 +181,11 @@ export const PLANS = [
       { text: "10 custom domains" },
       { text: "5 users" },
       {
+        text: "Advanced link features",
+        footnote:
+          "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
+      },
+      {
         text: "Unlimited AI credits",
         footnote: {
           title:
@@ -175,20 +195,25 @@ export const PLANS = [
         },
       },
       {
-        text: "Root domain redirect",
+        text: "Priority support",
+      },
+      {
+        text: "Premium dub.link domain",
         footnote: {
-          title:
-            "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
+          title: "Stand out from the crowd with a premium dub.link domain.",
           cta: "Learn more.",
-          href: "https://dub.co/help/article/how-to-redirect-root-domain",
+          href: "https://dub.co/help/article/default-dub-domains#premium-dublink-domain",
         },
       },
       {
-        text: "Advanced link features",
-        footnote:
-          "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
+        text: "Complimentary custom domain",
+        footnote: {
+          title:
+            "All our paid plans come with a free .link custom domain, which helps improve click-through rates.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/free-dot-link-domain",
+        },
       },
-      { text: "Elevated support" },
     ],
   },
   BUSINESS_PLAN_MODIFIER({
@@ -283,7 +308,8 @@ export const PLANS = [
     cta: {
       text: "Contact us",
       href: "/enterprise",
-      color: "bg-violet-600 hover:bg-violet-700 hover:ring-violet-100",
+      color:
+        "bg-gradient-to-r from-violet-600 to-pink-600 hover:ring-violet-100",
     },
     featureTitle: "Everything in Business, plus:",
     features: [

@@ -12,13 +12,24 @@ model Project {
 
   usage        Int @default(0)
   usageLimit   Int @default(1000)
-  aiUsage      Int @default(0)
-  aiLimit      Int @default(10)
   linksUsage   Int @default(0)
   linksLimit   Int @default(25)
+  salesUsage   Int @default(0)
+  salesLimit   Int @default(0)
   domainsLimit Int @default(3)
   tagsLimit    Int @default(5)
   usersLimit   Int @default(1)
+  aiUsage      Int @default(0)
+  aiLimit      Int @default(10)
+
+  referralLinkId  String? @unique
+  referredSignups Int     @default(0)
+  referredUsers   User[]
+
+  webhookEnabled    Boolean @default(false)
+  conversionEnabled Boolean @default(false)
+  ssoEnabled        Boolean @default(false)
+  dotLinkClaimed    Boolean @default(false)
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -36,8 +47,15 @@ model Project {
   oAuthCodes            OAuthCode[]
   integrations          Integration[] // Integrations workspace published
   installedIntegrations InstalledIntegration[] // Integrations workspace installed
+  webhooks              Webhook[]
+  registeredDomains     RegisteredDomain[]
 
   @@index(usageLastChecked(sort: Asc))
+}
+
+enum Role {
+  owner
+  member
 }
 
 model ProjectInvite {
@@ -45,15 +63,11 @@ model ProjectInvite {
   expires   DateTime
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String
+  role      Role     @default(member)
   createdAt DateTime @default(now())
 
   @@unique([email, projectId])
   @@index([projectId])
-}
-
-enum Role {
-  owner
-  member
 }
 
 model ProjectUsers {

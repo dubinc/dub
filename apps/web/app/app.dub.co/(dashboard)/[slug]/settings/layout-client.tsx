@@ -15,6 +15,7 @@ import {
   Tag,
   Users6,
 } from "@dub/ui/src/icons";
+import { Webhook } from "lucide-react";
 import { ReactNode, useMemo } from "react";
 
 export default function WorkspaceSettingsLayoutClient({
@@ -55,15 +56,11 @@ export default function WorkspaceSettingsLayoutClient({
             icon: Users6,
             segment: "people",
           },
-          ...(flags?.integrations
-            ? [
-                {
-                  name: "Integrations",
-                  icon: ConnectedDots,
-                  segment: "integrations",
-                },
-              ]
-            : []),
+          {
+            name: "Integrations",
+            icon: ConnectedDots,
+            segment: "integrations",
+          },
           {
             name: "Security",
             icon: ShieldCheck,
@@ -84,12 +81,17 @@ export default function WorkspaceSettingsLayoutClient({
             icon: Key,
             segment: "tokens",
           },
-          ...(flags?.integrations
+          {
+            name: "OAuth Apps",
+            icon: CubeSettings,
+            segment: "oauth-apps",
+          },
+          ...(flags?.webhooks
             ? [
                 {
-                  name: "OAuth Apps",
-                  icon: CubeSettings,
-                  segment: "oauth-apps",
+                  name: "Webhooks",
+                  icon: Webhook,
+                  segment: "webhooks",
                 },
               ]
             : []),
