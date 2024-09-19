@@ -35,19 +35,9 @@ export const updatePasswordSchema = z
     path: ["newPassword"],
   });
 
-export const signInSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1),
-});
-
 export const signUpSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-});
-
-export const verifyEmailSchema = z.object({
-  email: emailSchema,
-  code: z.string().min(6),
 });
 
 export const requestPasswordResetSchema = z.object({
