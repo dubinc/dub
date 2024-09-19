@@ -240,50 +240,69 @@ export default function LoginForm() {
         setShowSSOOption,
       }}
     >
-      <AnimatedSizeContainer height>
-        <div className="grid gap-3 p-1">
-          {authMethod && (
-            <div className="flex flex-col gap-2">
-              {authMethodComponent}
+      <div className="w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-sm">
+        <div className="border-b border-gray-200 bg-white pb-6 pt-8 text-center">
+          <h3 className="text-lg font-semibold">Sign in to your Dub account</h3>
+        </div>
+        <div className="grid gap-3 bg-gray-50 px-4 py-8 sm:px-16">
+          <AnimatedSizeContainer height>
+            <div className="grid gap-3 p-1">
+              {authMethod && (
+                <div className="flex flex-col gap-2">
+                  {authMethodComponent}
 
-              {!showEmailPasswordOnly && authMethod === lastUsedAuthMethod && (
-                <div className="text-center text-xs">
-                  <span className="text-gray-500">
-                    You signed in with{" "}
-                    {lastUsedAuthMethod.charAt(0).toUpperCase() +
-                      lastUsedAuthMethod.slice(1)}{" "}
-                    last time
-                  </span>
+                  {!showEmailPasswordOnly &&
+                    authMethod === lastUsedAuthMethod && (
+                      <div className="text-center text-xs">
+                        <span className="text-gray-500">
+                          You signed in with{" "}
+                          {lastUsedAuthMethod.charAt(0).toUpperCase() +
+                            lastUsedAuthMethod.slice(1)}{" "}
+                          last time
+                        </span>
+                      </div>
+                    )}
+                  <div className="my-2 flex flex-shrink items-center justify-center gap-2">
+                    <div className="grow basis-0 border-b border-gray-300" />
+                    <span className="text-xs font-normal uppercase leading-none text-gray-500">
+                      or
+                    </span>
+                    <div className="grow basis-0 border-b border-gray-300" />
+                  </div>
                 </div>
               )}
-              <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-                <div className="grow basis-0 border-b border-gray-300" />
-                <span className="text-xs font-normal uppercase leading-none text-gray-500">
-                  or
-                </span>
-                <div className="grow basis-0 border-b border-gray-300" />
-              </div>
+
+              {showEmailPasswordOnly ? (
+                <div className="mt-2 text-center text-sm text-gray-500">
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordField(false)}
+                    className="font-semibold text-gray-500 transition-colors hover:text-black"
+                  >
+                    Continue with another method
+                  </button>
+                </div>
+              ) : (
+                authProviders
+                  .filter((provider) => provider.method !== authMethod)
+                  .map((provider) => (
+                    <div key={provider.method}>{provider.component}</div>
+                  ))
+              )}
             </div>
-          )}
-          {showEmailPasswordOnly ? (
-            <div className="mt-2 text-center text-sm text-gray-500">
-              <button
-                type="button"
-                onClick={() => setShowPasswordField(false)}
-                className="font-semibold text-gray-500 transition-colors hover:text-black"
-              >
-                Continue with another method
-              </button>
-            </div>
-          ) : (
-            authProviders
-              .filter((provider) => provider.method !== authMethod)
-              .map((provider) => (
-                <div key={provider.method}>{provider.component}</div>
-              ))
-          )}
+          </AnimatedSizeContainer>
         </div>
-      </AnimatedSizeContainer>
+      </div>
+
+      <p className="mt-4 text-center text-sm text-gray-500">
+        Don't have an account?&nbsp;
+        <Link
+          href="register"
+          className="font-semibold text-gray-500 underline underline-offset-2 transition-colors hover:text-black"
+        >
+          Sign up
+        </Link>
+      </p>
     </LoginFormContext.Provider>
   );
 }
