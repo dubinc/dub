@@ -2,6 +2,7 @@ import {
   AnimatedSizeContainer,
   InfoTooltip,
   SimpleTooltipContent,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import {
   Flag6,
@@ -12,41 +13,52 @@ import {
   SatelliteDish,
 } from "@dub/ui/src/icons";
 import { cn, constructURLFromUTMParams, getParamsFromURL } from "@dub/utils";
-import { Fragment, useId, useMemo, useState } from "react";
+import { Fragment, useCallback, useId, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
 
 const parameters = [
-  { key: "ref", icon: LinkBroken, label: "Referral", placeholder: "google" },
+  {
+    key: "ref",
+    icon: LinkBroken,
+    label: "Referral",
+    placeholder: "google",
+    shortcut: "R",
+  },
   {
     key: "utm_source",
     icon: GlobePointer,
     label: "Source",
     placeholder: "google",
+    shortcut: "S",
   },
   {
     key: "utm_medium",
     icon: SatelliteDish,
     label: "Medium",
     placeholder: "cpc",
+    shortcut: "M",
   },
   {
     key: "utm_campaign",
     icon: Flag6,
     label: "Campaign",
     placeholder: "summer_sale",
+    shortcut: "C",
   },
   {
     key: "utm_term",
     icon: InputSearch,
     label: "Term",
     placeholder: "running shoes",
+    shortcut: "T",
   },
   {
     key: "utm_content",
     icon: Page2,
     label: "Content",
     placeholder: "logolink",
+    shortcut: "O",
   },
 ];
 
@@ -74,6 +86,38 @@ export function UTMBuilder() {
       ({ key }) => params[key] || toggledParams.includes(key),
     );
   }, [params, toggledParams]);
+
+  const toggleParameter = useCallback(
+    (key: string) => {
+      const enabled = Boolean(params[key]) || toggledParams.includes(key);
+
+      if (!enabled) setToggledParams((prev) => [...prev, key]);
+      else {
+        setToggledParams((prev) => prev.filter((k) => k !== key));
+        setValue(key as any, "");
+        setValue(
+          "url",
+          constructURLFromUTMParams(url, {
+            ...params,
+            [key]: "",
+          }),
+        );
+      }
+    },
+    [params, toggledParams, url],
+  );
+
+  useKeyboardShortcut(
+    parameters.map(({ shortcut }) => shortcut),
+    (e) => {
+      const parameter = parameters.find(({ shortcut }) => shortcut === e.key);
+      if (!parameter) return;
+      toggleParameter(parameter.key);
+    },
+    {
+      modal: true,
+    },
+  );
 
   return (
     <div>
@@ -108,20 +152,7 @@ export function UTMBuilder() {
                   ? "border-gray-200 bg-gray-200"
                   : "hover:bg-gray-100 active:bg-gray-200",
               )}
-              onClick={() => {
-                if (!enabled) setToggledParams((prev) => [...prev, key]);
-                else {
-                  setToggledParams((prev) => prev.filter((k) => k !== key));
-                  setValue(key as any, "");
-                  setValue(
-                    "url",
-                    constructURLFromUTMParams(url, {
-                      ...params,
-                      [key]: "",
-                    }),
-                  );
-                }
-              }}
+              onClick={() => toggleParameter(key)}
             >
               <Icon className="size-4" />
               <span>{label}</span>
