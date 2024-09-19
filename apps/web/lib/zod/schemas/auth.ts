@@ -50,10 +50,6 @@ export const verifyEmailSchema = z.object({
   code: z.string().min(6),
 });
 
-export const resendOtpSchema = z.object({
-  email: emailSchema,
-});
-
 export const requestPasswordResetSchema = z.object({
   email: emailSchema,
 });

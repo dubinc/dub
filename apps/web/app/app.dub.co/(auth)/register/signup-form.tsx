@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
-export const RegisterForm = () => {
+export const SignUpForm = () => {
   return (
     <>
       <div className="w-full max-w-md overflow-hidden border-y border-gray-200 sm:rounded-2xl sm:border sm:shadow-sm">

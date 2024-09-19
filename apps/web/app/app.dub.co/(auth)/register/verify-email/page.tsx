@@ -1,7 +1,7 @@
 import { BlurImage, Button, Wordmark } from "@dub/ui";
 import { constructMetadata, truncate } from "@dub/utils";
 import { Suspense } from "react";
-import VerifyEmailForm from "./form";
+// import VerifyEmailForm from "./form";
 import { ResendCode } from "./resend-code";
 
 export const metadata = constructMetadata({
@@ -58,7 +58,7 @@ export default function VerifyEmailPage({
                   </>
                 }
               >
-                <VerifyEmailForm />
+                {/* <VerifyEmailForm /> */}
               </Suspense>
             </div>
           </div>
