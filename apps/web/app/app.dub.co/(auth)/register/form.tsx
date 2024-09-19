@@ -1,7 +1,7 @@
 "use client";
 
-import SignUpEmail from "./signup-email";
-import SignupOAuth from "./signup-oauth";
+import { SignUpEmail } from "./signup-email";
+import { SignUpOAuth } from "./signup-oauth";
 
 export default function RegisterForm() {
   return (
@@ -14,7 +14,7 @@ export default function RegisterForm() {
         </span>
         <div className="border-subtle flex-grow border-t" />
       </div>
-      <SignupOAuth />
+      <SignUpOAuth />
     </>
   );
 }

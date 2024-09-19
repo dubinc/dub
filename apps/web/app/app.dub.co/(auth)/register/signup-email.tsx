@@ -10,7 +10,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export default function SignUpEmail() {
+
+export const SignUpEmail = () => {
   const router = useRouter();
 
   const {
