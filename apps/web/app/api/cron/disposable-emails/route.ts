@@ -1,27 +1,24 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// Cron to update the disposable email domains list in Redis
-// Runs every Monday at noon UTC (0 12 * * 1)
-
 export const dynamic = "force-dynamic";
 
-async function handler(req: Request) {
+// Cron to update the disposable email domains list in Redis
+// Runs every Monday at noon UTC (0 12 * * 1)
+export async function GET(req: Request) {
   try {
-    if (req.method === "GET") await verifyVercelSignature(req);
-    else if (req.method === "POST") await verifyQstashSignature(req);
+    await verifyVercelSignature(req);
 
     const disposableEmails = await fetch(
       "https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf",
     );
 
     const domains = (await disposableEmails.text()).split("\n").filter(Boolean);
+
     if (domains.length < 100) {
-      // There should definitely be at least 100 domains - something is wrong
       throw new Error("Disposable email domains list is too short");
     }
 
@@ -30,9 +27,7 @@ async function handler(req: Request) {
     await redis.sadd("disposableEmailDomainsTmp", ...domains);
     await redis.rename("disposableEmailDomainsTmp", "disposableEmailDomains");
 
-    return NextResponse.json({
-      response: "success",
-    });
+    return NextResponse.json({ status: "OK" });
   } catch (error) {
     await log({
       message: `Error updating disposable email domains list: ${error.message}`,
@@ -42,5 +37,3 @@ async function handler(req: Request) {
     return handleAndReturnErrorResponse(error);
   }
 }
-
-export { handler as GET, handler as POST };

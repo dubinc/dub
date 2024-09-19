@@ -1,4 +1,4 @@
-import AuthLayout from "@/ui/layout/old-auth-layout";
+import { AuthLayout } from "@/ui/layout/auth-layout";
 import { constructMetadata } from "@dub/utils";
 import { ForgotPasswordForm } from "./form";
 
@@ -8,7 +8,7 @@ export const metadata = constructMetadata({
 
 export default function ForgotPasswordPage() {
   return (
-    <AuthLayout variant="login" heading="Reset your Dub password">
+    <AuthLayout>
       <ForgotPasswordForm />
     </AuthLayout>
   );

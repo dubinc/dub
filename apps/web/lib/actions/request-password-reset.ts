@@ -29,7 +29,6 @@ export const requestPasswordResetAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
-    // Check user with email exists
     const user = await prisma.user.findUnique({
       where: {
         email,
@@ -37,7 +36,7 @@ export const requestPasswordResetAction = actionClient
     });
 
     if (!user) {
-      throw new Error("An user with this email does not exist.");
+      return { ok: true };
     }
 
     const token = randomBytes(32).toString("hex");
@@ -57,6 +56,10 @@ export const requestPasswordResetAction = actionClient
         },
       }),
     ]);
+
+    console.log({
+      url: `${process.env.NEXTAUTH_URL}/auth/reset-password/${token}`,
+    });
 
     await sendEmail({
       subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Password reset instructions`,

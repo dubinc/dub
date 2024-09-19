@@ -24,8 +24,6 @@ export const createUserAccountAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email, password, code } = parsedInput;
 
-    console.log("createUserAccountAction", { email, password, code });
-
     const { success } = await ratelimit(2, "1 m").limit(`signup:${getIP()}`);
 
     if (!success) {
