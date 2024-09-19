@@ -57,10 +57,6 @@ export const requestPasswordResetAction = actionClient
       }),
     ]);
 
-    console.log({
-      url: `${process.env.NEXTAUTH_URL}/auth/reset-password/${token}`,
-    });
-
     await sendEmail({
       subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Password reset instructions`,
       email,
