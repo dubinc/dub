@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-
 export const SignUpEmail = () => {
   const router = useRouter();
 
@@ -21,6 +20,10 @@ export const SignUpEmail = () => {
     formState: { errors, isDirty },
   } = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      email: "kiran@example.com",
+      password: "12345678Ab@",
+    },
   });
 
   const { executeAsync, result, status, isExecuting } = useAction(
@@ -86,4 +89,4 @@ export const SignUpEmail = () => {
       </form>
     </>
   );
-}
+};

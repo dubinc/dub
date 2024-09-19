@@ -3,7 +3,7 @@
 import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
-export default function RegisterForm() {
+export const RegisterForm = () => {
   return (
     <>
       <SignUpEmail />

@@ -42,7 +42,7 @@ export const createUserAccountAction = actionClient
 
     if (await redis.sismember("disposableEmailDomains", email.split("@")[1])) {
       throw new Error(
-        "This email domain is not allowed to sign up. If you think this is a mistake, please contact us at support@dub.co",
+        "Disposable email addresses are not allowed. If you think this is a mistake, please contact us at support@dub.co",
       );
     }
 
