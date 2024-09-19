@@ -219,7 +219,7 @@ export const ImagePreview = ({
           <div className="relative flex size-full flex-col items-center justify-center gap-2">
             <NucleoPhoto className="size-5 text-gray-700" />
             <p className="max-w-32 text-center text-xs text-gray-700">
-              Enter a link to generate a preview.
+              Enter a link to generate a preview
             </p>
           </div>
         </div>
