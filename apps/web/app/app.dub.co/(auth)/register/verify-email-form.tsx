@@ -10,12 +10,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRegisterContext } from "./context";
+import { ResendOtp } from "./resend-otp";
 
 export const VerifyEmailForm = () => {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
   const [code, setCode] = useState("");
   const { email, password } = useRegisterContext();
+  const [isInvalidCode, setIsInvalidCode] = useState(false);
 
   const { executeAsync, isExecuting } = useAction(createUserAccountAction, {
     onSuccess() {
@@ -24,6 +26,8 @@ export const VerifyEmailForm = () => {
     },
     onError({ error }) {
       toast.error(error.serverError?.serverError);
+      setCode("");
+      setIsInvalidCode(true);
     },
   });
 
@@ -70,7 +74,8 @@ export const VerifyEmailForm = () => {
                             "border-y border-r border-gray-200 bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
                             "ring-0 transition-all",
                             isActive &&
-                              "z-10 border border-gray-500 ring-4 ring-gray-200",
+                              "z-10 border border-gray-500 ring-2 ring-gray-200",
+                            isInvalidCode && "border-red-500 ring-red-200",
                           )}
                         >
                           {char}
@@ -83,6 +88,9 @@ export const VerifyEmailForm = () => {
                       ))}
                     </div>
                   )}
+                  onComplete={() => {
+                    executeAsync({ email, password, code });
+                  }}
                 />
 
                 <Button
@@ -93,6 +101,8 @@ export const VerifyEmailForm = () => {
                 />
               </div>
             </form>
+
+            <ResendOtp email={email} />
           </AnimatedSizeContainer>
         </div>
       </div>

@@ -25,7 +25,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
     <div className="grid w-full grid-cols-1 md:grid-cols-5">
       <div className="col-span-1 flex min-h-screen flex-col items-center justify-between border-r border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur sm:col-span-3">
         <div className="flex h-full w-full flex-col items-center justify-center">
-        <ClientOnly className="relative flex w-full flex-col items-center justify-center">
+          <ClientOnly className="relative flex w-full flex-col items-center justify-center">
             <Wordmark className="mb-8 h-12" />
             <Suspense>{children}</Suspense>
           </ClientOnly>

@@ -1,30 +1,28 @@
 "use client";
 
-import { resendOtpAction } from "@/lib/actions/resend-otp";
+import { sendOtpAction } from "@/lib/actions/send-otp";
 import { LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 
-export function ResendCode({ email }: { email: string }) {
+export const ResendOtp = ({ email }: { email: string }) => {
   const [delaySeconds, setDelaySeconds] = useState(0);
   const [state, setState] = useState<"default" | "success" | "error">(
     "default",
   );
 
-  const { executeAsync, result, status, isExecuting } = useAction(
-    resendOtpAction,
-    {
-      onSuccess: () => {
-        setState("success");
-      },
-      onError: () => setState("error"),
-    },
-  );
+  const { executeAsync, isExecuting } = useAction(sendOtpAction, {
+    onSuccess: () => setState("success"),
+    onError: () => setState("error"),
+  });
 
   useEffect(() => {
-    if (state === "success") setDelaySeconds(60);
-    else if (state === "error") setDelaySeconds(5);
+    if (state === "success") {
+      setDelaySeconds(60);
+    } else if (state === "error") {
+      setDelaySeconds(5);
+    }
   }, [state]);
 
   useEffect(() => {
@@ -33,8 +31,11 @@ export function ResendCode({ email }: { email: string }) {
         () => setDelaySeconds(delaySeconds - 1),
         1000,
       );
+
       return () => clearInterval(interval);
-    } else setState("default");
+    } else {
+      setState("default");
+    }
   }, [delaySeconds]);
 
   return (
@@ -46,6 +47,7 @@ export function ResendCode({ email }: { email: string }) {
               <LoadingSpinner className="h-3 w-3" />
             </div>
           )}
+
           <p className={cn(isExecuting && "opacity-80")}>
             Didn't receive a code?{" "}
             <button
@@ -60,11 +62,13 @@ export function ResendCode({ email }: { email: string }) {
           </p>
         </>
       )}
+
       {state === "success" && (
         <p className="text-sm text-gray-500">
           Code sent successfully. <Delay seconds={delaySeconds} />
         </p>
       )}
+
       {state === "error" && (
         <p className="text-sm text-gray-500">
           Failed to send code. <Delay seconds={delaySeconds} />
@@ -72,10 +76,10 @@ export function ResendCode({ email }: { email: string }) {
       )}
     </div>
   );
-}
+};
 
-function Delay({ seconds }: { seconds: number }) {
+const Delay = ({ seconds }: { seconds: number }) => {
   return (
     <span className="ml-1 text-sm tabular-nums text-gray-400">{seconds}s</span>
   );
-}
+};
