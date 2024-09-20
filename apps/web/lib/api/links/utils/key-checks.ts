@@ -7,6 +7,7 @@ import {
 import { checkIfKeyExists } from "@/lib/planetscale";
 import { WorkspaceProps } from "@/lib/types";
 import { DEFAULT_REDIRECTS, isDubDomain } from "@dub/utils";
+import { RESERVED_PATHS } from "@dub/utils/src/constants/middleware";
 
 export async function keyChecks({
   domain,
@@ -25,6 +26,13 @@ export async function keyChecks({
     };
   }
 
+  if (RESERVED_PATHS.includes(key)) {
+    return {
+      error: `${key} is a reserved path and cannot be used as a short link.`,
+      code: "forbidden",
+    };
+  }
+
   const link = await checkIfKeyExists(domain, key);
   if (link) {
     return {
@@ -34,7 +42,7 @@ export async function keyChecks({
   }
 
   if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
-    if (domain === "dub.sh") {
+    if (domain === "dub.sh" || domain === "dub.link") {
       if (DEFAULT_REDIRECTS[key] || (await isReservedKey(key))) {
         return {
           error: "Duplicate key: This short link already exists.",

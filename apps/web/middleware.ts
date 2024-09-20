@@ -25,9 +25,9 @@ export const config = {
      * 3. /_proxy/ (proxies for third-party services)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
-     * 6. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
+     * 6. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest
      */
-    "/((?!api/|_next/|_proxy/|_static|_vercel|[\\w-]+\\.\\w+).*)",
+    "/((?!api/|_next/|_proxy/|_static|_vercel|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest).*)",
   ],
 };
 
