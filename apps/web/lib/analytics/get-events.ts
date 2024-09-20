@@ -143,13 +143,7 @@ export const getEvents = async (params: EventsFilters) => {
   return events;
 };
 
-type EnrichedEvent = z.infer<
-  | typeof clickEventEnrichedSchema
-  | typeof leadEventEnrichedSchema
-  | typeof saleEventEnrichedSchema
->;
-
-const getLinksMap = async (data: EnrichedEvent[]) => {
+const getLinksMap = async (data: { link_id: string }[]) => {
   const linkIds = data.map((d) => d.link_id);
   const links = await prisma.link.findMany({
     where: {
@@ -168,31 +162,36 @@ const getLinksMap = async (data: EnrichedEvent[]) => {
   );
 };
 
-const getCustomersMap = async (data: EnrichedEvent[]) => {
-  if (data.every((d) => d.event === "lead" || d.event === "sale")) {
-    const customerIds = data.map((d) => d.customer_id);
-    const customers = await prisma.customer.findMany({
-      where: {
-        id: {
-          in: customerIds,
-        },
-      },
-    });
+const getCustomersMap = async (
+  data: { event: "click" | "lead" | "sale"; customer_id?: string }[],
+) => {
+  const customerIds = data
+    .map((d) => d.customer_id)
+    .filter((d) => d !== undefined);
 
-    return customers.reduce(
-      (acc, customer) => {
-        acc[customer.id] = customerSchema.parse({
-          ...customer,
-          id: customer.externalId,
-          avatar:
-            customer.avatar ||
-            `https://api.dicebear.com/7.x/micah/svg?seed=${customer.id}`,
-        });
-        return acc;
-      },
-      {} as Record<string, z.infer<typeof customerSchema>>,
-    );
-  } else {
+  if (customerIds.length === 0) {
     return {};
   }
+  const customers = await prisma.customer.findMany({
+    where: {
+      id: {
+        in: customerIds,
+      },
+    },
+  });
+
+  return customers.reduce(
+    (acc, customer) => {
+      acc[customer.id] = customerSchema.parse({
+        id: customer.externalId ?? customer.id,
+        name: customer.name || "",
+        email: customer.email || "",
+        avatar:
+          customer.avatar ||
+          `https://api.dicebear.com/7.x/micah/svg?seed=${customer.id}`,
+      });
+      return acc;
+    },
+    {} as Record<string, z.infer<typeof customerSchema>>,
+  );
 };
