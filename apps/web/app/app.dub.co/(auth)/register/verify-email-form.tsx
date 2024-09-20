@@ -4,6 +4,7 @@ import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import { AnimatedSizeContainer, Button, useMediaQuery } from "@dub/ui";
 import { cn, truncate } from "@dub/utils";
 import { OTPInput } from "input-otp";
+import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,11 +19,24 @@ export const VerifyEmailForm = () => {
   const [code, setCode] = useState("");
   const { email, password } = useRegisterContext();
   const [isInvalidCode, setIsInvalidCode] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const { executeAsync, isExecuting } = useAction(createUserAccountAction, {
-    onSuccess() {
-      toast.success("Email verified! Redirecting to login...");
-      router.push("/login");
+    async onSuccess() {
+      toast.success("Account created! Redirecting to dashboard...");
+      setIsRedirecting(true);
+
+      const response = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (response?.ok) {
+        router.push("/welcome");
+      } else {
+        toast.error("Failed to redirect to dashboard.");
+      }
     },
     onError({ error }) {
       toast.error(error.serverError?.serverError);
@@ -96,7 +110,7 @@ export const VerifyEmailForm = () => {
                 <Button
                   text={isExecuting ? "Verifying..." : "Continue"}
                   type="submit"
-                  loading={isExecuting}
+                  loading={isExecuting || isRedirecting}
                   disabled={!code || code.length < 6}
                 />
               </div>
