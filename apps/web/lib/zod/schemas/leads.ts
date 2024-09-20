@@ -79,14 +79,13 @@ export const leadEventSchemaTB = clickEventSchemaTB
     }),
   );
 
+// response from tinybird endpoint
 export const leadEventEnrichedSchema = z.object({
   event: z.literal("lead"),
   timestamp: z.string(),
   event_id: z.string(),
   event_name: z.string(),
-  customer_name: z.string(),
-  customer_email: z.string(),
-  customer_avatar: z.string(),
+  customer_id: z.string(),
   click_id: z.string(),
   link_id: z.string(),
   url: z.string(),
@@ -101,6 +100,7 @@ export const leadEventEnrichedSchema = z.object({
   ip: z.string().nullable(),
 });
 
+// response from dub api
 export const leadEventResponseSchema = z
   .object({
     event: z.literal("lead"),
@@ -111,18 +111,6 @@ export const leadEventResponseSchema = z
     click: clickEventSchema,
     link: linkEventSchema,
     customer: customerSchema,
-    customer_name: z
-      .string()
-      .describe("Deprecated. Use `customer.name` instead.")
-      .openapi({ deprecated: true }),
-    customer_email: z
-      .string()
-      .describe("Deprecated. Use `customer.email` instead.")
-      .openapi({ deprecated: true }),
-    customer_avatar: z
-      .string()
-      .describe("Deprecated. Use `customer.avatar` instead.")
-      .openapi({ deprecated: true }),
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent" });
