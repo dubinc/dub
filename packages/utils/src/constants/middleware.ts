@@ -18,6 +18,7 @@ export const RESERVED_PATHS = [
   "sitemap.xml",
   "robots.txt",
   "manifest.webmanifest",
+  ".well-known",
 ];
 
 export const DUB_HEADERS = {
