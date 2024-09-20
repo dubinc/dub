@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
+import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
@@ -77,16 +77,7 @@ export async function customerCreated(event: Stripe.Event) {
     customer_id: customer.id,
   };
 
-  const [_customer, _lead, _link, workspace] = await Promise.all([
-    // Record customer
-    recordCustomer({
-      workspace_id: customer.projectId,
-      customer_id: customer.id,
-      name: customer.name || "",
-      email: customer.email || "",
-      avatar: customer.avatar || "",
-    }),
-
+  const [_lead, _link, workspace] = await Promise.all([
     // Record lead
     recordLead(leadData),
 

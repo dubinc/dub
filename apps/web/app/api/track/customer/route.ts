@@ -2,12 +2,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
-import { recordCustomer } from "@/lib/tinybird";
 import {
   trackCustomerRequestSchema,
   trackCustomerResponseSchema,
 } from "@/lib/zod/schemas/customers";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -46,16 +44,6 @@ export const POST = withWorkspaceEdge(
         avatar: customerAvatar,
       },
     });
-
-    waitUntil(
-      recordCustomer({
-        workspace_id: workspace.id,
-        customer_id: customer.id,
-        name: customer.name || "",
-        email: customer.email || "",
-        avatar: customer.avatar || "",
-      }),
-    );
 
     const response = trackCustomerResponseSchema.parse({
       customerId: customer.externalId,
