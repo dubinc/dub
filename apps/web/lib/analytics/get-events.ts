@@ -61,8 +61,12 @@ export const getEvents = async (params: EventsFilters) => {
   });
 
   const [linksMap, customersMap] = await Promise.all([
-    getLinksMap(response.data),
-    getCustomersMap(response.data),
+    getLinksMap(response.data.map((d) => d.link_id)),
+    getCustomersMap(
+      response.data
+        .filter((d) => d.event === "lead" || d.event === "sale")
+        .map((d) => d.customer_id),
+    ),
   ]);
 
   const events = response.data
@@ -123,8 +127,7 @@ export const getEvents = async (params: EventsFilters) => {
   return events;
 };
 
-const getLinksMap = async (data: { link_id: string }[]) => {
-  const linkIds = data.map((d) => d.link_id);
+const getLinksMap = async (linkIds: string[]) => {
   const links = await prisma.link.findMany({
     where: {
       id: {
@@ -142,16 +145,11 @@ const getLinksMap = async (data: { link_id: string }[]) => {
   );
 };
 
-const getCustomersMap = async (
-  data: { event: "click" | "lead" | "sale"; customer_id?: string }[],
-) => {
-  const customerIds = data
-    .map((d) => d.customer_id)
-    .filter((d) => d !== undefined);
-
+const getCustomersMap = async (customerIds: string[]) => {
   if (customerIds.length === 0) {
     return {};
   }
+
   const customers = await prisma.customer.findMany({
     where: {
       id: {
