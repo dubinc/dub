@@ -5,5 +5,7 @@ export default async function FolderUsersPage({
 }: {
   params: { folderId: string };
 }) {
-  return <FolderUsersPageClient folderId={params.folderId} />;
+  const { folderId } = params;
+
+  return <FolderUsersPageClient folderId={folderId} />;
 }

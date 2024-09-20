@@ -3,6 +3,79 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+// GET /api/folders/[folderId]/users – get users with access to a folder
+export const GET = withWorkspace(
+  async ({ params, workspace }) => {
+    const { folderId } = params;
+
+    const folder = await prisma.folder.findUniqueOrThrow({
+      where: {
+        id: folderId,
+        projectId: workspace.id,
+      },
+    });
+
+    const [workspaceUsers, folderUsers] = await Promise.all([
+      prisma.projectUsers.findMany({
+        where: {
+          projectId: workspace.id,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+      }),
+
+      prisma.folderUser.findMany({
+        where: {
+          folderId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    // const accessLevelRoleMap = {
+    //   [FolderAccessLevel.PUBLIC]: "member",
+    //   [FolderAccessLevel.PROTECTED]: "member",
+    //   [FolderAccessLevel.PRIVATE]: "owner",
+    // };
+
+    const users = workspaceUsers.map(({ user }) => {
+      const folderUser = folderUsers.find(
+        (folderUser) => folderUser.userId === user.id,
+      );
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        role: folderUser?.role || folder.accessLevel,
+      };
+    });
+
+    return NextResponse.json(users);
+  },
+  {
+    requiredPermissions: ["folders.read"],
+  },
+);
+
 // DELETE /api/folders/[folderId]/users – delete users from a folder
 export const DELETE = withWorkspace(
   async ({ params, workspace, searchParams }) => {

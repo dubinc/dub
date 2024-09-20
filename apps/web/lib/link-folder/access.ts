@@ -13,41 +13,16 @@ export const FOLDER_WORKSPACE_ACCESS_DESCRIPTION = {
   [FOLDER_WORKSPACE_ACCESS.NO_ACCESS]: "No access",
 } as const;
 
-export const FOLDER_ROLES = {
-  OWNER: "owner",
-  MEMBER: "member",
-  VIEWER: "viewer",
-} as const;
+export const FOLDER_ACCESS_LEVEL_TO_ROLE = {
+  [FOLDER_WORKSPACE_ACCESS.CAN_VIEW]: "viewer",
+  [FOLDER_WORKSPACE_ACCESS.CAN_EDIT]: "owner",
+  [FOLDER_WORKSPACE_ACCESS.NO_ACCESS]: "",
+};
 
 export const FOLDER_PERMISSIONS = {
   "folders.links.create": {
-    roles: [FOLDER_ROLES.OWNER, FOLDER_ROLES.MEMBER],
+    roles: [],
     description: "create links in the folder.",
-  },
-
-  "folders.users.add": {
-    roles: [FOLDER_ROLES.OWNER],
-    description: "add users to the folder.",
-  },
-
-  "folders.users.remove": {
-    roles: [FOLDER_ROLES.OWNER],
-    description: "remove users from the folder.",
-  },
-
-  "folders.update": {
-    roles: [FOLDER_ROLES.OWNER],
-    description: "update the folder.",
-  },
-
-  "folders.delete": {
-    roles: [FOLDER_ROLES.OWNER],
-    description: "delete the folder.",
-  },
-
-  "folders.read": {
-    roles: [FOLDER_ROLES.OWNER, FOLDER_ROLES.MEMBER, FOLDER_ROLES.VIEWER],
-    description: "read the folder.",
   },
 } as const;
 

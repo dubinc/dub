@@ -9,7 +9,8 @@ import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceUserProps } from "@/lib/types";
 import { Avatar, Globe } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
+import { FolderUserRole } from "@prisma/client";
 import { ChevronLeft, FolderIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -123,13 +124,11 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
 };
 
 const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
-  const { role: userRole } = useWorkspace();
-  const { id, name, email, role: currentRole, isMachine } = user;
-  const [role, setRole] = useState<"owner" | "member" | "viewer">(currentRole);
+  const [role, setRole] = useState<FolderUserRole | "">("");
 
   return (
     <div
-      key={id}
+      key={user.id}
       className="flex items-center justify-between space-x-3 px-5 py-3"
     >
       <div className="flex items-start space-x-3">
@@ -137,23 +136,22 @@ const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
           <Avatar user={user} />
           <div className="flex flex-col">
             <h3 className="text-xs font-medium text-gray-800">
-              {name || email}
+              {user.name || user.email}
             </h3>
-            <p className="text-xs font-normal text-gray-400">{email}</p>
+            <p className="text-xs font-normal text-gray-400">{user.email}</p>
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-x-3">
         <select
-          className={cn(
-            "rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600",
-          )}
+          className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
           value={role}
           onChange={(e) => {
-            setRole(e.target.value as "owner" | "member" | "viewer");
+            setRole(e.target.value as FolderUserRole);
           }}
         >
+          <option value="">No access</option>
           <option value="owner">Owner</option>
           <option value="editor">Editor</option>
           <option value="viewer">Viewer</option>

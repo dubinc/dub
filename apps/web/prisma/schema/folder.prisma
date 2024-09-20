@@ -1,3 +1,9 @@
+enum FolderAccessLevel {
+  can_edit
+  can_view
+  no_access
+}
+
 enum FolderUserRole {
   owner
   editor
@@ -5,12 +11,12 @@ enum FolderUserRole {
 }
 
 model Folder {
-  id          String   @id @default(cuid())
+  id          String            @id @default(cuid())
   name        String
   projectId   String
-  accessLevel String?  @default("no_access") // Access level of the folder within the workspace
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  accessLevel FolderAccessLevel // Access level of the folder within the workspace
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   project        Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
   links          Link[]
