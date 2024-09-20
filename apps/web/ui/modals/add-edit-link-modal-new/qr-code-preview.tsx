@@ -13,12 +13,7 @@ import { useContext, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { LinkFormData, LinkModalContext } from ".";
-import { useQRCodeDesignModal } from "./qr-code-design-modal";
-
-export type QRCodeDesign = {
-  fgColor: string;
-  showLogo: boolean;
-};
+import { QRCodeDesign, useQRCodeDesignModal } from "./qr-code-design-modal";
 
 export function QRCodePreview() {
   const { isMobile } = useMediaQuery();

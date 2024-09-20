@@ -21,7 +21,6 @@ import {
   useState,
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
-import { QRCodeDesign } from "./qr-code-preview";
 
 const DEFAULT_COLORS = [
   "#000000",
@@ -33,6 +32,11 @@ const DEFAULT_COLORS = [
   "#2146B7",
   "#AE49BF",
 ];
+
+export type QRCodeDesign = {
+  fgColor: string;
+  showLogo: boolean;
+};
 
 type QRCodeDesignModalProps = {
   url?: string;
