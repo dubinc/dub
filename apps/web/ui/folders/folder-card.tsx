@@ -63,7 +63,7 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* <Button
+            <Button
               text={isExecuting ? "Sending..." : "Ask to edit"}
               variant="outline"
               className="h-8 rounded-md border border-gray-200"
@@ -75,7 +75,7 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
                   folderId: folder.id,
                 })
               }
-            /> */}
+            />
 
             <Popover
               content={

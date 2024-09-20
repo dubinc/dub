@@ -3,10 +3,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import {
-  folderSchema,
-  updateFolderBodySchema,
-} from "@/lib/zod/schemas/folders";
+import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
+import { FolderAccessLevel } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -37,7 +35,7 @@ export const PATCH = withWorkspace(
   async ({ req, params, workspace, session }) => {
     const { folderId } = params;
 
-    const { name, accessLevel } = updateFolderBodySchema.parse(
+    const { name, accessLevel } = updateFolderSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -65,7 +63,7 @@ export const PATCH = withWorkspace(
         },
         data: {
           name,
-          accessLevel,
+          accessLevel: accessLevel as FolderAccessLevel,
         },
       });
 

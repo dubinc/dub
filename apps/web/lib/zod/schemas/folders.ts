@@ -1,9 +1,10 @@
-import { FOLDER_WORKSPACE_ACCESS } from "@/lib/link-folder/access";
+import { FOLDER_WORKSPACE_ACCESS } from "@/lib/link-folder/constants";
 import z from "@/lib/zod";
 
 export const workspaceAccessLevelSchema = z
-  .enum(Object.values(FOLDER_WORKSPACE_ACCESS) as [string, ...string[]])
-  .default(FOLDER_WORKSPACE_ACCESS.NO_ACCESS)
+  .enum(Object.keys(FOLDER_WORKSPACE_ACCESS) as [string, ...string[]])
+  .nullish()
+  .default(null)
   .describe("The workspace access level of the folder.");
 
 export const folderSchema = z.object({
@@ -14,9 +15,9 @@ export const folderSchema = z.object({
   updatedAt: z.date().describe("The date the folder was updated."),
 });
 
-export const createFolderBodySchema = z.object({
+export const createFolderSchema = z.object({
   name: z.string().describe("The name of the folder."),
   accessLevel: workspaceAccessLevelSchema,
 });
 
-export const updateFolderBodySchema = createFolderBodySchema.partial();
+export const updateFolderSchema = createFolderSchema.partial();
