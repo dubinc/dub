@@ -39,7 +39,9 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessLevel }),
+        body: JSON.stringify({
+          accessLevel: accessLevel === "" ? null : accessLevel,
+        }),
       },
     );
 
@@ -96,11 +98,14 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                   updateWorkspaceAccessLevel(e.target.value);
                 }}
               >
-                {Object.values(FOLDER_WORKSPACE_ACCESS).map((access) => (
+                {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
                   <option value={access} key={access}>
                     {FOLDER_WORKSPACE_ACCESS[access]}
                   </option>
                 ))}
+                <option value="" key="no-access">
+                  No access
+                </option>
               </select>
             </>
           ) : (
