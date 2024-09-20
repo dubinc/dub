@@ -253,8 +253,8 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             type="text"
             name="key"
             id={inputId}
-            // allow letters, numbers, '-', '_', '/' and emojis
-            pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_]+"
+            // allow letters, numbers, '-', '_', '/', '.', and emojis
+            pattern="[\p{L}\p{N}\p{Pd}\/\p{Emoji}_.]+"
             onInvalid={(e) => {
               e.currentTarget.setCustomValidity(
                 "Only letters, numbers, '-', '_', '/', and emojis are allowed.",
