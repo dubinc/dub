@@ -20,19 +20,18 @@ import {
   useMemo,
   useState,
 } from "react";
+import { HexColorInput, HexColorPicker } from "react-colorful";
 import { QRCodeDesign } from "./qr-code-preview";
 
 const DEFAULT_COLORS = [
   "#000000",
-  "#BDC2C6",
   "#C73E33",
   "#DF6547",
   "#F4B3D7",
   "#F6CF54",
   "#49A065",
-  "#AE49BF",
-  "#68B6E9",
   "#2146B7",
+  "#AE49BF",
 ];
 
 type QRCodeDesignModalProps = {
@@ -179,27 +178,60 @@ function QRCodeDesignModalInner({
           <span className="block text-sm font-medium text-gray-700">
             QR Code Color
           </span>
-          <div className="mt-3 flex flex-wrap justify-between gap-2">
-            {DEFAULT_COLORS.map((color) => {
-              const isSelected = data.fgColor === color;
-              return (
-                <button
-                  key={color}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => setData((d) => ({ ...d, fgColor: color }))}
-                  className={cn(
-                    "flex size-8 items-center justify-center rounded-full transition-all",
-                    isSelected
-                      ? "ring-1 ring-black ring-offset-4"
-                      : "ring-black/10 hover:ring-4",
-                  )}
-                  style={{ backgroundColor: color }}
-                >
-                  {isSelected && <Check2 className="size-4 text-white" />}
-                </button>
-              );
-            })}
+          <div className="mt-2 flex gap-6">
+            <div className="relative flex h-9 w-32 shrink-0 rounded-md shadow-sm">
+              <Tooltip
+                content={
+                  <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
+                    <HexColorPicker
+                      color={data.fgColor}
+                      onChange={(color) => {
+                        setData((d) => ({ ...d, fgColor: color }));
+                      }}
+                    />
+                  </div>
+                }
+              >
+                <div
+                  className="h-full w-12 rounded-l-md border"
+                  style={{
+                    backgroundColor: data.fgColor,
+                    borderColor: data.fgColor,
+                  }}
+                />
+              </Tooltip>
+              <HexColorInput
+                id="color"
+                name="color"
+                color={data.fgColor}
+                onChange={(color) => setData((d) => ({ ...d, fgColor: color }))}
+                prefixed
+                style={{ borderColor: data.fgColor }}
+                className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
+              />
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              {DEFAULT_COLORS.map((color) => {
+                const isSelected = data.fgColor === color;
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => setData((d) => ({ ...d, fgColor: color }))}
+                    className={cn(
+                      "flex size-7 items-center justify-center rounded-full transition-all",
+                      isSelected
+                        ? "ring-1 ring-black ring-offset-[3px]"
+                        : "ring-black/10 hover:ring-4",
+                    )}
+                    style={{ backgroundColor: color }}
+                  >
+                    {isSelected && <Check2 className="size-4 text-white" />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
