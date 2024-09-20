@@ -1,15 +1,5 @@
 import { NextRequest } from "next/server";
 
-// Only add query params to the final URL if they are in this list
-const allowedQueryParams = [
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "utm_content",
-  "ref",
-];
-
 export const getFinalUrl = (
   url: string,
   { req, clickId }: { req: NextRequest; clickId?: string },
@@ -42,6 +32,16 @@ export const getFinalUrl = (
   return urlObj.toString();
 };
 
+// Only add query params to the final URL if they are not in this list
+const blockedQueryParams = [
+  "fbclid",
+  "dub_id",
+  "dclid",
+  "gclid",
+  "gclsrc",
+  "trk",
+];
+
 // Get final cleaned url for storing in TB
 export const getFinalUrlForRecordClick = ({
   req,
@@ -56,7 +56,7 @@ export const getFinalUrlForRecordClick = ({
   // Filter out query params that are not in the allowed list
   if (searchParams.size > 0) {
     for (const [key, value] of searchParams) {
-      if (allowedQueryParams.includes(key)) {
+      if (!blockedQueryParams.includes(key)) {
         urlObj.searchParams.set(key, value);
       }
     }
