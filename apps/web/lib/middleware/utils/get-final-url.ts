@@ -53,7 +53,7 @@ export const getFinalUrlForRecordClick = ({
   const searchParams = req.nextUrl.searchParams;
   const urlObj = new URL(url);
 
-  // Filter out query params that are not in the allowed list
+  // Filter out query params that are in the blocked list
   if (searchParams.size > 0) {
     for (const [key, value] of searchParams) {
       if (!blockedQueryParams.includes(key)) {
