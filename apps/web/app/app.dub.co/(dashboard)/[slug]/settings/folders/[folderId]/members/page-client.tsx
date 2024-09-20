@@ -1,10 +1,11 @@
 "use client";
 
-import { FOLDER_WORKSPACE_ACCESS } from "@/lib/link-folder/constants";
-import { FolderProps } from "@/lib/link-folder/types";
-import useUsers from "@/lib/swr/use-users";
+import {
+  FOLDER_USER_ROLE,
+  FOLDER_WORKSPACE_ACCESS,
+} from "@/lib/link-folder/constants";
+import { FolderProps, FolderUserProps } from "@/lib/link-folder/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WorkspaceUserProps } from "@/lib/types";
 import { Avatar, Globe } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
@@ -13,20 +14,32 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 
 export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
-  const { users } = useUsers();
   const [isUpdating, setIsUpdating] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<string>();
 
-  const { data: folder, isLoading } = useSWR<FolderProps>(
+  const {
+    data: folder,
+    isLoading: isFolderLoading,
+    mutate: mutateFolder,
+  } = useSWR<FolderProps>(
     `/api/folders/${folderId}?workspaceId=${workspaceId}`,
     fetcher,
   );
 
-  if (!isLoading && !folder) {
+  const {
+    data: users,
+    isLoading: isUsersLoading,
+    mutate: mutateUsers,
+  } = useSWR<FolderUserProps[]>(
+    `/api/folders/${folderId}/users?workspaceId=${workspaceId}`,
+    fetcher,
+  );
+
+  if (!isFolderLoading && !folder) {
     notFound();
   }
 
@@ -54,7 +67,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     }
 
     toast.success("Workspace access updated!");
-    await mutate(`/api/folders/${folderId}?workspaceId=${workspaceId}`);
+    await Promise.all([mutateFolder(), mutateUsers()]);
   };
 
   return (
@@ -114,19 +127,19 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
         </div>
 
         <div className="grid divide-y divide-gray-200">
-          {users
-            ? users.map((user) => <UserCard key={user.id} user={user} />)
-            : Array.from({ length: 5 }).map((_, i) => (
+          {isUsersLoading
+            ? Array.from({ length: 5 }).map((_, i) => (
                 <UserPlaceholder key={i} />
-              ))}
+              ))
+            : users?.map((user) => <UserCard key={user.id} user={user} />)}
         </div>
       </div>
     </>
   );
 };
 
-const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
-  const [role, setRole] = useState<FolderUserRole | "">("");
+const UserCard = ({ user }: { user: FolderUserProps }) => {
+  const [role, setRole] = useState<FolderUserRole | "">(user.role);
 
   return (
     <div
@@ -148,15 +161,19 @@ const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
       <div className="flex items-center gap-x-3">
         <select
           className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
-          value={role}
+          value={role || ""}
           onChange={(e) => {
             setRole(e.target.value as FolderUserRole);
           }}
         >
-          <option value="">No access</option>
-          <option value="owner">Owner</option>
-          <option value="editor">Editor</option>
-          <option value="viewer">Viewer</option>
+          {Object.keys(FOLDER_USER_ROLE).map((access) => (
+            <option value={access} key={access}>
+              {FOLDER_USER_ROLE[access]}
+            </option>
+          ))}
+          <option value="" key="no-access">
+            No access
+          </option>
         </select>
       </div>
     </div>

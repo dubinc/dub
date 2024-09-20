@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE } from "@/lib/link-folder/constants";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -49,23 +50,22 @@ export const GET = withWorkspace(
       }),
     ]);
 
-    // const accessLevelRoleMap = {
-    //   [FolderAccessLevel.PUBLIC]: "member",
-    //   [FolderAccessLevel.PROTECTED]: "member",
-    //   [FolderAccessLevel.PRIVATE]: "owner",
-    // };
-
     const users = workspaceUsers.map(({ user }) => {
       const folderUser = folderUsers.find(
         (folderUser) => folderUser.userId === user.id,
       );
+
+      const role =
+        folderUser?.role ||
+        FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE[folder.accessLevel!] ||
+        null;
 
       return {
         id: user.id,
         name: user.name,
         email: user.email,
         image: user.image,
-        role: folderUser?.role || folder.accessLevel,
+        role,
       };
     });
 
