@@ -64,8 +64,13 @@ export const getEvents = async (params: EventsFilters) => {
     getLinksMap(response.data.map((d) => d.link_id)),
     getCustomersMap(
       response.data
-        .filter((d) => d.event === "lead" || d.event === "sale")
-        .map((d) => d.customer_id),
+        .map((d) => {
+          if (d.event === "lead" || d.event === "sale") {
+            return d.customer_id;
+          }
+          return null;
+        })
+        .filter((d) => d !== null),
     ),
   ]);
 
