@@ -19,4 +19,4 @@ export const createFolderBodySchema = z.object({
   accessLevel: workspaceAccessLevelSchema,
 });
 
-export const updateFolderBodySchema = createFolderBodySchema;
+export const updateFolderBodySchema = createFolderBodySchema.partial();

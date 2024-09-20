@@ -7,8 +7,9 @@ import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { TooltipContent } from "@dub/ui";
+import { Folder } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
-import { Folder } from "lucide-react";
+// import { Folder } from "lucide-react";
 
 export const FoldersPageClient = () => {
   const { folders, isLoading } = useFolders();
@@ -50,6 +51,7 @@ export const FoldersPageClient = () => {
               icon={Folder}
               title="No folders found for this workspace"
             />
+            <AddFolderButton />
           </div>
         )}
 

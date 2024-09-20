@@ -27,9 +27,7 @@ export const GET = withWorkspace(
       },
     });
 
-    const response = folderSchema.array().parse(folders);
-
-    return NextResponse.json(response, {
+    return NextResponse.json(folderSchema.array().parse(folders), {
       headers,
     });
   },
@@ -84,9 +82,7 @@ export const POST = withWorkspace(
       },
     });
 
-    const response = folderSchema.parse(newFolder);
-
-    return NextResponse.json(response, {
+    return NextResponse.json(folderSchema.parse(newFolder), {
       headers,
       status: 201,
     });

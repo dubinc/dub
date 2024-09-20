@@ -51,6 +51,7 @@ function AddFolderButton({
       text="Create folder"
       shortcut="C"
       onClick={() => setShowAddFolderModal(true)}
+      className="w-fit"
     />
   );
 }

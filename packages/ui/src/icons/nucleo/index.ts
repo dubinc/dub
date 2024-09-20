@@ -36,6 +36,7 @@ export * from "./filter-bars";
 export * from "./filter2";
 export * from "./flag-wavy";
 export * from "./flag2";
+export * from "./folder";
 export * from "./gaming-console";
 export * from "./gear";
 export * from "./gear2";

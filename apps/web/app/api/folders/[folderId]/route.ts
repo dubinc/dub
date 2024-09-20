@@ -10,11 +10,36 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
+// GET /api/folders/[folderId] - get information about a folder
+export const GET = withWorkspace(
+  async ({ params, workspace }) => {
+    const { folderId } = params;
+
+    const folder = await prisma.folder.findUniqueOrThrow({
+      where: {
+        id: folderId,
+        projectId: workspace.id,
+      },
+      include: {
+        users: true,
+      },
+    });
+
+    return NextResponse.json(folderSchema.parse(folder));
+  },
+  {
+    requiredPermissions: ["folders.read"],
+  },
+);
+
 // PATCH /api/folders/[folderId] – update a folder for a workspace
 export const PATCH = withWorkspace(
   async ({ req, params, workspace, session }) => {
     const { folderId } = params;
-    const { name } = updateFolderBodySchema.parse(await parseRequestBody(req));
+
+    const { name, accessLevel } = updateFolderBodySchema.parse(
+      await parseRequestBody(req),
+    );
 
     const folder = await prisma.folder.findUniqueOrThrow({
       where: {
@@ -40,12 +65,11 @@ export const PATCH = withWorkspace(
         },
         data: {
           name,
+          accessLevel,
         },
       });
 
-      const response = folderSchema.parse(updatedFolder);
-
-      return NextResponse.json(response);
+      return NextResponse.json(folderSchema.parse(updatedFolder));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({

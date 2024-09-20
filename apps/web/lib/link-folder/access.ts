@@ -1,5 +1,5 @@
 import { DubApiError } from "../api/errors";
-import { FolderWithPermissions } from "./types";
+import { FolderProps } from "./types";
 
 export const FOLDER_WORKSPACE_ACCESS = {
   CAN_VIEW: "can_view",
@@ -56,7 +56,7 @@ export const canPerformActionOnFolder = ({
   userId,
   action,
 }: {
-  folder: FolderWithPermissions;
+  folder: FolderProps;
   userId: string;
   action: keyof typeof FOLDER_PERMISSIONS;
 }) => {
@@ -76,7 +76,7 @@ export const throwIfNotAllowed = ({
   userId,
   action,
 }: {
-  folder: FolderWithPermissions;
+  folder: FolderProps;
   userId: string;
   action: keyof typeof FOLDER_PERMISSIONS;
 }) => {

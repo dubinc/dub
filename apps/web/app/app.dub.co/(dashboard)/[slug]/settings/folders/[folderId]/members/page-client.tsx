@@ -1,23 +1,67 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import {
+  FOLDER_WORKSPACE_ACCESS,
+  FOLDER_WORKSPACE_ACCESS_DESCRIPTION,
+} from "@/lib/link-folder/access";
+import { FolderProps } from "@/lib/link-folder/types";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceUserProps } from "@/lib/types";
-import { Avatar, Button } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { ChevronLeft } from "lucide-react";
+import { Avatar, Globe } from "@dub/ui";
+import { cn, fetcher } from "@dub/utils";
+import { ChevronLeft, FolderIcon } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
 
-export const FolderUsersPageClient = () => {
+export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   const { users } = useUsers();
-  const { role, slug } = useWorkspace();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<string>();
+
+  const { data: folder, isLoading } = useSWR<FolderProps>(
+    `/api/folders/${folderId}?workspaceId=${workspaceId}`,
+    fetcher,
+  );
+
+  if (!isLoading && !folder) {
+    notFound();
+  }
+
+  const updateWorkspaceAccessLevel = async (accessLevel: string) => {
+    setIsUpdating(true);
+    setWorkspaceAccessLevel(accessLevel);
+
+    const response = await fetch(
+      `/api/folders/${folderId}?workspaceId=${workspaceId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessLevel }),
+      },
+    );
+
+    setIsUpdating(false);
+
+    if (!response.ok) {
+      const error = await response.json();
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success("Workspace access updated!");
+    await mutate(`/api/folders/${folderId}?workspaceId=${workspaceId}`);
+  };
 
   return (
     <>
       <Link
-        href={`/${slug}/settings/folders`}
+        href={`/${workspaceSlug}/settings/folders`}
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />
@@ -25,47 +69,54 @@ export const FolderUsersPageClient = () => {
       </Link>
 
       <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="flex flex-col items-center justify-between space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
-          <div className="flex flex-col space-y-3">
-            <h2 className="text-xl font-medium">People</h2>
-            <p className="text-sm text-gray-500">
-              Teammates that have access to this workspace.
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            <Button
-              text="Invite"
-              className="h-9"
-              disabledTooltip={
-                clientAccessCheck({
-                  action: "workspaces.write",
-                  role,
-                  customPermissionDescription: "invite new teammates",
-                }).error || undefined
-              }
-            />
-          </div>
+        <div className="flex items-center justify-between border-b px-5 py-6 sm:flex-row sm:space-y-0">
+          {folder ? (
+            <>
+              <div className="flex items-center gap-x-4">
+                <div className="rounded-full bg-green-200 p-0.5 sm:block">
+                  <div className="rounded-full border-2 border-white p-2 sm:p-2.5">
+                    <FolderIcon className="size-3" />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold leading-none text-gray-900">
+                    {folder.name}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Globe className="size-3.5 text-gray-500" />
+                    <span className="text-[13px] font-normal leading-[14.30px] text-gray-500">
+                      100 links
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <select
+                className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
+                value={workspaceAccessLevel || folder?.accessLevel}
+                disabled={isUpdating}
+                onChange={(e) => {
+                  updateWorkspaceAccessLevel(e.target.value);
+                }}
+              >
+                {Object.values(FOLDER_WORKSPACE_ACCESS).map((access) => (
+                  <option value={access} key={access}>
+                    {FOLDER_WORKSPACE_ACCESS_DESCRIPTION[access]}
+                  </option>
+                ))}
+              </select>
+            </>
+          ) : (
+            <FolderPlaceholder />
+          )}
         </div>
 
         <div className="grid divide-y divide-gray-200">
-          {users ? (
-            users.length > 0 ? (
-              users.map((user) => <UserCard key={user.id} user={user} />)
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10">
-                <img
-                  src="https://assets.dub.co/misc/video-park.svg"
-                  alt="No invitations sent"
-                  width={300}
-                  height={300}
-                  className="pointer-events-none -my-8"
-                />
-                <p className="text-sm text-gray-500">No invitations sent</p>
-              </div>
-            )
-          ) : (
-            Array.from({ length: 5 }).map((_, i) => <UserPlaceholder key={i} />)
-          )}
+          {users
+            ? users.map((user) => <UserCard key={user.id} user={user} />)
+            : Array.from({ length: 5 }).map((_, i) => (
+                <UserPlaceholder key={i} />
+              ))}
         </div>
       </div>
     </>
@@ -86,14 +137,16 @@ const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
   return (
     <div
       key={id}
-      className="flex items-center justify-between space-x-3 px-4 py-3 sm:pl-8"
+      className="flex items-center justify-between space-x-3 px-5 py-3"
     >
       <div className="flex items-start space-x-3">
         <div className="flex items-center space-x-3">
           <Avatar user={user} />
           <div className="flex flex-col">
-            <h3 className="text-sm font-medium">{name || email}</h3>
-            <p className="text-xs text-gray-500">{email}</p>
+            <h3 className="text-xs font-medium text-gray-800">
+              {name || email}
+            </h3>
+            <p className="text-xs font-normal text-gray-400">{email}</p>
           </div>
         </div>
       </div>
@@ -101,7 +154,7 @@ const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
       <div className="flex items-center gap-x-3">
         <select
           className={cn(
-            "rounded-md border border-gray-200 text-xs text-gray-500 focus:border-gray-600 focus:ring-gray-600",
+            "rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600",
             {
               "cursor-not-allowed bg-gray-100": permissionsError,
             },
@@ -121,8 +174,24 @@ const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
   );
 };
 
+const FolderPlaceholder = () => (
+  <>
+    <div className="flex items-center gap-x-4">
+      <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
+      <div className="flex flex-col gap-2">
+        <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+        <div className="flex items-center gap-1">
+          <div className="h-3.5 w-3.5 animate-pulse rounded bg-gray-200" />
+          <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+        </div>
+      </div>
+    </div>
+    <div className="h-6 w-24 animate-pulse rounded bg-gray-200" />
+  </>
+);
+
 const UserPlaceholder = () => (
-  <div className="flex items-center justify-between space-x-3 px-4 py-3 sm:px-8">
+  <div className="flex items-center justify-between space-x-3 px-5 py-3">
     <div className="flex items-center space-x-3">
       <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
       <div className="flex flex-col">
