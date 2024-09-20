@@ -37,23 +37,9 @@ export const trackCustomerResponseSchema = z.object({
   customerAvatar: z.string().nullable(),
 });
 
-export const customersMetadataSchema = z.object({
-  workspace_id: z.string().transform((v) => {
-    if (!v.startsWith("ws_")) {
-      return `ws_${v}`;
-    } else {
-      return v;
-    }
-  }),
-  customer_id: z.string(),
-  name: z.string().default(""),
-  email: z.string().default(""),
-  avatar: z.string().default(""),
-  deleted: z.number().default(0),
-});
-
 // simple schema returned by /events API
 export const customerSchema = z.object({
+  id: z.string(),
   name: z.string(),
   email: z.string(),
   avatar: z.string(),
