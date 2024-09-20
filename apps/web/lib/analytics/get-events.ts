@@ -3,12 +3,14 @@ import { tb } from "@/lib/tinybird";
 import { Link } from "@prisma/client";
 import { transformLink } from "../api/links";
 import { tbDemo } from "../tinybird/demo-client";
+import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import {
   clickEventEnrichedSchema,
   clickEventResponseSchema,
   clickEventSchema,
 } from "../zod/schemas/clicks";
+import { customerSchema } from "../zod/schemas/customers";
 import {
   leadEventEnrichedSchema,
   leadEventResponseSchema,
@@ -39,7 +41,7 @@ export const getEvents = async (params: EventsFilters) => {
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: "v1_events",
+    pipe: "v2_events",
     parameters: eventsFilterTB,
     data:
       {
@@ -58,27 +60,36 @@ export const getEvents = async (params: EventsFilters) => {
     end: end.toISOString().replace("T", " ").replace("Z", ""),
   });
 
-  const links = await prisma.link.findMany({
-    where: {
-      id: {
-        in: response.data.map((d) => d.link_id),
-      },
-    },
-  });
-
-  const linksMap = links.reduce(
-    (acc, link) => {
-      acc[link.id] = link;
-      return acc;
-    },
-    {} as Record<string, Link>,
-  );
+  const [linksMap, customersMap] = await Promise.all([
+    getLinksMap(response.data),
+    getCustomersMap(response.data),
+  ]);
 
   const events = response.data
     .map((evt) => {
       const link = linksMap[evt.link_id];
       if (!link) {
         return null;
+      }
+
+      let customer: z.infer<typeof customerSchema> = {
+        id: "",
+        name: "",
+        email: "",
+        avatar: "",
+      };
+
+      if (evt.event === "lead" || evt.event === "sale") {
+        customer = customersMap[evt.customer_id];
+        if (!customer) {
+          console.log("customer not found", evt.customer_id);
+          customer = customerSchema.parse({
+            id: evt.customer_id,
+            name: "Deleted Customer",
+            email: "deleted@customer.com",
+            avatar: `https://api.dicebear.com/7.x/micah/svg?seed=${evt.customer_id}`,
+          });
+        }
       }
 
       const eventData = {
@@ -98,13 +109,7 @@ export const getEvents = async (params: EventsFilters) => {
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
-              customer: {
-                name: evt.customer_name,
-                email: evt.customer_email,
-                avatar:
-                  evt.customer_avatar ||
-                  `https://api.dicebear.com/7.x/micah/svg?seed=${evt.customer_email}`,
-              },
+              customer,
               ...(evt.event === "sale"
                 ? {
                     sale: {
@@ -114,6 +119,11 @@ export const getEvents = async (params: EventsFilters) => {
                     },
                   }
                 : {}),
+              // backwards compatibility for old events
+              customer_id: customer.id,
+              customer_name: customer.name,
+              customer_email: customer.email,
+              customer_avatar: customer.avatar,
             }
           : {}),
       };
@@ -131,4 +141,58 @@ export const getEvents = async (params: EventsFilters) => {
     .filter((d) => d !== null);
 
   return events;
+};
+
+type EnrichedEvent = z.infer<
+  | typeof clickEventEnrichedSchema
+  | typeof leadEventEnrichedSchema
+  | typeof saleEventEnrichedSchema
+>;
+
+const getLinksMap = async (data: EnrichedEvent[]) => {
+  const linkIds = data.map((d) => d.link_id);
+  const links = await prisma.link.findMany({
+    where: {
+      id: {
+        in: linkIds,
+      },
+    },
+  });
+
+  return links.reduce(
+    (acc, link) => {
+      acc[link.id] = link;
+      return acc;
+    },
+    {} as Record<string, Link>,
+  );
+};
+
+const getCustomersMap = async (data: EnrichedEvent[]) => {
+  if (data.every((d) => d.event === "lead" || d.event === "sale")) {
+    const customerIds = data.map((d) => d.customer_id);
+    const customers = await prisma.customer.findMany({
+      where: {
+        id: {
+          in: customerIds,
+        },
+      },
+    });
+
+    return customers.reduce(
+      (acc, customer) => {
+        acc[customer.id] = customerSchema.parse({
+          ...customer,
+          id: customer.externalId,
+          avatar:
+            customer.avatar ||
+            `https://api.dicebear.com/7.x/micah/svg?seed=${customer.id}`,
+        });
+        return acc;
+      },
+      {} as Record<string, z.infer<typeof customerSchema>>,
+    );
+  } else {
+    return {};
+  }
 };
