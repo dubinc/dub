@@ -19,13 +19,6 @@ import { LinkFormData } from ".";
 
 const parameters = [
   {
-    key: "ref",
-    icon: LinkBroken,
-    label: "Referral",
-    placeholder: "google",
-    shortcut: "R",
-  },
-  {
     key: "utm_source",
     icon: GlobePointer,
     label: "Source",
@@ -59,6 +52,13 @@ const parameters = [
     label: "Content",
     placeholder: "logolink",
     shortcut: "O",
+  },
+  {
+    key: "ref",
+    icon: LinkBroken,
+    label: "Referral",
+    placeholder: "google",
+    shortcut: "R",
   },
 ];
 
