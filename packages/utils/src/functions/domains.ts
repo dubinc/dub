@@ -33,8 +33,9 @@ export const validDomainRegex = new RegExp(
   /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
 );
 
+// allow letters, numbers, '-', '_', '/', '.', and emojis
 export const validKeyRegex = new RegExp(
-  /^[0-9A-Za-z_\u0080-\uFFFF\/\-\p{Emoji}]*$/u,
+  /^[0-9A-Za-z_\u0080-\uFFFF\/\-\p{Emoji}.]+$/u,
 );
 
 export const validSlugRegex = new RegExp(/^[a-zA-Z0-9\-]+$/);

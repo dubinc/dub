@@ -23,11 +23,10 @@ export const config = {
      * 1. /api/ routes
      * 2. /_next/ (Next.js internals)
      * 3. /_proxy/ (proxies for third-party services)
-     * 4. /_static (inside /public)
-     * 5. /_vercel (Vercel internals)
-     * 6. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
+     * 4. /_static/ (static files inside /public folder)
+     * 5. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest, .well-known
      */
-    "/((?!api/|_next/|_proxy/|_static|_vercel|[\\w-]+\\.\\w+).*)",
+    "/((?!api/|_next/|_proxy/|_static/|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest|.well-known).*)",
   ],
 };
 

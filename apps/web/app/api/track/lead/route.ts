@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
 import { prismaEdge } from "@/lib/prisma/edge";
-import { getClickEvent, recordCustomer, recordLead } from "@/lib/tinybird";
+import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -85,21 +85,13 @@ export const POST = withWorkspaceEdge(
           },
         });
 
-        const [_lead, _customer, link, _project] = await Promise.all([
+        const [_lead, link, _project] = await Promise.all([
           recordLead({
             ...clickData,
             event_id: nanoid(16),
             event_name: eventName,
             customer_id: customer.id,
             metadata: metadata ? JSON.stringify(metadata) : "",
-          }),
-
-          recordCustomer({
-            workspace_id: workspace.id,
-            customer_id: customer.id,
-            name: customer.name || "",
-            email: customer.email || "",
-            avatar: customer.avatar || "",
           }),
 
           // update link leads count
