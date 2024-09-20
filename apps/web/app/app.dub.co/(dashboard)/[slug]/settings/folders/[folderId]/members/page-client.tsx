@@ -5,9 +5,11 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/link-folder/constants";
 import { FolderProps, FolderUserProps } from "@/lib/link-folder/types";
+import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { AskToEditButton } from "@/ui/folders/ask-to-edit-button";
 import { Avatar, Globe } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
 import { ChevronLeft, FolderIcon } from "lucide-react";
 import Link from "next/link";
@@ -17,6 +19,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 
 export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
+  const { user } = useUser();
   const [isUpdating, setIsUpdating] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<string>();
@@ -70,6 +73,10 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     await Promise.all([mutateFolder(), mutateUsers()]);
   };
 
+  const currentUser = users?.find((user) => user.id === user?.id);
+
+  console.log(currentUser);
+
   return (
     <>
       <Link
@@ -103,23 +110,29 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                 </div>
               </div>
 
-              <select
-                className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
-                value={workspaceAccessLevel || folder?.accessLevel || ""}
-                disabled={isUpdating}
-                onChange={(e) => {
-                  updateWorkspaceAccessLevel(e.target.value);
-                }}
-              >
-                {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
-                  <option value={access} key={access}>
-                    {FOLDER_WORKSPACE_ACCESS[access]}
+              {currentUser?.role === "owner" && (
+                <select
+                  className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
+                  value={workspaceAccessLevel || folder?.accessLevel || ""}
+                  disabled={isUpdating}
+                  onChange={(e) => {
+                    updateWorkspaceAccessLevel(e.target.value);
+                  }}
+                >
+                  {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
+                    <option value={access} key={access}>
+                      {FOLDER_WORKSPACE_ACCESS[access]}
+                    </option>
+                  ))}
+                  <option value="" key="no-access">
+                    No access
                   </option>
-                ))}
-                <option value="" key="no-access">
-                  No access
-                </option>
-              </select>
+                </select>
+              )}
+
+              {currentUser?.role === "viewer" || currentUser?.role === null ? (
+                <AskToEditButton folder={folder} workspaceId={workspaceId!} />
+              ) : null}
             </>
           ) : (
             <FolderPlaceholder />
@@ -131,15 +144,25 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
             ? Array.from({ length: 5 }).map((_, i) => (
                 <UserPlaceholder key={i} />
               ))
-            : users?.map((user) => <UserCard key={user.id} user={user} />)}
+            : users?.map((user) => (
+                <UserCard key={user.id} user={user} currentUser={currentUser} />
+              ))}
         </div>
       </div>
     </>
   );
 };
 
-const UserCard = ({ user }: { user: FolderUserProps }) => {
-  const [role, setRole] = useState<FolderUserRole | "">(user.role);
+const UserCard = ({
+  user,
+  currentUser,
+}: {
+  user: FolderUserProps;
+  currentUser?: FolderUserProps;
+}) => {
+  const [role, setRole] = useState<FolderUserRole | "">(user.role || "");
+
+  const canUpdateRole = currentUser?.role === "owner";
 
   return (
     <div
@@ -160,8 +183,14 @@ const UserCard = ({ user }: { user: FolderUserProps }) => {
 
       <div className="flex items-center gap-x-3">
         <select
-          className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
-          value={role || ""}
+          className={cn(
+            "rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600",
+            {
+              "cursor-not-allowed bg-gray-100": !canUpdateRole,
+            },
+          )}
+          value={role}
+          disabled={!canUpdateRole}
           onChange={(e) => {
             setRole(e.target.value as FolderUserRole);
           }}

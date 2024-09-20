@@ -1,19 +1,17 @@
 "use client";
 
-import { requestFolderEditAccessAction } from "@/lib/actions/request-folder-edit-access";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderProps } from "@/lib/types";
 import { Button, PenWriting, Popover, Users } from "@dub/ui";
 import { Globe } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
 import { FolderIcon } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
+import { AskToEditButton } from "./ask-to-edit-button";
 
 interface LinksCount {
   folderId: string;
@@ -36,18 +34,6 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
   const { DeleteFolderModal, setShowDeleteFolderModal } =
     useDeleteFolderModal(folder);
 
-  const { executeAsync, isExecuting } = useAction(
-    requestFolderEditAccessAction,
-    {
-      onSuccess: () => {
-        toast.success("Request sent to folder owner.");
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError?.serverError);
-      },
-    },
-  );
-
   const linkCount =
     linksCount?.find((link) => link.folderId === folder.id)?.count || 0;
 
@@ -63,19 +49,7 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              text={isExecuting ? "Sending..." : "Ask to edit"}
-              variant="outline"
-              className="h-8 rounded-md border border-gray-200"
-              disabled={isExecuting}
-              loading={isExecuting}
-              onClick={() =>
-                executeAsync({
-                  workspaceId: workspaceId!,
-                  folderId: folder.id,
-                })
-              }
-            />
+            <AskToEditButton folder={folder} workspaceId={workspaceId!} />
 
             <Popover
               content={
