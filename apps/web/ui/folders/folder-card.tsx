@@ -103,7 +103,7 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
         </div>
 
         <div className="sm:mt-6">
-          <span className="text-sm font-medium text-gray-900">
+          <span className="block truncate text-sm font-medium text-gray-900">
             {folder.name}
           </span>
           <div className="flex items-center gap-1 text-gray-500">
