@@ -49,6 +49,7 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { LinkPreview } from "./link-preview";
 import { QRCodePreview } from "./qr-code-preview";
+import { TogglesDropdown, TogglesList } from "./toggles";
 import { useMetatags } from "./use-metatags";
 import { UTMBuilder } from "./utm-builder";
 
@@ -56,6 +57,7 @@ export const LinkModalContext = createContext<{
   workspaceId?: string;
   workspacePlan?: string;
   workspaceLogo?: string;
+  conversionEnabled?: boolean;
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
@@ -92,7 +94,13 @@ function AddEditLinkModalInner({
   const { slug } = params;
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, plan, nextPlan, logo } = useWorkspace();
+  const {
+    id: workspaceId,
+    plan,
+    nextPlan,
+    logo,
+    conversionEnabled,
+  } = useWorkspace();
 
   const {
     control,
@@ -209,6 +217,7 @@ function AddEditLinkModalInner({
           workspaceId,
           workspacePlan: plan,
           workspaceLogo: logo ?? undefined,
+          conversionEnabled: conversionEnabled,
           generatingMetatags,
         }}
       >
@@ -322,7 +331,7 @@ function AddEditLinkModalInner({
             )}
           >
             <div className="scrollbar-hide px-6 md:overflow-auto">
-              <div className="grid gap-8 py-4">
+              <div className="flex min-h-full flex-col gap-8 py-4">
                 <Controller
                   name="url"
                   control={control}
@@ -398,6 +407,10 @@ function AddEditLinkModalInner({
                     )}
                   />
                 </div>
+
+                <div className="flex grow flex-col justify-end">
+                  <TogglesList />
+                </div>
               </div>
             </div>
             <div className="scrollbar-hide px-6 md:overflow-auto md:pl-0 md:pr-4">
@@ -411,7 +424,9 @@ function AddEditLinkModalInner({
             </div>
           </div>
           <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 p-4">
-            <div></div>
+            <div className="flex items-center gap-2">
+              <TogglesDropdown />
+            </div>
             {homepageDemo ? (
               <Button
                 disabledTooltip="This is a demo link. You can't edit it."
