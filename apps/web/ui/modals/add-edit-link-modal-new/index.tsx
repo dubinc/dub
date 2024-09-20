@@ -19,6 +19,7 @@ import {
 } from "@dub/ui";
 import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
+  cn,
   deepEqual,
   DEFAULT_LINK_PROPS,
   getApexDomain,
@@ -313,7 +314,13 @@ function AddEditLinkModalInner({
             )}
           </div>
 
-          <div className="grid w-full gap-y-6 max-md:max-h-[calc(100dvh-200px)] max-md:overflow-auto md:grid-cols-[2fr_1fr] md:[&>div]:max-h-[calc(100dvh-200px)]">
+          <div
+            className={cn(
+              "grid w-full gap-y-6 max-md:overflow-auto md:grid-cols-[2fr_1fr]",
+              "max-md:max-h-[calc(100dvh-200px)] max-md:min-h-[min(510px,_calc(100dvh-200px))]",
+              "md:[&>div]:max-h-[calc(100dvh-200px)] md:[&>div]:min-h-[min(510px,_calc(100dvh-200px))]",
+            )}
+          >
             <div className="scrollbar-hide px-6 md:overflow-auto">
               <div className="grid gap-8 py-4">
                 <Controller
