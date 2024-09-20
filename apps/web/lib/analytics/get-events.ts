@@ -72,26 +72,6 @@ export const getEvents = async (params: EventsFilters) => {
         return null;
       }
 
-      let customer: z.infer<typeof customerSchema> = {
-        id: "",
-        name: "",
-        email: "",
-        avatar: "",
-      };
-
-      if (evt.event === "lead" || evt.event === "sale") {
-        customer = customersMap[evt.customer_id];
-        if (!customer) {
-          console.log("customer not found", evt.customer_id);
-          customer = customerSchema.parse({
-            id: evt.customer_id,
-            name: "Deleted Customer",
-            email: "deleted@customer.com",
-            avatar: `https://api.dicebear.com/7.x/micah/svg?seed=${evt.customer_id}`,
-          });
-        }
-      }
-
       const eventData = {
         ...evt,
         // use link domain & key from mysql instead of tinybird
@@ -109,7 +89,12 @@ export const getEvents = async (params: EventsFilters) => {
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
-              customer,
+              customer: customersMap[evt.customer_id] ?? {
+                id: evt.customer_id,
+                name: "Deleted Customer",
+                email: "deleted@customer.com",
+                avatar: `https://api.dicebear.com/7.x/micah/svg?seed=${evt.customer_id}`,
+              },
               ...(evt.event === "sale"
                 ? {
                     sale: {
@@ -119,11 +104,6 @@ export const getEvents = async (params: EventsFilters) => {
                     },
                   }
                 : {}),
-              // backwards compatibility for old events
-              customer_id: customer.id,
-              customer_name: customer.name,
-              customer_email: customer.email,
-              customer_avatar: customer.avatar,
             }
           : {}),
       };

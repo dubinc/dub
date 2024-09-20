@@ -82,6 +82,7 @@ export const saleEventSchemaTB = clickEventSchemaTB
     }),
   );
 
+// response from tinybird endpoint
 export const saleEventEnrichedSchema = z.object({
   event: z.literal("sale"),
   timestamp: z.string(),
@@ -105,6 +106,7 @@ export const saleEventEnrichedSchema = z.object({
   ip: z.string().nullable(),
 });
 
+// response from dub api
 export const saleEventResponseSchema = z
   .object({
     event: z.literal("sale"),
@@ -120,18 +122,6 @@ export const saleEventResponseSchema = z
       invoiceId: true,
       paymentProcessor: true,
     }),
-    customer_name: z
-      .string()
-      .describe("Deprecated. Use `customer.name` instead.")
-      .openapi({ deprecated: true }),
-    customer_email: z
-      .string()
-      .describe("Deprecated. Use `customer.email` instead.")
-      .openapi({ deprecated: true }),
-    customer_avatar: z
-      .string()
-      .describe("Deprecated. Use `customer.avatar` instead.")
-      .openapi({ deprecated: true }),
     saleAmount: z
       .number()
       .describe("Deprecated. Use `sale.amount` instead.")

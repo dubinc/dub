@@ -79,6 +79,7 @@ export const leadEventSchemaTB = clickEventSchemaTB
     }),
   );
 
+// response from tinybird endpoint
 export const leadEventEnrichedSchema = z.object({
   event: z.literal("lead"),
   timestamp: z.string(),
@@ -99,6 +100,7 @@ export const leadEventEnrichedSchema = z.object({
   ip: z.string().nullable(),
 });
 
+// response from dub api
 export const leadEventResponseSchema = z
   .object({
     event: z.literal("lead"),
@@ -109,18 +111,6 @@ export const leadEventResponseSchema = z
     click: clickEventSchema,
     link: linkEventSchema,
     customer: customerSchema,
-    customer_name: z
-      .string()
-      .describe("Deprecated. Use `customer.name` instead.")
-      .openapi({ deprecated: true }),
-    customer_email: z
-      .string()
-      .describe("Deprecated. Use `customer.email` instead.")
-      .openapi({ deprecated: true }),
-    customer_avatar: z
-      .string()
-      .describe("Deprecated. Use `customer.avatar` instead.")
-      .openapi({ deprecated: true }),
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent" });
