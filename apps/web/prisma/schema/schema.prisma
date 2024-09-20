@@ -40,6 +40,7 @@ model User {
   integrations          Integration[] // Integrations user created in their workspace
   installedIntegrations InstalledIntegration[] // Integrations user installed in their workspace
   folders               FolderUser[]
+  folderAccessRequests  FolderAccessRequest[]
 
   @@index(source)
   @@index(defaultWorkspace)

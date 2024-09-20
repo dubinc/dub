@@ -38,7 +38,7 @@ export const GET = withWorkspace(
 
 // POST /api/folders - create a folder for a workspace
 export const POST = withWorkspace(
-  async ({ req, workspace, headers }) => {
+  async ({ req, workspace, headers, session }) => {
     const foldersCount = await prisma.folder.count({
       where: {
         projectId: workspace.id,
@@ -79,6 +79,12 @@ export const POST = withWorkspace(
         projectId: workspace.id,
         name,
         accessLevel,
+        users: {
+          create: {
+            userId: session.user.id,
+            role: "owner",
+          },
+        },
       },
     });
 

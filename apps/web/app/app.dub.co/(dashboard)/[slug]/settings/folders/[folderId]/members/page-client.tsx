@@ -1,6 +1,5 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import {
   FOLDER_WORKSPACE_ACCESS,
   FOLDER_WORKSPACE_ACCESS_DESCRIPTION,
@@ -128,12 +127,6 @@ const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
   const { id, name, email, role: currentRole, isMachine } = user;
   const [role, setRole] = useState<"owner" | "member" | "viewer">(currentRole);
 
-  const permissionsError = clientAccessCheck({
-    action: "workspaces.write",
-    role: userRole,
-    customPermissionDescription: "edit roles or remove teammates",
-  }).error;
-
   return (
     <div
       key={id}
@@ -155,12 +148,8 @@ const UserCard = ({ user }: { user: WorkspaceUserProps }) => {
         <select
           className={cn(
             "rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600",
-            {
-              "cursor-not-allowed bg-gray-100": permissionsError,
-            },
           )}
           value={role}
-          disabled={permissionsError ? true : false}
           onChange={(e) => {
             setRole(e.target.value as "owner" | "member" | "viewer");
           }}
