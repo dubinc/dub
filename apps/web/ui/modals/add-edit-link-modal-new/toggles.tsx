@@ -86,7 +86,7 @@ export function TogglesDropdown() {
     <Popover
       align="start"
       content={
-        <div className="grid p-1 md:min-w-72">
+        <div className="grid p-1 max-sm:w-full md:min-w-72">
           {toggles.map((toggle) => {
             const enabled = data[toggle.key];
 
