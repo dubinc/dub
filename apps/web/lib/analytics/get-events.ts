@@ -70,7 +70,7 @@ export const getEvents = async (params: EventsFilters) => {
           }
           return null;
         })
-        .filter((d) => d !== null),
+        .filter(Boolean) as string[],
     ),
   ]);
 
