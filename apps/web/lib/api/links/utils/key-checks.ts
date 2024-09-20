@@ -56,7 +56,6 @@ export async function keyChecks({
         };
       }
     }
-
     if (key.length <= 3 && (!workspace || workspace.plan === "free")) {
       return {
         error: `You can only use keys that are 3 characters or less on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
