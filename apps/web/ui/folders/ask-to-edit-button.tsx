@@ -1,13 +1,13 @@
 "use client";
 
 import { requestFolderEditAccessAction } from "@/lib/actions/request-folder-edit-access";
-import { FolderProps } from "@/lib/types";
+import { FolderWithRole } from "@/lib/link-folder/types";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
 interface AskToEditButtonProps {
-  folder: FolderProps;
+  folder: FolderWithRole;
   workspaceId: string;
 }
 

@@ -1,11 +1,11 @@
+import { FolderWithRole } from "@/lib/link-folder/types";
 import useFolders from "@/lib/swr/use-folders";
-import { FolderProps } from "@/lib/types";
 import { Popover, Tick, useRouterStuff } from "@dub/ui";
 import { ChevronsUpDown, FolderCheck, FolderPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
-type Folder = Pick<FolderProps, "id" | "name">;
+type Folder = Pick<FolderWithRole, "id" | "name">;
 
 const allLinksFolder: Folder = {
   id: "all-links",
