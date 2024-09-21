@@ -1,49 +1,73 @@
+import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../api/errors";
+import {
+  FOLDER_PERMISSIONS,
+  FOLDER_USER_ROLE,
+  FOLDER_USER_ROLE_TO_PERMISSIONS,
+  FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
+} from "./constants";
 import { FolderProps } from "./types";
 
-export const FOLDER_PERMISSIONS = {
-  "folders.links.create": {
-    roles: [],
-    description: "create links in the folder.",
-  },
-} as const;
-
-export const canPerformActionOnFolder = ({
-  folder,
-  userId,
-  action,
-}: {
-  folder: FolderProps;
-  userId: string;
-  action: keyof typeof FOLDER_PERMISSIONS;
-}) => {
-  const allowedRoles = FOLDER_PERMISSIONS[action].roles;
-  const currentUser = folder.users.find((user) => user.userId === userId);
-
-  // if (!currentUser || !currentUser.accessLevel) {
-  //   return false;
-  // }
-
-  // @ts-ignore
-  return allowedRoles.includes(currentUser.accessLevel);
+// Only owner can perform action on restricted folder
+const isRestrictedFolder = (folder: FolderProps) => {
+  return folder.accessLevel === null;
 };
 
-export const throwIfNotAllowed = ({
+export const canPerformActionOnFolder = async ({
   folder,
   userId,
-  action,
+  requiredPermission,
 }: {
   folder: FolderProps;
   userId: string;
-  action: keyof typeof FOLDER_PERMISSIONS;
+  requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
 }) => {
-  const can = canPerformActionOnFolder({ folder, userId, action });
-  const permission = FOLDER_PERMISSIONS[action];
+  const folderUser = await prisma.folderUser.findUnique({
+    where: {
+      folderId_userId: {
+        folderId: folder.id,
+        userId,
+      },
+    },
+  });
+
+  const folderUserRole: keyof typeof FOLDER_USER_ROLE | null =
+    folderUser?.role ||
+    FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE[folder.accessLevel!] ||
+    null;
+
+  if (!folderUserRole) {
+    return false;
+  }
+
+  const permissions = FOLDER_USER_ROLE_TO_PERMISSIONS[folderUserRole];
+
+  if (!permissions.includes(requiredPermission)) {
+    return false;
+  }
+
+  return true;
+};
+
+export const throwIfNotAllowed = async ({
+  folder,
+  userId,
+  requiredPermission,
+}: {
+  folder: FolderProps;
+  userId: string;
+  requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
+}) => {
+  const can = await canPerformActionOnFolder({
+    folder,
+    userId,
+    requiredPermission,
+  });
 
   if (!can) {
     throw new DubApiError({
       code: "forbidden",
-      message: `You are not allowed to ${permission.description}.`,
+      message: `You are not allowed to perform this action on this folder.`,
     });
   }
 };
