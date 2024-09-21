@@ -19,8 +19,6 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
     });
 
-    console.log("count", count);
-
     return NextResponse.json(count, {
       headers,
     });
