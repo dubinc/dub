@@ -4,7 +4,6 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link, Project, Webhook } from "@prisma/client";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { trackCustomerResponseSchema } from "./zod/schemas/customers";
-import { folderSchema } from "./zod/schemas/folders";
 import { integrationSchema } from "./zod/schemas/integration";
 import { trackLeadResponseSchema } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
