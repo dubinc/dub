@@ -1,9 +1,11 @@
 "use client";
 
 import {
+  FOLDER_PERMISSIONS,
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/link-folder/constants";
+import { getFolderPermissions } from "@/lib/link-folder/permissions";
 import { FolderProps, FolderUserProps } from "@/lib/link-folder/types";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -28,7 +30,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     data: folder,
     isLoading: isFolderLoading,
     mutate: mutateFolder,
-  } = useSWR<FolderProps>(
+  } = useSWR<FolderProps & { role: FolderUserRole | null }>(
     `/api/folders/${folderId}?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -74,8 +76,9 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   };
 
   const currentUser = users?.find((user) => user.id === user?.id);
+  const folderPermissions = getFolderPermissions(folder?.role || null);
 
-  console.log(currentUser);
+  console.log("folderPermissions", folderPermissions);
 
   return (
     <>
@@ -110,7 +113,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                 </div>
               </div>
 
-              {currentUser?.role === "owner" && (
+              {folderPermissions.includes("folders.users.write") && (
                 <select
                   className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
                   value={workspaceAccessLevel || folder?.accessLevel || ""}
@@ -130,9 +133,9 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                 </select>
               )}
 
-              {currentUser?.role === "viewer" || currentUser?.role === null ? (
+              {!folderPermissions.includes("folders.links.write") && (
                 <AskToEditButton folder={folder} workspaceId={workspaceId!} />
-              ) : null}
+              )}
             </>
           ) : (
             <FolderPlaceholder />
@@ -145,7 +148,12 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                 <UserPlaceholder key={i} />
               ))
             : users?.map((user) => (
-                <UserCard key={user.id} user={user} currentUser={currentUser} />
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  currentUser={currentUser}
+                  folderPermissions={folderPermissions}
+                />
               ))}
         </div>
       </div>
@@ -156,13 +164,13 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
 const UserCard = ({
   user,
   currentUser,
+  folderPermissions,
 }: {
   user: FolderUserProps;
   currentUser?: FolderUserProps;
+  folderPermissions: (typeof FOLDER_PERMISSIONS)[number][];
 }) => {
   const [role, setRole] = useState<FolderUserRole | "">(user.role || "");
-
-  const canUpdateRole = currentUser?.role === "owner";
 
   return (
     <div
@@ -186,11 +194,13 @@ const UserCard = ({
           className={cn(
             "rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600",
             {
-              "cursor-not-allowed bg-gray-100": !canUpdateRole,
+              "cursor-not-allowed bg-gray-100": !folderPermissions.includes(
+                "folders.users.write",
+              ),
             },
           )}
           value={role}
-          disabled={!canUpdateRole}
+          disabled={!folderPermissions.includes("folders.users.write")}
           onChange={(e) => {
             setRole(e.target.value as FolderUserRole);
           }}

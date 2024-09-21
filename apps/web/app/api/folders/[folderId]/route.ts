@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfNotAllowed } from "@/lib/link-folder/access";
+import { getFolderUserRole } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -14,23 +14,37 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const folder = await prisma.folder.findUniqueOrThrow({
-      where: {
-        id: folderId,
-        projectId: workspace.id,
-      },
-      include: {
-        users: true,
-      },
-    });
+    const [folder, folderUser] = await Promise.all([
+      prisma.folder.findUniqueOrThrow({
+        where: {
+          id: folderId,
+          projectId: workspace.id,
+        },
+        include: {
+          users: true,
+        },
+      }),
 
-    await throwIfNotAllowed({
-      folder,
-      userId: session.user.id,
-      requiredPermission: "folders.read",
-    });
+      prisma.folderUser.findUnique({
+        where: {
+          folderId_userId: {
+            folderId,
+            userId: session.user.id,
+          },
+        },
+      }),
+    ]);
 
-    return NextResponse.json(folderSchema.parse(folder));
+    // TODO:
+    // Add a flag to control if we want to return the role or not
+
+    return NextResponse.json({
+      ...folderSchema.parse(folder),
+      role: await getFolderUserRole({
+        folder,
+        folderUser,
+      }),
+    });
   },
   {
     requiredPermissions: ["folders.read"],
@@ -56,11 +70,11 @@ export const PATCH = withWorkspace(
       },
     });
 
-    await throwIfNotAllowed({
-      folder,
-      userId: session.user.id,
-      requiredPermission: "folders.write",
-    });
+    // await throwIfNotAllowed({
+    //   folder,
+    //   userId: session.user.id,
+    //   requiredPermission: "folders.write",
+    // });
 
     try {
       const updatedFolder = await prisma.folder.update({
@@ -113,11 +127,11 @@ export const DELETE = withWorkspace(
       },
     });
 
-    await throwIfNotAllowed({
-      folder,
-      userId: session.user.id,
-      requiredPermission: "folders.write",
-    });
+    // await throwIfNotAllowed({
+    //   folder,
+    //   userId: session.user.id,
+    //   requiredPermission: "folders.write",
+    // });
 
     const deletedFolder = await prisma.folder.delete({
       where: {
