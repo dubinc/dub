@@ -260,5 +260,3 @@ export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
 export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
-
-export type FolderProps = z.infer<typeof folderSchema>;

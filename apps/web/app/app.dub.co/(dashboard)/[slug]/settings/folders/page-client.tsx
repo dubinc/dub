@@ -1,5 +1,6 @@
 "use client";
 
+import { FolderWithRole } from "@/lib/link-folder/types";
 import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { FolderCard } from "@/ui/folders/folder-card";
@@ -9,6 +10,15 @@ import EmptyState from "@/ui/shared/empty-state";
 import { TooltipContent } from "@dub/ui";
 import { Folder } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
+
+const allLinkFolder: FolderWithRole = {
+  id: "all-links",
+  name: "All links",
+  accessLevel: null,
+  role: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
 export const FoldersPageClient = () => {
   const { folders, isLoading } = useFolders();
@@ -55,6 +65,8 @@ export const FoldersPageClient = () => {
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <FolderCard folder={allLinkFolder} linksCount={linksCount} />
+
           {isLoading
             ? Array.from({ length: 6 }).map((_, idx) => (
                 <FolderCardPlaceholder key={idx} />

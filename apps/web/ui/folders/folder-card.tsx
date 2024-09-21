@@ -1,12 +1,11 @@
 "use client";
 
 import { getFolderPermissions } from "@/lib/link-folder/permissions";
+import { FolderWithRole } from "@/lib/link-folder/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderProps } from "@/lib/types";
 import { Button, PenWriting, Popover, Users } from "@dub/ui";
 import { Globe } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
-import { FolderUserRole } from "@prisma/client";
 import { FolderIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -21,7 +20,7 @@ interface LinksCount {
 }
 
 interface FolderCardProps {
-  folder: FolderProps & { role: FolderUserRole | null };
+  folder: FolderWithRole;
   linksCount: LinksCount[] | undefined;
 }
 
@@ -40,6 +39,9 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
     linksCount?.find((link) => link.folderId === folder.id)?.count || 0;
 
   const folderPermissions = getFolderPermissions(folder.role);
+  const canUpdateFolder = folderPermissions.includes("folders.write");
+  const canMoveLinks = folderPermissions.includes("folders.links.write");
+  const isAllLinksFolder = folder.id === "all-links";
 
   return (
     <>
@@ -52,69 +54,72 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
               <FolderIcon className="size-3" />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {!folderPermissions.includes("folders.links.write") && (
-              <AskToEditButton folder={folder} workspaceId={workspaceId!} />
-            )}
 
-            <Popover
-              content={
-                <div className="grid w-full gap-px p-2 sm:w-48">
-                  {folderPermissions.includes("folders.write") && (
+          {!isAllLinksFolder && (
+            <div className="flex items-center gap-2">
+              {!canMoveLinks && (
+                <AskToEditButton folder={folder} workspaceId={workspaceId!} />
+              )}
+
+              <Popover
+                content={
+                  <div className="grid w-full gap-px p-2 sm:w-48">
+                    {canUpdateFolder && (
+                      <Button
+                        text="Rename"
+                        variant="outline"
+                        onClick={() => {
+                          setOpenPopover(false);
+                          setShowRenameFolderModal(true);
+                        }}
+                        icon={<PenWriting className="h-4 w-4" />}
+                        shortcut="R"
+                        className="h-9 px-2 font-medium"
+                      />
+                    )}
+
                     <Button
-                      text="Rename"
+                      text="Members"
                       variant="outline"
                       onClick={() => {
                         setOpenPopover(false);
-                        setShowRenameFolderModal(true);
+                        router.push(`/settings/folders/${folder.id}/members`);
                       }}
-                      icon={<PenWriting className="h-4 w-4" />}
-                      shortcut="R"
+                      icon={<Users className="h-4 w-4" />}
+                      shortcut="M"
                       className="h-9 px-2 font-medium"
                     />
-                  )}
 
-                  <Button
-                    text="Members"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      router.push(`/settings/folders/${folder.id}/members`);
-                    }}
-                    icon={<Users className="h-4 w-4" />}
-                    shortcut="M"
-                    className="h-9 px-2 font-medium"
-                  />
-
-                  {folderPermissions.includes("folders.write") && (
-                    <Button
-                      text="Delete"
-                      variant="danger-outline"
-                      onClick={() => {
-                        setOpenPopover(false);
-                        setShowDeleteFolderModal(true);
-                      }}
-                      icon={<Delete className="h-4 w-4" />}
-                      shortcut="X"
-                      className="h-9 px-2 font-medium"
-                    />
+                    {canUpdateFolder && (
+                      <Button
+                        text="Delete"
+                        variant="danger-outline"
+                        onClick={() => {
+                          setOpenPopover(false);
+                          setShowDeleteFolderModal(true);
+                        }}
+                        icon={<Delete className="h-4 w-4" />}
+                        shortcut="X"
+                        className="h-9 px-2 font-medium"
+                      />
+                    )}
+                  </div>
+                }
+                align="end"
+                openPopover={openPopover}
+                setOpenPopover={setOpenPopover}
+              >
+                <Button
+                  variant="secondary"
+                  className={cn(
+                    "h-8 px-1 outline-none transition-all duration-200",
+                    "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
                   )}
-                </div>
-              }
-              align="end"
-              openPopover={openPopover}
-              setOpenPopover={setOpenPopover}
-            >
-              <Button
-                variant="secondary"
-                className={cn(
-                  "h-8 px-1 outline-none transition-all duration-200",
-                  "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
-                )}
-                icon={<ThreeDots className="h-4 w-4 shrink-0" />}
-              />
-            </Popover>
-          </div>
+                  icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+                />
+              </Popover>
+            </div>
+          )}
         </div>
 
         <div className="sm:mt-6">
