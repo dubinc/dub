@@ -1,0 +1,66 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { FolderUserRole } from "@prisma/client";
+import { z } from "zod";
+import { throwIfNotAllowed } from "../link-folder/permissions";
+import { folderUserRoleSchema } from "../zod/schemas/folders";
+import { authActionClient } from "./safe-action";
+
+const schema = z.object({
+  workspaceId: z.string(),
+  folderId: z.string(),
+  userId: z.string(),
+  role: folderUserRoleSchema,
+});
+
+// Update the folder user role
+export const updateFolderUserRoleAction = authActionClient
+  .schema(schema)
+  .action(async ({ ctx, parsedInput }) => {
+    const { workspace, user } = ctx;
+    const { folderId, userId, role } = parsedInput;
+
+    const [folder, folderUser] = await Promise.all([
+      prisma.folder.findFirstOrThrow({
+        where: {
+          id: folderId,
+          projectId: workspace.id,
+        },
+      }),
+
+      prisma.folderUser.findUniqueOrThrow({
+        where: {
+          folderId_userId: {
+            folderId,
+            userId: user.id,
+          },
+        },
+      }),
+    ]);
+
+    throwIfNotAllowed({
+      folder,
+      folderUser,
+      requiredPermission: "folders.users.write",
+    });
+
+    await prisma.folderUser.upsert({
+      where: {
+        folderId_userId: {
+          folderId,
+          userId,
+        },
+      },
+      update: {
+        role: role as FolderUserRole,
+      },
+      create: {
+        folderId,
+        userId,
+        role: role as FolderUserRole,
+      },
+    });
+
+    return { ok: true };
+  });

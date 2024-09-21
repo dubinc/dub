@@ -1,16 +1,16 @@
-import { FolderUser, User } from "@prisma/client";
+import { FolderUserRole, User } from "@prisma/client";
 import z from "../zod";
 import { folderSchema } from "../zod/schemas/folders";
-import { FOLDER_USER_ROLE, FOLDER_WORKSPACE_ACCESS } from "./constants";
+import { FOLDER_WORKSPACE_ACCESS } from "./constants";
 
 export type FolderWorkspaceAccessLevel = keyof typeof FOLDER_WORKSPACE_ACCESS;
-
-export type FolderUserRole = keyof typeof FOLDER_USER_ROLE;
 
 export type FolderUserProps = Pick<User, "id" | "name" | "email" | "image"> & {
   role: FolderUserRole;
 };
 
-export type FolderProps = z.infer<typeof folderSchema> & {
-  users: FolderUser[];
+export type FolderProps = z.infer<typeof folderSchema>;
+
+export type FolderWithRole = z.infer<typeof folderSchema> & {
+  role: FolderUserRole | null;
 };

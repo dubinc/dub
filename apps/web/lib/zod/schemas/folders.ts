@@ -1,11 +1,18 @@
-import { FOLDER_WORKSPACE_ACCESS } from "@/lib/link-folder/constants";
+import {
+  FOLDER_USER_ROLE,
+  FOLDER_WORKSPACE_ACCESS,
+} from "@/lib/link-folder/constants";
 import z from "@/lib/zod";
 
 export const workspaceAccessLevelSchema = z
   .enum(Object.keys(FOLDER_WORKSPACE_ACCESS) as [string, ...string[]])
   .nullish()
   .default(null)
-  .describe("The workspace access level of the folder.");
+  .describe("The access level of the folder within the workspace.");
+
+export const folderUserRoleSchema = z
+  .enum(Object.keys(FOLDER_USER_ROLE) as [string, ...string[]])
+  .describe("The role of the user in the folder.");
 
 export const folderSchema = z.object({
   id: z.string().describe("The unique ID of the folder."),

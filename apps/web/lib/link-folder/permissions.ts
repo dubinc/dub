@@ -64,12 +64,15 @@ export const determineFolderUserRole = ({
   folder: Folder;
   folderUser: FolderUser | null;
 }) => {
-  const folderUserRole: keyof typeof FOLDER_USER_ROLE | null =
-    folderUser?.role ||
-    FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE[folder.accessLevel!] ||
-    null;
+  if (folderUser) {
+    return folderUser.role;
+  }
 
-  return folderUserRole;
+  if (!folder.accessLevel) {
+    return null;
+  }
+
+  return FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE[folder.accessLevel];
 };
 
 export const getFolderPermissions = (

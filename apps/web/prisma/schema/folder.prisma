@@ -27,12 +27,12 @@ model Folder {
 }
 
 model FolderUser {
-  id        String         @id @default(cuid())
+  id        String          @id @default(cuid())
   folderId  String
   userId    String
   role      FolderUserRole
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

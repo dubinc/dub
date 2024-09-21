@@ -16,57 +16,51 @@ export const requestFolderEditAccessAction = authActionClient
     const { workspace, user } = ctx;
     const { folderId } = parsedInput;
 
-    const [folder, folderUser, folderAccessRequest] = await Promise.all([
-      prisma.folder.findFirst({
-        where: {
-          id: folderId,
-          projectId: workspace.id,
-          users: {
-            some: {
-              role: "owner",
-            },
+    const folder = await prisma.folder.findFirstOrThrow({
+      where: {
+        id: folderId,
+        projectId: workspace.id,
+        users: {
+          some: {
+            role: "owner",
           },
         },
-        include: {
-          users: {
-            select: {
-              user: {
-                select: {
-                  email: true,
-                  name: true,
-                },
+      },
+      include: {
+        users: {
+          select: {
+            user: {
+              select: {
+                email: true,
+                name: true,
               },
             },
           },
         },
-      }),
+      },
+    });
 
-      prisma.folderUser.findUnique({
-        where: {
-          folderId_userId: {
-            folderId,
-            userId: user.id,
-          },
+    const folderUser = await prisma.folderUser.findUnique({
+      where: {
+        folderId_userId: {
+          folderId,
+          userId: user.id,
         },
-      }),
-
-      prisma.folderAccessRequest.findUnique({
-        where: {
-          folderId_userId: {
-            folderId,
-            userId: user.id,
-          },
-        },
-      }),
-    ]);
-
-    if (!folder) {
-      throw new Error("Folder not found.");
-    }
+      },
+    });
 
     if (folderUser) {
       throw new Error("You already have access to this folder.");
     }
+
+    const folderAccessRequest = await prisma.folderAccessRequest.findUnique({
+      where: {
+        folderId_userId: {
+          folderId,
+          userId: user.id,
+        },
+      },
+    });
 
     if (folderAccessRequest) {
       throw new Error(
@@ -74,17 +68,12 @@ export const requestFolderEditAccessAction = authActionClient
       );
     }
 
-    console.log({ folder, folderUser, folderAccessRequest });
-
     await prisma.folderAccessRequest.create({
       data: {
         folderId,
         userId: user.id,
       },
     });
-
-    // TODO:
-    // Send email to folder owner
 
     return { ok: true };
   });

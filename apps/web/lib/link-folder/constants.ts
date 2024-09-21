@@ -1,3 +1,5 @@
+import { FolderAccessLevel, FolderUserRole } from "@prisma/client";
+
 export const FOLDER_WORKSPACE_ACCESS = {
   view: "Can view",
   edit: "Can edit",
@@ -18,15 +20,15 @@ export const FOLDER_PERMISSIONS = [
 ] as const;
 
 export const FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE: Record<
-  keyof typeof FOLDER_WORKSPACE_ACCESS,
-  keyof typeof FOLDER_USER_ROLE
+  FolderAccessLevel,
+  FolderUserRole
 > = {
   view: "viewer",
   edit: "editor",
 } as const;
 
 export const FOLDER_USER_ROLE_TO_PERMISSIONS: Record<
-  keyof typeof FOLDER_USER_ROLE,
+  FolderUserRole,
   (typeof FOLDER_PERMISSIONS)[number][]
 > = {
   owner: [

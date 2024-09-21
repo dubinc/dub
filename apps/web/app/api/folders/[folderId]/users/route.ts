@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE } from "@/lib/link-folder/constants";
+import { determineFolderUserRole } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -9,7 +9,7 @@ export const GET = withWorkspace(
   async ({ params, workspace }) => {
     const { folderId } = params;
 
-    const folder = await prisma.folder.findUniqueOrThrow({
+    const folder = await prisma.folder.findFirstOrThrow({
       where: {
         id: folderId,
         projectId: workspace.id,
@@ -51,21 +51,15 @@ export const GET = withWorkspace(
     ]);
 
     const users = workspaceUsers.map(({ user }) => {
-      const folderUser = folderUsers.find(
-        (folderUser) => folderUser.userId === user.id,
-      );
-
-      const role =
-        folderUser?.role ||
-        FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE[folder.accessLevel!] ||
-        null;
+      const folderUser =
+        folderUsers.find((folderUser) => folderUser.userId === user.id) || null;
 
       return {
         id: user.id,
         name: user.name,
         email: user.email,
         image: user.image,
-        role,
+        role: determineFolderUserRole({ folder, folderUser }),
       };
     });
 
