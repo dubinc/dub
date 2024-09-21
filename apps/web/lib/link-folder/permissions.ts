@@ -11,23 +11,27 @@ export const throwIfNotAllowed = ({
   folder,
   folderUser,
   requiredPermission,
+  fromServerAction = false,
 }: {
   folder: Folder;
   folderUser: FolderUser | null;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
+  fromServerAction?: boolean;
 }) => {
-  const can = canPerformActionOnFolder({
-    folder,
-    folderUser,
-    requiredPermission,
-  });
-
-  if (!can) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: `You are not allowed to perform this action on this folder.`,
-    });
+  if (canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
+    return;
   }
+
+  const message = "You are not allowed to perform this action on this folder.";
+
+  if (fromServerAction) {
+    throw new Error(message);
+  }
+
+  throw new DubApiError({
+    code: "forbidden",
+    message,
+  });
 };
 
 export const canPerformActionOnFolder = ({

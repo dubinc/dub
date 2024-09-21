@@ -39,10 +39,15 @@ export const updateFolderUserRoleAction = authActionClient
       }),
     ]);
 
+    if (user.id === userId) {
+      throw new Error("You cannot update your own role.");
+    }
+
     throwIfNotAllowed({
       folder,
       folderUser,
       requiredPermission: "folders.users.write",
+      fromServerAction: true,
     });
 
     await prisma.folderUser.upsert({
