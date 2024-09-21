@@ -7,6 +7,7 @@ import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import EmptyState from "@/ui/shared/empty-state";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { TooltipContent } from "@dub/ui";
 import { Folder } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
@@ -21,7 +22,7 @@ const allLinkFolder: FolderWithRole = {
 };
 
 export const FoldersPageClient = () => {
-  const { folders, isLoading } = useFolders();
+  const { folders, isLoading, isValidating } = useFolders();
   const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
   const { data: linksCount } = useLinksCount({
@@ -54,6 +55,12 @@ export const FoldersPageClient = () => {
             />
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+            <div className="w-full md:w-56 lg:w-64">
+              <SearchBoxPersisted
+                loading={isValidating}
+                inputClassName="h-10"
+              />
+            </div>
             <AddFolderButton />
           </div>
         </div>
