@@ -1,10 +1,12 @@
 "use client";
 
+import { getFolderPermissions } from "@/lib/link-folder/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderProps } from "@/lib/types";
 import { Button, PenWriting, Popover, Users } from "@dub/ui";
 import { Globe } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
+import { FolderUserRole } from "@prisma/client";
 import { FolderIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,7 +21,7 @@ interface LinksCount {
 }
 
 interface FolderCardProps {
-  folder: FolderProps;
+  folder: FolderProps & { role: FolderUserRole | null };
   linksCount: LinksCount[] | undefined;
 }
 
@@ -37,6 +39,8 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
   const linkCount =
     linksCount?.find((link) => link.folderId === folder.id)?.count || 0;
 
+  const folderPermissions = getFolderPermissions(folder.role);
+
   return (
     <>
       <RenameFolderModal />
@@ -49,22 +53,26 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <AskToEditButton folder={folder} workspaceId={workspaceId!} />
+            {!folderPermissions.includes("folders.links.write") && (
+              <AskToEditButton folder={folder} workspaceId={workspaceId!} />
+            )}
 
             <Popover
               content={
                 <div className="grid w-full gap-px p-2 sm:w-48">
-                  <Button
-                    text="Rename"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowRenameFolderModal(true);
-                    }}
-                    icon={<PenWriting className="h-4 w-4" />}
-                    shortcut="R"
-                    className="h-9 px-2 font-medium"
-                  />
+                  {folderPermissions.includes("folders.write") && (
+                    <Button
+                      text="Rename"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowRenameFolderModal(true);
+                      }}
+                      icon={<PenWriting className="h-4 w-4" />}
+                      shortcut="R"
+                      className="h-9 px-2 font-medium"
+                    />
+                  )}
 
                   <Button
                     text="Members"
@@ -78,17 +86,19 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
                     className="h-9 px-2 font-medium"
                   />
 
-                  <Button
-                    text="Delete"
-                    variant="danger-outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDeleteFolderModal(true);
-                    }}
-                    icon={<Delete className="h-4 w-4" />}
-                    shortcut="X"
-                    className="h-9 px-2 font-medium"
-                  />
+                  {folderPermissions.includes("folders.write") && (
+                    <Button
+                      text="Delete"
+                      variant="danger-outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowDeleteFolderModal(true);
+                      }}
+                      icon={<Delete className="h-4 w-4" />}
+                      shortcut="X"
+                      className="h-9 px-2 font-medium"
+                    />
+                  )}
                 </div>
               }
               align="end"

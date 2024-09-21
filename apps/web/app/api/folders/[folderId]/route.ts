@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderUserRole } from "@/lib/link-folder/permissions";
+import { determineFolderUserRole } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -40,7 +40,7 @@ export const GET = withWorkspace(
 
     return NextResponse.json({
       ...folderSchema.parse(folder),
-      role: await getFolderUserRole({
+      role: determineFolderUserRole({
         folder,
         folderUser,
       }),

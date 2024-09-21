@@ -7,7 +7,7 @@ import {
   FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
 } from "./constants";
 
-export const throwIfNotAllowed = async ({
+export const throwIfNotAllowed = ({
   folder,
   folderUser,
   requiredPermission,
@@ -16,7 +16,7 @@ export const throwIfNotAllowed = async ({
   folderUser: FolderUser | null;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
 }) => {
-  const can = await canPerformActionOnFolder({
+  const can = canPerformActionOnFolder({
     folder,
     folderUser,
     requiredPermission,
@@ -30,7 +30,7 @@ export const throwIfNotAllowed = async ({
   }
 };
 
-export const canPerformActionOnFolder = async ({
+export const canPerformActionOnFolder = ({
   folder,
   folderUser,
   requiredPermission,
@@ -39,7 +39,7 @@ export const canPerformActionOnFolder = async ({
   folderUser: FolderUser | null;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
 }) => {
-  const folderUserRole = await getFolderUserRole({
+  const folderUserRole = determineFolderUserRole({
     folder,
     folderUser,
   });
@@ -57,7 +57,7 @@ export const canPerformActionOnFolder = async ({
   return true;
 };
 
-export const getFolderUserRole = async ({
+export const determineFolderUserRole = ({
   folder,
   folderUser,
 }: {

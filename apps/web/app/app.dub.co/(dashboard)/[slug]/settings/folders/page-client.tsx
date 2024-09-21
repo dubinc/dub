@@ -9,7 +9,6 @@ import EmptyState from "@/ui/shared/empty-state";
 import { TooltipContent } from "@dub/ui";
 import { Folder } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
-// import { Folder } from "lucide-react";
 
 export const FoldersPageClient = () => {
   const { folders, isLoading } = useFolders();

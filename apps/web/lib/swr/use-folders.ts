@@ -1,5 +1,6 @@
 import { FolderProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
+import { FolderUserRole } from "@prisma/client";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
@@ -10,9 +11,13 @@ export default function useFolders() {
     data: folders,
     isValidating,
     isLoading,
-  } = useSWR<FolderProps[]>(id && `/api/folders?workspaceId=${id}`, fetcher, {
-    dedupingInterval: 60000,
-  });
+  } = useSWR<(FolderProps & { role: FolderUserRole })[]>(
+    id && `/api/folders?workspaceId=${id}`,
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
 
   return {
     folders,

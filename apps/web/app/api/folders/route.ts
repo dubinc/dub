@@ -1,6 +1,7 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { determineFolderUserRole } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { createFolderSchema, folderSchema } from "@/lib/zod/schemas/folders";
 import { FolderAccessLevel } from "@prisma/client";
@@ -8,24 +9,45 @@ import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace
 export const GET = withWorkspace(
-  async ({ workspace, headers }) => {
+  async ({ workspace, headers, session }) => {
     const folders = await prisma.folder.findMany({
       where: {
         projectId: workspace.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        accessLevel: true,
-        createdAt: true,
-        updatedAt: true,
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return NextResponse.json(folderSchema.array().parse(folders), {
+    const folderUsers = await prisma.folderUser.findMany({
+      where: {
+        folderId: {
+          in: folders.map((folder) => folder.id),
+        },
+        userId: session.user.id,
+      },
+    });
+
+    // TODO:
+    // Add a flag to control if we want to return the role or not
+
+    const folderUsersWithPermissions = folders.map((folder) => {
+      const folderUser =
+        folderUsers.find((folderUser) => folderUser.folderId === folder.id) ||
+        null;
+
+      const role = determineFolderUserRole({
+        folder,
+        folderUser,
+      });
+
+      return {
+        ...folderSchema.parse(folder),
+        role,
+      };
+    });
+
+    return NextResponse.json(folderUsersWithPermissions, {
       headers,
     });
   },
