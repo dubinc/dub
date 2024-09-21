@@ -29,6 +29,10 @@ export const FoldersPageClient = () => {
     showArchived: true,
   });
 
+  const { data: allLinksCount } = useLinksCount({
+    showArchived: true,
+  });
+
   return (
     <>
       <AddFolderModal />
@@ -65,7 +69,17 @@ export const FoldersPageClient = () => {
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <FolderCard folder={allLinkFolder} linksCount={linksCount} />
+          {allLinksCount && (
+            <FolderCard
+              folder={allLinkFolder}
+              linksCount={[
+                {
+                  folderId: "all-links",
+                  count: allLinksCount,
+                },
+              ]}
+            />
+          )}
 
           {isLoading
             ? Array.from({ length: 6 }).map((_, idx) => (

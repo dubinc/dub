@@ -14,7 +14,6 @@ import { Avatar, Globe } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
 import { ChevronLeft, FolderIcon } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -170,7 +169,6 @@ const FolderUser = ({
   folder: FolderWithRole | undefined;
   folderPermissions: (typeof FOLDER_PERMISSIONS)[number][];
 }) => {
-  const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const [role, setRole] = useState<FolderUserRole>(user.role);
 
