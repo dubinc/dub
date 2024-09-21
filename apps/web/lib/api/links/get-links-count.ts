@@ -21,9 +21,8 @@ export async function getLinksCount({
     userId,
     showArchived,
     withTags,
+    folderId,
   } = searchParams;
-
-  console.log({ groupBy });
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -49,6 +48,10 @@ export async function getLinksCount({
     ...(userId &&
       groupBy !== "userId" && {
         userId,
+      }),
+    ...(folderId &&
+      groupBy !== "folderId" && {
+        folderId,
       }),
   };
 

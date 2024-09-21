@@ -8,10 +8,11 @@ import {
 } from "@/lib/link-folder/constants";
 import { getFolderPermissions } from "@/lib/link-folder/permissions";
 import { FolderUserProps, FolderWithRole } from "@/lib/link-folder/types";
+import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AskToEditButton } from "@/ui/folders/ask-to-edit-button";
 import { Avatar, Globe } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { cn, fetcher, nFormatter } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
 import { ChevronLeft, FolderIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -43,6 +44,11 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     `/api/folders/${folderId}/users?workspaceId=${workspaceId}`,
     fetcher,
   );
+
+  const { data: numberOfLinks } = useLinksCount({
+    showArchived: true,
+    folderId,
+  });
 
   if (!isFolderLoading && !folder) {
     notFound();
@@ -106,7 +112,8 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                   <div className="flex items-center gap-1">
                     <Globe className="size-3.5 text-gray-500" />
                     <span className="text-[13px] font-normal leading-[14.30px] text-gray-500">
-                      100 links
+                      {nFormatter(numberOfLinks)} link
+                      {numberOfLinks !== 1 && "s"}
                     </span>
                   </div>
                 </div>
