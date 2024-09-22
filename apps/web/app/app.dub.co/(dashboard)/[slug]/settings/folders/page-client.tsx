@@ -11,11 +11,13 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { TooltipContent } from "@dub/ui";
 import { Folder as FolderIcon } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
+import { useEffect } from "react";
 
 const allLinkFolder: Folder = {
   id: "all-links",
   name: "All links",
   accessLevel: null,
+  linkCount: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -24,14 +26,15 @@ export const FoldersPageClient = () => {
   const { folders, isLoading, isValidating } = useFolders();
   const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
-  const { data: linksCount } = useLinksCount({
-    groupBy: "folderId",
-    showArchived: true,
-  });
-
   const { data: allLinksCount } = useLinksCount({
     showArchived: true,
   });
+
+  useEffect(() => {
+    if (allLinksCount) {
+      allLinkFolder.linkCount = allLinksCount;
+    }
+  }, [allLinksCount]);
 
   return (
     <>
@@ -75,27 +78,18 @@ export const FoldersPageClient = () => {
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <FolderCard
-            folder={allLinkFolder}
-            linksCount={[
-              {
-                folderId: "all-links",
-                count: allLinksCount,
-              },
-            ]}
-          />
-
-          {isLoading
-            ? Array.from({ length: 6 }).map((_, idx) => (
-                <FolderCardPlaceholder key={idx} />
-              ))
-            : folders?.map((folder) => (
-                <FolderCard
-                  key={folder.id}
-                  folder={folder}
-                  linksCount={linksCount}
-                />
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, idx) => (
+              <FolderCardPlaceholder key={idx} />
+            ))
+          ) : (
+            <>
+              <FolderCard folder={allLinkFolder} />
+              {folders?.map((folder) => (
+                <FolderCard key={folder.id} folder={folder} />
               ))}
+            </>
+          )}
         </div>
       </div>
     </>

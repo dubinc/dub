@@ -16,9 +16,26 @@ export const GET = withWorkspace(
       orderBy: {
         createdAt: "desc",
       },
+      select: {
+        id: true,
+        name: true,
+        accessLevel: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            links: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(folderSchema.array().parse(folders), {
+    const formattedFolders = folders.map((folder) => ({
+      ...folder,
+      linkCount: folder._count.links,
+    }));
+
+    return NextResponse.json(folderSchema.array().parse(formattedFolders), {
       headers,
     });
   },

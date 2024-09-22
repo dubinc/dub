@@ -13,14 +13,31 @@ export const GET = withWorkspace(
   async ({ params, workspace }) => {
     const { folderId } = params;
 
-    const folder = prisma.folder.findUniqueOrThrow({
+    const folder = await prisma.folder.findUniqueOrThrow({
       where: {
         id: folderId,
         projectId: workspace.id,
       },
+      select: {
+        id: true,
+        name: true,
+        accessLevel: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            links: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(folderSchema.parse(folder));
+    const formattedFolder = {
+      ...folder,
+      linkCount: folder._count.links,
+    };
+
+    return NextResponse.json(folderSchema.parse(formattedFolder));
   },
   {
     requiredPermissions: ["folders.read"],

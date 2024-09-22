@@ -10,7 +10,6 @@ import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
-import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AskToEditButton } from "@/ui/folders/ask-to-edit-button";
 import { Avatar, Globe } from "@dub/ui";
@@ -53,11 +52,6 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     `/api/folders/${folderId}/users?workspaceId=${workspaceId}`,
     fetcher,
   );
-
-  const { data: numberOfLinks } = useLinksCount({
-    showArchived: true,
-    folderId,
-  });
 
   if (!isFolderLoading && !folder) {
     notFound();
@@ -117,8 +111,8 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                   <div className="flex items-center gap-1">
                     <Globe className="size-3.5 text-gray-500" />
                     <span className="text-[13px] font-normal leading-[14.30px] text-gray-500">
-                      {nFormatter(numberOfLinks)} link
-                      {numberOfLinks !== 1 && "s"}
+                      {nFormatter(folder.linkCount)} link
+                      {folder.linkCount !== 1 && "s"}
                     </span>
                   </div>
                 </div>

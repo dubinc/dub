@@ -17,17 +17,7 @@ import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
 import { AskToEditButton } from "./ask-to-edit-button";
 
-interface LinksCount {
-  folderId: string;
-  count: number;
-}
-
-interface FolderCardProps {
-  folder: Folder;
-  linksCount: LinksCount[] | undefined;
-}
-
-export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
+export const FolderCard = ({ folder }: { folder: Folder }) => {
   const router = useRouter();
   const { id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
@@ -44,9 +34,6 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
 
   const { DeleteFolderModal, setShowDeleteFolderModal } =
     useDeleteFolderModal(folder);
-
-  const linkCount =
-    linksCount?.find((link) => link.folderId === folder.id)?.count || 0;
 
   const isAllLinksFolder = folder.id === "all-links";
 
@@ -136,7 +123,7 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
           <div className="flex items-center gap-1 text-gray-500">
             <Globe className="size-3.5" />
             <span className="text-sm font-normal">
-              {nFormatter(linkCount)} link{linkCount !== 1 && "s"}
+              {nFormatter(folder.linkCount)} link{folder.linkCount !== 1 && "s"}
             </span>
           </div>
         </div>

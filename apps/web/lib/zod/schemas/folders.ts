@@ -18,6 +18,10 @@ export const folderSchema = z.object({
   id: z.string().describe("The unique ID of the folder."),
   name: z.string().describe("The name of the folder."),
   accessLevel: workspaceAccessLevelSchema,
+  linkCount: z
+    .number()
+    .describe("The number of links in the folder.")
+    .default(0),
   createdAt: z.date().describe("The date the folder was created."),
   updatedAt: z.date().describe("The date the folder was updated."),
 });
