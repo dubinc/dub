@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderWithRole } from "@/lib/link-folder/types";
+import { Folder } from "@/lib/link-folder/types";
 import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { FolderCard } from "@/ui/folders/folder-card";
@@ -9,14 +9,13 @@ import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { TooltipContent } from "@dub/ui";
-import { Folder } from "@dub/ui/src/icons";
+import { Folder as FolderIcon } from "@dub/ui/src/icons";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 
-const allLinkFolder: FolderWithRole = {
+const allLinkFolder: Folder = {
   id: "all-links",
   name: "All links",
   accessLevel: null,
-  role: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -68,7 +67,7 @@ export const FoldersPageClient = () => {
         {!isLoading && !folders?.length && (
           <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
             <EmptyState
-              icon={Folder}
+              icon={FolderIcon}
               title="No folders found for this workspace"
             />
             <AddFolderButton />
@@ -76,17 +75,15 @@ export const FoldersPageClient = () => {
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {allLinksCount && (
-            <FolderCard
-              folder={allLinkFolder}
-              linksCount={[
-                {
-                  folderId: "all-links",
-                  count: allLinksCount,
-                },
-              ]}
-            />
-          )}
+          <FolderCard
+            folder={allLinkFolder}
+            linksCount={[
+              {
+                folderId: "all-links",
+                count: allLinksCount,
+              },
+            ]}
+          />
 
           {isLoading
             ? Array.from({ length: 6 }).map((_, idx) => (

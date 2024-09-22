@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { FolderWithRole } from "../link-folder/types";
+import { Folder } from "../link-folder/types";
 import useWorkspace from "./use-workspace";
 
 export default function useFolders() {
@@ -10,13 +10,9 @@ export default function useFolders() {
     data: folders,
     isValidating,
     isLoading,
-  } = useSWR<FolderWithRole[]>(
-    id && `/api/folders?workspaceId=${id}`,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
+  } = useSWR<Folder[]>(id && `/api/folders?workspaceId=${id}`, fetcher, {
+    dedupingInterval: 60000,
+  });
 
   return {
     folders,

@@ -1,7 +1,10 @@
 "use client";
 
-import { getFolderPermissions } from "@/lib/link-folder/permissions";
-import { FolderWithRole } from "@/lib/link-folder/types";
+import { Folder } from "@/lib/link-folder/types";
+import {
+  useCheckFolderPermission,
+  useFolderPermissions,
+} from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, PenWriting, Popover, Users } from "@dub/ui";
 import { Globe } from "@dub/ui/src/icons";
@@ -20,7 +23,7 @@ interface LinksCount {
 }
 
 interface FolderCardProps {
-  folder: FolderWithRole;
+  folder: Folder;
   linksCount: LinksCount[] | undefined;
 }
 
@@ -28,6 +31,13 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
   const router = useRouter();
   const { id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
+
+  const { isLoading: isPermissionsLoading } = useFolderPermissions();
+  const canUpdateFolder = useCheckFolderPermission("folders.write", folder.id);
+  const canMoveLinks = useCheckFolderPermission(
+    "folders.links.write",
+    folder.id,
+  );
 
   const { RenameFolderModal, setShowRenameFolderModal } =
     useRenameFolderModal(folder);
@@ -38,9 +48,6 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
   const linkCount =
     linksCount?.find((link) => link.folderId === folder.id)?.count || 0;
 
-  const folderPermissions = getFolderPermissions(folder.role);
-  const canUpdateFolder = folderPermissions.includes("folders.write");
-  const canMoveLinks = folderPermissions.includes("folders.links.write");
   const isAllLinksFolder = folder.id === "all-links";
 
   return (
@@ -56,8 +63,8 @@ export const FolderCard = ({ folder, linksCount }: FolderCardProps) => {
           </div>
 
           {!isAllLinksFolder && (
-            <div className="flex items-center gap-2">
-              {!canMoveLinks && (
+            <div className="flex items-center justify-end gap-2">
+              {!isPermissionsLoading && !canMoveLinks && (
                 <AskToEditButton folder={folder} workspaceId={workspaceId!} />
               )}
 

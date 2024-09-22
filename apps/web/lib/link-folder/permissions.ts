@@ -65,7 +65,7 @@ export const determineFolderUserRole = ({
   folder,
   folderUser,
 }: {
-  folder: Folder;
+  folder: Pick<Folder, "accessLevel">;
   folderUser: FolderUser | null;
 }) => {
   if (folderUser) {

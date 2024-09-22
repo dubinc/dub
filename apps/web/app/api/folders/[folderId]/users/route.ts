@@ -9,6 +9,9 @@ export const GET = withWorkspace(
   async ({ params, workspace }) => {
     const { folderId } = params;
 
+    // TODO:
+    // Add zod schema for the response
+
     const folder = await prisma.folder.findFirstOrThrow({
       where: {
         id: folderId,

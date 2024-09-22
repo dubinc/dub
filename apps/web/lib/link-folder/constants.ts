@@ -1,4 +1,5 @@
 import { FolderAccessLevel, FolderUserRole } from "@prisma/client";
+import { FolderPermission } from "./types";
 
 export const FOLDER_WORKSPACE_ACCESS = {
   view: "Can view",
@@ -29,7 +30,7 @@ export const FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE: Record<
 
 export const FOLDER_USER_ROLE_TO_PERMISSIONS: Record<
   FolderUserRole,
-  (typeof FOLDER_PERMISSIONS)[number][]
+  FolderPermission[]
 > = {
   owner: [
     "folders.read",

@@ -1,15 +1,16 @@
-import { FolderWithRole } from "@/lib/link-folder/types";
+import { Folder } from "@/lib/link-folder/types";
 import useFolders from "@/lib/swr/use-folders";
 import { Popover, Tick, useRouterStuff } from "@dub/ui";
 import { ChevronsUpDown, FolderCheck, FolderPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
-type Folder = Pick<FolderWithRole, "id" | "name">;
-
 const allLinksFolder: Folder = {
   id: "all-links",
   name: "All links",
+  accessLevel: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 export const FolderSwitcher = () => {
@@ -100,7 +101,7 @@ const FolderList = ({
             } transition-all duration-75`}
             onClick={() => {
               setOpenPopover(false);
-              onFolderSelect({ id, name });
+              // onFolderSelect({ id, name });
             }}
           >
             <div className="flex size-7 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 group-hover:bg-white">

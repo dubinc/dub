@@ -1,7 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { determineFolderUserRole } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -11,40 +10,17 @@ import { NextResponse } from "next/server";
 
 // GET /api/folders/[folderId] - get information about a folder
 export const GET = withWorkspace(
-  async ({ params, workspace, session }) => {
+  async ({ params, workspace }) => {
     const { folderId } = params;
 
-    const [folder, folderUser] = await Promise.all([
-      prisma.folder.findUniqueOrThrow({
-        where: {
-          id: folderId,
-          projectId: workspace.id,
-        },
-        include: {
-          users: true,
-        },
-      }),
-
-      prisma.folderUser.findUnique({
-        where: {
-          folderId_userId: {
-            folderId,
-            userId: session.user.id,
-          },
-        },
-      }),
-    ]);
-
-    // TODO:
-    // Add a flag to control if we want to return the role or not
-
-    return NextResponse.json({
-      ...folderSchema.parse(folder),
-      role: determineFolderUserRole({
-        folder,
-        folderUser,
-      }),
+    const folder = prisma.folder.findUniqueOrThrow({
+      where: {
+        id: folderId,
+        projectId: workspace.id,
+      },
     });
+
+    return NextResponse.json(folderSchema.parse(folder));
   },
   {
     requiredPermissions: ["folders.read"],

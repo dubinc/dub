@@ -2,12 +2,14 @@
 
 import { updateFolderUserRoleAction } from "@/lib/actions/update-folder-user-role";
 import {
-  FOLDER_PERMISSIONS,
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/link-folder/constants";
-import { getFolderPermissions } from "@/lib/link-folder/permissions";
-import { FolderUserProps, FolderWithRole } from "@/lib/link-folder/types";
+import { Folder, FolderUser } from "@/lib/link-folder/types";
+import {
+  useCheckFolderPermission,
+  useFolderPermissions,
+} from "@/lib/swr/use-folder-permissions";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AskToEditButton } from "@/ui/folders/ask-to-edit-button";
@@ -27,11 +29,18 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<string>();
 
+  const { isLoading: isLoadingPermissions } = useFolderPermissions();
+  const canUpdateFolder = useCheckFolderPermission("folders.write", folderId);
+  const canMoveLinks = useCheckFolderPermission(
+    "folders.links.write",
+    folderId,
+  );
+
   const {
     data: folder,
     isLoading: isFolderLoading,
     mutate: mutateFolder,
-  } = useSWR<FolderWithRole>(
+  } = useSWR<Folder>(
     `/api/folders/${folderId}?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -40,7 +49,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     data: users,
     isLoading: isUsersLoading,
     mutate: mutateUsers,
-  } = useSWR<FolderUserProps[]>(
+  } = useSWR<FolderUser[]>(
     `/api/folders/${folderId}/users?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -81,10 +90,6 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     await Promise.all([mutateFolder(), mutateUsers()]);
   };
 
-  const folderPermissions = getFolderPermissions(folder?.role || null);
-  const canUpdateFolder = folderPermissions.includes("folders.write");
-  const canMoveLinks = folderPermissions.includes("folders.links.write");
-
   return (
     <>
       <Link
@@ -119,7 +124,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                 </div>
               </div>
 
-              {canUpdateFolder && (
+              {canUpdateFolder && !isLoadingPermissions && (
                 <select
                   className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
                   value={workspaceAccessLevel || folder?.accessLevel || ""}
@@ -139,7 +144,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                 </select>
               )}
 
-              {!canMoveLinks && (
+              {!canMoveLinks && !isLoadingPermissions && (
                 <AskToEditButton folder={folder} workspaceId={workspaceId!} />
               )}
             </>
@@ -153,13 +158,9 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
             ? Array.from({ length: 5 }).map((_, i) => (
                 <FolderUserPlaceholder key={i} />
               ))
-            : users?.map((user) => (
-                <FolderUser
-                  key={user.id}
-                  user={user}
-                  folder={folder}
-                  folderPermissions={folderPermissions}
-                />
+            : folder &&
+              users?.map((user) => (
+                <FolderUserRow key={user.id} user={user} folder={folder} />
               ))}
         </div>
       </div>
@@ -167,17 +168,20 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   );
 };
 
-const FolderUser = ({
+const FolderUserRow = ({
   user,
   folder,
-  folderPermissions,
 }: {
-  user: FolderUserProps;
-  folder: FolderWithRole | undefined;
-  folderPermissions: (typeof FOLDER_PERMISSIONS)[number][];
+  user: FolderUser;
+  folder: Folder;
 }) => {
   const { id: workspaceId } = useWorkspace();
   const [role, setRole] = useState<FolderUserRole>(user.role);
+
+  const canUpdateRole = useCheckFolderPermission(
+    "folders.users.write",
+    folder.id,
+  );
 
   const { executeAsync, isExecuting } = useAction(updateFolderUserRoleAction, {
     onSuccess: () => {
@@ -188,7 +192,8 @@ const FolderUser = ({
     },
   });
 
-  const canUpdateRole = folderPermissions.includes("folders.users.write");
+  const disableRoleUpdate =
+    !canUpdateRole || isExecuting || user.role === "owner";
 
   return (
     <div
@@ -212,11 +217,11 @@ const FolderUser = ({
           className={cn(
             "rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600",
             {
-              "cursor-not-allowed bg-gray-100": !canUpdateRole,
+              "cursor-not-allowed bg-gray-100": disableRoleUpdate,
             },
           )}
           value={role}
-          disabled={!canUpdateRole || isExecuting || user.role === "owner"}
+          disabled={disableRoleUpdate}
           onChange={(e) => {
             if (!folder || !workspaceId) {
               return;
