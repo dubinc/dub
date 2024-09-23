@@ -3,16 +3,16 @@ import { SVGProps } from "react";
 export function Folder(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
-      height="18"
-      width="18"
-      viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
       fill="none"
+      viewBox="0 0 16 16"
       {...props}
     >
       <g>
         <g
-          stroke="#374151"
+          stroke="#1E40AF"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
