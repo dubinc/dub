@@ -123,7 +123,6 @@ export async function throwIfInvalidFolderAccess({
   const folderUser =
     folder.users.find((user) => user.userId === userId) || null;
 
-
   if (canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
     return;
   }
