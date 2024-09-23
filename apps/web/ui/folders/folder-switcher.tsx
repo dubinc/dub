@@ -1,28 +1,30 @@
 import { Folder } from "@/lib/link-folder/types";
 import useFolders from "@/lib/swr/use-folders";
 import { Popover, Tick, useRouterStuff } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { ChevronsUpDown, FolderCheck, FolderPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { useAddFolderModal } from "../modals/add-folder-modal";
 
-const allLinksFolder: Folder = {
+type FolderSummary = Pick<Folder, "id" | "name">;
+
+const allLinksOverview: FolderSummary = {
   id: "all-links",
   name: "All links",
-  accessLevel: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
 };
 
 export const FolderSwitcher = () => {
   const { folders, isLoading } = useFolders();
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams, searchParamsObj } = useRouterStuff();
+  const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal();
 
-  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(
-    allLinksFolder,
+  const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
+    allLinksOverview,
   );
 
-  const handleFolderSelect = useCallback((folder: Folder) => {
+  const onFolderSelect = useCallback((folder: FolderSummary) => {
     setSelectedFolder(folder);
 
     if (folder.id === "all-links") {
@@ -43,26 +45,33 @@ export const FolderSwitcher = () => {
   }
 
   return (
-    <Popover
-      content={
-        <FolderList
-          folders={[allLinksFolder, ...folders]}
-          setOpenPopover={setOpenPopover}
-          onFolderSelect={handleFolderSelect}
-          selectedFolder={selectedFolder}
-        />
-      }
-      openPopover={openPopover}
-      setOpenPopover={setOpenPopover}
-      align="start"
-    >
-      <button className="flex items-center justify-between space-x-2 rounded-md px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100">
-        <h1 className="text-2xl font-semibold tracking-tight text-black">
-          {selectedFolder?.name}
-        </h1>
-        <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
-      </button>
-    </Popover>
+    <>
+      <AddFolderModal />
+      <Popover
+        content={
+          <FolderList
+            folders={[allLinksOverview, ...folders]}
+            setOpenPopover={setOpenPopover}
+            onFolderSelect={onFolderSelect}
+            selectedFolder={selectedFolder}
+            setShowAddFolderModal={setShowAddFolderModal}
+          />
+        }
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+        align="start"
+      >
+        <button className="flex items-center justify-between space-x-2 rounded-md px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100">
+          <h1 className="text-2xl font-semibold tracking-tight text-black">
+            {selectedFolder?.name}
+          </h1>
+          <ChevronsUpDown
+            className="h-5 w-5 text-gray-400"
+            aria-hidden="true"
+          />
+        </button>
+      </Popover>
+    </>
   );
 };
 
@@ -71,11 +80,13 @@ const FolderList = ({
   setOpenPopover,
   onFolderSelect,
   selectedFolder,
+  setShowAddFolderModal,
 }: {
-  folders: Folder[];
+  folders: FolderSummary[];
   setOpenPopover: (open: boolean) => void;
-  onFolderSelect: (folder: Folder) => void;
-  selectedFolder: Folder | null;
+  onFolderSelect: (folder: FolderSummary) => void;
+  setShowAddFolderModal: (show: boolean) => void;
+  selectedFolder: FolderSummary | null;
 }) => {
   return (
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
@@ -96,12 +107,15 @@ const FolderList = ({
         return (
           <button
             key={id}
-            className={`relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
-              selectedFolder?.id === id ? "font-medium" : ""
-            } transition-all duration-75`}
+            className={cn(
+              "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200",
+              {
+                "font-medium": selectedFolder?.id === id,
+              },
+            )}
             onClick={() => {
               setOpenPopover(false);
-              // onFolderSelect({ id, name });
+              onFolderSelect({ id, name });
             }}
           >
             <div className="flex size-7 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 group-hover:bg-white">
@@ -127,10 +141,11 @@ const FolderList = ({
 
       <button
         key="add-folder"
+        className="relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
         onClick={() => {
           setOpenPopover(false);
+          setShowAddFolderModal(true);
         }}
-        className="relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
       >
         <div className="flex size-7 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 group-hover:bg-white">
           <FolderPlusIcon className="size-4 text-gray-700" />
