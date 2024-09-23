@@ -102,6 +102,7 @@ export const saleEventEnrichedSchema = z.object({
   browser: z.string().nullable(),
   os: z.string().nullable(),
   referer: z.string().nullable(),
+  referer_url: z.string().nullable(),
   qr: z.number().nullable(),
   ip: z.string().nullable(),
 });

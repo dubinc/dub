@@ -107,7 +107,12 @@ export const getUrlWithoutUTMParams = (url: string) => {
 };
 
 export const getPrettyUrl = (url: string) => {
-  return url.replace(/(^\w+:|^)\/\//, "").replace("www.", "");
+  // remove protocol (http/https) and www.
+  // also remove trailing slash
+  return url
+    .replace(/(^\w+:|^)\/\//, "")
+    .replace("www.", "")
+    .replace(/\/$/, "");
 };
 
 export const createHref = (
