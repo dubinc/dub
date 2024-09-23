@@ -199,6 +199,34 @@ export const analyticsResponse = {
     })
     .openapi({ ref: "AnalyticsReferers" }),
 
+  referer_urls: z
+    .object({
+      refererUrl: z
+        .string()
+        .describe(
+          "The full URL of the referer. If unknown, this will be `(direct)`",
+        ),
+      clicks: z
+        .number()
+        .describe("The number of clicks from this referer to this URL")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads from this referer to this URL")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales from this referer to this URL")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe(
+          "The total amount of sales from this referer to this URL, in cents",
+        )
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsRefererUrls" }),
+
   top_links: z
     .object({
       link: z
