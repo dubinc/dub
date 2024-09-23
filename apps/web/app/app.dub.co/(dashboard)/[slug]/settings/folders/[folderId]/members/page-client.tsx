@@ -16,6 +16,7 @@ import { Avatar, Globe } from "@dub/ui";
 import { cn, fetcher, nFormatter } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
 import { ChevronLeft, FolderIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -169,6 +170,7 @@ const FolderUserRow = ({
   user: FolderUser;
   folder: Folder;
 }) => {
+  const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const [role, setRole] = useState<FolderUserRole>(user.role);
 
@@ -186,8 +188,8 @@ const FolderUserRow = ({
     },
   });
 
-  const disableRoleUpdate =
-    !canUpdateRole || isExecuting || user.role === "owner";
+  const isCurrentUser = user.email === session?.user?.email;
+  const disableRoleUpdate = !canUpdateRole || isExecuting || isCurrentUser;
 
   return (
     <div
