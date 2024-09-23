@@ -42,6 +42,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
     }
 
     await mutate(`/api/folders?workspaceId=${workspace.id}`);
+    await mutate(`/api/folders/permissions?workspaceId=${workspace.id}`);
     toast.success("Folder created successfully!");
     onSuccess();
   };

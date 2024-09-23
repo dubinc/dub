@@ -138,7 +138,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                   />
 
                   <select
-                    className="appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-8 text-sm text-gray-900 focus:border-gray-300 focus:ring-gray-300"
+                    className="appearance-none rounded-md border border-gray-200 bg-white pl-10 pr-8 text-sm text-gray-900 focus:border-gray-300 focus:ring-gray-300"
                     value={workspaceAccessLevel || folder?.accessLevel || ""}
                     disabled={isUpdating}
                     onChange={(e) => {
