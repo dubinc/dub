@@ -44,6 +44,7 @@ export const clickEventEnrichedSchema = z.object({
   browser: z.string().nullable(),
   os: z.string().nullable(),
   referer: z.string().nullable(),
+  referer_url: z.string().nullable(),
   ip: z.string().nullable(),
   qr: z.number().nullable(),
 });
@@ -58,6 +59,7 @@ export const clickEventSchema = z.object({
   browser: z.string(),
   os: z.string(),
   referer: z.string(),
+  refererUrl: z.string(),
   qr: z.coerce.boolean(),
   ip: z.string(),
 });
