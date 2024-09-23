@@ -9,6 +9,7 @@ import {
 } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { cva } from "class-variance-authority";
+import Cookies from "js-cookie";
 import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import { PropsWithChildren, createContext } from "react";
@@ -81,6 +82,12 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
       dedupingInterval: 60000,
     },
   );
+
+  // here we need to check if the user has a dub_id cookie
+  // if they do, we should just use app.dub.co links
+  // if not, we can use conversion-enabled d.to links
+  const hasDubCookie =
+    domain === "dub.co" && Cookies.get("dub_id") ? true : false;
 
   return (
     <NavContext.Provider value={{ theme }}>
@@ -191,13 +198,21 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
               ) : !isLoading ? (
                 <>
                   <Link
-                    href="https://d.to/login"
+                    href={
+                      hasDubCookie
+                        ? "https://app.dub.co/login"
+                        : "https://d.to/login"
+                    }
                     className="animate-fade-in rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black dark:text-white dark:hover:text-white/70"
                   >
                     Log in
                   </Link>
                   <Link
-                    href="https://d.to/try"
+                    href={
+                      hasDubCookie
+                        ? "https://app.dub.co/register"
+                        : "https://d.to/try"
+                    }
                     className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-gray-800 hover:ring-4 hover:ring-gray-200 dark:border-white dark:bg-white dark:text-gray-600 dark:hover:bg-white dark:hover:text-gray-800 dark:hover:hover:shadow-[0_0_25px_5px_rgba(256,256,256,0.2)] dark:hover:ring-0"
                   >
                     Sign Up
