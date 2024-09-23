@@ -9,12 +9,14 @@ interface DeleteFolderModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   folder: Pick<Folder, "id" | "name">;
+  onSuccess?: () => void;
 }
 
 const DeleteFolderModal = ({
   showModal,
   setShowModal,
   folder,
+  onSuccess,
 }: DeleteFolderModalProps) => {
   const workspace = useWorkspace();
   const { isMobile } = useMediaQuery();
@@ -38,7 +40,13 @@ const DeleteFolderModal = ({
       return;
     }
 
-    await mutate(`/api/folders?workspaceId=${workspace.id}`);
+    Promise.all([
+      mutate(`/api/folders?workspaceId=${workspace.id}`),
+      mutate(`/api/folder/permissions?workspaceId=${workspace.id}`),
+    ]);
+
+    setShowModal(false);
+    onSuccess?.();
     toast.success("Folder deleted successfully!");
   };
 
@@ -110,7 +118,10 @@ const DeleteFolderModal = ({
   );
 };
 
-export function useDeleteFolderModal(folder: Pick<Folder, "id" | "name">) {
+export function useDeleteFolderModal(
+  folder: Pick<Folder, "id" | "name">,
+  onSuccess?: () => void,
+) {
   const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
 
   const DeleteFolderModalCallback = useCallback(() => {
@@ -119,9 +130,10 @@ export function useDeleteFolderModal(folder: Pick<Folder, "id" | "name">) {
         showModal={showDeleteFolderModal}
         setShowModal={setShowDeleteFolderModal}
         folder={folder}
+        onSuccess={onSuccess}
       />
     );
-  }, [showDeleteFolderModal, setShowDeleteFolderModal]);
+  }, [showDeleteFolderModal, setShowDeleteFolderModal, onSuccess]);
 
   return useMemo(
     () => ({

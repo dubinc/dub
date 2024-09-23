@@ -1,12 +1,28 @@
 import { Folder } from "@/lib/link-folder/types";
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
-import { Popover, Tick, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  PenWriting,
+  Popover,
+  Tick,
+  useRouterStuff,
+  Users,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChevronsUpDown, FolderCheck, FolderPlusIcon } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronsUpDown,
+  FolderCheck,
+  FolderPlusIcon,
+} from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useAddFolderModal } from "../modals/add-folder-modal";
+import { useDeleteFolderModal } from "../modals/delete-folder-modal";
+import { useRenameFolderModal } from "../modals/rename-folder-modal";
+import { Delete, ThreeDots } from "../shared/icons";
 
 type FolderSummary = Pick<Folder, "id" | "name">;
 
@@ -27,6 +43,7 @@ export const FolderSwitcher = () => {
   );
 
   const folderId = searchParams.get("folderId");
+  const isAllLinksFolderSelected = selectedFolder?.id === "all-links";
 
   // set the selected folder if the folderId is in the search params
   useEffect(() => {
@@ -65,6 +82,18 @@ export const FolderSwitcher = () => {
   return (
     <>
       <AddFolderModal />
+
+      {!isAllLinksFolderSelected && (
+        <button
+          onClick={() => {
+            onFolderSelect(allLinksOverview);
+          }}
+          className="rounded-md px-2 py-2 hover:bg-gray-100"
+        >
+          <ChevronLeft className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        </button>
+      )}
+
       <Popover
         content={
           <FolderList
@@ -79,16 +108,20 @@ export const FolderSwitcher = () => {
         setOpenPopover={setOpenPopover}
         align="start"
       >
-        <button className="flex items-center justify-between space-x-2 rounded-md px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100">
-          <h1 className="text-2xl font-semibold tracking-tight text-black">
+        <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-100">
+          <h1 className="text-xl font-semibold tracking-tight text-black">
             {selectedFolder?.name}
           </h1>
-          <ChevronsUpDown
-            className="h-5 w-5 text-gray-400"
-            aria-hidden="true"
-          />
+          <ChevronsUpDown className="h-5 w-5 shrink-0" aria-hidden="true" />
         </button>
       </Popover>
+
+      {selectedFolder && !isAllLinksFolderSelected && (
+        <FolderActions
+          folder={selectedFolder}
+          onDelete={() => onFolderSelect(allLinksOverview)}
+        />
+      )}
     </>
   );
 };
@@ -174,11 +207,97 @@ const FolderList = ({
   );
 };
 
+// TODO:
+// Can we share this in links page and folder card
+const FolderActions = ({
+  folder,
+  onDelete,
+}: {
+  folder: FolderSummary;
+  onDelete: () => void;
+}) => {
+  const router = useRouter();
+  const [openPopover, setOpenPopover] = useState(false);
+  const canUpdateFolder = useCheckFolderPermission("folders.write", folder.id);
+
+  const { RenameFolderModal, setShowRenameFolderModal } =
+    useRenameFolderModal(folder);
+
+  const { DeleteFolderModal, setShowDeleteFolderModal } = useDeleteFolderModal(
+    folder,
+    onDelete,
+  );
+
+  return (
+    <>
+      <RenameFolderModal />
+      <DeleteFolderModal />
+      <Popover
+        content={
+          <div className="grid w-full gap-px p-2 sm:w-48">
+            {canUpdateFolder && (
+              <Button
+                text="Rename"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowRenameFolderModal(true);
+                }}
+                icon={<PenWriting className="h-4 w-4" />}
+                shortcut="R"
+                className="h-9 px-2 font-medium"
+              />
+            )}
+
+            <Button
+              text="Members"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                router.push(`/settings/folders/${folder.id}/members`);
+              }}
+              icon={<Users className="h-4 w-4" />}
+              shortcut="M"
+              className="h-9 px-2 font-medium"
+            />
+
+            {canUpdateFolder && (
+              <Button
+                text="Delete"
+                variant="danger-outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDeleteFolderModal(true);
+                }}
+                icon={<Delete className="h-4 w-4" />}
+                shortcut="X"
+                className="h-9 px-2 font-medium"
+              />
+            )}
+          </div>
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <Button
+          variant="secondary"
+          className={cn(
+            "w-fit bg-transparent px-2 outline-none transition-all duration-200 hover:bg-gray-100",
+            "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
+          )}
+          onClick={() => setOpenPopover(true)}
+          icon={<ThreeDots className="h-5 w-5 shrink-0" />}
+        />
+      </Popover>
+    </>
+  );
+};
+
 const FolderSwitcherPlaceholder = () => {
   return (
     <div className="flex animate-pulse items-center space-x-1.5 rounded-lg px-1.5 py-2 sm:w-60">
       <div className="hidden h-8 w-28 animate-pulse rounded-md bg-gray-200 sm:block sm:w-40" />
-      <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
     </div>
   );
 };
