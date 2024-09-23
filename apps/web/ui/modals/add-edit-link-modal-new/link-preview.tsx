@@ -288,41 +288,34 @@ function FacebookOGPreview({
     <div>
       <div className="relative border border-gray-300">
         {children}
-        <div className="grid gap-1 border-t border-gray-300 bg-[#f2f3f5] p-2">
-          {hostname ? (
-            <p className="text-xs uppercase text-[#606770]">{hostname}</p>
-          ) : (
-            <div className="h-4 w-24 rounded-md bg-gray-200" />
-          )}
-          {title || title === "" ? (
-            <input
-              className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#1d2129] outline-none focus:ring-0"
-              value={title}
-              onChange={(e) => {
-                setValue("title", e.currentTarget.value);
-                setValue("proxy", true);
-              }}
-            />
-          ) : (
-            <div className="h-4 w-full rounded-md bg-gray-200" />
-          )}
-          {description || description === "" ? (
-            <ReactTextareaAutosize
-              className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-gray-200 bg-transparent p-0 text-xs text-[#606770] outline-none focus:ring-0"
-              value={description}
-              maxRows={2}
-              onChange={(e) => {
-                setValue("description", e.currentTarget.value);
-                setValue("proxy", true);
-              }}
-            />
-          ) : (
-            <div className="grid gap-1">
-              <div className="h-4 w-full rounded-md bg-gray-200" />
-              <div className="h-4 w-48 rounded-md bg-gray-200" />
-            </div>
-          )}
-        </div>
+        {(hostname || title || description) && (
+          <div className="grid gap-1 border-t border-gray-300 bg-[#f2f3f5] p-2">
+            {hostname && (
+              <p className="text-xs uppercase text-[#606770]">{hostname}</p>
+            )}
+            {(title || title === "") && (
+              <input
+                className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#1d2129] outline-none focus:ring-0"
+                value={title}
+                onChange={(e) => {
+                  setValue("title", e.currentTarget.value);
+                  setValue("proxy", true);
+                }}
+              />
+            )}
+            {(description || description === "") && (
+              <ReactTextareaAutosize
+                className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-gray-200 bg-transparent p-0 text-xs text-[#606770] outline-none focus:ring-0"
+                value={description}
+                maxRows={2}
+                onChange={(e) => {
+                  setValue("description", e.currentTarget.value);
+                  setValue("proxy", true);
+                }}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -335,25 +328,23 @@ function LinkedInOGPreview({ title, hostname, children }: OGPreviewProps) {
     <div>
       <div className="relative overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_2px_3px_rgba(0,0,0,0.2)]">
         {children}
-        <div className="grid gap-1 border-t border-gray-300 bg-white p-2">
-          {title || title === "" ? (
-            <input
-              className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#000000E6] outline-none focus:ring-0"
-              value={title}
-              onChange={(e) => {
-                setValue("title", e.currentTarget.value);
-                setValue("proxy", true);
-              }}
-            />
-          ) : (
-            <div className="mb-1 h-5 w-full rounded-md bg-gray-200" />
-          )}
-          {hostname ? (
-            <p className="text-[9px] text-[#00000099]">{hostname}</p>
-          ) : (
-            <div className="mb-1 h-4 w-24 rounded-md bg-gray-200" />
-          )}
-        </div>
+        {(hostname || title) && (
+          <div className="grid gap-1 border-t border-gray-300 bg-white p-2">
+            {(title || title === "") && (
+              <input
+                className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#000000E6] outline-none focus:ring-0"
+                value={title}
+                onChange={(e) => {
+                  setValue("title", e.currentTarget.value);
+                  setValue("proxy", true);
+                }}
+              />
+            )}
+            {hostname && (
+              <p className="text-[9px] text-[#00000099]">{hostname}</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -372,20 +363,16 @@ function XOGPreview({ title, hostname, children }: OGPreviewProps) {
               hasTitle ? "bg-black/[0.77]" : "bg-gray-200",
             )}
           >
-            {hasTitle ? (
+            {hasTitle && (
               <span className="block max-w-sm truncate text-xs text-white">
                 {title}
               </span>
-            ) : (
-              <div className="h-4 w-32" />
             )}
           </div>
         </div>
       </div>
-      {hostname ? (
+      {hostname && (
         <p className="mt-1 text-xs text-[#606770]">From {hostname}</p>
-      ) : (
-        <div className="mt-1 h-4 w-24 rounded-md bg-gray-200" />
       )}
     </div>
   );
