@@ -191,23 +191,13 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
               ) : !isLoading ? (
                 <>
                   <Link
-                    href={createHref(`${APP_DOMAIN}/login`, domain, {
-                      utm_source: "Custom Domain",
-                      utm_medium: "Navbar",
-                      utm_campaign: domain,
-                      utm_content: "Login",
-                    })}
+                    href="https://d.to/login"
                     className="animate-fade-in rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black dark:text-white dark:hover:text-white/70"
                   >
                     Log in
                   </Link>
                   <Link
-                    href={createHref(`${APP_DOMAIN}/register`, domain, {
-                      utm_source: "Custom Domain",
-                      utm_medium: "Navbar",
-                      utm_campaign: domain,
-                      utm_content: "Sign Up",
-                    })}
+                    href="https://d.to/try"
                     className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-gray-800 hover:ring-4 hover:ring-gray-200 dark:border-white dark:bg-white dark:text-gray-600 dark:hover:bg-white dark:hover:text-gray-800 dark:hover:hover:shadow-[0_0_25px_5px_rgba(256,256,256,0.2)] dark:hover:ring-0"
                   >
                     Sign Up
