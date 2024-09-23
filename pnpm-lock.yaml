@@ -252,8 +252,8 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
       posthog-js:
-        specifier: ^1.154.2
-        version: 1.154.2
+        specifier: ^1.164.1
+        version: 1.164.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -17594,8 +17594,8 @@ packages:
       xtend: 4.0.2
     dev: false
 
-  /posthog-js@1.154.2:
-    resolution: {integrity: sha512-EM8xn5V86fTg/pUhCyyMCRotI07tXDLQryc5TDQinT9kCRz8799G1n+Bq7drOEYdD/xbvcKfcfTWmlMrTZCZ6A==}
+  /posthog-js@1.164.1:
+    resolution: {integrity: sha512-cEWPJmg7V9EgpHLW+FfhQ0GBPd0uVc77MCWTJtnOWp88rIThDXbCwug+OPFzos/7puWqMYXo+mwQNjW8aL4SeQ==}
     dependencies:
       fflate: 0.4.8
       preact: 10.22.1
