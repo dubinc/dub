@@ -4,8 +4,7 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
-import { prisma } from "@/lib/prisma";
+import { throwIfInvalidFolderAccess } from "@/lib/link-folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -89,32 +88,11 @@ export const POST = withWorkspace(
     }
 
     // Check if the user has edit access to the folder
-    // TODO: Move this to a shared function
     if (body.folderId) {
-      const folder = await prisma.folder.findFirst({
-        where: {
-          id: body.folderId,
-          projectId: workspace.id,
-        },
-        include: {
-          users: true,
-        },
-      });
-
-      if (!folder) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Folder not found in the workspace.",
-        });
-      }
-
-      const folderUser = folder.users.find(
-        (user) => user.userId === session.user.id,
-      );
-
-      throwIfNotAllowed({
-        folder,
-        folderUser,
+      throwIfInvalidFolderAccess({
+        folderId: body.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
         requiredPermission: "folders.links.write",
       });
     }

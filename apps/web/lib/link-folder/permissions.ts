@@ -1,3 +1,6 @@
+"server-only";
+
+import { prisma } from "@/lib/prisma";
 import { Folder, FolderUser } from "@prisma/client";
 import { DubApiError } from "../api/errors";
 import {
@@ -14,7 +17,7 @@ export const throwIfNotAllowed = ({
   fromServerAction = false,
 }: {
   folder: Folder;
-  folderUser: FolderUser | null | undefined;
+  folderUser: FolderUser | null;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
   fromServerAction?: boolean;
 }) => {
@@ -40,7 +43,7 @@ export const canPerformActionOnFolder = ({
   requiredPermission,
 }: {
   folder: Folder;
-  folderUser: FolderUser | null | undefined;
+  folderUser: FolderUser | null;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
 }) => {
   const folderUserRole = determineFolderUserRole({
@@ -66,7 +69,7 @@ export const determineFolderUserRole = ({
   folderUser,
 }: {
   folder: Pick<Folder, "accessLevel">;
-  folderUser: FolderUser | null | undefined;
+  folderUser: FolderUser | null;
 }) => {
   if (folderUser) {
     return folderUser.role;
@@ -88,3 +91,44 @@ export const getFolderPermissions = (
 
   return FOLDER_USER_ROLE_TO_PERMISSIONS[role] || [];
 };
+
+export async function throwIfInvalidFolderAccess({
+  folderId,
+  workspaceId,
+  userId,
+  requiredPermission,
+}: {
+  folderId: string;
+  workspaceId: string;
+  userId: string;
+  requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
+}) {
+  const folder = await prisma.folder.findFirst({
+    where: {
+      id: folderId,
+      projectId: workspaceId,
+    },
+    include: {
+      users: true,
+    },
+  });
+
+  if (!folder) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Folder not found in the workspace.",
+    });
+  }
+
+  const folderUser =
+    folder.users.find((user) => user.userId === userId) || null;
+
+  if (canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
+    return;
+  }
+
+  throw new DubApiError({
+    code: "forbidden",
+    message: "You are not allowed to perform this action on this folder.",
+  });
+}
