@@ -149,8 +149,8 @@ export function UTMBuilder() {
                 "rounded-md border border-gray-300 bg-white text-gray-700",
                 "disabled:pointer-events-none disabled:opacity-70",
                 enabled
-                  ? "border-gray-200 bg-gray-200"
-                  : "hover:bg-gray-100 active:bg-gray-200",
+                  ? "border-gray-600 bg-gray-100 ring-1 ring-inset ring-gray-600"
+                  : "hover:bg-gray-50 active:bg-gray-100",
               )}
               onClick={() => toggleParameter(key)}
             >
