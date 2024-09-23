@@ -6,7 +6,6 @@ SCHEMA >
     `link_id` String,
     `alias_link_id` String,
     `url` String,
-    `continent` LowCardinality(String),
     `country` LowCardinality(String),
     `city` String,
     `region` String,
@@ -29,7 +28,8 @@ SCHEMA >
     `user_id` Nullable(Int64),
     `identity_hash` Nullable(String),
     `ip` String,
-    `qr` UInt8
+    `qr` UInt8,
+    `continent` LowCardinality(String)
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

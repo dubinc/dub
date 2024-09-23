@@ -91,6 +91,8 @@ export const getEvents = async (params: EventsFilters) => {
         click: clickEventSchema.parse({
           ...evt,
           id: evt.click_id,
+          // normalize referer_url to camelCase
+          refererUrl: evt.referer_url ?? "",
         }),
         // transformLink -> add shortLink, qrCode, workspaceId, etc.
         link: transformLink(link),

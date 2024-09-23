@@ -124,16 +124,7 @@ SQL >
         {% end %}
     WHERE
         true
-        {% if defined(linkId) %}
-            AND link_id
-            = {{
-                String(
-                    linkId,
-                    'clsdzhhlq0003vskwcaz6nm39',
-                    description="The ID of the link",
-                )
-            }}
-        {% end %}
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -142,6 +133,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
@@ -187,16 +179,7 @@ SQL >
         {% end %}
     WHERE
         true
-        {% if defined(linkId) %}
-            AND link_id
-            = {{
-                String(
-                    linkId,
-                    'clsdzhhlq0003vskwcaz6nm39',
-                    description="The ID of the link",
-                )
-            }}
-        {% end %}
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -205,6 +188,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
@@ -254,16 +238,7 @@ SQL >
         {% end %}
     WHERE
         true
-        {% if defined(linkId) %}
-            AND link_id
-            = {{
-                String(
-                    linkId,
-                    'clsdzhhlq0003vskwcaz6nm39',
-                    description="The ID of the link",
-                )
-            }}
-        {% end %}
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -272,6 +247,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
@@ -284,7 +260,7 @@ NODE timeseries_sales
 SQL >
 
     %
-    SELECT formatDateTime(interval, '%FT%T.000%z') as start, sales, amount
+    SELECT formatDateTime(interval, '%FT%T.000%z') as start, sales, amount, amount as saleAmount
     FROM
         {% if granularity == "minute" %} minute_intervals
         {% elif granularity == "hour" %} hour_intervals
@@ -298,7 +274,7 @@ SQL >
 NODE timeseries_composite
 SQL >
 
-    SELECT dce.start AS start, clicks, leads, sales, amount
+    SELECT dce.start AS start, clicks, leads, sales, amount, saleAmount
     FROM (SELECT start, clicks FROM timeseries_clicks) AS dce
     LEFT JOIN (SELECT * FROM  timeseries_leads) AS dle ON dce.start = dle.start
     LEFT JOIN (SELECT * FROM timeseries_sales) AS dse ON dce.start = dse.start
@@ -314,8 +290,8 @@ SQL >
         leads,
         sales,
         amount,
-        (clicks + leads + sales) AS total_events,
-        amount / 200 as billable_sales
+        saleAmount,
+        (clicks + leads + sales) AS totalEvents
     FROM (SELECT start, clicks FROM timeseries_clicks) AS dce
     LEFT JOIN (SELECT * FROM timeseries_leads) AS dle ON dce.start = dle.start
     LEFT JOIN (SELECT * FROM timeseries_sales) AS dse ON dce.start = dse.start

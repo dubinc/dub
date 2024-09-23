@@ -28,6 +28,7 @@ import {
   capitalize,
   fetcher,
   getApexDomain,
+  getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
@@ -317,6 +318,24 @@ export default function EventsTable() {
                 />
               )}
               <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "refererUrl",
+          header: "Referer URL",
+          accessorKey: "click.refererUrl",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3" title={getValue()}>
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue())}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
+              <span className="truncate">{getPrettyUrl(getValue())}</span>
             </div>
           ),
         },
