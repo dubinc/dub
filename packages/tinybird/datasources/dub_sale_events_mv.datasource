@@ -1,3 +1,5 @@
+# Data Source created from Pipe 'dub_sale_events_pipe'
+
 SCHEMA >
     `timestamp` DateTime64(3),
     `event_id` String,
@@ -12,10 +14,16 @@ SCHEMA >
     `continent` LowCardinality(String),
     `country` LowCardinality(String),
     `city` String,
+    `region` String,
+    `latitude` String,
+    `longitude` String,
     `device` LowCardinality(String),
     `browser` LowCardinality(String),
     `os` LowCardinality(String),
+    `engine` LowCardinality(String),
+    `ua` String,
     `referer` String,
+    `referer_url` String,
     `qr` UInt8,
     `ip` String
 
