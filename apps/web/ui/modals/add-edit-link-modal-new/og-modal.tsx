@@ -58,7 +58,7 @@ function OGModalInner({
     setValue: setValueParent,
   } = useFormContext<LinkFormData>();
 
-  const { watch, setValue, getValues, reset } = useForm<
+  const { watch, setValue, getValues, reset, handleSubmit } = useForm<
     Pick<LinkFormData, "image" | "title" | "description" | "proxy">
   >({
     defaultValues: {
@@ -187,19 +187,18 @@ function OGModalInner({
       <Modal
         showModal={showOGModal}
         setShowModal={setShowOGModal}
-        className="max-w-[500px]"
+        className="sm:max-w-[500px]"
       >
         <form
           className="px-5 py-4"
-          // For some reason using handleSubmit causes the link modal's form to submit
           onSubmit={(e) => {
-            e.preventDefault();
             e.stopPropagation();
-
-            setShowOGModal(false);
-            (["image", "title", "description", "proxy"] as const).forEach(
-              (key) => setValueParent(key, getValues(key)),
-            );
+            handleSubmit(async (data) => {
+              setShowOGModal(false);
+              (["image", "title", "description", "proxy"] as const).forEach(
+                (key) => setValueParent(key, data[key]),
+              );
+            })(e);
           }}
         >
           <div className="flex items-center justify-between">

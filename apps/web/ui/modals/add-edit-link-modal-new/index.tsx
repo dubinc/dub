@@ -49,9 +49,11 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
+import { MoreDropdown } from "./more-dropdown";
+import { OptionsList } from "./options-list";
 import { usePasswordModal } from "./password-modal";
 import { QRCodePreview } from "./qr-code-preview";
-import { TogglesDropdown, TogglesList } from "./toggles";
+import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { UTMBuilder } from "./utm-builder";
 
@@ -202,11 +204,13 @@ function AddEditLinkModalInner({
   );
 
   const { PasswordModal, PasswordButton } = usePasswordModal();
+  const { TargetingModal, TargetingButton } = useTargetingModal();
   const { ExpirationModal, ExpirationButton } = useExpirationModal();
 
   return (
     <>
       <PasswordModal />
+      <TargetingModal />
       <ExpirationModal />
       <Modal
         showModal={showAddEditLinkModal}
@@ -421,7 +425,7 @@ function AddEditLinkModalInner({
                   </div>
 
                   <div className="flex grow flex-col justify-end">
-                    <TogglesList />
+                    <OptionsList />
                   </div>
                 </div>
               </div>
@@ -437,9 +441,12 @@ function AddEditLinkModalInner({
             </div>
             <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 p-4">
               <div className="flex items-center gap-2">
-                <ExpirationButton />
-                <PasswordButton />
-                <TogglesDropdown />
+                <div className="flex items-center gap-2 max-sm:hidden">
+                  <ExpirationButton />
+                  <TargetingButton />
+                  <PasswordButton />
+                </div>
+                <MoreDropdown />
               </div>
               {homepageDemo ? (
                 <Button

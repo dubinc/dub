@@ -56,14 +56,17 @@ function PasswordModal({
       <Modal
         showModal={showPasswordModal}
         setShowModal={setShowPasswordModal}
-        className="max-w-md"
+        className="sm:max-w-md"
       >
         <form
           className="px-5 py-4"
-          onSubmit={handleSubmit((data) => {
-            setValueParent("password", data.password);
-            setShowPasswordModal(false);
-          })}
+          onSubmit={(e) => {
+            e.stopPropagation();
+            handleSubmit((data) => {
+              setValueParent("password", data.password);
+              setShowPasswordModal(false);
+            })(e);
+          }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -183,6 +186,10 @@ function PasswordModal({
   );
 }
 
+export function getPasswordLabel({ password }: Pick<LinkFormData, "password">) {
+  return password ? "Protected" : "Password";
+}
+
 function PasswordButton({
   setShowPasswordModal,
 }: {
@@ -198,7 +205,7 @@ function PasswordButton({
   return (
     <Button
       variant="secondary"
-      text={password ? "Protected" : "Password"}
+      text={getPasswordLabel({ password })}
       icon={
         <InputPassword className={cn("size-4", password && "text-blue-500")} />
       }

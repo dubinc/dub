@@ -1,4 +1,5 @@
 export * from "./apple";
+export * from "./arrow-bold-up";
 export * from "./arrow-right";
 export * from "./arrow-turn-left";
 export * from "./arrow-turn-right2";
@@ -25,6 +26,7 @@ export * from "./circles3";
 export * from "./cloud-upload";
 export * from "./code";
 export * from "./connected-dots";
+export * from "./crosshairs3";
 export * from "./cube";
 export * from "./cube-settings";
 export * from "./cursor-rays";

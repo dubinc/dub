@@ -58,7 +58,7 @@ function ExpirationModal({
     },
   });
 
-  const [expiresAt, expiredUrl] = watch(["expiresAt", "expiredUrl"]);
+  const [expiresAt] = watch(["expiresAt", "expiredUrl"]);
   const expiresAtParent = watchParent("expiresAt");
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -68,15 +68,18 @@ function ExpirationModal({
       <Modal
         showModal={showExpirationModal}
         setShowModal={setShowExpirationModal}
-        className="max-w-md"
+        className="sm:max-w-md"
       >
         <form
           className="px-5 py-4"
-          onSubmit={handleSubmit((data) => {
-            setValueParent("expiresAt", data.expiresAt);
-            setValueParent("expiredUrl", data.expiredUrl);
-            setShowExpirationModal(false);
-          })}
+          onSubmit={(e) => {
+            e.stopPropagation();
+            handleSubmit((data) => {
+              setValueParent("expiresAt", data.expiresAt);
+              setValueParent("expiredUrl", data.expiredUrl);
+              setShowExpirationModal(false);
+            })(e);
+          }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -250,6 +253,18 @@ function ExpirationModal({
   );
 }
 
+export function getExpirationLabel({
+  expiresAt,
+}: Pick<LinkFormData, "expiresAt">) {
+  return expiresAt
+    ? formatDate(expiresAt, {
+        month: "short",
+        year: undefined,
+        timeZone: undefined,
+      }) || "Expiration"
+    : "Expiration";
+}
+
 function ExpirationButton({
   setShowExpirationModal,
 }: {
@@ -265,15 +280,7 @@ function ExpirationButton({
   return (
     <Button
       variant="secondary"
-      text={
-        expiresAt
-          ? formatDate(expiresAt, {
-              month: "short",
-              year: undefined,
-              timeZone: undefined,
-            }) || "Expiration"
-          : "Expiration"
-      }
+      text={getExpirationLabel({ expiresAt })}
       icon={
         <CircleHalfDottedClock
           className={cn("size-4", expiresAt && "text-blue-500")}
