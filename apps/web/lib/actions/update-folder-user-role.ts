@@ -11,7 +11,7 @@ const schema = z.object({
   workspaceId: z.string(),
   folderId: z.string(),
   userId: z.string(),
-  role: folderUserRoleSchema,
+  role: folderUserRoleSchema.nullable(),
 });
 
 // Update the folder user role

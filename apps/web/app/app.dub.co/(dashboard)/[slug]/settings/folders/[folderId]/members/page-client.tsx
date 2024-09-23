@@ -221,14 +221,14 @@ const FolderUserRow = ({
               "cursor-not-allowed bg-gray-100": disableRoleUpdate,
             },
           )}
-          value={role}
+          value={role === null ? "" : role}
           disabled={disableRoleUpdate}
           onChange={(e) => {
             if (!folder || !workspaceId) {
               return;
             }
 
-            const role = e.target.value as FolderUserRole;
+            const role = (e.target.value as FolderUserRole) || null;
 
             executeAsync({
               workspaceId,
@@ -245,6 +245,10 @@ const FolderUserRow = ({
               {FOLDER_USER_ROLE[role]}
             </option>
           ))}
+
+          <option value="" key="no-access">
+            No access
+          </option>
         </select>
       </div>
     </div>

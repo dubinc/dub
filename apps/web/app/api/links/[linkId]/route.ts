@@ -66,7 +66,7 @@ export const PATCH = withWorkspace(
 
     // Check if the user has edit access to the folder
     if (body.folderId) {
-      throwIfInvalidFolderAccess({
+      await throwIfInvalidFolderAccess({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,

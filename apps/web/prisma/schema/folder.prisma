@@ -30,7 +30,7 @@ model FolderUser {
   id        String          @id @default(cuid())
   folderId  String
   userId    String
-  role      FolderUserRole
+  role      FolderUserRole?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
