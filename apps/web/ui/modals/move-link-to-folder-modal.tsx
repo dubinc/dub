@@ -1,19 +1,23 @@
+import { LinkWithTagsProps } from "@/lib/types";
 import { Modal } from "@dub/ui";
 import { useCallback, useMemo, useState } from "react";
-import { AddFolderForm } from "../folders/add-folder-form";
+import { MoveLinkForm } from "../folders/move-link-form";
 
 interface MoveLinkToFolderModalProps {
+  link: LinkWithTagsProps;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
 
 const MoveLinkToFolderModal = ({
+  link,
   showModal,
   setShowModal,
 }: MoveLinkToFolderModalProps) => {
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
-      <AddFolderForm
+      <MoveLinkForm
+        link={link}
         onSuccess={() => setShowModal(false)}
         onCancel={() => setShowModal(false)}
       />
@@ -21,13 +25,18 @@ const MoveLinkToFolderModal = ({
   );
 };
 
-export function useMoveLinkToFolderModal() {
+export function useMoveLinkToFolderModal({
+  link,
+}: {
+  link: LinkWithTagsProps;
+}) {
   const [showMoveLinkToFolderModal, setShowMoveLinkToFolderModal] =
     useState(false);
 
   const MoveLinkToFolderModalCallback = useCallback(() => {
     return (
       <MoveLinkToFolderModal
+        link={link}
         showModal={showMoveLinkToFolderModal}
         setShowModal={setShowMoveLinkToFolderModal}
       />

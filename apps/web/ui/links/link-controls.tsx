@@ -60,7 +60,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     props: link,
   });
   const { setShowMoveLinkToFolderModal, MoveLinkToFolderModal } =
-    useMoveLinkToFolderModal();
+    useMoveLinkToFolderModal({ link });
 
   // Duplicate link Modal
   const {
