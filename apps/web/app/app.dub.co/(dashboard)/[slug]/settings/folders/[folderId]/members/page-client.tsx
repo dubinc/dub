@@ -12,8 +12,8 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderEditAccessRequestButton } from "@/ui/folders/ask-to-edit-button";
-import { Avatar, Globe } from "@dub/ui";
-import { cn, fetcher, nFormatter } from "@dub/utils";
+import { Avatar, BlurImage, Globe } from "@dub/ui";
+import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
 import { ChevronLeft, FolderIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -26,7 +26,7 @@ import useSWR from "swr";
 
 export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const workspace = useWorkspace();
   const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<string>();
 
   const { isLoading: isLoadingPermissions } = useFolderPermissions();
@@ -41,7 +41,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     isLoading: isFolderLoading,
     mutate: mutateFolder,
   } = useSWR<Folder>(
-    `/api/folders/${folderId}?workspaceId=${workspaceId}`,
+    `/api/folders/${folderId}?workspaceId=${workspace.id}`,
     fetcher,
   );
 
@@ -51,7 +51,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     isValidating: isUsersValidating,
     mutate: mutateUsers,
   } = useSWR<FolderUser[]>(
-    `/api/folders/${folderId}/users?workspaceId=${workspaceId}`,
+    `/api/folders/${folderId}/users?workspaceId=${workspace.id}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -68,7 +68,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     setWorkspaceAccessLevel(accessLevel);
 
     const response = await fetch(
-      `/api/folders/${folderId}?workspaceId=${workspaceId}`,
+      `/api/folders/${folderId}?workspaceId=${workspace.id}`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -93,7 +93,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   return (
     <>
       <Link
-        href={`/${workspaceSlug}/settings/folders`}
+        href={`/${workspace.slug}/settings/folders`}
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />
@@ -125,29 +125,42 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
               </div>
 
               {canUpdateFolder && !isLoadingPermissions && (
-                <select
-                  className="rounded-md border border-gray-200 text-xs text-gray-900 focus:border-gray-600 focus:ring-gray-600"
-                  value={workspaceAccessLevel || folder?.accessLevel || ""}
-                  disabled={isUpdating}
-                  onChange={(e) => {
-                    updateWorkspaceAccessLevel(e.target.value);
-                  }}
-                >
-                  {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
-                    <option value={access} key={access}>
-                      {FOLDER_WORKSPACE_ACCESS[access]}
+                <div className="relative flex items-center">
+                  <BlurImage
+                    src={
+                      workspace.logo ||
+                      `${DICEBEAR_AVATAR_URL}${workspace.name}`
+                    }
+                    alt={workspace.name || "Workspace logo"}
+                    className="absolute left-2 size-6 shrink-0 overflow-hidden rounded-full"
+                    width={20}
+                    height={20}
+                  />
+
+                  <select
+                    className="appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-8 text-sm text-gray-900 focus:border-gray-300 focus:ring-gray-300"
+                    value={workspaceAccessLevel || folder?.accessLevel || ""}
+                    disabled={isUpdating}
+                    onChange={(e) => {
+                      updateWorkspaceAccessLevel(e.target.value);
+                    }}
+                  >
+                    {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (
+                      <option value={access} key={access}>
+                        {FOLDER_WORKSPACE_ACCESS[access]}
+                      </option>
+                    ))}
+                    <option value="" key="no-access">
+                      No access
                     </option>
-                  ))}
-                  <option value="" key="no-access">
-                    No access
-                  </option>
-                </select>
+                  </select>
+                </div>
               )}
 
               {!canMoveLinks && !isLoadingPermissions && (
                 <FolderEditAccessRequestButton
                   folderId={folder.id}
-                  workspaceId={workspaceId!}
+                  workspaceId={workspace.id!}
                 />
               )}
             </>
