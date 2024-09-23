@@ -2,7 +2,7 @@ DESCRIPTION >
 	Top countries
 
 
-TOKEN "v1_events_endpoint_read_8799" READ
+TOKEN "v2_events_endpoint_read_8799" READ
 
 NODE workspace_links
 SQL >
@@ -49,6 +49,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
@@ -61,8 +62,8 @@ SQL >
 
     %
     SELECT
-        'lead' as event,
         *,
+        'lead' as event
     FROM dub_lead_events_mv
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
@@ -78,6 +79,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
@@ -90,9 +92,9 @@ SQL >
 
     %
     SELECT
-        'sale' as event,
         *,
-        amount as saleAmount
+        amount as saleAmount,
+        'sale' as event
     FROM dub_sale_events_mv
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
@@ -108,6 +110,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}

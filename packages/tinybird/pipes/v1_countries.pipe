@@ -57,6 +57,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
@@ -95,6 +96,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
@@ -107,44 +109,52 @@ NODE countries_sales
 SQL >
 
     %
-    SELECT country, COUNT(country) as sales, sum(amount) as amount
-    FROM
-        dub_sale_events_mv
-        {% if not defined(linkId) and defined(workspaceId) %}
-            PREWHERE link_id in (SELECT link_id from workspace_links)
-        {% end %}
-    WHERE
-        country != 'Unknown'
-        {% if defined(linkId) %}
-            AND link_id
-            = {{
-                String(
-                    linkId,
-                    'clsdzhhlq0003vskwcaz6nm39',
-                    description="The ID of the link",
-                )
-            }}
-        {% end %}
-        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
-        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
-        {% if defined(country) %} AND country = {{ country }} {% end %}
-        {% if defined(city) %} AND city = {{ city }} {% end %}
-        {% if defined(device) %} AND device = {{ device }} {% end %}
-        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-        {% if defined(os) %} AND os = {{ os }} {% end %}
-        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-        {% if defined(url) %} AND url = {{ url }} {% end %}
-        {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
-        {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
-    GROUP BY country
-    ORDER BY sales DESC
+    SELECT 
+        country,
+        sales,
+        amount,
+        amount AS saleAmount
+    FROM (
+      SELECT country, COUNT(country) as sales, sum(amount) as amount
+      FROM
+          dub_sale_events_mv
+          {% if not defined(linkId) and defined(workspaceId) %}
+              PREWHERE link_id in (SELECT link_id from workspace_links)
+          {% end %}
+      WHERE
+          country != 'Unknown'
+          {% if defined(linkId) %}
+              AND link_id
+              = {{
+                  String(
+                      linkId,
+                      'clsdzhhlq0003vskwcaz6nm39',
+                      description="The ID of the link",
+                  )
+              }}
+          {% end %}
+          {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+          {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+          {% if defined(country) %} AND country = {{ country }} {% end %}
+          {% if defined(city) %} AND city = {{ city }} {% end %}
+          {% if defined(device) %} AND device = {{ device }} {% end %}
+          {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+          {% if defined(os) %} AND os = {{ os }} {% end %}
+          {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+          {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
+          {% if defined(url) %} AND url = {{ url }} {% end %}
+          {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
+          {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
+      GROUP BY country
+      ORDER BY sales DESC
+    ) as subquery
 
 
 
 NODE countries_composite
 SQL >
 
-    SELECT dce.country AS country, clicks, leads, sales, amount
+    SELECT dce.country AS country, clicks, leads, sales, amount, saleAmount
     FROM (SELECT country, clicks FROM countries_clicks) AS dce
     LEFT JOIN (SELECT * FROM  countries_leads) AS dle ON dce.country = dle.country
     LEFT JOIN (SELECT * FROM countries_sales) AS dse ON dce.country = dse.country

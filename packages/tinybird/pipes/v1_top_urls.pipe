@@ -20,6 +20,7 @@ SQL >
                 required=True,
             )
         }}
+        AND url != ''
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -28,11 +29,13 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
     GROUP BY url
     ORDER BY clicks DESC
+    LIMIT 5000
 
 
 
@@ -52,6 +55,7 @@ SQL >
                 required=True,
             )
         }}
+        AND url != ''
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -60,11 +64,13 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
     GROUP BY url
     ORDER BY leads DESC
+    LIMIT 5000
 
 
 
@@ -72,38 +78,48 @@ NODE top_urls_sales
 SQL >
 
     %
-    SELECT url, COUNT(*) as sales, sum(amount) as amount
-    FROM dub_sale_events_mv
-    WHERE
-        link_id
-        = {{
-            String(
-                linkId,
-                'clqo10sum0006js08vutzfxt3',
-                description="The ID of the link",
-                required=True,
-            )
-        }}
-        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
-        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
-        {% if defined(country) %} AND country = {{ country }} {% end %}
-        {% if defined(city) %} AND city = {{ city }} {% end %}
-        {% if defined(device) %} AND device = {{ device }} {% end %}
-        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-        {% if defined(os) %} AND os = {{ os }} {% end %}
-        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-        {% if defined(url) %} AND url = {{ url }} {% end %}
-        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
-        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
-    GROUP BY url
-    ORDER BY sales DESC
+    SELECT 
+        url,
+        sales,
+        amount,
+        amount AS saleAmount
+    FROM (
+      SELECT url, COUNT(*) as sales, sum(amount) as amount
+      FROM dub_sale_events_mv
+      WHERE
+          link_id
+          = {{
+              String(
+                  linkId,
+                  'clqo10sum0006js08vutzfxt3',
+                  description="The ID of the link",
+                  required=True,
+              )
+          }}
+          AND url != ''
+          {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+          {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+          {% if defined(country) %} AND country = {{ country }} {% end %}
+          {% if defined(city) %} AND city = {{ city }} {% end %}
+          {% if defined(device) %} AND device = {{ device }} {% end %}
+          {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+          {% if defined(os) %} AND os = {{ os }} {% end %}
+          {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+          {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
+          {% if defined(url) %} AND url = {{ url }} {% end %}
+          {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+          {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+      GROUP BY url
+      ORDER BY sales DESC
+      LIMIT 5000
+    ) as subquery
 
 
 
 NODE top_urls_composite
 SQL >
 
-    SELECT dce.url AS url, clicks, leads, sales, amount
+    SELECT dce.url AS url, clicks, leads, sales, amount, saleAmount
     FROM (SELECT url, clicks FROM top_urls_clicks) AS dce
     LEFT JOIN (SELECT * FROM  top_urls_leads) AS dle ON dce.url = dle.url
     LEFT JOIN (SELECT * FROM top_urls_sales) AS dse ON dce.url = dse.url
