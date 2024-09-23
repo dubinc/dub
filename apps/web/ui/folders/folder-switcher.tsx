@@ -4,7 +4,8 @@ import { Popover, Tick, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown, FolderCheck, FolderPlusIcon } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { useAddFolderModal } from "../modals/add-folder-modal";
 
 type FolderSummary = Pick<Folder, "id" | "name">;
@@ -15,6 +16,7 @@ const allLinksOverview: FolderSummary = {
 };
 
 export const FolderSwitcher = () => {
+  const searchParams = useSearchParams();
   const { folders, isLoading } = useFolders();
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams, searchParamsObj } = useRouterStuff();
@@ -24,6 +26,22 @@ export const FolderSwitcher = () => {
     allLinksOverview,
   );
 
+  const folderId = searchParams.get("folderId");
+
+  // set the selected folder if the folderId is in the search params
+  useEffect(() => {
+    if (!folderId || !folders) {
+      return;
+    }
+
+    const selectedFolder = folders.find((folder) => folder.id === folderId);
+
+    if (selectedFolder) {
+      setSelectedFolder(selectedFolder);
+    }
+  }, [folderId, folders]);
+
+  // set the folderId in the search params
   const onFolderSelect = useCallback((folder: FolderSummary) => {
     setSelectedFolder(folder);
 
