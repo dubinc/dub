@@ -48,10 +48,15 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   const {
     data: users,
     isLoading: isUsersLoading,
+    isValidating: isUsersValidating,
     mutate: mutateUsers,
   } = useSWR<FolderUser[]>(
     `/api/folders/${folderId}/users?workspaceId=${workspaceId}`,
     fetcher,
+    {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
+    },
   );
 
   if (!isFolderLoading && !folder) {
@@ -149,7 +154,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
         </div>
 
         <div className="grid divide-y divide-gray-200">
-          {isUsersLoading
+          {isUsersValidating || isUsersLoading
             ? Array.from({ length: 5 }).map((_, i) => (
                 <FolderUserPlaceholder key={i} />
               ))

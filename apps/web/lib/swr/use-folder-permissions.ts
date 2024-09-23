@@ -6,7 +6,7 @@ import useWorkspace from "./use-workspace";
 export function useFolderPermissions() {
   const { id } = useWorkspace();
 
-  const { data, error, isLoading } = useSWR<FolderWithPermissions[]>(
+  const { data, error, isLoading, mutate } = useSWR<FolderWithPermissions[]>(
     id && `/api/folders/permissions?workspaceId=${id}`,
     fetcher,
     {
@@ -18,6 +18,7 @@ export function useFolderPermissions() {
     folders: data,
     error,
     isLoading,
+    mutate,
   };
 }
 
