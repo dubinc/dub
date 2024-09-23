@@ -47,6 +47,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
 import { usePasswordModal } from "./password-modal";
 import { QRCodePreview } from "./qr-code-preview";
@@ -201,10 +202,12 @@ function AddEditLinkModalInner({
   );
 
   const { PasswordModal, PasswordButton } = usePasswordModal();
+  const { ExpirationModal, ExpirationButton } = useExpirationModal();
 
   return (
     <>
       <PasswordModal />
+      <ExpirationModal />
       <Modal
         showModal={showAddEditLinkModal}
         setShowModal={setShowAddEditLinkModal}
@@ -434,6 +437,7 @@ function AddEditLinkModalInner({
             </div>
             <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 p-4">
               <div className="flex items-center gap-2">
+                <ExpirationButton />
                 <PasswordButton />
                 <TogglesDropdown />
               </div>

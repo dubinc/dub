@@ -66,7 +66,18 @@ function PasswordModal({
           })}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Link Password</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-medium">Link Password</h3>
+              <ProBadgeTooltip
+                content={
+                  <SimpleTooltipContent
+                    title="Restrict access to your short links by encrypting it with a password."
+                    cta="Learn more."
+                    href="https://dub.co/help/article/password-protected-links"
+                  />
+                }
+              />
+            </div>
             <div className="max-md:hidden">
               <Tooltip
                 content={
@@ -87,20 +98,9 @@ function PasswordModal({
 
           <div className="mt-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="block text-sm font-medium text-gray-700">
-                  Password
-                </span>
-                <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Restrict access to your short links by encrypting it with a password."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/password-protected-links"
-                    />
-                  }
-                />
-              </div>
+              <span className="block text-sm font-medium text-gray-700">
+                Password
+              </span>
               <div className="flex items-center gap-2">
                 <ButtonTooltip
                   className="text-gray-500 transition-colors hover:text-gray-800"
