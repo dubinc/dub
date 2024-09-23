@@ -15,7 +15,7 @@ import { useState } from "react";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
-import { AskToEditButton } from "./ask-to-edit-button";
+import { FolderEditAccessRequestButton } from "./ask-to-edit-button";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
   const router = useRouter();
@@ -52,7 +52,10 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           {!isAllLinksFolder && (
             <div className="flex items-center justify-end gap-2">
               {!isPermissionsLoading && !canMoveLinks && (
-                <AskToEditButton folder={folder} workspaceId={workspaceId!} />
+                <FolderEditAccessRequestButton
+                  folderId={folder.id}
+                  workspaceId={workspaceId!}
+                />
               )}
 
               <Popover

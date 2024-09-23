@@ -24,7 +24,7 @@ export function useFolderPermissions() {
 
 export function useCheckFolderPermission(
   action: FolderPermission,
-  folderId: string,
+  folderId: string | null,
 ) {
   const { folders } = useFolderPermissions();
 

@@ -1,22 +1,19 @@
 "use client";
 
 import { requestFolderEditAccessAction } from "@/lib/actions/request-folder-edit-access";
-import { Folder } from "@/lib/link-folder/types";
 import { useFolderAccessRequests } from "@/lib/swr/use-folder-access-requests";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
 
-interface AskToEditButtonProps {
-  folder: Folder;
-  workspaceId: string;
-}
-
-export const AskToEditButton = ({
-  folder,
+export const FolderEditAccessRequestButton = ({
+  folderId,
   workspaceId,
-}: AskToEditButtonProps) => {
+}: {
+  folderId: string;
+  workspaceId: string;
+}) => {
   const [requestSent, setRequestSent] = useState(false);
   const { accessRequests } = useFolderAccessRequests();
 
@@ -34,7 +31,7 @@ export const AskToEditButton = ({
   );
 
   const isRequested = accessRequests?.some(
-    (accessRequest) => accessRequest.folderId === folder.id,
+    (accessRequest) => accessRequest.folderId === folderId,
   );
 
   return (
@@ -52,8 +49,8 @@ export const AskToEditButton = ({
       loading={isExecuting}
       onClick={() =>
         executeAsync({
-          workspaceId: workspaceId!,
-          folderId: folder.id,
+          workspaceId,
+          folderId,
         })
       }
     />

@@ -11,7 +11,7 @@ import {
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { AskToEditButton } from "@/ui/folders/ask-to-edit-button";
+import { FolderEditAccessRequestButton } from "@/ui/folders/ask-to-edit-button";
 import { Avatar, Globe } from "@dub/ui";
 import { cn, fetcher, nFormatter } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
@@ -145,7 +145,10 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
               )}
 
               {!canMoveLinks && !isLoadingPermissions && (
-                <AskToEditButton folder={folder} workspaceId={workspaceId!} />
+                <FolderEditAccessRequestButton
+                  folderId={folder.id}
+                  workspaceId={workspaceId!}
+                />
               )}
             </>
           ) : (
