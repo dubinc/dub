@@ -57,11 +57,7 @@ export const canPerformActionOnFolder = ({
 
   const permissions = getFolderPermissions(folderUserRole);
 
-  if (!permissions.includes(requiredPermission)) {
-    return false;
-  }
-
-  return true;
+  return permissions.includes(requiredPermission);
 };
 
 export const determineFolderUserRole = ({
@@ -123,12 +119,10 @@ export async function throwIfInvalidFolderAccess({
   const folderUser =
     folder.users.find((user) => user.userId === userId) || null;
 
-  if (canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
-    return;
+  if (!canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not allowed to perform this action on this folder.",
+    });
   }
-
-  throw new DubApiError({
-    code: "forbidden",
-    message: "You are not allowed to perform this action on this folder.",
-  });
 }
