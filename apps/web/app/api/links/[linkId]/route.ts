@@ -8,6 +8,7 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -55,13 +56,44 @@ export const GET = withWorkspace(
 
 // PATCH /api/links/[linkId] – update a link
 export const PATCH = withWorkspace(
-  async ({ req, headers, workspace, params }) => {
+  async ({ req, headers, workspace, params, session }) => {
     const link = await getLinkOrThrow({
       workspace,
       linkId: params.linkId,
     });
 
     const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
+
+    // Check if the user has edit access to the folder
+    // TODO: Move this to a shared function
+    if (body.folderId) {
+      const folder = await prisma.folder.findFirst({
+        where: {
+          id: body.folderId,
+          projectId: workspace.id,
+        },
+        include: {
+          users: true,
+        },
+      });
+
+      if (!folder) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Folder not found in the workspace.",
+        });
+      }
+
+      const folderUser = folder.users.find(
+        (user) => user.userId === session.user.id,
+      );
+
+      throwIfNotAllowed({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {

@@ -14,7 +14,7 @@ export const throwIfNotAllowed = ({
   fromServerAction = false,
 }: {
   folder: Folder;
-  folderUser: FolderUser | null;
+  folderUser: FolderUser | null | undefined;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
   fromServerAction?: boolean;
 }) => {
@@ -40,7 +40,7 @@ export const canPerformActionOnFolder = ({
   requiredPermission,
 }: {
   folder: Folder;
-  folderUser: FolderUser | null;
+  folderUser: FolderUser | null | undefined;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
 }) => {
   const folderUserRole = determineFolderUserRole({
@@ -66,7 +66,7 @@ export const determineFolderUserRole = ({
   folderUser,
 }: {
   folder: Pick<Folder, "accessLevel">;
-  folderUser: FolderUser | null;
+  folderUser: FolderUser | null | undefined;
 }) => {
   if (folderUser) {
     return folderUser.role;

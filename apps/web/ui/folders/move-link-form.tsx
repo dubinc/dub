@@ -88,6 +88,8 @@ export const MoveLinkForm = ({
     });
   }, [link.key, link.domain]);
 
+  const folderChanged = selectedFolder?.id !== link.folderId;
+
   return (
     <>
       <div className="space-y-2 border-b border-gray-200 px-4 py-4 sm:px-6">
@@ -133,7 +135,7 @@ export const MoveLinkForm = ({
             <Button
               type="submit"
               text={isMoving ? "Moving..." : "Move link"}
-              disabled={isMoving}
+              disabled={isMoving || !selectedFolder || !folderChanged}
               loading={isMoving}
               className="h-9 w-fit"
             />
