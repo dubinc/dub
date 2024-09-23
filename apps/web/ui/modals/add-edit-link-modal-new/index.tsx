@@ -48,6 +48,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { LinkPreview } from "./link-preview";
+import { usePasswordModal } from "./password-modal";
 import { QRCodePreview } from "./qr-code-preview";
 import { TogglesDropdown, TogglesList } from "./toggles";
 import { useMetatags } from "./use-metatags";
@@ -199,260 +200,270 @@ function AddEditLinkModalInner({
     [data.key, data.domain],
   );
 
+  const { PasswordModal, PasswordButton } = usePasswordModal();
+
   return (
-    <Modal
-      showModal={showAddEditLinkModal}
-      setShowModal={setShowAddEditLinkModal}
-      className="max-w-screen-lg"
-      preventDefaultClose={homepageDemo ? false : true}
-      onClose={() => {
-        if (searchParams.has("newLink"))
-          queryParams({
-            del: ["newLink", "newLinkDomain"],
-          });
-      }}
-    >
-      <LinkModalContext.Provider
-        value={{
-          workspaceId,
-          workspacePlan: plan,
-          workspaceLogo: logo ?? undefined,
-          conversionEnabled: conversionEnabled,
-          generatingMetatags,
+    <>
+      <PasswordModal />
+      <Modal
+        showModal={showAddEditLinkModal}
+        setShowModal={setShowAddEditLinkModal}
+        className="max-w-screen-lg"
+        preventDefaultClose={homepageDemo ? false : true}
+        onClose={() => {
+          if (searchParams.has("newLink"))
+            queryParams({
+              del: ["newLink", "newLinkDomain"],
+            });
         }}
       >
-        <form
-          onSubmit={handleSubmit(async (data) => {
-            // @ts-ignore – exclude extra attributes from `data` object before sending to API
-            const { user, tags, tagId, ...rest } = data;
-            const bodyData = {
-              ...rest,
-              // Map tags to tagIds
-              tagIds: tags.map(({ id }) => id),
-            };
-
-            try {
-              const res = await fetch(endpoint.url, {
-                method: endpoint.method,
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(bodyData),
-              });
-
-              if (res.status === 200) {
-                await mutate(
-                  (key) =>
-                    typeof key === "string" && key.startsWith("/api/links"),
-                  undefined,
-                  { revalidate: true },
-                );
-                const data = await res.json();
-                posthog.capture(props ? "link_updated" : "link_created", data);
-
-                // copy shortlink to clipboard when adding a new link
-                if (!props) {
-                  try {
-                    await navigator.clipboard.writeText(data.shortLink);
-                    toast.success("Copied shortlink to clipboard!");
-                  } catch (e) {
-                    console.error(
-                      "Failed to automatically copy shortlink to clipboard.",
-                      e,
-                    );
-                    toast.success("Successfully created link!");
-                  }
-                } else toast.success("Successfully updated shortlink!");
-
-                setShowAddEditLinkModal(false);
-              } else {
-                const { error } = await res.json();
-
-                if (error) {
-                  if (error.message.includes("Upgrade to")) {
-                    toast.custom(() => (
-                      <UpgradeRequiredToast
-                        title={`You've discovered a ${nextPlan.name} feature!`}
-                        message={error.message}
-                      />
-                    ));
-                  } else {
-                    toast.error(error.message);
-                  }
-                  const message = error.message.toLowerCase();
-
-                  if (message.includes("key"))
-                    setError("key", { message: error.message });
-                  else if (message.includes("url"))
-                    setError("url", { message: error.message });
-                  else setError("root", { message: "Failed to save link" });
-                } else {
-                  setError("root", { message: "Failed to save link" });
-                  toast.error("Failed to save link");
-                }
-              }
-            } catch (e) {
-              setError("root", { message: "Failed to save link" });
-              console.error("Failed to save link", e);
-              toast.error("Failed to save link");
-            }
-          })}
+        <LinkModalContext.Provider
+          value={{
+            workspaceId,
+            workspacePlan: plan,
+            workspaceLogo: logo ?? undefined,
+            conversionEnabled: conversionEnabled,
+            generatingMetatags,
+          }}
         >
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-4">
-              <LinkLogo apexDomain={getApexDomain(debouncedUrl)} />
-              <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-                {props ? `Edit ${shortLink}` : "Create new link"}
-              </h3>
-            </div>
-            {!homepageDemo && (
-              <button
-                type="button"
-                onClick={() => {
+          <form
+            onSubmit={handleSubmit(async (data) => {
+              // @ts-ignore – exclude extra attributes from `data` object before sending to API
+              const { user, tags, tagId, ...rest } = data;
+              const bodyData = {
+                ...rest,
+                // Map tags to tagIds
+                tagIds: tags.map(({ id }) => id),
+              };
+
+              try {
+                const res = await fetch(endpoint.url, {
+                  method: endpoint.method,
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(bodyData),
+                });
+
+                if (res.status === 200) {
+                  await mutate(
+                    (key) =>
+                      typeof key === "string" && key.startsWith("/api/links"),
+                    undefined,
+                    { revalidate: true },
+                  );
+                  const data = await res.json();
+                  posthog.capture(
+                    props ? "link_updated" : "link_created",
+                    data,
+                  );
+
+                  // copy shortlink to clipboard when adding a new link
+                  if (!props) {
+                    try {
+                      await navigator.clipboard.writeText(data.shortLink);
+                      toast.success("Copied shortlink to clipboard!");
+                    } catch (e) {
+                      console.error(
+                        "Failed to automatically copy shortlink to clipboard.",
+                        e,
+                      );
+                      toast.success("Successfully created link!");
+                    }
+                  } else toast.success("Successfully updated shortlink!");
+
                   setShowAddEditLinkModal(false);
-                  if (searchParams.has("newLink")) {
-                    queryParams({
-                      del: ["newLink"],
-                    });
-                  }
-                }}
-                className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            )}
-          </div>
+                } else {
+                  const { error } = await res.json();
 
-          <div
-            className={cn(
-              "grid w-full gap-y-6 max-md:overflow-auto md:grid-cols-[2fr_1fr]",
-              "max-md:max-h-[calc(100dvh-200px)] max-md:min-h-[min(510px,_calc(100dvh-200px))]",
-              "md:[&>div]:max-h-[calc(100dvh-200px)] md:[&>div]:min-h-[min(510px,_calc(100dvh-200px))]",
-            )}
-          >
-            <div className="scrollbar-hide px-6 md:overflow-auto">
-              <div className="flex min-h-full flex-col gap-8 py-4">
-                <Controller
-                  name="url"
-                  control={control}
-                  render={({ field }) => (
-                    <DestinationUrlInput
-                      domain={domain}
-                      _key={key}
-                      value={field.value}
-                      domains={domains}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        clearErrors("url");
-                        field.onChange(e.target.value);
-                      }}
-                      required={key !== "_root"}
-                      error={errors.url?.message || undefined}
-                      showEnterToSubmit={false}
-                    />
-                  )}
-                />
-
-                {key !== "_root" && (
-                  <ShortLinkInput
-                    ref={keyRef}
-                    domain={domain}
-                    _key={key}
-                    existingLinkProps={props}
-                    error={errors.key?.message || undefined}
-                    onChange={(d) => {
-                      clearErrors("key");
-                      if (d.domain !== undefined) setValue("domain", d.domain);
-                      if (d.key !== undefined) setValue("key", d.key);
-                    }}
-                    data={data}
-                    saving={isSubmitting || isSubmitSuccessful}
-                    loading={loading}
-                    domains={domains}
-                  />
-                )}
-
-                <UTMBuilder />
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <label
-                      htmlFor="comments"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Comments
-                    </label>
-                    <InfoTooltip
-                      content={
-                        <SimpleTooltipContent
-                          title="Use comments to add context to your short links – for you and your team."
-                          cta="Learn more."
-                          href="https://dub.co/help/article/link-comments"
+                  if (error) {
+                    if (error.message.includes("Upgrade to")) {
+                      toast.custom(() => (
+                        <UpgradeRequiredToast
+                          title={`You've discovered a ${nextPlan.name} feature!`}
+                          message={error.message}
                         />
-                      }
-                    />
-                  </div>
+                      ));
+                    } else {
+                      toast.error(error.message);
+                    }
+                    const message = error.message.toLowerCase();
+
+                    if (message.includes("key"))
+                      setError("key", { message: error.message });
+                    else if (message.includes("url"))
+                      setError("url", { message: error.message });
+                    else setError("root", { message: "Failed to save link" });
+                  } else {
+                    setError("root", { message: "Failed to save link" });
+                    toast.error("Failed to save link");
+                  }
+                }
+              } catch (e) {
+                setError("root", { message: "Failed to save link" });
+                console.error("Failed to save link", e);
+                toast.error("Failed to save link");
+              }
+            })}
+          >
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-4">
+                <LinkLogo apexDomain={getApexDomain(debouncedUrl)} />
+                <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
+                  {props ? `Edit ${shortLink}` : "Create new link"}
+                </h3>
+              </div>
+              {!homepageDemo && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddEditLinkModal(false);
+                    if (searchParams.has("newLink")) {
+                      queryParams({
+                        del: ["newLink"],
+                      });
+                    }
+                  }}
+                  className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
+            <div
+              className={cn(
+                "grid w-full gap-y-6 max-md:overflow-auto md:grid-cols-[2fr_1fr]",
+                "max-md:max-h-[calc(100dvh-200px)] max-md:min-h-[min(510px,_calc(100dvh-200px))]",
+                "md:[&>div]:max-h-[calc(100dvh-200px)] md:[&>div]:min-h-[min(510px,_calc(100dvh-200px))]",
+              )}
+            >
+              <div className="scrollbar-hide px-6 md:overflow-auto">
+                <div className="flex min-h-full flex-col gap-8 py-4">
                   <Controller
-                    name="comments"
+                    name="url"
                     control={control}
                     render={({ field }) => (
-                      <TextareaAutosize
-                        id="comments"
-                        name="comments"
-                        minRows={3}
-                        className="mt-2 block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                        placeholder="Add comments"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value)}
+                      <DestinationUrlInput
+                        domain={domain}
+                        _key={key}
+                        value={field.value}
+                        domains={domains}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          clearErrors("url");
+                          field.onChange(e.target.value);
+                        }}
+                        required={key !== "_root"}
+                        error={errors.url?.message || undefined}
+                        showEnterToSubmit={false}
                       />
                     )}
                   />
-                </div>
 
-                <div className="flex grow flex-col justify-end">
-                  <TogglesList />
-                </div>
-              </div>
-            </div>
-            <div className="scrollbar-hide px-6 md:overflow-auto md:pl-0 md:pr-4">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-xl border border-gray-200 bg-gray-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
-                <div className="relative flex flex-col gap-6 p-4">
-                  <QRCodePreview />
-                  <LinkPreview />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 p-4">
-            <div className="flex items-center gap-2">
-              <TogglesDropdown />
-            </div>
-            {homepageDemo ? (
-              <Button
-                disabledTooltip="This is a demo link. You can't edit it."
-                text="Save changes"
-                className="h-8 w-fit"
-              />
-            ) : (
-              <Button
-                type="submit"
-                disabled={saveDisabled}
-                loading={isSubmitting || isSubmitSuccessful}
-                text={
-                  <span className="flex items-center gap-2">
-                    {props ? "Save changes" : "Create link"}
-                    <div className="rounded border border-white/20 p-1">
-                      <ArrowTurnLeft className="size-3.5" />
+                  {key !== "_root" && (
+                    <ShortLinkInput
+                      ref={keyRef}
+                      domain={domain}
+                      _key={key}
+                      existingLinkProps={props}
+                      error={errors.key?.message || undefined}
+                      onChange={(d) => {
+                        clearErrors("key");
+                        if (d.domain !== undefined)
+                          setValue("domain", d.domain);
+                        if (d.key !== undefined) setValue("key", d.key);
+                      }}
+                      data={data}
+                      saving={isSubmitting || isSubmitSuccessful}
+                      loading={loading}
+                      domains={domains}
+                    />
+                  )}
+
+                  <UTMBuilder />
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="comments"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Comments
+                      </label>
+                      <InfoTooltip
+                        content={
+                          <SimpleTooltipContent
+                            title="Use comments to add context to your short links – for you and your team."
+                            cta="Learn more."
+                            href="https://dub.co/help/article/link-comments"
+                          />
+                        }
+                      />
                     </div>
-                  </span>
-                }
-                className="h-8 w-fit pl-2.5 pr-1.5"
-              />
-            )}
-          </div>
-        </form>
-      </LinkModalContext.Provider>
-    </Modal>
+                    <Controller
+                      name="comments"
+                      control={control}
+                      render={({ field }) => (
+                        <TextareaAutosize
+                          id="comments"
+                          name="comments"
+                          minRows={3}
+                          className="mt-2 block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                          placeholder="Add comments"
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex grow flex-col justify-end">
+                    <TogglesList />
+                  </div>
+                </div>
+              </div>
+              <div className="scrollbar-hide px-6 md:overflow-auto md:pl-0 md:pr-4">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-xl border border-gray-200 bg-gray-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
+                  <div className="relative flex flex-col gap-6 p-4">
+                    <QRCodePreview />
+                    <LinkPreview />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 p-4">
+              <div className="flex items-center gap-2">
+                <PasswordButton />
+                <TogglesDropdown />
+              </div>
+              {homepageDemo ? (
+                <Button
+                  disabledTooltip="This is a demo link. You can't edit it."
+                  text="Save changes"
+                  className="h-8 w-fit"
+                />
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={saveDisabled}
+                  loading={isSubmitting || isSubmitSuccessful}
+                  text={
+                    <span className="flex items-center gap-2">
+                      {props ? "Save changes" : "Create link"}
+                      <div className="rounded border border-white/20 p-1">
+                        <ArrowTurnLeft className="size-3.5" />
+                      </div>
+                    </span>
+                  }
+                  className="h-8 w-fit pl-2.5 pr-1.5"
+                />
+              )}
+            </div>
+          </form>
+        </LinkModalContext.Provider>
+      </Modal>
+    </>
   );
 }
 
