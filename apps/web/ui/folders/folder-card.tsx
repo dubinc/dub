@@ -14,8 +14,8 @@ import { useState } from "react";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
-import { FolderEditAccessRequestButton } from "./ask-to-edit-button";
 import { FolderAccessIcon } from "./folder-access-icon";
+import { FolderEditAccessRequestButton } from "./request-edit-button";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
   const router = useRouter();

@@ -110,7 +110,10 @@ export const FolderSwitcher = () => {
           <h1 className="text-xl font-semibold tracking-tight text-black">
             {selectedFolder?.name}
           </h1>
-          <ChevronsUpDown className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <ChevronsUpDown
+            className="h-5 w-5 shrink-0 text-gray-400"
+            aria-hidden="true"
+          />
         </button>
       </Popover>
 
@@ -282,7 +285,7 @@ const FolderActions = ({
             "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
           )}
           onClick={() => setOpenPopover(true)}
-          icon={<ThreeDots className="h-5 w-5 shrink-0" />}
+          icon={<ThreeDots className="h-5 w-5 shrink-0 text-gray-400" />}
         />
       </Popover>
     </>

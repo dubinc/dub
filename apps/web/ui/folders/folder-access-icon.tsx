@@ -101,7 +101,7 @@ const FolderIcon = ({
   }
 
   return (
-    <div className={`rounded-full border-2 ${borderColor} ${bgColor}`}>
+    <div className={`rounded-full border ${borderColor} ${bgColor}`}>
       <div className={`rounded-full border-2 border-white ${circlePadding}`}>
         <IconComponent className="size-4" />
       </div>

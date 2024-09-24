@@ -3,8 +3,8 @@
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderEditAccessRequestButton } from "@/ui/folders/ask-to-edit-button";
 import { FolderSwitcher } from "@/ui/folders/folder-switcher";
+import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
