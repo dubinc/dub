@@ -189,8 +189,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.40.0
-        version: 0.40.0(zod@3.22.4)
+        specifier: ^0.41.0
+        version: 0.41.0(zod@3.22.4)
       fathom-client:
         specifier: ^3.7.2
         version: 3.7.2
@@ -255,8 +255,8 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
       posthog-js:
-        specifier: ^1.154.2
-        version: 1.154.2
+        specifier: ^1.164.1
+        version: 1.164.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -11950,8 +11950,8 @@ packages:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
 
-  /dub@0.40.0(zod@3.22.4):
-    resolution: {integrity: sha512-Z2SZrPb1vdxaiDcgDo9Nsp57JW8bbqnhGhBsdEGwSA22B3EpEZ/NJm3eXcoXpVYZwyzUjOax6YNvFjt9I8kZtg==}
+  /dub@0.41.0(zod@3.22.4):
+    resolution: {integrity: sha512-G3jJZjt7trN61PRhYQsB9aVciuqSl4VdUHLfnDpgDvilgrwYT5NLQwVpbTfflxp7YkodH+VXqe+j7xeX2wvJxw==}
     peerDependencies:
       zod: '>= 3'
     dependencies:
@@ -17614,8 +17614,8 @@ packages:
       xtend: 4.0.2
     dev: false
 
-  /posthog-js@1.154.2:
-    resolution: {integrity: sha512-EM8xn5V86fTg/pUhCyyMCRotI07tXDLQryc5TDQinT9kCRz8799G1n+Bq7drOEYdD/xbvcKfcfTWmlMrTZCZ6A==}
+  /posthog-js@1.164.1:
+    resolution: {integrity: sha512-cEWPJmg7V9EgpHLW+FfhQ0GBPd0uVc77MCWTJtnOWp88rIThDXbCwug+OPFzos/7puWqMYXo+mwQNjW8aL4SeQ==}
     dependencies:
       fflate: 0.4.8
       preact: 10.22.1

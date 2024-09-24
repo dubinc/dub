@@ -2,8 +2,6 @@ DESCRIPTION >
 	Top countries
 
 
-TOKEN "v1_qr_endpoint_read_5968" READ
-
 NODE workspace_links
 SQL >
 
@@ -41,16 +39,7 @@ SQL >
         {% end %}
     WHERE
         true
-        {% if defined(linkId) %}
-            AND link_id
-            = {{
-                String(
-                    linkId,
-                    'clsdzhhlq0003vskwcaz6nm39',
-                    description="The ID of the link",
-                )
-            }}
-        {% end %}
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -59,6 +48,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
@@ -79,16 +69,7 @@ SQL >
         {% end %}
     WHERE
         true
-        {% if defined(linkId) %}
-            AND link_id
-            = {{
-                String(
-                    linkId,
-                    'clsdzhhlq0003vskwcaz6nm39',
-                    description="The ID of the link",
-                )
-            }}
-        {% end %}
+        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -97,6 +78,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
@@ -109,47 +91,46 @@ NODE trigger_sales
 SQL >
 
     %
-    SELECT
-        CASE WHEN qr = 0 THEN 'link' WHEN qr = 1 THEN 'qr' END as trigger,
-        COUNT(qr) as sales,
-        sum(amount) as amount
-    FROM
-        dub_sale_events_mv
-        {% if not defined(linkId) and defined(workspaceId) %}
-            PREWHERE link_id in (SELECT link_id from workspace_links)
-        {% end %}
-    WHERE
-        true
-        {% if defined(linkId) %}
-            AND link_id
-            = {{
-                String(
-                    linkId,
-                    'clsdzhhlq0003vskwcaz6nm39',
-                    description="The ID of the link",
-                )
-            }}
-        {% end %}
-        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
-        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
-        {% if defined(country) %} AND country = {{ country }} {% end %}
-        {% if defined(city) %} AND city = {{ city }} {% end %}
-        {% if defined(device) %} AND device = {{ device }} {% end %}
-        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-        {% if defined(os) %} AND os = {{ os }} {% end %}
-        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-        {% if defined(url) %} AND url = {{ url }} {% end %}
-        {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
-        {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
-    GROUP BY qr
-    ORDER BY sales DESC
+    SELECT 
+        trigger,
+        sales,
+        amount,
+        amount AS saleAmount
+    FROM (
+      SELECT
+          CASE WHEN qr = 0 THEN 'link' WHEN qr = 1 THEN 'qr' END as trigger,
+          COUNT(qr) as sales,
+          sum(amount) as amount
+      FROM
+          dub_sale_events_mv
+          {% if not defined(linkId) and defined(workspaceId) %}
+              PREWHERE link_id in (SELECT link_id from workspace_links)
+          {% end %}
+      WHERE
+          true
+          {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+          {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+          {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+          {% if defined(country) %} AND country = {{ country }} {% end %}
+          {% if defined(city) %} AND city = {{ city }} {% end %}
+          {% if defined(device) %} AND device = {{ device }} {% end %}
+          {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+          {% if defined(os) %} AND os = {{ os }} {% end %}
+          {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+          {% if defined(refererUrl) %} AND referer_url = {{ refererUrl }} {% end %}
+          {% if defined(url) %} AND url = {{ url }} {% end %}
+          {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
+          {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
+      GROUP BY qr
+      ORDER BY sales DESC
+    ) as subquery
 
 
 
 NODE trigger_composite
 SQL >
 
-    SELECT dce.trigger AS trigger, clicks, leads, sales, amount
+    SELECT dce.trigger AS trigger, clicks, leads, sales, amount, saleAmount
     FROM (SELECT * FROM trigger_clicks) AS dce
     LEFT JOIN (SELECT * FROM trigger_leads) AS dle ON dce.trigger = dle.trigger
     LEFT JOIN (SELECT * FROM trigger_sales) AS dse ON dce.trigger = dse.trigger

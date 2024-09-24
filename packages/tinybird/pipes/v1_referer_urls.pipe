@@ -2,7 +2,7 @@ DESCRIPTION >
 	Top countries
 
 
-TOKEN "os_endpoint_read_6235" READ
+TOKEN "v1_referer_urls_endpoint_read_3337" READ
 
 NODE workspace_links
 SQL >
@@ -29,18 +29,18 @@ SQL >
 
 
 
-NODE os_clicks
+NODE referer_urls_clicks
 SQL >
 
     %
-    SELECT os, COUNT(os) as clicks
+    SELECT referer_url as refererUrl, COUNT(referer_url) as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}
             PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
-        os != 'Unknown'
+        true
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -54,23 +54,24 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
-    GROUP BY os
+    GROUP BY referer_url
     ORDER BY clicks DESC
+    LIMIT 5000
 
 
 
-NODE os_leads
+NODE referer_urls_leads
 SQL >
 
     %
-    SELECT os, COUNT(os) as leads
+    SELECT referer_url as refererUrl, COUNT(referer_url) as leads
     FROM
         dub_lead_events_mv
         {% if not defined(linkId) and defined(workspaceId) %}
             PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
-        os != 'Unknown'
+        true
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -84,29 +85,30 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
-    GROUP BY os
+    GROUP BY referer_url
     ORDER BY leads DESC
+    LIMIT 5000
 
 
 
-NODE os_sales
+NODE referer_urls_sales
 SQL >
 
     %
     SELECT 
-        os,
+        refererUrl,
         sales,
         amount,
         amount AS saleAmount
     FROM (
-      SELECT os, COUNT(os) as sales, sum(amount) as amount
+      SELECT referer_url as refererUrl, COUNT(referer_url) as sales, sum(amount) as amount
       FROM
           dub_sale_events_mv
           {% if not defined(linkId) and defined(workspaceId) %}
               PREWHERE link_id in (SELECT link_id from workspace_links)
           {% end %}
       WHERE
-          os != 'Unknown'
+          referer != 'Unknown'
           {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
           {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
           {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -120,19 +122,20 @@ SQL >
           {% if defined(url) %} AND url = {{ url }} {% end %}
           {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
           {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
-      GROUP BY os
+      GROUP BY referer_url
       ORDER BY sales DESC
+      LIMIT 5000
     ) as subquery
 
 
 
-NODE os_composite
+NODE referer_urls_composite
 SQL >
 
-    SELECT dce.os AS os, clicks, leads, sales, amount, saleAmount
-    FROM (SELECT os, clicks FROM os_clicks) AS dce
-    LEFT JOIN (SELECT * FROM  os_leads) AS dle ON dce.os = dle.os
-    LEFT JOIN (SELECT * FROM os_sales) AS dse ON dce.os = dse.os
+    SELECT dce.refererUrl as refererUrl, clicks, leads, sales, amount, saleAmount
+    FROM (SELECT refererUrl, clicks FROM referer_urls_clicks) AS dce
+    LEFT JOIN (SELECT * FROM referer_urls_leads) AS dle ON dce.refererUrl = dle.refererUrl
+    LEFT JOIN (SELECT * FROM referer_urls_sales) AS dse ON dce.refererUrl = dse.refererUrl
     ORDER BY clicks DESC
 
 
@@ -143,10 +146,10 @@ SQL >
     %
     SELECT *
     FROM
-        {% if eventType == 'clicks' %} os_clicks
-        {% elif eventType == 'leads' %} os_leads
-        {% elif eventType == 'sales' %} os_sales
-        {% else %} os_composite
+        {% if eventType == 'clicks' %} referer_urls_clicks
+        {% elif eventType == 'leads' %} referer_urls_leads
+        {% elif eventType == 'sales' %} referer_urls_sales
+        {% else %} referer_urls_composite
         {% end %}
 
 

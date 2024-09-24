@@ -28,10 +28,12 @@ export function CopyButton({
   value,
   className,
   icon,
+  successMessage,
 }: {
   value: string;
   className?: string;
   icon?: LucideIcon;
+  successMessage?: string;
 } & VariantProps<typeof copyButtonVariants>) {
   const [copied, setCopied] = useState(false);
   const Comp = icon || Copy;
@@ -41,7 +43,7 @@ export function CopyButton({
         e.stopPropagation();
         setCopied(true);
         navigator.clipboard.writeText(value).then(() => {
-          toast.success("Copied to clipboard!");
+          toast.success(successMessage || "Copied to clipboard!");
         });
         setTimeout(() => setCopied(false), 3000);
       }}

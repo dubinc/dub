@@ -1,7 +1,7 @@
-import ChangelogPopup from "@/ui/layout/changelog-popup";
 import { MainNav } from "@/ui/layout/main-nav";
 import NavTabs from "@/ui/layout/nav-tabs";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
+import UserSurveyPopup from "@/ui/layout/user-survey";
 import { MaxWidthWrapper } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode, Suspense } from "react";
@@ -24,8 +24,8 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         {children}
       </div>
-      {/* <UserSurveyPopup /> */}
-      <ChangelogPopup />
+      <UserSurveyPopup />
+      {/* <ChangelogPopup /> */}
       <Toolbar />
     </Providers>
   );
