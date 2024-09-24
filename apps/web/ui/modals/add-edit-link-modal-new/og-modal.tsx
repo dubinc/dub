@@ -202,20 +202,20 @@ function OGModalInner({
           }}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Link Design</h3>
+            <h3 className="text-lg font-medium">Link Preview</h3>
             <div className="max-md:hidden">
               <Tooltip
                 content={
                   <div className="px-2 py-1 text-xs text-gray-700">
                     Press{" "}
-                    <strong className="font-medium text-gray-950">D</strong> to
+                    <strong className="font-medium text-gray-950">P</strong> to
                     open this quickly
                   </div>
                 }
                 side="right"
               >
                 <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
-                  D
+                  P
                 </kbd>
               </Tooltip>
             </div>

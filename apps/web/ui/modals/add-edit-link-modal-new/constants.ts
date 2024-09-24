@@ -21,7 +21,7 @@ export const TOGGLES = [
     description:
       "Mask your destination URL so your users only see the short link in the browser address bar.",
     learnMoreUrl: "https://dub.co/help/article/link-cloaking",
-    shortcutKey: "l",
+    shortcutKey: "c",
     type: "boolean",
   },
   {
@@ -31,7 +31,7 @@ export const TOGGLES = [
     description:
       "Track conversions on your short link to measure the effectiveness of your marketing campaigns.",
     learnMoreUrl: "https://dub.co/help/article/conversion-tracking",
-    shortcutKey: "c",
+    shortcutKey: "t",
     conversionEnabled: true,
     type: "boolean",
   },
@@ -56,7 +56,7 @@ export const MOBILE_MORE_ITEMS = [
     description:
       "Protect your links with a password so only authorized users can access them.",
     learnMoreUrl: "https://dub.co/help/article/password-protected-links",
-    shortcutKey: "p",
+    shortcutKey: "l",
     enabled: (data: LinkFormData) => Boolean(data.password),
     remove: (setValue: UseFormSetValue<LinkWithTagsProps>) =>
       setValue("password", null),

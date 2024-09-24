@@ -82,7 +82,7 @@ export function LinkPreview() {
   const isValidUrl = useMemo(() => isValidUrlFn(debouncedUrl), [debouncedUrl]);
 
   const { OGModal, setShowOGModal } = useOGModal();
-  useKeyboardShortcut("d", () => setShowOGModal(true), {
+  useKeyboardShortcut("p", () => setShowOGModal(true), {
     modal: true,
     enabled: isValidUrl,
   });
