@@ -1,12 +1,15 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import { generateRandomName } from "@/lib/names";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import EmptyState from "@/ui/shared/empty-state";
 import {
+  Avatar,
+  CopyButton,
   LinkLogo,
   Table,
   Tooltip,
@@ -176,16 +179,44 @@ export default function EventsTable() {
           accessorKey: "customer",
           cell: ({ getValue }) => {
             const customer = getValue();
-            const display = customer.name || customer.email || "Unknown";
+            const display =
+              customer.name || customer.email || generateRandomName();
             return (
-              <div className="flex items-center gap-3" title={display}>
-                <img
-                  alt={display}
-                  src={customer.avatar}
-                  className="size-4 shrink-0 rounded-full border border-gray-200"
-                />
-                <span className="truncate">{display}</span>
-              </div>
+              <Tooltip
+                content={
+                  <div className="w-full p-3">
+                    <Avatar
+                      user={{
+                        name: customer.name,
+                        email: customer.email,
+                        image: customer.avatar,
+                      }}
+                      className="h-8 w-8"
+                    />
+                    <p className="mt-2 text-sm font-semibold text-gray-700">
+                      {display}
+                    </p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <p>{customer.email}</p>
+                      <CopyButton
+                        value={customer.email}
+                        variant="neutral"
+                        className="p-1 [&>*]:h-3 [&>*]:w-3"
+                        successMessage="Copied email to clipboard!"
+                      />
+                    </div>
+                  </div>
+                }
+              >
+                <div className="flex items-center gap-3" title={display}>
+                  <img
+                    alt={display}
+                    src={customer.avatar}
+                    className="size-4 shrink-0 rounded-full border border-gray-200"
+                  />
+                  <span className="truncate">{display}</span>
+                </div>
+              </Tooltip>
             );
           },
         },
