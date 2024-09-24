@@ -1,5 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Link } from "@/ui/shared/icons";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
@@ -7,6 +8,7 @@ import {
   FileUpload,
   Modal,
   Popover,
+  SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
 import { LoadingCircle, Magic, Unsplash } from "@dub/ui/src/icons";
@@ -202,7 +204,18 @@ function OGModalInner({
           }}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Link Preview</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-medium">Link Preview</h3>
+              <ProBadgeTooltip
+                content={
+                  <SimpleTooltipContent
+                    title="Customize how your links look when shared on social media to improve click-through rates."
+                    cta="Learn more."
+                    href="https://dub.co/help/article/custom-social-media-cards"
+                  />
+                }
+              />
+            </div>
             <div className="max-md:hidden">
               <Tooltip
                 content={

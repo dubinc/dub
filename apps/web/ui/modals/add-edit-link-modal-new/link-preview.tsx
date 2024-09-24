@@ -2,7 +2,9 @@ import {
   Button,
   FileUpload,
   Icon,
+  InfoTooltip,
   ShimmerDots,
+  SimpleTooltipContent,
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
@@ -100,7 +102,18 @@ export function LinkPreview() {
     <div>
       <OGModal />
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-gray-700">Link Preview</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-medium text-gray-700">Link Preview</h2>
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title="Customize how your links look when shared on social media to improve click-through rates."
+                cta="Learn more."
+                href="https://dub.co/help/article/custom-social-media-cards"
+              />
+            }
+          />
+        </div>
         <Button
           type="button"
           variant="outline"
