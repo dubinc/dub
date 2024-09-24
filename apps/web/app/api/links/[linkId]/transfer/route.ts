@@ -2,6 +2,8 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
@@ -24,6 +26,20 @@ export const POST = withWorkspace(
       workspace,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      const { folder, folderUser } = await getFolderWithUserOrThrow({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      throwIfFolderActionDenied({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     const { newWorkspaceId } = transferLinkBodySchema.parse(await req.json());
 

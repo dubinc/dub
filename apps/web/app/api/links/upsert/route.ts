@@ -7,6 +7,8 @@ import {
 } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
@@ -19,6 +21,20 @@ export const PUT = withWorkspace(
     const bodyRaw = await parseRequestBody(req);
     const body = createLinkBodySchema.parse(bodyRaw);
 
+    if (body.folderId) {
+      const { folder, folderUser } = await getFolderWithUserOrThrow({
+        folderId: body.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      throwIfFolderActionDenied({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.write",
+      });
+    }
+
     const link = await prisma.link.findFirst({
       where: {
         projectId: workspace.id,
@@ -27,6 +43,20 @@ export const PUT = withWorkspace(
     });
 
     if (link) {
+      if (link.folderId) {
+        const { folder, folderUser } = await getFolderWithUserOrThrow({
+          folderId: link.folderId,
+          workspaceId: workspace.id,
+          userId: session.user.id,
+        });
+
+        throwIfFolderActionDenied({
+          folder,
+          folderUser,
+          requiredPermission: "folders.links.write",
+        });
+      }
+
       // proceed with /api/links/[linkId] PATCH logic
       const updatedLink = {
         ...link,

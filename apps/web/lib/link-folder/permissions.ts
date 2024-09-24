@@ -10,7 +10,7 @@ import {
 } from "./constants";
 import { Folder } from "./types";
 
-export const throwIfNotAllowed = ({
+export const throwIfFolderActionDenied = ({
   folder,
   folderUser,
   requiredPermission,
@@ -35,29 +35,6 @@ export const throwIfNotAllowed = ({
     code: "forbidden",
     message,
   });
-};
-
-export const canPerformActionOnFolder = ({
-  folder,
-  folderUser,
-  requiredPermission,
-}: {
-  folder: Pick<Folder, "accessLevel">;
-  folderUser: Pick<FolderUser, "role"> | null;
-  requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
-}) => {
-  const folderUserRole = determineFolderUserRole({
-    folder,
-    folderUser,
-  });
-
-  if (!folderUserRole) {
-    return false;
-  }
-
-  const permissions = getFolderPermissions(folderUserRole);
-
-  return permissions.includes(requiredPermission);
 };
 
 export const determineFolderUserRole = ({
@@ -86,4 +63,27 @@ export const getFolderPermissions = (
   }
 
   return FOLDER_USER_ROLE_TO_PERMISSIONS[role] || [];
+};
+
+const canPerformActionOnFolder = ({
+  folder,
+  folderUser,
+  requiredPermission,
+}: {
+  folder: Pick<Folder, "accessLevel">;
+  folderUser: Pick<FolderUser, "role"> | null;
+  requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
+}) => {
+  const folderUserRole = determineFolderUserRole({
+    folder,
+    folderUser,
+  });
+
+  if (!folderUserRole) {
+    return false;
+  }
+
+  const permissions = getFolderPermissions(folderUserRole);
+
+  return permissions.includes(requiredPermission);
 };

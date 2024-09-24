@@ -3,7 +3,7 @@ import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
 import { getFolders } from "@/lib/link-folder/get-folders";
-import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
+import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
@@ -24,7 +24,7 @@ export const GET = withWorkspace(
         userId: session.user.id,
       });
 
-      throwIfNotAllowed({
+      throwIfFolderActionDenied({
         folder,
         folderUser,
         requiredPermission: "folders.read",

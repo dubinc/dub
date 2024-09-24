@@ -3,12 +3,6 @@ import { FolderUserRole } from "@prisma/client";
 import { DubApiError } from "../api/errors";
 import { Folder } from "./types";
 
-interface getFolderWithUserProps {
-  folderId: string;
-  workspaceId: string;
-  userId: string;
-}
-
 type FolderWithUser = {
   folder: Folder;
   folderUser: {
@@ -20,7 +14,11 @@ export const getFolderWithUserOrThrow = async ({
   folderId,
   workspaceId,
   userId,
-}: getFolderWithUserProps): Promise<FolderWithUser> => {
+}: {
+  folderId: string;
+  workspaceId: string;
+  userId: string;
+}): Promise<FolderWithUser> => {
   const folder = await prisma.folder.findUniqueOrThrow({
     where: {
       id: folderId,

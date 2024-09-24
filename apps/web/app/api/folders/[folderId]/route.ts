@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
-import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
+import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -21,7 +21,7 @@ export const GET = withWorkspace(
       userId: session.user.id,
     });
 
-    throwIfNotAllowed({
+    throwIfFolderActionDenied({
       folder,
       folderUser,
       requiredPermission: "folders.read",
@@ -49,7 +49,7 @@ export const PATCH = withWorkspace(
       userId: session.user.id,
     });
 
-    throwIfNotAllowed({
+    throwIfFolderActionDenied({
       folder,
       folderUser,
       requiredPermission: "folders.write",
@@ -95,7 +95,7 @@ export const DELETE = withWorkspace(
       userId: session.user.id,
     });
 
-    throwIfNotAllowed({
+    throwIfFolderActionDenied({
       folder,
       folderUser,
       requiredPermission: "folders.write",

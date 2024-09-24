@@ -6,7 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
 import { getFolders } from "@/lib/link-folder/get-folders";
-import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
+import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -49,7 +49,7 @@ export const GET = withWorkspace(
         userId: session.user.id,
       });
 
-      throwIfNotAllowed({
+      throwIfFolderActionDenied({
         folder,
         folderUser,
         requiredPermission: "folders.read",
@@ -117,7 +117,7 @@ export const POST = withWorkspace(
         userId: session.user.id,
       });
 
-      throwIfNotAllowed({
+      throwIfFolderActionDenied({
         folder,
         folderUser,
         requiredPermission: "folders.links.write",

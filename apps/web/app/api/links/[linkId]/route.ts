@@ -9,7 +9,7 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
-import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
+import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -33,7 +33,7 @@ export const GET = withWorkspace(
         userId: session.user.id,
       });
 
-      throwIfNotAllowed({
+      throwIfFolderActionDenied({
         folder,
         folderUser,
         requiredPermission: "folders.read",
@@ -86,7 +86,7 @@ export const PATCH = withWorkspace(
         userId: session.user.id,
       });
 
-      throwIfNotAllowed({
+      throwIfFolderActionDenied({
         folder,
         folderUser,
         requiredPermission: "folders.links.write",
@@ -100,7 +100,7 @@ export const PATCH = withWorkspace(
         userId: session.user.id,
       });
 
-      throwIfNotAllowed({
+      throwIfFolderActionDenied({
         folder,
         folderUser,
         requiredPermission: "folders.links.write",
@@ -223,7 +223,7 @@ export const DELETE = withWorkspace(
         userId: session.user.id,
       });
 
-      throwIfNotAllowed({
+      throwIfFolderActionDenied({
         folder,
         folderUser,
         requiredPermission: "folders.links.write",

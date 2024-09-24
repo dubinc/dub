@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { FolderUserRole } from "@prisma/client";
 import { z } from "zod";
-import { throwIfNotAllowed } from "../link-folder/permissions";
+import { throwIfFolderActionDenied } from "../link-folder/permissions";
 import { folderUserRoleSchema } from "../zod/schemas/folders";
 import { authActionClient } from "./safe-action";
 
@@ -43,7 +43,7 @@ export const updateFolderUserRoleAction = authActionClient
       throw new Error("You cannot update your own role.");
     }
 
-    throwIfNotAllowed({
+    throwIfFolderActionDenied({
       folder,
       folderUser,
       requiredPermission: "folders.users.write",
