@@ -1,7 +1,6 @@
 "server-only";
 
-import { prisma } from "@/lib/prisma";
-import { Folder, FolderUser } from "@prisma/client";
+import { FolderUser } from "@prisma/client";
 import { DubApiError } from "../api/errors";
 import {
   FOLDER_PERMISSIONS,
@@ -9,6 +8,7 @@ import {
   FOLDER_USER_ROLE_TO_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
 } from "./constants";
+import { Folder } from "./types";
 
 export const throwIfNotAllowed = ({
   folder,
@@ -16,8 +16,8 @@ export const throwIfNotAllowed = ({
   requiredPermission,
   fromServerAction = false,
 }: {
-  folder: Folder;
-  folderUser: FolderUser | null;
+  folder: Pick<Folder, "accessLevel">;
+  folderUser: Pick<FolderUser, "role"> | null;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
   fromServerAction?: boolean;
 }) => {
@@ -42,8 +42,8 @@ export const canPerformActionOnFolder = ({
   folderUser,
   requiredPermission,
 }: {
-  folder: Folder;
-  folderUser: FolderUser | null;
+  folder: Pick<Folder, "accessLevel">;
+  folderUser: Pick<FolderUser, "role"> | null;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
 }) => {
   const folderUserRole = determineFolderUserRole({
@@ -65,7 +65,7 @@ export const determineFolderUserRole = ({
   folderUser,
 }: {
   folder: Pick<Folder, "accessLevel">;
-  folderUser: FolderUser | null;
+  folderUser: Pick<FolderUser, "role"> | null;
 }) => {
   if (folderUser) {
     return folderUser.role;
@@ -87,42 +87,3 @@ export const getFolderPermissions = (
 
   return FOLDER_USER_ROLE_TO_PERMISSIONS[role] || [];
 };
-
-export async function throwIfInvalidFolderAccess({
-  folderId,
-  workspaceId,
-  userId,
-  requiredPermission,
-}: {
-  folderId: string;
-  workspaceId: string;
-  userId: string;
-  requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
-}) {
-  const folder = await prisma.folder.findFirst({
-    where: {
-      id: folderId,
-      projectId: workspaceId,
-    },
-    include: {
-      users: true,
-    },
-  });
-
-  if (!folder) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Folder not found in the workspace.",
-    });
-  }
-
-  const folderUser =
-    folder.users.find((user) => user.userId === userId) || null;
-
-  if (!canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You are not allowed to perform this action on this folder.",
-    });
-  }
-}

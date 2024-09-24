@@ -1,6 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -10,34 +12,22 @@ import { NextResponse } from "next/server";
 
 // GET /api/folders/[folderId] - get information about a folder
 export const GET = withWorkspace(
-  async ({ params, workspace }) => {
+  async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const folder = await prisma.folder.findUniqueOrThrow({
-      where: {
-        id: folderId,
-        projectId: workspace.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        accessLevel: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            links: true,
-          },
-        },
-      },
+    const { folder, folderUser } = await getFolderWithUserOrThrow({
+      folderId,
+      workspaceId: workspace.id,
+      userId: session.user.id,
     });
 
-    const formattedFolder = {
-      ...folder,
-      linkCount: folder._count.links,
-    };
+    throwIfNotAllowed({
+      folder,
+      folderUser,
+      requiredPermission: "folders.read",
+    });
 
-    return NextResponse.json(folderSchema.parse(formattedFolder));
+    return NextResponse.json(folderSchema.parse(folder));
   },
   {
     requiredPermissions: ["folders.read"],
@@ -53,21 +43,17 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const folder = await prisma.folder.findUniqueOrThrow({
-      where: {
-        id: folderId,
-        projectId: workspace.id,
-      },
-      include: {
-        users: true,
-      },
+    const { folder, folderUser } = await getFolderWithUserOrThrow({
+      folderId,
+      workspaceId: workspace.id,
+      userId: session.user.id,
     });
 
-    // await throwIfNotAllowed({
-    //   folder,
-    //   userId: session.user.id,
-    //   requiredPermission: "folders.write",
-    // });
+    throwIfNotAllowed({
+      folder,
+      folderUser,
+      requiredPermission: "folders.write",
+    });
 
     try {
       const updatedFolder = await prisma.folder.update({
@@ -90,13 +76,6 @@ export const PATCH = withWorkspace(
         });
       }
 
-      if (error.code === "P2025") {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Folder not found.",
-        });
-      }
-
       throw error;
     }
   },
@@ -110,21 +89,17 @@ export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const folder = await prisma.folder.findUniqueOrThrow({
-      where: {
-        id: folderId,
-        projectId: workspace.id,
-      },
-      include: {
-        users: true,
-      },
+    const { folder, folderUser } = await getFolderWithUserOrThrow({
+      folderId,
+      workspaceId: workspace.id,
+      userId: session.user.id,
     });
 
-    // await throwIfNotAllowed({
-    //   folder,
-    //   userId: session.user.id,
-    //   requiredPermission: "folders.write",
-    // });
+    throwIfNotAllowed({
+      folder,
+      folderUser,
+      requiredPermission: "folders.write",
+    });
 
     const deletedFolder = await prisma.folder.delete({
       where: {

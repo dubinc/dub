@@ -4,7 +4,7 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfInvalidFolderAccess } from "@/lib/link-folder/permissions";
+import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -89,11 +89,10 @@ export const POST = withWorkspace(
 
     // Check if the user has edit access to the folder
     if (body.folderId) {
-      await throwIfInvalidFolderAccess({
+      await getFolderWithUserOrThrow({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
-        requiredPermission: "folders.links.write",
       });
     }
 

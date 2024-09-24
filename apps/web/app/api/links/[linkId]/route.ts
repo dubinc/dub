@@ -8,7 +8,7 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfInvalidFolderAccess } from "@/lib/link-folder/permissions";
+import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -66,11 +66,10 @@ export const PATCH = withWorkspace(
 
     // Check if the user has edit access to the folder
     if (body.folderId) {
-      await throwIfInvalidFolderAccess({
+      await getFolderWithUserOrThrow({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
-        requiredPermission: "folders.links.write",
       });
     }
 

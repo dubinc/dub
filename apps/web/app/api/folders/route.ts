@@ -8,10 +8,29 @@ import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace
 export const GET = withWorkspace(
-  async ({ workspace, headers }) => {
+  async ({ workspace, headers, session }) => {
     const folders = await prisma.folder.findMany({
       where: {
         projectId: workspace.id,
+        OR: [
+          { accessLevel: { not: null } },
+          {
+            users: {
+              some: {
+                userId: session.user.id,
+                role: { not: null },
+              },
+            },
+          },
+        ],
+        NOT: {
+          users: {
+            some: {
+              userId: session.user.id,
+              role: null,
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
