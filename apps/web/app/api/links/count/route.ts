@@ -1,7 +1,7 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { getFolderWithUser } from "@/lib/link-folder/get-folder";
 import { getFolders } from "@/lib/link-folder/get-folders";
 import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
@@ -18,7 +18,7 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      const { folder, folderUser } = await getFolderWithUserOrThrow({
+      const { folder, folderUser } = await getFolderWithUser({
         folderId,
         workspaceId: workspace.id,
         userId: session.user.id,

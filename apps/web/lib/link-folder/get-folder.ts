@@ -10,7 +10,7 @@ type FolderWithUser = {
   } | null;
 };
 
-export const getFolderWithUserOrThrow = async ({
+export const getFolderWithUser = async ({
   folderId,
   workspaceId,
   userId,

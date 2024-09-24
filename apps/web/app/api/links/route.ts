@@ -4,7 +4,7 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { getFolderWithUser } from "@/lib/link-folder/get-folder";
 import { getFolders } from "@/lib/link-folder/get-folders";
 import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { ratelimit } from "@/lib/upstash";
@@ -43,7 +43,7 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      const { folder, folderUser } = await getFolderWithUserOrThrow({
+      const { folder, folderUser } = await getFolderWithUser({
         folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
@@ -111,7 +111,7 @@ export const POST = withWorkspace(
 
     // Check if the user has edit access to the folder
     if (body.folderId) {
-      const { folder, folderUser } = await getFolderWithUserOrThrow({
+      const { folder, folderUser } = await getFolderWithUser({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,

@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { getFolderWithUser } from "@/lib/link-folder/get-folder";
 import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
@@ -15,7 +15,7 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const { folder, folderUser } = await getFolderWithUserOrThrow({
+    const { folder, folderUser } = await getFolderWithUser({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
@@ -43,7 +43,7 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const { folder, folderUser } = await getFolderWithUserOrThrow({
+    const { folder, folderUser } = await getFolderWithUser({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
@@ -89,7 +89,7 @@ export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const { folder, folderUser } = await getFolderWithUserOrThrow({
+    const { folder, folderUser } = await getFolderWithUser({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,

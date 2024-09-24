@@ -7,7 +7,7 @@ import {
 } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { getFolderWithUser } from "@/lib/link-folder/get-folder";
 import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
@@ -22,7 +22,7 @@ export const PUT = withWorkspace(
     const body = createLinkBodySchema.parse(bodyRaw);
 
     if (body.folderId) {
-      const { folder, folderUser } = await getFolderWithUserOrThrow({
+      const { folder, folderUser } = await getFolderWithUser({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
@@ -44,7 +44,7 @@ export const PUT = withWorkspace(
 
     if (link) {
       if (link.folderId) {
-        const { folder, folderUser } = await getFolderWithUserOrThrow({
+        const { folder, folderUser } = await getFolderWithUser({
           folderId: link.folderId,
           workspaceId: workspace.id,
           userId: session.user.id,
