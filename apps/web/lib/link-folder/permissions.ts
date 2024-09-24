@@ -11,33 +11,6 @@ import {
 import { getFolderWithUser } from "./get-folder";
 import { Folder } from "./types";
 
-// export const throwIfFolderActionDenied = ({
-//   folder,
-//   folderUser,
-//   requiredPermission,
-//   fromServerAction = false,
-// }: {
-//   folder: Pick<Folder, "accessLevel">;
-//   folderUser: Pick<FolderUser, "role"> | null;
-//   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
-//   fromServerAction?: boolean;
-// }) => {
-//   if (canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
-//     return;
-//   }
-
-//   const message = "You are not allowed to perform this action on this folder.";
-
-//   if (fromServerAction) {
-//     throw new Error(message);
-//   }
-
-//   throw new DubApiError({
-//     code: "forbidden",
-//     message,
-//   });
-// };
-
 export const throwIfFolderActionDenied = async ({
   folderId,
   workspaceId,
@@ -61,6 +34,8 @@ export const throwIfFolderActionDenied = async ({
       message: "You are not allowed to perform this action on this folder.",
     });
   }
+
+  return { folder, folderUser };
 };
 
 export const determineFolderUserRole = ({
