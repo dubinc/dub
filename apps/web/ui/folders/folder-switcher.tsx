@@ -271,7 +271,7 @@ const FolderActions = ({
             )}
           </div>
         }
-        align="end"
+        align="start"
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >

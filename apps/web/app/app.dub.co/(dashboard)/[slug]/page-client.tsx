@@ -3,6 +3,7 @@
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { FolderEditAccessRequestButton } from "@/ui/folders/ask-to-edit-button";
 import { FolderSwitcher } from "@/ui/folders/folder-switcher";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
@@ -55,6 +56,7 @@ export default function WorkspaceLinksClient() {
 
 function WorkspaceLinks() {
   const router = useRouter();
+  const { id: workspaceId } = useWorkspace();
   const searchParams = useSearchParams();
 
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
@@ -68,6 +70,7 @@ function WorkspaceLinks() {
   const { isValidating } = useLinks();
 
   const folderId = searchParams.get("folderId");
+
   const canCreateLinks = useCheckFolderPermission(
     folderId,
     "folders.links.write",
@@ -146,14 +149,22 @@ function WorkspaceLinks() {
               </div>
             </div>
 
-            {canCreateLinks && (
-              <div className="order-3 flex gap-x-2">
-                <div className="grow-0">
-                  <AddEditLinkButton />
-                </div>
-                <MoreLinkOptions />
-              </div>
-            )}
+            <div className="order-3 flex gap-x-2">
+              {canCreateLinks ? (
+                <>
+                  <div className="grow-0">
+                    <AddEditLinkButton />
+                  </div>
+                  <MoreLinkOptions />
+                </>
+              ) : (
+                <FolderEditAccessRequestButton
+                  folderId={folderId!}
+                  workspaceId={workspaceId!}
+                  variant="primary"
+                />
+              )}
+            </div>
           </div>
           <Filter.List
             filters={filters}

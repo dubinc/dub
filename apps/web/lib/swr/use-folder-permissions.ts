@@ -28,6 +28,10 @@ export function useCheckFolderPermission(
 ) {
   const { folders } = useFolderPermissions();
 
+  if (!folderId) {
+    return true;
+  }
+
   if (!folders || !Array.isArray(folders)) {
     return false;
   }

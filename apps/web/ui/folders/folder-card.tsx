@@ -24,7 +24,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
 
   const { isLoading: isPermissionsLoading } = useFolderPermissions();
   const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
-  const canMoveLinks = useCheckFolderPermission(
+  const canCreateLinks = useCheckFolderPermission(
     folder.id,
     "folders.links.write",
   );
@@ -47,7 +47,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
 
           {!isAllLinksFolder && (
             <div className="flex items-center justify-end gap-2">
-              {!isPermissionsLoading && !canMoveLinks && (
+              {!isPermissionsLoading && !canCreateLinks && (
                 <FolderEditAccessRequestButton
                   folderId={folder.id}
                   workspaceId={workspaceId!}
