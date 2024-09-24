@@ -6,10 +6,11 @@ import { combineTagIds } from "./utils";
 export async function getLinksCount({
   searchParams,
   workspaceId,
+  folderIds,
 }: {
   searchParams: z.infer<typeof getLinksCountQuerySchema>;
   workspaceId: string;
-  userId?: string | null;
+  folderIds?: string[];
 }) {
   const {
     groupBy,
@@ -53,6 +54,8 @@ export async function getLinksCount({
       groupBy !== "folderId" && {
         folderId,
       }),
+
+    OR: [{ folderId: { in: folderIds } }, { folderId: null }],
   };
 
   if (groupBy === "tagId") {

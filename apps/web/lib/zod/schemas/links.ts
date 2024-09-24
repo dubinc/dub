@@ -54,6 +54,11 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe("The folder ID to filter the links by."),
+  // folderIds: z
+  //   .union([z.string(), z.array(z.string())])
+  //   .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+  //   .optional()
+  //   .describe("The folder IDs to filter the links by."),
   search: z
     .string()
     .optional()

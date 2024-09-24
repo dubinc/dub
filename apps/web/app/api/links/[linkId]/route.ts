@@ -36,7 +36,7 @@ export const GET = withWorkspace(
       throwIfNotAllowed({
         folder,
         folderUser,
-        requiredPermission: "folders.links.read",
+        requiredPermission: "folders.read",
       });
     }
 

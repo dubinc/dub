@@ -9,7 +9,6 @@ export async function getLinksForWorkspace({
   tagId,
   tagIds,
   tagNames,
-  folderId,
   search,
   sort = "createdAt",
   page,
@@ -18,8 +17,11 @@ export async function getLinksForWorkspace({
   showArchived,
   withTags,
   includeUser,
+  folderId,
+  folderIds,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
+  folderIds?: string[];
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -61,13 +63,8 @@ export async function getLinksForWorkspace({
             }
           : {}),
       ...(userId && { userId }),
-
-      // Filter by folderId
-      ...(folderId
-        ? {
-            folderId,
-          }
-        : {}),
+      ...(folderId && { folderId }),
+      OR: [{ folderId: { in: folderIds } }, { folderId: null }],
     },
     include: {
       user: includeUser,

@@ -5,6 +5,7 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { getFolders } from "@/lib/link-folder/get-folders";
 import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -51,12 +52,14 @@ export const GET = withWorkspace(
       throwIfNotAllowed({
         folder,
         folderUser,
-        requiredPermission: "folders.links.read",
+        requiredPermission: "folders.read",
       });
     }
 
-    // TODO: @LinkFolder
-    // Filter out the links that the user does not have access to based on the folders
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    });
 
     const response = await getLinksForWorkspace({
       workspaceId: workspace.id,
@@ -72,6 +75,7 @@ export const GET = withWorkspace(
       showArchived,
       withTags,
       includeUser,
+      folderIds: folders.map((folder) => folder.id),
     });
 
     return NextResponse.json(response, {

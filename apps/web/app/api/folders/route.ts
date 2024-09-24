@@ -1,6 +1,7 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getFolders } from "@/lib/link-folder/get-folders";
 import { prisma } from "@/lib/prisma";
 import { createFolderSchema, folderSchema } from "@/lib/zod/schemas/folders";
 import { FolderAccessLevel } from "@prisma/client";
@@ -9,52 +10,13 @@ import { NextResponse } from "next/server";
 // GET /api/folders - get all folders for a workspace
 export const GET = withWorkspace(
   async ({ workspace, headers, session }) => {
-    const folders = await prisma.folder.findMany({
-      where: {
-        projectId: workspace.id,
-        OR: [
-          { accessLevel: { not: null } },
-          {
-            users: {
-              some: {
-                userId: session.user.id,
-                role: { not: null },
-              },
-            },
-          },
-        ],
-        NOT: {
-          users: {
-            some: {
-              userId: session.user.id,
-              role: null,
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: {
-        id: true,
-        name: true,
-        accessLevel: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            links: true,
-          },
-        },
-      },
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: session.user.id,
+      includeLinkCount: true,
     });
 
-    const formattedFolders = folders.map((folder) => ({
-      ...folder,
-      linkCount: folder._count.links,
-    }));
-
-    return NextResponse.json(folderSchema.array().parse(formattedFolders), {
+    return NextResponse.json(folderSchema.array().parse(folders), {
       headers,
     });
   },

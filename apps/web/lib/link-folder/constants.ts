@@ -15,7 +15,6 @@ export const FOLDER_USER_ROLE = {
 export const FOLDER_PERMISSIONS = [
   "folders.read",
   "folders.write",
-  "folders.links.read",
   "folders.links.write", // Move links to a folder
   "folders.users.write", // Add or remove users to a folder
 ] as const;
@@ -35,10 +34,9 @@ export const FOLDER_USER_ROLE_TO_PERMISSIONS: Record<
   owner: [
     "folders.read",
     "folders.write",
-    "folders.links.read",
     "folders.links.write",
     "folders.users.write",
   ],
-  editor: ["folders.read", "folders.links.read", "folders.links.write"],
-  viewer: ["folders.read", "folders.links.read"],
+  editor: ["folders.read", "folders.links.write"],
+  viewer: ["folders.read"],
 } as const;
