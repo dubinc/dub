@@ -21,7 +21,7 @@ export const TOGGLES = [
     description:
       "Mask your destination URL so your users only see the short link in the browser address bar.",
     learnMoreUrl: "https://dub.co/help/article/link-cloaking",
-    shortcutKey: "c",
+    shortcutKey: "h",
     type: "boolean",
   },
   {
@@ -31,7 +31,7 @@ export const TOGGLES = [
     description:
       "Track conversions on your short link to measure the effectiveness of your marketing campaigns.",
     learnMoreUrl: "https://dub.co/help/article/conversion-tracking",
-    shortcutKey: "t",
+    shortcutKey: "c",
     conversionEnabled: true,
     type: "boolean",
   },
@@ -86,7 +86,7 @@ export const MOBILE_MORE_ITEMS = [
     description:
       "Target your links to specific audiences based on their location, device, or browser.",
     learnMoreUrl: "https://dub.co/help/article/geo-targeting",
-    shortcutKey: "T",
+    shortcutKey: "t",
     enabled: (data: LinkFormData) =>
       Boolean(
         data.ios || data.android || Object.keys(data.geo || {}).length > 0,

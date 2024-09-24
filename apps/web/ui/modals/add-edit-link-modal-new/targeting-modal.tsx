@@ -6,7 +6,7 @@ import {
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { ArrowBoldUp, Crosshairs3 } from "@dub/ui/src/icons";
+import { Crosshairs3 } from "@dub/ui/src/icons";
 import { cn, COUNTRIES } from "@dub/utils";
 import {
   Dispatch,
@@ -91,16 +91,14 @@ function TargetingModal({
                 content={
                   <div className="px-2 py-1 text-xs text-gray-700">
                     Press{" "}
-                    <strong className="font-medium text-gray-950">
-                      Shift+T
-                    </strong>{" "}
-                    to open this quickly
+                    <strong className="font-medium text-gray-950">T</strong> to
+                    open this quickly
                   </div>
                 }
                 side="right"
               >
-                <kbd className="flex h-6 cursor-default items-center justify-center gap-1 rounded-md border border-gray-200 px-1.5 font-sans text-xs text-gray-950">
-                  <ArrowBoldUp className="size-3 shrink-0" />T
+                <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+                  T
                 </kbd>
               </Tooltip>
             </div>
@@ -313,7 +311,7 @@ function TargetingButton({
   const { watch } = useFormContext<LinkFormData>();
   const [ios, android, geo] = watch(["ios", "android", "geo"]);
 
-  useKeyboardShortcut("T", () => setShowTargetingModal(true), {
+  useKeyboardShortcut("t", () => setShowTargetingModal(true), {
     modal: true,
   });
 
