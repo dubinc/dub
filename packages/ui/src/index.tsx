@@ -10,6 +10,7 @@ export * from "./button";
 export * from "./card-list";
 export * from "./carousel";
 export * from "./checkbox";
+export * from "./combobox";
 export * from "./date-picker";
 export * from "./file-upload";
 export * from "./filter";

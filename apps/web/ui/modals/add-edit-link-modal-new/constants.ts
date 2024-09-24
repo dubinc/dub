@@ -86,7 +86,7 @@ export const MOBILE_MORE_ITEMS = [
     description:
       "Target your links to specific audiences based on their location, device, or browser.",
     learnMoreUrl: "https://dub.co/help/article/geo-targeting",
-    shortcutKey: "t",
+    shortcutKey: "x",
     enabled: (data: LinkFormData) =>
       Boolean(
         data.ios || data.android || Object.keys(data.geo || {}).length > 0,
