@@ -9,13 +9,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, PenWriting, Popover, Users } from "@dub/ui";
 import { Globe } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
-import { FolderIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
 import { FolderEditAccessRequestButton } from "./ask-to-edit-button";
+import { FolderAccessIcon } from "./folder-access-icon";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
   const router = useRouter();
@@ -43,11 +43,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
       <DeleteFolderModal />
       <div className="hover:drop-shadow-card-hover rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36">
         <div className="flex items-center justify-between">
-          <div className="rounded-full bg-green-200 p-0.5 sm:block">
-            <div className="rounded-full border-2 border-white p-2 sm:p-2.5">
-              <FolderIcon className="size-3" />
-            </div>
-          </div>
+          <FolderAccessIcon folder={folder} />
 
           {!isAllLinksFolder && (
             <div className="flex items-center justify-end gap-2">

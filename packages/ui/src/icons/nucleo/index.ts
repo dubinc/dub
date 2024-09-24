@@ -39,6 +39,7 @@ export * from "./flag2";
 export * from "./folder";
 export * from "./folder-bookmark";
 export * from "./folder-lock";
+export * from "./folder-plus";
 export * from "./folder-shield";
 export * from "./gaming-console";
 export * from "./gear";

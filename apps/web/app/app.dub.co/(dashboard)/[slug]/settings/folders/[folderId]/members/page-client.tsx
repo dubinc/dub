@@ -12,10 +12,11 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderEditAccessRequestButton } from "@/ui/folders/ask-to-edit-button";
+import { FolderAccessIcon } from "@/ui/folders/folder-access-icon";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
-import { ChevronLeft, FolderIcon } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -105,11 +106,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
           {folder ? (
             <>
               <div className="flex items-center gap-x-4">
-                <div className="rounded-full bg-green-200 p-0.5 sm:block">
-                  <div className="rounded-full border-2 border-white p-2 sm:p-2.5">
-                    <FolderIcon className="size-3" />
-                  </div>
-                </div>
+                <FolderAccessIcon folder={folder} />
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-semibold leading-none text-gray-900">
                     {folder.name}

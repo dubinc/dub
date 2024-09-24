@@ -9,13 +9,9 @@ import {
   useRouterStuff,
   Users,
 } from "@dub/ui";
+import { FolderPlus } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
-import {
-  ChevronLeft,
-  ChevronsUpDown,
-  FolderCheck,
-  FolderPlusIcon,
-} from "lucide-react";
+import { ChevronLeft, ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -23,12 +19,14 @@ import { useAddFolderModal } from "../modals/add-folder-modal";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
+import { FolderAccessIcon } from "./folder-access-icon";
 
-type FolderSummary = Pick<Folder, "id" | "name">;
+type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 
 const allLinksOverview: FolderSummary = {
   id: "all-links",
   name: "All links",
+  accessLevel: "open",
 };
 
 export const FolderSwitcher = () => {
@@ -154,34 +152,31 @@ const FolderList = ({
         )}
       </div>
 
-      {folders.map(({ id, name }) => {
+      {folders.map((folder) => {
         return (
           <button
-            key={id}
+            key={folder.id}
             className={cn(
               "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200",
               {
-                "font-medium": selectedFolder?.id === id,
+                "font-medium": selectedFolder?.id === folder.id,
               },
             )}
             onClick={() => {
               setOpenPopover(false);
-              onFolderSelect({ id, name });
+              onFolderSelect(folder);
             }}
           >
-            <div className="flex size-7 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 group-hover:bg-white">
-              <FolderCheck className="size-3" aria-hidden="true" />
-            </div>
-
+            <FolderAccessIcon folder={folder} circlePadding="p-1" />
             <span
               className={`block truncate text-sm sm:max-w-[140px] ${
-                selectedFolder?.id === id ? "font-medium" : "font-normal"
+                selectedFolder?.id === folder.id ? "font-medium" : "font-normal"
               }`}
             >
-              {name}
+              {folder.name}
             </span>
 
-            {selectedFolder?.id === id && (
+            {selectedFolder?.id === folder.id && (
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
                 <Tick className="size-5" aria-hidden="true" />
               </span>
@@ -199,7 +194,7 @@ const FolderList = ({
         }}
       >
         <div className="flex size-7 items-center justify-center rounded-full border border-gray-200 bg-gradient-to-t from-gray-100 group-hover:bg-white">
-          <FolderPlusIcon className="size-4 text-gray-700" />
+          <FolderPlus className="size-4 text-gray-700" />
         </div>
         <span className="block truncate">Create new folder</span>
       </button>
