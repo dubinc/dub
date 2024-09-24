@@ -1,6 +1,7 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import { generateRandomName } from "@/lib/names";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
@@ -178,7 +179,8 @@ export default function EventsTable() {
           accessorKey: "customer",
           cell: ({ getValue }) => {
             const customer = getValue();
-            const display = customer.name || customer.email || "Unknown";
+            const display =
+              customer.name || customer.email || generateRandomName();
             return (
               <Tooltip
                 content={
@@ -192,7 +194,7 @@ export default function EventsTable() {
                       className="h-8 w-8"
                     />
                     <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {customer?.name || customer?.email || "Anonymous User"}
+                      {display}
                     </p>
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <p>{customer.email}</p>
