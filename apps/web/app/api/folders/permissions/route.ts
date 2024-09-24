@@ -1,4 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
+import { getFolders } from "@/lib/link-folder/get-folders";
 import {
   determineFolderUserRole,
   getFolderPermissions,
@@ -8,15 +9,9 @@ import { NextResponse } from "next/server";
 
 // GET /api/folders/permissions - get folders and their permissions for authenticated user
 export const GET = withWorkspace(async ({ workspace, headers, session }) => {
-  const folders = await prisma.folder.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      id: true,
-      name: true,
-      accessLevel: true,
-    },
+  const folders = await getFolders({
+    workspaceId: workspace.id,
+    userId: session.user.id,
   });
 
   const folderUsers = await prisma.folderUser.findMany({

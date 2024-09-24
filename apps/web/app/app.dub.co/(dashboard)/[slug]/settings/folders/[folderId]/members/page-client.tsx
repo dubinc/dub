@@ -30,10 +30,10 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<string>();
 
   const { isLoading: isLoadingPermissions } = useFolderPermissions();
-  const canUpdateFolder = useCheckFolderPermission("folders.write", folderId);
+  const canUpdateFolder = useCheckFolderPermission(folderId, "folders.write");
   const canMoveLinks = useCheckFolderPermission(
-    "folders.links.write",
     folderId,
+    "folders.links.write",
   );
 
   const {
@@ -196,8 +196,8 @@ const FolderUserRow = ({
   const [role, setRole] = useState<FolderUserRole>(user.role);
 
   const canUpdateRole = useCheckFolderPermission(
-    "folders.users.write",
     folder.id,
+    "folders.users.write",
   );
 
   const { executeAsync, isExecuting } = useAction(updateFolderUserRoleAction, {

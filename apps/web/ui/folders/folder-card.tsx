@@ -23,10 +23,10 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   const [openPopover, setOpenPopover] = useState(false);
 
   const { isLoading: isPermissionsLoading } = useFolderPermissions();
-  const canUpdateFolder = useCheckFolderPermission("folders.write", folder.id);
+  const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
   const canMoveLinks = useCheckFolderPermission(
-    "folders.links.write",
     folder.id,
+    "folders.links.write",
   );
 
   const { RenameFolderModal, setShowRenameFolderModal } =

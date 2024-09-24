@@ -34,7 +34,7 @@ export type ResponseLink = LinkWithTagsProps & {
 export default function LinksContainer({
   AddEditLinkButton,
 }: {
-  AddEditLinkButton: () => JSX.Element;
+  AddEditLinkButton?: () => JSX.Element;
 }) {
   const { viewMode, sort, showArchived } = useContext(LinksDisplayContext);
 
@@ -71,7 +71,7 @@ function LinksList({
   loading,
   compact,
 }: {
-  AddEditLinkButton: () => JSX.Element;
+  AddEditLinkButton?: () => JSX.Element;
   links?: ResponseLink[];
   count?: number;
   loading?: boolean;

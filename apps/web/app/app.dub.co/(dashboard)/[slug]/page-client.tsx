@@ -1,5 +1,6 @@
 "use client";
 
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSwitcher } from "@/ui/folders/folder-switcher";
@@ -23,7 +24,7 @@ import {
 } from "@dub/ui";
 import { Download, TableIcon, Tag } from "@dub/ui/src/icons";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
   Dispatch,
@@ -54,6 +55,7 @@ export default function WorkspaceLinksClient() {
 
 function WorkspaceLinks() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
@@ -64,6 +66,12 @@ function WorkspaceLinks() {
     useLinkFilters();
 
   const { isValidating } = useLinks();
+
+  const folderId = searchParams.get("folderId");
+  const canCreateLinks = useCheckFolderPermission(
+    folderId,
+    "folders.links.write",
+  );
 
   return (
     <>
@@ -137,12 +145,15 @@ function WorkspaceLinks() {
                 <LinkDisplay />
               </div>
             </div>
-            <div className="order-3 flex gap-x-2">
-              <div className="grow-0">
-                <AddEditLinkButton />
+
+            {canCreateLinks && (
+              <div className="order-3 flex gap-x-2">
+                <div className="grow-0">
+                  <AddEditLinkButton />
+                </div>
+                <MoreLinkOptions />
               </div>
-              <MoreLinkOptions />
-            </div>
+            )}
           </div>
           <Filter.List
             filters={filters}
@@ -153,7 +164,9 @@ function WorkspaceLinks() {
         </MaxWidthWrapper>
       </div>
       <div className="mt-3">
-        <LinksContainer AddEditLinkButton={AddEditLinkButton} />
+        <LinksContainer
+          AddEditLinkButton={canCreateLinks ? AddEditLinkButton : undefined}
+        />
       </div>
     </>
   );

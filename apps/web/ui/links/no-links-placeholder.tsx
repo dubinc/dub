@@ -1,7 +1,7 @@
 export default function NoLinksPlaceholder({
   AddEditLinkButton,
 }: {
-  AddEditLinkButton: () => JSX.Element;
+  AddEditLinkButton?: () => JSX.Element;
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">
@@ -15,10 +15,17 @@ export default function NoLinksPlaceholder({
         height={400}
         className="pointer-events-none -my-8"
       />
-      <div>
-        <AddEditLinkButton />
-      </div>
-      <p className="mt-2 text-sm text-gray-500">or edit your search filters</p>
+
+      {AddEditLinkButton && (
+        <>
+          <div>
+            <AddEditLinkButton />
+          </div>
+          <p className="mt-2 text-sm text-gray-500">
+            or edit your search filters
+          </p>
+        </>
+      )}
     </div>
   );
 }

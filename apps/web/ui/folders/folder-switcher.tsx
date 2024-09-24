@@ -218,7 +218,7 @@ const FolderActions = ({
 }) => {
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
-  const canUpdateFolder = useCheckFolderPermission("folders.write", folder.id);
+  const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
 
   const { RenameFolderModal, setShowRenameFolderModal } =
     useRenameFolderModal(folder);
