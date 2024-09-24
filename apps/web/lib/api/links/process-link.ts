@@ -1,4 +1,6 @@
 import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { getFolderWithUser } from "@/lib/link-folder/get-folder";
+import { canPerformActionOnFolder } from "@/lib/link-folder/permissions";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -326,18 +328,23 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   // Folder checks
-  if (folderId && workspace) {
-    const folder = await prisma.folder.findUnique({
-      where: {
-        id: folderId,
-        projectId: workspace.id,
-      },
+  if (folderId && workspace && userId) {
+    const { folder, folderUser } = await getFolderWithUser({
+      workspaceId: workspace.id,
+      folderId,
+      userId,
     });
 
-    if (!folder) {
+    if (
+      !canPerformActionOnFolder({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.write",
+      })
+    ) {
       return {
         link: payload,
-        error: "Folder does not exist.",
+        error: "You are not allowed to perform this action on this folder.",
         code: "unprocessable_entity",
       };
     }

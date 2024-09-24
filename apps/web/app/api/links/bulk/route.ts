@@ -29,9 +29,6 @@ export const POST = withWorkspace(
 
     throwIfLinksUsageExceeded(workspace);
 
-    // TODO:
-    // Check folder permissions
-
     const links = bulkCreateLinksBodySchema.parse(await parseRequestBody(req));
     if (
       workspace.linksUsage + links.length > workspace.linksLimit &&

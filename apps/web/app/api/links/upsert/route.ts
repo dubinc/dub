@@ -20,15 +20,6 @@ export const PUT = withWorkspace(
     const bodyRaw = await parseRequestBody(req);
     const body = createLinkBodySchema.parse(bodyRaw);
 
-    if (body.folderId) {
-      await throwIfFolderActionDenied({
-        folderId: body.folderId,
-        workspaceId: workspace.id,
-        userId: session.user.id,
-        requiredPermission: "folders.links.write",
-      });
-    }
-
     const link = await prisma.link.findFirst({
       where: {
         projectId: workspace.id,

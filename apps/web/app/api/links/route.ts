@@ -103,16 +103,6 @@ export const POST = withWorkspace(
       }
     }
 
-    // Check if the user has edit access to the folder
-    if (body.folderId) {
-      await throwIfFolderActionDenied({
-        folderId: body.folderId,
-        workspaceId: workspace.id,
-        userId: session.user.id,
-        requiredPermission: "folders.links.write",
-      });
-    }
-
     const { link, error, code } = await processLink({
       payload: body,
       workspace,
