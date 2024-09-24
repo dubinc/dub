@@ -5,6 +5,7 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -18,7 +19,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
-  async ({ req, headers, workspace }) => {
+  async ({ req, headers, workspace, session }) => {
     const searchParams = getSearchParamsWithArray(req.url);
 
     const {
@@ -39,6 +40,23 @@ export const GET = withWorkspace(
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
     }
+
+    if (folderId) {
+      const { folder, folderUser } = await getFolderWithUserOrThrow({
+        folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      throwIfNotAllowed({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.read",
+      });
+    }
+
+    // TODO: @LinkFolder
+    // Filter out the links that the user does not have access to based on the folders
 
     const response = await getLinksForWorkspace({
       workspaceId: workspace.id,
@@ -89,10 +107,16 @@ export const POST = withWorkspace(
 
     // Check if the user has edit access to the folder
     if (body.folderId) {
-      await getFolderWithUserOrThrow({
+      const { folder, folderUser } = await getFolderWithUserOrThrow({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
+      });
+
+      throwIfNotAllowed({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.write",
       });
     }
 

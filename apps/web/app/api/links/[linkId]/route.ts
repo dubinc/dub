@@ -9,6 +9,7 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
+import { throwIfNotAllowed } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -19,11 +20,25 @@ import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withWorkspace(
-  async ({ headers, workspace, params }) => {
+  async ({ headers, workspace, params, session }) => {
     const link = await getLinkOrThrow({
       workspace,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      const { folder, folderUser } = await getFolderWithUserOrThrow({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      throwIfNotAllowed({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.read",
+      });
+    }
 
     const tags = await prisma.tag.findMany({
       where: {
@@ -64,12 +79,31 @@ export const PATCH = withWorkspace(
 
     const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
 
-    // Check if the user has edit access to the folder
+    if (link.folderId) {
+      const { folder, folderUser } = await getFolderWithUserOrThrow({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      throwIfNotAllowed({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.write",
+      });
+    }
+
     if (body.folderId) {
-      await getFolderWithUserOrThrow({
+      const { folder, folderUser } = await getFolderWithUserOrThrow({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
+      });
+
+      throwIfNotAllowed({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.write",
       });
     }
 
@@ -176,11 +210,25 @@ export const PUT = PATCH;
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withWorkspace(
-  async ({ headers, params, workspace }) => {
+  async ({ headers, params, workspace, session }) => {
     const link = await getLinkOrThrow({
       workspace,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      const { folder, folderUser } = await getFolderWithUserOrThrow({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      throwIfNotAllowed({
+        folder,
+        folderUser,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     await deleteLink(link.id);
 
