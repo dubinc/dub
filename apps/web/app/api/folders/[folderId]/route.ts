@@ -27,7 +27,6 @@ export const GET = withWorkspace(
     if (
       !canPerformActionOnFolder({
         folder,
-        folderUser: folder.user,
         requiredPermission: "folders.read",
       })
     ) {

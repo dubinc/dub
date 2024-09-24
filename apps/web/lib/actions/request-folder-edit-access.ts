@@ -5,6 +5,8 @@ import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import FolderEditAccessRequested from "emails/folder-edit-access-requested";
 import { z } from "zod";
+import { getFolderOrThrow } from "../link-folder/get-folder-or-throw";
+import { canPerformActionOnFolder } from "../link-folder/permissions";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({
@@ -19,21 +21,19 @@ export const requestFolderEditAccessAction = authActionClient
     const { workspace, user } = ctx;
     const { folderId } = parsedInput;
 
-    const { users: folderUsers, ...folder } =
-      await prisma.folder.findFirstOrThrow({
-        where: {
-          id: folderId,
-          projectId: workspace.id,
-        },
-        include: {
-          users: true,
-        },
-      });
+    const folder = await getFolderOrThrow({
+      folderId,
+      workspaceId: workspace.id,
+      userId: user.id,
+    });
 
-    const requestedUser = folderUsers.find((user) => user.userId === user.id);
+    const canReadFolder = canPerformActionOnFolder({
+      folder,
+      requiredPermission: "folders.read",
+    });
 
-    if (requestedUser) {
-      throw new Error("You already have access to this folder.");
+    if (!canReadFolder) {
+      throw new Error("You are not allowed to access this folder.");
     }
 
     const folderAccessRequest = await prisma.folderAccessRequest.findUnique({
@@ -60,30 +60,28 @@ export const requestFolderEditAccessAction = authActionClient
 
     waitUntil(
       (async () => {
-        const folderOwners = folderUsers.filter(
-          (user) => user.role === "owner",
-        );
-
-        if (folderOwners.length === 0) {
-          throw new Error(
-            "No owner found for this folder. Please contact support.",
-          );
-        }
-
-        const { email: ownerEmail } = await prisma.user.findUniqueOrThrow({
+        const folderOwner = await prisma.folderUser.findFirstOrThrow({
           where: {
-            id: folderOwners[0].userId,
+            folderId,
+            role: "owner",
           },
           select: {
-            email: true,
+            userId: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
           },
         });
 
+        const folderOwnerEmail = folderOwner.user.email!;
+
         await sendEmail({
           subject: `Request to edit folder ${folder.name} on ${workspace.name}`,
-          email: ownerEmail!,
+          email: folderOwnerEmail,
           react: FolderEditAccessRequested({
-            email: ownerEmail!,
+            email: folderOwnerEmail,
             appName: process.env.NEXT_PUBLIC_APP_NAME as string,
             folderUrl: `${process.env.NEXT_PUBLIC_APP_URL}/${workspace.slug}/settings/folders/${folder.id}/members`,
             folder: {

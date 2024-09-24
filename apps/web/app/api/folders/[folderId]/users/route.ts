@@ -56,12 +56,19 @@ export const GET = withWorkspace(
       const folderUser =
         folderUsers.find((folderUser) => folderUser.userId === user.id) || null;
 
+      const role = determineFolderUserRole({
+        folder: {
+          ...folder,
+          user: folderUser,
+        },
+      });
+
       return {
         id: user.id,
         name: user.name,
         email: user.email,
         image: user.image,
-        role: determineFolderUserRole({ folder, folderUser }),
+        role,
       };
     });
 

@@ -338,7 +338,6 @@ export async function processLink<T extends Record<string, any>>({
     if (
       !canPerformActionOnFolder({
         folder,
-        folderUser: folder.user,
         requiredPermission: "folders.links.write",
       })
     ) {

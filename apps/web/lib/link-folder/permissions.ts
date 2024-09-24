@@ -11,6 +11,10 @@ import {
 import { getFolderOrThrow } from "./get-folder-or-throw";
 import { Folder } from "./types";
 
+type FolderWithUser = Pick<Folder, "accessLevel"> & {
+  user: Pick<FolderUser, "role"> | null;
+};
+
 export const throwIfFolderActionDenied = async ({
   folderId,
   workspaceId,
@@ -31,7 +35,6 @@ export const throwIfFolderActionDenied = async ({
   if (
     !canPerformActionOnFolder({
       folder,
-      folderUser: folder.user,
       requiredPermission,
     })
   ) {
@@ -44,13 +47,23 @@ export const throwIfFolderActionDenied = async ({
   return folder;
 };
 
+export const getFolderPermissions = (
+  role: keyof typeof FOLDER_USER_ROLE | null,
+) => {
+  if (!role) {
+    return [];
+  }
+
+  return FOLDER_USER_ROLE_TO_PERMISSIONS[role] || [];
+};
+
 export const determineFolderUserRole = ({
   folder,
-  folderUser,
 }: {
-  folder: Pick<Folder, "accessLevel">;
-  folderUser: Pick<FolderUser, "role"> | null;
+  folder: FolderWithUser;
 }) => {
+  const folderUser = folder.user;
+
   if (folderUser) {
     return folderUser.role;
   }
@@ -62,28 +75,15 @@ export const determineFolderUserRole = ({
   return FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE[folder.accessLevel];
 };
 
-export const getFolderPermissions = (
-  role: keyof typeof FOLDER_USER_ROLE | null,
-) => {
-  if (!role) {
-    return [];
-  }
-
-  return FOLDER_USER_ROLE_TO_PERMISSIONS[role] || [];
-};
-
 export const canPerformActionOnFolder = ({
   folder,
-  folderUser,
   requiredPermission,
 }: {
-  folder: Pick<Folder, "accessLevel">;
-  folderUser: Pick<FolderUser, "role"> | null;
+  folder: FolderWithUser;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
 }) => {
   const folderUserRole = determineFolderUserRole({
     folder,
-    folderUser,
   });
 
   if (!folderUserRole) {

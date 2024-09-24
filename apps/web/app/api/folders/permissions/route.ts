@@ -29,8 +29,10 @@ export const GET = withWorkspace(async ({ workspace, headers, session }) => {
       null;
 
     const role = determineFolderUserRole({
-      folder,
-      folderUser,
+      folder: {
+        ...folder,
+        user: folderUser,
+      },
     });
 
     return {
