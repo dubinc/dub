@@ -241,6 +241,9 @@ function AddEditLinkModalInner({
                 ...rest,
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
+
+                // Manually reset empty strings to null
+                expiredUrl: rest.expiredUrl || null,
               };
 
               try {
