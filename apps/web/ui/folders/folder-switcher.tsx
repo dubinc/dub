@@ -167,7 +167,7 @@ const FolderList = ({
               onFolderSelect(folder);
             }}
           >
-            <FolderAccessIcon folder={folder} circlePadding="p-1" />
+            <FolderAccessIcon folder={folder} withBorder={false} />
             <span
               className={`block truncate text-sm sm:max-w-[140px] ${
                 selectedFolder?.id === folder.id ? "font-medium" : "font-normal"
