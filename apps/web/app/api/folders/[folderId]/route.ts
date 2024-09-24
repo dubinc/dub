@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderWithUser } from "@/lib/link-folder/get-folder";
+import { getFolderOrThrow } from "@/lib/link-folder/get-folder-or-throw";
 import {
   canPerformActionOnFolder,
   throwIfFolderActionDenied,
@@ -18,7 +18,7 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const { folder, folderUser } = await getFolderWithUser({
+    const folder = await getFolderOrThrow({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
@@ -27,7 +27,7 @@ export const GET = withWorkspace(
     if (
       !canPerformActionOnFolder({
         folder,
-        folderUser,
+        folderUser: folder.user,
         requiredPermission: "folders.read",
       })
     ) {

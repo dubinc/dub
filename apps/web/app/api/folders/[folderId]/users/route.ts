@@ -11,7 +11,7 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const { folder } = await throwIfFolderActionDenied({
+    const folder = await throwIfFolderActionDenied({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,

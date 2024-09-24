@@ -8,7 +8,7 @@ import {
   FOLDER_USER_ROLE_TO_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
 } from "./constants";
-import { getFolderWithUser } from "./get-folder";
+import { getFolderOrThrow } from "./get-folder-or-throw";
 import { Folder } from "./types";
 
 export const throwIfFolderActionDenied = async ({
@@ -22,20 +22,26 @@ export const throwIfFolderActionDenied = async ({
   userId: string;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
 }) => {
-  const { folder, folderUser } = await getFolderWithUser({
+  const folder = await getFolderOrThrow({
     folderId,
     workspaceId,
     userId,
   });
 
-  if (!canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
+  if (
+    !canPerformActionOnFolder({
+      folder,
+      folderUser: folder.user,
+      requiredPermission,
+    })
+  ) {
     throw new DubApiError({
       code: "forbidden",
       message: "You are not allowed to perform this action on this folder.",
     });
   }
 
-  return { folder, folderUser };
+  return folder;
 };
 
 export const determineFolderUserRole = ({

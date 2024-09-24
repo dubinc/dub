@@ -1,16 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { FolderUserRole } from "@prisma/client";
 import { DubApiError } from "../api/errors";
-import { Folder } from "./types";
 
-type FolderWithUser = {
-  folder: Folder;
-  folderUser: {
-    role: FolderUserRole | null;
-  } | null;
-};
-
-export const getFolderWithUser = async ({
+export const getFolderOrThrow = async ({
   folderId,
   workspaceId,
   userId,
@@ -18,7 +9,7 @@ export const getFolderWithUser = async ({
   folderId: string;
   workspaceId: string;
   userId: string;
-}): Promise<FolderWithUser> => {
+}) => {
   const folder = await prisma.folder.findUniqueOrThrow({
     where: {
       id: folderId,
@@ -50,17 +41,13 @@ export const getFolderWithUser = async ({
     });
   }
 
-  const folderUser = folder.users.length > 0 ? folder.users[0] : null;
-
   return {
-    folder: {
-      id: folder.id,
-      name: folder.name,
-      accessLevel: folder.accessLevel,
-      linkCount: folder._count.links,
-      createdAt: folder.createdAt,
-      updatedAt: folder.updatedAt,
-    },
-    folderUser: folderUser ? { role: folderUser.role } : null,
+    id: folder.id,
+    name: folder.name,
+    accessLevel: folder.accessLevel,
+    linkCount: folder._count.links,
+    createdAt: folder.createdAt,
+    updatedAt: folder.updatedAt,
+    user: folder.users.length > 0 ? folder.users[0] : null,
   };
 };
