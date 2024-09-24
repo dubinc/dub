@@ -2,7 +2,6 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderWithUser } from "@/lib/link-folder/get-folder";
 import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
@@ -28,15 +27,10 @@ export const POST = withWorkspace(
     });
 
     if (link.folderId) {
-      const { folder, folderUser } = await getFolderWithUser({
+      await throwIfFolderActionDenied({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
-      });
-
-      throwIfFolderActionDenied({
-        folder,
-        folderUser,
         requiredPermission: "folders.links.write",
       });
     }

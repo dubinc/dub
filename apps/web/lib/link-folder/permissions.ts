@@ -8,33 +8,59 @@ import {
   FOLDER_USER_ROLE_TO_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS_TO_USER_ROLE,
 } from "./constants";
+import { getFolderWithUser } from "./get-folder";
 import { Folder } from "./types";
 
-export const throwIfFolderActionDenied = ({
-  folder,
-  folderUser,
+// export const throwIfFolderActionDenied = ({
+//   folder,
+//   folderUser,
+//   requiredPermission,
+//   fromServerAction = false,
+// }: {
+//   folder: Pick<Folder, "accessLevel">;
+//   folderUser: Pick<FolderUser, "role"> | null;
+//   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
+//   fromServerAction?: boolean;
+// }) => {
+//   if (canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
+//     return;
+//   }
+
+//   const message = "You are not allowed to perform this action on this folder.";
+
+//   if (fromServerAction) {
+//     throw new Error(message);
+//   }
+
+//   throw new DubApiError({
+//     code: "forbidden",
+//     message,
+//   });
+// };
+
+export const throwIfFolderActionDenied = async ({
+  folderId,
+  workspaceId,
+  userId,
   requiredPermission,
-  fromServerAction = false,
 }: {
-  folder: Pick<Folder, "accessLevel">;
-  folderUser: Pick<FolderUser, "role"> | null;
+  folderId: string;
+  workspaceId: string;
+  userId: string;
   requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
-  fromServerAction?: boolean;
 }) => {
-  if (canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
-    return;
-  }
-
-  const message = "You are not allowed to perform this action on this folder.";
-
-  if (fromServerAction) {
-    throw new Error(message);
-  }
-
-  throw new DubApiError({
-    code: "forbidden",
-    message,
+  const { folder, folderUser } = await getFolderWithUser({
+    folderId,
+    workspaceId,
+    userId,
   });
+
+  if (!canPerformActionOnFolder({ folder, folderUser, requiredPermission })) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not allowed to perform this action on this folder.",
+    });
+  }
 };
 
 export const determineFolderUserRole = ({
@@ -65,7 +91,7 @@ export const getFolderPermissions = (
   return FOLDER_USER_ROLE_TO_PERMISSIONS[role] || [];
 };
 
-const canPerformActionOnFolder = ({
+export const canPerformActionOnFolder = ({
   folder,
   folderUser,
   requiredPermission,

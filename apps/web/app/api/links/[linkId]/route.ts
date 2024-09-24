@@ -8,7 +8,6 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderWithUserOrThrow } from "@/lib/link-folder/get-folder";
 import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
@@ -27,15 +26,10 @@ export const GET = withWorkspace(
     });
 
     if (link.folderId) {
-      const { folder, folderUser } = await getFolderWithUserOrThrow({
+      await throwIfFolderActionDenied({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
-      });
-
-      throwIfFolderActionDenied({
-        folder,
-        folderUser,
         requiredPermission: "folders.read",
       });
     }
@@ -80,29 +74,19 @@ export const PATCH = withWorkspace(
     const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
 
     if (link.folderId) {
-      const { folder, folderUser } = await getFolderWithUserOrThrow({
+      await throwIfFolderActionDenied({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
-      });
-
-      throwIfFolderActionDenied({
-        folder,
-        folderUser,
         requiredPermission: "folders.links.write",
       });
     }
 
     if (body.folderId) {
-      const { folder, folderUser } = await getFolderWithUserOrThrow({
+      await throwIfFolderActionDenied({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
-      });
-
-      throwIfFolderActionDenied({
-        folder,
-        folderUser,
         requiredPermission: "folders.links.write",
       });
     }
@@ -217,15 +201,10 @@ export const DELETE = withWorkspace(
     });
 
     if (link.folderId) {
-      const { folder, folderUser } = await getFolderWithUserOrThrow({
+      await throwIfFolderActionDenied({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
-      });
-
-      throwIfFolderActionDenied({
-        folder,
-        folderUser,
         requiredPermission: "folders.links.write",
       });
     }

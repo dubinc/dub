@@ -7,7 +7,6 @@ import {
 } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderWithUser } from "@/lib/link-folder/get-folder";
 import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
@@ -22,15 +21,10 @@ export const PUT = withWorkspace(
     const body = createLinkBodySchema.parse(bodyRaw);
 
     if (body.folderId) {
-      const { folder, folderUser } = await getFolderWithUser({
+      await throwIfFolderActionDenied({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
-      });
-
-      throwIfFolderActionDenied({
-        folder,
-        folderUser,
         requiredPermission: "folders.links.write",
       });
     }
@@ -44,15 +38,10 @@ export const PUT = withWorkspace(
 
     if (link) {
       if (link.folderId) {
-        const { folder, folderUser } = await getFolderWithUser({
+        await throwIfFolderActionDenied({
           folderId: link.folderId,
           workspaceId: workspace.id,
           userId: session.user.id,
-        });
-
-        throwIfFolderActionDenied({
-          folder,
-          folderUser,
           requiredPermission: "folders.links.write",
         });
       }

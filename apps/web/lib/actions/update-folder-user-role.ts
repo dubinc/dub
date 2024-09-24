@@ -21,33 +21,15 @@ export const updateFolderUserRoleAction = authActionClient
     const { workspace, user } = ctx;
     const { folderId, userId, role } = parsedInput;
 
-    const [folder, folderUser] = await Promise.all([
-      prisma.folder.findFirstOrThrow({
-        where: {
-          id: folderId,
-          projectId: workspace.id,
-        },
-      }),
-
-      prisma.folderUser.findUniqueOrThrow({
-        where: {
-          folderId_userId: {
-            folderId,
-            userId: user.id,
-          },
-        },
-      }),
-    ]);
-
     if (user.id === userId) {
       throw new Error("You cannot update your own role.");
     }
 
-    throwIfFolderActionDenied({
-      folder,
-      folderUser,
+    await throwIfFolderActionDenied({
+      folderId,
+      workspaceId: workspace.id,
+      userId: user.id,
       requiredPermission: "folders.users.write",
-      fromServerAction: true,
     });
 
     await prisma.folderUser.upsert({

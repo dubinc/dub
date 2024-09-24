@@ -2,7 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderWithUser } from "@/lib/link-folder/get-folder";
-import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
+import {
+  canPerformActionOnFolder,
+  throwIfFolderActionDenied,
+} from "@/lib/link-folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { folderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -21,11 +24,18 @@ export const GET = withWorkspace(
       userId: session.user.id,
     });
 
-    throwIfFolderActionDenied({
-      folder,
-      folderUser,
-      requiredPermission: "folders.read",
-    });
+    if (
+      !canPerformActionOnFolder({
+        folder,
+        folderUser,
+        requiredPermission: "folders.read",
+      })
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not allowed to read this folder.",
+      });
+    }
 
     return NextResponse.json(folderSchema.parse(folder));
   },
@@ -43,15 +53,10 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const { folder, folderUser } = await getFolderWithUser({
+    await throwIfFolderActionDenied({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
-    });
-
-    throwIfFolderActionDenied({
-      folder,
-      folderUser,
       requiredPermission: "folders.write",
     });
 
@@ -89,15 +94,10 @@ export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const { folder, folderUser } = await getFolderWithUser({
+    await throwIfFolderActionDenied({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
-    });
-
-    throwIfFolderActionDenied({
-      folder,
-      folderUser,
       requiredPermission: "folders.write",
     });
 
