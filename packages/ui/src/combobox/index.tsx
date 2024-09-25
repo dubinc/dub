@@ -4,6 +4,7 @@ import {
   isValidElement,
   PropsWithChildren,
   ReactNode,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -89,6 +90,10 @@ export function Combobox({
   const setIsOpen = onOpenChange ?? setIsOpenInternal;
 
   const [search, setSearch] = useState("");
+  const [shouldSortOptions, setShouldSortOptions] = useState(false);
+  const [sortedOptions, setSortedOptions] = useState<
+    ComboboxOption[] | undefined
+  >(undefined);
   const [isCreating, setIsCreating] = useState(false);
 
   const handleSelect = (option: ComboboxOption) => {
@@ -107,8 +112,38 @@ export function Combobox({
       );
   };
 
+  const sortOptions = useCallback(
+    (options: ComboboxOption[]) => {
+      return [...options].sort((a, b) => {
+        const aSelected = selected.some((s) => s.value === a.value);
+        const bSelected = selected.some((s) => s.value === b.value);
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+        return 0;
+      });
+    },
+    [selected],
+  );
+
+  // Actually sort the options when needed
   useEffect(() => {
-    if (!isOpen) setSearch("");
+    if (shouldSortOptions) {
+      setSortedOptions(options ? sortOptions(options) : options);
+      setShouldSortOptions(false);
+    }
+  }, [shouldSortOptions, options, sortOptions]);
+
+  // Sort options when the options prop changes
+  useEffect(() => {
+    setShouldSortOptions(true);
+  }, [options]);
+
+  // Reset search and sort options when the popover closes
+  useEffect(() => {
+    if (isOpen) return;
+
+    setSearch("");
+    setShouldSortOptions(true);
   }, [isOpen]);
 
   return (
@@ -155,9 +190,9 @@ export function Combobox({
               <Command.List
                 className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
               >
-                {options !== undefined ? (
+                {sortedOptions !== undefined ? (
                   <>
-                    {options.map((option) => (
+                    {sortedOptions.map((option) => (
                       <Option
                         key={`${option.label}, ${option.value}`}
                         option={option}
