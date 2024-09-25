@@ -80,7 +80,10 @@ export function TagSelect() {
       icon={<TagIcon tags={selectedTags.map(({ meta }) => meta)} />}
       placeholder="Tags"
       searchPlaceholder="Search or add tags..."
-      buttonProps={{ className: "h-9 px-2.5 w-fit font-medium text-gray-700" }}
+      buttonProps={{
+        className:
+          "h-9 px-2.5 w-fit font-medium text-gray-700 max-w-48 min-w-0",
+      }}
       onCreate={(search) => createTag(search)}
       open={isOpen}
       onOpenChange={setIsOpen}
@@ -102,7 +105,7 @@ function TagIcon({ tags }: { tags: Pick<TagProps, "color">[] }) {
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
       className={cn(
-        "size-4",
+        "size-4 shrink-0",
         tags.length > 0 &&
           COLORS_LIST.find(({ color }) => color === tags[0].color)?.css,
         "bg-transparent",

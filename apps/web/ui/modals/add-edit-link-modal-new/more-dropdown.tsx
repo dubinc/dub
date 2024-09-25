@@ -118,7 +118,7 @@ export function MoreDropdown() {
         <Button
           variant="secondary"
           icon={<Dots className="size-4" />}
-          className="h-9 px-2.5"
+          className="h-9 w-fit px-2.5"
         />
       </Popover>
     </>
