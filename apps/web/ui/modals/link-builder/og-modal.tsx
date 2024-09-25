@@ -267,7 +267,7 @@ function OGModalInner({
                     onClick={() => setShowPromptModal(true)}
                     tooltipContent="Paste a URL to an image"
                   >
-                    <Link className="size-4 rotate-90" />
+                    <Link className="size-4" />
                   </ButtonTooltip>
                   <Popover
                     content={
