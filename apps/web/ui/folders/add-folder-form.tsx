@@ -56,48 +56,42 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
 
         {step === 2 && (
           <p className="text-sm text-gray-500">
-            Set the default folder access for the workspace. For individual
-            folder permissions, those can be changed in folder settings.
+            Set the default folder access for the workspace. Individual user
+            permissions can be set in the folder settings.
           </p>
         )}
       </div>
 
-      <div className="mt-6">
+      <div className="bg-gray-50">
         <form onSubmit={onSubmit}>
           <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
             {step === 1 ? (
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="block text-sm font-medium text-gray-800">
-                    Name
-                  </p>
-                </div>
-                <div className="mt-2">
-                  <div className="-m-1 rounded-[0.625rem] p-1">
-                    <div className="flex rounded-md border border-gray-300 bg-white">
-                      <input
-                        type="text"
-                        required
-                        autoComplete="off"
-                        className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
-                        aria-invalid="true"
-                        placeholder="Marketing"
-                        autoFocus={!isMobile}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            setStep(2);
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
+              <div className="mt-6">
+                <label className="text-sm font-normal text-gray-500">
+                  Name
+                </label>
+                <div className="mt-2 flex rounded-md border border-gray-300 bg-white">
+                  <input
+                    type="text"
+                    required
+                    autoComplete="off"
+                    className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+                    aria-invalid="true"
+                    placeholder="Acme Links"
+                    autoFocus={!isMobile}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        setStep(2);
+                      }
+                    }}
+                  />
                 </div>
               </div>
             ) : (
-              <div>
+              <div className="mt-6">
                 <label className="text-sm font-normal text-gray-500">
                   Workspace access
                 </label>

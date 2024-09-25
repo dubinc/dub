@@ -19,7 +19,7 @@ const RenameFolderModal = ({
       <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
         Rename folder
       </h3>
-      <div className="mt-6">
+      <div>
         <RenameFolderForm
           onSuccess={() => setShowModal(false)}
           onCancel={() => setShowModal(false)}

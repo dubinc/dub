@@ -100,10 +100,10 @@ export const MoveLinkForm = ({
         </p>
       </div>
 
-      <div className="mt-6">
+      <div className="bg-gray-50">
         <form onSubmit={onSubmit}>
           <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
-            <div>
+            <div className="mt-6">
               <div className="flex items-center gap-2">
                 <label className="text-sm font-normal text-gray-500">
                   Folders

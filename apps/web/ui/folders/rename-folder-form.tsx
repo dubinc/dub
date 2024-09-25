@@ -46,35 +46,30 @@ export const RenameFolderForm = ({
   };
 
   return (
-    <form onSubmit={onSubmit}>
-      <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="block text-sm font-medium text-gray-800">Name</p>
-          </div>
-
+    <form onSubmit={onSubmit} className="bg-gray-50">
+      <div className="flex flex-col gap-6 px-4 text-left sm:px-6">
+        <div className="mt-6">
+          <label className="text-sm font-normal text-gray-500">Name</label>
           <div className="mt-2">
-            <div className="-m-1 rounded-[0.625rem] p-1">
-              <div className="flex rounded-md border border-gray-300 bg-white">
-                <input
-                  type="text"
-                  required
-                  autoComplete="off"
-                  className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
-                  aria-invalid="true"
-                  placeholder="Marketing"
-                  autoFocus={!isMobile}
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                    }
-                  }}
-                />
-              </div>
+            <div className="flex rounded-md border border-gray-300 bg-white">
+              <input
+                type="text"
+                required
+                autoComplete="off"
+                className="block w-full rounded-md border-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+                aria-invalid="true"
+                placeholder="Marketing"
+                autoFocus={!isMobile}
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                  }
+                }}
+              />
             </div>
           </div>
         </div>
