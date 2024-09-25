@@ -106,7 +106,8 @@ export const getUrlWithoutUTMParams = (url: string) => {
   }
 };
 
-export const getPrettyUrl = (url: string) => {
+export const getPrettyUrl = (url?: string | null) => {
+  if (!url) return "";
   // remove protocol (http/https) and www.
   // also remove trailing slash
   return url
