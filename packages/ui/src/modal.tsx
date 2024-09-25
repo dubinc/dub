@@ -3,7 +3,7 @@
 import { cn } from "@dub/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction } from "react";
+import { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
@@ -15,6 +15,7 @@ export function Modal({
   onClose,
   desktopOnly,
   preventDefaultClose,
+  drawerRootProps,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -23,6 +24,7 @@ export function Modal({
   onClose?: () => void;
   desktopOnly?: boolean;
   preventDefaultClose?: boolean;
+  drawerRootProps?: ComponentProps<typeof Drawer.Root>;
 }) {
   const router = useRouter();
 
@@ -52,6 +54,7 @@ export function Modal({
             closeModal({ dragged: true });
           }
         }}
+        {...drawerRootProps}
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-50 bg-gray-100 bg-opacity-10 backdrop-blur" />
