@@ -316,6 +316,12 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The UTM content of the short link. If set, this will populate or override the UTM content in the destination URL.",
     ),
+  ref: z
+    .string()
+    .nullish()
+    .describe(
+      "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
+    ),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
