@@ -6,7 +6,13 @@ import {
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, PenWriting, Popover, Users } from "@dub/ui";
+import {
+  Button,
+  PenWriting,
+  Popover,
+  useKeyboardShortcut,
+  Users,
+} from "@dub/ui";
 import { Globe } from "@dub/ui/src/icons";
 import { cn, nFormatter } from "@dub/utils";
 import { useRouter } from "next/navigation";
@@ -20,6 +26,7 @@ import { FolderEditAccessRequestButton } from "./request-edit-button";
 export const FolderCard = ({ folder }: { folder: Folder }) => {
   const router = useRouter();
   const { id: workspaceId } = useWorkspace();
+  const [isHovering, setIsHovering] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
 
   const { isLoading: isPermissionsLoading } = useFolderPermissions();
@@ -41,7 +48,11 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
     <>
       <RenameFolderModal />
       <DeleteFolderModal />
-      <div className="hover:drop-shadow-card-hover rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36">
+      <div
+        className="hover:drop-shadow-card-hover rounded-xl border border-gray-200 bg-white px-5 py-4 sm:h-36"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
         <div className="flex items-center justify-between">
           <FolderAccessIcon folder={folder} />
 
@@ -126,7 +137,43 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
             </span>
           </div>
         </div>
+
+        <FolderCardKeyboardShortcuts
+          enabled={openPopover || (isHovering && !isAllLinksFolder)}
+          onKeyDown={(e) => {
+            setOpenPopover(false);
+            switch (e.key) {
+              case "r":
+                if (canUpdateFolder) {
+                  setShowRenameFolderModal(true);
+                }
+                break;
+              case "m":
+                router.push(`/settings/folders/${folder.id}/members`);
+                break;
+              case "x":
+                if (canUpdateFolder) {
+                  setShowDeleteFolderModal(true);
+                }
+                break;
+            }
+          }}
+        />
       </div>
     </>
   );
 };
+
+function FolderCardKeyboardShortcuts({
+  enabled,
+  onKeyDown,
+}: {
+  enabled: boolean;
+  onKeyDown: (e: KeyboardEvent) => void;
+}) {
+  useKeyboardShortcut(["r", "m", "x"], onKeyDown, {
+    enabled,
+  });
+
+  return null;
+}
