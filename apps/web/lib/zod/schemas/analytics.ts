@@ -142,6 +142,11 @@ export const analyticsQuerySchema = z.object({
     .optional()
     .describe("The referer to retrieve analytics for.")
     .openapi({ example: "google.com" }),
+  refererUrl: z
+    .string()
+    .optional()
+    .describe("The full referer URL to retrieve analytics for.")
+    .openapi({ example: "https://dub.co/blog" }),
   url: z.string().optional().describe("The URL to retrieve analytics for."),
   tagId: z
     .string()
@@ -191,6 +196,7 @@ export const analyticsFilterTB = z
       linkId: true,
       os: true,
       referer: true,
+      refererUrl: true,
       tagId: true,
       url: true,
     }),

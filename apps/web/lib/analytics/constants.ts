@@ -107,6 +107,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "browsers",
   "os",
   "referers",
+  "referer_urls",
   "top_links",
   "top_urls",
   "trigger",
@@ -119,6 +120,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   devices: "device",
   browsers: "browser",
   referers: "referer",
+  referer_urls: "refererUrl",
   os: "os",
 };
 
@@ -135,6 +137,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "browser",
   "os",
   "referer",
+  "refererUrl",
   "url",
   "tagId",
   "qr",

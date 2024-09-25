@@ -182,11 +182,11 @@ export async function processLink<T extends Record<string, any>>({
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-    const urlDomain = getDomainWithoutWWW(url) || "";
+    const urlDomain = getApexDomain(url) || "";
     if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
       return {
         link: payload,
-        error: `Invalid URL. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+        error: `Invalid destination URL. You can only create ${domain} short links for URLs with the domain${allowedHostnames.length > 1 ? "s" : ""} ${allowedHostnames
           .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
