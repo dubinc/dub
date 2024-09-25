@@ -202,8 +202,6 @@ export default function AnalyticsProvider({
     folderId,
   ]);
 
-  console.log("queryString", queryString);
-
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
