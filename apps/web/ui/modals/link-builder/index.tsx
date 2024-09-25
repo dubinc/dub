@@ -305,10 +305,13 @@ function LinkBuilderInner({
             })}
           >
             <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-4">
-                <LinkLogo apexDomain={getApexDomain(debouncedUrl)} />
+              <div className="flex items-center gap-3">
+                <LinkLogo
+                  apexDomain={getApexDomain(debouncedUrl)}
+                  className="size-6 sm:size-6"
+                />
                 <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-                  {props ? `Edit ${shortLink}` : "Create new link"}
+                  {props ? `Edit ${shortLink}` : "New link"}
                 </h3>
               </div>
               {!homepageDemo && (
