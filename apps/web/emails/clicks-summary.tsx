@@ -28,7 +28,7 @@ export default function ClicksSummary({
   createdLinks = 25,
   topLinks = [
     {
-      link: "acmesuperlongdomain.com/instagram",
+      link: "acmesuperlongdomain.com/insta",
       clicks: 1820,
     },
     {
@@ -135,7 +135,7 @@ export default function ClicksSummary({
                               href={`https://app.dub.co/${workspaceSlug}/analytics?domain=${domain}&key=${path}`}
                               className="text-sm font-medium text-black underline"
                             >
-                              {smartTruncate(link, 36)}↗
+                              {smartTruncate(link, 33)}↗
                             </Link>
                           </Column>
                           <Column
