@@ -31,7 +31,7 @@ export const clickEventSchemaTB = z.object({
   qr: z.number().nullable(),
 });
 
-export const clickEventEnrichedSchema = z.object({
+export const clickEventSchemaTBEndpoint = z.object({
   event: z.literal("click"),
   timestamp: z.string(),
   click_id: z.string(),
@@ -45,6 +45,7 @@ export const clickEventEnrichedSchema = z.object({
   os: z.string().nullable(),
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
+  referer_url_processed: z.string().nullable(),
   ip: z.string().nullable(),
   qr: z.number().nullable(),
 });
