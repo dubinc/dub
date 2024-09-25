@@ -2,8 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
 import { Link } from "@prisma/client";
 import { transformLink } from "../api/links";
-import { getFolderOrThrow } from "../folder/get-folder";
-import { getFolders } from "../folder/get-folders";
 import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
@@ -33,11 +31,8 @@ export const getEvents = async (params: EventsFilters) => {
     start,
     end,
     isDemo,
-    folderId,
-    userId,
+    folderIds,
   } = params;
-
-  let folderIds: string[] = [];
 
   if (start) {
     start = new Date(start);
@@ -51,26 +46,6 @@ export const getEvents = async (params: EventsFilters) => {
     interval = interval ?? "24h";
     start = INTERVAL_DATA[interval].startDate;
     end = new Date(Date.now());
-  }
-
-  if (workspaceId && userId) {
-    if (folderId) {
-      await getFolderOrThrow({
-        workspaceId,
-        userId,
-        folderId,
-        requiredPermission: "folders.read",
-      });
-
-      folderIds = [folderId];
-    } else {
-      const folders = await getFolders({
-        workspaceId,
-        userId,
-      });
-
-      folderIds = folders.map((folder) => folder.id);
-    }
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
@@ -91,7 +66,7 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
-    folderIds: folderId ? [folderId] : folderIds,
+    folderIds,
   });
 
   const [linksMap, customersMap] = await Promise.all([

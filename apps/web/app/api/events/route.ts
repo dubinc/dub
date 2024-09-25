@@ -5,6 +5,7 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { getFolderOrThrow } from "@/lib/folder/get-folder";
+import { getFolders } from "@/lib/folder/get-folders";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Link } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -15,8 +16,17 @@ export const GET = withWorkspace(
 
     const parsedParams = eventsQuerySchema.parse(searchParams);
 
-    let { event, interval, start, end, linkId, externalId, domain, key } =
-      parsedParams;
+    let {
+      event,
+      interval,
+      start,
+      end,
+      linkId,
+      externalId,
+      domain,
+      key,
+      folderId,
+    } = parsedParams;
 
     let link: Link | null = null;
 
@@ -43,6 +53,26 @@ export const GET = withWorkspace(
       });
     }
 
+    let folderIds: string[] = [];
+
+    if (folderId) {
+      await getFolderOrThrow({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      });
+
+      folderIds = [folderId];
+    } else {
+      const folders = await getFolders({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      folderIds = folders.map((folder) => folder.id);
+    }
+
     validDateRangeForPlan({
       plan: workspace.plan,
       interval,
@@ -56,7 +86,7 @@ export const GET = withWorkspace(
       event,
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
-      userId: session.user.id,
+      folderIds,
     });
 
     return NextResponse.json(response);

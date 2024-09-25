@@ -45,6 +45,8 @@ export const GET = withWorkspace(
         folderId,
         requiredPermission: "folders.read",
       });
+
+      folderIds = [folderId];
     } else {
       const folders = await getFolders({
         workspaceId: workspace.id,
@@ -80,7 +82,7 @@ export const GET = withWorkspace(
           ...(link && { linkId: link.id }),
           event: "clicks",
           groupBy: endpoint,
-          folderIds: folderId ? [folderId] : folderIds,
+          folderIds,
         });
 
         if (!response || response.length === 0) return;

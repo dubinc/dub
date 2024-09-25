@@ -34,10 +34,11 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
+  folderIds?: string[];
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;
   isDemo?: boolean;
-  userId?: string;
+  folderIds?: string[];
 };

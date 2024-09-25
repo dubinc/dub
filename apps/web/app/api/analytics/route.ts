@@ -61,15 +61,15 @@ export const GET = withWorkspace(
         domain,
         key,
       });
+    }
 
-      if (link.folderId) {
-        await getFolderOrThrow({
-          folderId: link.folderId,
-          workspaceId: workspace.id,
-          userId: session.user.id,
-          requiredPermission: "folders.read",
-        });
-      }
+    if (link && link.folderId) {
+      await getFolderOrThrow({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.read",
+      });
     }
 
     if (folderId) {
@@ -79,6 +79,8 @@ export const GET = withWorkspace(
         folderId,
         requiredPermission: "folders.read",
       });
+
+      folderIds = [folderId];
     } else {
       const folders = await getFolders({
         workspaceId: workspace.id,
@@ -111,7 +113,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
-      folderIds: folderId ? [folderId] : folderIds,
+      folderIds,
     });
 
     return NextResponse.json(response);
