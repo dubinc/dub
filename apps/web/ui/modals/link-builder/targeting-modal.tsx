@@ -7,7 +7,7 @@ import {
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { Crosshairs3 } from "@dub/ui/src/icons";
+import { Crosshairs3, Trash } from "@dub/ui/src/icons";
 import { cn, COUNTRIES } from "@dub/utils";
 import {
   Dispatch,
@@ -68,7 +68,7 @@ function TargetingModal({
       <Modal
         showModal={showTargetingModal}
         setShowModal={setShowTargetingModal}
-        className="sm:max-w-md"
+        className="sm:max-w-[500px]"
       >
         <form
           className="px-5 py-4"
@@ -131,7 +131,7 @@ function TargetingModal({
               </div>
               <div className="mt-2">
                 {geo && (
-                  <div className="mb-2 grid grid-cols-[min-content_1fr] gap-y-2">
+                  <div className="mb-2 grid grid-cols-[min-content_1fr_min-content] gap-y-2">
                     {Object.entries(geo).map(([key, value]) => (
                       <Fragment key={key}>
                         <Combobox
@@ -144,8 +144,12 @@ function TargetingModal({
                             })[key];
                             setValue("geo", newGeo, { shouldDirty: true });
                           }}
-                          options={Object.entries(COUNTRIES).map(
-                            ([key, value]) => ({
+                          options={Object.entries(COUNTRIES)
+                            .filter(
+                              ([ck]) =>
+                                ck === key || !Object.keys(geo).includes(ck),
+                            )
+                            .map(([key, value]) => ({
                               icon: (
                                 <img
                                   alt={value}
@@ -155,8 +159,7 @@ function TargetingModal({
                               ),
                               value: key,
                               label: value,
-                            }),
-                          )}
+                            }))}
                           icon={
                             key ? (
                               <img
@@ -170,8 +173,10 @@ function TargetingModal({
                           placeholder="Country"
                           searchPlaceholder="Search countries..."
                           buttonProps={{
-                            className:
+                            className: cn(
                               "w-32 sm:w-40 rounded-r-none border-r-0 justify-start px-2.5",
+                              !key && "text-gray-600",
+                            ),
                           }}
                         />
                         <input
@@ -191,6 +196,18 @@ function TargetingModal({
                             );
                           }}
                         />
+                        <div className="pl-1.5">
+                          <Button
+                            variant="danger-outline"
+                            icon={<Trash className="size-4" />}
+                            className="bg-red-600/5 px-3 text-red-600 hover:bg-red-600/10 hover:text-red-700"
+                            onClick={() => {
+                              const newGeo = { ...((geo as object) || {}) };
+                              delete newGeo[key];
+                              setValue("geo", newGeo, { shouldDirty: true });
+                            }}
+                          />
+                        </div>
                       </Fragment>
                     ))}
                   </div>
