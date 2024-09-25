@@ -35,9 +35,14 @@ function TargetingModal({
     setValue: setValueParent,
   } = useFormContext<LinkFormData>();
 
-  const { watch, register, setValue, reset, handleSubmit } = useForm<
-    Pick<LinkFormData, "ios" | "android" | "geo">
-  >({
+  const {
+    watch,
+    register,
+    setValue,
+    reset,
+    handleSubmit,
+    formState: { isDirty },
+  } = useForm<Pick<LinkFormData, "ios" | "android" | "geo">>({
     values: {
       ios: getValuesParent("ios"),
       android: getValuesParent("android"),
@@ -69,8 +74,8 @@ function TargetingModal({
           onSubmit={(e) => {
             e.stopPropagation();
             handleSubmit((data) => {
-              setValueParent("ios", data.ios);
-              setValueParent("android", data.android);
+              setValueParent("ios", data.ios, { shouldDirty: true });
+              setValueParent("android", data.android, { shouldDirty: true });
 
               // Filter out empty geo values
               const geo = Object.fromEntries(
@@ -78,7 +83,9 @@ function TargetingModal({
                   ([key, value]) => key?.trim() && value?.trim(),
                 ),
               );
-              setValueParent("geo", Object.keys(geo).length > 0 ? geo : null);
+              setValueParent("geo", Object.keys(geo).length > 0 ? geo : null, {
+                shouldDirty: true,
+              });
 
               setShowTargetingModal(false);
             })(e);
@@ -134,7 +141,7 @@ function TargetingModal({
                             delete Object.assign(newGeo, geo, {
                               [e.target.value]: value,
                             })[key];
-                            setValue("geo", newGeo);
+                            setValue("geo", newGeo, { shouldDirty: true });
                           }}
                           className="flex w-32 items-center justify-center rounded-l-md border border-r-0 border-gray-300 bg-white pl-3 pr-7 text-left text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0"
                         >
@@ -154,10 +161,14 @@ function TargetingModal({
                           className="h-full grow rounded-r-md border border-gray-300 text-sm placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
                           value={value}
                           onChange={(e) => {
-                            setValue(`geo`, {
-                              ...((geo as object) || {}),
-                              [key]: e.target.value,
-                            });
+                            setValue(
+                              `geo`,
+                              {
+                                ...((geo as object) || {}),
+                                [key]: e.target.value,
+                              },
+                              { shouldDirty: true },
+                            );
                           }}
                         />
                       </Fragment>
@@ -170,7 +181,11 @@ function TargetingModal({
                   text="Add location"
                   className="h-9"
                   onClick={() => {
-                    setValue("geo", { ...((geo as object) || {}), "": "" });
+                    setValue(
+                      "geo",
+                      { ...((geo as object) || {}), "": "" },
+                      { shouldDirty: true },
+                    );
                   }}
                   disabled={Object.keys(geo || {}).includes("")}
                 />
@@ -243,9 +258,9 @@ function TargetingModal({
                   type="button"
                   className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
                   onClick={() => {
-                    setValueParent("ios", null);
-                    setValueParent("android", null);
-                    setValueParent("geo", null);
+                    setValueParent("ios", null, { shouldDirty: true });
+                    setValueParent("android", null, { shouldDirty: true });
+                    setValueParent("geo", null, { shouldDirty: true });
                     setShowTargetingModal(false);
                   }}
                 >
@@ -269,6 +284,7 @@ function TargetingModal({
                 variant="primary"
                 text={parentEnabled ? "Save" : "Add targeting"}
                 className="h-9 w-fit"
+                disabled={!isDirty}
               />
             </div>
           </div>

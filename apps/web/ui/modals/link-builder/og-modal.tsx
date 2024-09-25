@@ -60,9 +60,13 @@ function OGModalInner({
     setValue: setValueParent,
   } = useFormContext<LinkFormData>();
 
-  const { watch, setValue, getValues, reset, handleSubmit } = useForm<
-    Pick<LinkFormData, "image" | "title" | "description" | "proxy">
-  >({
+  const {
+    watch,
+    setValue,
+    reset,
+    handleSubmit,
+    formState: { isDirty },
+  } = useForm<Pick<LinkFormData, "image" | "title" | "description" | "proxy">>({
     defaultValues: {
       image: getValuesParent("image"),
       title: getValuesParent("title"),
@@ -86,8 +90,8 @@ function OGModalInner({
     onSubmit: (image) => {
       if (!image) return;
 
-      setValue("image", image);
-      setValue("proxy", true);
+      setValue("image", image, { shouldDirty: true });
+      setValue("proxy", true, { shouldDirty: true });
     },
   });
 
@@ -100,7 +104,6 @@ function OGModalInner({
     complete: completeTitle,
   } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
-    id: "metatags-title-ai",
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
@@ -136,7 +139,10 @@ function OGModalInner({
   };
 
   useEffect(() => {
-    if (completionTitle) setValue("title", completionTitle);
+    if (completionTitle) {
+      setValue("title", completionTitle, { shouldDirty: true });
+      setValue("proxy", true, { shouldDirty: true });
+    }
   }, [completionTitle]);
 
   const {
@@ -145,7 +151,6 @@ function OGModalInner({
     complete: completeDescription,
   } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
-    id: "metatags-description-ai",
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
@@ -180,7 +185,10 @@ function OGModalInner({
   };
 
   useEffect(() => {
-    if (completionDescription) setValue("description", completionDescription);
+    if (completionDescription) {
+      setValue("description", completionDescription, { shouldDirty: true });
+      setValue("proxy", true, { shouldDirty: true });
+    }
   }, [completionDescription]);
 
   return (
@@ -198,7 +206,7 @@ function OGModalInner({
             handleSubmit(async (data) => {
               setShowOGModal(false);
               (["image", "title", "description", "proxy"] as const).forEach(
-                (key) => setValueParent(key, data[key]),
+                (key) => setValueParent(key, data[key], { shouldDirty: true }),
               );
             })(e);
           }}
@@ -246,8 +254,8 @@ function OGModalInner({
                       type="button"
                       className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
                       onClick={() => {
-                        setValue("image", null);
-                        setValue("proxy", false);
+                        setValue("image", null, { shouldDirty: true });
+                        setValue("proxy", false, { shouldDirty: true });
                       }}
                     >
                       Remove
@@ -265,8 +273,8 @@ function OGModalInner({
                     content={
                       <UnsplashSearch
                         onImageSelected={(image) => {
-                          setValue("image", image);
-                          setValue("proxy", true);
+                          setValue("image", image, { shouldDirty: true });
+                          setValue("proxy", true, { shouldDirty: true });
                         }}
                         setOpenPopover={setOpenUnsplashPopover}
                       />
@@ -294,8 +302,8 @@ function OGModalInner({
                   setResizing(true);
 
                   const image = await resizeImage(file);
-                  setValue("image", image);
-                  setValue("proxy", true);
+                  setValue("image", image, { shouldDirty: true });
+                  setValue("proxy", true, { shouldDirty: true });
 
                   // Delay to prevent flickering
                   setTimeout(() => setResizing(false), 500);
@@ -351,7 +359,8 @@ function OGModalInner({
                   placeholder="Add a title..."
                   value={title || ""}
                   onChange={(e) => {
-                    setValue("title", e.target.value);
+                    setValue("title", e.target.value, { shouldDirty: true });
+                    setValue("proxy", true, { shouldDirty: true });
                   }}
                   aria-invalid="true"
                 />
@@ -396,7 +405,12 @@ function OGModalInner({
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                   placeholder="Add a description..."
                   value={description || ""}
-                  onChange={(e) => setValue("description", e.target.value)}
+                  onChange={(e) => {
+                    setValue("description", e.target.value, {
+                      shouldDirty: true,
+                    });
+                    setValue("proxy", true, { shouldDirty: true });
+                  }}
                   aria-invalid="true"
                 />
               </div>
@@ -420,6 +434,7 @@ function OGModalInner({
                 variant="primary"
                 text="Save changes"
                 className="h-9 w-fit"
+                disabled={!isDirty}
               />
             </div>
           </div>

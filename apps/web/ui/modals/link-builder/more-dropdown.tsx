@@ -40,7 +40,7 @@ export function MoreDropdown() {
       if (!option) return;
 
       setOpenPopover(false);
-      setValue(option.key as any, !data[option.key]);
+      setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
     { modal: true },
   );
@@ -76,7 +76,10 @@ export function MoreDropdown() {
                         targeting: setShowTargetingModal,
                         expiresAt: setShowExpirationModal,
                       })[option.key]?.(true);
-                    } else setValue(option.key as any, !enabled);
+                    } else
+                      setValue(option.key as any, !enabled, {
+                        shouldDirty: true,
+                      });
                   }}
                   className="h-9 w-full justify-start px-2 text-sm text-gray-700"
                   textWrapperClassName="grow"

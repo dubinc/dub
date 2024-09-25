@@ -20,7 +20,6 @@ import {
 import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   cn,
-  deepEqual,
   DEFAULT_LINK_PROPS,
   getApexDomain,
   getUrlWithoutUTMParams,
@@ -118,7 +117,7 @@ function LinkBuilderInner({
     setValue,
     setError,
     clearErrors,
-    formState: { isSubmitting, isSubmitSuccessful, errors },
+    formState: { isDirty, isSubmitting, isSubmitSuccessful, errors },
   } = useFormContext<LinkFormData>();
 
   const data = watch();
@@ -159,20 +158,7 @@ function LinkBuilderInner({
         isSubmitSuccessful ||
         errors.key ||
         errors.url ||
-        (props &&
-          Object.entries(props).every(([key, value]) => {
-            // If the key is "title" or "description" and proxy is not enabled, return true (skip the check)
-            if (
-              (key === "title" || key === "description" || key === "image") &&
-              !proxy
-            )
-              return true;
-            else if (key === "geo")
-              return deepEqual(props.geo as object, data.geo as object);
-
-            // Otherwise, check for discrepancy in the current key-value pair
-            return data[key] === value;
-          })),
+        (props && !isDirty),
     );
   }, [showLinkBuilder, isSubmitting, isSubmitSuccessful, errors, props, data]);
 

@@ -39,7 +39,7 @@ function PasswordModal({
     register,
     setValue,
     reset,
-    formState: { errors },
+    formState: { isDirty, errors },
     handleSubmit,
   } = useForm<Pick<LinkFormData, "password">>({
     values: {
@@ -63,7 +63,7 @@ function PasswordModal({
           onSubmit={(e) => {
             e.stopPropagation();
             handleSubmit((data) => {
-              setValueParent("password", data.password);
+              setValueParent("password", data.password, { shouldDirty: true });
               setShowPasswordModal(false);
             })(e);
           }}
@@ -122,7 +122,7 @@ function PasswordModal({
                   className="text-gray-500 transition-colors hover:text-gray-800"
                   tooltipContent="Generate a random password"
                   onClick={() => {
-                    setValue("password", nanoid(24));
+                    setValue("password", nanoid(24), { shouldDirty: true });
                   }}
                 >
                   <Shuffle className="size-4" />
@@ -153,7 +153,7 @@ function PasswordModal({
                   type="button"
                   className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
                   onClick={() => {
-                    setValueParent("password", null);
+                    setValueParent("password", null, { shouldDirty: true });
                     setShowPasswordModal(false);
                   }}
                 >
@@ -177,6 +177,7 @@ function PasswordModal({
                 variant="primary"
                 text={passwordParent ? "Save" : "Add password"}
                 className="h-9 w-fit"
+                disabled={!isDirty}
               />
             </div>
           </div>

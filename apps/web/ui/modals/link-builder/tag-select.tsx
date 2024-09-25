@@ -74,6 +74,7 @@ export function TagSelect() {
         setValue(
           "tags",
           selectedIds.map((id) => availableTags?.find((t) => t.id === id)),
+          { shouldDirty: true },
         );
       }}
       options={options}

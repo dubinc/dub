@@ -49,7 +49,7 @@ function ExpirationModal({
     register,
     setValue,
     reset,
-    formState: { errors },
+    formState: { isDirty, errors },
     handleSubmit,
   } = useForm<Pick<LinkFormData, "expiresAt" | "expiredUrl">>({
     values: {
@@ -75,8 +75,12 @@ function ExpirationModal({
           onSubmit={(e) => {
             e.stopPropagation();
             handleSubmit((data) => {
-              setValueParent("expiresAt", data.expiresAt);
-              setValueParent("expiredUrl", data.expiredUrl);
+              setValueParent("expiresAt", data.expiresAt, {
+                shouldDirty: true,
+              });
+              setValueParent("expiredUrl", data.expiredUrl, {
+                shouldDirty: true,
+              });
               setShowExpirationModal(false);
             })(e);
           }}
@@ -133,7 +137,9 @@ function ExpirationModal({
                   if (e.target.value.length > 0) {
                     const parsedDateTime = parseDateTime(e.target.value);
                     if (parsedDateTime) {
-                      setValue("expiresAt", parsedDateTime);
+                      setValue("expiresAt", parsedDateTime, {
+                        shouldDirty: true,
+                      });
                       e.target.value = formatDateTime(parsedDateTime);
                     }
                   }
@@ -145,7 +151,9 @@ function ExpirationModal({
                       inputRef.current.value,
                     );
                     if (parsedDateTime) {
-                      setValue("expiresAt", parsedDateTime);
+                      setValue("expiresAt", parsedDateTime, {
+                        shouldDirty: true,
+                      });
                       inputRef.current.value = formatDateTime(parsedDateTime);
                     }
                   }
@@ -159,7 +167,7 @@ function ExpirationModal({
                 value={expiresAt ? getDateTimeLocal(expiresAt) : ""}
                 onChange={(e) => {
                   const expiryDate = new Date(e.target.value);
-                  setValue("expiresAt", expiryDate);
+                  setValue("expiresAt", expiryDate, { shouldDirty: true });
                   if (inputRef.current) {
                     inputRef.current.value = formatDateTime(expiryDate);
                   }
@@ -219,8 +227,8 @@ function ExpirationModal({
                   type="button"
                   className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
                   onClick={() => {
-                    setValueParent("expiresAt", null);
-                    setValueParent("expiredUrl", null);
+                    setValueParent("expiresAt", null, { shouldDirty: true });
+                    setValueParent("expiredUrl", null, { shouldDirty: true });
                     setShowExpirationModal(false);
                   }}
                 >
@@ -244,6 +252,7 @@ function ExpirationModal({
                 variant="primary"
                 text={expiresAtParent ? "Save" : "Add expiration"}
                 className="h-9 w-fit"
+                disabled={!isDirty}
               />
             </div>
           </div>
