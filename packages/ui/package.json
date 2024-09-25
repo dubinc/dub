@@ -65,7 +65,7 @@
     "sonner": "^1.4.41",
     "swr": "^2.1.5",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.9.0"
+    "vaul": "^0.9.6"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",
