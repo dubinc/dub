@@ -162,6 +162,10 @@ export const analyticsQuerySchema = z.object({
     .describe(
       "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
     ),
+  folderId: z
+    .string()
+    .optional()
+    .describe("The folder ID to retrieve analytics for."),
 });
 
 // Analytics filter params for Tinybird endpoints
@@ -184,6 +188,7 @@ export const analyticsFilterTB = z
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
     timezone: z.string().optional(),
+    folderIds: z.array(z.string()).optional(),
   })
   .merge(
     analyticsQuerySchema.pick({

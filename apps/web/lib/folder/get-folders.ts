@@ -1,16 +1,18 @@
 import { prisma } from "@/lib/prisma";
 
-export const getFolders = async ({
-  workspaceId,
-  userId,
-  includeLinkCount = false,
-  search,
-}: {
+interface GetFoldersParams {
   workspaceId: string;
   userId: string;
   includeLinkCount?: boolean;
   search?: string;
-}) => {
+}
+
+export const getFolders = async ({
+  workspaceId,
+  userId,
+  search,
+  includeLinkCount = false,
+}: GetFoldersParams) => {
   const folders = await prisma.folder.findMany({
     where: {
       projectId: workspaceId,
@@ -25,12 +27,10 @@ export const getFolders = async ({
           },
         },
       ],
-      NOT: {
-        users: {
-          some: {
-            userId,
-            role: null,
-          },
+      users: {
+        none: {
+          userId,
+          role: null,
         },
       },
       ...(search && {
@@ -48,7 +48,6 @@ export const getFolders = async ({
       accessLevel: true,
       createdAt: true,
       updatedAt: true,
-
       ...(includeLinkCount && {
         _count: {
           select: {

@@ -10,7 +10,9 @@ import { INTERVAL_DATA } from "./constants";
 import { AnalyticsFilters } from "./types";
 
 // Fetch data for /api/analytics
-export const getAnalytics = async (params: AnalyticsFilters) => {
+export const getAnalytics = async (
+  params: AnalyticsFilters & { folderIds?: string[] },
+) => {
   let {
     event,
     groupBy,
@@ -22,6 +24,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
+    folderId,
+    folderIds,
   } = params;
 
   // get all-time clicks count if:
@@ -85,6 +89,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end: end.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
     timezone,
+    folderIds: folderId ? [folderId] : folderIds,
   });
 
   if (groupBy === "count") {

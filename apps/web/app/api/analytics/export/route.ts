@@ -5,17 +5,20 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { getFolderOrThrow } from "@/lib/folder/get-folder";
+import { getFolders } from "@/lib/folder/get-folders";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import JSZip from "jszip";
 
 // GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    const { interval, start, end, linkId, domain, key } = parsedParams;
+    const { interval, start, end, linkId, domain, key, folderId } =
+      parsedParams;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -23,6 +26,33 @@ export const GET = withWorkspace(
 
     const link =
       domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
+
+    if (link && link.folderId) {
+      await getFolderOrThrow({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.read",
+      });
+    }
+
+    let folderIds: string[] = [];
+
+    if (folderId) {
+      await getFolderOrThrow({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      });
+    } else {
+      const folders = await getFolders({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      folderIds = folders.map((folder) => folder.id);
+    }
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -50,7 +80,9 @@ export const GET = withWorkspace(
           ...(link && { linkId: link.id }),
           event: "clicks",
           groupBy: endpoint,
+          folderIds: folderId ? [folderId] : folderIds,
         });
+
         if (!response || response.length === 0) return;
 
         const csvData = convertToCSV(response);

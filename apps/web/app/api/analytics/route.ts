@@ -5,6 +5,8 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { getFolderOrThrow } from "@/lib/folder/get-folder";
+import { getFolders } from "@/lib/folder/get-folders";
 import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
@@ -14,7 +16,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
-  async ({ params, searchParams, workspace }) => {
+  async ({ params, searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     let { eventType: oldEvent, endpoint: oldType } =
@@ -38,8 +40,14 @@ export const GET = withWorkspace(
       externalId,
       domain,
       key,
+      folderId,
     } = parsedParams;
+
     let link: Link | null = null;
+    let folderIds: string[] = [];
+
+    event = oldEvent || event;
+    groupBy = oldType || groupBy;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -53,10 +61,32 @@ export const GET = withWorkspace(
         domain,
         key,
       });
+
+      if (link.folderId) {
+        await getFolderOrThrow({
+          folderId: link.folderId,
+          workspaceId: workspace.id,
+          userId: session.user.id,
+          requiredPermission: "folders.read",
+        });
+      }
     }
 
-    event = oldEvent || event;
-    groupBy = oldType || groupBy;
+    if (folderId) {
+      await getFolderOrThrow({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      });
+    } else {
+      const folders = await getFolders({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
+      folderIds = folders.map((folder) => folder.id);
+    }
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -81,6 +111,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
+      folderIds: folderId ? [folderId] : folderIds,
     });
 
     return NextResponse.json(response);
