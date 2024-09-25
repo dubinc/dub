@@ -26,7 +26,7 @@ export function useMetatags({
         "description",
         "This link is password protected. Please enter the password to view it.",
       );
-      setValue("image", "/_static/password-protected.png");
+      setValue("image", "https://assets.dub.co/misc/password-protected.png");
       return;
     }
 

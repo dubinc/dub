@@ -93,7 +93,7 @@ function AddEditLinkModal({
         title: "Password Required",
         description:
           "This link is password protected. Please enter the password to view it.",
-        image: "/_static/password-protected.png",
+        image: "https://assets.dub.co/misc/password-protected.png",
       }));
       return;
     }
