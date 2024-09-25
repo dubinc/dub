@@ -77,6 +77,12 @@ type AddEditLinkModalProps = {
 };
 
 export function AddEditLinkModal(props: AddEditLinkModalProps) {
+  return props.showAddEditLinkModal ? (
+    <AddEditLinkModalOuter {...props} />
+  ) : null;
+}
+
+function AddEditLinkModalOuter(props: AddEditLinkModalProps) {
   const form = useForm<LinkFormData>({
     defaultValues: props.props || props.duplicateProps || DEFAULT_LINK_PROPS,
   });
@@ -190,8 +196,12 @@ function AddEditLinkModalInner({
 
   useEffect(() => {
     // for a new link (no props or duplicateProps), set the domain to the primary domain
-    if (!loading && primaryDomain && !props && !duplicateProps)
-      setValue("domain", primaryDomain);
+    if (!loading && primaryDomain && !props && !duplicateProps) {
+      setValue("domain", primaryDomain, {
+        shouldValidate: true,
+        shouldDirty: false,
+      });
+    }
   }, [loading, primaryDomain, props, duplicateProps]);
 
   const shortLink = useMemo(
@@ -381,8 +391,9 @@ function AddEditLinkModalInner({
                       onChange={(d) => {
                         clearErrors("key");
                         if (d.domain !== undefined)
-                          setValue("domain", d.domain);
-                        if (d.key !== undefined) setValue("key", d.key);
+                          setValue("domain", d.domain, { shouldDirty: true });
+                        if (d.key !== undefined)
+                          setValue("key", d.key, { shouldDirty: true });
                       }}
                       data={data}
                       saving={isSubmitting || isSubmitSuccessful}
