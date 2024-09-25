@@ -79,8 +79,10 @@ export function TagSelect() {
       }}
       options={options}
       icon={<TagIcon tags={selectedTags.map(({ meta }) => meta)} />}
+      side="top"
       placeholder="Tags"
       searchPlaceholder="Search or add tags..."
+      shortcutHint="T"
       buttonProps={{
         className:
           "h-9 px-2.5 w-fit font-medium text-gray-700 max-w-48 min-w-0",

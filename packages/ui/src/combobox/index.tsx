@@ -1,5 +1,6 @@
 import { cn, truncate } from "@dub/utils";
 import { Command, CommandEmpty, CommandInput, CommandItem } from "cmdk";
+import { ChevronDown } from "lucide-react";
 import {
   isValidElement,
   PropsWithChildren,
@@ -13,13 +14,14 @@ import { AnimatedSizeContainer } from "../animated-size-container";
 import { Button, ButtonProps } from "../button";
 import { useMediaQuery, useScrollProgress } from "../hooks";
 import {
+  Check2,
   CheckboxCheckedFill,
   CheckboxUnchecked,
   Icon,
   LoadingSpinner,
   Plus,
 } from "../icons";
-import { Popover } from "../popover";
+import { Popover, PopoverProps } from "../popover";
 
 export type ComboboxOption<TMeta = any> = {
   label: string;
@@ -47,6 +49,9 @@ export type ComboboxProps<
   createLabel?: (search: string) => ReactNode;
   onCreate?: (search: string) => Promise<boolean>;
   buttonProps?: ButtonProps;
+  shortcutHint?: string;
+  caret?: boolean;
+  side?: PopoverProps["side"];
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }>;
@@ -70,6 +75,9 @@ export function Combobox({
   createLabel,
   onCreate,
   buttonProps,
+  shortcutHint,
+  caret,
+  side,
   open,
   onOpenChange,
   children,
@@ -151,7 +159,7 @@ export function Combobox({
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       align="start"
-      side="top"
+      side={side}
       onWheel={(e) => {
         // Allows scrolling to work when the popover's in a modal
         e.stopPropagation();
@@ -182,9 +190,11 @@ export function Combobox({
                   }
                 }}
               />
-              <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
-                T
-              </kbd>
+              {shortcutHint && (
+                <kbd className="mr-2 hidden shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                  {shortcutHint}
+                </kbd>
+              )}
             </div>
             <Scroll>
               <Command.List
@@ -251,10 +261,23 @@ export function Combobox({
         variant="secondary"
         {...buttonProps}
         className={cn(buttonProps?.className, "flex items-center gap-2")}
+        textWrapperClassName={cn(
+          buttonProps?.textWrapperClassName,
+          "w-full flex items-center justify-start",
+        )}
         text={
-          children ||
-          selected.map((option) => option.label).join(", ") ||
-          placeholder
+          <>
+            <div className="min-w-0 grow truncate text-left">
+              {children ||
+                selected.map((option) => option.label).join(", ") ||
+                placeholder}
+            </div>
+            {caret && (
+              <ChevronDown
+                className={`size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+              />
+            )}
+          </>
         }
         icon={
           Icon ? (
@@ -322,7 +345,7 @@ function Option({
           )}
         </div>
       )}
-      <div className="flex items-center gap-1">
+      <div className="flex grow items-center gap-1">
         {option.icon && (
           <span className="shrink-0 text-gray-600">
             {isReactNode(option.icon) ? (
@@ -334,6 +357,9 @@ function Option({
         )}
         {truncate(option.label, 48)}
       </div>
+      {!multiple && selected && (
+        <Check2 className="size-4 shrink-0 text-gray-600" />
+      )}
     </Command.Item>
   );
 }
