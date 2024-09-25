@@ -555,7 +555,7 @@ export function useAddEditLinkModal({
         homepageDemo={homepageDemo}
       />
     );
-  }, [flags, showAddEditLinkModal, setShowAddEditLinkModal]);
+  }, [flags?.newlinkbuilder, showAddEditLinkModal]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
     return flags?.newlinkbuilder ? (
@@ -563,7 +563,7 @@ export function useAddEditLinkModal({
     ) : (
       <AddEditLinkButton setShowAddEditLinkModal={setShowAddEditLinkModal} />
     );
-  }, [flags, setShowAddEditLinkModal]);
+  }, [flags?.newlinkbuilder]);
 
   return useMemo(
     () => ({
@@ -572,11 +572,6 @@ export function useAddEditLinkModal({
       AddEditLinkModal: AddEditLinkModalCallback,
       AddEditLinkButton: AddEditLinkButtonCallback,
     }),
-    [
-      showAddEditLinkModal,
-      setShowAddEditLinkModal,
-      AddEditLinkModalCallback,
-      AddEditLinkButtonCallback,
-    ],
+    [showAddEditLinkModal, AddEditLinkModalCallback, AddEditLinkButtonCallback],
   );
 }
