@@ -100,7 +100,9 @@ export const GET = withWorkspace(
           }),
         ...(userId && { userId }),
         ...(folderId && { folderId }),
-        OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+        AND: {
+          OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+        },
       },
       orderBy: {
         [sort]: "desc",
