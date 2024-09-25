@@ -80,7 +80,7 @@ export const leadEventSchemaTB = clickEventSchemaTB
   );
 
 // response from tinybird endpoint
-export const leadEventEnrichedSchema = z.object({
+export const leadEventSchemaTBEndpoint = z.object({
   event: z.literal("lead"),
   timestamp: z.string(),
   event_id: z.string(),
@@ -97,6 +97,7 @@ export const leadEventEnrichedSchema = z.object({
   os: z.string().nullable(),
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
+  referer_url_processed: z.string().nullable(),
   qr: z.number().nullable(),
   ip: z.string().nullable(),
 });

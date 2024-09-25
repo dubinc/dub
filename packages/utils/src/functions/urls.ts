@@ -65,6 +65,7 @@ export const UTMTags = [
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "ref",
 ] as const;
 
 export const constructURLFromUTMParams = (
@@ -88,12 +89,12 @@ export const constructURLFromUTMParams = (
 };
 
 export const paramsMetadata = [
-  { display: "Referral (ref)", key: "ref", examples: "twitter, facebook" },
   { display: "UTM Source", key: "utm_source", examples: "twitter, facebook" },
   { display: "UTM Medium", key: "utm_medium", examples: "social, email" },
   { display: "UTM Campaign", key: "utm_campaign", examples: "summer_sale" },
   { display: "UTM Term", key: "utm_term", examples: "blue_shoes" },
   { display: "UTM Content", key: "utm_content", examples: "logolink" },
+  { display: "Referral (ref)", key: "ref", examples: "twitter, facebook" },
 ];
 
 export const getUrlWithoutUTMParams = (url: string) => {
@@ -106,7 +107,8 @@ export const getUrlWithoutUTMParams = (url: string) => {
   }
 };
 
-export const getPrettyUrl = (url: string) => {
+export const getPrettyUrl = (url?: string | null) => {
+  if (!url) return "";
   // remove protocol (http/https) and www.
   // also remove trailing slash
   return url

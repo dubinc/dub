@@ -42,7 +42,10 @@ export function KeyboardShortcutProvider({
 export function useKeyboardShortcut(
   key: KeyboardShortcutListener["key"],
   callback: (e: KeyboardEvent) => void,
-  options: Pick<KeyboardShortcutListener, "enabled" | "priority"> = {},
+  options: { modal?: boolean } & Pick<
+    KeyboardShortcutListener,
+    "enabled" | "priority"
+  > = {},
 ) {
   const id = useId();
 
@@ -59,7 +62,7 @@ export function useKeyboardShortcut(
         e.ctrlKey ||
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
-        existingModalBackdrop
+        !!existingModalBackdrop !== !!options.modal
       )
         return;
 
