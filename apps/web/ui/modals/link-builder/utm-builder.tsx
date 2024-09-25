@@ -79,7 +79,9 @@ export function UTMBuilder() {
 
   const params = useMemo(() => getParamsFromURL(url), [url]);
 
-  const [toggledParams, setToggledParams] = useState<string[]>([]);
+  const [toggledParams, setToggledParams] = useState<string[]>(
+    parameters.filter(({ key }) => params[key]).map(({ key }) => key),
+  );
 
   const enabledParameters = useMemo(() => {
     return parameters.filter(
@@ -94,13 +96,14 @@ export function UTMBuilder() {
       if (!enabled) setToggledParams((prev) => [...prev, key]);
       else {
         setToggledParams((prev) => prev.filter((k) => k !== key));
-        setValue(key as any, "");
+        setValue(key as any, "", { shouldDirty: true });
         setValue(
           "url",
           constructURLFromUTMParams(url, {
             ...params,
             [key]: "",
           }),
+          { shouldDirty: true },
         );
       }
     },
@@ -185,13 +188,14 @@ export function UTMBuilder() {
                   className="h-full grow rounded-r-md border border-gray-300 text-sm placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
                   value={params[key] || ""}
                   onChange={(e) => {
-                    setValue(key as any, e.target.value);
+                    setValue(key as any, e.target.value, { shouldDirty: true });
                     setValue(
                       "url",
                       constructURLFromUTMParams(url, {
                         ...params,
                         [key]: e.target.value,
                       }),
+                      { shouldDirty: true },
                     );
                   }}
                 />

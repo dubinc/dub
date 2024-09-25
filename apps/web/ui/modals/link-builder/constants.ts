@@ -59,7 +59,7 @@ export const MOBILE_MORE_ITEMS = [
     shortcutKey: "l",
     enabled: (data: LinkFormData) => Boolean(data.password),
     remove: (setValue: UseFormSetValue<LinkWithTagsProps>) =>
-      setValue("password", null),
+      setValue("password", null, { shouldDirty: true }),
     type: "modal",
   },
   {
@@ -73,8 +73,8 @@ export const MOBILE_MORE_ITEMS = [
     shortcutKey: "e",
     enabled: (data: LinkFormData) => Boolean(data.expiresAt),
     remove: (setValue: UseFormSetValue<LinkWithTagsProps>) => {
-      setValue("expiresAt", null);
-      setValue("expiredUrl", null);
+      setValue("expiresAt", null, { shouldDirty: true });
+      setValue("expiredUrl", null, { shouldDirty: true });
     },
     type: "modal",
   },
@@ -92,9 +92,9 @@ export const MOBILE_MORE_ITEMS = [
         data.ios || data.android || Object.keys(data.geo || {}).length > 0,
       ),
     remove: (setValue: UseFormSetValue<LinkWithTagsProps>) => {
-      setValue("ios", null);
-      setValue("android", null);
-      setValue("geo", null);
+      setValue("ios", null, { shouldDirty: true });
+      setValue("android", null, { shouldDirty: true });
+      setValue("geo", null, { shouldDirty: true });
     },
     type: "modal",
   },
