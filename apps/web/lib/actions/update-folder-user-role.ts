@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { FolderUserRole } from "@prisma/client";
 import { z } from "zod";
-import { throwIfFolderActionDenied } from "../link-folder/permissions";
+import { throwIfFolderActionDenied } from "../folder/permissions";
 import { folderUserRoleSchema } from "../zod/schemas/folders";
 import { authActionClient } from "./safe-action";
 

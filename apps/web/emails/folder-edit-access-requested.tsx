@@ -1,4 +1,4 @@
-import { Folder } from "@/lib/link-folder/types";
+import { Folder } from "@/lib/folder/types";
 import { DUB_WORDMARK } from "@dub/utils";
 import { User } from "@prisma/client";
 import {

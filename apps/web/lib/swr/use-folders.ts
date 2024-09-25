@@ -1,7 +1,7 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { Folder } from "../link-folder/types";
+import { Folder } from "../folder/types";
 import useWorkspace from "./use-workspace";
 
 export default function useFolders({

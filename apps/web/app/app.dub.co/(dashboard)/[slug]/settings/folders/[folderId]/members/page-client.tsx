@@ -4,8 +4,8 @@ import { updateFolderUserRoleAction } from "@/lib/actions/update-folder-user-rol
 import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
-} from "@/lib/link-folder/constants";
-import { Folder, FolderUser } from "@/lib/link-folder/types";
+} from "@/lib/folder/constants";
+import { Folder, FolderUser } from "@/lib/folder/types";
 import {
   useCheckFolderPermission,
   useFolderPermissions,

@@ -1,8 +1,8 @@
 import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
-} from "@/lib/link-folder/constants";
-import { FolderAccessLevel } from "@/lib/link-folder/types";
+} from "@/lib/folder/constants";
+import { FolderAccessLevel } from "@/lib/folder/types";
 import z from "@/lib/zod";
 
 export const workspaceAccessLevelSchema = z

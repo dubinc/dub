@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { FolderPermission, FolderWithPermissions } from "../link-folder/types";
+import { FolderPermission, FolderWithPermissions } from "../folder/types";
 import useWorkspace from "./use-workspace";
 
 export function useFolderPermissions() {

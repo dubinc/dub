@@ -1,8 +1,8 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
-import { getFolders } from "@/lib/link-folder/get-folders";
-import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
+import { getFolders } from "@/lib/folder/get-folders";
+import { throwIfFolderActionDenied } from "@/lib/folder/permissions";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 

@@ -4,8 +4,8 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolders } from "@/lib/link-folder/get-folders";
-import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
+import { getFolders } from "@/lib/folder/get-folders";
+import { throwIfFolderActionDenied } from "@/lib/folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {

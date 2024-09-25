@@ -1,7 +1,7 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolders } from "@/lib/link-folder/get-folders";
+import { getFolders } from "@/lib/folder/get-folders";
 import { prisma } from "@/lib/prisma";
 import {
   createFolderSchema,
@@ -9,7 +9,6 @@ import {
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
 import { getSearchParams } from "@dub/utils";
-import { FolderAccessLevel } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace
@@ -76,7 +75,7 @@ export const POST = withWorkspace(
       data: {
         projectId: workspace.id,
         name,
-        accessLevel: accessLevel as FolderAccessLevel,
+        accessLevel,
         users: {
           create: {
             userId: session.user.id,

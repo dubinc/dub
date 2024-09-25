@@ -5,8 +5,8 @@ import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import FolderEditAccessRequested from "emails/folder-edit-access-requested";
 import { z } from "zod";
-import { getFolderOrThrow } from "../link-folder/get-folder-or-throw";
-import { canPerformActionOnFolder } from "../link-folder/permissions";
+import { getFolderOrThrow } from "../folder/get-folder-or-throw";
+import { canPerformActionOnFolder } from "../folder/permissions";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({

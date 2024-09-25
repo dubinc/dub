@@ -1,9 +1,9 @@
 import { withWorkspace } from "@/lib/auth";
-import { getFolders } from "@/lib/link-folder/get-folders";
+import { getFolders } from "@/lib/folder/get-folders";
 import {
   determineFolderUserRole,
   getFolderPermissions,
-} from "@/lib/link-folder/permissions";
+} from "@/lib/folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 

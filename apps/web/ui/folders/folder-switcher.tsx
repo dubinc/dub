@@ -1,4 +1,4 @@
-import { Folder } from "@/lib/link-folder/types";
+import { Folder } from "@/lib/folder/types";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
 import {
@@ -26,14 +26,14 @@ type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 const allLinksOverview: FolderSummary = {
   id: "all-links",
   name: "All links",
-  accessLevel: "open",
+  accessLevel: "edit",
 };
 
 export const FolderSwitcher = () => {
   const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
   const { folders, isLoading } = useFolders();
   const [openPopover, setOpenPopover] = useState(false);
-  const { queryParams, searchParamsObj } = useRouterStuff();
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal();
 
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(

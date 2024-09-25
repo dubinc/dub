@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder } from "@/lib/link-folder/types";
+import { Folder } from "@/lib/folder/types";
 import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { FolderCard } from "@/ui/folders/folder-card";

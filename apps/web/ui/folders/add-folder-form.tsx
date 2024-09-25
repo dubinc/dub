@@ -1,5 +1,5 @@
-import { FOLDER_WORKSPACE_ACCESS } from "@/lib/link-folder/constants";
-import { FolderAccessLevel } from "@/lib/link-folder/types";
+import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
+import { FolderAccessLevel } from "@/lib/folder/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, useMediaQuery } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
@@ -111,9 +111,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                     className="rounded-md rounded-l-none border-0 border-l border-gray-300 bg-white py-2 pl-2 pr-8 text-xs text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0"
                     value={accessLevel}
                     onChange={(e) =>
-                      setAccessLevel(
-                        e.target.value as FolderAccessLevel,
-                      )
+                      setAccessLevel(e.target.value as FolderAccessLevel)
                     }
                   >
                     {Object.keys(FOLDER_WORKSPACE_ACCESS).map((access) => (

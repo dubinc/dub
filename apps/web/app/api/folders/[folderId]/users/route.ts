@@ -2,7 +2,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   determineFolderUserRole,
   throwIfFolderActionDenied,
-} from "@/lib/link-folder/permissions";
+} from "@/lib/folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 

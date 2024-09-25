@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { transformLink } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfFolderActionDenied } from "@/lib/link-folder/permissions";
+import { throwIfFolderActionDenied } from "@/lib/folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
