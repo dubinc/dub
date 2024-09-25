@@ -4,18 +4,20 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { getFolderOrThrow } from "@/lib/folder/get-folder";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Link } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
     const parsedParams = eventsQuerySchema.parse(searchParams);
 
     let { event, interval, start, end, linkId, externalId, domain, key } =
       parsedParams;
+
     let link: Link | null = null;
 
     if (domain) {
@@ -32,6 +34,15 @@ export const GET = withWorkspace(
       });
     }
 
+    if (link && link.folderId) {
+      await getFolderOrThrow({
+        folderId: link.folderId,
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        requiredPermission: "folders.read",
+      });
+    }
+
     validDateRangeForPlan({
       plan: workspace.plan,
       interval,
@@ -45,6 +56,7 @@ export const GET = withWorkspace(
       event,
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
+      userId: session.user.id,
     });
 
     return NextResponse.json(response);
