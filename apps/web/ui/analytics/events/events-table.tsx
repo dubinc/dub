@@ -338,6 +338,9 @@ export default function EventsTable() {
           id: "referer",
           header: "Referer",
           accessorKey: "click.referer",
+          meta: {
+            filterParams: ({ getValue }) => ({ referer: getValue() }),
+          },
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               {getValue() === "(direct)" ? (
@@ -356,6 +359,9 @@ export default function EventsTable() {
           id: "refererUrl",
           header: "Referer URL",
           accessorKey: "click.refererUrl",
+          meta: {
+            filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
+          },
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               {getValue() === "(direct)" ? (
