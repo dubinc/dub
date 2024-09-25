@@ -15,6 +15,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
+  useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -35,6 +36,7 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
+import { QRCodeDesign } from "./link-builder/qr-code-design-modal";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -70,8 +72,10 @@ export function QRCodePicker({
     anchorRef.current.click();
   }
 
-  const [showLogo, setShowLogo] = useState(true);
-  const [fgColor, setFgColor] = useState("#000000");
+  const [data, setData] = useLocalStorage<QRCodeDesign>("qr-code-design", {
+    fgColor: "#000000",
+    showLogo: true,
+  });
 
   const qrData = useMemo(
     () => ({
@@ -83,11 +87,11 @@ export function QRCodePicker({
         },
       }),
       bgColor: "#ffffff",
-      fgColor,
+      fgColor: data.fgColor,
       size: 1024,
       level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
       includeMargin: false,
-      ...(showLogo && {
+      ...(data.showLogo && {
         imageSettings: {
           src:
             logo && plan !== "free" ? logo : "https://assets.dub.co/logo.png",
@@ -97,7 +101,7 @@ export function QRCodePicker({
         },
       }),
     }),
-    [props, fgColor, showLogo],
+    [props, data],
   );
 
   const [copiedImage, setCopiedImage] = useState(false);
@@ -149,9 +153,9 @@ export function QRCodePicker({
 
         <AdvancedSettings
           qrData={qrData}
-          setFgColor={setFgColor}
-          showLogo={showLogo}
-          setShowLogo={setShowLogo}
+          setFgColor={(fgColor) => setData({ ...data, fgColor })}
+          showLogo={data.showLogo}
+          setShowLogo={(showLogo) => setData({ ...data, showLogo })}
         />
 
         <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
