@@ -2,7 +2,7 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfFolderActionDenied } from "@/lib/folder/permissions";
+import { getFolderOrThrow } from "@/lib/folder/get-folder";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
@@ -27,7 +27,7 @@ export const POST = withWorkspace(
     });
 
     if (link.folderId) {
-      await throwIfFolderActionDenied({
+      await getFolderOrThrow({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,

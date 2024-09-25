@@ -3,8 +3,8 @@ import { convertToCSV } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
+import { getFolderOrThrow } from "@/lib/folder/get-folder";
 import { getFolders } from "@/lib/folder/get-folders";
-import { throwIfFolderActionDenied } from "@/lib/folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
@@ -34,7 +34,7 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      await throwIfFolderActionDenied({
+      await getFolderOrThrow({
         folderId,
         workspaceId: workspace.id,
         userId: session.user.id,

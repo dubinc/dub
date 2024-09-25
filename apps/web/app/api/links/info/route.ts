@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { transformLink } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfFolderActionDenied } from "@/lib/folder/permissions";
+import { getFolderOrThrow } from "@/lib/folder/get-folder";
 import { prisma } from "@/lib/prisma";
 import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
@@ -31,7 +31,7 @@ export const GET = withWorkspace(
     });
 
     if (link.folderId) {
-      await throwIfFolderActionDenied({
+      await getFolderOrThrow({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,

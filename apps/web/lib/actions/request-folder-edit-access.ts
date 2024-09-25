@@ -5,8 +5,7 @@ import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import FolderEditAccessRequested from "emails/folder-edit-access-requested";
 import { z } from "zod";
-import { getFolderOrThrow } from "../folder/get-folder-or-throw";
-import { canPerformActionOnFolder } from "../folder/permissions";
+import { getFolderOrThrow } from "../folder/get-folder";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({
@@ -25,16 +24,8 @@ export const requestFolderEditAccessAction = authActionClient
       folderId,
       workspaceId: workspace.id,
       userId: user.id,
-    });
-
-    const canReadFolder = canPerformActionOnFolder({
-      folder,
       requiredPermission: "folders.read",
     });
-
-    if (!canReadFolder) {
-      throw new Error("You are not allowed to access this folder.");
-    }
 
     const folderAccessRequest = await prisma.folderAccessRequest.findUnique({
       where: {

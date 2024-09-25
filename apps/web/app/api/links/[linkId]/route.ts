@@ -8,7 +8,7 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfFolderActionDenied } from "@/lib/folder/permissions";
+import { getFolderOrThrow } from "@/lib/folder/get-folder";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -26,7 +26,7 @@ export const GET = withWorkspace(
     });
 
     if (link.folderId) {
-      await throwIfFolderActionDenied({
+      await getFolderOrThrow({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
@@ -74,7 +74,7 @@ export const PATCH = withWorkspace(
     const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
 
     if (link.folderId) {
-      await throwIfFolderActionDenied({
+      await getFolderOrThrow({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
@@ -83,7 +83,7 @@ export const PATCH = withWorkspace(
     }
 
     if (body.folderId) {
-      await throwIfFolderActionDenied({
+      await getFolderOrThrow({
         folderId: body.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
@@ -201,7 +201,7 @@ export const DELETE = withWorkspace(
     });
 
     if (link.folderId) {
-      await throwIfFolderActionDenied({
+      await getFolderOrThrow({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,

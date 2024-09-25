@@ -7,7 +7,7 @@ import {
 } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { throwIfFolderActionDenied } from "@/lib/folder/permissions";
+import { getFolderOrThrow } from "@/lib/folder/get-folder";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
@@ -29,7 +29,7 @@ export const PUT = withWorkspace(
 
     if (link) {
       if (link.folderId) {
-        await throwIfFolderActionDenied({
+        await getFolderOrThrow({
           folderId: link.folderId,
           workspaceId: workspace.id,
           userId: session.user.id,
