@@ -14,7 +14,9 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
@@ -27,8 +29,24 @@ function PasswordModal({
   showPasswordModal: boolean;
   setShowPasswordModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { isMobile } = useMediaQuery();
+  return (
+    <Modal
+      showModal={showPasswordModal}
+      setShowModal={setShowPasswordModal}
+      className="sm:max-w-md"
+    >
+      <PasswordModalInner setShowPasswordModal={setShowPasswordModal} />
+    </Modal>
+  );
+}
 
+function PasswordModalInner({
+  setShowPasswordModal,
+}: {
+  setShowPasswordModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { isMobile } = useMediaQuery();
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const {
     watch: watchParent,
     getValues: getValuesParent,
@@ -51,139 +69,143 @@ function PasswordModal({
 
   const [showPassword, setShowPassword] = useState(false);
 
+  // Hacky fix to focus the input automatically, not sure why autoFocus doesn't work here
+  useEffect(() => {
+    if (inputRef.current && !isMobile) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
+    }
+  }, []);
+
+  const { ref, ...rest } = register("password");
+
   return (
-    <>
-      <Modal
-        showModal={showPasswordModal}
-        setShowModal={setShowPasswordModal}
-        className="sm:max-w-md"
-      >
-        <form
-          className="px-5 py-4"
-          onSubmit={(e) => {
-            e.stopPropagation();
-            handleSubmit((data) => {
-              setValueParent("password", data.password, { shouldDirty: true });
-              setShowPasswordModal(false);
-            })(e);
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-medium">Link Password</h3>
-              <ProBadgeTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Restrict access to your short links by encrypting it with a password."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/password-protected-links"
-                  />
-                }
+    <form
+      className="px-5 py-4"
+      onSubmit={(e) => {
+        e.stopPropagation();
+        handleSubmit((data) => {
+          setValueParent("password", data.password, { shouldDirty: true });
+          setShowPasswordModal(false);
+        })(e);
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium">Link Password</h3>
+          <ProBadgeTooltip
+            content={
+              <SimpleTooltipContent
+                title="Restrict access to your short links by encrypting it with a password."
+                cta="Learn more."
+                href="https://dub.co/help/article/password-protected-links"
               />
-            </div>
-            <div className="max-md:hidden">
-              <Tooltip
-                content={
-                  <div className="px-2 py-1 text-xs text-gray-700">
-                    Press{" "}
-                    <strong className="font-medium text-gray-950">L</strong> to
-                    open this quickly
-                  </div>
-                }
-                side="right"
-              >
-                <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
-                  L
-                </kbd>
-              </Tooltip>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <div className="flex items-center justify-between">
-              <span className="block text-sm font-medium text-gray-700">
-                Password
-              </span>
-              <div className="flex items-center gap-2">
-                <ButtonTooltip
-                  tooltipProps={{
-                    content: showPassword ? "Hide password" : "Reveal password",
-                  }}
-                  onClick={() => setShowPassword((s) => !s)}
-                >
-                  {showPassword ? (
-                    <EyeSlash className="size-4" />
-                  ) : (
-                    <Eye className="size-4" />
-                  )}
-                </ButtonTooltip>
-                <ButtonTooltip
-                  tooltipProps={{
-                    content: "Generate a random password",
-                  }}
-                  onClick={() => {
-                    setValue("password", nanoid(24), { shouldDirty: true });
-                  }}
-                >
-                  <Shuffle className="size-4" />
-                </ButtonTooltip>
+            }
+          />
+        </div>
+        <div className="max-md:hidden">
+          <Tooltip
+            content={
+              <div className="px-2 py-1 text-xs text-gray-700">
+                Press <strong className="font-medium text-gray-950">L</strong>{" "}
+                to open this quickly
               </div>
-            </div>
-            <div className="mt-2 rounded-md shadow-sm">
-              <input
-                type={showPassword ? "text" : "password"}
-                autoFocus={!isMobile}
-                placeholder="Create password"
-                className={`${
-                  errors.password
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                } block w-full rounded-md focus:outline-none sm:text-sm`}
-                {...register("password", {
-                  required: !passwordParent,
-                })}
-              />
-            </div>
-          </div>
+            }
+            side="right"
+          >
+            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+              L
+            </kbd>
+          </Tooltip>
+        </div>
+      </div>
 
-          <div className="mt-6 flex items-center justify-between">
-            <div>
-              {Boolean(passwordParent) && (
-                <button
-                  type="button"
-                  className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
-                  onClick={() => {
-                    setValueParent("password", null, { shouldDirty: true });
-                    setShowPasswordModal(false);
-                  }}
-                >
-                  Remove password
-                </button>
+      <div className="mt-6">
+        <div className="flex items-center justify-between">
+          <span className="block text-sm font-medium text-gray-700">
+            Password
+          </span>
+          <div className="flex items-center gap-2">
+            <ButtonTooltip
+              className="text-gray-500 transition-colors hover:text-gray-800"
+              tooltipProps={{
+                content: showPassword ? "Hide password" : "Reveal password",
+              }}
+              onClick={() => setShowPassword((s) => !s)}
+            >
+              {showPassword ? (
+                <EyeSlash className="size-4" />
+              ) : (
+                <Eye className="size-4" />
               )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                text="Cancel"
-                className="h-9 w-fit"
-                onClick={() => {
-                  reset();
-                  setShowPasswordModal(false);
-                }}
-              />
-              <Button
-                type="submit"
-                variant="primary"
-                text={passwordParent ? "Save" : "Add password"}
-                className="h-9 w-fit"
-                disabled={!isDirty}
-              />
-            </div>
+            </ButtonTooltip>
+            <ButtonTooltip
+              tooltipProps={{
+                content: "Generate a random password",
+              }}
+              onClick={() => {
+                setValue("password", nanoid(24), { shouldDirty: true });
+              }}
+            >
+              <Shuffle className="size-4" />
+            </ButtonTooltip>
           </div>
-        </form>
-      </Modal>
-    </>
+        </div>
+        <div className="mt-2 rounded-md shadow-sm">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Create password"
+            className={`${
+              errors.password
+                ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+            } block w-full rounded-md focus:outline-none sm:text-sm`}
+            {...rest}
+            ref={(e) => {
+              ref(e);
+              inputRef.current = e;
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 flex items-center justify-between">
+        <div>
+          {Boolean(passwordParent) && (
+            <button
+              type="button"
+              className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+              onClick={() => {
+                setValueParent("password", null, { shouldDirty: true });
+                setShowPasswordModal(false);
+              }}
+            >
+              Remove password
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Cancel"
+            className="h-9 w-fit"
+            onClick={() => {
+              reset();
+              setShowPasswordModal(false);
+            }}
+          />
+          <Button
+            type="submit"
+            variant="primary"
+            text={passwordParent ? "Save" : "Add password"}
+            className="h-9 w-fit"
+            disabled={!isDirty}
+          />
+        </div>
+      </div>
+    </form>
   );
 }
 

@@ -197,7 +197,7 @@ export const ImagePreview = ({
   const previewImage = useMemo(() => {
     if (generatingMetatags || resizing) {
       return (
-        <div className="flex aspect-[1200/630] w-full flex-col items-center justify-center bg-gray-100">
+        <div className="flex aspect-[var(--aspect,1200/630)] w-full flex-col items-center justify-center bg-gray-100">
           <LoadingCircle />
         </div>
       );
@@ -224,7 +224,7 @@ export const ImagePreview = ({
       );
     } else {
       return (
-        <div className="relative aspect-[1200/630] w-full bg-white">
+        <div className="relative aspect-[var(--aspect,1200/630)] w-full bg-white">
           {!isMobile && (
             <ShimmerDots className="opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
           )}
@@ -337,27 +337,29 @@ function LinkedInOGPreview({ title, hostname, children }: OGPreviewProps) {
   const { setValue } = useFormContext<LinkFormData>();
 
   return (
-    <div>
-      <div className="relative overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_2px_3px_rgba(0,0,0,0.2)]">
+    <div className="flex items-center gap-3 rounded-lg border border-[#8c8c8c33] px-4 py-3">
+      <div
+        className="relative w-32 shrink-0 overflow-hidden rounded-lg"
+        style={{ "--aspect": "128/72" } as any}
+      >
         {children}
-        {(hostname || title) && (
-          <div className="grid gap-1 border-t border-gray-300 bg-white p-2">
-            {(title || title === "") && (
-              <input
-                className="truncate border-none bg-transparent p-0 text-xs font-semibold text-[#000000E6] outline-none focus:ring-0"
-                value={title}
-                onChange={(e) => {
-                  setValue("title", e.currentTarget.value);
-                  setValue("proxy", true);
-                }}
-              />
-            )}
-            {hostname && (
-              <p className="text-[9px] text-[#00000099]">{hostname}</p>
-            )}
-          </div>
-        )}
       </div>
+      {(hostname || title) && (
+        <div className="grid gap-2">
+          {(title || title === "") && (
+            <ReactTextareaAutosize
+              className="line-clamp-2 w-full resize-none border-none p-0 text-sm font-semibold text-[#000000E6] outline-none focus:ring-0"
+              value={title}
+              maxRows={2}
+              onChange={(e) => {
+                setValue("title", e.currentTarget.value);
+                setValue("proxy", true);
+              }}
+            />
+          )}
+          {hostname && <p className="text-xs text-[#00000099]">{hostname}</p>}
+        </div>
+      )}
     </div>
   );
 }
