@@ -38,10 +38,7 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import {
-  AddEditLinkButton as AddEditLinkButtonNew,
-  AddEditLinkModal as AddEditLinkModalNew,
-} from "../add-edit-link-modal-new";
+import { CreateLinkButton, LinkBuilder } from "../link-builder";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -539,9 +536,9 @@ export function useAddEditLinkModal({
 
   const AddEditLinkModalCallback = useCallback(() => {
     return flags?.newlinkbuilder ? (
-      <AddEditLinkModalNew
-        showAddEditLinkModal={showAddEditLinkModal}
-        setShowAddEditLinkModal={setShowAddEditLinkModal}
+      <LinkBuilder
+        showLinkBuilder={showAddEditLinkModal}
+        setShowLinkBuilder={setShowAddEditLinkModal}
         props={props}
         duplicateProps={duplicateProps}
         homepageDemo={homepageDemo}
@@ -559,7 +556,7 @@ export function useAddEditLinkModal({
 
   const AddEditLinkButtonCallback = useCallback(() => {
     return flags?.newlinkbuilder ? (
-      <AddEditLinkButtonNew setShowAddEditLinkModal={setShowAddEditLinkModal} />
+      <CreateLinkButton setShowLinkBuilder={setShowAddEditLinkModal} />
     ) : (
       <AddEditLinkButton setShowAddEditLinkModal={setShowAddEditLinkModal} />
     );

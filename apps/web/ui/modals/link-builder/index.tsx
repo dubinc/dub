@@ -68,39 +68,37 @@ export const LinkModalContext = createContext<{
 
 export type LinkFormData = LinkWithTagsProps;
 
-type AddEditLinkModalProps = {
-  showAddEditLinkModal: boolean;
-  setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
+type LinkBuilderProps = {
+  showLinkBuilder: boolean;
+  setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
   props?: LinkWithTagsProps;
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 };
 
-export function AddEditLinkModal(props: AddEditLinkModalProps) {
-  return props.showAddEditLinkModal ? (
-    <AddEditLinkModalOuter {...props} />
-  ) : null;
+export function LinkBuilder(props: LinkBuilderProps) {
+  return props.showLinkBuilder ? <LinkBuilderOuter {...props} /> : null;
 }
 
-function AddEditLinkModalOuter(props: AddEditLinkModalProps) {
+function LinkBuilderOuter(props: LinkBuilderProps) {
   const form = useForm<LinkFormData>({
     defaultValues: props.props || props.duplicateProps || DEFAULT_LINK_PROPS,
   });
 
   return (
     <FormProvider {...form}>
-      <AddEditLinkModalInner {...props} />
+      <LinkBuilderInner {...props} />
     </FormProvider>
   );
 }
 
-function AddEditLinkModalInner({
-  showAddEditLinkModal,
-  setShowAddEditLinkModal,
+function LinkBuilderInner({
+  showLinkBuilder,
+  setShowLinkBuilder,
   props,
   duplicateProps,
   homepageDemo,
-}: AddEditLinkModalProps) {
+}: LinkBuilderProps) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
   const searchParams = useSearchParams();
@@ -143,7 +141,7 @@ function AddEditLinkModalInner({
 
   const { generatingMetatags } = useMetatags({
     initial: Boolean(props),
-    enabled: showAddEditLinkModal && !proxy && debouncedUrl.length > 0,
+    enabled: showLinkBuilder && !proxy && debouncedUrl.length > 0,
   });
 
   const saveDisabled = useMemo(() => {
@@ -156,7 +154,7 @@ function AddEditLinkModalInner({
       - for an existing link, there's no changes
     */
     return Boolean(
-      !showAddEditLinkModal ||
+      !showLinkBuilder ||
         isSubmitting ||
         isSubmitSuccessful ||
         errors.key ||
@@ -176,14 +174,7 @@ function AddEditLinkModalInner({
             return data[key] === value;
           })),
     );
-  }, [
-    showAddEditLinkModal,
-    isSubmitting,
-    isSubmitSuccessful,
-    errors,
-    props,
-    data,
-  ]);
+  }, [showLinkBuilder, isSubmitting, isSubmitSuccessful, errors, props, data]);
 
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -224,8 +215,8 @@ function AddEditLinkModalInner({
       <TargetingModal />
       <ExpirationModal />
       <Modal
-        showModal={showAddEditLinkModal}
-        setShowModal={setShowAddEditLinkModal}
+        showModal={showLinkBuilder}
+        setShowModal={setShowLinkBuilder}
         className="max-w-screen-lg"
         preventDefaultClose={homepageDemo ? false : true}
         onClose={() => {
@@ -293,7 +284,7 @@ function AddEditLinkModalInner({
                     }
                   } else toast.success("Successfully updated shortlink!");
 
-                  setShowAddEditLinkModal(false);
+                  setShowLinkBuilder(false);
                 } else {
                   const { error } = await res.json();
 
@@ -338,7 +329,7 @@ function AddEditLinkModalInner({
                 <button
                   type="button"
                   onClick={() => {
-                    setShowAddEditLinkModal(false);
+                    setShowLinkBuilder(false);
                     if (searchParams.has("newLink")) {
                       queryParams({
                         del: ["newLink"],
@@ -494,14 +485,14 @@ function AddEditLinkModalInner({
   );
 }
 
-export function AddEditLinkButton({
-  setShowAddEditLinkModal,
+export function CreateLinkButton({
+  setShowLinkBuilder,
 }: {
-  setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
+  setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
 }) {
   const { slug, nextPlan, exceededLinks } = useWorkspace();
 
-  useKeyboardShortcut("c", () => setShowAddEditLinkModal(true));
+  useKeyboardShortcut("c", () => setShowLinkBuilder(true));
 
   // listen to paste event, and if it's a URL, open the modal and input the URL
   const handlePaste = (e: ClipboardEvent) => {
@@ -522,7 +513,7 @@ export function AddEditLinkButton({
       !existingModalBackdrop &&
       !exceededLinks
     ) {
-      setShowAddEditLinkModal(true);
+      setShowLinkBuilder(true);
     }
   };
 
@@ -544,7 +535,7 @@ export function AddEditLinkButton({
           />
         ) : undefined
       }
-      onClick={() => setShowAddEditLinkModal(true)}
+      onClick={() => setShowLinkBuilder(true)}
     />
   );
 }

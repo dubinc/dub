@@ -36,7 +36,7 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { QRCodeDesign } from "./add-edit-link-modal-new/qr-code-design-modal";
+import { QRCodeDesign } from "./link-builder/qr-code-design-modal";
 
 function LinkQRModalHelper({
   showLinkQRModal,
