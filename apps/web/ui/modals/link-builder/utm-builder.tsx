@@ -68,15 +68,6 @@ export function UTMBuilder() {
   const { watch, setValue } = useFormContext<LinkFormData>();
   const url = watch("url");
 
-  const isValidUrl = useMemo(() => {
-    try {
-      new URL(url);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }, [url]);
-
   const params = useMemo(() => getParamsFromURL(url), [url]);
 
   const [toggledParams, setToggledParams] = useState<string[]>(
@@ -146,7 +137,6 @@ export function UTMBuilder() {
               key={key}
               type="button"
               aria-pressed={enabled}
-              disabled={!isValidUrl}
               className={cn(
                 "flex items-center gap-1 px-2.5 py-1.5 text-sm drop-shadow-sm transition-all",
                 "rounded-md border border-gray-300 bg-white text-gray-700",

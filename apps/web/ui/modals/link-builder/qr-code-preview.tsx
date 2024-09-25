@@ -93,7 +93,7 @@ export function QRCodePreview() {
           <div className="flex size-full flex-col items-center justify-center gap-2">
             <QRCodeIcon className="size-5 text-gray-700" />
             <p className="max-w-32 text-center text-xs text-gray-700">
-              Enter a short link to generate a preview
+              Enter a short link to generate a QR code
             </p>
           </div>
         )}

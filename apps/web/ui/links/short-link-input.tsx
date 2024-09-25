@@ -74,8 +74,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       id: workspaceId,
       slug,
       mutate: mutateWorkspace,
-      aiUsage,
-      aiLimit,
+      exceededAI,
       nextPlan,
     } = useWorkspace();
 
@@ -190,13 +189,14 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
               <Lock className="h-3 w-3" />
             </button>
           ) : (
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
               <ButtonTooltip
                 tabIndex={-1}
-                tooltipContent="Generate a random key"
+                tooltipProps={{
+                  content: "Generate a random key",
+                }}
                 onClick={generateRandomKey}
                 disabled={generatingRandomKey || generatingAIKey}
-                className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
               >
                 {generatingRandomKey ? (
                   <LoadingCircle />
@@ -206,15 +206,20 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
               </ButtonTooltip>
               <ButtonTooltip
                 tabIndex={-1}
-                tooltipContent="Generate a key using AI"
+                tooltipProps={{
+                  content: exceededAI
+                    ? "You've exceeded your AI usage limit."
+                    : !data.url
+                      ? "Enter a URL to generate a key using AI."
+                      : "Generate a key using AI.",
+                }}
                 onClick={generateAIKey}
                 disabled={
                   generatingRandomKey ||
                   generatingAIKey ||
-                  (aiLimit && aiUsage && aiUsage >= aiLimit) ||
+                  exceededAI ||
                   !data.url
                 }
-                className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
               >
                 {generatingAIKey ? (
                   <LoadingCircle />

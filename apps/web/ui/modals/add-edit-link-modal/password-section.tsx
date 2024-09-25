@@ -53,7 +53,9 @@ export default function PasswordSection({
         <div className="flex items-center gap-2">
           {enabled && (
             <ButtonTooltip
-              tooltipContent="Generate a random password"
+              tooltipProps={{
+                content: "Generate a random password",
+              }}
               onClick={() => {
                 setData({ ...data, password: nanoid(24) });
               }}

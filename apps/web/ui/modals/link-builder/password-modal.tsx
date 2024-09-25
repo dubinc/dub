@@ -106,10 +106,9 @@ function PasswordModal({
               </span>
               <div className="flex items-center gap-2">
                 <ButtonTooltip
-                  className="text-gray-500 transition-colors hover:text-gray-800"
-                  tooltipContent={
-                    showPassword ? "Hide password" : "Reveal password"
-                  }
+                  tooltipProps={{
+                    content: showPassword ? "Hide password" : "Reveal password",
+                  }}
                   onClick={() => setShowPassword((s) => !s)}
                 >
                   {showPassword ? (
@@ -119,8 +118,9 @@ function PasswordModal({
                   )}
                 </ButtonTooltip>
                 <ButtonTooltip
-                  className="text-gray-500 transition-colors hover:text-gray-800"
-                  tooltipContent="Generate a random password"
+                  tooltipProps={{
+                    content: "Generate a random password",
+                  }}
                   onClick={() => {
                     setValue("password", nanoid(24), { shouldDirty: true });
                   }}
