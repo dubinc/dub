@@ -63,8 +63,12 @@ export async function getLinksForWorkspace({
             }
           : {}),
       ...(userId && { userId }),
+
       ...(folderId && { folderId }),
-      OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+
+      AND: {
+        OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+      },
     },
     include: {
       user: includeUser,

@@ -19,13 +19,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
-import { Delete, ThreeDots } from "../shared/icons";
+import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { FolderAccessIcon } from "./folder-access-icon";
 import { FolderEditAccessRequestButton } from "./request-edit-button";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
   const router = useRouter();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [isHovering, setIsHovering] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -68,6 +68,20 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
               <Popover
                 content={
                   <div className="grid w-full gap-px p-2 sm:w-48">
+                    <Button
+                      text="Analytics"
+                      variant="outline"
+                      onClick={() => {
+                        setOpenPopover(false);
+                        router.push(
+                          `/${workspaceSlug}/analytics?folderId=${folder.id}`,
+                        );
+                      }}
+                      icon={<Chart className="h-4 w-4" />}
+                      shortcut="A"
+                      className="h-9 px-2 font-medium"
+                    />
+
                     {canUpdateFolder && (
                       <Button
                         text="Rename"
@@ -143,6 +157,11 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           onKeyDown={(e) => {
             setOpenPopover(false);
             switch (e.key) {
+              case "a":
+                router.push(
+                  `/${workspaceSlug}/analytics?folderId=${folder.id}`,
+                );
+                break;
               case "r":
                 if (canUpdateFolder) {
                   setShowRenameFolderModal(true);
@@ -171,7 +190,7 @@ function FolderCardKeyboardShortcuts({
   enabled: boolean;
   onKeyDown: (e: KeyboardEvent) => void;
 }) {
-  useKeyboardShortcut(["r", "m", "x"], onKeyDown, {
+  useKeyboardShortcut(["r", "m", "x", "a"], onKeyDown, {
     enabled,
   });
 
