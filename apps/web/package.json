@@ -65,7 +65,6 @@
     "d3-array": "^3.2.4",
     "date-fns": "^3.6.0",
     "dub": "^0.41.0",
-    "fathom-client": "^3.7.2",
     "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",
     "github-slugger": "^2.0.0",

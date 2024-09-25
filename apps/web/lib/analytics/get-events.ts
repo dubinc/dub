@@ -6,18 +6,18 @@ import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import {
-  clickEventEnrichedSchema,
   clickEventResponseSchema,
   clickEventSchema,
+  clickEventSchemaTBEndpoint,
 } from "../zod/schemas/clicks";
 import { customerSchema } from "../zod/schemas/customers";
 import {
-  leadEventEnrichedSchema,
   leadEventResponseSchema,
+  leadEventSchemaTBEndpoint,
 } from "../zod/schemas/leads";
 import {
-  saleEventEnrichedSchema,
   saleEventResponseSchema,
+  saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
 import { INTERVAL_DATA } from "./constants";
 import { EventsFilters } from "./types";
@@ -45,10 +45,10 @@ export const getEvents = async (params: EventsFilters) => {
     parameters: eventsFilterTB,
     data:
       {
-        clicks: clickEventEnrichedSchema,
-        leads: leadEventEnrichedSchema,
-        sales: saleEventEnrichedSchema,
-      }[eventType] ?? clickEventEnrichedSchema,
+        clicks: clickEventSchemaTBEndpoint,
+        leads: leadEventSchemaTBEndpoint,
+        sales: saleEventSchemaTBEndpoint,
+      }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
   const response = await pipe({
@@ -91,8 +91,8 @@ export const getEvents = async (params: EventsFilters) => {
         click: clickEventSchema.parse({
           ...evt,
           id: evt.click_id,
-          // normalize referer_url to camelCase
-          refererUrl: evt.referer_url ?? "",
+          // normalize referer_url_processed to camelCase
+          refererUrl: evt.referer_url_processed ?? "",
         }),
         // transformLink -> add shortLink, qrCode, workspaceId, etc.
         link: transformLink(link),
