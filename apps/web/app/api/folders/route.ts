@@ -3,17 +3,26 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/link-folder/get-folders";
 import { prisma } from "@/lib/prisma";
-import { createFolderSchema, folderSchema } from "@/lib/zod/schemas/folders";
+import {
+  createFolderSchema,
+  folderSchema,
+  listFoldersQuerySchema,
+} from "@/lib/zod/schemas/folders";
+import { getSearchParams } from "@dub/utils";
 import { FolderAccessLevel } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace
 export const GET = withWorkspace(
-  async ({ workspace, headers, session }) => {
+  async ({ workspace, headers, session, req }) => {
+    const searchParams = getSearchParams(req.url);
+    const { search } = listFoldersQuerySchema.parse(searchParams);
+
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId: session.user.id,
       includeLinkCount: true,
+      search,
     });
 
     return NextResponse.json(folderSchema.array().parse(folders), {

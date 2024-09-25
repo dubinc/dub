@@ -4,10 +4,12 @@ export const getFolders = async ({
   workspaceId,
   userId,
   includeLinkCount = false,
+  search,
 }: {
   workspaceId: string;
   userId: string;
   includeLinkCount?: boolean;
+  search?: string;
 }) => {
   const folders = await prisma.folder.findMany({
     where: {
@@ -31,6 +33,11 @@ export const getFolders = async ({
           },
         },
       },
+      ...(search && {
+        name: {
+          contains: search,
+        },
+      }),
     },
     orderBy: {
       createdAt: "desc",

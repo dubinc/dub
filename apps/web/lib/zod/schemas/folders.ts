@@ -31,4 +31,11 @@ export const createFolderSchema = z.object({
   accessLevel: workspaceAccessLevelSchema,
 });
 
+export const listFoldersQuerySchema = z.object({
+  search: z
+    .string()
+    .optional()
+    .describe("The search term to filter the folders by."),
+});
+
 export const updateFolderSchema = createFolderSchema.partial();

@@ -7,21 +7,24 @@ import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { TooltipContent } from "@dub/ui";
+import { TooltipContent, useRouterStuff } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
 import { useEffect } from "react";
 
 const allLinkFolder: Folder = {
   id: "all-links",
   name: "All links",
-  accessLevel: null,
+  accessLevel: "edit",
   linkCount: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
 
 export const FoldersPageClient = () => {
-  const { folders, isLoading, isValidating } = useFolders();
+  const { queryParams } = useRouterStuff();
+  const { folders, isLoading, isValidating } = useFolders({
+    includeParams: true,
+  });
   const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
   const { data: allLinksCount } = useLinksCount({
@@ -59,6 +62,13 @@ export const FoldersPageClient = () => {
               <SearchBoxPersisted
                 loading={isValidating}
                 inputClassName="h-10"
+                onChangeDebounced={(t) => {
+                  if (t) {
+                    queryParams({ set: { search: t } });
+                  } else {
+                    queryParams({ del: "search" });
+                  }
+                }}
               />
             </div>
             <AddFolderButton />

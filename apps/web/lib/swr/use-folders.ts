@@ -1,16 +1,26 @@
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { Folder } from "../link-folder/types";
 import useWorkspace from "./use-workspace";
 
-export default function useFolders() {
-  const { id } = useWorkspace();
+export default function useFolders({
+  includeParams = false,
+}: {
+  includeParams?: boolean;
+} = {}) {
+  const { id: workspaceId } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
+
+  const qs = includeParams
+    ? getQueryString({ workspaceId })
+    : `?workspaceId=${workspaceId}`;
 
   const {
     data: folders,
     isValidating,
     isLoading,
-  } = useSWR<Folder[]>(id && `/api/folders?workspaceId=${id}`, fetcher, {
+  } = useSWR<Folder[]>(workspaceId ? `/api/folders${qs}` : null, fetcher, {
     dedupingInterval: 60000,
   });
 
