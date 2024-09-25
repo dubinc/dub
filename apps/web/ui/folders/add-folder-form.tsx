@@ -1,5 +1,5 @@
 import { FOLDER_WORKSPACE_ACCESS } from "@/lib/link-folder/constants";
-import { FolderWorkspaceAccessLevel } from "@/lib/link-folder/types";
+import { FolderAccessLevel } from "@/lib/link-folder/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, useMediaQuery } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
@@ -18,8 +18,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
   const { isMobile } = useMediaQuery();
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState<string | undefined>(undefined);
-  const [accessLevel, setAccessLevel] =
-    useState<FolderWorkspaceAccessLevel>("view");
+  const [accessLevel, setAccessLevel] = useState<FolderAccessLevel>("view");
 
   // Create new folder
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -113,7 +112,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                     value={accessLevel}
                     onChange={(e) =>
                       setAccessLevel(
-                        e.target.value as FolderWorkspaceAccessLevel,
+                        e.target.value as FolderAccessLevel,
                       )
                     }
                   >

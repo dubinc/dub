@@ -2,10 +2,16 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/link-folder/constants";
+import { FolderAccessLevel } from "@/lib/link-folder/types";
 import z from "@/lib/zod";
 
 export const workspaceAccessLevelSchema = z
-  .enum(Object.keys(FOLDER_WORKSPACE_ACCESS) as [string, ...string[]])
+  .enum(
+    Object.keys(FOLDER_WORKSPACE_ACCESS) as [
+      FolderAccessLevel,
+      ...FolderAccessLevel[],
+    ],
+  )
   .nullish()
   .default(null)
   .describe("The access level of the folder within the workspace.");

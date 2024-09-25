@@ -14,7 +14,7 @@ import { useEffect } from "react";
 const allLinkFolder: Folder = {
   id: "all-links",
   name: "All links",
-  accessLevel: "edit",
+  accessLevel: null,
   linkCount: 0,
   createdAt: new Date(),
   updatedAt: new Date(),

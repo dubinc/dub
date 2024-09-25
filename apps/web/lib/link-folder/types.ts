@@ -5,7 +5,7 @@ import { FOLDER_PERMISSIONS, FOLDER_WORKSPACE_ACCESS } from "./constants";
 
 export type Folder = z.infer<typeof folderSchema>;
 
-export type FolderWorkspaceAccessLevel = keyof typeof FOLDER_WORKSPACE_ACCESS;
+export type FolderAccessLevel = keyof typeof FOLDER_WORKSPACE_ACCESS;
 
 export type FolderPermission = (typeof FOLDER_PERMISSIONS)[number];
 
