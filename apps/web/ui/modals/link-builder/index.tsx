@@ -308,7 +308,7 @@ function LinkBuilderInner({
               <div className="flex items-center gap-3">
                 <LinkLogo
                   apexDomain={getApexDomain(debouncedUrl)}
-                  className="size-6 sm:size-6"
+                  className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
                 />
                 <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
                   {props ? `Edit ${shortLink}` : "New link"}
