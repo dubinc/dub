@@ -207,20 +207,25 @@ export function BadgeTooltip({ children, content, ...props }: TooltipProps) {
 }
 
 export function ButtonTooltip({
-  tooltipContent,
   children,
+  tooltipProps,
   ...props
 }: {
-  tooltipContent: ReactNode | string;
   children: ReactNode;
+  tooltipProps: TooltipProps;
 } & ButtonProps) {
   return (
-    <Tooltip content={tooltipContent}>
-      <div className="flex cursor-pointer items-center">
-        <button type="button" {...props}>
-          {children}
-        </button>
-      </div>
+    <Tooltip {...tooltipProps}>
+      <button
+        type="button"
+        {...props}
+        className={cn(
+          "flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:hover:bg-transparent",
+          props.className,
+        )}
+      >
+        {children}
+      </button>
     </Tooltip>
   );
 }
