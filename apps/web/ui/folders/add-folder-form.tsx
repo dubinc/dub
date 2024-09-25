@@ -131,34 +131,49 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
             )}
           </div>
 
-          <div className="mt-8 flex justify-end gap-2 border-t border-gray-200 px-4 py-4 sm:px-6">
-            <Button
-              type="button"
-              variant="secondary"
-              text={step === 1 ? "Cancel" : "Back"}
-              className="h-9 w-fit"
-              onClick={step === 1 ? onCancel : () => setStep(1)}
-              disabled={step === 2 && isCreating}
-            />
-            <Button
-              type={step === 1 ? "button" : "submit"}
-              text={step === 1 ? "Next" : "Create folder"}
-              disabled={step === 1 && !name}
-              loading={step === 2 && isCreating}
-              className="h-9 w-fit"
-              onClick={(e) => {
-                e.preventDefault();
+          <div className="mt-8 flex items-center justify-between border-t border-gray-200 px-4 py-4 sm:px-6">
+            <StepProgressBar step={step} />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                text={step === 1 ? "Cancel" : "Back"}
+                className="h-9 w-fit"
+                onClick={step === 1 ? onCancel : () => setStep(1)}
+                disabled={step === 2 && isCreating}
+              />
+              <Button
+                type={step === 1 ? "button" : "submit"}
+                text={step === 1 ? "Next" : "Create folder"}
+                disabled={step === 1 && !name}
+                loading={step === 2 && isCreating}
+                className="h-9 w-fit"
+                onClick={(e) => {
+                  e.preventDefault();
 
-                if (step === 1) {
-                  setStep(2);
-                } else {
-                  onSubmit(e as unknown as FormEvent<HTMLFormElement>);
-                }
-              }}
-            />
+                  if (step === 1) {
+                    setStep(2);
+                  } else {
+                    onSubmit(e as unknown as FormEvent<HTMLFormElement>);
+                  }
+                }}
+              />
+            </div>
           </div>
         </form>
       </div>
     </>
+  );
+};
+
+const StepProgressBar = ({ step }: { step: number }) => {
+  const getStepClass = (active: boolean) =>
+    active ? "w-4 h-2 bg-gray-400" : "w-1.5 h-1.5 bg-gray-300";
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className={`rounded-full ${getStepClass(step === 1)}`} />
+      <div className={`rounded-full ${getStepClass(step === 2)}`} />
+    </div>
   );
 };
