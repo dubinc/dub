@@ -56,7 +56,7 @@ export function OptionsList() {
                 onRemove={() =>
                   "remove" in item
                     ? item.remove(setValue)
-                    : setValue(item.key as any, false)
+                    : setValue(item.key as any, false, { shouldDirty: true })
                 }
               />
             </motion.div>

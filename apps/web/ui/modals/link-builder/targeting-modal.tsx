@@ -1,6 +1,7 @@
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
+  Combobox,
   Modal,
   SimpleTooltipContent,
   Tooltip,
@@ -133,27 +134,46 @@ function TargetingModal({
                   <div className="mb-2 grid grid-cols-[min-content_1fr] gap-y-2">
                     {Object.entries(geo).map(([key, value]) => (
                       <Fragment key={key}>
-                        <select
-                          id={`geo-selector-${key}`}
-                          value={key}
-                          onChange={(e) => {
+                        <Combobox
+                          selected={{ value: key, label: COUNTRIES[key] }}
+                          setSelected={(option) => {
+                            if (!option) return;
                             const newGeo = {};
                             delete Object.assign(newGeo, geo, {
-                              [e.target.value]: value,
+                              [option.value]: value,
                             })[key];
                             setValue("geo", newGeo, { shouldDirty: true });
                           }}
-                          className="flex w-32 items-center justify-center rounded-l-md border border-r-0 border-gray-300 bg-white pl-3 pr-7 text-left text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0"
-                        >
-                          <option value="" disabled selected={!key}>
-                            Country
-                          </option>
-                          {Object.entries(COUNTRIES).map(([key, value]) => (
-                            <option key={key} value={key}>
-                              {value}
-                            </option>
-                          ))}
-                        </select>
+                          options={Object.entries(COUNTRIES).map(
+                            ([key, value]) => ({
+                              icon: (
+                                <img
+                                  alt={value}
+                                  src={`https://flag.vercel.app/m/${key}.svg`}
+                                  className="mr-1 h-2.5 w-4"
+                                />
+                              ),
+                              value: key,
+                              label: value,
+                            }),
+                          )}
+                          icon={
+                            key ? (
+                              <img
+                                alt={COUNTRIES[key]}
+                                src={`https://flag.vercel.app/m/${key}.svg`}
+                                className="h-2.5 w-4"
+                              />
+                            ) : undefined
+                          }
+                          caret={true}
+                          placeholder="Country"
+                          searchPlaceholder="Search countries..."
+                          buttonProps={{
+                            className:
+                              "w-32 sm:w-40 rounded-r-none border-r-0 justify-start px-2.5",
+                          }}
+                        />
                         <input
                           type="text"
                           id={`${id}-${key}`}
