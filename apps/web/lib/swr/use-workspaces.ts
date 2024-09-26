@@ -1,10 +1,12 @@
 import { WorkspaceProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import useSWR from "swr";
 
 export default function useWorkspaces() {
+  const { data: session } = useSession();
   const { data: workspaces, error } = useSWR<WorkspaceProps[]>(
-    "/api/workspaces",
+    session?.user && "/api/workspaces",
     fetcher,
     {
       dedupingInterval: 60000,
