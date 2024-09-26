@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const result = await prisma.domain.findMany({
+    const domains = await prisma.domain.findMany({
       where: {
         slug: {
           // exclude domains that belong to us
@@ -46,17 +46,6 @@ export async function GET(req: Request) {
         verified: true,
         primary: true,
         createdAt: true,
-        projectId: true,
-        _count: {
-          select: {
-            links: true,
-          },
-        },
-        links: {
-          select: {
-            clicks: true,
-          },
-        },
       },
       orderBy: {
         lastChecked: "asc",
@@ -64,16 +53,9 @@ export async function GET(req: Request) {
       take: 30,
     });
 
-    const domains = result.map((domain) => {
-      return {
-        ...domain,
-        clicks: domain.links.length > 0 ? domain.links[0].clicks : 0,
-      };
-    });
-
     const results = await Promise.allSettled(
       domains.map(async (domain) => {
-        const { slug, verified, primary, createdAt, _count } = domain;
+        const { slug, verified, primary, createdAt } = domain;
         const [domainJson, configJson] = await Promise.all([
           getDomainResponse(slug),
           getConfigResponse(slug),

@@ -38,6 +38,7 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { CreateLinkButton, LinkBuilder } from "../link-builder";
 import AndroidSection from "./android-section";
 import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
@@ -92,7 +93,7 @@ function AddEditLinkModal({
         title: "Password Required",
         description:
           "This link is password protected. Please enter the password to view it.",
-        image: "/_static/password-protected.png",
+        image: "https://assets.dub.co/misc/password-protected.png",
       }));
       return;
     }
@@ -533,10 +534,19 @@ export function useAddEditLinkModal({
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
+  const { flags } = useWorkspace();
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
   const AddEditLinkModalCallback = useCallback(() => {
-    return (
+    return flags?.newlinkbuilder ? (
+      <LinkBuilder
+        showLinkBuilder={showAddEditLinkModal}
+        setShowLinkBuilder={setShowAddEditLinkModal}
+        props={props}
+        duplicateProps={duplicateProps}
+        homepageDemo={homepageDemo}
+      />
+    ) : (
       <AddEditLinkModal
         showAddEditLinkModal={showAddEditLinkModal}
         setShowAddEditLinkModal={setShowAddEditLinkModal}
@@ -545,13 +555,15 @@ export function useAddEditLinkModal({
         homepageDemo={homepageDemo}
       />
     );
-  }, [showAddEditLinkModal, setShowAddEditLinkModal]);
+  }, [flags?.newlinkbuilder, showAddEditLinkModal]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
-    return (
+    return flags?.newlinkbuilder ? (
+      <CreateLinkButton setShowLinkBuilder={setShowAddEditLinkModal} />
+    ) : (
       <AddEditLinkButton setShowAddEditLinkModal={setShowAddEditLinkModal} />
     );
-  }, [setShowAddEditLinkModal]);
+  }, [flags?.newlinkbuilder]);
 
   return useMemo(
     () => ({
@@ -560,11 +572,6 @@ export function useAddEditLinkModal({
       AddEditLinkModal: AddEditLinkModalCallback,
       AddEditLinkButton: AddEditLinkButtonCallback,
     }),
-    [
-      showAddEditLinkModal,
-      setShowAddEditLinkModal,
-      AddEditLinkModalCallback,
-      AddEditLinkButtonCallback,
-    ],
+    [showAddEditLinkModal, AddEditLinkModalCallback, AddEditLinkButtonCallback],
   );
 }
