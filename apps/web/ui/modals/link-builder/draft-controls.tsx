@@ -1,7 +1,6 @@
 import { LinkWithTagsProps } from "@/lib/types";
 import { AnimatedSizeContainer, Popover, useMediaQuery } from "@dub/ui";
 import {
-  Check2,
   CircleCheck,
   CircleInfo,
   LoadingCircle,
@@ -175,51 +174,44 @@ function DraftOption({
   onSelect: () => void;
   onDelete: () => void;
 }) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const { isMobile } = useMediaQuery();
 
   // Memoize time so it doesn't change on rerender
   const time = useMemo(
-    () => timeAgo(new Date(draft.timestamp), { withAgo: true }),
-    [draft.timestamp],
+    () => timeAgo(new Date(draft.timestamp), { withAgo: !isMobile }),
+    [draft.timestamp, isMobile],
   );
 
   return (
     <li
       key={draft.id}
       role="button"
-      className="group flex items-center justify-between gap-1 rounded py-1.5 pl-2 pr-1.5 text-sm transition-colors hover:bg-gray-100"
+      className="group flex items-center justify-between gap-2 overflow-hidden rounded py-1.5 pl-2 pr-1.5 text-sm transition-colors hover:bg-gray-100 sm:gap-1"
       onClick={() => {
         onSelect();
       }}
     >
-      <div className="flex grow items-center justify-between gap-4 sm:gap-8">
-        <div className="flex items-center gap-2.5">
-          <RestoreDraftIcon className="size-3.5 text-gray-400" />
-          {draft.link.key ? (
-            <span className="text-gray-800">
-              /{truncate(draft.link.key, 20)}
-            </span>
-          ) : (
-            <span className="text-gray-500">(draft)</span>
-          )}
+      <div className="flex min-w-0 grow items-center justify-between gap-4 sm:gap-8">
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
+          <RestoreDraftIcon className="size-3.5 shrink-0 text-gray-400" />
+          <span className="min-w-0 max-w-40 truncate text-gray-800">
+            {truncate(draft.link.domain, 16)}/
+            {draft.link.key || <span className="text-gray-400">(link)</span>}
+          </span>
         </div>
-        <span className="text-xs text-gray-500">{time}</span>
+        <span className="whitespace-nowrap text-xs text-gray-500">{time}</span>
       </div>
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          if (confirmDelete) onDelete();
-          else setConfirmDelete(true);
+          window.confirm("Are you sure you want to delete this draft?") &&
+            onDelete();
         }}
         className="p-1 text-gray-400 transition-colors hover:text-gray-500"
         title="Delete draft"
       >
-        {confirmDelete ? (
-          <Check2 className="size-3.5" />
-        ) : (
-          <Xmark className="size-3.5" />
-        )}
+        <Xmark className="size-3.5" />
       </button>
     </li>
   );
