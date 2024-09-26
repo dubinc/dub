@@ -6,7 +6,7 @@ import {
   LoadingCircle,
   Xmark,
 } from "@dub/ui/src/icons";
-import { cn, nanoid, timeAgo, truncate } from "@dub/utils";
+import { cn, nanoid, punycode, timeAgo, truncate } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import {
   forwardRef,
@@ -195,8 +195,12 @@ function DraftOption({
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
           <RestoreDraftIcon className="size-3.5 shrink-0 text-gray-400" />
           <span className="min-w-0 max-w-40 truncate text-gray-800">
-            {truncate(draft.link.domain, 16)}/
-            {draft.link.key || <span className="text-gray-400">(link)</span>}
+            {truncate(punycode(draft.link.domain), 16)}/
+            {draft.link.key ? (
+              punycode(draft.link.key)
+            ) : (
+              <span className="text-gray-400">(link)</span>
+            )}
           </span>
         </div>
         <span className="whitespace-nowrap text-xs text-gray-500">{time}</span>
