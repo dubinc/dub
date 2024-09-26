@@ -31,8 +31,13 @@ export const getEvents = async (params: EventsFilters) => {
     start,
     end,
     isDemo,
-    folderIds,
+    folderId,
+    allowedFolderIds,
   } = params;
+
+  if (folderId) {
+    allowedFolderIds = [folderId];
+  }
 
   if (start) {
     start = new Date(start);
@@ -66,7 +71,7 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
-    folderIds,
+    folderIds: allowedFolderIds,
   });
 
   const [linksMap, customersMap] = await Promise.all([

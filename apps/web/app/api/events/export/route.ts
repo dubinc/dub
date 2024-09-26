@@ -101,7 +101,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       limit: 100000,
-      folderIds: folders.map((folder) => folder.id),
+      allowedFolderIds: folders.map((folder) => folder.id),
     });
 
     const data = response.map((row) =>

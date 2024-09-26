@@ -1,6 +1,7 @@
 import { Folder } from "@/lib/folder/types";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
   PenWriting,
@@ -18,7 +19,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAddFolderModal } from "../modals/add-folder-modal";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
-import { Delete, ThreeDots } from "../shared/icons";
+import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { FolderAccessIcon } from "./folder-access-icon";
 
 type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
@@ -215,6 +216,7 @@ const FolderActions = ({
   onDelete: () => void;
 }) => {
   const router = useRouter();
+  const { slug: workspaceSlug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
 
@@ -233,6 +235,20 @@ const FolderActions = ({
       <Popover
         content={
           <div className="grid w-full gap-px p-2 sm:w-48">
+            <Button
+              text="Analytics"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                router.push(
+                  `/${workspaceSlug}/analytics?folderId=${folder.id}`,
+                );
+              }}
+              icon={<Chart className="h-4 w-4" />}
+              shortcut="A"
+              className="h-9 px-2 font-medium"
+            />
+
             {canUpdateFolder && (
               <Button
                 text="Rename"

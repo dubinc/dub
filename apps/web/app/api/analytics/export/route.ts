@@ -76,7 +76,7 @@ export const GET = withWorkspace(
           ...(link && { linkId: link.id }),
           event: "clicks",
           groupBy: endpoint,
-          folderIds: folders.map((folder) => folder.id),
+          allowedFolderIds: folders.map((folder) => folder.id),
         });
 
         if (!response || response.length === 0) return;

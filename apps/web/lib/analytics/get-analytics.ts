@@ -22,8 +22,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
-    folderIds,
+    allowedFolderIds,
+    folderId
   } = params;
+
+  if (folderId) {
+    allowedFolderIds = [folderId];
+  }
 
   // get all-time clicks count if:
   // 1. type is count
@@ -86,7 +91,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end: end.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
     timezone,
-    folderIds,
+    folderIds: allowedFolderIds,
   });
 
   if (groupBy === "count") {
@@ -112,7 +117,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         // This might be unnecessary because links are filtered by folderIds in the Tinybird pipe
         // Remove after making sure TB works as expected
         AND: {
-          OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+          OR: [{ folderId: { in: allowedFolderIds } }, { folderId: null }],
         },
       },
       select: {
