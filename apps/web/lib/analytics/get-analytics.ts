@@ -23,7 +23,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     isDemo,
     isDeprecatedClicksEndpoint = false,
     allowedFolderIds,
-    folderId
+    folderId,
   } = params;
 
   if (folderId) {
