@@ -1,6 +1,6 @@
-import AuthLayout from "@/ui/layout/auth-layout";
+import { AuthLayout } from "@/ui/layout/auth-layout";
 import { constructMetadata } from "@dub/utils";
-import RegisterForm from "./form";
+import RegisterPageClient from "./page-client";
 
 export const metadata = constructMetadata({
   title: `Create your ${process.env.NEXT_PUBLIC_APP_NAME} account`,
@@ -8,8 +8,8 @@ export const metadata = constructMetadata({
 
 export default function RegisterPage() {
   return (
-    <AuthLayout variant="register">
-      <RegisterForm />
+    <AuthLayout>
+      <RegisterPageClient />
     </AuthLayout>
   );
 }
