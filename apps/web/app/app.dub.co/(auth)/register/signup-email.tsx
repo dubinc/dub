@@ -20,6 +20,7 @@ export const SignUpEmail = () => {
     handleSubmit,
     formState: { errors, isValid },
     getValues,
+    setError,
   } = useForm<SignUpProps>({
     resolver: zodResolver(signUpSchema),
   });
@@ -43,11 +44,12 @@ export const SignUpEmail = () => {
         <div className="flex flex-col space-y-4">
           <Input
             type="email"
-            placeholder="Email address"
+            placeholder="panic@thedis.co"
             autoComplete="email"
             required
             {...register("email")}
             error={errors.email?.message}
+            onChange={(e) => setError("email", { message: "" })}
           />
           <Input
             type="password"
@@ -55,11 +57,12 @@ export const SignUpEmail = () => {
             required
             {...register("password")}
             error={errors.password?.message}
+            onChange={(e) => setError("password", { message: "" })}
           />
           <Button
             type="submit"
             text={isExecuting ? "Submitting..." : "Sign Up"}
-            disabled={isExecuting || !isValid}
+            disabled={isExecuting}
             loading={isExecuting}
           />
         </div>

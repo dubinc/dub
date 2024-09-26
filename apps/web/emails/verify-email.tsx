@@ -42,7 +42,7 @@ export default function VerifyEmail({
               Enter this code on the Dub verify page to complete your sign up:
             </Text>
             <Section className="my-8">
-              <div className="mx-auto w-20 rounded-xl bg-gray-800 px-6 py-3 text-center text-[20px] font-semibold tracking-widest text-white">
+              <div className="mx-auto w-fit rounded-xl px-6 py-3 text-center font-mono text-2xl font-semibold tracking-[0.25em]">
                 {code}
               </div>
             </Section>
