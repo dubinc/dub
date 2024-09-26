@@ -71,11 +71,14 @@ export const VerifyEmailForm = () => {
                 executeAsync({ email, password, code });
               }}
             >
-              <div className="flex flex-col gap-8">
+              <div>
                 <OTPInput
                   maxLength={6}
                   value={code}
-                  onChange={setCode}
+                  onChange={(code) => {
+                    setIsInvalidCode(false);
+                    setCode(code);
+                  }}
                   autoFocus={!isMobile}
                   containerClassName="group flex items-center justify-center"
                   render={({ slots }) => (
@@ -106,8 +109,14 @@ export const VerifyEmailForm = () => {
                     executeAsync({ email, password, code });
                   }}
                 />
+                {isInvalidCode && (
+                  <p className="mt-2 text-center text-sm text-red-500">
+                    Invalid code. Please try again.
+                  </p>
+                )}
 
                 <Button
+                  className="mt-8"
                   text={isExecuting ? "Verifying..." : "Continue"}
                   type="submit"
                   loading={isExecuting || isRedirecting}
