@@ -44,6 +44,34 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
 
   const isAllLinksFolder = folder.id === "all-links";
 
+  useKeyboardShortcut(
+    ["r", "m", "x", "a"],
+    (e) => {
+      setOpenPopover(false);
+      switch (e.key) {
+        case "a":
+          router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
+          break;
+        case "r":
+          if (canUpdateFolder) {
+            setShowRenameFolderModal(true);
+          }
+          break;
+        case "m":
+          router.push(`/settings/folders/${folder.id}/members`);
+          break;
+        case "x":
+          if (canUpdateFolder) {
+            setShowDeleteFolderModal(true);
+          }
+          break;
+      }
+    },
+    {
+      enabled: openPopover || (isHovering && !isAllLinksFolder),
+    },
+  );
+
   return (
     <>
       <RenameFolderModal />
@@ -151,48 +179,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
             </span>
           </div>
         </div>
-
-        <FolderCardKeyboardShortcuts
-          enabled={openPopover || (isHovering && !isAllLinksFolder)}
-          onKeyDown={(e) => {
-            setOpenPopover(false);
-            switch (e.key) {
-              case "a":
-                router.push(
-                  `/${workspaceSlug}/analytics?folderId=${folder.id}`,
-                );
-                break;
-              case "r":
-                if (canUpdateFolder) {
-                  setShowRenameFolderModal(true);
-                }
-                break;
-              case "m":
-                router.push(`/settings/folders/${folder.id}/members`);
-                break;
-              case "x":
-                if (canUpdateFolder) {
-                  setShowDeleteFolderModal(true);
-                }
-                break;
-            }
-          }}
-        />
       </div>
     </>
   );
 };
-
-function FolderCardKeyboardShortcuts({
-  enabled,
-  onKeyDown,
-}: {
-  enabled: boolean;
-  onKeyDown: (e: KeyboardEvent) => void;
-}) {
-  useKeyboardShortcut(["r", "m", "x", "a"], onKeyDown, {
-    enabled,
-  });
-
-  return null;
-}

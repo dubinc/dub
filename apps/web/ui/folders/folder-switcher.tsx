@@ -7,6 +7,7 @@ import {
   PenWriting,
   Popover,
   Tick,
+  useKeyboardShortcut,
   useRouterStuff,
   Users,
 } from "@dub/ui";
@@ -227,6 +228,28 @@ const FolderActions = ({
     folder,
     onDelete,
   );
+
+  useKeyboardShortcut(["r", "m", "x", "a"], (e) => {
+    setOpenPopover(false);
+    switch (e.key) {
+      case "a":
+        router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
+        break;
+      case "r":
+        if (canUpdateFolder) {
+          setShowRenameFolderModal(true);
+        }
+        break;
+      case "m":
+        router.push(`/settings/folders/${folder.id}/members`);
+        break;
+      case "x":
+        if (canUpdateFolder) {
+          setShowDeleteFolderModal(true);
+        }
+        break;
+    }
+  });
 
   return (
     <>
