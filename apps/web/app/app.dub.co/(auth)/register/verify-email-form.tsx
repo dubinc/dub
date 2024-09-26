@@ -33,7 +33,7 @@ export const VerifyEmailForm = () => {
       });
 
       if (response?.ok) {
-        router.push("/welcome");
+        router.push("/onboarding");
       } else {
         toast.error("Failed to redirect to dashboard.");
       }
