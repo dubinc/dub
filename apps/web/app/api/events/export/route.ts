@@ -74,8 +74,6 @@ export const GET = withWorkspace(
       });
     }
 
-    let folderIds: string[] = [];
-
     if (folderId) {
       await getFolderOrThrow({
         workspaceId: workspace.id,
@@ -83,16 +81,12 @@ export const GET = withWorkspace(
         folderId,
         requiredPermission: "folders.read",
       });
-
-      folderIds = [folderId];
-    } else {
-      const folders = await getFolders({
-        workspaceId: workspace.id,
-        userId: session.user.id,
-      });
-
-      folderIds = folders.map((folder) => folder.id);
     }
+
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    });
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -107,7 +101,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       limit: 100000,
-      folderIds,
+      folderIds: folders.map((folder) => folder.id),
     });
 
     const data = response.map((row) =>

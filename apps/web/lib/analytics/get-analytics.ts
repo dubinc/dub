@@ -108,6 +108,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         id: {
           in: topLinksData.map((item) => item.link),
         },
+
+        // This might be unnecessary because links are filtered by folderIds in the Tinybird pipe
+        // Remove after making sure TB works as expected
+        AND: {
+          OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+        },
       },
       select: {
         id: true,

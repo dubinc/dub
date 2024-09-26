@@ -44,7 +44,6 @@ export const GET = withWorkspace(
     } = parsedParams;
 
     let link: Link | null = null;
-    let folderIds: string[] = [];
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
@@ -79,16 +78,12 @@ export const GET = withWorkspace(
         folderId,
         requiredPermission: "folders.read",
       });
-
-      folderIds = [folderId];
-    } else {
-      const folders = await getFolders({
-        workspaceId: workspace.id,
-        userId: session.user.id,
-      });
-
-      folderIds = folders.map((folder) => folder.id);
     }
+
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    });
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -113,7 +108,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
-      folderIds,
+      folderIds: folders.map((folder) => folder.id),
     });
 
     return NextResponse.json(response);

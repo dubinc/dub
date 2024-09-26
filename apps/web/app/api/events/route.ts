@@ -53,8 +53,6 @@ export const GET = withWorkspace(
       });
     }
 
-    let folderIds: string[] = [];
-
     if (folderId) {
       await getFolderOrThrow({
         workspaceId: workspace.id,
@@ -62,16 +60,12 @@ export const GET = withWorkspace(
         folderId,
         requiredPermission: "folders.read",
       });
-
-      folderIds = [folderId];
-    } else {
-      const folders = await getFolders({
-        workspaceId: workspace.id,
-        userId: session.user.id,
-      });
-
-      folderIds = folders.map((folder) => folder.id);
     }
+
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    });
 
     validDateRangeForPlan({
       plan: workspace.plan,
@@ -86,7 +80,7 @@ export const GET = withWorkspace(
       event,
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
-      folderIds,
+      folderIds: folders.map((folder) => folder.id),
     });
 
     return NextResponse.json(response);
