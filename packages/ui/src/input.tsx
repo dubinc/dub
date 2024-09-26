@@ -31,30 +31,46 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
 
-          {props.error ? (
-            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-              <AlertCircle className="size-5 flex-none text-white" fill="red" />
-            </div>
-          ) : type === "password" ? (
-            <button
-              className="absolute inset-y-0 right-0 flex items-center rounded-lg px-2.5"
-              type="button"
-              onClick={() => toggleIsPasswordVisible()}
-              aria-label={isPasswordVisible ? "Hide password" : "Show Password"}
-            >
-              {isPasswordVisible ? (
-                <EyeIcon
-                  className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
-                  aria-hidden
+          <div className="group">
+            {props.error && (
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex flex-none items-center px-2.5">
+                <AlertCircle
+                  className={cn(
+                    "size-5 text-white",
+                    type === "password" &&
+                      "transition-opacity group-hover:opacity-0",
+                  )}
+                  fill="#ef4444"
                 />
-              ) : (
-                <EyeOffIcon
-                  className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
-                  aria-hidden
-                />
-              )}
-            </button>
-          ) : null}
+              </div>
+            )}
+            {type === "password" && (
+              <button
+                className={cn(
+                  "absolute inset-y-0 right-0 flex items-center px-3",
+                  props.error &&
+                    "opacity-0 transition-opacity group-hover:opacity-100",
+                )}
+                type="button"
+                onClick={() => toggleIsPasswordVisible()}
+                aria-label={
+                  isPasswordVisible ? "Hide password" : "Show Password"
+                }
+              >
+                {isPasswordVisible ? (
+                  <EyeIcon
+                    className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
+                    aria-hidden
+                  />
+                ) : (
+                  <EyeOffIcon
+                    className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
+                    aria-hidden
+                  />
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         {props.error && (

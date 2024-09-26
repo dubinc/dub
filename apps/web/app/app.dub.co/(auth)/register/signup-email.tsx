@@ -18,7 +18,7 @@ export const SignUpEmail = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     getValues,
     setError,
   } = useForm<SignUpProps>({
@@ -49,7 +49,7 @@ export const SignUpEmail = () => {
             required
             {...register("email")}
             error={errors.email?.message}
-            onChange={(e) => setError("email", { message: "" })}
+            onChange={() => setError("email", { message: "" })}
           />
           <Input
             type="password"
@@ -57,7 +57,7 @@ export const SignUpEmail = () => {
             required
             {...register("password")}
             error={errors.password?.message}
-            onChange={(e) => setError("password", { message: "" })}
+            onChange={() => setError("password", { message: "" })}
           />
           <Button
             type="submit"
