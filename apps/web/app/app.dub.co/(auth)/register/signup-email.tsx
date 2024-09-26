@@ -20,7 +20,6 @@ export const SignUpEmail = () => {
     handleSubmit,
     formState: { errors },
     getValues,
-    setError,
   } = useForm<SignUpProps>({
     resolver: zodResolver(signUpSchema),
   });
@@ -49,7 +48,6 @@ export const SignUpEmail = () => {
             required
             {...register("email")}
             error={errors.email?.message}
-            onChange={() => setError("email", { message: "" })}
           />
           <Input
             type="password"
@@ -57,7 +55,6 @@ export const SignUpEmail = () => {
             required
             {...register("password")}
             error={errors.password?.message}
-            onChange={() => setError("password", { message: "" })}
           />
           <Button
             type="submit"
