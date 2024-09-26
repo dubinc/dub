@@ -13,7 +13,14 @@ import {
   SatelliteDish,
 } from "@dub/ui/src/icons";
 import { cn, constructURLFromUTMParams, getParamsFromURL } from "@dub/utils";
-import { Fragment, useCallback, useId, useMemo, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
 
@@ -82,6 +89,7 @@ export function UTMBuilder() {
   const [toggledParams, setToggledParams] = useState<string[]>(
     parameters.filter(({ key }) => params[key]).map(({ key }) => key),
   );
+  const [justToggled, setJustToggled] = useState<string | null>(null);
 
   const enabledParameters = useMemo(() => {
     return parameters.filter(
@@ -93,8 +101,10 @@ export function UTMBuilder() {
     (key: string) => {
       const enabled = Boolean(params[key]) || toggledParams.includes(key);
 
-      if (!enabled) setToggledParams((prev) => [...prev, key]);
-      else {
+      if (!enabled) {
+        setToggledParams((prev) => [...prev, key]);
+        setJustToggled(key);
+      } else {
         setToggledParams((prev) => prev.filter((k) => k !== key));
         setValue(key as any, "", { shouldDirty: true });
         setValue(
@@ -109,6 +119,15 @@ export function UTMBuilder() {
     },
     [params, toggledParams, url],
   );
+
+  // Focus the input after toggling (with preventScroll to avoid scrolling the AnimatedSizeContainer)
+  useEffect(() => {
+    if (justToggled) {
+      const input = document.getElementById(`${id}-${justToggled}`);
+      if (input) input.focus({ preventScroll: true });
+      setJustToggled(null);
+    }
+  }, [justToggled]);
 
   useKeyboardShortcut(
     parameters.map(({ shortcut }) => shortcut),
@@ -174,12 +193,14 @@ export function UTMBuilder() {
             enabledParameters.length > 0 && "pb-1 pt-6",
           )}
         >
-          {enabledParameters.map(({ key, icon: Icon, label, placeholder }) => {
+          {enabledParameters.map(({ key, icon: Icon, placeholder }) => {
             return (
               <Fragment key={key}>
-                <div className="flex items-center gap-1.5 rounded-l-md border-y border-l border-gray-300 px-3 py-2.5">
+                <div className="flex items-center gap-1.5 rounded-l-md border-y border-l border-gray-300 bg-gray-100 py-2.5 pl-2 pr-3 sm:min-w-36">
                   <Icon className="size-4 shrink-0" />
-                  <label htmlFor={`${id}-${key}`}>{label}</label>
+                  <label htmlFor={`${id}-${key}`} className="font-mono text-sm">
+                    {key}
+                  </label>
                 </div>
                 <input
                   type="text"
