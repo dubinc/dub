@@ -191,9 +191,10 @@ export default function OGSection({
               <p className="block text-sm font-medium text-gray-700">Image</p>
               <div className="flex items-center justify-between">
                 <ButtonTooltip
-                  tooltipContent="Paste a URL to an image."
+                  tooltipProps={{
+                    content: "Paste a URL to an image.",
+                  }}
                   onClick={() => setShowPromptModal(true)}
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   <Link2 className="h-4 w-4 text-gray-500" />
                 </ButtonTooltip>
@@ -265,10 +266,15 @@ export default function OGSection({
                   {title?.length || 0}/120
                 </p>
                 <ButtonTooltip
-                  tooltipContent="Generate an optimized title using AI."
+                  tooltipProps={{
+                    content: exceededAI
+                      ? "You've exceeded your AI usage limit"
+                      : !title
+                        ? "Enter a title to generate a preview"
+                        : "Generate an optimized title using AI.",
+                  }}
                   onClick={generateTitle}
-                  disabled={generatingTitle || !title || exceededAI}
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                  disabled={generatingTitle || exceededAI || !title}
                 >
                   {generatingTitle ? (
                     <LoadingCircle />
@@ -310,10 +316,15 @@ export default function OGSection({
                   {description?.length || 0}/240
                 </p>
                 <ButtonTooltip
-                  tooltipContent="Generate an optimized description using AI."
+                  tooltipProps={{
+                    content: exceededAI
+                      ? "You've exceeded your AI usage limit"
+                      : !description
+                        ? "Enter a description to generate a preview"
+                        : "Generate an optimized description using AI.",
+                  }}
                   onClick={generateDescription}
-                  disabled={generatingDescription || !description}
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                  disabled={generatingDescription || exceededAI || !description}
                 >
                   {generatingDescription ? (
                     <LoadingCircle />

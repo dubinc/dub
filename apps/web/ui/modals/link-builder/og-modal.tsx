@@ -248,7 +248,7 @@ function OGModalInner({
                 <span className="block text-sm font-medium text-gray-700">
                   Image
                 </span>
-                <div className="flex items-center gap-2 md:gap-4">
+                <div className="flex items-center gap-2">
                   {image && (
                     <button
                       type="button"
@@ -262,10 +262,10 @@ function OGModalInner({
                     </button>
                   )}
                   <ButtonTooltip
-                    type="button"
-                    className="text-gray-700 transition-colors hover:text-gray-950"
                     onClick={() => setShowPromptModal(true)}
-                    tooltipContent="Paste a URL to an image"
+                    tooltipProps={{
+                      content: "Paste a URL to an image",
+                    }}
                   >
                     <Link className="size-4" />
                   </ButtonTooltip>
@@ -285,10 +285,11 @@ function OGModalInner({
                     <div>
                       <ButtonTooltip
                         onClick={() => setOpenUnsplashPopover(true)}
-                        className="text-gray-700 transition-colors hover:text-gray-950"
-                        tooltipContent="Choose an image from Unsplash"
+                        tooltipProps={{
+                          content: "Choose an image from Unsplash",
+                        }}
                       >
-                        <Unsplash className="size-3.5 text-gray-500" />
+                        <Unsplash className="size-3 text-gray-500" />
                       </ButtonTooltip>
                     </div>
                   </Popover>
@@ -331,15 +332,20 @@ function OGModalInner({
                     {title?.length || 0}/120
                   </p>
                   <ButtonTooltip
-                    tooltipContent="Generate an optimized title using AI."
+                    tooltipProps={{
+                      content: exceededAI
+                        ? "You've exceeded your AI usage limit"
+                        : !title
+                          ? "Enter a title to generate a preview"
+                          : "Generate an optimized title using AI.",
+                    }}
                     onClick={generateTitle}
-                    disabled={generatingTitle || !title || exceededAI}
-                    className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                    disabled={generatingTitle || exceededAI || !title}
                   >
                     {generatingTitle ? (
                       <LoadingCircle />
                     ) : (
-                      <Magic className="h-4 w-4" />
+                      <Magic className="size-4" />
                     )}
                   </ButtonTooltip>
                 </div>
@@ -378,15 +384,22 @@ function OGModalInner({
                     {description?.length || 0}/240
                   </p>
                   <ButtonTooltip
-                    tooltipContent="Generate an optimized description using AI."
+                    tooltipProps={{
+                      content: exceededAI
+                        ? "You've exceeded your AI usage limit"
+                        : !description
+                          ? "Enter a description to generate a preview"
+                          : "Generate an optimized description using AI.",
+                    }}
                     onClick={generateDescription}
-                    disabled={generatingDescription || !description}
-                    className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                    disabled={
+                      generatingDescription || exceededAI || !description
+                    }
                   >
                     {generatingDescription ? (
                       <LoadingCircle />
                     ) : (
-                      <Magic className="h-4 w-4" />
+                      <Magic className="size-4" />
                     )}
                   </ButtonTooltip>
                 </div>
