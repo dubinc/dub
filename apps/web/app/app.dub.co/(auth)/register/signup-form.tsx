@@ -14,12 +14,12 @@ export const SignUpForm = () => {
 
         <div className="grid gap-3 bg-gray-50 px-4 py-8 sm:px-16">
           <SignUpEmail />
-          <div className="relative flex items-center py-2">
-            <div className="border-subtle flex-grow border-t" />
-            <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal text-gray-700">
-              Or continue with
+          <div className="my-2 flex flex-shrink items-center justify-center gap-2">
+            <div className="grow basis-0 border-b border-gray-300" />
+            <span className="text-xs font-normal uppercase leading-none text-gray-500">
+              or
             </span>
-            <div className="border-subtle flex-grow border-t" />
+            <div className="grow basis-0 border-b border-gray-300" />
           </div>
           <SignUpOAuth />
         </div>
