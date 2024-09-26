@@ -209,6 +209,7 @@ export const authOptions: NextAuthOptions = {
             email: true,
             image: true,
             invalidLoginAttempts: true,
+            emailVerified: true,
           },
         });
 
@@ -235,6 +236,10 @@ export const authOptions: NextAuthOptions = {
           } else {
             throw new Error("invalid-credentials");
           }
+        }
+
+        if (!user.emailVerified) {
+          throw new Error("email-not-verified");
         }
 
         // Reset invalid login attempts

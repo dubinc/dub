@@ -28,7 +28,7 @@ export const POST = withSession(async ({ session }) => {
     });
   }
 
-  const { token } = await prisma.verificationToken.create({
+  const { token } = await prisma.passwordResetToken.create({
     data: {
       identifier: session.user.email,
       token: randomBytes(32).toString("hex"),

@@ -4,7 +4,7 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import PlanBadge from "@/ui/workspaces/plan-badge";
-import { BlurImage, Popover, Tick } from "@dub/ui";
+import { BlurImage, getUserAvatarUrl, Popover, Tick } from "@dub/ui";
 import { OfficeBuilding } from "@dub/ui/src/icons";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
@@ -39,9 +39,7 @@ export default function WorkspaceSwitcher() {
       return {
         name: session?.user?.name || session?.user?.email,
         slug: "/",
-        image:
-          session?.user?.image ||
-          `https://api.dicebear.com/7.x/micah/svg?seed=${session?.user?.email}`,
+        image: getUserAvatarUrl(session?.user),
         plan: "free",
       };
     }
