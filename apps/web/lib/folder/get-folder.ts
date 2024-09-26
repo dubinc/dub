@@ -1,16 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../api/errors";
-import { FOLDER_PERMISSIONS } from "./constants";
 import { canPerformActionOnFolder } from "./permissions";
+import { FolderPermission } from "./types";
 
 export const getFolder = async ({
-  folderId,
   workspaceId,
   userId,
+  folderId,
 }: {
-  folderId: string;
   workspaceId: string;
   userId: string;
+  folderId: string;
 }) => {
   const folder = await prisma.folder.findFirst({
     where: {
@@ -52,15 +52,15 @@ export const getFolder = async ({
 };
 
 export const getFolderOrThrow = async ({
-  folderId,
   workspaceId,
   userId,
+  folderId,
   requiredPermission,
 }: {
-  folderId: string;
   workspaceId: string;
   userId: string;
-  requiredPermission: (typeof FOLDER_PERMISSIONS)[number];
+  folderId: string;
+  requiredPermission: FolderPermission;
 }) => {
   const folder = await getFolder({
     folderId,
