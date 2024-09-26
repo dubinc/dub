@@ -50,12 +50,15 @@ export async function getLinksCount({
       groupBy !== "userId" && {
         userId,
       }),
+
     ...(folderId &&
       groupBy !== "folderId" && {
         folderId,
       }),
 
-    OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+    AND: {
+      OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+    },
   };
 
   if (groupBy === "tagId") {
@@ -96,30 +99,11 @@ export async function getLinksCount({
               },
             }
           : {}),
+
+      AND: {
+        OR: [{ folderId: { in: folderIds } }, { folderId: null }],
+      },
     };
-
-    // Get the counts for each folder
-    if (groupBy === "folderId") {
-      const response = await prisma.folder.findMany({
-        where: {
-          projectId: workspaceId,
-        },
-        include: {
-          _count: {
-            select: {
-              links: {
-                where: linksWhere,
-              },
-            },
-          },
-        },
-      });
-
-      return response.map((folder) => ({
-        folderId: folder.id,
-        count: folder._count.links,
-      }));
-    }
 
     if (
       groupBy === "domain" ||

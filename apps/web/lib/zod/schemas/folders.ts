@@ -4,6 +4,7 @@ import {
 } from "@/lib/folder/constants";
 import { FolderAccessLevel } from "@/lib/folder/types";
 import z from "@/lib/zod";
+import { FolderUserRole } from "@prisma/client";
 
 export const workspaceAccessLevelSchema = z
   .enum(
@@ -17,7 +18,7 @@ export const workspaceAccessLevelSchema = z
   .describe("The access level of the folder within the workspace.");
 
 export const folderUserRoleSchema = z
-  .enum(Object.keys(FOLDER_USER_ROLE) as [string, ...string[]])
+  .enum(Object.keys(FOLDER_USER_ROLE) as [FolderUserRole, ...FolderUserRole[]])
   .describe("The role of the user in the folder.");
 
 export const folderSchema = z.object({

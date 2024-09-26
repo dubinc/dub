@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { FolderUserRole } from "@prisma/client";
 import { z } from "zod";
 import { getFolderOrThrow } from "../folder/get-folder";
 import { folderUserRoleSchema } from "../zod/schemas/folders";
@@ -40,12 +39,12 @@ export const updateFolderUserRoleAction = authActionClient
         },
       },
       update: {
-        role: role as FolderUserRole,
+        role,
       },
       create: {
         folderId,
         userId,
-        role: role as FolderUserRole,
+        role,
       },
     });
 
