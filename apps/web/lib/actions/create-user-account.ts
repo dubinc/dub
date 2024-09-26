@@ -7,7 +7,7 @@ import { getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
 import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";
-import { throwIfAuthenticated } from "./middlewares/throw-if-authenticated";
+import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
 const schema = signUpSchema.extend({

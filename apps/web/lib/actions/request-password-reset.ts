@@ -8,7 +8,7 @@ import ResetPasswordLink from "emails/reset-password-link";
 import { flattenValidationErrors } from "next-safe-action";
 import { PASSWORD_RESET_TOKEN_EXPIRY } from "../auth/constants";
 import { requestPasswordResetSchema } from "../zod/schemas/auth";
-import { throwIfAuthenticated } from "./middlewares/throw-if-authenticated";
+import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
 // Request a password reset email

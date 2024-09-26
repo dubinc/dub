@@ -10,7 +10,7 @@ import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import z from "../zod";
 import { emailSchema } from "../zod/schemas/auth";
-import { throwIfAuthenticated } from "./middlewares/throw-if-authenticated";
+import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
 const schema = z.object({
