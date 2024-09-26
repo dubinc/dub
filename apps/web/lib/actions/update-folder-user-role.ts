@@ -2,9 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { checkFolderPermission } from "../folder/permissions";
 import { folderUserRoleSchema } from "../zod/schemas/folders";
 import { authActionClient } from "./safe-action";
-import { checkFolderPermission } from "../folder/permissions";
 
 const schema = z.object({
   workspaceId: z.string(),

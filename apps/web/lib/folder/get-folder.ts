@@ -1,7 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { DubApiError } from "../api/errors";
-import { canPerformActionOnFolder } from "./permissions";
-import { FolderPermission } from "./types";
 
 export const getFolder = async ({
   workspaceId,
