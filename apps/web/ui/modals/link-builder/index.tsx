@@ -46,6 +46,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { DraftControls, DraftControlsHandle } from "./draft-controls";
 import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
 import { MoreDropdown } from "./more-dropdown";
@@ -120,8 +121,14 @@ function LinkBuilderInner({
     formState: { isDirty, isSubmitting, isSubmitSuccessful, errors },
   } = useFormContext<LinkFormData>();
 
-  const data = watch();
-  const { url, domain, key, proxy } = data;
+  const [url, domain, key, proxy, title, description] = watch([
+    "url",
+    "domain",
+    "key",
+    "proxy",
+    "title",
+    "description",
+  ]);
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const endpoint = useMemo(
@@ -160,7 +167,14 @@ function LinkBuilderInner({
         errors.url ||
         (props && !isDirty),
     );
-  }, [showLinkBuilder, isSubmitting, isSubmitSuccessful, errors, props, data]);
+  }, [
+    showLinkBuilder,
+    isSubmitting,
+    isSubmitSuccessful,
+    errors,
+    props,
+    isDirty,
+  ]);
 
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -184,12 +198,14 @@ function LinkBuilderInner({
   const shortLink = useMemo(
     () =>
       linkConstructor({
-        key: data.key,
-        domain: data.domain,
+        key,
+        domain,
         pretty: true,
       }),
-    [data.key, data.domain],
+    [key, domain],
   );
+
+  const draftControlsRef = useRef<DraftControlsHandle>(null);
 
   const { PasswordModal, PasswordButton } = usePasswordModal();
   const { TargetingModal, TargetingButton } = useTargetingModal();
@@ -270,6 +286,7 @@ function LinkBuilderInner({
                     }
                   } else toast.success("Successfully updated shortlink!");
 
+                  draftControlsRef.current?.onSubmitSuccessful();
                   setShowLinkBuilder(false);
                 } else {
                   const { error } = await res.json();
@@ -315,20 +332,23 @@ function LinkBuilderInner({
                 </h3>
               </div>
               {!homepageDemo && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowLinkBuilder(false);
-                    if (searchParams.has("newLink")) {
-                      queryParams({
-                        del: ["newLink"],
-                      });
-                    }
-                  }}
-                  className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="flex items-center gap-4">
+                  <DraftControls ref={draftControlsRef} props={props} />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLinkBuilder(false);
+                      if (searchParams.has("newLink")) {
+                        queryParams({
+                          del: ["newLink"],
+                        });
+                      }
+                    }}
+                    className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               )}
             </div>
 
@@ -375,7 +395,7 @@ function LinkBuilderInner({
                         if (d.key !== undefined)
                           setValue("key", d.key, { shouldDirty: true });
                       }}
-                      data={data}
+                      data={{ url, title, description }}
                       saving={isSubmitting || isSubmitSuccessful}
                       loading={loading}
                       domains={domains}
