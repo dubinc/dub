@@ -5,8 +5,8 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderOrThrow } from "@/lib/folder/get-folder";
 import { getFolders } from "@/lib/folder/get-folders";
+import { checkFolderPermission } from "@/lib/folder/permissions";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import JSZip from "jszip";
 
@@ -28,7 +28,7 @@ export const GET = withWorkspace(
       domain && key ? await getLinkOrThrow({ workspace, domain, key }) : null;
 
     if (link && link.folderId) {
-      await getFolderOrThrow({
+      await checkFolderPermission({
         folderId: link.folderId,
         workspaceId: workspace.id,
         userId: session.user.id,
@@ -37,7 +37,7 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      await getFolderOrThrow({
+      await checkFolderPermission({
         workspaceId: workspace.id,
         userId: session.user.id,
         folderId,

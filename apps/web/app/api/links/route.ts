@@ -4,8 +4,8 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolderOrThrow } from "@/lib/folder/get-folder";
 import { getFolders } from "@/lib/folder/get-folders";
+import { checkFolderPermission } from "@/lib/folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -42,7 +42,7 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      await getFolderOrThrow({
+      await checkFolderPermission({
         folderId,
         workspaceId: workspace.id,
         userId: session.user.id,

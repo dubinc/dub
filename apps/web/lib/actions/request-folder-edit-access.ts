@@ -5,8 +5,8 @@ import { waitUntil } from "@vercel/functions";
 import { sendEmail } from "emails";
 import FolderEditAccessRequested from "emails/folder-edit-access-requested";
 import { z } from "zod";
-import { getFolderOrThrow } from "../folder/get-folder";
 import { authActionClient } from "./safe-action";
+import { checkFolderPermission } from "../folder/permissions";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -20,7 +20,7 @@ export const requestFolderEditAccessAction = authActionClient
     const { workspace, user } = ctx;
     const { folderId } = parsedInput;
 
-    const folder = await getFolderOrThrow({
+    const folder = await checkFolderPermission({
       folderId,
       workspaceId: workspace.id,
       userId: user.id,

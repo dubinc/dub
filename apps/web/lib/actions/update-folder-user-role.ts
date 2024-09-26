@@ -2,9 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { getFolderOrThrow } from "../folder/get-folder";
 import { folderUserRoleSchema } from "../zod/schemas/folders";
 import { authActionClient } from "./safe-action";
+import { checkFolderPermission } from "../folder/permissions";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -24,7 +24,7 @@ export const updateFolderUserRoleAction = authActionClient
       throw new Error("You cannot update your own role.");
     }
 
-    await getFolderOrThrow({
+    await checkFolderPermission({
       folderId,
       workspaceId: workspace.id,
       userId: user.id,

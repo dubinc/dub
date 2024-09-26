@@ -1,6 +1,8 @@
 import { withWorkspace } from "@/lib/auth";
-import { getFolderOrThrow } from "@/lib/folder/get-folder";
-import { determineFolderUserRole } from "@/lib/folder/permissions";
+import {
+  checkFolderPermission,
+  determineFolderUserRole,
+} from "@/lib/folder/permissions";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -9,7 +11,7 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const folder = await getFolderOrThrow({
+    const folder = await checkFolderPermission({
       folderId,
       workspaceId: workspace.id,
       userId: session.user.id,
