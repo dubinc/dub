@@ -110,7 +110,7 @@ export const DraftControls = forwardRef<
               Restore drafts
             </span>
           ) : (
-            <span className="block flex gap-1 px-2.5 pb-2 pt-2 text-xs text-gray-500">
+            <span className="flex gap-1 px-2.5 pb-2 pt-2 text-xs text-gray-500">
               <CircleInfo className="size-3.5" />
               Your drafts will appear here
             </span>
@@ -150,7 +150,7 @@ export const DraftControls = forwardRef<
         type="button"
         variant="outline"
         className={cn(
-          "animate-fade-in group h-9 text-sm transition-colors data-[state=open]:bg-gray-200 data-[state=open]:text-gray-700",
+          "animate-fade-in group h-9 text-sm transition-colors data-[state=open]:bg-gray-100",
           isDirty && hasSaved
             ? "pl-3 pr-4 text-gray-400 hover:text-gray-600"
             : "pl-4 pr-3 text-gray-500 hover:text-gray-700",
