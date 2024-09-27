@@ -11,6 +11,7 @@ const config: Pick<Config, "presets"> = {
         // h/t to https://www.willliu.com/blog/Why-your-Tailwind-styles-aren-t-working-in-your-Turborepo
         "../../packages/ui/src/**/*{.js,.ts,.jsx,.tsx}",
         "../../packages/blocks/src/**/*{.js,.ts,.jsx,.tsx}",
+        "../../packages/link-builder/src/**/*{.js,.ts,.jsx,.tsx}",
       ],
       theme: {
         extend: {
