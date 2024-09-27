@@ -11,6 +11,7 @@ import {
   Magic,
   Tooltip,
   Twitter,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import {
@@ -171,6 +172,10 @@ export const ShortLinkInputNew = forwardRef<
       });
     }, [key, domain]);
 
+    const [isOpen, setIsOpen] = useState(false);
+
+    useKeyboardShortcut("d", () => setIsOpen(true), { modal: true });
+
     return (
       <div>
         <div className="flex items-center justify-between">
@@ -280,12 +285,15 @@ export const ShortLinkInputNew = forwardRef<
                 )
               }
               searchPlaceholder="Search domains..."
+              shortcutHint="D"
               buttonProps={{
                 className: cn(
-                  "w-24 sm:w-32 lg:w-36 h-full rounded-r-none border-r-0 justify-start px-2.5",
+                  "min-w-24 sm:min-w-32 h-full rounded-r-none border-r-0 justify-start px-2.5",
                   !key && "text-gray-600",
                 ),
               }}
+              open={isOpen}
+              onOpenChange={setIsOpen}
             />
           </div>
           <input
