@@ -1,5 +1,5 @@
 import { LinkWithTagsProps } from "@/lib/types";
-import { AnimatedSizeContainer, Popover, useMediaQuery } from "@dub/ui";
+import { AnimatedSizeContainer, Button, Popover, useMediaQuery } from "@dub/ui";
 import {
   CircleCheck,
   CircleInfo,
@@ -136,31 +136,33 @@ export const DraftControls = forwardRef<
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
     >
-      <button
+      <Button
         type="button"
+        variant="outline"
         className={cn(
-          "animate-fade-in group text-sm transition-colors",
+          "animate-fade-in group h-9 text-sm transition-colors data-[state=open]:bg-gray-200 data-[state=open]:text-gray-700",
           isDirty && hasSaved
-            ? "text-gray-400 hover:text-gray-600"
-            : "text-gray-500 hover:text-gray-700",
+            ? "pl-3 pr-4 text-gray-400 hover:text-gray-600"
+            : "pl-4 pr-3 text-gray-500 hover:text-gray-700",
         )}
-      >
-        {isDirty && hasSaved ? (
-          <div className="flex items-center justify-end gap-2">
-            {isSavePending ? (
-              <LoadingCircle className="size-3.5" />
-            ) : (
-              <CircleCheck className="size-3.5" />
-            )}
-            {isSavePending ? "Saving..." : "Draft saved"}
-          </div>
-        ) : drafts.length > 0 ? (
-          <div className="flex items-center justify-end gap-1">
-            Drafts
-            <ChevronDown className="size-3.5" />
-          </div>
-        ) : null}
-      </button>
+        text={
+          isDirty && hasSaved ? (
+            <div className="flex items-center justify-end gap-2">
+              {isSavePending ? (
+                <LoadingCircle className="size-3.5" />
+              ) : (
+                <CircleCheck className="size-3.5" />
+              )}
+              {isSavePending ? "Saving..." : "Draft saved"}
+            </div>
+          ) : drafts.length > 0 ? (
+            <div className="flex items-center justify-end gap-1">
+              Drafts
+              <ChevronDown className="size-3.5 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+            </div>
+          ) : null
+        }
+      />
     </Popover>
   ) : null;
 });
