@@ -28,12 +28,13 @@ export type DraftControlsHandle = {
 
 type DraftControlsProps = {
   props?: LinkWithTagsProps;
+  workspaceId: string;
 };
 
 export const DraftControls = forwardRef<
   DraftControlsHandle,
   DraftControlsProps
->(({ props }: DraftControlsProps, ref) => {
+>(({ props, workspaceId }: DraftControlsProps, ref) => {
   const { isMobile } = useMediaQuery();
 
   const {
@@ -54,6 +55,7 @@ export const DraftControls = forwardRef<
     removeDraft,
   } = useLinkDrafts({
     linkId: props?.id,
+    workspaceId,
   });
 
   const drafts = useMemo(() => {

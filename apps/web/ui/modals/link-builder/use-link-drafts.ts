@@ -9,8 +9,17 @@ export type LinkDraft = {
   link: Partial<LinkFormData>;
 };
 
-export function useLinkDrafts({ linkId }: { linkId?: string } = {}) {
-  const [drafts, setDrafts] = useLocalStorage<LinkDraft[]>("link-drafts", []);
+export function useLinkDrafts({
+  linkId,
+  workspaceId,
+}: {
+  linkId?: string;
+  workspaceId: string;
+}) {
+  const [drafts, setDrafts] = useLocalStorage<LinkDraft[]>(
+    `link-drafts:${workspaceId}`,
+    [],
+  );
 
   // Removes drafts older than 1 week, limiting to 10 drafts
   const removeOldDrafts = useCallback(() => {

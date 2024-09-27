@@ -333,7 +333,13 @@ function LinkBuilderInner({
               </div>
               {!homepageDemo && (
                 <div className="flex items-center gap-4">
-                  <DraftControls ref={draftControlsRef} props={props} />
+                  {!homepageDemo && workspaceId && (
+                    <DraftControls
+                      ref={draftControlsRef}
+                      props={props}
+                      workspaceId={workspaceId}
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={() => {
