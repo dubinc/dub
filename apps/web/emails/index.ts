@@ -13,15 +13,6 @@ const sendEmailViaSMTP = async ({
 }: Pick<CreateEmailOptions, "subject" | "text" | "react"> & {
   email: string;
 }) => {
-  const smtpConfigured = Boolean(
-    process.env.SMTP_HOST && process.env.SMTP_PORT,
-  );
-
-  if (!smtpConfigured) {
-    console.info("SMTP is not configured. Skipping sending email.");
-    return;
-  }
-
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
@@ -122,10 +113,21 @@ export const sendEmail = async ({
     });
   }
 
-  return await sendEmailViaSMTP({
-    email,
-    subject,
-    text,
-    react,
-  });
+  // Fallback to SMTP if Resend is not configured
+  const smtpConfigured = Boolean(
+    process.env.SMTP_HOST && process.env.SMTP_PORT,
+  );
+
+  if (smtpConfigured) {
+    return await sendEmailViaSMTP({
+      email,
+      subject,
+      text,
+      react,
+    });
+  }
+
+  console.info(
+    "Email sending failed: Neither SMTP nor Resend is configured. Please set up at least one email service to send emails.",
+  );
 };
