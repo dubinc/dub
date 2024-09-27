@@ -10,7 +10,7 @@ const sendEmailViaSMTP = async ({
   subject,
   text,
   react,
-}: Omit<CreateEmailOptions, "to" | "from"> & {
+}: Pick<CreateEmailOptions, "subject" | "text" | "react"> & {
   email: string;
 }) => {
   const smtpConfigured = Boolean(
@@ -43,10 +43,10 @@ const sendEmailViaSMTP = async ({
     html: render(react as ReactElement),
   });
 
-  console.log("Email sent: %s", info.messageId);
+  console.info("Email sent: %s", info.messageId);
 };
 
-export const sendEmail = async ({
+export const sendEmailViaResend = async ({
   email,
   subject,
   from,
@@ -62,15 +62,6 @@ export const sendEmail = async ({
   replyToFromEmail?: boolean;
   marketing?: boolean;
 }) => {
-  if (process.env.NODE_ENV === "development") {
-    return await sendEmailViaSMTP({
-      email,
-      subject,
-      text,
-      react,
-    });
-  }
-
   if (!resend) {
     console.info(
       "RESEND_API_KEY is not set in the .env. Skipping sending email.",
@@ -78,7 +69,7 @@ export const sendEmail = async ({
     return;
   }
 
-  return resend?.emails.send({
+  return await resend.emails.send({
     to: email,
     from:
       from ||
@@ -98,5 +89,43 @@ export const sendEmail = async ({
         "List-Unsubscribe": "https://app.dub.co/account/settings",
       },
     }),
+  });
+};
+
+export const sendEmail = async ({
+  email,
+  subject,
+  from,
+  bcc,
+  replyToFromEmail,
+  text,
+  react,
+  scheduledAt,
+  marketing,
+}: Omit<CreateEmailOptions, "to" | "from"> & {
+  email: string;
+  from?: string;
+  replyToFromEmail?: boolean;
+  marketing?: boolean;
+}) => {
+  if (resend) {
+    return await sendEmailViaResend({
+      email,
+      subject,
+      from,
+      bcc,
+      replyToFromEmail,
+      text,
+      react,
+      scheduledAt,
+      marketing,
+    });
+  }
+
+  return await sendEmailViaSMTP({
+    email,
+    subject,
+    text,
+    react,
   });
 };
