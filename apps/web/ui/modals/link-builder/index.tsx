@@ -220,12 +220,12 @@ function LinkBuilderInner({
         showModal={showLinkBuilder}
         setShowModal={setShowLinkBuilder}
         className="max-w-screen-lg"
-        preventDefaultClose={homepageDemo ? false : true}
         onClose={() => {
           if (searchParams.has("newLink"))
             queryParams({
               del: ["newLink", "newLinkDomain"],
             });
+          draftControlsRef.current?.onClose();
         }}
       >
         <LinkModalContext.Provider
@@ -349,6 +349,7 @@ function LinkBuilderInner({
                           del: ["newLink"],
                         });
                       }
+                      draftControlsRef.current?.onClose();
                     }}
                     className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
                   >

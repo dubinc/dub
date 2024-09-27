@@ -48,12 +48,13 @@ export function useLinkDrafts({
     setDrafts(drafts.filter((draft) => draft.id !== id));
   };
 
-  const filteredDrafts = useMemo(() => {
-    console.log(linkId, drafts);
-    return linkId
-      ? drafts.filter((draft) => draft.link.id === linkId)
-      : drafts.filter((draft) => !draft.link.id);
-  }, [drafts, linkId]);
+  const filteredDrafts = useMemo(
+    () =>
+      linkId
+        ? drafts.filter((draft) => draft.link.id === linkId)
+        : drafts.filter((draft) => !draft.link.id),
+    [drafts, linkId],
+  );
 
   return { drafts: filteredDrafts, saveDraft, removeDraft };
 }

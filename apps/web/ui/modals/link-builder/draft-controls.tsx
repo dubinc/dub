@@ -24,6 +24,7 @@ import { LinkDraft, useLinkDrafts } from "./use-link-drafts";
 
 export type DraftControlsHandle = {
   onSubmitSuccessful: () => void;
+  onClose: () => void;
 };
 
 type DraftControlsProps = {
@@ -88,9 +89,16 @@ export const DraftControls = forwardRef<
           // Remove the current draft when it's submitted
           removeDraft(sessionId);
         },
+        onClose() {
+          // Save draft instantly when the link builder is closed
+          const [url, key] = getValues(["url", "key"]);
+          if ((url || key) && isDirty) {
+            saveDraft(sessionId, getValues());
+          }
+        },
       };
     },
-    [sessionId],
+    [sessionId, isDirty],
   );
 
   return (isDirty && hasSaved) || drafts.length > 0 ? (
