@@ -1,8 +1,6 @@
 import { Resend } from "resend";
 
-const resendApiKey = process.env.RESEND_API_KEY;
-
-export const resend = resendApiKey ? new Resend(resendApiKey) : null;
+export const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function subscribe({
   email,
@@ -11,14 +9,12 @@ export async function subscribe({
   email: string;
   name?: string | null;
 }) {
-  const audienceId = process.env.RESEND_AUDIENCE_ID;
-
-  if (!audienceId) {
-    console.error("RESEND_AUDIENCE_ID is not set in the .env. Skipping.");
+  if (!process.env.RESEND_API_KEY || !process.env.RESEND_AUDIENCE_ID) {
+    console.error("Resend API key or audience ID not found");
     return;
   }
 
-  return await resend?.contacts.create({
+  return await resend.contacts.create({
     email,
     ...(name && {
       firstName: name.split(" ")[0],
@@ -29,7 +25,7 @@ export async function subscribe({
 }
 
 export async function unsubscribe({ email }: { email: string }) {
-  return await resend?.contacts.remove({
+  return await resend.contacts.remove({
     email,
     audienceId: process.env.RESEND_AUDIENCE_ID as string,
   });
