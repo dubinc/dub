@@ -321,8 +321,19 @@ export const bulkCreateLinksBodySchema = z
 export const bulkUpdateLinksBodySchema = z.object({
   linkIds: z
     .array(z.string())
-    .min(1, "No links updated – you must provide at least one link.")
-    .max(100, "You can only update up to 100 links at a time."),
+    .describe(
+      "The IDs of the links to update. Takes precedence over `externalIds`.",
+    )
+    .max(100, "You can only update up to 100 links at a time.")
+    .default([]),
+  externalIds: z
+    .array(z.string())
+    .describe(
+      "The external IDs of the links to update as stored in your database.",
+    )
+    .max(100, "You can only update up to 100 links at a time.")
+    .refine((v) => v.map((id) => id.replace("ext_", "")))
+    .default([]),
   data: createLinkBodySchema
     .omit({
       id: true,
@@ -542,10 +553,8 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
     externalId: z
       .string()
       .optional()
-      .describe(
-        "This is the ID of the link in the your database. Must be prefixed with `ext_` when passed as a query parameter.",
-      )
-      .openapi({ example: "ext_123456" }),
+      .describe("This is the ID of the link in the your database.")
+      .openapi({ example: "123456" }),
   }),
 );
 
