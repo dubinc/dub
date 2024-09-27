@@ -18,21 +18,14 @@ export const sendEmail = async ({
   marketing?: boolean;
 }) => {
   if (process.env.NODE_ENV === "development" && !resend) {
-    // Set up a fake email client for development
     console.info(
-      `Email to ${email} with subject ${subject} sent from ${
-        from || process.env.NEXT_PUBLIC_APP_NAME
-      }`,
+      "RESEND_API_KEY is not set in the .env. Skipping sending email.",
     );
-    return Promise.resolve();
-  } else if (!resend) {
-    console.error(
-      "Resend is not configured. You need to add a RESEND_API_KEY in your .env file for emails to work.",
-    );
+
     return Promise.resolve();
   }
 
-  return resend.emails.send({
+  return resend?.emails.send({
     to: email,
     from:
       from ||
