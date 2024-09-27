@@ -1,6 +1,5 @@
 # This is meant for local development only. Do not use this in production.
 version: "3.8"
-
 services:
   ps-mysql:
     image: mysql:8.0
@@ -18,7 +17,6 @@ services:
       - 3306:3306
     volumes:
       - ps-mysql:/var/lib/mysql
-
   planetscale-proxy:
     image: ghcr.io/mattrobenolt/ps-http-sim:latest
     command:
@@ -34,12 +32,5 @@ services:
       - 3900:3900
     links:
       - ps-mysql
-
-  mailhog:
-    image: "mailhog/mailhog:latest"
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-
 volumes:
   ps-mysql:
