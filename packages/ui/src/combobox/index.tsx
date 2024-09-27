@@ -43,7 +43,7 @@ export type ComboboxProps<
     : (tag: ComboboxOption<TMeta> | null) => void;
   options?: ComboboxOption<TMeta>[];
   icon?: Icon | ReactNode;
-  placeholder?: string;
+  placeholder?: ReactNode;
   searchPlaceholder?: string;
   emptyState?: ReactNode;
   createLabel?: (search: string) => ReactNode;
@@ -114,10 +114,12 @@ export function Combobox({
           ? selected.filter(({ value }) => value !== option.value)
           : [...selected, option],
       );
-    } else
+    } else {
       setSelected(
         selected.length && selected[0]?.value === option.value ? null : option,
       );
+      setIsOpen(false);
+    }
   };
 
   const sortOptions = useCallback(

@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
-import { ShortLinkInput } from "@/ui/links/short-link-input";
+import { ShortLinkInputNew } from "@/ui/links/short-link-input-new";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
@@ -391,7 +391,7 @@ function LinkBuilderInner({
                   />
 
                   {key !== "_root" && (
-                    <ShortLinkInput
+                    <ShortLinkInputNew
                       ref={keyRef}
                       domain={domain}
                       _key={key}
