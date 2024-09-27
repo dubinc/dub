@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, FileUpload } from "@dub/ui";
+import { Button, FileUpload, getUserAvatarUrl } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -11,12 +11,7 @@ export default function UploadAvatar() {
   const [image, setImage] = useState<string | null>();
 
   useEffect(() => {
-    setImage(
-      session?.user?.image ||
-        (session?.user?.email
-          ? `https://api.dicebear.com/7.x/micah/svg?seed=${session?.user?.email}`
-          : null),
-    );
+    setImage(session?.user ? getUserAvatarUrl(session.user) : null);
   }, [session]);
 
   const [uploading, setUploading] = useState(false);

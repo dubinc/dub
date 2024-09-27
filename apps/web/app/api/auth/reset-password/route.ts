@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Find the token
-    const tokenFound = await prisma.verificationToken.findFirst({
+    const tokenFound = await prisma.passwordResetToken.findFirst({
       where: {
         token,
         expires: {
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.$transaction([
       // Delete the token
-      prisma.verificationToken.deleteMany({
+      prisma.passwordResetToken.deleteMany({
         where: {
           token,
         },

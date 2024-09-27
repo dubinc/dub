@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function RegisterForm() {
+export const SignUpOAuth = () => {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const [clickedGoogle, setClickedGoogle] = useState(false);
@@ -47,4 +47,4 @@ export default function RegisterForm() {
       />
     </>
   );
-}
+};
