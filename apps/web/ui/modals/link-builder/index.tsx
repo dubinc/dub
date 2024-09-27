@@ -7,6 +7,7 @@ import { ShortLinkInputNew } from "@/ui/links/short-link-input-new";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
+import { UTMBuilder } from "@dub/link-builder";
 import {
   Button,
   InfoTooltip,
@@ -56,7 +57,6 @@ import { QRCodePreview } from "./qr-code-preview";
 import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
-import { UTMBuilder } from "./utm-builder";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -411,7 +411,15 @@ function LinkBuilderInner({
                     />
                   )}
 
-                  <UTMBuilder />
+                  <UTMBuilder
+                    url={url}
+                    setUrl={(url) =>
+                      setValue("url", url, { shouldDirty: true })
+                    }
+                    setValue={(key, value) =>
+                      setValue(key as any, value, { shouldDirty: true })
+                    }
+                  />
 
                   <div>
                     <div className="flex items-center gap-2">

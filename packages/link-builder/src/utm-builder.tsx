@@ -21,8 +21,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 
 const parameters = [
   {
@@ -67,13 +65,18 @@ const parameters = [
     placeholder: "google",
     shortcut: "R",
   },
-];
+] as const;
 
-export function UTMBuilder() {
+export function UTMBuilder({
+  url,
+  setUrl,
+  setValue,
+}: {
+  url: string;
+  setUrl: (url: string) => void;
+  setValue: (key: (typeof parameters)[number]["key"], value: string) => void;
+}) {
   const id = useId();
-
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const url = watch("url");
 
   const params = useMemo(() => getParamsFromURL(url), [url]);
 
@@ -97,14 +100,12 @@ export function UTMBuilder() {
         setJustToggled(key);
       } else {
         setToggledParams((prev) => prev.filter((k) => k !== key));
-        setValue(key as any, "", { shouldDirty: true });
-        setValue(
-          "url",
+        setValue(key as any, "");
+        setUrl(
           constructURLFromUTMParams(url, {
             ...params,
             [key]: "",
           }),
-          { shouldDirty: true },
         );
       }
     },
@@ -199,14 +200,12 @@ export function UTMBuilder() {
                   className="h-full grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
                   value={params[key] || ""}
                   onChange={(e) => {
-                    setValue(key as any, e.target.value, { shouldDirty: true });
-                    setValue(
-                      "url",
+                    setValue(key, e.target.value);
+                    setUrl(
                       constructURLFromUTMParams(url, {
                         ...params,
                         [key]: e.target.value,
                       }),
-                      { shouldDirty: true },
                     );
                   }}
                 />
