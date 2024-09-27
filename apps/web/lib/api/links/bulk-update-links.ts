@@ -9,7 +9,10 @@ import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function bulkUpdateLinks(
-  params: z.infer<typeof bulkUpdateLinksBodySchema> & { workspaceId: string },
+  // omit externalIds from params
+  params: Omit<z.infer<typeof bulkUpdateLinksBodySchema>, "externalIds"> & {
+    workspaceId: string;
+  },
 ) {
   const { linkIds, data, workspaceId } = params;
 

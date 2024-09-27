@@ -143,18 +143,20 @@ export const POST = withWorkspace(
 // PATCH /api/links/bulk – bulk update up to 100 links with the same data
 export const PATCH = withWorkspace(
   async ({ req, workspace, headers }) => {
-    const { linkIds, data } = bulkUpdateLinksBodySchema.parse(
+    const { linkIds, externalIds, data } = bulkUpdateLinksBodySchema.parse(
       await parseRequestBody(req),
     );
 
-    if (linkIds.length === 0) {
+    if (linkIds.length === 0 && externalIds.length === 0) {
       return NextResponse.json("No links to update", { headers });
     }
 
     const links = await prisma.link.findMany({
       where: {
-        id: { in: linkIds },
         projectId: workspace.id,
+        ...(linkIds.length > 0
+          ? { id: { in: linkIds } }
+          : { externalId: { in: externalIds } }),
       },
     });
 
@@ -165,7 +167,18 @@ export const PATCH = withWorkspace(
         error: "Link not found",
         code: "not_found",
         link: { id },
-      }));
+      }))
+      .concat(
+        externalIds
+          .filter(
+            (id) => links.find((link) => link.externalId === id) === undefined,
+          )
+          .map((id) => ({
+            error: "Link not found",
+            code: "not_found",
+            link: { id },
+          })),
+      );
 
     let { tagNames, expiresAt } = data;
     const tagIds = combineTagIds(data);
