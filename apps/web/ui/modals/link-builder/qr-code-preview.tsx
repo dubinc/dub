@@ -13,46 +13,53 @@ import { useContext, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { LinkFormData, LinkModalContext } from ".";
-import { QRCodeDesign, useQRCodeDesignModal } from "./qr-code-design-modal";
+import { QRCodeDesign, useLinkQRModal } from "../link-qr-modal";
 
 export function QRCodePreview() {
   const { isMobile } = useMediaQuery();
-  const { workspaceLogo, workspacePlan } = useContext(LinkModalContext);
+  const { workspaceLogo, workspacePlan, workspaceId } =
+    useContext(LinkModalContext);
 
   const { watch } = useFormContext<LinkFormData>();
   const { key: rawKey, domain: rawDomain } = watch();
   const [key] = useDebounce(rawKey, 500);
   const [domain] = useDebounce(rawDomain, 500);
 
-  const [data, setData] = useLocalStorage<QRCodeDesign>("qr-code-design", {
-    fgColor: "#000000",
-    showLogo: true,
-  });
+  const [data, setData] = useLocalStorage<QRCodeDesign>(
+    `qr-code-design-${workspaceId}`,
+    {
+      fgColor: "#000000",
+      showLogo: true,
+    },
+  );
 
   const shortLinkUrl = useMemo(() => {
     return key && domain ? linkConstructor({ key, domain }) : undefined;
   }, [key, domain]);
+
+  const showLogo = data.showLogo || workspacePlan === "free";
 
   const logo =
     workspaceLogo && workspacePlan !== "free"
       ? workspaceLogo
       : "https://assets.dub.co/logo.png";
 
-  const { QRCodeDesignModal, setShowQRCodeDesignModal } = useQRCodeDesignModal({
-    data,
-    setData,
-    url: shortLinkUrl,
-    logo,
+  const { LinkQRModal, setShowLinkQRModal } = useLinkQRModal({
+    props: {
+      key: rawKey,
+      domain: rawDomain,
+    },
+    onSave: (data) => setData(data),
   });
 
-  useKeyboardShortcut("q", () => setShowQRCodeDesignModal(true), {
+  useKeyboardShortcut("q", () => setShowLinkQRModal(true), {
     modal: true,
     enabled: Boolean(shortLinkUrl),
   });
 
   return (
     <div>
-      <QRCodeDesignModal />
+      <LinkQRModal />
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-gray-700">QR Code</h2>
         <Button
@@ -60,7 +67,7 @@ export function QRCodePreview() {
           variant="outline"
           icon={<Pen2 className="mx-px size-4" />}
           className="h-7 w-fit px-1"
-          onClick={() => setShowQRCodeDesignModal(true)}
+          onClick={() => setShowLinkQRModal(true)}
           disabledTooltip={
             key && domain ? undefined : "Enter a short link to customize"
           }
@@ -83,7 +90,7 @@ export function QRCodePreview() {
               <QRCode
                 url={shortLinkUrl}
                 fgColor={data.fgColor}
-                showLogo={data.showLogo}
+                showLogo={showLogo}
                 logo={logo}
                 scale={0.5}
               />

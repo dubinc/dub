@@ -75,7 +75,7 @@ function OGModalInner({
     },
   });
 
-  const url = watchParent("url");
+  const [url, parentProxy] = watchParent(["url", "proxy"]);
   const { image, title, description } = watch();
 
   const { setShowPromptModal, PromptModal } = usePromptModal({
@@ -430,7 +430,21 @@ function OGModalInner({
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex items-center justify-between">
+            <div>
+              {parentProxy && (
+                <button
+                  type="button"
+                  className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+                  onClick={() => {
+                    setValueParent("proxy", false, { shouldDirty: true });
+                    setShowOGModal(false);
+                  }}
+                >
+                  Reset to default
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 type="button"

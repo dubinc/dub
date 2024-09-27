@@ -3,10 +3,11 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
-import { ShortLinkInput } from "@/ui/links/short-link-input";
+import { ShortLinkInputNew } from "@/ui/links/short-link-input-new";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
+import { UTMBuilder } from "@dub/link-builder";
 import {
   Button,
   InfoTooltip,
@@ -46,6 +47,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { DraftControls, DraftControlsHandle } from "./draft-controls";
 import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
 import { MoreDropdown } from "./more-dropdown";
@@ -55,7 +57,6 @@ import { QRCodePreview } from "./qr-code-preview";
 import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
-import { UTMBuilder } from "./utm-builder";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -120,8 +121,14 @@ function LinkBuilderInner({
     formState: { isDirty, isSubmitting, isSubmitSuccessful, errors },
   } = useFormContext<LinkFormData>();
 
-  const data = watch();
-  const { url, domain, key, proxy } = data;
+  const [url, domain, key, proxy, title, description] = watch([
+    "url",
+    "domain",
+    "key",
+    "proxy",
+    "title",
+    "description",
+  ]);
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const endpoint = useMemo(
@@ -160,7 +167,14 @@ function LinkBuilderInner({
         errors.url ||
         (props && !isDirty),
     );
-  }, [showLinkBuilder, isSubmitting, isSubmitSuccessful, errors, props, data]);
+  }, [
+    showLinkBuilder,
+    isSubmitting,
+    isSubmitSuccessful,
+    errors,
+    props,
+    isDirty,
+  ]);
 
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -184,12 +198,14 @@ function LinkBuilderInner({
   const shortLink = useMemo(
     () =>
       linkConstructor({
-        key: data.key,
-        domain: data.domain,
+        key,
+        domain,
         pretty: true,
       }),
-    [data.key, data.domain],
+    [key, domain],
   );
+
+  const draftControlsRef = useRef<DraftControlsHandle>(null);
 
   const { PasswordModal, PasswordButton } = usePasswordModal();
   const { TargetingModal, TargetingButton } = useTargetingModal();
@@ -204,12 +220,12 @@ function LinkBuilderInner({
         showModal={showLinkBuilder}
         setShowModal={setShowLinkBuilder}
         className="max-w-screen-lg"
-        preventDefaultClose={homepageDemo ? false : true}
         onClose={() => {
           if (searchParams.has("newLink"))
             queryParams({
               del: ["newLink", "newLinkDomain"],
             });
+          draftControlsRef.current?.onClose();
         }}
       >
         <LinkModalContext.Provider
@@ -232,6 +248,8 @@ function LinkBuilderInner({
 
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
+                ios: rest.ios || null,
+                android: rest.android || null,
               };
 
               try {
@@ -270,6 +288,7 @@ function LinkBuilderInner({
                     }
                   } else toast.success("Successfully updated shortlink!");
 
+                  draftControlsRef.current?.onSubmitSuccessful();
                   setShowLinkBuilder(false);
                 } else {
                   const { error } = await res.json();
@@ -315,20 +334,30 @@ function LinkBuilderInner({
                 </h3>
               </div>
               {!homepageDemo && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowLinkBuilder(false);
-                    if (searchParams.has("newLink")) {
-                      queryParams({
-                        del: ["newLink"],
-                      });
-                    }
-                  }}
-                  className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="flex items-center gap-4">
+                  {!homepageDemo && workspaceId && (
+                    <DraftControls
+                      ref={draftControlsRef}
+                      props={props}
+                      workspaceId={workspaceId}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLinkBuilder(false);
+                      if (searchParams.has("newLink")) {
+                        queryParams({
+                          del: ["newLink"],
+                        });
+                      }
+                      draftControlsRef.current?.onClose();
+                    }}
+                    className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               )}
             </div>
 
@@ -362,7 +391,7 @@ function LinkBuilderInner({
                   />
 
                   {key !== "_root" && (
-                    <ShortLinkInput
+                    <ShortLinkInputNew
                       ref={keyRef}
                       domain={domain}
                       _key={key}
@@ -375,14 +404,22 @@ function LinkBuilderInner({
                         if (d.key !== undefined)
                           setValue("key", d.key, { shouldDirty: true });
                       }}
-                      data={data}
+                      data={{ url, title, description }}
                       saving={isSubmitting || isSubmitSuccessful}
                       loading={loading}
                       domains={domains}
                     />
                   )}
 
-                  <UTMBuilder />
+                  <UTMBuilder
+                    url={url}
+                    setUrl={(url) =>
+                      setValue("url", url, { shouldDirty: true })
+                    }
+                    setValue={(key, value) =>
+                      setValue(key as any, value, { shouldDirty: true })
+                    }
+                  />
 
                   <div>
                     <div className="flex items-center gap-2">

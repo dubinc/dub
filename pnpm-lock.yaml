@@ -50,6 +50,9 @@ importers:
       '@dub/blocks':
         specifier: workspace:*
         version: link:../../packages/blocks
+      '@dub/link-builder':
+        specifier: workspace:*
+        version: link:../../packages/link-builder
       '@dub/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
@@ -197,6 +200,9 @@ importers:
       fuse.js:
         specifier: ^6.6.2
         version: 6.6.2
+      geist:
+        specifier: ^1.3.1
+        version: 1.3.1(next@14.3.0-canary.42)
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
@@ -444,6 +450,52 @@ importers:
       framer-motion:
         specifier: ^10.16.16
         version: 10.18.0(react-dom@18.2.0)(react@18.2.0)
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
+    devDependencies:
+      '@dub/tailwind-config':
+        specifier: workspace:*
+        version: link:../tailwind-config
+      '@types/react':
+        specifier: ^18.2.47
+        version: 18.2.48
+      '@types/react-dom':
+        specifier: ^18.2.14
+        version: 18.2.14
+      autoprefixer:
+        specifier: ^10.4.16
+        version: 10.4.16(postcss@8.4.38)
+      next:
+        specifier: 14.2.0-canary.67
+        version: 14.2.0-canary.67(react-dom@18.2.0)(react@18.2.0)
+      postcss:
+        specifier: ^8.4.31
+        version: 8.4.38
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      tailwindcss:
+        specifier: ^3.4.4
+        version: 3.4.4
+      tsconfig:
+        specifier: workspace:*
+        version: link:../tsconfig
+      tsup:
+        specifier: ^6.1.3
+        version: 6.1.3(postcss@8.4.38)(typescript@5.5.3)
+      typescript:
+        specifier: ^5.1.6
+        version: 5.5.3
+
+  packages/link-builder:
+    dependencies:
+      '@dub/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@dub/utils':
+        specifier: workspace:*
+        version: link:../utils
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
@@ -13275,6 +13327,14 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
+    dev: false
+
+  /geist@1.3.1(next@14.3.0-canary.42):
+    resolution: {integrity: sha512-Q4gC1pBVPN+D579pBaz0TRRnGA4p9UK6elDY/xizXdFk/g4EKR5g0I+4p/Kj6gM0SajDBZ/0FvDV9ey9ud7BWw==}
+    peerDependencies:
+      next: '>=13.2.0'
+    dependencies:
+      next: 14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0)(react@18.2.0)
     dev: false
 
   /generate-function@2.3.1:
