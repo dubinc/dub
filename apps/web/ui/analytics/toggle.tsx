@@ -725,7 +725,7 @@ export default function Toggle({
           ]}
           onRemove={(key) =>
             queryParams({
-              del: key === "link" ? ["domain", "key"] : key,
+              del: key === "link" ? ["domain", "key", "url"] : key,
             })
           }
           onRemoveAll={() =>
