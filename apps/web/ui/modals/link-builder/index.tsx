@@ -248,6 +248,8 @@ function LinkBuilderInner({
 
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
+                ios: rest.ios || null,
+                android: rest.android || null,
               };
 
               try {

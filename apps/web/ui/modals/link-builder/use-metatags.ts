@@ -12,7 +12,7 @@ export function useMetatags({
   enabled: boolean;
 }) {
   const { watch, setValue } = useFormContext<LinkFormData>();
-  const { url, password } = watch();
+  const [url, password, proxy] = watch(["url", "password", "proxy"]);
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(initial);
@@ -36,7 +36,7 @@ export function useMetatags({
      * - custom OG proxy is not enabled
      * - url is not empty
      **/
-    if (enabled) {
+    if (enabled && !proxy) {
       setValue("title", null);
       setValue("description", null);
       setValue("image", null);
@@ -59,7 +59,7 @@ export function useMetatags({
     } else {
       setGeneratingMetatags(false);
     }
-  }, [debouncedUrl, password, enabled]);
+  }, [debouncedUrl, password, proxy, enabled]);
 
   return { generatingMetatags };
 }
