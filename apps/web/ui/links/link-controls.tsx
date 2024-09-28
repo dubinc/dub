@@ -2,7 +2,6 @@ import useFolders from "@/lib/swr/use-folders";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
-import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
 import {
   Button,
   CardList,
@@ -19,6 +18,7 @@ import { useParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useLinkQRModal } from "../modals/link-qr-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";

@@ -67,6 +67,7 @@
     "dub": "^0.41.0",
     "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",
+    "geist": "^1.3.1",
     "github-slugger": "^2.0.0",
     "he": "^1.2.0",
     "html-escaper": "^3.0.3",

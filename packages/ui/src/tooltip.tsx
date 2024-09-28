@@ -11,7 +11,7 @@ import { Button, ButtonProps, buttonVariants } from "./button";
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
-    <TooltipPrimitive.Provider delayDuration={100}>
+    <TooltipPrimitive.Provider delayDuration={150}>
       {children}
     </TooltipPrimitive.Provider>
   );

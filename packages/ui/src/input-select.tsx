@@ -101,7 +101,9 @@ export function InputSelect({
 
     return inputChanged
       ? // Filter the items
-        items.filter((item) => item.value.toLowerCase().includes(search))
+        items.filter((item: InputSelectItemProps) =>
+          item.value.toLowerCase().includes(search),
+        )
       : inputValue
         ? // Just sort the items instead of filtering
           items.sort(

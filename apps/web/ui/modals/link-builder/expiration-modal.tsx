@@ -20,6 +20,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -62,6 +63,15 @@ function ExpirationModal({
   const expiresAtParent = watchParent("expiresAt");
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Hacky fix to focus the input automatically, not sure why autoFocus doesn't work here
+  useEffect(() => {
+    if (inputRef.current && !isMobile) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
+    }
+  }, []);
 
   return (
     <>

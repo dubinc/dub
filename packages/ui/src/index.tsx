@@ -29,6 +29,7 @@ export * from "./switch";
 export * from "./table";
 export * from "./toggle-group";
 export * from "./tooltip";
+export * from "./utm-builder";
 
 // hooks
 export * from "./hooks";
@@ -50,6 +51,7 @@ export * from "./animated-size-container";
 export * from "./blur-image";
 export * from "./client-only";
 export * from "./copy-button";
+export * from "./copy-text";
 export * from "./counting-numbers";
 export * from "./icon-menu";
 export * from "./inline-snippet";

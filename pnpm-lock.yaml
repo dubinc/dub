@@ -197,6 +197,9 @@ importers:
       fuse.js:
         specifier: ^6.6.2
         version: 6.6.2
+      geist:
+        specifier: ^1.3.1
+        version: 1.3.1(next@14.3.0-canary.42)
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
@@ -13299,6 +13302,14 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
+    dev: false
+
+  /geist@1.3.1(next@14.3.0-canary.42):
+    resolution: {integrity: sha512-Q4gC1pBVPN+D579pBaz0TRRnGA4p9UK6elDY/xizXdFk/g4EKR5g0I+4p/Kj6gM0SajDBZ/0FvDV9ey9ud7BWw==}
+    peerDependencies:
+      next: '>=13.2.0'
+    dependencies:
+      next: 14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0)(react@18.2.0)
     dev: false
 
   /generate-function@2.3.1:
