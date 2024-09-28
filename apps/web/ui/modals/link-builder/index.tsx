@@ -7,7 +7,6 @@ import { ShortLinkInputNew } from "@/ui/links/short-link-input-new";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { UTMBuilder } from "@dub/link-builder";
 import {
   Button,
   InfoTooltip,
@@ -17,6 +16,7 @@ import {
   TooltipContent,
   useKeyboardShortcut,
   useRouterStuff,
+  UTMBuilder,
 } from "@dub/ui";
 import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {

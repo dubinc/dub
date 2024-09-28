@@ -1,17 +1,3 @@
-import {
-  AnimatedSizeContainer,
-  InfoTooltip,
-  SimpleTooltipContent,
-  useKeyboardShortcut,
-} from "@dub/ui";
-import {
-  Flag6,
-  GlobePointer,
-  InputSearch,
-  LinkBroken,
-  Page2,
-  SatelliteDish,
-} from "@dub/ui/src/icons";
 import { cn, constructURLFromUTMParams, getParamsFromURL } from "@dub/utils";
 import {
   Fragment,
@@ -21,6 +7,17 @@ import {
   useMemo,
   useState,
 } from "react";
+import { AnimatedSizeContainer } from "./animated-size-container";
+import { useKeyboardShortcut } from "./hooks";
+import {
+  Flag6,
+  GlobePointer,
+  InputSearch,
+  LinkBroken,
+  Page2,
+  SatelliteDish,
+} from "./icons";
+import { InfoTooltip, SimpleTooltipContent } from "./tooltip";
 
 const parameters = [
   {
@@ -197,7 +194,7 @@ export function UTMBuilder({
                   type="text"
                   id={`${id}-${key}`}
                   placeholder={placeholder}
-                  className="h-full grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+                  className="h-full min-w-0 grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
                   value={params[key] || ""}
                   onChange={(e) => {
                     setValue(key, e.target.value);
