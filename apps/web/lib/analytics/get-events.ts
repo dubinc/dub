@@ -10,7 +10,7 @@ import {
   clickEventSchema,
   clickEventSchemaTBEndpoint,
 } from "../zod/schemas/clicks";
-import { customerSchema } from "../zod/schemas/customers";
+import { CustomerSchema } from "../zod/schemas/customers";
 import {
   leadEventResponseSchema,
   leadEventSchemaTBEndpoint,
@@ -167,7 +167,7 @@ const getCustomersMap = async (customerIds: string[]) => {
 
   return customers.reduce(
     (acc, customer) => {
-      acc[customer.id] = customerSchema.parse({
+      acc[customer.id] = CustomerSchema.parse({
         id: customer.externalId ?? customer.id,
         name: customer.name || "",
         email: customer.email || "",
@@ -177,6 +177,6 @@ const getCustomersMap = async (customerIds: string[]) => {
       });
       return acc;
     },
-    {} as Record<string, z.infer<typeof customerSchema>>,
+    {} as Record<string, z.infer<typeof CustomerSchema>>,
   );
 };

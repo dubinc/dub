@@ -1,5 +1,37 @@
 import z from "@/lib/zod";
 
+export const createCustomerBodySchema = z.object({
+  id: z
+    .string()
+    .describe("Unique identifier for the customer in the client's app."),
+  email: z
+    .string()
+    .email()
+    .nullish()
+    .describe("Email of the customer in the client's app."),
+  name: z
+    .string()
+    .nullish()
+    .describe(
+      "Name of the customer in the client's app. If not provided, a random name will be generated.",
+    ),
+  avatar: z
+    .string()
+    .url()
+    .nullish()
+    .describe("Avatar of the customer in the client's app."),
+});
+
+export const updateCustomerBodySchema = createCustomerBodySchema.partial();
+
+// customer object schema
+export const CustomerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().nullish(),
+  avatar: z.string().nullish(),
+});
+
 export const trackCustomerRequestSchema = z.object({
   // Required
   customerId: z
@@ -35,12 +67,4 @@ export const trackCustomerResponseSchema = z.object({
   customerName: z.string().nullable(),
   customerEmail: z.string().nullable(),
   customerAvatar: z.string().nullable(),
-});
-
-// simple schema returned by /events API
-export const customerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  avatar: z.string(),
 });
