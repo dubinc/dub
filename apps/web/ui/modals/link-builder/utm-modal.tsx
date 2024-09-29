@@ -214,7 +214,7 @@ function UTMButton({
   return (
     <Button
       variant="secondary"
-      text="UTM Tags"
+      text="UTM Builder"
       icon={
         <MultiTagsIcon
           tags={
