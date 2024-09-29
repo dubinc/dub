@@ -11,10 +11,14 @@ import { NextResponse } from "next/server";
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ workspace }) => {
     const customers = await prisma.customer.findMany({
       where: {
         projectId: workspace.id,
+      },
+      take: 100,
+      orderBy: {
+        createdAt: "asc",
       },
     });
 
