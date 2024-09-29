@@ -159,7 +159,7 @@ function UTMModal({
                     id={`${id}-${key}`}
                     placeholder={placeholder}
                     disabled={!isValidUrl(url)}
-                    className="h-full min-w-0 grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 disabled:cursor-not-allowed disabled:bg-gray-100/50 sm:text-sm"
+                    className="h-full min-w-0 grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 disabled:cursor-not-allowed sm:text-sm"
                     value={enabledParams[key] || ""}
                     onChange={(e) => {
                       setValue(
