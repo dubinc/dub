@@ -1,5 +1,5 @@
 import { cn } from "@dub/utils";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const vertexShader = `
 attribute vec2 position;
@@ -45,6 +45,9 @@ void main(void) {
 }
 `;
 
+const TARGET_FPS = 60;
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
+
 export function ShimmerDots({
   dotSize = 1,
   cellSize = 3,
@@ -58,6 +61,9 @@ export function ShimmerDots({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Whether the WebGL context has been lost
+  const [contextLost, setContextLost] = useState(false);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !canvas.parentElement) return;
@@ -67,7 +73,11 @@ export function ShimmerDots({
     canvas.width = parent.clientWidth * devicePixelRatio;
     canvas.height = parent.clientHeight * devicePixelRatio;
 
-    const gl = canvas.getContext("webgl");
+    const gl = canvas.getContext("webgl", {
+      powerPreference: "low-power",
+      depth: false,
+      stencil: false,
+    });
 
     if (gl === null) {
       alert("Failed to initialize WebGL");
@@ -117,13 +127,22 @@ export function ShimmerDots({
     gl.enableVertexAttribArray(position);
     gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
-    gl.enable(gl.DEPTH_TEST);
-
     gl.uniform1f(dotSizeUniform, dotSize * window.devicePixelRatio);
     gl.uniform1f(cellSizeUniform, cellSize * window.devicePixelRatio);
     gl.uniform1f(speedUniform, speed);
 
+    let animationFrameId: number;
+    let lastTimestamp = 0;
+
     function render(timestamp: number) {
+      // Skip unncessary frames
+      if (timestamp - lastTimestamp < FRAME_INTERVAL) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
+      lastTimestamp = timestamp;
+
       if (gl && canvas && shaderProgram) {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -131,14 +150,28 @@ export function ShimmerDots({
         gl.uniform2f(resolution, canvas.width, canvas.height);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
-      requestAnimationFrame(render);
+      animationFrameId = requestAnimationFrame(render);
     }
 
-    requestAnimationFrame(render);
-  }, []);
+    animationFrameId = requestAnimationFrame(render);
+
+    // We'll just hide the canvas when the context is lost since it's generally non-essential
+    canvas.addEventListener("webglcontextlost", (e) => {
+      e.preventDefault();
+      setContextLost(true);
+      cancelAnimationFrame(animationFrameId);
+    });
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      canvas.removeEventListener("webglcontextlost", () => {});
+    };
+  }, [dotSize, cellSize, speed]);
 
   return (
-    <div className={cn("absolute inset-0", className)}>
+    <div
+      className={cn("absolute inset-0", className, contextLost && "opacity-0")}
+    >
       <canvas
         ref={canvasRef}
         width="100%"
