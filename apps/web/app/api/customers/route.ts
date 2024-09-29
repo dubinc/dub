@@ -9,6 +9,27 @@ import {
 } from "@/lib/zod/schemas/customers";
 import { NextResponse } from "next/server";
 
+// GET /api/customers – Get all customers
+export const GET = withWorkspace(
+  async ({ req, workspace }) => {
+    const customers = await prisma.customer.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+    });
+
+    return NextResponse.json(
+      customers.map((customer) => ({
+        ...customer,
+        id: customer.externalId,
+      })),
+    );
+  },
+  {
+    requiredAddOn: "conversion",
+  },
+);
+
 // POST /api/customers – Create a new customer
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
@@ -49,6 +70,5 @@ export const POST = withWorkspace(
   },
   {
     requiredAddOn: "conversion",
-    requiredPermissions: ["conversions.write"],
   },
 );
