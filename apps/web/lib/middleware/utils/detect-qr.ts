@@ -1,7 +1,5 @@
-import { NextRequest } from "next/server";
-
-export const detectQr = (req: NextRequest) => {
-  const url = req.nextUrl;
-  if (url.searchParams.get("qr") === "1") return true;
+export const detectQr = (req: Request) => {
+  const searchParams = new URLSearchParams(req.url);
+  if (searchParams.get("qr") === "1") return true;
   return false;
 };

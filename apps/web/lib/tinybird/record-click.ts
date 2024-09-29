@@ -6,8 +6,8 @@ import {
   nanoid,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
-import { ipAddress } from "@vercel/edge";
-import { NextRequest, userAgent } from "next/server";
+import { geolocation, ipAddress } from "@vercel/edge";
+import { userAgent } from "next/server";
 import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
 import {
   detectBot,
@@ -30,14 +30,16 @@ export async function recordClick({
   clickId,
   url,
   webhookIds,
+  skipRatelimit,
 }: {
-  req: NextRequest;
+  req: Request;
   linkId: string;
   clickId?: string;
   url?: string;
   webhookIds?: string[];
+  skipRatelimit?: boolean;
 }) {
-  const searchParams = req.nextUrl.searchParams;
+  const searchParams = new URLSearchParams(req.url);
 
   // only track the click when there is no `dub-no-track` header or query param
   if (
@@ -56,13 +58,15 @@ export async function recordClick({
 
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-  // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
-  const { success } = await ratelimit(1, "1 h").limit(
-    `recordClick:${ip}:${linkId}`,
-  );
+  if (!skipRatelimit) {
+    // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
+    const { success } = await ratelimit(1, "1 h").limit(
+      `recordClick:${linkId}:${ip}`,
+    );
 
-  if (!success) {
-    return null;
+    if (!success) {
+      return null;
+    }
   }
 
   const isQr = detectQr(req);
@@ -72,7 +76,8 @@ export async function recordClick({
     process.env.VERCEL === "1"
       ? req.headers.get("x-vercel-ip-continent")
       : LOCALHOST_GEO_DATA.continent;
-  const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
+  const geo =
+    process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
   const isEuCountry = geo?.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
