@@ -4,8 +4,7 @@ import { getLink, getProjectByPublishableKey } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { nanoid } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
-import { waitUntil } from "@vercel/functions";
+import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";

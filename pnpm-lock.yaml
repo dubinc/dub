@@ -110,15 +110,12 @@ importers:
       '@upstash/redis':
         specifier: ^1.25.1
         version: 1.25.1
-      '@vercel/edge':
-        specifier: ^0.3.1
-        version: 0.3.1
       '@vercel/edge-config':
         specifier: ^0.4.1
         version: 0.4.1
       '@vercel/functions':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.4.1
+        version: 1.4.1
       '@vercel/og':
         specifier: ^0.6.2
         version: 0.6.2
@@ -9665,13 +9662,14 @@ packages:
       '@vercel/edge-config-fs': 0.1.0
     dev: false
 
-  /@vercel/edge@0.3.1:
-    resolution: {integrity: sha512-NdJxoaUI/AMvSu9dBM5MA1mxzk+Xo1sMrjyNRtNGsH5iKYyMdMWNUEvHdkyn1kN6opM03rQHYOYgXhBwNyIfdQ==}
-    dev: false
-
-  /@vercel/functions@1.0.1:
-    resolution: {integrity: sha512-YBOEKITWgRWQJg2/0TJaiZOAsJz/OqjBfZO87lBA5PtddNjjEUQQxSlon/ank+RC7laJ/51zMKkv9rgprmLMow==}
+  /@vercel/functions@1.4.1:
+    resolution: {integrity: sha512-987mKpoDCI18x2rDjrDbiuGOtxDMK/UhfhDZoN3A2SAt40BMaj8HEKwVqL6fOian5j/3RZcOuJnMOpatQGgpjw==}
     engines: {node: '>= 16'}
+    peerDependencies:
+      '@aws-sdk/credential-provider-web-identity': '*'
+    peerDependenciesMeta:
+      '@aws-sdk/credential-provider-web-identity':
+        optional: true
     dev: false
 
   /@vercel/og@0.6.2:

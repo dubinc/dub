@@ -9,7 +9,7 @@ import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
+import { ipAddress } from "@vercel/functions";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "edge";

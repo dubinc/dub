@@ -6,7 +6,7 @@ import {
   nanoid,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
-import { geolocation, ipAddress } from "@vercel/edge";
+import { geolocation, ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
 import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
 import {

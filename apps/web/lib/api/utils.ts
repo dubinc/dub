@@ -1,4 +1,4 @@
-import { ipAddress } from "@vercel/edge";
+import { ipAddress } from "@vercel/functions";
 import { getToken } from "next-auth/jwt";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
