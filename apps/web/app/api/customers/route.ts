@@ -18,7 +18,7 @@ export const GET = withWorkspace(
       },
       take: 100,
       orderBy: {
-        createdAt: "asc",
+        createdAt: "desc",
       },
     });
 
