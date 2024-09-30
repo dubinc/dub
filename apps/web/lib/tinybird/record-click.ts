@@ -16,7 +16,7 @@ import {
   getIdentityHash,
 } from "../middleware/utils";
 import { conn } from "../planetscale";
-import { ratelimit } from "../upstash";
+import { redis } from "../upstash";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -58,13 +58,12 @@ export async function recordClick({
 
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
+  const cacheKey = `recordClick:${linkId}:${ip}`;
+
   if (!skipRatelimit) {
     // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
-    const { success } = await ratelimit(1, "1 h").limit(
-      `recordClick:${linkId}:${ip}`,
-    );
-
-    if (!success) {
+    const cachedClickId = await redis.get<string>(cacheKey);
+    if (cachedClickId) {
       return null;
     }
   }
@@ -98,11 +97,11 @@ export async function recordClick({
       // only record IP if it's a valid IP and not from a EU country
       typeof ip === "string" && ip.trim().length > 0 && !isEuCountry ? ip : "",
     continent: continent || "",
-    country: geo?.country || "Unknown",
-    city: geo?.city || "Unknown",
-    region: geo?.region || "Unknown",
-    latitude: geo?.latitude || "Unknown",
-    longitude: geo?.longitude || "Unknown",
+    country: geo.country || "Unknown",
+    city: geo.city || "Unknown",
+    region: geo.region || "Unknown",
+    latitude: geo.latitude || "Unknown",
+    longitude: geo.longitude || "Unknown",
     device: capitalize(ua.device.type) || "Desktop",
     device_vendor: ua.device.vendor || "Unknown",
     device_model: ua.device.model || "Unknown",
@@ -131,6 +130,11 @@ export async function recordClick({
         body: JSON.stringify(clickData),
       },
     ).then((res) => res.json()),
+
+    // cache the click ID in Redis for 1 hour
+    redis.set(cacheKey, clickId, {
+      ex: 60 * 60,
+    }),
 
     // increment the click count for the link (based on their ID)
     // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
