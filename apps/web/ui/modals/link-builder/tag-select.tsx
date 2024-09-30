@@ -189,6 +189,7 @@ export function TagSelect() {
                 key={tag.value}
                 name={tag.label}
                 color={tag.meta.color}
+                className="animate-fade-in"
               />
             ))}
           </div>
