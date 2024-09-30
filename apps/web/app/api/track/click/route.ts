@@ -26,7 +26,7 @@ export const POST = async (req: Request) => {
     });
   }
 
-  const redisKey = `trackClick:${link.id}:${ipAddress(req)}`;
+  const redisKey = `recordClick:${link.id}:${ipAddress(req)}`;
   let clickId = await redis.get<string>(redisKey);
   if (!clickId) {
     clickId = nanoid(16);
