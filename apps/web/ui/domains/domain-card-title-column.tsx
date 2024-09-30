@@ -1,5 +1,5 @@
 import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/src/icons";
-import { cn, getPrettyUrl, punycode, isValidUrl } from "@dub/utils";
+import { cn, getPrettyUrl, isValidUrl, punycode } from "@dub/utils";
 import { Star } from "lucide-react";
 
 export function DomainCardTitleColumn({
@@ -44,9 +44,7 @@ export function DomainCardTitleColumn({
               {punycode(domain)}
             </a>
           ) : (
-            <div className="truncate text-sm font-medium">
-              {domain}
-            </div>
+            <div className="truncate text-sm font-medium">{domain}</div>
           )}
 
           {primary ? (
