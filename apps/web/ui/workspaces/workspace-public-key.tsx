@@ -43,7 +43,7 @@ export const WorkspacePublicKey = () => {
                 target="_blank"
                 className="font-medium underline underline-offset-4 hover:text-black"
               >
-                Learn more.
+                Learn more
               </a>
             </p>
           </div>
