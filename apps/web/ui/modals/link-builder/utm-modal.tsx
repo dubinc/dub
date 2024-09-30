@@ -32,7 +32,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useFormContext } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
 
 const UTM_PARAMETERS = [
@@ -80,17 +80,56 @@ const UTM_PARAMETERS = [
   },
 ] as const;
 
-function UTMModal({
-  showUTMModal,
-  setShowUTMModal,
-}: {
+type UTMModalProps = {
   showUTMModal: boolean;
   setShowUTMModal: Dispatch<SetStateAction<boolean>>;
-}) {
+};
+
+function UTMModal(props: UTMModalProps) {
+  return (
+    <Modal
+      showModal={props.showUTMModal}
+      setShowModal={props.setShowUTMModal}
+      className="px-5 py-4 sm:max-w-md"
+    >
+      <UTMModalInner {...props} />
+    </Modal>
+  );
+}
+
+function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
   const { isMobile } = useMediaQuery();
   const id = useId();
 
-  const { watch, setValue } = useFormContext<LinkFormData>();
+  const { getValues: getValuesParent, setValue: setValueParent } =
+    useFormContext<LinkFormData>();
+
+  const {
+    watch,
+    setValue,
+    reset,
+    formState: { isDirty },
+    handleSubmit,
+  } = useForm<
+    Pick<
+      LinkFormData,
+      | "url"
+      | "utm_source"
+      | "utm_medium"
+      | "utm_campaign"
+      | "utm_term"
+      | "utm_content"
+    >
+  >({
+    values: {
+      url: getValuesParent("url"),
+      utm_source: getValuesParent("utm_source"),
+      utm_medium: getValuesParent("utm_medium"),
+      utm_campaign: getValuesParent("utm_campaign"),
+      utm_term: getValuesParent("utm_term"),
+      utm_content: getValuesParent("utm_content"),
+    },
+  });
 
   const url = watch("url");
   const enabledParams = useMemo(() => getParamsFromURL(url), [url]);
@@ -110,10 +149,19 @@ function UTMModal({
   const [showParams, setShowParams] = useState(false);
 
   return (
-    <Modal
-      showModal={showUTMModal}
-      setShowModal={setShowUTMModal}
-      className="px-5 py-4 sm:max-w-md"
+    <form
+      onSubmit={(e) => {
+        e.stopPropagation();
+        handleSubmit((data) => {
+          setValueParent("url", data.url);
+          UTM_PARAMETERS.filter((p) => p.key !== "ref").forEach((p) =>
+            setValueParent(p.key, data[p.key], {
+              shouldDirty: true,
+            }),
+          );
+          setShowUTMModal(false);
+        })(e);
+      }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -147,7 +195,7 @@ function UTMModal({
 
       <div className="grid gap-y-3 py-4">
         {UTM_PARAMETERS.map(
-          ({ key, icon: Icon, label, placeholder, description }) => {
+          ({ key, icon: Icon, label, placeholder, description }, idx) => {
             return (
               <div key={key} className="group relative">
                 <div className="relative z-10 flex">
@@ -184,17 +232,22 @@ function UTMModal({
                   <input
                     type="text"
                     id={`${id}-${key}`}
+                    ref={idx === 0 ? inputRef : undefined}
                     placeholder={placeholder}
                     disabled={!isValidUrl(url)}
                     className="h-full min-w-0 grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 disabled:cursor-not-allowed sm:text-sm"
                     value={enabledParams[key] || ""}
                     onChange={(e) => {
+                      if (key !== "ref")
+                        setValue(key, e.target.value, { shouldDirty: true });
+
                       setValue(
                         "url",
                         constructURLFromUTMParams(url, {
                           ...enabledParams,
                           [key]: e.target.value,
                         }),
+                        { shouldDirty: true },
                       );
                     }}
                   />
@@ -207,13 +260,35 @@ function UTMModal({
 
       {isValidUrl(url) && (
         <div className="mt-4 grid gap-y-1">
-          <p className="text-sm text-gray-700">Current URL</p>
-          <div className="scrollbar-hide overflow-scroll break-words rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-mono text-xs text-gray-500">
+          <span className="block text-sm font-medium text-gray-700">
+            URL Preview
+          </span>
+          <div className="scrollbar-hide mt-2 overflow-scroll break-words rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2 font-mono text-xs text-gray-500">
             {url}
           </div>
         </div>
       )}
-    </Modal>
+
+      <div className="mt-6 flex items-center justify-end gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          text="Cancel"
+          className="h-9 w-fit"
+          onClick={() => {
+            reset();
+            setShowUTMModal(false);
+          }}
+        />
+        <Button
+          type="submit"
+          variant="primary"
+          text="Save"
+          className="h-9 w-fit"
+          disabled={!isDirty}
+        />
+      </div>
+    </form>
   );
 }
 
@@ -224,7 +299,13 @@ function UTMButton({
 }) {
   const { watch } = useFormContext<LinkFormData>();
   const url = watch("url");
-  const enabledParams = useMemo(() => getParamsFromURL(url), [url]);
+  const enabled = useMemo(
+    () =>
+      Object.keys(getParamsFromURL(url)).some(
+        (k) => UTM_PARAMETERS.findIndex((p) => p.key === k) !== -1,
+      ),
+    [url],
+  );
 
   useKeyboardShortcut("u", () => setShowUTMModal(true), {
     modal: true,
@@ -234,7 +315,11 @@ function UTMButton({
     <Button
       variant="secondary"
       text="UTM"
-      icon={<DiamondTurnRight className="size-4" />}
+      icon={
+        <DiamondTurnRight
+          className={cn("size-4", enabled && "text-blue-500")}
+        />
+      }
       className="h-9 w-fit px-2.5 font-medium text-gray-700"
       onClick={() => setShowUTMModal(true)}
     />
