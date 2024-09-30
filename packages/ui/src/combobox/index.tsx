@@ -311,7 +311,7 @@ const Scroll = ({ children }: PropsWithChildren) => {
   return (
     <>
       <div
-        className="scrollbar-hide max-h-[min(50vh,250px)] w-screen overflow-y-scroll sm:w-auto"
+        className="scrollbar-hide max-h-[min(50vh,240px)] w-screen overflow-y-scroll sm:w-auto"
         ref={ref}
         onScroll={updateScrollProgress}
       >
@@ -319,7 +319,7 @@ const Scroll = ({ children }: PropsWithChildren) => {
       </div>
       {/* Bottom scroll fade */}
       <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
         style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
       ></div>
     </>

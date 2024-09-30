@@ -1,26 +1,42 @@
 import useTags from "@/lib/swr/use-tags";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import {
+  AnimatedSizeContainer,
   Combobox,
   InfoTooltip,
+  Magic,
   SimpleTooltipContent,
+  Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
 import { Tag } from "@dub/ui/src";
 import { cn } from "@dub/utils";
-import { useContext, useMemo, useState } from "react";
+import { useCompletion } from "ai/react";
+import posthog from "posthog-js";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useDebounce } from "use-debounce";
 import { LinkFormData, LinkModalContext } from ".";
 import { MultiTagsIcon } from "./multi-tags-icon";
 
 export function TagSelect() {
+  const { mutate: mutateWorkspace, exceededAI } = useWorkspace();
   const { workspaceId } = useContext(LinkModalContext);
   const { tags: availableTags } = useTags();
 
   const { watch, setValue } = useFormContext<LinkFormData>();
-  const tags = watch("tags");
+  const [tags, linkId, url, title, description] = watch([
+    "tags",
+    "id",
+    "url",
+    "title",
+    "description",
+  ]);
+  const [debouncedUrl] = useDebounce(url, 500);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -70,6 +86,56 @@ export function TagSelect() {
   );
 
   useKeyboardShortcut("t", () => setIsOpen(true), { modal: true });
+
+  const [suggestedTags, setSuggestedTags] = useState<TagProps[]>([]);
+
+  const { complete } = useCompletion({
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    body: {
+      model: "claude-3-haiku-20240307",
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onFinish: (_, completion) => {
+      mutateWorkspace();
+      if (completion) {
+        const completionArr = completion.split(", ");
+        const suggestedTags = completionArr
+          .map((tag: string) => {
+            return availableTags?.find(({ name }) => name === tag) || null;
+          })
+          .filter(Boolean);
+        setSuggestedTags(suggestedTags as TagProps[]);
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (
+      !linkId &&
+      debouncedUrl &&
+      title &&
+      description &&
+      !exceededAI &&
+      tags.length === 0 &&
+      suggestedTags.length === 0 &&
+      availableTags &&
+      availableTags.length > 0
+    ) {
+      complete(
+        `From the list of available tags below, suggest relevant tags for this link: 
+        
+        - URL: ${debouncedUrl}
+        - Meta title: ${title}
+        - Meta description: ${description}. 
+        
+        Only return the tag names in comma-separated format, and nothing else. If there are no relevant tags, return an empty string.
+        
+        Available tags: ${availableTags.map(({ name }) => name).join(", ")}`,
+      );
+    }
+  }, [linkId, debouncedUrl, title, description, tags]);
 
   return (
     <div>
@@ -130,6 +196,39 @@ export function TagSelect() {
           <span className="my-px block py-0.5">Select tags...</span>
         )}
       </Combobox>
+      <AnimatedSizeContainer
+        height
+        transition={{ ease: "linear", duration: 0.1 }}
+      >
+        {suggestedTags.length > 0 && (
+          <div className="animate-fade-in flex flex-wrap items-center gap-2 pt-3">
+            <Tooltip content="AI-suggested tags based on the content of the link. Click a suggested tag to add it.">
+              <div className="group">
+                <Magic className="size-4 text-gray-600 transition-colors group-hover:text-gray-500" />
+              </div>
+            </Tooltip>
+            {suggestedTags.map((tag) => (
+              <button
+                type="button"
+                key={tag.id}
+                onClick={() => {
+                  setValue("tags", [...tags, tag], { shouldDirty: true });
+                  setSuggestedTags((tags) =>
+                    tags.filter(({ id }) => id !== tag.id),
+                  );
+                  posthog.capture("ai_suggested_tag_selected", {
+                    tag: tag.name,
+                    url: url,
+                  });
+                }}
+                className="group flex items-center transition-all active:scale-95"
+              >
+                <TagBadge {...tag} />
+              </button>
+            ))}
+          </div>
+        )}
+      </AnimatedSizeContainer>
     </div>
   );
 }
