@@ -12,6 +12,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { id: externalId } = params;
+
     const customer = await prisma.customer.findUnique({
       where: {
         projectId_externalId: {
@@ -20,6 +21,7 @@ export const GET = withWorkspace(
         },
       },
     });
+
     if (!customer) {
       throw new DubApiError({
         code: "not_found",
@@ -27,12 +29,7 @@ export const GET = withWorkspace(
       });
     }
 
-    return NextResponse.json(
-      CustomerSchema.parse({
-        ...customer,
-        id: customer.externalId,
-      }),
-    );
+    return NextResponse.json(CustomerSchema.parse(customer));
   },
   {
     requiredAddOn: "conversion",
@@ -43,6 +40,7 @@ export const GET = withWorkspace(
 export const PATCH = withWorkspace(
   async ({ workspace, params, req }) => {
     const { id: externalId } = params;
+
     const {
       id: newExternalId,
       name,
@@ -61,12 +59,7 @@ export const PATCH = withWorkspace(
         data: { name, email, avatar, externalId: newExternalId },
       });
 
-      return NextResponse.json(
-        CustomerSchema.parse({
-          ...customer,
-          id: customer.externalId,
-        }),
-      );
+      return NextResponse.json(CustomerSchema.parse(customer));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -76,7 +69,8 @@ export const PATCH = withWorkspace(
       } else if (error.code === "P2025") {
         throw new DubApiError({
           code: "not_found",
-          message: "Customer not found",
+          message:
+            "Customer not found. Make sure you're using the correct external ID.",
         });
       }
 
@@ -95,6 +89,7 @@ export const PATCH = withWorkspace(
 export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { id: externalId } = params;
+
     try {
       const customer = await prisma.customer.delete({
         where: {

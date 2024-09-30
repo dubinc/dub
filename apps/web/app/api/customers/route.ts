@@ -22,12 +22,7 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      customers.map((customer) => ({
-        ...customer,
-        id: customer.externalId,
-      })),
-    );
+    return NextResponse.json(CustomerSchema.array().parse(customers));
   },
   {
     requiredAddOn: "conversion",
@@ -55,9 +50,7 @@ export const POST = withWorkspace(
         },
       });
 
-      return NextResponse.json(
-        CustomerSchema.parse({ ...customer, id: customer.externalId }),
-      );
+      return NextResponse.json(CustomerSchema.parse(customer));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({

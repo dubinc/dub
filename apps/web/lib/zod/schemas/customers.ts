@@ -19,17 +19,22 @@ export const createCustomerBodySchema = z.object({
     .string()
     .url()
     .nullish()
-    .describe("Avatar of the customer in the client's app."),
+    .describe("Avatar URL of the customer in the client's app."),
 });
 
 export const updateCustomerBodySchema = createCustomerBodySchema.partial();
 
 // customer object schema
 export const CustomerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string().nullish(),
-  avatar: z.string().nullish(),
+  id: z.string().describe("The unique identifier of the customer in Dub."),
+  externalId: z
+    .string()
+    .nullish()
+    .describe("Unique identifier for the customer in the client's app."),
+  name: z.string().describe("Name of the customer."),
+  email: z.string().nullish().describe("Email of the customer."),
+  avatar: z.string().nullish().describe("Avatar URL of the customer."),
+  createdAt: z.date().describe("The date the customer was created."),
 });
 
 export const trackCustomerRequestSchema = z.object({
