@@ -44,9 +44,7 @@ export function DomainCardTitleColumn({
               {punycode(domain)}
             </a>
           ) : (
-            <div
-              className="truncate text-sm font-medium"
-            >
+            <div className="truncate text-sm font-medium">
               {domain}
             </div>
           )}
