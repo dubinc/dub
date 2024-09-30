@@ -217,10 +217,29 @@ export const ImagePreview = ({
     } else {
       return (
         <div className="relative aspect-[var(--aspect,1200/630)] w-full bg-white">
+          <div className="absolute inset-0 opacity-0">
+            <FileUpload
+              accept="images"
+              variant="plain"
+              imageSrc={image}
+              onChange={async ({ file }) => {
+                setResizing(true);
+
+                onImageChange(await resizeImage(file));
+
+                // Delay to prevent flickering
+                setTimeout(() => setResizing(false), 500);
+              }}
+              loading={generatingMetatags || resizing}
+              clickToUpload={false}
+              showHoverOverlay={false}
+              accessibilityLabel="OG image upload"
+            />
+          </div>
           {!isMobile && (
-            <ShimmerDots className="opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
+            <ShimmerDots className="pointer-events-none opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
           )}
-          <div className="relative flex size-full flex-col items-center justify-center gap-2">
+          <div className="pointer-events-none relative flex size-full flex-col items-center justify-center gap-2">
             <NucleoPhoto className="size-5 text-gray-700" />
             <p className="max-w-32 text-center text-xs text-gray-700">
               Enter a link to generate a preview

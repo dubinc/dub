@@ -1,9 +1,14 @@
+import { cn, constructURLFromUTMParams, getParamsFromURL } from "@dub/utils";
 import {
-  AnimatedSizeContainer,
-  InfoTooltip,
-  SimpleTooltipContent,
-  useKeyboardShortcut,
-} from "@dub/ui";
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from "react";
+import { AnimatedSizeContainer } from "./animated-size-container";
+import { useKeyboardShortcut } from "./hooks";
 import {
   Flag6,
   GlobePointer,
@@ -11,11 +16,8 @@ import {
   LinkBroken,
   Page2,
   SatelliteDish,
-} from "@dub/ui/src/icons";
-import { cn, constructURLFromUTMParams, getParamsFromURL } from "@dub/utils";
-import { Fragment, useCallback, useId, useMemo, useState } from "react";
-import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
+} from "./icons";
+import { InfoTooltip, SimpleTooltipContent } from "./tooltip";
 
 const parameters = [
   {
@@ -60,19 +62,25 @@ const parameters = [
     placeholder: "google",
     shortcut: "R",
   },
-];
+] as const;
 
-export function UTMBuilder() {
+export function UTMBuilder({
+  url,
+  setUrl,
+  setValue,
+}: {
+  url: string;
+  setUrl: (url: string) => void;
+  setValue: (key: (typeof parameters)[number]["key"], value: string) => void;
+}) {
   const id = useId();
-
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const url = watch("url");
 
   const params = useMemo(() => getParamsFromURL(url), [url]);
 
   const [toggledParams, setToggledParams] = useState<string[]>(
     parameters.filter(({ key }) => params[key]).map(({ key }) => key),
   );
+  const [justToggled, setJustToggled] = useState<string | null>(null);
 
   const enabledParameters = useMemo(() => {
     return parameters.filter(
@@ -84,22 +92,31 @@ export function UTMBuilder() {
     (key: string) => {
       const enabled = Boolean(params[key]) || toggledParams.includes(key);
 
-      if (!enabled) setToggledParams((prev) => [...prev, key]);
-      else {
+      if (!enabled) {
+        setToggledParams((prev) => [...prev, key]);
+        setJustToggled(key);
+      } else {
         setToggledParams((prev) => prev.filter((k) => k !== key));
-        setValue(key as any, "", { shouldDirty: true });
-        setValue(
-          "url",
+        setValue(key as any, "");
+        setUrl(
           constructURLFromUTMParams(url, {
             ...params,
             [key]: "",
           }),
-          { shouldDirty: true },
         );
       }
     },
     [params, toggledParams, url],
   );
+
+  // Focus the input after toggling (with preventScroll to avoid scrolling the AnimatedSizeContainer)
+  useEffect(() => {
+    if (justToggled) {
+      const input = document.getElementById(`${id}-${justToggled}`);
+      if (input) input.focus({ preventScroll: true });
+      setJustToggled(null);
+    }
+  }, [justToggled]);
 
   useKeyboardShortcut(
     parameters.map(({ shortcut }) => shortcut),
@@ -164,28 +181,28 @@ export function UTMBuilder() {
             enabledParameters.length > 0 && "pb-1 pt-6",
           )}
         >
-          {enabledParameters.map(({ key, icon: Icon, label, placeholder }) => {
+          {enabledParameters.map(({ key, icon: Icon, placeholder }) => {
             return (
               <Fragment key={key}>
-                <div className="flex items-center gap-1.5 rounded-l-md border-y border-l border-gray-300 px-3 py-2.5">
+                <div className="flex items-center gap-1.5 rounded-l-md border-y border-l border-gray-300 bg-gray-100 py-2.5 pl-2 pr-3 sm:min-w-36">
                   <Icon className="size-4 shrink-0" />
-                  <label htmlFor={`${id}-${key}`}>{label}</label>
+                  <label htmlFor={`${id}-${key}`} className="font-mono text-sm">
+                    {key}
+                  </label>
                 </div>
                 <input
                   type="text"
                   id={`${id}-${key}`}
                   placeholder={placeholder}
-                  className="h-full grow rounded-r-md border border-gray-300 text-sm placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                  className="h-full min-w-0 grow rounded-r-md border border-gray-300 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
                   value={params[key] || ""}
                   onChange={(e) => {
-                    setValue(key as any, e.target.value, { shouldDirty: true });
-                    setValue(
-                      "url",
+                    setValue(key, e.target.value);
+                    setUrl(
                       constructURLFromUTMParams(url, {
                         ...params,
                         [key]: e.target.value,
                       }),
-                      { shouldDirty: true },
                     );
                   }}
                 />

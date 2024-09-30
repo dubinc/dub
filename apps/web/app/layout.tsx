@@ -1,4 +1,4 @@
-import { inter, satoshi } from "@/styles/fonts";
+import { geistMono, inter, satoshi } from "@/styles/fonts";
 import "@/styles/globals.css";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { KeyboardShortcutProvider } from "@dub/ui";
@@ -14,7 +14,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn(satoshi.variable, inter.variable)}>
+    <html
+      lang="en"
+      className={cn(satoshi.variable, inter.variable, geistMono.variable)}
+    >
       <body>
         <TooltipProvider>
           <KeyboardShortcutProvider>

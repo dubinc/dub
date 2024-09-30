@@ -1,4 +1,4 @@
-import { QRCodeSVG } from "@/lib/qr";
+import { getQRData, QRCodeSVG } from "@/lib/qr";
 import { useMemo } from "react";
 
 export function QRCode({
@@ -15,22 +15,7 @@ export function QRCode({
   scale?: number;
 }) {
   const qrData = useMemo(
-    () => ({
-      value: url,
-      bgColor: "#ffffff",
-      fgColor,
-      size: 1024,
-      level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
-      includeMargin: false,
-      ...(showLogo && {
-        imageSettings: {
-          src: logo || "https://assets.dub.co/logo.png",
-          height: 256,
-          width: 256,
-          excavate: true,
-        },
-      }),
-    }),
+    () => getQRData({ url, fgColor, showLogo, logo }),
     [url, fgColor, showLogo, logo],
   );
 

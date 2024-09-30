@@ -341,3 +341,33 @@ export async function getQRAsCanvas(
   image.remove();
   return url;
 }
+
+export function getQRData({
+  url,
+  fgColor,
+  showLogo,
+  logo,
+}: {
+  url: string;
+  fgColor?: string;
+  showLogo?: boolean;
+  logo?: string;
+  scale?: number;
+}) {
+  return {
+    value: url,
+    bgColor: "#ffffff",
+    fgColor,
+    size: 1024,
+    level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
+    includeMargin: false,
+    ...(showLogo && {
+      imageSettings: {
+        src: logo || "https://assets.dub.co/logo.png",
+        height: 256,
+        width: 256,
+        excavate: true,
+      },
+    }),
+  };
+}

@@ -17,6 +17,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
+import { CopyText } from "@dub/ui/src";
 import {
   CursorRays,
   FilterBars,
@@ -151,27 +152,22 @@ export default function EventsTable() {
               key: getValue().key,
             }),
           },
-          cell: ({ getValue }) => {
-            const path = getValue().key === "_root" ? "" : `/${getValue().key}`;
-
-            return (
-              <div className="flex items-center gap-3">
-                <LinkLogo
-                  apexDomain={getApexDomain(getValue().url)}
-                  className="size-4 shrink-0 sm:size-4"
-                />
-                <span
-                  className="truncate"
-                  title={`${getValue().domain}${path}`}
-                >
-                  <span className="font-medium text-gray-950">
-                    {getValue().domain}
-                  </span>
-                  {path}
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(getValue().url)}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={getValue().shortLink}
+                successMessage="Copied link to clipboard!"
+              >
+                <span className="truncate" title={getValue().shortLink}>
+                  {getPrettyUrl(getValue().shortLink)}
                 </span>
-              </div>
-            );
-          },
+              </CopyText>
+            </div>
+          ),
         },
         {
           id: "customer",
@@ -363,7 +359,7 @@ export default function EventsTable() {
             filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
           },
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
+            <div className="flex items-center gap-3">
               {getValue() === "(direct)" ? (
                 <Link2 className="h-4 w-4" />
               ) : (
@@ -372,7 +368,14 @@ export default function EventsTable() {
                   className="size-4 shrink-0 sm:size-4"
                 />
               )}
-              <span className="truncate">{getPrettyUrl(getValue())}</span>
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referer URL to clipboard!"
+              >
+                <span className="truncate" title={getValue()}>
+                  {getPrettyUrl(getValue())}
+                </span>
+              </CopyText>
             </div>
           ),
         },

@@ -43,7 +43,7 @@ export type ComboboxProps<
     : (tag: ComboboxOption<TMeta> | null) => void;
   options?: ComboboxOption<TMeta>[];
   icon?: Icon | ReactNode;
-  placeholder?: string;
+  placeholder?: ReactNode;
   searchPlaceholder?: string;
   emptyState?: ReactNode;
   createLabel?: (search: string) => ReactNode;
@@ -114,10 +114,12 @@ export function Combobox({
           ? selected.filter(({ value }) => value !== option.value)
           : [...selected, option],
       );
-    } else
+    } else {
       setSelected(
         selected.length && selected[0]?.value === option.value ? null : option,
       );
+      setIsOpen(false);
+    }
   };
 
   const sortOptions = useCallback(
@@ -274,7 +276,7 @@ export function Combobox({
             </div>
             {caret && (
               <ChevronDown
-                className={`size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+                className={`ml-1 size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
               />
             )}
           </>

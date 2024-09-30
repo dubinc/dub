@@ -166,4 +166,9 @@ export const DUB_DEMO_LINKS = [
     domain: "amzn.id",
     key: "tv",
   },
+  {
+    id: "clymd73o50001ulmzzxjumr8l",
+    domain: "ggl.link",
+    key: "dub",
+  },
 ];
