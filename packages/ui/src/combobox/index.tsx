@@ -1,4 +1,4 @@
-import { cn, truncate } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Command, CommandEmpty, CommandInput, CommandItem } from "cmdk";
 import { ChevronDown } from "lucide-react";
 import {
@@ -54,6 +54,8 @@ export type ComboboxProps<
   side?: PopoverProps["side"];
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  optionClassName?: string;
+  matchTriggerWidth?: boolean;
 }>;
 
 function isMultipleSelection(
@@ -80,6 +82,8 @@ export function Combobox({
   side,
   open,
   onOpenChange,
+  optionClassName,
+  matchTriggerWidth,
   children,
 }: ComboboxProps<boolean | undefined, any>) {
   const isMultiple = isMultipleSelection(multiple, setSelected);
@@ -166,11 +170,13 @@ export function Combobox({
         // Allows scrolling to work when the popover's in a modal
         e.stopPropagation();
       }}
+      popoverContentClassName={cn(
+        matchTriggerWidth && "sm:w-[var(--radix-popover-trigger-width)]",
+      )}
       content={
         <AnimatedSizeContainer
-          width={!isMobile}
+          width={!isMobile && !matchTriggerWidth}
           height
-          className="rounded-[inherit]"
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
           transition={{ ease: "easeInOut", duration: 0.1 }}
         >
@@ -213,6 +219,7 @@ export function Combobox({
                           ({ value }) => value === option.value,
                         )}
                         onSelect={() => handleSelect(option)}
+                        className={optionClassName}
                       />
                     ))}
                     {search.length > 0 && onCreate && (
@@ -220,6 +227,7 @@ export function Combobox({
                         className={cn(
                           "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-gray-700",
                           "data-[selected=true]:bg-gray-100",
+                          optionClassName,
                         )}
                         onSelect={async () => {
                           setIsCreating(true);
@@ -236,7 +244,7 @@ export function Combobox({
                         ) : (
                           <Plus className="size-4 shrink-0" />
                         )}
-                        <div className="grow">
+                        <div className="grow truncate">
                           {createLabel?.(search) || `Create "${search}"`}
                         </div>
                       </CommandItem>
@@ -262,7 +270,7 @@ export function Combobox({
       <Button
         variant="secondary"
         {...buttonProps}
-        className={cn(buttonProps?.className, "flex items-center gap-2")}
+        className={cn(buttonProps?.className, "flex gap-2")}
         textWrapperClassName={cn(
           buttonProps?.textWrapperClassName,
           "w-full flex items-center justify-start",
@@ -303,7 +311,7 @@ const Scroll = ({ children }: PropsWithChildren) => {
   return (
     <>
       <div
-        className="scrollbar-hide max-h-[min(50vh,190px)] w-screen overflow-y-scroll sm:w-auto"
+        className="scrollbar-hide max-h-[min(50vh,240px)] w-screen overflow-y-scroll sm:w-auto"
         ref={ref}
         onScroll={updateScrollProgress}
       >
@@ -311,7 +319,7 @@ const Scroll = ({ children }: PropsWithChildren) => {
       </div>
       {/* Bottom scroll fade */}
       <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
         style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
       ></div>
     </>
@@ -323,17 +331,20 @@ function Option({
   onSelect,
   multiple,
   selected,
+  className,
 }: {
   option: ComboboxOption;
   onSelect: () => void;
   multiple: boolean;
   selected: boolean;
+  className?: string;
 }) {
   return (
     <Command.Item
       className={cn(
         "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
         "data-[selected=true]:bg-gray-100",
+        className,
       )}
       onSelect={onSelect}
       value={option.label + option?.value}
@@ -347,7 +358,7 @@ function Option({
           )}
         </div>
       )}
-      <div className="flex grow items-center gap-1">
+      <div className="flex min-w-0 grow items-center gap-1">
         {option.icon && (
           <span className="shrink-0 text-gray-600">
             {isReactNode(option.icon) ? (
@@ -357,7 +368,7 @@ function Option({
             )}
           </span>
         )}
-        {truncate(option.label, 48)}
+        <span className="grow truncate">{option.label}</span>
       </div>
       {!multiple && selected && (
         <Check2 className="size-4 shrink-0 text-gray-600" />

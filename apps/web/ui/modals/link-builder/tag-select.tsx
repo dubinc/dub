@@ -1,20 +1,42 @@
 import useTags from "@/lib/swr/use-tags";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
-import { COLORS_LIST } from "@/ui/links/tag-badge";
-import { Combobox, useKeyboardShortcut } from "@dub/ui";
+import TagBadge from "@/ui/links/tag-badge";
+import {
+  AnimatedSizeContainer,
+  Combobox,
+  InfoTooltip,
+  Magic,
+  SimpleTooltipContent,
+  Tooltip,
+  useKeyboardShortcut,
+} from "@dub/ui";
+import { Tag } from "@dub/ui/src";
 import { cn } from "@dub/utils";
-import { useContext, useMemo, useState } from "react";
+import { useCompletion } from "ai/react";
+import posthog from "posthog-js";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useDebounce } from "use-debounce";
 import { LinkFormData, LinkModalContext } from ".";
+import { MultiTagsIcon } from "./multi-tags-icon";
 
 export function TagSelect() {
+  const { mutate: mutateWorkspace, exceededAI } = useWorkspace();
   const { workspaceId } = useContext(LinkModalContext);
   const { tags: availableTags } = useTags();
 
   const { watch, setValue } = useFormContext<LinkFormData>();
-  const tags = watch("tags");
+  const [tags, linkId, url, title, description] = watch([
+    "tags",
+    "id",
+    "url",
+    "title",
+    "description",
+  ]);
+  const [debouncedUrl] = useDebounce(url, 500);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -47,7 +69,7 @@ export function TagSelect() {
       availableTags?.map((tag) => ({
         label: tag.name,
         value: tag.id,
-        icon: <TagIcon tags={[tag]} />,
+        icon: <MultiTagsIcon tags={[tag]} />,
         meta: {
           color: tag.color,
         },
@@ -65,94 +87,149 @@ export function TagSelect() {
 
   useKeyboardShortcut("t", () => setIsOpen(true), { modal: true });
 
-  return (
-    <Combobox
-      multiple
-      selected={selectedTags}
-      setSelected={(tags) => {
-        const selectedIds = tags.map(({ value }) => value);
-        setValue(
-          "tags",
-          selectedIds.map((id) => availableTags?.find((t) => t.id === id)),
-          { shouldDirty: true },
-        );
-      }}
-      options={options}
-      icon={<TagIcon tags={selectedTags.map(({ meta }) => meta)} />}
-      side="top"
-      placeholder="Tags"
-      searchPlaceholder="Search or add tags..."
-      shortcutHint="T"
-      buttonProps={{
-        className:
-          "h-9 px-2.5 w-fit font-medium text-gray-700 max-w-48 min-w-0",
-      }}
-      onCreate={(search) => createTag(search)}
-      open={isOpen}
-      onOpenChange={setIsOpen}
-    >
-      {selectedTags.length > 0
-        ? selectedTags.length === 1
-          ? selectedTags[0].label
-          : `${selectedTags.length} Tags`
-        : "Tags"}
-    </Combobox>
-  );
-}
+  const [suggestedTags, setSuggestedTags] = useState<TagProps[]>([]);
 
-function TagIcon({ tags }: { tags: Pick<TagProps, "color">[] }) {
-  return (
-    <svg
-      height="18"
-      width="18"
-      viewBox="0 0 18 18"
-      xmlns="http://www.w3.org/2000/svg"
-      className={cn(
-        "size-4 shrink-0",
-        tags.length > 0 &&
-          COLORS_LIST.find(({ color }) => color === tags[0].color)?.css,
-        "bg-transparent",
-        tags.length <= 1 && "-translate-y-px",
-      )}
-    >
-      <g fill="currentColor">
-        {tags.length > 0 && (
-          <path
-            d="M1.75 4.25H7.336C7.601 4.25 7.856 4.355 8.043 4.543L13.836 10.336C14.617 11.117 14.617 12.383 13.836 13.164L10.664 16.336C9.883 17.117 8.617 17.117 7.836 16.336L2.043 10.543C1.855 10.355 1.75 10.101 1.75 9.836V4.25Z"
-            fill="currentColor"
-            fillOpacity={0.15}
-            stroke="none"
-          />
-        )}
-        <path
-          d="M1.75 4.25H7.336C7.601 4.25 7.856 4.355 8.043 4.543L13.836 10.336C14.617 11.117 14.617 12.383 13.836 13.164L10.664 16.336C9.883 17.117 8.617 17.117 7.836 16.336L2.043 10.543C1.855 10.355 1.75 10.101 1.75 9.836V4.25Z"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
+  const { complete } = useCompletion({
+    api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    body: {
+      model: "claude-3-haiku-20240307",
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onFinish: (_, completion) => {
+      mutateWorkspace();
+      if (completion) {
+        const completionArr = completion.split(", ");
+        const suggestedTags = completionArr
+          .map((tag: string) => {
+            return availableTags?.find(({ name }) => name === tag) || null;
+          })
+          .filter(Boolean);
+        setSuggestedTags(suggestedTags as TagProps[]);
+      }
+    },
+  });
 
-        {tags.length > 1 && (
-          <path
-            d="M3.25 1.75V1.25H8.836C9.101 1.25 9.356 1.355 9.543 1.543L15.336 7.336C15.768 7.768 15.961 8.348 15.915 8.913"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-            className={cn(
-              COLORS_LIST.find(({ color }) => color === tags[1].color)?.css,
-              "bg-transparent",
-            )}
-          />
-        )}
-        <path
-          d="M5.25 9C5.94036 9 6.5 8.44036 6.5 7.75C6.5 7.05964 5.94036 6.5 5.25 6.5C4.55964 6.5 4 7.05964 4 7.75C4 8.44036 4.55964 9 5.25 9Z"
-          fill="currentColor"
-          stroke="none"
+  useEffect(() => {
+    if (
+      !linkId &&
+      debouncedUrl &&
+      title &&
+      description &&
+      !exceededAI &&
+      tags.length === 0 &&
+      suggestedTags.length === 0 &&
+      availableTags &&
+      availableTags.length > 0
+    ) {
+      complete(
+        `From the list of available tags below, suggest relevant tags for this link: 
+        
+        - URL: ${debouncedUrl}
+        - Meta title: ${title}
+        - Meta description: ${description}. 
+        
+        Only return the tag names in comma-separated format, and nothing else. If there are no relevant tags, return an empty string.
+        
+        Available tags: ${availableTags.map(({ name }) => name).join(", ")}`,
+      );
+    }
+  }, [linkId, debouncedUrl, title, description, tags]);
+
+  return (
+    <div>
+      <div className="mb-1 flex items-center gap-2">
+        <label
+          htmlFor="comments"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Tags
+        </label>
+        <InfoTooltip
+          content={
+            <SimpleTooltipContent
+              title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
+              cta="Learn more."
+              href="https://dub.co/help/article/how-to-use-tags"
+            />
+          }
         />
-      </g>
-    </svg>
+      </div>
+      <Combobox
+        multiple
+        selected={selectedTags}
+        setSelected={(tags) => {
+          const selectedIds = tags.map(({ value }) => value);
+          setValue(
+            "tags",
+            selectedIds.map((id) => availableTags?.find((t) => t.id === id)),
+            { shouldDirty: true },
+          );
+        }}
+        options={options}
+        icon={<Tag className="mt-[5px] size-4 text-gray-500" />}
+        searchPlaceholder="Search or add tags..."
+        shortcutHint="T"
+        buttonProps={{
+          className: cn(
+            "h-auto py-1.5 px-2.5 w-full text-gray-700 border-gray-300 items-start",
+            selectedTags.length === 0 && "text-gray-400",
+          ),
+        }}
+        onCreate={(search) => createTag(search)}
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        matchTriggerWidth
+      >
+        {selectedTags.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {selectedTags.slice(0, 10).map((tag) => (
+              <TagBadge
+                key={tag.value}
+                name={tag.label}
+                color={tag.meta.color}
+                className="animate-fade-in"
+              />
+            ))}
+          </div>
+        ) : (
+          <span className="my-px block py-0.5">Select tags...</span>
+        )}
+      </Combobox>
+      <AnimatedSizeContainer
+        height
+        transition={{ ease: "linear", duration: 0.1 }}
+      >
+        {suggestedTags.length > 0 && (
+          <div className="animate-fade-in flex flex-wrap items-center gap-2 pt-3">
+            <Tooltip content="AI-suggested tags based on the content of the link. Click a suggested tag to add it.">
+              <div className="group">
+                <Magic className="size-4 text-gray-600 transition-colors group-hover:text-gray-500" />
+              </div>
+            </Tooltip>
+            {suggestedTags.map((tag) => (
+              <button
+                type="button"
+                key={tag.id}
+                onClick={() => {
+                  setValue("tags", [...tags, tag], { shouldDirty: true });
+                  setSuggestedTags((tags) =>
+                    tags.filter(({ id }) => id !== tag.id),
+                  );
+                  posthog.capture("ai_suggested_tag_selected", {
+                    tag: tag.name,
+                    url: url,
+                  });
+                }}
+                className="group flex items-center transition-all active:scale-95"
+              >
+                <TagBadge {...tag} />
+              </button>
+            ))}
+          </div>
+        )}
+      </AnimatedSizeContainer>
+    </div>
   );
 }
