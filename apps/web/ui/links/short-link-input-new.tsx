@@ -240,31 +240,14 @@ export const ShortLinkInputNew = forwardRef<
           )}
         </div>
         <div className="relative mt-1 flex rounded-md shadow-sm">
-          <div className="">
-            {/* <select
-              tabIndex={-1}
-              disabled={lockKey}
-              value={domain}
-              onChange={(e) => {
-                setKeyError(null);
-                onChange?.({ domain: e.target.value });
-              }}
-              className={cn(
-                "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0 sm:text-sm",
-                lockKey && "cursor-not-allowed",
-                loading && "w-[6rem] text-transparent",
-              )}
-            >
-              {domains?.map(({ slug }) => (
-                <option key={slug} value={slug}>
-                  {punycode(slug)}
-                </option>
-              ))}
-            </select> */}
+          <div className="z-[1]">
             <Combobox
               selected={
                 domain && !loading
-                  ? { value: domain, label: punycode(domain) }
+                  ? {
+                      value: domain,
+                      label: punycode(domain),
+                    }
                   : null
               }
               setSelected={(option) => {
@@ -288,7 +271,9 @@ export const ShortLinkInputNew = forwardRef<
               shortcutHint="D"
               buttonProps={{
                 className: cn(
-                  "min-w-24 sm:min-w-32 h-full rounded-r-none border-r-0 justify-start px-2.5",
+                  "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
+                  "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+                  "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
                   !key && "text-gray-600",
                 ),
               }}
@@ -326,6 +311,7 @@ export const ShortLinkInputNew = forwardRef<
             autoCapitalize="none"
             className={cn(
               "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              "z-0 focus:z-[1]",
               {
                 "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                   error,
