@@ -8,7 +8,7 @@ export const getCustomer: ZodOpenApiOperationObject = {
   summary: "Get a customer",
   description: "Get a customer by externalID for the authenticated workspace.",
   requestParams: {
-    path: CustomerSchema.pick({ id: true }),
+    path: CustomerSchema.pick({ externalId: true }),
   },
   responses: {
     "200": {

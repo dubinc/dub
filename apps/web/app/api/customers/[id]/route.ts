@@ -91,7 +91,7 @@ export const DELETE = withWorkspace(
     const { id: externalId } = params;
 
     try {
-      const customer = await prisma.customer.delete({
+      await prisma.customer.delete({
         where: {
           projectId_externalId: {
             projectId: workspace.id,
@@ -101,7 +101,7 @@ export const DELETE = withWorkspace(
       });
 
       return NextResponse.json({
-        id: customer.externalId,
+        externalId,
       });
     } catch (error) {
       if (error.code === "P2025") {

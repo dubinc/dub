@@ -168,12 +168,14 @@ const getCustomersMap = async (customerIds: string[]) => {
   return customers.reduce(
     (acc, customer) => {
       acc[customer.id] = CustomerSchema.parse({
-        id: customer.externalId ?? customer.id,
+        id: customer.id,
+        externalId: customer.externalId,
         name: customer.name || "",
         email: customer.email || "",
         avatar:
           customer.avatar ||
           `https://api.dicebear.com/7.x/micah/svg?seed=${customer.id}`,
+        createdAt: customer.createdAt,
       });
       return acc;
     },
