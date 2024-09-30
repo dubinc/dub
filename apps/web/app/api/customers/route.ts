@@ -50,7 +50,9 @@ export const POST = withWorkspace(
         },
       });
 
-      return NextResponse.json(CustomerSchema.parse(customer));
+      return NextResponse.json(CustomerSchema.parse(customer), {
+        status: 201,
+      });
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
