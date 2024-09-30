@@ -8,6 +8,7 @@ import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { Delete } from "@/ui/shared/icons";
+import { WorkspacePublicKey } from "@/ui/workspaces/workspace-public-key";
 import {
   Avatar,
   Badge,
@@ -24,7 +25,7 @@ import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPageClient() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, conversionEnabled } = useWorkspace();
   const { data: tokens, isLoading } = useSWR<TokenProps[]>(
     `/api/tokens?workspaceId=${workspaceId}`,
     fetcher,
@@ -48,10 +49,11 @@ export default function TokensPageClient() {
     <>
       <TokenCreatedModal />
       <AddEditTokenModal />
+      {conversionEnabled && <WorkspacePublicKey />}
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-center justify-between gap-4 space-y-3 border-b border-gray-200 p-5 sm:flex-row sm:space-y-0 sm:p-10">
           <div className="flex max-w-screen-sm flex-col space-y-3">
-            <h2 className="text-xl font-medium">Workspace API Keys</h2>
+            <h2 className="text-xl font-medium">Secret keys</h2>
             <p className="text-sm text-gray-500">
               These API keys allow other apps to access your workspace. Use it
               with caution – do not share your API key with others, or expose it
