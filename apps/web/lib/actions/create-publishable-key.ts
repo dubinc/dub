@@ -23,7 +23,7 @@ export const createPublishableKey = authActionClient
       throw new Error("Publishable key already exists.");
     }
 
-    const publishableKey = `dub_pk_${nanoid(24)}`;
+    const publishableKey = `dub_publishable_${nanoid(24)}`;
 
     await prisma.project.update({
       where: {
