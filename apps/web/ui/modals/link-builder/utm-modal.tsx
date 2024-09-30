@@ -1,4 +1,3 @@
-import { TagProps } from "@/lib/types";
 import {
   Button,
   InfoTooltip,
@@ -9,6 +8,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import {
+  DiamondTurnRight,
   Flag6,
   Gift,
   GlobePointer,
@@ -17,6 +17,7 @@ import {
   SatelliteDish,
 } from "@dub/ui/src";
 import {
+  cn,
   constructURLFromUTMParams,
   getParamsFromURL,
   isValidUrl,
@@ -33,7 +34,6 @@ import {
 } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
-import { MultiTagsIcon } from "./multi-tags-icon";
 
 const UTM_PARAMETERS = [
   {
@@ -106,6 +106,9 @@ function UTMModal({
     }
   }, []);
 
+  // Whether to display actual URL parameters instead of labels
+  const [showParams, setShowParams] = useState(false);
+
   return (
     <Modal
       showModal={showUTMModal}
@@ -148,12 +151,36 @@ function UTMModal({
             return (
               <div key={key} className="group relative">
                 <div className="relative z-10 flex">
-                  <div className="flex items-center gap-1.5 rounded-l-md border-y border-l border-gray-300 bg-gray-50 px-3 py-1.5 text-gray-700 sm:min-w-28">
-                    <Icon className="size-4 shrink-0" />
-                    <label htmlFor={`${id}-${key}`} className="text-sm">
-                      {label}
-                    </label>
-                  </div>
+                  <Tooltip
+                    content={
+                      <div className="p-3 text-center text-xs">
+                        <p className="text-gray-600">{description}</p>
+                        <span className="font-mono text-gray-400">{key}</span>
+                      </div>
+                    }
+                    sideOffset={4}
+                    disableHoverableContent
+                  >
+                    <div
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-l-md border-y border-l border-gray-300 bg-gray-50 px-3 py-1.5 text-gray-700",
+                        showParams ? "sm:min-w-36" : "sm:min-w-28",
+                      )}
+                      onClick={() => setShowParams((s) => !s)}
+                    >
+                      <Icon className="size-4 shrink-0" />
+                      <label
+                        htmlFor={`${id}-${key}`}
+                        className="select-none text-sm"
+                      >
+                        {showParams ? (
+                          <span className="font-mono text-xs">{key}</span>
+                        ) : (
+                          label
+                        )}
+                      </label>
+                    </div>
+                  </Tooltip>
                   <input
                     type="text"
                     id={`${id}-${key}`}
@@ -172,14 +199,6 @@ function UTMModal({
                     }}
                   />
                 </div>
-                <div className="relative mt-1 cursor-default text-xs text-gray-500">
-                  <span className="ml-2 rounded-b-md border border-t-0 border-gray-300 bg-gray-50 px-1.5 pb-1 pt-2 font-mono">
-                    {key}
-                  </span>
-                  <p className="ml-2 inline-flex opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    → {description}
-                  </p>
-                </div>
               </div>
             );
           },
@@ -189,7 +208,7 @@ function UTMModal({
       {isValidUrl(url) && (
         <div className="mt-4 grid gap-y-1">
           <p className="text-sm text-gray-700">Current URL</p>
-          <div className="overflow-scroll break-words rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-mono text-xs text-gray-500">
+          <div className="scrollbar-hide overflow-scroll break-words rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-mono text-xs text-gray-500">
             {url}
           </div>
         </div>
@@ -214,20 +233,8 @@ function UTMButton({
   return (
     <Button
       variant="secondary"
-      text="UTM Builder"
-      icon={
-        <MultiTagsIcon
-          tags={
-            [
-              enabledParams.utm_source && { color: "blue" },
-              enabledParams.utm_medium && { color: "green" },
-              enabledParams.utm_campaign && { color: "red" },
-              enabledParams.utm_term && { color: "yellow" },
-              enabledParams.utm_content && { color: "purple" },
-            ].filter(Boolean) as { color: TagProps["color"] }[]
-          }
-        />
-      }
+      text="UTM"
+      icon={<DiamondTurnRight className="size-4" />}
       className="h-9 w-fit px-2.5 font-medium text-gray-700"
       onClick={() => setShowUTMModal(true)}
     />
