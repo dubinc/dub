@@ -56,8 +56,13 @@ describe.sequential("/customers/**", async () => {
       query: { workspaceId: workspace.id },
     });
 
+    const customerFound = customers.find(
+      (c) => c.externalId === customerRecord.externalId,
+    );
+
     expect(status).toEqual(200);
-    expect(customers).toContainEqual(expectedCustomer);
+    expect(customers.length).toBeGreaterThanOrEqual(1);
+    expect(customerFound).toStrictEqual(expectedCustomer);
   });
 
   test("PATCH /customers/{externalId}", async () => {
