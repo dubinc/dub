@@ -46,7 +46,6 @@ export function DomainCardTitleColumn({
           ) : (
             <div
               className="truncate text-sm font-medium"
-              title={domain}
             >
               {domain}
             </div>
