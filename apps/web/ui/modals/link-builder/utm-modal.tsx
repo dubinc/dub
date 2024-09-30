@@ -155,7 +155,7 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
         handleSubmit((data) => {
           setValueParent("url", data.url);
           UTM_PARAMETERS.filter((p) => p.key !== "ref").forEach((p) =>
-            setValueParent(p.key, data[p.key], {
+            setValueParent(p.key as any, data[p.key], {
               shouldDirty: true,
             }),
           );
