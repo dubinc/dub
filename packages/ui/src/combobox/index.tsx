@@ -276,7 +276,7 @@ export function Combobox({
             </div>
             {caret && (
               <ChevronDown
-                className={`size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+                className={`ml-1 size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
               />
             )}
           </>
