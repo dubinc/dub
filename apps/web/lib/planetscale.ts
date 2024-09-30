@@ -104,6 +104,7 @@ export async function getRandomKey({
 }
 
 // Get project by publishable key
+// TODO: Combine with getWorkspaceViaEdge
 export const getProjectByPublishableKey = async (publishableKey: string) => {
   if (!DATABASE_URL) return null;
 
@@ -118,6 +119,8 @@ export const getProjectByPublishableKey = async (publishableKey: string) => {
     : null;
 };
 
+// Get link by projectId and identifier
+// TODO: Combine with getLinkViaEdge
 export const getLink = async (projectId: string, identifier: string) => {
   if (!DATABASE_URL) return null;
 
