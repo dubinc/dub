@@ -42,7 +42,7 @@ export const PATCH = withWorkspace(
     const { id: externalId } = params;
 
     const {
-      id: newExternalId,
+      externalId: newExternalId,
       name,
       email,
       avatar,

@@ -32,7 +32,7 @@ export const GET = withWorkspace(
 // POST /api/customers – Create a new customer
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const { id, email, name, avatar } = createCustomerBodySchema.parse(
+    const { externalId, email, name, avatar } = createCustomerBodySchema.parse(
       await parseRequestBody(req),
     );
 
@@ -44,7 +44,7 @@ export const POST = withWorkspace(
           name: finalCustomerName,
           email,
           avatar,
-          externalId: id,
+          externalId,
           projectId: workspace.id,
           projectConnectId: workspace.stripeConnectId,
         },

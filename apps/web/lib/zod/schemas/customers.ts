@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 
 export const createCustomerBodySchema = z.object({
-  id: z
+  externalId: z
     .string()
     .describe("Unique identifier for the customer in the client's app."),
   email: z
@@ -29,7 +29,6 @@ export const CustomerSchema = z.object({
   id: z.string().describe("The unique identifier of the customer in Dub."),
   externalId: z
     .string()
-    .nullish()
     .describe("Unique identifier for the customer in the client's app."),
   name: z.string().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
