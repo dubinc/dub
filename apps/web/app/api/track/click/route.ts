@@ -33,15 +33,15 @@ export const POST = async (req: Request) => {
       });
     }
 
-    const redisKey = `trackClick:${link.id}:${ipAddress(req)}`;
-    let clickId = await redis.get<string>(redisKey);
+    const cacheKey = `recordClick:${link.id}:${ipAddress(req)}`;
+    let clickId = await redis.get<string>(cacheKey);
 
     if (!clickId) {
       clickId = nanoid(16);
 
       waitUntil(
         Promise.allSettled([
-          redis.set(redisKey, clickId, {
+          redis.set(cacheKey, clickId, {
             ex: 60 * 60,
           }), // 1 hour
           recordClick({
