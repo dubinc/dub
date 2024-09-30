@@ -61,12 +61,18 @@ export const withAuth = (handler: WithAuthHandler) => {
           });
         }
 
-        const referralToken =
-          await prisma.referralPublicToken.findUniqueOrThrow({
-            where: {
-              publicToken,
-            },
+        const referralToken = await prisma.referralPublicToken.findUnique({
+          where: {
+            publicToken,
+          },
+        });
+
+        if (!referralToken) {
+          throw new DubApiError({
+            code: "unauthorized",
+            message: "Invalid public token.",
           });
+        }
 
         if (referralToken.expires < new Date()) {
           throw new DubApiError({
@@ -98,13 +104,6 @@ export const withAuth = (handler: WithAuthHandler) => {
           rateLimit,
           "1 m",
         ).limit(publicToken);
-
-        if (!success) {
-          throw new DubApiError({
-            code: "rate_limit_exceeded",
-            message: "Too many requests.",
-          });
-        }
 
         headers = {
           "Retry-After": reset.toString(),
