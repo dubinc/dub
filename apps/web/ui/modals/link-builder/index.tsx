@@ -53,6 +53,7 @@ import { MoreDropdown } from "./more-dropdown";
 import { OptionsList } from "./options-list";
 import { usePasswordModal } from "./password-modal";
 import { QRCodePreview } from "./qr-code-preview";
+import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
@@ -411,6 +412,8 @@ function LinkBuilderInner({
                       domains={domains}
                     />
                   )}
+
+                  <TagSelect />
 
                   <div>
                     <div className="flex items-center gap-2">

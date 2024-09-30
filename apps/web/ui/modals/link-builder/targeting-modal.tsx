@@ -181,6 +181,7 @@ function TargetingModal({
                                 !key && "text-gray-600",
                               ),
                             }}
+                            optionClassName="sm:max-w-[200px]"
                           />
                         </div>
                         <input
