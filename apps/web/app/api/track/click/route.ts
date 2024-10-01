@@ -73,7 +73,7 @@ export const POST = async (req: Request) => {
       },
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse(error, CORS_HEADERS);
   }
 };
 
