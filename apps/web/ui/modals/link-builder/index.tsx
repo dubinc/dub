@@ -17,6 +17,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { useEnterSubmit } from "@dub/ui/src";
 import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   cn,
@@ -120,6 +121,9 @@ function LinkBuilderInner({
     clearErrors,
     formState: { isDirty, isSubmitting, isSubmitSuccessful, errors },
   } = useFormContext<LinkFormData>();
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
 
   const [url, domain, key, proxy, title, description] = watch([
     "url",
@@ -240,6 +244,7 @@ function LinkBuilderInner({
           }}
         >
           <form
+            ref={formRef}
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
@@ -445,6 +450,7 @@ function LinkBuilderInner({
                           placeholder="Add comments"
                           value={field.value ?? ""}
                           onChange={(e) => field.onChange(e.target.value)}
+                          onKeyDown={handleKeyDown}
                         />
                       )}
                     />
