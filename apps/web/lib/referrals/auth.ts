@@ -31,7 +31,7 @@ export const withAuth = (handler: WithAuthHandler) => {
 
       try {
         let link: Link | undefined = undefined;
-        let publicToken: string | undefined = undefined;
+        let tokenFromHeader: string | undefined = undefined;
 
         const rateLimit = 100;
         const searchParams = getSearchParams(req.url);
@@ -52,38 +52,57 @@ export const withAuth = (handler: WithAuthHandler) => {
           });
         }
 
-        publicToken = authorizationHeader.replace("Bearer ", "");
+        tokenFromHeader = authorizationHeader.replace("Bearer ", "");
 
-        if (!publicToken) {
+        if (!tokenFromHeader) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Missing Authorization header.",
           });
         }
 
-        const referralToken = await prisma.referralPublicToken.findUnique({
+        const publicToken = await prisma.referralPublicToken.findUnique({
           where: {
-            publicToken,
+            publicToken: tokenFromHeader,
           },
         });
 
-        if (!referralToken) {
+        if (!publicToken) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Invalid public token.",
           });
         }
 
-        if (referralToken.expires < new Date()) {
+        if (publicToken.expires < new Date()) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Public token expired.",
           });
         }
 
+        const { success, limit, reset, remaining } = await ratelimit(
+          rateLimit,
+          "1 m",
+        ).limit(tokenFromHeader);
+
+        headers = {
+          "Retry-After": reset.toString(),
+          "X-RateLimit-Limit": limit.toString(),
+          "X-RateLimit-Remaining": remaining.toString(),
+          "X-RateLimit-Reset": reset.toString(),
+        };
+
+        if (!success) {
+          throw new DubApiError({
+            code: "rate_limit_exceeded",
+            message: "Too many requests.",
+          });
+        }
+
         link = await prisma.link.findUniqueOrThrow({
           where: {
-            id: referralToken.linkId,
+            id: publicToken.linkId,
           },
         });
 
@@ -99,25 +118,6 @@ export const withAuth = (handler: WithAuthHandler) => {
             id: link.projectId!,
           },
         });
-
-        const { success, limit, reset, remaining } = await ratelimit(
-          rateLimit,
-          "1 m",
-        ).limit(publicToken);
-
-        headers = {
-          "Retry-After": reset.toString(),
-          "X-RateLimit-Limit": limit.toString(),
-          "X-RateLimit-Remaining": remaining.toString(),
-          "X-RateLimit-Reset": reset.toString(),
-        };
-
-        if (!success) {
-          throw new DubApiError({
-            code: "rate_limit_exceeded",
-            message: "Too many requests.",
-          });
-        }
 
         return await handler({
           req,
