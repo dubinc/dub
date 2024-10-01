@@ -103,9 +103,8 @@ export async function getRandomKey({
   }
 }
 
-// Get project by publishable key
-// TODO: Combine with getWorkspaceViaEdge
-export const getProjectByPublishableKey = async (publishableKey: string) => {
+// Get workspace by publishable key
+export const getWorkspaceByPublishableKey = async (publishableKey: string) => {
   if (!DATABASE_URL) return null;
 
   const { rows } =
@@ -119,15 +118,17 @@ export const getProjectByPublishableKey = async (publishableKey: string) => {
     : null;
 };
 
-// Get link by projectId and identifier
-// TODO: Combine with getLinkViaEdge
-export const getLink = async (projectId: string, identifier: string) => {
+// Get link by workspaceId and identifier
+export const getLinkByIdentifier = async (
+  workspaceId: string,
+  identifier: string,
+) => {
   if (!DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute(
-      "SELECT * FROM Link WHERE projectId = ? AND identifier = ? LIMIT 1",
-      [projectId, identifier],
+      "SELECT * FROM Link WHERE projectId = ? AND identifier = ?",
+      [workspaceId, identifier],
     )) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0

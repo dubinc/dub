@@ -1,6 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { extractPublishableKey, parseRequestBody } from "@/lib/api/utils";
-import { getLink, getProjectByPublishableKey } from "@/lib/planetscale";
+import {
+  getLinkByIdentifier,
+  getWorkspaceByPublishableKey,
+} from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { nanoid } from "@dub/utils";
@@ -13,7 +16,7 @@ export const runtime = "edge";
 export const POST = async (req: Request) => {
   try {
     const publishableKey = extractPublishableKey(req);
-    const workspace = await getProjectByPublishableKey(publishableKey);
+    const workspace = await getWorkspaceByPublishableKey(publishableKey);
 
     if (!workspace) {
       throw new DubApiError({
@@ -24,7 +27,7 @@ export const POST = async (req: Request) => {
 
     const { identifier } = await parseRequestBody(req);
 
-    const link = await getLink(workspace.id, identifier);
+    const link = await getLinkByIdentifier(workspace.id, identifier);
 
     if (!link) {
       throw new DubApiError({
