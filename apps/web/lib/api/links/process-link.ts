@@ -276,7 +276,7 @@ export async function processLink<T extends Record<string, any>>({
     if (link) {
       return {
         link: payload,
-        error: "A link with this externalId already exists.",
+        error: "A link with this externalId already exists in this workspace.",
         code: "conflict",
       };
     }
@@ -295,7 +295,7 @@ export async function processLink<T extends Record<string, any>>({
     if (link) {
       return {
         link: payload,
-        error: "A link with this identifier already exists.",
+        error: "A link with this identifier already exists in this workspace.",
         code: "conflict",
       };
     }
