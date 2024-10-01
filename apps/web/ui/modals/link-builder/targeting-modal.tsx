@@ -99,14 +99,14 @@ function TargetingModal({
                 content={
                   <div className="px-2 py-1 text-xs text-gray-700">
                     Press{" "}
-                    <strong className="font-medium text-gray-950">X</strong> to
+                    <strong className="font-medium text-gray-950">T</strong> to
                     open this quickly
                   </div>
                 }
                 side="right"
               >
                 <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-gray-200 font-sans text-xs text-gray-950">
-                  X
+                  T
                 </kbd>
               </Tooltip>
             </div>
@@ -181,6 +181,7 @@ function TargetingModal({
                                 !key && "text-gray-600",
                               ),
                             }}
+                            optionClassName="sm:max-w-[200px]"
                           />
                         </div>
                         <input
@@ -368,7 +369,7 @@ function TargetingButton({
   const { watch } = useFormContext<LinkFormData>();
   const [ios, android, geo] = watch(["ios", "android", "geo"]);
 
-  useKeyboardShortcut("x", () => setShowTargetingModal(true), {
+  useKeyboardShortcut("t", () => setShowTargetingModal(true), {
     modal: true,
   });
 

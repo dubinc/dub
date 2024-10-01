@@ -29,7 +29,6 @@ export * from "./switch";
 export * from "./table";
 export * from "./toggle-group";
 export * from "./tooltip";
-export * from "./utm-builder";
 
 // hooks
 export * from "./hooks";

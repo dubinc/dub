@@ -23,13 +23,25 @@ export interface TooltipProps
     | ReactNode
     | string
     | ((props: { setOpen: (open: boolean) => void }) => ReactNode);
+  disableHoverableContent?: TooltipPrimitive.TooltipProps["disableHoverableContent"];
 }
 
-export function Tooltip({ children, content, side = "top" }: TooltipProps) {
+export function Tooltip({
+  children,
+  content,
+  side = "top",
+  disableHoverableContent,
+  ...rest
+}: TooltipProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <TooltipPrimitive.Root open={open} onOpenChange={setOpen} delayDuration={0}>
+    <TooltipPrimitive.Root
+      open={open}
+      onOpenChange={setOpen}
+      delayDuration={0}
+      disableHoverableContent={disableHoverableContent}
+    >
       <TooltipPrimitive.Trigger
         asChild
         onClick={() => {
@@ -47,6 +59,7 @@ export function Tooltip({ children, content, side = "top" }: TooltipProps) {
           side={side}
           className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
           collisionPadding={0}
+          {...rest}
         >
           {typeof content === "string" ? (
             <span className="block max-w-xs text-pretty px-4 py-2 text-center text-sm text-gray-700">
