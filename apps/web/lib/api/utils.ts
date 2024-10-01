@@ -1,4 +1,4 @@
-import { ipAddress } from "@vercel/edge";
+import { ipAddress } from "@vercel/functions";
 import { getToken } from "next-auth/jwt";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
@@ -49,4 +49,17 @@ export const getIP = () => {
   }
 
   return headers().get("x-real-ip") ?? FALLBACK_IP_ADDRESS;
+};
+
+export const extractPublishableKey = (req: Request) => {
+  const authorizationHeader = req.headers.get("Authorization");
+
+  if (!authorizationHeader) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Missing authorization header",
+    });
+  }
+
+  return authorizationHeader.replace("Bearer ", "");
 };
