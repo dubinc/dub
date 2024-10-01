@@ -75,7 +75,7 @@ export const OPTIONS = () => {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
     },
   });
 };
