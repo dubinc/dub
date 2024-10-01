@@ -380,6 +380,7 @@ export const LinkSchema = z
       ),
     identifier: z
       .string()
+      .nullable()
       .describe(
         "The identifier of the short link that is unique across your workspace. If set, it can be used to identify your short link for client-side click tracking.",
       ),
