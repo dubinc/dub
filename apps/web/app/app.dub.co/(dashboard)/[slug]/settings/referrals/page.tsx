@@ -1,24 +1,18 @@
-import { getConversionEvents } from "@/lib/actions/get-conversion-events";
-import { getReferralLink } from "@/lib/actions/get-referral-link";
-import { getTotalEvents } from "@/lib/actions/get-total-events";
 import { EventType } from "@/lib/analytics/types";
 import {
   REFERRAL_CLICKS_QUOTA_BONUS,
   REFERRAL_CLICKS_QUOTA_BONUS_MAX,
   REFERRAL_REVENUE_SHARE,
 } from "@/lib/referrals/constants";
-import { EventListSkeleton } from "@dub/blocks";
 import { Wordmark } from "@dub/ui";
 import { Check } from "@dub/ui/src/icons";
-import { nFormatter, randomValue } from "@dub/utils";
-import { subDays } from "date-fns";
+import { nFormatter } from "@dub/utils";
 import { Suspense } from "react";
-import { ActivityList } from "./activity-list";
 import { EventTabs } from "./event-tabs";
+import { Events } from "./events";
 import { HeroBackground } from "./hero-background";
 import ReferralsPageClient from "./page-client";
 import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
-import { Stats } from "./stats";
 
 export const revalidate = 0;
 
@@ -93,96 +87,20 @@ export default function ReferralsPage({
             </p>
           </a>
         </div>
-        <div className="mt-8">
-          <Stats slug={slug} />
-        </div>
+
+        {/* <div className="mt-8">
+          <Stats />
+        </div> */}
+
+        {/* Events */}
         <div className="mt-12">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-xl font-semibold text-gray-800">Activity</h2>
             <EventTabs />
           </div>
-          <Suspense
-            key={`${slug}-${event}-${page}`}
-            fallback={<EventListSkeleton />}
-          >
-            <ActivityListRSC slug={slug} event={event} page={page} />
-          </Suspense>
+          <Events />
         </div>
       </div>
     </ReferralsPageClient>
   );
-}
-
-const placeholderEvents = {
-  clicks: [...Array(10)].map(
-    (_, idx) =>
-      ({
-        timestamp: subDays(new Date(), idx).toISOString(),
-        click_id: "1",
-        link_id: "1",
-        domain: "refer.dub.co",
-        key: "",
-        url: "https://dub.co",
-        country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
-      }) as any,
-  ),
-  leads: [...Array(10)].map(
-    (_, idx) =>
-      ({
-        timestamp: subDays(new Date(), idx).toISOString(),
-        click_id: "1",
-        link_id: "1",
-        domain: "refer.dub.co",
-        key: "",
-        url: "https://dub.co",
-        country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
-      }) as any,
-  ),
-  sales: [...Array(10)].map(
-    (_, idx) =>
-      ({
-        timestamp: subDays(new Date(), idx).toISOString(),
-        click_id: "1",
-        link_id: "1",
-        domain: "refer.dub.co",
-        key: "",
-        url: "https://dub.co",
-        country: randomValue(["US", "GB", "CA", "AU", "DE", "FR", "ES", "IT"]),
-        event_name: [
-          "Subscription creation",
-          "Subscription paid",
-          "Plan upgraded",
-        ][idx % 3],
-        // TODO update to saleAmount
-        amount: [1100, 4900, 2400][idx % 3],
-      }) as any,
-  ),
-};
-
-async function ActivityListRSC({
-  slug,
-  event,
-  page,
-}: {
-  slug: string;
-  event: EventType;
-  page: number;
-}) {
-  const link = await getReferralLink(slug);
-  if (!link) {
-    return (
-      <ActivityList
-        events={placeholderEvents[event]}
-        totalEvents={placeholderEvents[event].length}
-        demo
-      />
-    );
-  }
-
-  const [events, totalEvents] = await Promise.all([
-    getConversionEvents({ linkId: link.id, event, page }),
-    getTotalEvents(link.id),
-  ]);
-
-  return <ActivityList events={events} totalEvents={totalEvents[event] ?? 0} />;
 }
