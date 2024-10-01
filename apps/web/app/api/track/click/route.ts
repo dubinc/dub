@@ -36,9 +36,9 @@ export const POST = async (req: Request) => {
     const link = await getLinkByIdentifier(workspace.id, identifier);
 
     if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Link not found for identifier: ${identifier}`,
+      return new Response("Link not found, no click recorded.", {
+        status: 204,
+        headers: CORS_HEADERS,
       });
     }
 
