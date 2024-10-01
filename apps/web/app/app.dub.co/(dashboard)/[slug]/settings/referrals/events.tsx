@@ -20,15 +20,11 @@ import {
 } from "dub/dist/commonjs/models/components";
 import { useSearchParams } from "next/navigation";
 
-export function ActivityList({
-  events,
-  totalEvents,
-  demo,
-}: {
-  events: ConversionEvent[];
-  totalEvents: number;
-  demo?: boolean;
-}) {
+interface EventsProps {
+  //
+}
+
+export const Events = (props: EventsProps) => {
   const searchParams = useSearchParams();
   const event = (searchParams.get("event") || "clicks") as EventType;
 
