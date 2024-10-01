@@ -90,7 +90,7 @@ async function StatsInner({ slug }: { slug: string }) {
           label="Affiliate Earnings"
           graphic={<MiniAreaChart data={sales} />}
         >
-          <CountingNumbers prefix="$" fullNumber>
+          <CountingNumbers prefix="$" variant="full">
             {(totalSales / 100) * REFERRAL_REVENUE_SHARE}
           </CountingNumbers>
         </StatsCard>
@@ -108,7 +108,7 @@ async function StatsInner({ slug }: { slug: string }) {
             </Gauge>
           }
         >
-          <CountingNumbers fullNumber>{clicksQuotaBonus}</CountingNumbers>
+          <CountingNumbers variant="full">{clicksQuotaBonus}</CountingNumbers>
         </StatsCard>
       </>
     );

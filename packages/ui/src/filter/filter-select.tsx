@@ -2,6 +2,7 @@ import { cn, truncate } from "@dub/utils";
 import { Command, useCommandState } from "cmdk";
 import { ChevronDown, ListFilter } from "lucide-react";
 import {
+  Fragment,
   PropsWithChildren,
   ReactNode,
   forwardRef,
@@ -191,16 +192,15 @@ export function FilterSelect({
                 {!selectedFilter
                   ? // Top-level filters
                     filters.map((filter) => (
-                      <>
+                      <Fragment key={filter.key}>
                         <FilterButton
-                          key={filter.key}
                           filter={filter}
                           onSelect={() => openFilter(filter.key)}
                         />
                         {filter.separatorAfter && (
                           <Command.Separator className="-mx-1 my-1 border-b border-gray-200" />
                         )}
-                      </>
+                      </Fragment>
                     ))
                   : // Filter options
                     selectedFilter.options?.map((option) => {

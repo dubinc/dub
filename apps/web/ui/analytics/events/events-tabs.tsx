@@ -106,7 +106,7 @@ export default function EventsTabs() {
                     isLoadingTotalEvents && "opacity-40",
                   )}
                   prefix={event === "sales" && "$"}
-                  {...(event === "sales" && { fullNumber: true })}
+                  {...(event === "sales" && { variant: "full" })}
                 >
                   {event === "sales"
                     ? (totalEvents?.saleAmount ?? 0) / 100
