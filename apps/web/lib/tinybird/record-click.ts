@@ -77,7 +77,7 @@ export async function recordClick({
       : LOCALHOST_GEO_DATA.continent;
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
-  const isEuCountry = geo?.country && EU_COUNTRY_CODES.includes(geo.country);
+  const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
