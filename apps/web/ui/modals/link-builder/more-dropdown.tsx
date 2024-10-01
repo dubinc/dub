@@ -136,16 +136,7 @@ export function MoreDropdown() {
                         (data.externalId || data.identifier) && "text-blue-500",
                       )}
                     />
-                    Advanced
-                    <ProBadgeTooltip
-                      content={
-                        <SimpleTooltipContent
-                          title="Advanced settings"
-                          cta="Learn more."
-                          href="https://dub.co/docs/advanced-settings"
-                        />
-                      }
-                    />
+                    Advanced settings
                   </div>
                   <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-800 sm:flex">
                     A

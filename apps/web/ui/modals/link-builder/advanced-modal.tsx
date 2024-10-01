@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
   Modal,
@@ -5,6 +6,7 @@ import {
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
+import { InfoTooltip } from "@dub/ui/src";
 import {
   Dispatch,
   SetStateAction,
@@ -53,6 +55,8 @@ function AdvancedModal({
 
   const parentEnabled = Boolean(externalIdParent || identifierParent);
 
+  const { conversionEnabled } = useWorkspace();
+
   return (
     <Modal
       showModal={showAdvancedModal}
@@ -99,9 +103,18 @@ function AdvancedModal({
             <div className="flex items-center gap-2">
               <label
                 htmlFor={`${id}-external-id`}
-                className="block text-sm font-medium text-gray-700"
+                className="flex items-center gap-2 text-sm font-medium text-gray-700"
               >
-                External ID
+                External ID{" "}
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="A unique identifier for this link in your database."
+                      cta="Learn more about external IDs."
+                      href="https://d.to/externalId"
+                    />
+                  }
+                />
               </label>
               <Tooltip
                 content={
@@ -125,34 +138,36 @@ function AdvancedModal({
           </div>
 
           {/* Identifier */}
-          <div>
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor={`${id}-identifier`}
-                className="block text-sm font-medium text-gray-700"
-              >
-                Identifier
-              </label>
-              <Tooltip
-                content={
-                  <SimpleTooltipContent
-                    title="A unique string to identify this link."
-                    cta="Learn more about identifiers."
-                    href="https://dub.co/help/article/link-identifiers"
-                  />
-                }
-              />
+          {conversionEnabled && (
+            <div>
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor={`${id}-identifier`}
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Identifier
+                </label>
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="A unique string to identify this link."
+                      cta="Learn more about identifiers."
+                      href="https://dub.co/help/article/link-identifiers"
+                    />
+                  }
+                />
+              </div>
+              <div className="mt-2 rounded-md shadow-sm">
+                <input
+                  id={`${id}-identifier`}
+                  type="text"
+                  placeholder="Eg: david"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  {...register("identifier")}
+                />
+              </div>
             </div>
-            <div className="mt-2 rounded-md shadow-sm">
-              <input
-                id={`${id}-identifier`}
-                type="text"
-                placeholder="Eg: david"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                {...register("identifier")}
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="mt-6 flex items-center justify-between">
