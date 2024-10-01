@@ -37,14 +37,8 @@ export const WorkspacePublicKey = () => {
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">Publishable Key</h2>
             <p className="text-sm text-gray-500">
-              This key should be used in your client-side code.{" "}
-              <a
-                href="https://dub.co/docs/api-reference/tokens"
-                target="_blank"
-                className="font-medium underline underline-offset-4 hover:text-black"
-              >
-                Learn more
-              </a>
+              This key can be safely used in your client-side code (for
+              client-side click-tracking).
             </p>
           </div>
 
