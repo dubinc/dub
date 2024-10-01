@@ -68,6 +68,7 @@ export const POST = withWorkspace(
           workspace,
           userId: session.user.id,
           bulk: true,
+          skipIdentifierChecks: true,
         }),
       ),
     );
@@ -232,6 +233,7 @@ export const PATCH = withWorkspace(
           userId: link.userId ?? undefined,
           bulk: true,
           skipKeyChecks: true,
+          skipIdentifierChecks: true,
         }),
       ),
     );

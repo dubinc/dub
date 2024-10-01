@@ -171,6 +171,12 @@ export const createLinkBodySchema = z.object({
     .optional()
     .default(false)
     .describe("Whether to track conversions for the short link."),
+  identifier: z
+    .string()
+    .nullish()
+    .describe(
+      "The identifier of the short link that is unique across your workspace. If set, it can be used to identify your short link for client-side click tracking.",
+    ),
   archived: z
     .boolean()
     .optional()

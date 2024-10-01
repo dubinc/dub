@@ -75,6 +75,16 @@ export const PUT = withWorkspace(
         });
       }
 
+      // if domain and key are the same, we don't need to check if the key exists
+      const skipKeyChecks =
+        link.domain === updatedLink.domain &&
+        link.key.toLowerCase() === updatedLink.key?.toLowerCase();
+
+      // if identifier is the same, we don't need to check if it exists
+      const skipIdentifierChecks =
+        link.identifier?.toLowerCase() ===
+        updatedLink.identifier?.toLowerCase();
+
       const {
         link: processedLink,
         error,
@@ -82,10 +92,8 @@ export const PUT = withWorkspace(
       } = await processLink({
         payload: updatedLink,
         workspace,
-        // if domain and key are the same, we don't need to check if the key exists
-        skipKeyChecks:
-          link.domain === updatedLink.domain &&
-          link.key.toLowerCase() === updatedLink.key?.toLowerCase(),
+        skipKeyChecks,
+        skipIdentifierChecks,
       });
 
       if (error) {
