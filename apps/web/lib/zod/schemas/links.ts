@@ -346,6 +346,7 @@ export const bulkUpdateLinksBodySchema = z.object({
       domain: true,
       key: true,
       externalId: true,
+      identifier: true,
       prefix: true,
     })
     .merge(

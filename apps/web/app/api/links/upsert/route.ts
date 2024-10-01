@@ -80,6 +80,11 @@ export const PUT = withWorkspace(
         link.domain === updatedLink.domain &&
         link.key.toLowerCase() === updatedLink.key?.toLowerCase();
 
+      // if externalId is the same, we don't need to check if it exists
+      const skipExternalIdChecks =
+        link.externalId?.toLowerCase() ===
+        updatedLink.externalId?.toLowerCase();
+
       // if identifier is the same, we don't need to check if it exists
       const skipIdentifierChecks =
         link.identifier?.toLowerCase() ===
@@ -93,6 +98,7 @@ export const PUT = withWorkspace(
         payload: updatedLink,
         workspace,
         skipKeyChecks,
+        skipExternalIdChecks,
         skipIdentifierChecks,
       });
 
@@ -117,13 +123,6 @@ export const PUT = withWorkspace(
           headers,
         });
       } catch (error) {
-        if (error.code === "P2002") {
-          throw new DubApiError({
-            code: "conflict",
-            message: "A link with this externalId already exists.",
-          });
-        }
-
         throw new DubApiError({
           code: "unprocessable_entity",
           message: error.message,
@@ -148,13 +147,6 @@ export const PUT = withWorkspace(
         const response = await createLink(link);
         return NextResponse.json(response, { headers });
       } catch (error) {
-        if (error.code === "P2002") {
-          throw new DubApiError({
-            code: "conflict",
-            message: "A link with this externalId already exists.",
-          });
-        }
-
         throw new DubApiError({
           code: "unprocessable_entity",
           message: error.message,

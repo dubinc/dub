@@ -106,6 +106,10 @@ export const PATCH = withWorkspace(
       link.domain === updatedLink.domain &&
       link.key.toLowerCase() === updatedLink.key?.toLowerCase();
 
+    // if externalId is the same, we don't need to check if it exists
+    const skipExternalIdChecks =
+      link.externalId?.toLowerCase() === updatedLink.externalId?.toLowerCase();
+
     // if identifier is the same, we don't need to check if it exists
     const skipIdentifierChecks =
       link.identifier?.toLowerCase() === updatedLink.identifier?.toLowerCase();
@@ -118,6 +122,7 @@ export const PATCH = withWorkspace(
       payload: updatedLink,
       workspace,
       skipKeyChecks,
+      skipExternalIdChecks,
       skipIdentifierChecks,
     });
 
@@ -150,13 +155,6 @@ export const PATCH = withWorkspace(
         headers,
       });
     } catch (error) {
-      if (error.code === "P2002") {
-        throw new DubApiError({
-          code: "conflict",
-          message: "A link with this externalId already exists.",
-        });
-      }
-
       throw new DubApiError({
         code: "unprocessable_entity",
         message: error.message,
