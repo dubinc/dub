@@ -14,6 +14,7 @@ export async function getLinksForWorkspace({
   page,
   pageSize,
   userId,
+  ids,
   showArchived,
   withTags,
   includeUser,
@@ -60,6 +61,7 @@ export async function getLinksForWorkspace({
             }
           : {}),
       ...(userId && { userId }),
+      ...(ids && { id: { in: ids } }),
     },
     include: {
       user: includeUser,

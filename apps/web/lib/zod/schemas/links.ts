@@ -57,6 +57,11 @@ const LinksQuerySchema = z.object({
       "The search term to filter the links by. The search term will be matched against the short link slug and the destination url.",
     ),
   userId: z.string().optional().describe("The user ID to filter the links by."),
+  ids: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("Link IDs to filter by."),
   showArchived: booleanQuerySchema
     .optional()
     .default("false")
