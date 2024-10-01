@@ -21,7 +21,7 @@ export const TOGGLES = [
     description:
       "Mask your destination URL so your users only see the short link in the browser address bar.",
     learnMoreUrl: "https://dub.co/help/article/link-cloaking",
-    shortcutKey: "h",
+    shortcutKey: "k",
     type: "boolean",
   },
   {

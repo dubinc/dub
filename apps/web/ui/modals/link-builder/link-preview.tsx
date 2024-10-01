@@ -77,7 +77,7 @@ export function LinkPreview() {
   }, [password, debouncedUrl]);
 
   const { OGModal, setShowOGModal } = useOGModal();
-  useKeyboardShortcut("p", () => setShowOGModal(true), {
+  useKeyboardShortcut("l", () => setShowOGModal(true), {
     modal: true,
   });
 
