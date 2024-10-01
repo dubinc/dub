@@ -3,7 +3,6 @@ import {
   LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
-  nanoid,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress } from "@vercel/functions";
@@ -34,7 +33,7 @@ export async function recordClick({
 }: {
   req: Request;
   linkId: string;
-  clickId?: string;
+  clickId: string;
   url?: string;
   webhookIds?: string[];
   skipRatelimit?: boolean;
@@ -89,7 +88,7 @@ export async function recordClick({
   const clickData = {
     timestamp: new Date(Date.now()).toISOString(),
     identity_hash,
-    click_id: clickId || nanoid(16),
+    click_id: clickId,
     link_id: linkId,
     alias_link_id: "",
     url: finalUrl,
