@@ -367,17 +367,22 @@ export const LinkSchema = z
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
-    externalId: z
-      .string()
-      .nullable()
-      .describe(
-        "This is the ID of the link in your database. If set, it can be used to identify the link in the future. Must be prefixed with 'ext_' when passed as a query parameter.",
-      ),
     url: z.string().url().describe("The destination URL of the short link."),
     trackConversion: z
       .boolean()
       .default(false)
       .describe("[BETA] Whether to track conversions for the short link."),
+    externalId: z
+      .string()
+      .nullable()
+      .describe(
+        "This is the ID of the link in your database that is unique across your workspace. If set, it can be used to identify the link in future API requests. Must be prefixed with 'ext_' when passed as a query parameter.",
+      ),
+    identifier: z
+      .string()
+      .describe(
+        "The identifier of the short link that is unique across your workspace. If set, it can be used to identify your short link for client-side click tracking.",
+      ),
     archived: z
       .boolean()
       .default(false)
