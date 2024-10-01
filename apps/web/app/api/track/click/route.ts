@@ -36,7 +36,7 @@ export const POST = async (req: Request) => {
     const link = await getLinkByIdentifier(workspace.id, identifier);
 
     if (!link) {
-      return new Response("Link not found, no click recorded.", {
+      return new Response(null, {
         status: 204,
         headers: CORS_HEADERS,
       });
