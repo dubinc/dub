@@ -229,14 +229,14 @@ function OGModalInner({
                 content={
                   <div className="px-2 py-1 text-xs text-gray-700">
                     Press{" "}
-                    <strong className="font-medium text-gray-950">P</strong> to
+                    <strong className="font-medium text-gray-950">L</strong> to
                     open this quickly
                   </div>
                 }
                 side="right"
               >
                 <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
-                  P
+                  L
                 </kbd>
               </Tooltip>
             </div>
