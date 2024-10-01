@@ -33,6 +33,7 @@ export * from "./cube";
 export * from "./cube-settings";
 export * from "./cursor-rays";
 export * from "./desktop";
+export * from "./diamond-turn-right";
 export * from "./dots";
 export * from "./download";
 export * from "./earth-position";

@@ -9,7 +9,7 @@ SQL >
 
     %
     SELECT link_id, domain, key
-    from dub_links_metadata_lambda
+    from dub_links_metadata_latest
     WHERE
         workspace_id
         = {{

@@ -99,14 +99,14 @@ function TargetingModal({
                 content={
                   <div className="px-2 py-1 text-xs text-gray-700">
                     Press{" "}
-                    <strong className="font-medium text-gray-950">X</strong> to
+                    <strong className="font-medium text-gray-950">T</strong> to
                     open this quickly
                   </div>
                 }
                 side="right"
               >
                 <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-gray-200 font-sans text-xs text-gray-950">
-                  X
+                  T
                 </kbd>
               </Tooltip>
             </div>
@@ -131,59 +131,64 @@ function TargetingModal({
               </div>
               <div className="mt-2">
                 {geo && (
-                  <div className="mb-2 grid grid-cols-[min-content_1fr_min-content] gap-y-2">
+                  <div className="relative mb-2 grid grid-cols-[min-content_1fr_min-content] gap-y-2">
                     {Object.entries(geo).map(([key, value]) => (
                       <Fragment key={key}>
-                        <Combobox
-                          selected={{ value: key, label: COUNTRIES[key] }}
-                          setSelected={(option) => {
-                            if (!option) return;
-                            const newGeo = {};
-                            delete Object.assign(newGeo, geo, {
-                              [option.value]: value,
-                            })[key];
-                            setValue("geo", newGeo, { shouldDirty: true });
-                          }}
-                          options={Object.entries(COUNTRIES)
-                            .filter(
-                              ([ck]) =>
-                                ck === key || !Object.keys(geo).includes(ck),
-                            )
-                            .map(([key, value]) => ({
-                              icon: (
+                        <div className="z-[1]">
+                          <Combobox
+                            selected={{ value: key, label: COUNTRIES[key] }}
+                            setSelected={(option) => {
+                              if (!option) return;
+                              const newGeo = {};
+                              delete Object.assign(newGeo, geo, {
+                                [option.value]: value,
+                              })[key];
+                              setValue("geo", newGeo, { shouldDirty: true });
+                            }}
+                            options={Object.entries(COUNTRIES)
+                              .filter(
+                                ([ck]) =>
+                                  ck === key || !Object.keys(geo).includes(ck),
+                              )
+                              .map(([key, value]) => ({
+                                icon: (
+                                  <img
+                                    alt={value}
+                                    src={`https://flag.vercel.app/m/${key}.svg`}
+                                    className="mr-1 h-2.5 w-4"
+                                  />
+                                ),
+                                value: key,
+                                label: value,
+                              }))}
+                            icon={
+                              key ? (
                                 <img
-                                  alt={value}
+                                  alt={COUNTRIES[key]}
                                   src={`https://flag.vercel.app/m/${key}.svg`}
-                                  className="mr-1 h-2.5 w-4"
+                                  className="h-2.5 w-4"
                                 />
+                              ) : undefined
+                            }
+                            caret={true}
+                            placeholder="Country"
+                            searchPlaceholder="Search countries..."
+                            buttonProps={{
+                              className: cn(
+                                "w-32 sm:w-40 rounded-r-none border-r-transparent justify-start px-2.5",
+                                "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+                                "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+                                !key && "text-gray-600",
                               ),
-                              value: key,
-                              label: value,
-                            }))}
-                          icon={
-                            key ? (
-                              <img
-                                alt={COUNTRIES[key]}
-                                src={`https://flag.vercel.app/m/${key}.svg`}
-                                className="h-2.5 w-4"
-                              />
-                            ) : undefined
-                          }
-                          caret={true}
-                          placeholder="Country"
-                          searchPlaceholder="Search countries..."
-                          buttonProps={{
-                            className: cn(
-                              "w-32 sm:w-40 rounded-r-none border-r-0 justify-start px-2.5",
-                              !key && "text-gray-600",
-                            ),
-                          }}
-                        />
+                            }}
+                            optionClassName="sm:max-w-[200px]"
+                          />
+                        </div>
                         <input
                           type="text"
                           id={`${id}-${key}`}
                           placeholder="https://example.com"
-                          className="h-full grow rounded-r-md border border-gray-300 text-sm placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                          className="z-0 h-full grow rounded-r-md border border-gray-300 text-sm placeholder-gray-400 focus:z-[1] focus:border-gray-500 focus:ring-gray-500"
                           value={value}
                           onChange={(e) => {
                             setValue(
@@ -364,7 +369,7 @@ function TargetingButton({
   const { watch } = useFormContext<LinkFormData>();
   const [ios, android, geo] = watch(["ios", "android", "geo"]);
 
-  useKeyboardShortcut("x", () => setShowTargetingModal(true), {
+  useKeyboardShortcut("t", () => setShowTargetingModal(true), {
     modal: true,
   });
 

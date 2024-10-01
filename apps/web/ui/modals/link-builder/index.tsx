@@ -16,8 +16,8 @@ import {
   TooltipContent,
   useKeyboardShortcut,
   useRouterStuff,
-  UTMBuilder,
 } from "@dub/ui";
+import { useEnterSubmit } from "@dub/ui/src";
 import { ArrowTurnLeft } from "@dub/ui/src/icons";
 import {
   cn,
@@ -57,6 +57,7 @@ import { QRCodePreview } from "./qr-code-preview";
 import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
+import { useUTMModal } from "./utm-modal";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -120,6 +121,9 @@ function LinkBuilderInner({
     clearErrors,
     formState: { isDirty, isSubmitting, isSubmitSuccessful, errors },
   } = useFormContext<LinkFormData>();
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
 
   const [url, domain, key, proxy, title, description] = watch([
     "url",
@@ -207,13 +211,15 @@ function LinkBuilderInner({
 
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
-  const { PasswordModal, PasswordButton } = usePasswordModal();
-  const { TargetingModal, TargetingButton } = useTargetingModal();
+  const { UTMModal, UTMButton } = useUTMModal();
   const { ExpirationModal, ExpirationButton } = useExpirationModal();
+  const { TargetingModal, TargetingButton } = useTargetingModal();
+  const { PasswordModal, PasswordButton } = usePasswordModal();
 
   return (
     <>
       <PasswordModal />
+      <UTMModal />
       <TargetingModal />
       <ExpirationModal />
       <Modal
@@ -238,6 +244,7 @@ function LinkBuilderInner({
           }}
         >
           <form
+            ref={formRef}
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
@@ -411,15 +418,7 @@ function LinkBuilderInner({
                     />
                   )}
 
-                  <UTMBuilder
-                    url={url}
-                    setUrl={(url) =>
-                      setValue("url", url, { shouldDirty: true })
-                    }
-                    setValue={(key, value) =>
-                      setValue(key as any, value, { shouldDirty: true })
-                    }
-                  />
+                  <TagSelect />
 
                   <div>
                     <div className="flex items-center gap-2">
@@ -451,6 +450,7 @@ function LinkBuilderInner({
                           placeholder="Add comments"
                           value={field.value ?? ""}
                           onChange={(e) => field.onChange(e.target.value)}
+                          onKeyDown={handleKeyDown}
                         />
                       )}
                     />
@@ -473,7 +473,7 @@ function LinkBuilderInner({
             </div>
             <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 p-4">
               <div className="flex min-w-0 items-center gap-2">
-                <TagSelect />
+                <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
                   <ExpirationButton />
                   <TargetingButton />
