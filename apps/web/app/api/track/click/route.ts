@@ -12,6 +12,12 @@ import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 // POST /api/track/click – Track a click event from client side
 export const POST = async (req: Request) => {
   try {
@@ -63,9 +69,7 @@ export const POST = async (req: Request) => {
         clickId,
       },
       {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: CORS_HEADERS,
       },
     );
   } catch (error) {
@@ -76,10 +80,6 @@ export const POST = async (req: Request) => {
 export const OPTIONS = () => {
   return new Response(null, {
     status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
+    headers: CORS_HEADERS,
   });
 };
