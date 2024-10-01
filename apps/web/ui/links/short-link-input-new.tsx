@@ -277,6 +277,7 @@ export const ShortLinkInputNew = forwardRef<
                   !key && "text-gray-600",
                 ),
               }}
+              optionClassName="sm:max-w-[225px]"
               open={isOpen}
               onOpenChange={setIsOpen}
             />
