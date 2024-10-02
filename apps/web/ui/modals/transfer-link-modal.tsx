@@ -25,15 +25,28 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-function TransferLinkModal({
-  showTransferLinkModal,
-  setShowTransferLinkModal,
-  props,
-}: {
+type TransferLinkModalProps = {
   showTransferLinkModal: boolean;
   setShowTransferLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
-}) {
+};
+
+function TransferLinkModal(props: TransferLinkModalProps) {
+  return (
+    <Modal
+      showModal={props.showTransferLinkModal}
+      setShowModal={props.setShowTransferLinkModal}
+      className="overflow-visible"
+    >
+      <TransferLinkModalInner {...props} />
+    </Modal>
+  );
+}
+
+function TransferLinkModalInner({
+  setShowTransferLinkModal,
+  props,
+}: TransferLinkModalProps) {
   const { id } = useWorkspace();
   const { workspaces } = useWorkspaces();
   const [transferring, setTransferring] = useState(false);
@@ -75,66 +88,58 @@ function TransferLinkModal({
   };
 
   return (
-    <Modal
-      showModal={showTransferLinkModal}
-      setShowModal={setShowTransferLinkModal}
-      className="overflow-visible"
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (selectedWorkspace) {
+          setTransferring(true);
+          toast.promise(transferLink(props.id, selectedWorkspace.id), {
+            loading: "Transferring link...",
+            success: "Successfully transferred link.",
+            error: "Failed to transfer link.",
+          });
+        }
+      }}
     >
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (selectedWorkspace) {
-            setTransferring(true);
-            toast.promise(transferLink(props.id, selectedWorkspace.id), {
-              loading: "Transferring link...",
-              success: "Successfully transferred link.",
-              error: "Failed to transfer link.",
-            });
-          }
-        }}
-      >
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-          <LinkLogo apexDomain={apexDomain} />
-          <h3 className="text-lg font-medium">Transfer {shortlink}</h3>
-          <p className="text-sm text-gray-500">
-            Transfer this link and its analytics to another {APP_NAME}{" "}
-            workspace. Link tags will not be transferred.
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+        <LinkLogo apexDomain={apexDomain} />
+        <h3 className="text-lg font-medium">Transfer {shortlink}</h3>
+        <p className="text-sm text-gray-500">
+          Transfer this link and its analytics to another {APP_NAME} workspace.
+          Link tags will not be transferred.
+        </p>
+      </div>
 
-        <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
-          <InputSelect
-            items={
-              workspaces
-                ? workspaces.map((workspace) => ({
-                    id: workspace.id,
-                    value: workspace.name,
-                    image:
-                      workspace.logo ||
-                      `${DICEBEAR_AVATAR_URL}${workspace.name}`,
-                    disabled:
-                      workspace.id.replace("ws_", "") === props.projectId,
-                    label:
-                      workspace.id.replace("ws_", "") === props.projectId
-                        ? "Current"
-                        : "",
-                  }))
-                : []
-            }
-            selectedItem={selectedWorkspace}
-            setSelectedItem={setSelectedWorkspace}
-            inputAttrs={{
-              placeholder: "Select a workspace",
-            }}
-          />
-          <Button
-            disabled={!selectedWorkspace || !isDubDomain(domain)}
-            loading={transferring}
-            text="Confirm transfer"
-          />
-        </div>
-      </form>
-    </Modal>
+      <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
+        <InputSelect
+          items={
+            workspaces
+              ? workspaces.map((workspace) => ({
+                  id: workspace.id,
+                  value: workspace.name,
+                  image:
+                    workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
+                  disabled: workspace.id.replace("ws_", "") === props.projectId,
+                  label:
+                    workspace.id.replace("ws_", "") === props.projectId
+                      ? "Current"
+                      : "",
+                }))
+              : []
+          }
+          selectedItem={selectedWorkspace}
+          setSelectedItem={setSelectedWorkspace}
+          inputAttrs={{
+            placeholder: "Select a workspace",
+          }}
+        />
+        <Button
+          disabled={!selectedWorkspace || !isDubDomain(domain)}
+          loading={transferring}
+          text="Confirm transfer"
+        />
+      </div>
+    </form>
   );
 }
 
