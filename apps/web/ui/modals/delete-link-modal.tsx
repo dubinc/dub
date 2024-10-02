@@ -12,15 +12,27 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-function DeleteLinkModal({
-  showDeleteLinkModal,
-  setShowDeleteLinkModal,
-  props,
-}: {
+type DeleteLinkModalProps = {
   showDeleteLinkModal: boolean;
   setShowDeleteLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
-}) {
+};
+
+function DeleteLinkModal(props: DeleteLinkModalProps) {
+  return (
+    <Modal
+      showModal={props.showDeleteLinkModal}
+      setShowModal={props.setShowDeleteLinkModal}
+    >
+      <DeleteLinkModalInner {...props} />
+    </Modal>
+  );
+}
+
+function DeleteLinkModalInner({
+  setShowDeleteLinkModal,
+  props,
+}: DeleteLinkModalProps) {
   const { id } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
   const apexDomain = getApexDomain(props.url);
@@ -38,10 +50,7 @@ function DeleteLinkModal({
   const { isMobile } = useMediaQuery();
 
   return (
-    <Modal
-      showModal={showDeleteLinkModal}
-      setShowModal={setShowDeleteLinkModal}
-    >
+    <>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Delete {shortlink}</h3>
@@ -100,7 +109,7 @@ function DeleteLinkModal({
 
         <Button variant="danger" text="Confirm delete" loading={deleting} />
       </form>
-    </Modal>
+    </>
   );
 }
 

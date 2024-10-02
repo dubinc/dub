@@ -8,11 +8,23 @@ import { useMemo } from "react";
  * @returns {Array} An array of available domains for creating or updating a link.
  */
 export function useAvailableDomains(
-  options: { currentDomain?: string; onboarding?: boolean } = {},
+  options: {
+    currentDomain?: string;
+    onboarding?: boolean;
+    search?: string;
+  } = {},
 ) {
   const { currentDomain } = options;
 
-  const { allActiveDomains, primaryDomain, allDomains, loading } = useDomains();
+  const {
+    allActiveDomains,
+    primaryDomain,
+    allDomains,
+    allWorkspaceDomains,
+    loading,
+  } = useDomains({
+    query: { search: options.search },
+  });
 
   const domains = useMemo(() => {
     if (options.onboarding) {
@@ -34,6 +46,7 @@ export function useAvailableDomains(
 
   return {
     domains,
+    allWorkspaceDomains,
     loading: options.onboarding ? false : loading,
     primaryDomain: options.onboarding ? SHORT_DOMAIN : primaryDomain,
   };

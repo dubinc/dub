@@ -54,6 +54,8 @@ export type ComboboxProps<
   side?: PopoverProps["side"];
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onSearchChange?: (search: string) => void;
+  shouldFilter?: boolean;
   optionClassName?: string;
   matchTriggerWidth?: boolean;
 }>;
@@ -82,6 +84,8 @@ export function Combobox({
   side,
   open,
   onOpenChange,
+  onSearchChange,
+  shouldFilter = true,
   optionClassName,
   matchTriggerWidth,
   children,
@@ -127,14 +131,15 @@ export function Combobox({
   };
 
   const sortOptions = useCallback(
-    (options: ComboboxOption[]) => {
-      return [...options].sort((a, b) => {
-        const aSelected = selected.some((s) => s.value === a.value);
-        const bSelected = selected.some((s) => s.value === b.value);
-        if (aSelected && !bSelected) return -1;
-        if (!aSelected && bSelected) return 1;
-        return 0;
-      });
+    (options: ComboboxOption[], search: string) => {
+      return search === ""
+        ? [
+            ...selected,
+            ...options.filter(
+              (o) => selected.findIndex((s) => s.value === o.value) === -1,
+            ),
+          ]
+        : options;
     },
     [selected],
   );
@@ -142,10 +147,10 @@ export function Combobox({
   // Actually sort the options when needed
   useEffect(() => {
     if (shouldSortOptions) {
-      setSortedOptions(options ? sortOptions(options) : options);
+      setSortedOptions(options ? sortOptions(options, search) : options);
       setShouldSortOptions(false);
     }
-  }, [shouldSortOptions, options, sortOptions]);
+  }, [shouldSortOptions, options, sortOptions, search]);
 
   // Sort options when the options prop changes
   useEffect(() => {
@@ -159,6 +164,8 @@ export function Combobox({
     setSearch("");
     setShouldSortOptions(true);
   }, [isOpen]);
+
+  useEffect(() => onSearchChange?.(search), [search]);
 
   return (
     <Popover
@@ -180,7 +187,7 @@ export function Combobox({
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
           transition={{ ease: "easeInOut", duration: 0.1 }}
         >
-          <Command loop>
+          <Command loop shouldFilter={shouldFilter}>
             <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">
               <CommandInput
                 placeholder={searchPlaceholder}
@@ -249,12 +256,18 @@ export function Combobox({
                         </div>
                       </CommandItem>
                     )}
-                    <CommandEmpty className="flex h-12 items-center justify-center text-sm text-gray-500">
-                      {emptyState ? emptyState : "No matches"}
-                    </CommandEmpty>
+                    {shouldFilter ? (
+                      <CommandEmpty className="flex h-12 items-center justify-center text-sm text-gray-500">
+                        {emptyState ? emptyState : "No matches"}
+                      </CommandEmpty>
+                    ) : sortedOptions.length === 0 ? (
+                      <div className="flex h-12 items-center justify-center text-sm text-gray-500">
+                        {emptyState ? emptyState : "No matches"}
+                      </div>
+                    ) : null}
                   </>
                 ) : (
-                  // undefined - loading state
+                  // undefined data / explicit loading state
                   <Command.Loading>
                     <div className="flex h-12 items-center justify-center">
                       <LoadingSpinner />

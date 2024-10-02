@@ -4,7 +4,6 @@ import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolders } from "@/lib/folder/get-folders";
 import { checkFolderPermission } from "@/lib/folder/permissions";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -35,6 +34,7 @@ export const GET = withWorkspace(
       showArchived,
       withTags,
       includeUser,
+      linkIds,
     } = getLinksQuerySchemaExtended.parse(searchParams);
 
     if (domain) {
@@ -50,11 +50,6 @@ export const GET = withWorkspace(
       });
     }
 
-    const folders = await getFolders({
-      workspaceId: workspace.id,
-      userId: session.user.id,
-    });
-
     const response = await getLinksForWorkspace({
       workspaceId: workspace.id,
       domain,
@@ -69,7 +64,7 @@ export const GET = withWorkspace(
       showArchived,
       withTags,
       includeUser,
-      folderIds: folders.map((folder) => folder.id),
+      linkIds,
     });
 
     return NextResponse.json(response, {
