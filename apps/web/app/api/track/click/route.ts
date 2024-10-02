@@ -49,18 +49,13 @@ export const POST = async (req: Request) => {
       clickId = nanoid(16);
 
       waitUntil(
-        Promise.allSettled([
-          redis.set(cacheKey, clickId, {
-            ex: 60 * 60,
-          }), // 1 hour
-          recordClick({
-            req,
-            clickId,
-            linkId: link.id,
-            url: link.url,
-            skipRatelimit: true,
-          }),
-        ]),
+        recordClick({
+          req,
+          clickId,
+          linkId: link.id,
+          url: link.url,
+          skipRatelimit: true,
+        }),
       );
     }
 
