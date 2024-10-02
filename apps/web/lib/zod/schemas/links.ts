@@ -573,8 +573,13 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
 
 export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
   z.object({
-    // Only Dub UI uses includeUser query parameter
+    // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("Link IDs to filter by."),
   }),
 );
 
