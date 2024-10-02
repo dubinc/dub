@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
+import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { Lock, Random } from "@/ui/shared/icons";
 import {
   ButtonTooltip,
@@ -415,9 +416,26 @@ function DomainCombobox({
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const { domains, loading: loadingDomains } = useAvailableDomains({
-    search: debouncedSearch,
+
+  // Whether to fetch search results from the backend
+  const [useAsync, setUseAsync] = useState(false);
+
+  const {
+    domains,
+    allWorkspaceDomains,
+    loading: loadingDomains,
+  } = useAvailableDomains({
+    search: useAsync ? debouncedSearch : undefined,
   });
+
+  useEffect(() => {
+    if (
+      allWorkspaceDomains &&
+      !useAsync &&
+      allWorkspaceDomains.length >= DOMAINS_MAX_PAGE_SIZE
+    )
+      setUseAsync(true);
+  }, [allWorkspaceDomains, useAsync]);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -467,7 +485,7 @@ function DomainCombobox({
         ),
       }}
       optionClassName="sm:max-w-[225px]"
-      shouldFilter={false}
+      shouldFilter={!useAsync}
       open={isOpen}
       onOpenChange={setIsOpen}
       onSearchChange={setSearch}

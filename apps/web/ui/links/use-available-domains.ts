@@ -16,7 +16,13 @@ export function useAvailableDomains(
 ) {
   const { currentDomain } = options;
 
-  const { allActiveDomains, primaryDomain, allDomains, loading } = useDomains({
+  const {
+    allActiveDomains,
+    primaryDomain,
+    allDomains,
+    allWorkspaceDomains,
+    loading,
+  } = useDomains({
     query: { search: options.search },
   });
 
@@ -40,6 +46,7 @@ export function useAvailableDomains(
 
   return {
     domains,
+    allWorkspaceDomains,
     loading: options.onboarding ? false : loading,
     primaryDomain: options.onboarding ? SHORT_DOMAIN : primaryDomain,
   };
