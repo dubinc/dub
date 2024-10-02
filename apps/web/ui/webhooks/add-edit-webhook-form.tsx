@@ -322,7 +322,7 @@ function LinksSelector({
   );
 
   const { links: selectedLinks } = useLinks({
-    ids: selectedLinkIds,
+    linkIds: selectedLinkIds,
   });
 
   const options = useMemo(

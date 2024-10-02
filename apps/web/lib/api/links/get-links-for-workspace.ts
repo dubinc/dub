@@ -14,10 +14,10 @@ export async function getLinksForWorkspace({
   page,
   pageSize,
   userId,
-  ids,
   showArchived,
   withTags,
   includeUser,
+  linkIds,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
 }) {
@@ -61,7 +61,7 @@ export async function getLinksForWorkspace({
             }
           : {}),
       ...(userId && { userId }),
-      ...(ids && { id: { in: ids } }),
+      ...(linkIds && { id: { in: linkIds } }),
     },
     include: {
       user: includeUser,

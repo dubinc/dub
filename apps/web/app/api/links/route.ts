@@ -29,10 +29,10 @@ export const GET = withWorkspace(
       page,
       pageSize,
       userId,
-      ids,
       showArchived,
       withTags,
       includeUser,
+      linkIds,
     } = getLinksQuerySchemaExtended.parse(searchParams);
 
     if (domain) {
@@ -49,10 +49,10 @@ export const GET = withWorkspace(
       page,
       pageSize,
       userId,
-      ids,
       showArchived,
       withTags,
       includeUser,
+      linkIds,
     });
 
     return NextResponse.json(response, {
