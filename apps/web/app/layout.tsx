@@ -24,11 +24,7 @@ export default function RootLayout({
             <Toaster closeButton className="pointer-events-auto" />
             {children}
             <DubAnalytics
-              cookieOptions={{
-                domain: process.env.NEXT_PUBLIC_VERCEL_ENV
-                  ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-                  : undefined,
-              }}
+              apiKey={process.env.NEXT_PUBLIC_DUB_PUBLISHABLE_KEY}
             />
           </KeyboardShortcutProvider>
         </TooltipProvider>
