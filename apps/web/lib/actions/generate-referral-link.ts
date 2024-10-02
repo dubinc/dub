@@ -24,6 +24,7 @@ export const generateReferralLink = authActionClient
         externalId: `ws_${workspace.id}`,
         tagIds: ["cm000srqx0004o6ldehod07zc"],
         trackConversion: true,
+        identifier: workspace.slug,
       });
 
       await prisma.project.update({
