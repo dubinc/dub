@@ -1,7 +1,8 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps, LinkProps } from "@/lib/types";
+import { LinkProps } from "@/lib/types";
+import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { Lock, Random } from "@/ui/shared/icons";
 import {
   ButtonTooltip,
@@ -36,8 +37,10 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useDebounce } from "use-debounce";
 import { AlertCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+import { useAvailableDomains } from "./use-available-domains";
 
 type ShortLinkInputProps = {
   domain?: string;
@@ -47,7 +50,6 @@ type ShortLinkInputProps = {
   onChange: (data: { domain?: string; key?: string }) => void;
   data: Pick<LinkProps, "url" | "title" | "description">;
   saving: boolean;
-  domains: DomainProps[];
   loading: boolean;
 } & Omit<HTMLProps<HTMLInputElement>, "onChange" | "data">;
 
@@ -64,7 +66,6 @@ export const ShortLinkInputNew = forwardRef<
       onChange,
       data,
       saving,
-      domains,
       loading,
       ...inputProps
     }: ShortLinkInputProps,
@@ -172,10 +173,6 @@ export const ShortLinkInputNew = forwardRef<
       });
     }, [key, domain]);
 
-    const [isOpen, setIsOpen] = useState(false);
-
-    useKeyboardShortcut("d", () => setIsOpen(true), { modal: true });
-
     return (
       <div>
         <div className="flex items-center justify-between">
@@ -241,45 +238,13 @@ export const ShortLinkInputNew = forwardRef<
         </div>
         <div className="relative mt-1 flex rounded-md shadow-sm">
           <div className="z-[1]">
-            <Combobox
-              selected={
-                domain && !loading
-                  ? {
-                      value: domain,
-                      label: punycode(domain),
-                    }
-                  : null
-              }
-              setSelected={(option) => {
-                if (!option) return;
+            <DomainCombobox
+              domain={domain}
+              setDomain={(domain) => {
                 setKeyError(null);
-                onChange?.({ domain: option.value });
+                onChange?.({ domain });
               }}
-              options={domains?.map(({ slug }) => ({
-                value: slug,
-                label: punycode(slug),
-              }))}
-              caret={true}
-              placeholder={
-                loading ? (
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
-                ) : (
-                  "Domain"
-                )
-              }
-              searchPlaceholder="Search domains..."
-              shortcutHint="D"
-              buttonProps={{
-                className: cn(
-                  "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
-                  "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-                  "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-                  !key && "text-gray-600",
-                ),
-              }}
-              optionClassName="sm:max-w-[225px]"
-              open={isOpen}
-              onOpenChange={setIsOpen}
+              loading={loading}
             />
           </div>
           <input
@@ -437,5 +402,93 @@ function DefaultDomainPrompt({
         instead?
       </p>
     </button>
+  );
+}
+
+function DomainCombobox({
+  domain,
+  setDomain,
+  loading,
+}: {
+  domain?: string;
+  setDomain: (domain: string) => void;
+  loading: boolean;
+}) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  // Whether to fetch search results from the backend
+  const [useAsync, setUseAsync] = useState(false);
+
+  const {
+    domains,
+    allWorkspaceDomains,
+    loading: loadingDomains,
+  } = useAvailableDomains({
+    search: useAsync ? debouncedSearch : undefined,
+  });
+
+  useEffect(() => {
+    if (
+      allWorkspaceDomains &&
+      !useAsync &&
+      allWorkspaceDomains.length >= DOMAINS_MAX_PAGE_SIZE
+    )
+      setUseAsync(true);
+  }, [allWorkspaceDomains, useAsync]);
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  useKeyboardShortcut("d", () => setIsOpen(true), { modal: true });
+
+  const options = useMemo(
+    () =>
+      loadingDomains
+        ? undefined
+        : domains?.map(({ slug }) => ({
+            value: slug,
+            label: punycode(slug),
+          })),
+    [loadingDomains, domains],
+  );
+
+  return (
+    <Combobox
+      selected={
+        domain && !loading
+          ? {
+              value: domain,
+              label: punycode(domain),
+            }
+          : null
+      }
+      setSelected={(option) => {
+        if (!option) return;
+        setDomain(option.value);
+      }}
+      options={options}
+      caret={true}
+      placeholder={
+        loading ? (
+          <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+        ) : (
+          "Domain"
+        )
+      }
+      searchPlaceholder="Search domains..."
+      shortcutHint="D"
+      buttonProps={{
+        className: cn(
+          "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
+          "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+          "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+        ),
+      }}
+      optionClassName="sm:max-w-[225px]"
+      shouldFilter={!useAsync}
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      onSearchChange={setSearch}
+    />
   );
 }
