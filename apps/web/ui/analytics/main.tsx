@@ -131,7 +131,7 @@ export default function Main() {
                           as="h1"
                           className="text-2xl font-medium sm:text-3xl"
                           prefix={id === "sales" && "$"}
-                          {...(id === "sales" && { fullNumber: true })}
+                          {...(id === "sales" && { variant: "full" })}
                         >
                           {total}
                         </CountingNumbers>

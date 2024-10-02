@@ -1,7 +1,7 @@
 import { isWhitelistedEmail } from "@/lib/edge-config";
 import { DATABASE_URL, conn } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import { ipAddress } from "@vercel/edge";
+import { ipAddress } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";

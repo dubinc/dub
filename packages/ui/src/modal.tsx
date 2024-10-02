@@ -2,6 +2,7 @@
 
 import { cn } from "@dub/utils";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useRouter } from "next/navigation";
 import { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Drawer } from "vaul";
@@ -64,6 +65,10 @@ export function Modal({
               className,
             )}
           >
+            <VisuallyHidden.Root>
+              <Drawer.Title>Modal</Drawer.Title>
+              <Drawer.Description>This is a modal</Drawer.Description>
+            </VisuallyHidden.Root>
             <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
               <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
             </div>
@@ -98,6 +103,10 @@ export function Modal({
             className,
           )}
         >
+          <VisuallyHidden.Root>
+            <Dialog.Title>Modal</Dialog.Title>
+            <Dialog.Description>This is a modal</Dialog.Description>
+          </VisuallyHidden.Root>
           {children}
         </Dialog.Content>
       </Dialog.Portal>
