@@ -45,8 +45,8 @@ importers:
         specifier: ^0.3.9
         version: 0.3.9
       '@dub/analytics':
-        specifier: ^0.0.14
-        version: 0.0.14
+        specifier: ^0.0.20
+        version: 0.0.20
       '@dub/blocks':
         specifier: workspace:*
         version: link:../../packages/blocks
@@ -110,15 +110,12 @@ importers:
       '@upstash/redis':
         specifier: ^1.25.1
         version: 1.25.1
-      '@vercel/edge':
-        specifier: ^0.3.1
-        version: 0.3.1
       '@vercel/edge-config':
         specifier: ^0.4.1
         version: 0.4.1
       '@vercel/functions':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.4.1
+        version: 1.4.1
       '@vercel/og':
         specifier: ^0.6.2
         version: 0.6.2
@@ -557,6 +554,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.0.7
         version: 1.0.7(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-visually-hidden':
+        specifier: ^1.1.0
+        version: 1.1.0(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
       '@react-aria/datepicker':
         specifier: ^3.10.0
         version: 3.10.1(react-dom@18.2.0)(react@18.2.0)
@@ -3444,8 +3444,8 @@ packages:
       zod: 3.22.4
     dev: false
 
-  /@dub/analytics@0.0.14:
-    resolution: {integrity: sha512-Cl4TvJODbUoXBCxeLV9rOaYhyzV8N2tgmClzfIu75dwvA5GO1rGV3KFwKy9acNrOPixHDl1OI/kYGnT9k6mjCw==}
+  /@dub/analytics@0.0.20:
+    resolution: {integrity: sha512-oGT6D48kn8QE0iau1P3luvMmYRmRfdhfUpk57j2taHg3zdSUxd9EELPN8zXcBT7TInYZUep2QhskayXGHm23xw==}
     dependencies:
       server-only: 0.0.1
     dev: false
@@ -7323,6 +7323,26 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
+  /@radix-ui/react-visually-hidden@1.1.0(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-N8MDZqtgCgG5S3aV60INAB475osJousYpZ4cTJ2cFbMpdHS5Y6loLTH8LPtkj2QN0x93J30HT/M3qJXM0+lyeQ==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+    dependencies:
+      '@radix-ui/react-primitive': 2.0.0(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+      '@types/react': 18.2.48
+      '@types/react-dom': 18.2.14
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
   /@radix-ui/rect@1.0.1:
     resolution: {integrity: sha512-fyrgCaedtvMg9NK3en0pnOYJdtfwxUcNolezkNPUsoX57X8oQk+NkqcvzHXD2uKNij6GXmWU9NDru2IWjrO4BQ==}
     dependencies:
@@ -9687,13 +9707,14 @@ packages:
       '@vercel/edge-config-fs': 0.1.0
     dev: false
 
-  /@vercel/edge@0.3.1:
-    resolution: {integrity: sha512-NdJxoaUI/AMvSu9dBM5MA1mxzk+Xo1sMrjyNRtNGsH5iKYyMdMWNUEvHdkyn1kN6opM03rQHYOYgXhBwNyIfdQ==}
-    dev: false
-
-  /@vercel/functions@1.0.1:
-    resolution: {integrity: sha512-YBOEKITWgRWQJg2/0TJaiZOAsJz/OqjBfZO87lBA5PtddNjjEUQQxSlon/ank+RC7laJ/51zMKkv9rgprmLMow==}
+  /@vercel/functions@1.4.1:
+    resolution: {integrity: sha512-987mKpoDCI18x2rDjrDbiuGOtxDMK/UhfhDZoN3A2SAt40BMaj8HEKwVqL6fOian5j/3RZcOuJnMOpatQGgpjw==}
     engines: {node: '>= 16'}
+    peerDependencies:
+      '@aws-sdk/credential-provider-web-identity': '*'
+    peerDependenciesMeta:
+      '@aws-sdk/credential-provider-web-identity':
+        optional: true
     dev: false
 
   /@vercel/og@0.6.2:
