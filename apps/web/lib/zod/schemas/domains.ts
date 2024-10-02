@@ -65,6 +65,10 @@ export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
   page: true,
 });
 
+export const getDefaultDomainsQuerySchema = getDomainsQuerySchema.pick({
+  search: true,
+});
+
 export const createDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "slug is required" })
