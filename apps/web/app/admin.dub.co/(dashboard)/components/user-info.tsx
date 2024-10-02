@@ -9,6 +9,7 @@ export interface UserInfoProps {
   email: string;
   defaultDomainLinks: Record<string, number>;
   workspaces: {
+    id: string;
     name: string;
     slug: string;
     plan: string;
@@ -74,6 +75,10 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
             <div className="flex items-center space-x-2">
               <p className="font-semibold">{workspace.name}</p>
               <Badge className="lowercase">{workspace.slug}</Badge>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-gray-700">ID</span>
+              <span className="text-gray-500">{workspace.id}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="font-medium text-gray-700">Plan</span>
