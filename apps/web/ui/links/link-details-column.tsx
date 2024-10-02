@@ -4,7 +4,6 @@ import {
   AnimatedSizeContainer,
   CardList,
   Tooltip,
-  useInViewport,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
@@ -55,25 +54,20 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
-  const isVisible = useInViewport(ref, { defaultValue: true });
 
   const { primaryTag, additionalTags } = useOrganizedTags(tags);
 
   return (
     <div ref={ref} className="flex items-center justify-end gap-2 sm:gap-5">
-      {isVisible && (
-        <>
-          {displayProperties.includes("tags") && primaryTag && (
-            <TagsTooltip additionalTags={additionalTags}>
-              <TagButton tag={primaryTag} plus={additionalTags.length} />
-            </TagsTooltip>
-          )}
-          {displayProperties.includes("analytics") && (
-            <AnalyticsBadge link={link} />
-          )}
-          <LinkControls link={link} />
-        </>
+      {displayProperties.includes("tags") && primaryTag && (
+        <TagsTooltip additionalTags={additionalTags}>
+          <TagButton tag={primaryTag} plus={additionalTags.length} />
+        </TagsTooltip>
       )}
+      {displayProperties.includes("analytics") && (
+        <AnalyticsBadge link={link} />
+      )}
+      <LinkControls link={link} />
     </div>
   );
 }
