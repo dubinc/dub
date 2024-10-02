@@ -77,6 +77,7 @@ export const PATCH = withWorkspace(
           waitUntil(
             dub.links.update(workspace.referralLinkId, {
               key: slug,
+              identifier: slug,
             }),
           );
         }
