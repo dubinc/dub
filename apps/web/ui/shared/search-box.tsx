@@ -117,8 +117,8 @@ export function SearchBoxPersisted({
     if (searchParams.get(urlParam) ?? "" !== debouncedValue)
       queryParams(
         debouncedValue === ""
-          ? { del: urlParam }
-          : { set: { search: debouncedValue } },
+          ? { del: [urlParam, "page"] }
+          : { set: { search: debouncedValue }, del: "page" },
       );
   }, [debouncedValue]);
 
