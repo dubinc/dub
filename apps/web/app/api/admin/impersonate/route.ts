@@ -37,6 +37,7 @@ export const POST = withAdmin(async ({ req }) => {
         select: {
           project: {
             select: {
+              id: true,
               name: true,
               slug: true,
               plan: true,
@@ -74,6 +75,7 @@ export const POST = withAdmin(async ({ req }) => {
     ),
     workspaces: response.projects.map(({ project }) => ({
       ...project,
+      id: `ws_${project.id}`,
       clicks: project.usage,
       domains: project._count.domains,
       links: project._count.links,
