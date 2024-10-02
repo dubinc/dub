@@ -114,13 +114,6 @@ export const POST = withWorkspace(
 
       return NextResponse.json(response, { headers });
     } catch (error) {
-      if (error.code === "P2002") {
-        throw new DubApiError({
-          code: "conflict",
-          message: "A link with this externalId already exists.",
-        });
-      }
-
       throw new DubApiError({
         code: "unprocessable_entity",
         message: error.message,

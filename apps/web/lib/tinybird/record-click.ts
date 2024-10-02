@@ -3,11 +3,10 @@ import {
   LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
-  nanoid,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
-import { ipAddress } from "@vercel/edge";
-import { NextRequest, userAgent } from "next/server";
+import { geolocation, ipAddress } from "@vercel/functions";
+import { userAgent } from "next/server";
 import { LinkWithTags, transformLink } from "../api/links/utils/transform-link";
 import {
   detectBot,
@@ -16,7 +15,7 @@ import {
   getIdentityHash,
 } from "../middleware/utils";
 import { conn } from "../planetscale";
-import { ratelimit } from "../upstash";
+import { redis } from "../upstash";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -30,14 +29,16 @@ export async function recordClick({
   clickId,
   url,
   webhookIds,
+  skipRatelimit,
 }: {
-  req: NextRequest;
+  req: Request;
   linkId: string;
-  clickId?: string;
+  clickId: string;
   url?: string;
   webhookIds?: string[];
+  skipRatelimit?: boolean;
 }) {
-  const searchParams = req.nextUrl.searchParams;
+  const searchParams = new URLSearchParams(req.url);
 
   // only track the click when there is no `dub-no-track` header or query param
   if (
@@ -56,13 +57,14 @@ export async function recordClick({
 
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-  // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
-  const { success } = await ratelimit(1, "1 h").limit(
-    `recordClick:${ip}:${linkId}`,
-  );
+  const cacheKey = `recordClick:${linkId}:${ip}`;
 
-  if (!success) {
-    return null;
+  if (!skipRatelimit) {
+    // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
+    const cachedClickId = await redis.get<string>(cacheKey);
+    if (cachedClickId) {
+      return null;
+    }
   }
 
   const isQr = detectQr(req);
@@ -72,8 +74,9 @@ export async function recordClick({
     process.env.VERCEL === "1"
       ? req.headers.get("x-vercel-ip-continent")
       : LOCALHOST_GEO_DATA.continent;
-  const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
-  const isEuCountry = geo?.country && EU_COUNTRY_CODES.includes(geo.country);
+  const geo =
+    process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
+  const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
@@ -85,7 +88,7 @@ export async function recordClick({
   const clickData = {
     timestamp: new Date(Date.now()).toISOString(),
     identity_hash,
-    click_id: clickId || nanoid(16),
+    click_id: clickId,
     link_id: linkId,
     alias_link_id: "",
     url: finalUrl,
@@ -93,11 +96,11 @@ export async function recordClick({
       // only record IP if it's a valid IP and not from a EU country
       typeof ip === "string" && ip.trim().length > 0 && !isEuCountry ? ip : "",
     continent: continent || "",
-    country: geo?.country || "Unknown",
-    city: geo?.city || "Unknown",
-    region: geo?.region || "Unknown",
-    latitude: geo?.latitude || "Unknown",
-    longitude: geo?.longitude || "Unknown",
+    country: geo.country || "Unknown",
+    city: geo.city ? decodeURIComponent(geo.city) : "Unknown",
+    region: geo.region || "Unknown",
+    latitude: geo.latitude || "Unknown",
+    longitude: geo.longitude || "Unknown",
     device: capitalize(ua.device.type) || "Desktop",
     device_vendor: ua.device.vendor || "Unknown",
     device_model: ua.device.model || "Unknown",
@@ -126,6 +129,11 @@ export async function recordClick({
         body: JSON.stringify(clickData),
       },
     ).then((res) => res.json()),
+
+    // cache the click ID in Redis for 1 hour
+    redis.set(cacheKey, clickId, {
+      ex: 60 * 60,
+    }),
 
     // increment the click count for the link (based on their ID)
     // we have to use planetscale connection directly (not prismaEdge) because of connection pooling

@@ -1,5 +1,5 @@
 import { LOCALHOST_IP, hashStringSHA256 } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
+import { ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
 
 /**

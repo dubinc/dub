@@ -1,5 +1,6 @@
 import { nanoid, punyEncode } from "@dub/utils";
 import { connect } from "@planetscale/database";
+import { Link, Project } from "@prisma/client";
 import { WorkspaceProps } from "./types";
 
 export const DATABASE_URL =
@@ -101,3 +102,36 @@ export async function getRandomKey({
     return key;
   }
 }
+
+// Get workspace by publishable key
+export const getWorkspaceByPublishableKey = async (publishableKey: string) => {
+  if (!DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute(
+      "SELECT * FROM Project WHERE publishableKey = ? LIMIT 1",
+      [publishableKey],
+    )) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as Project)
+    : null;
+};
+
+// Get link by workspaceId and identifier
+export const getLinkByIdentifier = async (
+  workspaceId: string,
+  identifier: string,
+) => {
+  if (!DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute(
+      "SELECT * FROM Link WHERE projectId = ? AND identifier = ?",
+      [workspaceId, identifier],
+    )) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as Link)
+    : null;
+};

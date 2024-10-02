@@ -34,6 +34,7 @@ model Project {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   usageLastChecked DateTime @default(now())
+  publishableKey   String?  @unique
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]
