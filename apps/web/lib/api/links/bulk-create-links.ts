@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
-import { getParamsFromURL, truncate } from "@dub/utils";
+import { getParamsFromURL, linkConstructor, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
@@ -15,16 +15,19 @@ export async function bulkCreateLinks({
 
   // create links via Promise.all (because Prisma doesn't support nested createMany)
   // ref: https://github.com/prisma/prisma/issues/8131#issuecomment-997667070
-  const createdLinks = await Promise.all(
+  const createdLinks = await prisma.$transaction(
     links.map(({ tagId, tagIds, tagNames, ...link }) => {
       const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
         getParamsFromURL(link.url);
 
       const combinedTagIds = combineTagIds({ tagId, tagIds });
 
+      const shortLink = linkConstructor({ domain: link.domain, key: link.key });
+
       return prisma.link.create({
         data: {
           ...link,
+          shortLink,
           title: truncate(link.title, 120),
           description: truncate(link.description, 240),
           utm_source,

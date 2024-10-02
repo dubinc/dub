@@ -2,7 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
-import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
+import {
+  R2_URL,
+  getParamsFromURL,
+  linkConstructor,
+  nanoid,
+  truncate,
+} from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
@@ -35,11 +41,17 @@ export async function bulkUpdateLinks(
   const imageUrlNonce = nanoid(7);
 
   const updatedLinks = await Promise.all(
-    linkIds.map((linkId) =>
-      prisma.link.update({
-        where: {
-          id: linkId,
-        },
+    linkIds.map(async (linkId) => {
+      const link = await prisma.link.findUnique({
+        where: { id: linkId },
+      });
+
+      if (!link) {
+        throw new Error(`Link with id ${linkId} not found`);
+      }
+
+      return prisma.link.update({
+        where: { id: linkId },
         data: {
           ...rest,
           url,
@@ -48,11 +60,15 @@ export async function bulkUpdateLinks(
           description: truncate(description, 240),
           image:
             proxy && image && !isStored(image)
-              ? `${R2_URL}/images/${linkIds[0]}_${imageUrlNonce}`
+              ? `${R2_URL}/images/${linkId}_${imageUrlNonce}`
               : image,
           expiresAt: expiresAt ? new Date(expiresAt) : null,
           geo: geo || Prisma.JsonNull,
           ...(url && getParamsFromURL(url)),
+          shortLink: linkConstructor({
+            domain: link.domain,
+            key: link.key,
+          }),
           // Associate tags by tagNames
           ...(tagNames &&
             workspaceId && {
@@ -95,8 +111,8 @@ export async function bulkUpdateLinks(
             },
           },
         },
-      }),
-    ),
+      });
+    }),
   );
 
   waitUntil(
