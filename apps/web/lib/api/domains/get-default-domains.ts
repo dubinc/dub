@@ -3,7 +3,7 @@ import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 
 export async function getDefaultDomains(
   workspaceId: string,
-  { search }: { search?: string },
+  { search }: { search?: string } = {},
 ) {
   const defaultDomains = await prisma.defaultDomains.findUnique({
     where: {
