@@ -104,6 +104,10 @@ export const WorkspaceSchema = z
       .describe(
         "The feature flags of the workspace, indicating which features are enabled.",
       ),
+    publishableKey: z
+      .string()
+      .nullable()
+      .describe("The publishable key of the workspace."),
   })
   .openapi({
     title: "Workspace",

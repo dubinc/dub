@@ -7,9 +7,12 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { Dots } from "@dub/ui/src/icons";
+import { cn } from "@dub/utils";
+import { Settings } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData, LinkModalContext } from ".";
+import { useAdvancedModal } from "./advanced-modal";
 import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
 import { useExpirationModal } from "./expiration-modal";
 import { usePasswordModal } from "./password-modal";
@@ -48,12 +51,14 @@ export function MoreDropdown() {
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
   const { TargetingModal, setShowTargetingModal } = useTargetingModal();
   const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
+  const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
 
   return (
     <>
       <PasswordModal />
       <TargetingModal />
       <ExpirationModal />
+      <AdvancedModal />
       <Popover
         align="start"
         content={
@@ -113,6 +118,32 @@ export function MoreDropdown() {
                 />
               );
             })}
+
+            <Button
+              variant="outline"
+              className="h-9 justify-start px-2 text-sm text-gray-700"
+              textWrapperClassName="grow"
+              onClick={() => {
+                setOpenPopover(false);
+                setShowAdvancedModal(true);
+              }}
+              text={
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <Settings
+                      className={cn(
+                        "mr-1 size-4 text-gray-950",
+                        (data.externalId || data.identifier) && "text-blue-500",
+                      )}
+                    />
+                    Advanced Settings
+                  </div>
+                  <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-800 sm:flex">
+                    A
+                  </kbd>
+                </div>
+              }
+            />
           </div>
         }
         openPopover={openPopover}
