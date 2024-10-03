@@ -28,6 +28,8 @@ export const Events = (props: EventsProps) => {
   const searchParams = useSearchParams();
   const { events, isLoading } = useEvents();
 
+  console.log("events", events);
+
   const event = (searchParams.get("event") || "clicks") as EventType;
 
   return <div>Events</div>;
@@ -69,6 +71,13 @@ export const Events = (props: EventsProps) => {
   //   </div>
   // );
 }
+
+const saleText = {
+  "Subscription creation": "upgraded their account",
+  "Subscription paid": "paid their subscription",
+  "Plan upgraded": "upgraded their plan",
+  default: "made a payment",
+};
 
 function ClickDescription({ event }: { event: ClickEvent }) {
   return (
@@ -116,12 +125,7 @@ function LeadDescription({ event }: { event: LeadEvent }) {
   );
 }
 
-const saleText = {
-  "Subscription creation": "upgraded their account",
-  "Subscription paid": "paid their subscription",
-  "Plan upgraded": "upgraded their plan",
-  default: "made a payment",
-};
+
 
 function SaleDescription({ event }: { event: SaleEvent }) {
   return (

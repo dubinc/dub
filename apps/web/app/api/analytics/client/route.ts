@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 export const GET = withAuth(async ({ workspace, link, searchParams }) => {
   const parsedParams = analyticsQuerySchema.parse(searchParams);
 
+
   const response = await getAnalytics({
     ...parsedParams,
     linkId: link.id,
