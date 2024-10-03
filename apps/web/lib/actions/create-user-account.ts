@@ -30,18 +30,6 @@ export const createUserAccountAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
-    const domain = email.split("@")[1];
-    const isDisposable = await redis.sismember(
-      "disposableEmailDomains",
-      domain,
-    );
-
-    if (isDisposable) {
-      throw new Error(
-        "Disposable email addresses are not allowed. If you think this is a mistake, please contact us at support@dub.co",
-      );
-    }
-
     const verificationToken = await prisma.emailVerificationToken.findUnique({
       where: {
         identifier: email,
