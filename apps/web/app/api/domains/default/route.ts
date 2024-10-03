@@ -3,13 +3,16 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
-import { DUB_DOMAINS_ARRAY } from "@dub/utils";
+import { getDefaultDomainsQuerySchema } from "@/lib/zod/schemas/domains";
+import { DUB_DOMAINS_ARRAY, getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/default - get default domains
 export const GET = withWorkspace(
-  async ({ workspace }) => {
-    return NextResponse.json(await getDefaultDomains(workspace.id));
+  async ({ req, workspace }) => {
+    const searchParams = getSearchParams(req.url);
+    const { search } = getDefaultDomainsQuerySchema.parse(searchParams);
+    return NextResponse.json(await getDefaultDomains(workspace.id, { search }));
   },
   {
     requiredPermissions: ["domains.read"],

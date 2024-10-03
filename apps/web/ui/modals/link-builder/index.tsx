@@ -414,7 +414,6 @@ function LinkBuilderInner({
                       data={{ url, title, description }}
                       saving={isSubmitting || isSubmitSuccessful}
                       loading={loading}
-                      domains={domains}
                     />
                   )}
 

@@ -31,7 +31,10 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to register domain: ${response.statusText}`);
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Failed to register domain: ${response.statusText}`,
+    });
   }
 
   const data = schema.parse(await response.json());
