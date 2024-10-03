@@ -116,6 +116,7 @@ export async function deleteWorkspace(
           dub.links.update(workspace.referralLinkId, {
             key: `/deleted/${workspace.slug}-${workspace.id}`,
             archived: true,
+            identifier: `/deleted/${workspace.slug}-${workspace.id}`,
           }),
         // delete the workspace
         prisma.project.delete({
@@ -207,6 +208,7 @@ export async function deleteWorkspaceAdmin(
       dub.links.update(workspace.referralLinkId, {
         key: `/deleted/${workspace.slug}-${workspace.id}`,
         archived: true,
+        identifier: `/deleted/${workspace.slug}-${workspace.id}`,
       }),
     // delete the workspace
     prisma.project.delete({

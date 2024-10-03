@@ -8,13 +8,19 @@ import {
 } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
+import { z } from "zod";
+import { getDomainsQuerySchema } from "../zod/schemas/domains";
 import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
 
+const partialQuerySchema = getDomainsQuerySchema.partial();
+
 export default function useDomains({
   includeParams,
+  query,
 }: {
   includeParams?: boolean;
+  query?: z.infer<typeof partialQuerySchema>;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
@@ -24,9 +30,14 @@ export default function useDomains({
       `/api/domains${
         includeParams
           ? getQueryString({
+              ...query,
               workspaceId,
             })
-          : `?workspaceId=${workspaceId}`
+          : "?" +
+            new URLSearchParams({
+              ...(query?.search && { search: query.search }),
+              workspaceId,
+            }).toString()
       }`,
     fetcher,
     {
@@ -36,24 +47,36 @@ export default function useDomains({
   const {
     defaultDomains: workspaceDefaultDomains,
     loading: loadingDefaultDomains,
-  } = useDefaultDomains();
+  } = useDefaultDomains({ search: query?.search });
 
-  const allWorkspaceDomains = data || [];
-  const activeWorkspaceDomains = data?.filter((domain) => !domain.archived);
+  const allWorkspaceDomains = useMemo(() => data || [], [data]);
+  const activeWorkspaceDomains = useMemo(
+    () => data?.filter((domain) => !domain.archived),
+    [data],
+  );
 
-  const activeDefaultDomains =
-    (workspaceDefaultDomains &&
-      DUB_DOMAINS.filter((d) => workspaceDefaultDomains?.includes(d.slug))) ||
-    DUB_DOMAINS;
+  const activeDefaultDomains = useMemo(
+    () =>
+      (workspaceDefaultDomains &&
+        DUB_DOMAINS.filter((d) => workspaceDefaultDomains?.includes(d.slug))) ||
+      DUB_DOMAINS,
+    [workspaceDefaultDomains],
+  );
 
-  const allDomains = [
-    ...allWorkspaceDomains,
-    ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : DUB_DOMAINS),
-  ];
-  const allActiveDomains = [
-    ...(activeWorkspaceDomains || []),
-    ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : activeDefaultDomains),
-  ];
+  const allDomains = useMemo(
+    () => [
+      ...allWorkspaceDomains,
+      ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : DUB_DOMAINS),
+    ],
+    [allWorkspaceDomains, workspaceId],
+  );
+  const allActiveDomains = useMemo(
+    () => [
+      ...(activeWorkspaceDomains || []),
+      ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : activeDefaultDomains),
+    ],
+    [activeWorkspaceDomains, activeDefaultDomains, workspaceId],
+  );
 
   const primaryDomain = useMemo(() => {
     if (activeWorkspaceDomains && activeWorkspaceDomains.length > 0) {

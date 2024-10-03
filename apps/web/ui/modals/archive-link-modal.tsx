@@ -39,15 +39,27 @@ const revalidateLinks = () => {
   );
 };
 
-function ArchiveLinkModal({
-  showArchiveLinkModal,
-  setShowArchiveLinkModal,
-  props,
-}: {
+type ArchiveLinkModalProps = {
   showArchiveLinkModal: boolean;
   setShowArchiveLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
-}) {
+};
+
+function ArchiveLinkModal(props: ArchiveLinkModalProps) {
+  return (
+    <Modal
+      showModal={props.showArchiveLinkModal}
+      setShowModal={props.setShowArchiveLinkModal}
+    >
+      <ArchiveLinkModalInner {...props} />
+    </Modal>
+  );
+}
+
+function ArchiveLinkModalInner({
+  setShowArchiveLinkModal,
+  props,
+}: ArchiveLinkModalProps) {
   const toastWithUndo = useToastWithUndo();
 
   const { id: workspaceId } = useWorkspace();
@@ -110,10 +122,7 @@ function ArchiveLinkModal({
   };
 
   return (
-    <Modal
-      showModal={showArchiveLinkModal}
-      setShowModal={setShowArchiveLinkModal}
-    >
+    <>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
         <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">
@@ -134,7 +143,7 @@ function ArchiveLinkModal({
           text={`Confirm ${props.archived ? "unarchive" : "archive"}`}
         />
       </div>
-    </Modal>
+    </>
   );
 }
 
