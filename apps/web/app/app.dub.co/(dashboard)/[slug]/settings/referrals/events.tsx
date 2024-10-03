@@ -3,7 +3,7 @@
 import { ConversionEvent } from "@/lib/actions/get-conversion-events";
 import { EventType } from "@/lib/analytics/types";
 import { REFERRAL_REVENUE_SHARE } from "@/lib/referrals/constants";
-import { EventList } from "@dub/blocks";
+import { EventList, useEvents } from "@dub/blocks";
 import {
   CaretUpFill,
   ChartActivity2,
@@ -26,44 +26,48 @@ interface EventsProps {
 
 export const Events = (props: EventsProps) => {
   const searchParams = useSearchParams();
+  const { events, isLoading } = useEvents();
+
   const event = (searchParams.get("event") || "clicks") as EventType;
 
-  return (
-    <div className="relative">
-      <EventList
-        events={events.map((e) => {
-          const Icon = {
-            clicks: CursorRays,
-            leads: UserCheck,
-            sales: InvoiceDollar,
-          }[event];
-          return {
-            icon: <Icon className="size-4.5" />,
-            content: {
-              clicks: <ClickDescription event={e as ClickEvent} />,
-              leads: <LeadDescription event={e as LeadEvent} />,
-              sales: <SaleDescription event={e as SaleEvent} />,
-            }[event],
-            right: e.timestamp ? (
-              <div className="whitespace-nowrap">
-                {timeAgo(new Date(e.timestamp), { withAgo: true })}
-              </div>
-            ) : null,
-          };
-        })}
-        totalEvents={totalEvents}
-        emptyState={{
-          icon: ChartActivity2,
-          title: `${capitalize(event)} Activity`,
-          description: `No referral ${event} have been recorded yet.`,
-          learnMore: "https://d.to/conversions",
-        }}
-      />
-      {demo && (
-        <div className="absolute inset-0 bg-gradient-to-b from-[#fff3] to-white"></div>
-      )}
-    </div>
-  );
+  return <div>Events</div>;
+
+  // return (
+  //   <div className="relative">
+  //     <EventList
+  //       events={events.map((e) => {
+  //         const Icon = {
+  //           clicks: CursorRays,
+  //           leads: UserCheck,
+  //           sales: InvoiceDollar,
+  //         }[event];
+  //         return {
+  //           icon: <Icon className="size-4.5" />,
+  //           content: {
+  //             clicks: <ClickDescription event={e as ClickEvent} />,
+  //             leads: <LeadDescription event={e as LeadEvent} />,
+  //             sales: <SaleDescription event={e as SaleEvent} />,
+  //           }[event],
+  //           right: e.timestamp ? (
+  //             <div className="whitespace-nowrap">
+  //               {timeAgo(new Date(e.timestamp), { withAgo: true })}
+  //             </div>
+  //           ) : null,
+  //         };
+  //       })}
+  //       totalEvents={totalEvents}
+  //       emptyState={{
+  //         icon: ChartActivity2,
+  //         title: `${capitalize(event)} Activity`,
+  //         description: `No referral ${event} have been recorded yet.`,
+  //         learnMore: "https://d.to/conversions",
+  //       }}
+  //     />
+  //     {demo && (
+  //       <div className="absolute inset-0 bg-gradient-to-b from-[#fff3] to-white"></div>
+  //     )}
+  //   </div>
+  // );
 }
 
 function ClickDescription({ event }: { event: ClickEvent }) {
