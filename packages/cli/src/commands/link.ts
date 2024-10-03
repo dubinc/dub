@@ -1,3 +1,4 @@
+import { getConfig } from "@/utils/get-config";
 import { createLink, getLinks } from "@/utils/get-links";
 import { getNanoid } from "@/utils/get-nanoid";
 import { handleError } from "@/utils/handle-error";
@@ -20,6 +21,8 @@ export const link = new Command()
   .argument("[key]", "Short key", getNanoid())
   .action(async (url, key) => {
     try {
+      await getConfig();
+
       let linkData = { url, key };
 
       if (!url) {
@@ -87,6 +90,8 @@ link
   .description("View the list of the last 100 links")
   .action(async () => {
     try {
+      await getConfig();
+
       const spinner = ora("Fetching links").start();
       const links = await getLinks();
       spinner.stop();
