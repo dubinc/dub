@@ -12,6 +12,10 @@ export default async function AppMiddleware(req: NextRequest) {
   const user = await getUserViaToken(req);
   const isWorkspaceInvite = req.nextUrl.searchParams.get("invite");
 
+  if (path.startsWith("/embed")) {
+    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+  }
+
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
     !user &&

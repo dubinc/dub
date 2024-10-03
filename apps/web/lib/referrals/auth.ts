@@ -33,9 +33,10 @@ export const withAuth = (handler: WithAuthHandler) => {
         let link: Link | undefined = undefined;
         let tokenFromHeader: string | undefined = undefined;
 
-        const rateLimit = 100;
+        const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
-        const authorizationHeader = req.headers.get("Authorization");
+
+        // const authorizationHeader = req.headers.get("Authorization");
 
         // if (!authorizationHeader) {
         //   throw new DubApiError({
@@ -61,11 +62,19 @@ export const withAuth = (handler: WithAuthHandler) => {
         //   });
         // }
 
-        tokenFromHeader = "i2yisemInUCWbWnEXB1WR4b3ROe2lLccYulj";
+        // Read token from query params
+        const tokenFromQuery = searchParams["publicToken"];
+
+        if (!tokenFromQuery) {
+          throw new DubApiError({
+            code: "unauthorized",
+            message: "Missing public token.",
+          });
+        }
 
         const publicToken = await prisma.referralPublicToken.findUnique({
           where: {
-            publicToken: tokenFromHeader,
+            publicToken: tokenFromQuery,
           },
         });
 
@@ -86,7 +95,7 @@ export const withAuth = (handler: WithAuthHandler) => {
         const { success, limit, reset, remaining } = await ratelimit(
           rateLimit,
           "1 m",
-        ).limit(tokenFromHeader);
+        ).limit(tokenFromQuery);
 
         headers = {
           "Retry-After": reset.toString(),

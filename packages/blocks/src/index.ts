@@ -1,6 +1,7 @@
 // styles
 import "./styles.css";
 
+export * from "./context";
 export * from "./empty-state";
 export * from "./event-list";
 export * from "./gauge";

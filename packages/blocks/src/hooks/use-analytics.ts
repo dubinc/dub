@@ -1,5 +1,6 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
+import { useDub } from "../context";
 import { EventType } from "../types";
 
 interface UseAnalyticsParams {
@@ -13,10 +14,13 @@ export const useAnalytics = ({
   interval,
   groupBy,
 }: UseAnalyticsParams) => {
+  const { publicToken } = useDub();
+
   const searchParams = new URLSearchParams({
     event,
     interval,
     groupBy,
+    publicToken,
   });
 
   const { error, data, isLoading } = useSWR(
