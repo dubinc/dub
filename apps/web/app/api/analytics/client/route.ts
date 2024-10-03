@@ -9,8 +9,8 @@ export const GET = withAuth(async ({ workspace, link, searchParams }) => {
 
   const response = await getAnalytics({
     ...parsedParams,
-    linkId: link.id,
     workspaceId: workspace.id,
+    linkId: link.id,
   });
 
   return NextResponse.json(response);

@@ -1,20 +1,19 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
+import { EventType } from "../types";
 
-const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
-
-interface Props {
-  event: (typeof EVENT_TYPES)[number];
+interface UseEventsParams {
+  event: EventType;
   interval: string;
   page: string;
 }
 
-export const useEvents = ({ event, interval, page }: Props) => {
-  const searchParams = new URLSearchParams();
-
-  searchParams.set("event", event);
-  searchParams.set("interval", interval);
-  searchParams.set("page", page);
+export const useEvents = ({ event, interval, page }: UseEventsParams) => {
+  const searchParams = new URLSearchParams({
+    event,
+    interval,
+    page,
+  });
 
   const { error, data, isLoading } = useSWR<[]>(
     `/api/events/client?${searchParams.toString()}`,

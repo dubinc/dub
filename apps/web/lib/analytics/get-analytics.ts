@@ -87,8 +87,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
   });
 
-  console.log("getAnalytics", response);
-
   if (groupBy === "count") {
     // Return the count value for deprecated endpoints
     if (isDeprecatedClicksEndpoint) {

@@ -13,6 +13,7 @@ import { Events } from "./events";
 import { HeroBackground } from "./hero-background";
 import ReferralsPageClient from "./page-client";
 import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
+import { Stats } from "./stats";
 
 export const revalidate = 0;
 
@@ -88,9 +89,10 @@ export default function ReferralsPage({
           </a>
         </div>
 
-        {/* <div className="mt-8">
+        {/* Stats */}
+        <div className="mt-8">
           <Stats />
-        </div> */}
+        </div>
 
         {/* Events */}
         <div className="mt-12">
