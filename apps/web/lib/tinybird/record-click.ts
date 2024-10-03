@@ -60,9 +60,13 @@ export async function recordClick({
   const cacheKey = `recordClick:${linkId}:${ip}`;
 
   if (!skipRatelimit) {
-    // deduplicate clicks from the same IP address + link ID – only record 1 click per hour
+    // by default, we deduplicate clicks from the same IP address + link ID – only record 1 click per hour
+    // here, we check if the clickId is cached in Redis within the last hour
+    // if it is, and it's the same as the one that's passed in, then we skip recording the click
+    // we need to do this to make it work with both server-side and client-side click tracking
+    // @see: https://dub.co/docs/conversions/clicks/introduction
     const cachedClickId = await redis.get<string>(cacheKey);
-    if (cachedClickId) {
+    if (cachedClickId && cachedClickId === clickId) {
       return null;
     }
   }
