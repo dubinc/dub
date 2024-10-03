@@ -22,6 +22,7 @@ import {
 } from "react";
 import { Divider } from "../shared/icons";
 import NavTabs from "./nav-tabs";
+import { SidebarNav } from "./sidebar/sidebar-nav";
 import UpgradeBanner from "./upgrade-banner";
 import UserDropdown from "./user-dropdown";
 import WorkspaceSwitcher from "./workspace-switcher";
@@ -76,52 +77,15 @@ export function MainNav({ children }: PropsWithChildren) {
             !isOpen && "-translate-x-full",
           )}
         >
-          <div className="flex size-full items-center justify-center text-gray-500">
-            [nav]
-          </div>
+          <SidebarNav />
         </nav>
       </div>
-      <div>
-        <div className="sticky -top-16 z-20 border-b border-gray-200 bg-white">
-          <MaxWidthWrapper>
-            <div className="flex h-16 items-center justify-between">
-              <div className="flex items-center">
-                <Link
-                  href={`/${slug || ""}`}
-                  className={cn(
-                    "hidden transition-all sm:block",
-                    scrolled && "translate-y-[3.4rem]",
-                  )}
-                >
-                  <NavLogo
-                    variant="symbol"
-                    isInApp
-                    {...(scrolled && { className: "h-6 w-6" })}
-                  />
-                </Link>
-                <Divider className="hidden h-8 w-8 text-gray-200 sm:ml-3 sm:block" />
-                <WorkspaceSwitcher />
-              </div>
-              <div className="flex items-center space-x-6">
-                <UpgradeBanner />
-                <a
-                  href="https://dub.co/help"
-                  className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 sm:block"
-                  target="_blank"
-                >
-                  Help
-                </a>
-                <UserDropdown />
-              </div>
-            </div>
-            <Suspense fallback={<div className="h-12 w-full" />}>
-              <NavTabs />
-            </Suspense>
-          </MaxWidthWrapper>
+      <div className="bg-neutral-100">
+        <div className="relative min-h-full bg-white pt-px sm:rounded-tl-[16px]">
+          <SideNavContext.Provider value={{ isOpen, setIsOpen }}>
+            {children}
+          </SideNavContext.Provider>
         </div>
-        <SideNavContext.Provider value={{ isOpen, setIsOpen }}>
-          {children}
-        </SideNavContext.Provider>
       </div>
     </div>
   ) : (
