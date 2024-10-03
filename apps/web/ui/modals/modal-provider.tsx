@@ -5,7 +5,6 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
-import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
@@ -28,13 +27,14 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
+import { useLinkBuilder } from "./link-builder";
 import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
   setShowCompleteSetupModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
-  setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
+  setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
@@ -44,7 +44,7 @@ export const ModalContext = createContext<{
   setShowAddWorkspaceModal: () => {},
   setShowCompleteSetupModal: () => {},
   setShowAddEditDomainModal: () => {},
-  setShowAddEditLinkModal: () => {},
+  setShowLinkBuilder: () => {},
   setShowAddEditTagModal: () => {},
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
@@ -82,7 +82,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal();
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal(
+  const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder(
     newLinkValues?.url
       ? {
           duplicateProps: {
@@ -156,7 +156,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       setShowAddWorkspaceModal(true);
     }
     if (searchParams.has("newLink")) {
-      setShowAddEditLinkModal(true);
+      setShowLinkBuilder(true);
     }
   }, []);
 
@@ -189,7 +189,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowAddWorkspaceModal,
         setShowCompleteSetupModal,
         setShowAddEditDomainModal,
-        setShowAddEditLinkModal,
+        setShowLinkBuilder,
         setShowAddEditTagModal,
         setShowImportBitlyModal,
         setShowImportShortModal,
@@ -201,7 +201,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <AcceptInviteModal />
       <CompleteSetupModal />
       <AddEditDomainModal />
-      <AddEditLinkModal />
+      <LinkBuilder />
       <AddEditTagModal />
       <ImportBitlyModal />
       <ImportShortModal />
