@@ -33,9 +33,11 @@ import {
   createContext,
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import {
   Controller,
@@ -562,5 +564,44 @@ export function CreateLinkButton({
       }
       onClick={() => setShowLinkBuilder(true)}
     />
+  );
+}
+
+export function useLinkBuilder({
+  props,
+  duplicateProps,
+  homepageDemo,
+}: {
+  props?: LinkWithTagsProps;
+  duplicateProps?: LinkWithTagsProps;
+  homepageDemo?: boolean;
+} = {}) {
+  const { flags } = useWorkspace();
+  const [showLinkBuilder, setShowLinkBuilder] = useState(false);
+
+  const LinkBuilderCallback = useCallback(() => {
+    return (
+      <LinkBuilder
+        showLinkBuilder={showLinkBuilder}
+        setShowLinkBuilder={setShowLinkBuilder}
+        props={props}
+        duplicateProps={duplicateProps}
+        homepageDemo={homepageDemo}
+      />
+    );
+  }, [showLinkBuilder]);
+
+  const CreateLinkButtonCallback = useCallback(() => {
+    return <CreateLinkButton setShowLinkBuilder={setShowLinkBuilder} />;
+  }, []);
+
+  return useMemo(
+    () => ({
+      showLinkBuilder,
+      setShowLinkBuilder,
+      LinkBuilder: LinkBuilderCallback,
+      CreateLinkButton: CreateLinkButtonCallback,
+    }),
+    [showLinkBuilder, LinkBuilderCallback, CreateLinkButtonCallback],
   );
 }
