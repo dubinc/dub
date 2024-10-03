@@ -88,7 +88,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
           duplicateProps: {
             ...DEFAULT_LINK_PROPS,
             ...(newLinkValues.domain && { domain: newLinkValues.domain }),
-            url: newLinkValues.url,
+            url: newLinkValues.url === "true" ? "" : newLinkValues.url,
           },
         }
       : {},
