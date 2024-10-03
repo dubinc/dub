@@ -1,6 +1,6 @@
 import { CardList, useMediaQuery } from "@dub/ui";
 import { useContext } from "react";
-import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
+import { useLinkBuilder } from "../modals/link-builder";
 import { LinkDetailsColumn } from "./link-details-column";
 import { LinkTitleColumn } from "./link-title-column";
 import { LinksListContext, ResponseLink } from "./links-container";
@@ -10,16 +10,16 @@ export function LinkCard({ link }: { link: ResponseLink }) {
 
   const { showHoverStates } = useContext(LinksListContext);
 
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
+  const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
     props: link,
   });
 
   return (
     <>
-      <AddEditLinkModal />
+      <LinkBuilder />
       <CardList.Card
         key={link.id}
-        onClick={isMobile ? undefined : () => setShowAddEditLinkModal(true)}
+        onClick={isMobile ? undefined : () => setShowLinkBuilder(true)}
         innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
         hoverStateEnabled={showHoverStates}
       >
