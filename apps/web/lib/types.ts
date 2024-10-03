@@ -10,6 +10,7 @@ import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import { trackSaleResponseSchema } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
+import { usageResponse } from "./zod/schemas/usage";
 import {
   createWebhookSchema,
   webhookEventSchemaTB,
@@ -259,3 +260,5 @@ export type TrackCustomerResponse = z.infer<typeof trackCustomerResponseSchema>;
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
 export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
+
+export type UsageResponse = z.infer<typeof usageResponse>;
