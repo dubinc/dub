@@ -14,8 +14,19 @@ export async function getDomains() {
     },
   };
 
-  const response = await fetch("https://api.dub.co/domains", options);
-  return await parseApiResponse<GetDomain[]>(response);
+  const [domainsResponse, defaultDomainsResponse] = await Promise.all([
+    fetch("https://api.dub.co/domains", options),
+    fetch("https://api.dub.co/domains/default", options),
+  ]);
+
+  const [domains, defaultDomains] = await Promise.all([
+    parseApiResponse<GetDomain[]>(domainsResponse),
+    parseApiResponse<string[]>(defaultDomainsResponse),
+  ]);
+
+  const allSlugs = [...domains.map((domain) => domain.slug), ...defaultDomains];
+
+  return Array.from(new Set(allSlugs));
 }
 
 export async function createDomain(slug: string) {

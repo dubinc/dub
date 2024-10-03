@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { config } from "@/commands/config";
-import { domain } from "@/commands/domain";
+import { domains } from "@/commands/domains";
 import { link } from "@/commands/link";
 import { login } from "@/commands/login";
 import { getPackageInfo } from "@/utils/get-package-info";
@@ -25,7 +25,7 @@ async function main() {
   program
     .addCommand(login)
     .addCommand(config)
-    .addCommand(domain)
+    .addCommand(domains)
     .addCommand(link);
 
   program.parse();
