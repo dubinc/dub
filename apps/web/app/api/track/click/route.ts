@@ -6,7 +6,7 @@ import {
 } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { nanoid } from "@dub/utils";
+import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -42,7 +42,9 @@ export const POST = async (req: Request) => {
       });
     }
 
-    const cacheKey = `recordClick:${link.id}:${ipAddress(req)}`;
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    const cacheKey = `recordClick:${link.id}:${ip}`;
+
     let clickId = await redis.get<string>(cacheKey);
 
     if (!clickId) {
