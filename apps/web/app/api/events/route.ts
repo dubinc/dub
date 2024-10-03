@@ -18,9 +18,9 @@ export const GET = withWorkspace(
       parsedParams;
     let link: Link | null = null;
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
+    // if (domain) {
+    //   await getDomainOrThrow({ workspace, domain });
+    // }
 
     if (linkId || externalId || (domain && key)) {
       link = await getLinkOrThrow({

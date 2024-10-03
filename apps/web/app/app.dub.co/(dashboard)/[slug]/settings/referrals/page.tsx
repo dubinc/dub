@@ -21,10 +21,10 @@ export default function ReferralsPage({
   searchParams,
 }: {
   params: { slug: string };
-  searchParams: { event?: string; page?: string };
+  searchParams: { event?: EventType; page?: string };
 }) {
-  const event = (searchParams.event ?? "clicks") as EventType;
-  const page = parseInt(searchParams.page ?? "1") || 1;
+  const event = searchParams.event || "clicks";
+  const page = searchParams.page || "1";
 
   return (
     <ReferralsPageClient>
@@ -98,7 +98,7 @@ export default function ReferralsPage({
             <h2 className="text-xl font-semibold text-gray-800">Activity</h2>
             <EventTabs />
           </div>
-          <Events />
+          <Events event={event} page={page} />
         </div>
       </div>
     </ReferralsPageClient>

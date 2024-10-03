@@ -61,7 +61,7 @@ export const withAuth = (handler: WithAuthHandler) => {
         //   });
         // }
 
-        tokenFromHeader = "Wu2HvXx2w99h1nFnXY2rnVE6532bVqLAoJht";
+        tokenFromHeader = "i2yisemInUCWbWnEXB1WR4b3ROe2lLccYulj";
 
         const publicToken = await prisma.referralPublicToken.findUnique({
           where: {

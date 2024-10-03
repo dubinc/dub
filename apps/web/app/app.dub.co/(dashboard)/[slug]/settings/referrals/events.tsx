@@ -1,9 +1,8 @@
 "use client";
 
-import { ConversionEvent } from "@/lib/actions/get-conversion-events";
 import { EventType } from "@/lib/analytics/types";
 import { REFERRAL_REVENUE_SHARE } from "@/lib/referrals/constants";
-import { EventList, useEvents } from "@dub/blocks";
+import { EventList, EventListSkeleton, useEvents } from "@dub/blocks";
 import {
   CaretUpFill,
   ChartActivity2,
@@ -18,59 +17,17 @@ import {
   LeadEvent,
   SaleEvent,
 } from "dub/dist/commonjs/models/components";
-import { useSearchParams } from "next/navigation";
 
 interface EventsProps {
-  //
+  event: EventType;
+  page: string;
 }
 
-export const Events = (props: EventsProps) => {
-  const searchParams = useSearchParams();
-  const { events, isLoading } = useEvents();
-
-  console.log("events", events);
-
-  const event = (searchParams.get("event") || "clicks") as EventType;
-
-  return <div>Events</div>;
-
-  // return (
-  //   <div className="relative">
-  //     <EventList
-  //       events={events.map((e) => {
-  //         const Icon = {
-  //           clicks: CursorRays,
-  //           leads: UserCheck,
-  //           sales: InvoiceDollar,
-  //         }[event];
-  //         return {
-  //           icon: <Icon className="size-4.5" />,
-  //           content: {
-  //             clicks: <ClickDescription event={e as ClickEvent} />,
-  //             leads: <LeadDescription event={e as LeadEvent} />,
-  //             sales: <SaleDescription event={e as SaleEvent} />,
-  //           }[event],
-  //           right: e.timestamp ? (
-  //             <div className="whitespace-nowrap">
-  //               {timeAgo(new Date(e.timestamp), { withAgo: true })}
-  //             </div>
-  //           ) : null,
-  //         };
-  //       })}
-  //       totalEvents={totalEvents}
-  //       emptyState={{
-  //         icon: ChartActivity2,
-  //         title: `${capitalize(event)} Activity`,
-  //         description: `No referral ${event} have been recorded yet.`,
-  //         learnMore: "https://d.to/conversions",
-  //       }}
-  //     />
-  //     {demo && (
-  //       <div className="absolute inset-0 bg-gradient-to-b from-[#fff3] to-white"></div>
-  //     )}
-  //   </div>
-  // );
-}
+const iconMap: Record<EventType, React.ElementType> = {
+  clicks: CursorRays,
+  leads: UserCheck,
+  sales: InvoiceDollar,
+};
 
 const saleText = {
   "Subscription creation": "upgraded their account",
@@ -79,7 +36,56 @@ const saleText = {
   default: "made a payment",
 };
 
-function ClickDescription({ event }: { event: ClickEvent }) {
+export const Events = ({ event, page }: EventsProps) => {
+  const { events, isLoading } = useEvents({
+    event,
+    interval: "all",
+    page,
+  });
+
+  if (isLoading || !events) {
+    return <EventListSkeleton />;
+  }
+
+  const Icon = iconMap[event];
+
+  return (
+    <div className="relative">
+      <EventList
+        events={events.map((e: any) => {
+          const content = {
+            clicks: <ClickDescription event={e as ClickEvent} />,
+            leads: <LeadDescription event={e as LeadEvent} />,
+            sales: <SaleDescription event={e as SaleEvent} />,
+          }[event];
+
+          return {
+            icon: <Icon className="size-4.5" />,
+            content,
+            right: e.timestamp ? (
+              <div className="whitespace-nowrap">
+                {timeAgo(new Date(e.timestamp), { withAgo: true })}
+              </div>
+            ) : null,
+          };
+        })}
+        totalEvents={events?.length || 0}
+        emptyState={{
+          icon: ChartActivity2,
+          title: `${capitalize(event)} Activity`,
+          description: `No referral ${event} have been recorded yet.`,
+          learnMore: "https://d.to/conversions",
+        }}
+      />
+
+      {/* {demo && (
+        <div className="absolute inset-0 bg-gradient-to-b from-[#fff3] to-white"></div>
+      )} */}
+    </div>
+  );
+};
+
+const ClickDescription = ({ event }: { event: ClickEvent }) => {
   return (
     <>
       Someone from{" "}
@@ -100,9 +106,9 @@ function ClickDescription({ event }: { event: ClickEvent }) {
       clicked on your link
     </>
   );
-}
+};
 
-function LeadDescription({ event }: { event: LeadEvent }) {
+const LeadDescription = ({ event }: { event: LeadEvent }) => {
   return (
     <>
       Someone from{" "}
@@ -123,11 +129,9 @@ function LeadDescription({ event }: { event: LeadEvent }) {
       signed up for an account
     </>
   );
-}
+};
 
-
-
-function SaleDescription({ event }: { event: SaleEvent }) {
+const SaleDescription = ({ event }: { event: SaleEvent }) => {
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
@@ -164,4 +168,4 @@ function SaleDescription({ event }: { event: SaleEvent }) {
       )}
     </div>
   );
-}
+};
