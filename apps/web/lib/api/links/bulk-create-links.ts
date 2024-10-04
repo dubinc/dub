@@ -26,15 +26,14 @@ export async function bulkCreateLinks({
     // @see https://www.prisma.io/docs/orm/reference/prisma-client-reference#createmanyandreturn
     createdLinks = await Promise.all(
       links.map(({ tagId, tagIds, tagNames, ...link }) => {
-        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
-          getParamsFromURL(link.url);
-
-        const combinedTagIds = combineTagIds({ tagId, tagIds });
-
         const shortLink = linkConstructor({
           domain: link.domain,
           key: link.key,
         });
+        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+          getParamsFromURL(link.url);
+
+        const combinedTagIds = combineTagIds({ tagId, tagIds });
 
         return prisma.link.create({
           data: {
@@ -98,8 +97,7 @@ export async function bulkCreateLinks({
     );
   } else {
     // if there are no tags, we can use createMany to create the links
-    console.time("createMany");
-    const res = await prisma.link.createMany({
+    await prisma.link.createMany({
       data: links.map((link) => {
         const shortLink = linkConstructor({
           domain: link.domain,
@@ -123,8 +121,6 @@ export async function bulkCreateLinks({
         };
       }),
     });
-
-    console.timeEnd("createMany");
 
     createdLinks = await prisma.link.findMany({
       where: {
