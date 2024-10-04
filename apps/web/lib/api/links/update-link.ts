@@ -3,7 +3,13 @@ import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
+import {
+  R2_URL,
+  getParamsFromURL,
+  linkConstructorSimple,
+  nanoid,
+  truncate,
+} from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { combineTagIds, transformLink } from "./utils";
@@ -57,7 +63,10 @@ export async function updateLink({
     data: {
       ...rest,
       key,
-      shortLink: `https://${updatedLink.domain}/${updatedLink.key}`,
+      shortLink: linkConstructorSimple({
+        domain: updatedLink.domain,
+        key: updatedLink.key,
+      }),
       title: truncate(title, 120),
       description: truncate(description, 240),
       image:

@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
-import { getParamsFromURL, linkConstructor, truncate } from "@dub/utils";
+import {
+  getParamsFromURL,
+  linkConstructor,
+  linkConstructorSimple,
+  truncate,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
@@ -103,7 +108,10 @@ export async function bulkCreateLinks({
 
         return {
           ...link,
-          shortLink: `https://${link.domain}/${link.key}`,
+          shortLink: linkConstructorSimple({
+            domain: link.domain,
+            key: link.key,
+          }),
           title: truncate(link.title, 120),
           description: truncate(link.description, 240),
           utm_source,
@@ -120,7 +128,12 @@ export async function bulkCreateLinks({
     createdLinks = await prisma.link.findMany({
       where: {
         shortLink: {
-          in: links.map((link) => `https://${link.domain}/${link.key}`),
+          in: links.map((link) =>
+            linkConstructorSimple({
+              domain: link.domain,
+              key: link.key,
+            }),
+          ),
         },
       },
     });

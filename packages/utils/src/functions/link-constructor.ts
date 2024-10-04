@@ -27,3 +27,13 @@ export function linkConstructor({
 
   return pretty ? url.replace(/^https?:\/\//, "") : url;
 }
+
+export function linkConstructorSimple({
+  domain,
+  key,
+}: {
+  domain: string;
+  key: string;
+}) {
+  return `https://${domain}${key === "_root" ? "" : `/${key}`}`;
+}
