@@ -2,8 +2,8 @@
 
 import { config } from "@/commands/config";
 import { domains } from "@/commands/domains";
-import { link } from "@/commands/link";
 import { login } from "@/commands/login";
+import { shorten } from "@/commands/shorten";
 import { getPackageInfo } from "@/utils/get-package-info";
 import { Command } from "commander";
 
@@ -26,7 +26,7 @@ async function main() {
     .addCommand(login)
     .addCommand(config)
     .addCommand(domains)
-    .addCommand(link);
+    .addCommand(shorten);
 
   program.parse();
 }

@@ -14,8 +14,8 @@ const addOptionsSchema = z.object({
   key: z.string().min(4, "Key must be at least 4 characters long"),
 });
 
-export const link = new Command()
-  .name("link")
+export const shorten = new Command()
+  .name("shorten")
   .description("Configure domain for your workspace")
   .argument("[url]", "Destination URL")
   .argument("[key]", "Short key", getNanoid())
@@ -85,7 +85,7 @@ export const link = new Command()
     }
   });
 
-link
+shorten
   .command("list")
   .description("View the list of the last 100 links")
   .action(async () => {
