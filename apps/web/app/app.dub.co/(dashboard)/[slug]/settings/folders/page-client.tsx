@@ -9,6 +9,7 @@ import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { TooltipContent, useRouterStuff } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
+import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 const allLinkFolder: Folder = {
@@ -21,11 +22,14 @@ const allLinkFolder: Folder = {
 };
 
 export const FoldersPageClient = () => {
+  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
+
+  const { AddFolderButton, AddFolderModal } = useAddFolderModal();
+
   const { folders, isLoading, isValidating } = useFolders({
     includeParams: true,
   });
-  const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
   const { data: allLinksCount } = useLinksCount({
     showArchived: true,
@@ -36,6 +40,9 @@ export const FoldersPageClient = () => {
       allLinkFolder.linkCount = allLinksCount;
     }
   }, [allLinksCount]);
+
+  const showAllLinkFolder =
+    !searchParams.get("search") || folders?.length === 0;
 
   return (
     <>
@@ -82,7 +89,7 @@ export const FoldersPageClient = () => {
             ))
           ) : (
             <>
-              <FolderCard folder={allLinkFolder} />
+              {showAllLinkFolder && <FolderCard folder={allLinkFolder} />}
               {folders?.map((folder) => (
                 <FolderCard key={folder.id} folder={folder} />
               ))}

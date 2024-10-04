@@ -86,7 +86,7 @@ export const RenameFolderForm = ({
         <Button
           type="submit"
           text="Save"
-          disabled={!name}
+          disabled={!name || name === folder.name}
           loading={isUpdating}
           className="h-9 w-fit"
         />
