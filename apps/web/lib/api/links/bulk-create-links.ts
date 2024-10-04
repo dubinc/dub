@@ -13,8 +13,10 @@ export async function bulkCreateLinks({
 }) {
   if (links.length === 0) return [];
 
-  // create links via Promise.all (because Prisma doesn't support nested createMany)
-  // ref: https://github.com/prisma/prisma/issues/8131#issuecomment-997667070
+  // create links via Promise.all (because createMany doesn't return the created links)
+  // @see https://github.com/prisma/prisma/issues/8131#issuecomment-997667070
+  // there is createManyAndReturn but it's not available for MySQL :(
+  // @see https://www.prisma.io/docs/orm/reference/prisma-client-reference#createmanyandreturn
   const createdLinks = await Promise.all(
     links.map(({ tagId, tagIds, tagNames, ...link }) => {
       const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
