@@ -14,6 +14,7 @@ import {
   createContext,
   Dispatch,
   PropsWithChildren,
+  ReactNode,
   SetStateAction,
   Suspense,
   useEffect,
@@ -39,7 +40,8 @@ const SideNavContext = createContext<SideNavContext>({
 export function MainNav({
   sidenav,
   children,
-}: PropsWithChildren<{ sidenav: boolean }>) {
+  toolContent,
+}: PropsWithChildren<{ sidenav: boolean; toolContent?: ReactNode }>) {
   const { slug } = useParams() as { slug?: string };
   const scrolled = useScroll(80);
 
@@ -78,7 +80,7 @@ export function MainNav({
             !isOpen && "-translate-x-full",
           )}
         >
-          <SidebarNav />
+          <SidebarNav toolContent={toolContent} />
         </nav>
       </div>
       <div className="bg-neutral-100">

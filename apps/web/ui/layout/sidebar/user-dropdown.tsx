@@ -100,10 +100,10 @@ export default function UserDropdown() {
         {session?.user ? (
           <Avatar
             user={session.user}
-            className="size-7 border-none duration-75 sm:size-7"
+            className="size-6 border-none duration-75 sm:size-6"
           />
         ) : (
-          <div className="size-7 animate-pulse rounded-full bg-gray-100 sm:size-7" />
+          <div className="size-6 animate-pulse rounded-full bg-gray-100 sm:size-6" />
         )}
         {unreadChangelogs > 0 && (
           <div className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-blue-500" />

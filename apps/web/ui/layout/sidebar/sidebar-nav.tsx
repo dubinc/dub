@@ -3,11 +3,11 @@ import { CursorRays, Hyperlink, LinesY } from "@dub/ui/src";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { ReactNode, Suspense, useMemo } from "react";
 import UserDropdown from "./user-dropdown";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
-export function SidebarNav() {
+export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
 
@@ -24,7 +24,10 @@ export function SidebarNav() {
     <div className="p-3 text-gray-500">
       <div className="flex items-start justify-between gap-1">
         <Wordmark className="ml-1 h-6" />
-        <UserDropdown />
+        <div className="flex items-center gap-3">
+          <Suspense fallback={null}>{toolContent}</Suspense>
+          <UserDropdown />
+        </div>
       </div>
 
       <div className="mt-7">

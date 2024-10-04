@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { MainNav } from "@/ui/layout/main-nav";
+import { HelpButtonRSC } from "@/ui/layout/sidebar/help-button-rsc";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import UserSurveyPopup from "@/ui/layout/user-survey";
 import { constructMetadata } from "@dub/utils";
@@ -19,11 +20,13 @@ export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <Providers>
       <div className="min-h-screen w-full bg-gray-50/80">
-        <MainNav sidenav={sidenav}>{children}</MainNav>
+        <MainNav sidenav={sidenav} toolContent={<HelpButtonRSC />}>
+          {children}
+        </MainNav>
       </div>
       <UserSurveyPopup />
       {/* <ChangelogPopup /> */}
-      <Toolbar />
+      <Toolbar show={sidenav ? ["onboarding"] : ["onboarding", "help"]} />
     </Providers>
   );
 }
