@@ -15,7 +15,7 @@ export async function bulkCreateLinks({
 
   // create links via Promise.all (because Prisma doesn't support nested createMany)
   // ref: https://github.com/prisma/prisma/issues/8131#issuecomment-997667070
-  const createdLinks = await prisma.$transaction(
+  const createdLinks = await Promise.all(
     links.map(({ tagId, tagIds, tagNames, ...link }) => {
       const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
         getParamsFromURL(link.url);
