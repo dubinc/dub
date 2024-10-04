@@ -1,7 +1,7 @@
 export default function NoLinksPlaceholder({
-  AddEditLinkButton,
+  CreateLinkButton,
 }: {
-  AddEditLinkButton: () => JSX.Element;
+  CreateLinkButton: () => JSX.Element;
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">
@@ -16,7 +16,7 @@ export default function NoLinksPlaceholder({
         className="pointer-events-none -my-8"
       />
       <div>
-        <AddEditLinkButton />
+        <CreateLinkButton />
       </div>
       <p className="mt-2 text-sm text-gray-500">or edit your search filters</p>
     </div>

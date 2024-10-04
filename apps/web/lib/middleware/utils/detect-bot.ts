@@ -1,5 +1,5 @@
 export const detectBot = (req: Request) => {
-  const searchParams = new URLSearchParams(req.url);
+  const searchParams = new URL(req.url).searchParams;
   if (searchParams.get("bot")) return true;
   const ua = req.headers.get("User-Agent");
   if (ua) {

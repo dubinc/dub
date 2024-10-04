@@ -29,9 +29,6 @@ export const POST = withWorkspace(
             },
             userId: null,
           },
-          include: {
-            tags: true,
-          },
         });
       }),
     ).then((links) => links.filter((link) => link !== null));
@@ -70,6 +67,7 @@ export const POST = withWorkspace(
           userId: session.user.id,
           projectId: workspace.id,
           publicStats: false,
+          tags: [],
         })),
       ),
       updateLinksUsage({

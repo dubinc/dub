@@ -1,10 +1,10 @@
-import { anthropic } from "@/lib/anthropic";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { prismaEdge } from "@/lib/prisma/edge";
 import z from "@/lib/zod";
+import { anthropic } from "@ai-sdk/anthropic";
 import { waitUntil } from "@vercel/functions";
-import { AnthropicStream, StreamingTextResponse } from "ai";
+import { streamText } from "ai";
 
 export const runtime = "edge";
 
@@ -19,14 +19,6 @@ const completionSchema = z.object({
 // POST /api/ai/completion – Generate AI completion
 export const POST = withWorkspaceEdge(
   async ({ req, workspace }) => {
-    if (!anthropic) {
-      console.error("Anthropic is not configured. Skipping the request.");
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Anthropic API key is not configured.",
-      });
-    }
-
     try {
       const {
         // comment for better diff
@@ -34,20 +26,18 @@ export const POST = withWorkspaceEdge(
         model,
       } = completionSchema.parse(await req.json());
 
-      const response = await anthropic.messages.create({
+      console.log({ prompt });
+
+      const result = await streamText({
+        model: anthropic(model),
         messages: [
           {
             role: "user",
             content: prompt,
           },
         ],
-        model,
-        stream: true,
-        max_tokens: 300,
+        maxTokens: 300,
       });
-
-      const stream = AnthropicStream(response);
-
       // only count usage for the sonnet model
       if (model === "claude-3-sonnet-20240229") {
         waitUntil(
@@ -62,7 +52,7 @@ export const POST = withWorkspaceEdge(
         );
       }
 
-      return new StreamingTextResponse(stream);
+      return result.toDataStreamResponse();
     } catch (error) {
       return handleAndReturnErrorResponse(error);
     }

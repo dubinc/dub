@@ -38,9 +38,9 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
-import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
+import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
 import { useTransferDomainModal } from "../modals/transfer-domain-modal";
@@ -315,7 +315,7 @@ function Menu({
     props,
   });
 
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
+  const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
     props: linkProps || { ...DEFAULT_LINK_PROPS, key: "_root", domain },
   });
 
@@ -340,7 +340,7 @@ function Menu({
 
   return (
     <>
-      <AddEditLinkModal />
+      <LinkBuilder />
       <LinkQRModal />
       <AddEditDomainModal />
       <PrimaryDomainModal />
@@ -388,7 +388,7 @@ function Menu({
                   variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
-                    setShowAddEditLinkModal(true);
+                    setShowLinkBuilder(true);
                   }}
                   icon={<Hyperlink className="h-4 w-4" />}
                   disabledTooltip={

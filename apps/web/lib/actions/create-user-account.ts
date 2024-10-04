@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { ratelimit, redis } from "@/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import { flattenValidationErrors } from "next-safe-action";
 import { getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
@@ -28,16 +28,6 @@ export const createUserAccountAction = actionClient
 
     if (!success) {
       throw new Error("Too many requests. Please try again later.");
-    }
-
-    const disposableEmailDomains = await redis.smembers(
-      "disposableEmailDomains",
-    );
-
-    if (disposableEmailDomains.includes(email.split("@")[1])) {
-      throw new Error(
-        "Disposable email addresses are not allowed. If you think this is a mistake, please contact us at support@dub.co",
-      );
     }
 
     const verificationToken = await prisma.emailVerificationToken.findUnique({

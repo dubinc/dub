@@ -13,10 +13,8 @@ export async function GET(req: NextRequest) {
     await ratelimitOrThrow(req, "qr");
 
     const params = getSearchParams(req.url);
-    const { url, size, level, fgColor, bgColor, includeMargin } =
+    const { url, logo, size, level, fgColor, bgColor, includeMargin } =
       getQRCodeQuerySchema.parse(params);
-
-    // const logo = req.nextUrl.searchParams.get("logo") || "https://assets.dub.co/logo.png";
 
     return new ImageResponse(
       QRCodeSVG({
@@ -26,12 +24,13 @@ export async function GET(req: NextRequest) {
         includeMargin,
         fgColor,
         bgColor,
-        // imageSettings: {
-        //   src: logo,
-        //   height: size / 4,
-        //   width: size / 4,
-        //   excavate: true,
-        // },
+        imageSettings: {
+          src: logo,
+          height: size / 4,
+          width: size / 4,
+          excavate: true,
+        },
+        isOGContext: true,
       }),
       {
         width: size,
