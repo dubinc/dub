@@ -1,5 +1,3 @@
-import { getSession } from "@/lib/auth";
-import { getFeatureFlags } from "@/lib/edge-config";
 import { MainNav } from "@/ui/layout/main-nav";
 import { HelpButtonRSC } from "@/ui/layout/sidebar/help-button-rsc";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
@@ -8,25 +6,18 @@ import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 import Providers from "../../providers";
 
-// TODO: Restore "force-static" when removing the sidenav feature flag
-// export const dynamic = "force-static";
+export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  const { sidenav } = await getFeatureFlags({
-    userId: (await getSession()).user.id,
-  });
-
   return (
     <Providers>
       <div className="min-h-screen w-full bg-gray-50/80">
-        <MainNav sidenav={sidenav} toolContent={<HelpButtonRSC />}>
-          {children}
-        </MainNav>
+        <MainNav toolContent={<HelpButtonRSC />}>{children}</MainNav>
       </div>
       <UserSurveyPopup />
       {/* <ChangelogPopup /> */}
-      <Toolbar show={sidenav ? ["onboarding"] : ["onboarding", "help"]} />
+      <Toolbar show={["onboarding"]} />
     </Providers>
   );
 }
