@@ -31,7 +31,14 @@ export const Referrals = ({
   publicToken,
 }: ReferralsProps) => {
   if (!publicToken) {
-    return <ReferralLinkSkeleton />;
+    return (
+      <div className="flex h-64 flex-col items-center justify-center text-center">
+        <h2 className="mb-2 text-2xl font-semibold text-gray-800">
+          Unavailable
+        </h2>
+        <p className="text-gray-600">Sorry, the referral token is not found.</p>
+      </div>
+    );
   }
 
   return (

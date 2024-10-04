@@ -13,7 +13,13 @@ export default async function AppMiddleware(req: NextRequest) {
   const isWorkspaceInvite = req.nextUrl.searchParams.get("invite");
 
   if (path.startsWith("/embed")) {
-    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
+      headers: {
+        // TODO: Need better cookie name
+        // Maybe move this to a API route level?
+        "Set-Cookie": `token=${req.nextUrl.searchParams.get("token")}; HttpOnly; Path=/`,
+      },
+    });
   }
 
   // if there's no user and the path isn't /login or /register, redirect to /login

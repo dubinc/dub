@@ -4,6 +4,7 @@ import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
+import { cookies } from "next/headers";
 
 interface WithAuthHandler {
   ({
@@ -63,9 +64,19 @@ export const withAuth = (handler: WithAuthHandler) => {
         // }
 
         // Read token from query params
-        const tokenFromQuery = searchParams["publicToken"];
+        // const tokenFromQuery = searchParams["publicToken"];
 
-        if (!tokenFromQuery) {
+        // if (!tokenFromQuery) {
+        //   throw new DubApiError({
+        //     code: "unauthorized",
+        //     message: "Missing public token.",
+        //   });
+        // }
+
+        const cookieStore = cookies();
+        const tokenFromCookie = cookieStore.get("token")?.value;
+
+        if (!tokenFromCookie) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Missing public token.",
@@ -74,7 +85,7 @@ export const withAuth = (handler: WithAuthHandler) => {
 
         const publicToken = await prisma.referralPublicToken.findUnique({
           where: {
-            publicToken: tokenFromQuery,
+            publicToken: tokenFromCookie,
           },
         });
 
@@ -95,7 +106,7 @@ export const withAuth = (handler: WithAuthHandler) => {
         const { success, limit, reset, remaining } = await ratelimit(
           rateLimit,
           "1 m",
-        ).limit(tokenFromQuery);
+        ).limit(tokenFromCookie);
 
         headers = {
           "Retry-After": reset.toString(),
