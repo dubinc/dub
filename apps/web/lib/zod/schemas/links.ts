@@ -148,12 +148,14 @@ export const createLinkBodySchema = z.object({
     }),
   domain: z
     .string()
+    .max(190)
     .optional()
     .describe(
       "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
     ),
   key: z
     .string()
+    .max(190)
     .optional()
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",

@@ -8,6 +8,7 @@ export const expectedLink: Partial<Link> & {
   id: expect.any(String),
   key: expect.any(String),
   domain: "dub.sh",
+  shortLink: expect.any(String),
   trackConversion: false,
   archived: false,
   expiresAt: null,

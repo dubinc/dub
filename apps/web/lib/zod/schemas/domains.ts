@@ -75,6 +75,7 @@ export const createDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "slug is required" })
     .min(1, "slug cannot be empty.")
+    .max(190, "slug cannot be longer than 190 characters.")
     .describe("Name of the domain.")
     .openapi({ example: "acme.com" }),
   expiredUrl: parseUrlSchemaAllowEmpty
