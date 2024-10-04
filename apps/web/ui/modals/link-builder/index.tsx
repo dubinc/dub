@@ -33,9 +33,11 @@ import {
   createContext,
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import {
   Controller,
@@ -159,26 +161,15 @@ function LinkBuilderInner({
       Disable save if:
       - modal is not open
       - saving is in progress
-      - key is invalid
-      - url is invalid
       - for an existing link, there's no changes
     */
     return Boolean(
       !showLinkBuilder ||
         isSubmitting ||
         isSubmitSuccessful ||
-        errors.key ||
-        errors.url ||
         (props && !isDirty),
     );
-  }, [
-    showLinkBuilder,
-    isSubmitting,
-    isSubmitSuccessful,
-    errors,
-    props,
-    isDirty,
-  ]);
+  }, [showLinkBuilder, isSubmitting, isSubmitSuccessful, props, isDirty]);
 
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -414,7 +405,6 @@ function LinkBuilderInner({
                       data={{ url, title, description }}
                       saving={isSubmitting || isSubmitSuccessful}
                       loading={loading}
-                      domains={domains}
                     />
                   )}
 
@@ -563,5 +553,44 @@ export function CreateLinkButton({
       }
       onClick={() => setShowLinkBuilder(true)}
     />
+  );
+}
+
+export function useLinkBuilder({
+  props,
+  duplicateProps,
+  homepageDemo,
+}: {
+  props?: LinkWithTagsProps;
+  duplicateProps?: LinkWithTagsProps;
+  homepageDemo?: boolean;
+} = {}) {
+  const { flags } = useWorkspace();
+  const [showLinkBuilder, setShowLinkBuilder] = useState(false);
+
+  const LinkBuilderCallback = useCallback(() => {
+    return (
+      <LinkBuilder
+        showLinkBuilder={showLinkBuilder}
+        setShowLinkBuilder={setShowLinkBuilder}
+        props={props}
+        duplicateProps={duplicateProps}
+        homepageDemo={homepageDemo}
+      />
+    );
+  }, [showLinkBuilder]);
+
+  const CreateLinkButtonCallback = useCallback(() => {
+    return <CreateLinkButton setShowLinkBuilder={setShowLinkBuilder} />;
+  }, []);
+
+  return useMemo(
+    () => ({
+      showLinkBuilder,
+      setShowLinkBuilder,
+      LinkBuilder: LinkBuilderCallback,
+      CreateLinkButton: CreateLinkButtonCallback,
+    }),
+    [showLinkBuilder, LinkBuilderCallback, CreateLinkButtonCallback],
   );
 }

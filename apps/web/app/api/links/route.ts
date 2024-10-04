@@ -32,6 +32,7 @@ export const GET = withWorkspace(
       showArchived,
       withTags,
       includeUser,
+      linkIds,
     } = getLinksQuerySchemaExtended.parse(searchParams);
 
     if (domain) {
@@ -51,6 +52,7 @@ export const GET = withWorkspace(
       showArchived,
       withTags,
       includeUser,
+      linkIds,
     });
 
     return NextResponse.json(response, {

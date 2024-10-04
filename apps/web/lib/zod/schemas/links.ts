@@ -139,12 +139,14 @@ export const createLinkBodySchema = z.object({
     }),
   domain: z
     .string()
+    .max(190)
     .optional()
     .describe(
       "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
     ),
   key: z
     .string()
+    .max(190)
     .optional()
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
@@ -573,8 +575,13 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
 
 export const getLinksQuerySchemaExtended = getLinksQuerySchema.merge(
   z.object({
-    // Only Dub UI uses includeUser query parameter
+    // Only Dub UI uses the following query parameters
     includeUser: booleanQuerySchema.default("false"),
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("Link IDs to filter by."),
   }),
 );
 

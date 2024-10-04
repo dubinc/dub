@@ -1,16 +1,17 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useEffect, useState } from "react";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
 import { LinkWithTagsProps, UserProps } from "../types";
-import { getLinksQuerySchema } from "../zod/schemas/links";
+import { getLinksQuerySchemaExtended } from "../zod/schemas/links";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = getLinksQuerySchema.partial();
+const partialQuerySchema = getLinksQuerySchemaExtended.partial();
 
 export default function useLinks(
   opts: z.infer<typeof partialQuerySchema> = {},
+  swrOpts: SWRConfiguration = {},
 ) {
   const { id } = useWorkspace();
   const { getQueryString } = useRouterStuff();
@@ -42,6 +43,7 @@ export default function useLinks(
       dedupingInterval: 20000,
       revalidateOnFocus: false,
       keepPreviousData: true,
+      ...swrOpts,
     },
   );
 
