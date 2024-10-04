@@ -47,7 +47,7 @@ function StatusBadge({
   ...props
 }: BadgeProps) {
   const Icon =
-    icon !== null ? (icon ?? defaultIcons[variant ?? "neutral"]) : null;
+    icon !== null ? icon ?? defaultIcons[variant ?? "neutral"] : null;
   return (
     <span
       className={cn(

@@ -643,7 +643,7 @@ export default function Toggle({
                         }
                       : undefined
                   }
-                  presetId={!start || !end ? (interval ?? "24h") : undefined}
+                  presetId={!start || !end ? interval ?? "24h" : undefined}
                   onChange={(range, preset) => {
                     if (preset) {
                       queryParams({

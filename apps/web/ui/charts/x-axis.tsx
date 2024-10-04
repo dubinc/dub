@@ -34,7 +34,7 @@ export default function XAxis({
   const { tooltipData } = useChartTooltipContext();
 
   const tickValues = useMemo(() => {
-    const maxTicks = (maxTicksProp ?? width < 450) ? 4 : width < 600 ? 6 : 8;
+    const maxTicks = maxTicksProp ?? width < 450 ? 4 : width < 600 ? 6 : 8;
 
     const tickInterval =
       getFactors(data.length).find((f) => (data.length + 1) / f <= maxTicks) ??

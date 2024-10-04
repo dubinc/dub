@@ -110,7 +110,7 @@ export default function EventsTabs() {
                 >
                   {event === "sales"
                     ? (totalEvents?.saleAmount ?? 0) / 100
-                    : (totalEvents?.[event] ?? 0)}
+                    : totalEvents?.[event] ?? 0}
                 </CountingNumbers>
               ) : (
                 <div className="h-8 w-12 animate-pulse rounded-md bg-gray-200" />
