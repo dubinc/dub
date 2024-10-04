@@ -6,9 +6,9 @@ import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
-import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
+import { useLinkBuilder } from "@/ui/modals/link-builder";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -55,7 +55,7 @@ export default function WorkspaceLinksClient() {
 function WorkspaceLinks() {
   const router = useRouter();
 
-  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
+  const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
 
   const { slug } = useWorkspace();
@@ -67,7 +67,7 @@ function WorkspaceLinks() {
 
   return (
     <>
-      <AddEditLinkModal />
+      <LinkBuilder />
       <AddEditTagModal />
       <div className="mt-10 flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
@@ -141,7 +141,7 @@ function WorkspaceLinks() {
             </div>
             <div className="order-3 flex gap-x-2">
               <div className="grow-0">
-                <AddEditLinkButton />
+                <CreateLinkButton />
               </div>
               <MoreLinkOptions />
             </div>
@@ -155,7 +155,7 @@ function WorkspaceLinks() {
         </MaxWidthWrapper>
       </div>
       <div className="mt-3">
-        <LinksContainer AddEditLinkButton={AddEditLinkButton} />
+        <LinksContainer CreateLinkButton={CreateLinkButton} />
       </div>
     </>
   );
