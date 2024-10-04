@@ -177,7 +177,7 @@ function WorkspaceLinks() {
 
       {canCreateLinks && (
         <div className="mt-3">
-          <LinksContainer AddEditLinkButton={CreateLinkButton} />
+          <LinksContainer CreateLinkButton={CreateLinkButton} />
         </div>
       )}
     </>
