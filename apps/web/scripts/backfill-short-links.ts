@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
@@ -8,7 +9,7 @@ async function main() {
   while (true) {
     const links = await prisma.link.findMany({
       where: {
-        shortLink: null,
+        shortLink: "null",
       },
       select: {
         id: true,
@@ -27,7 +28,10 @@ async function main() {
         prisma.link.update({
           where: { id: link.id },
           data: {
-            shortLink: `https://${link.domain}/${link.key}`,
+            shortLink: linkConstructorSimple({
+              domain: link.domain,
+              key: link.key,
+            }),
           },
         }),
       ),

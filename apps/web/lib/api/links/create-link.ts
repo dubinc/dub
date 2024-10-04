@@ -10,6 +10,7 @@ import {
   getParamsFromURL,
   truncate,
 } from "@dub/utils";
+import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { updateLinksUsage } from "./update-links-usage";
@@ -29,7 +30,7 @@ export async function createLink(link: ProcessedLinkProps) {
     data: {
       ...rest,
       key,
-      shortLink: `https://${link.domain}/${link.key}`,
+      shortLink: linkConstructorSimple({ domain: link.domain, key: link.key }),
       title: truncate(title, 120),
       description: truncate(description, 240),
       // if it's an uploaded image, make this null first because we'll update it later
