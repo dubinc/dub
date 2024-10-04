@@ -149,12 +149,13 @@ export function QRCodeSVG(props: QRPropsSVG) {
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
     includeMargin = DEFAULT_INCLUDEMARGIN,
+    isOGContext = false,
     imageSettings,
     ...otherProps
   } = props;
 
   const shouldUseHigherErrorLevel =
-    imageSettings?.excavate && (level === "L" || level === "M");
+    isOGContext && imageSettings?.excavate && (level === "L" || level === "M");
 
   // Use a higher error correction level 'Q' when excavation is enabled
   // to ensure the QR code remains scannable despite the removed modules.
@@ -180,22 +181,35 @@ export function QRCodeSVG(props: QRPropsSVG) {
       cells = excavateModules(cells, calculatedImageSettings.excavation);
     }
 
-    const { imgWidth, imgHeight, imgLeft, imgTop } =
-      convertImageSettingsToPixels(calculatedImageSettings, size, numCells);
+    if (isOGContext) {
+      const { imgWidth, imgHeight, imgLeft, imgTop } =
+        convertImageSettingsToPixels(calculatedImageSettings, size, numCells);
 
-    image = (
-      <img
-        src={imageSettings.src}
-        alt="Logo"
-        style={{
-          position: "absolute",
-          left: `${imgLeft}px`,
-          top: `${imgTop}px`,
-          width: `${imgWidth}px`,
-          height: `${imgHeight}px`,
-        }}
-      />
-    );
+      image = (
+        <img
+          src={imageSettings.src}
+          alt="Logo"
+          style={{
+            position: "absolute",
+            left: `${imgLeft}px`,
+            top: `${imgTop}px`,
+            width: `${imgWidth}px`,
+            height: `${imgHeight}px`,
+          }}
+        />
+      );
+    } else {
+      image = (
+        <image
+          href={imageSettings.src}
+          height={calculatedImageSettings.h}
+          width={calculatedImageSettings.w}
+          x={calculatedImageSettings.x + margin}
+          y={calculatedImageSettings.y + margin}
+          preserveAspectRatio="none"
+        />
+      );
+    }
   }
 
   // Drawing strategy: instead of a rect per module, we're going to create a

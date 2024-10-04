@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
           width: size / 4,
           excavate: true,
         },
+        isOGContext: true,
       }),
       {
         width: size,
