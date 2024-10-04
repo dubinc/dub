@@ -32,7 +32,7 @@ export async function getLinksForWorkspace({
       ...(search && {
         OR: [
           {
-            key: { contains: search },
+            shortLink: { contains: search },
           },
           {
             url: { contains: search },

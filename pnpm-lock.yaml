@@ -114,8 +114,8 @@ importers:
         specifier: ^1.4.1
         version: 1.4.1
       '@vercel/og':
-        specifier: ^0.6.2
-        version: 0.6.2
+        specifier: ^0.6.3
+        version: 0.6.3
       '@visx/axis':
         specifier: ^2.14.0
         version: 2.14.0(react@18.2.0)
@@ -9665,8 +9665,8 @@ packages:
         optional: true
     dev: false
 
-  /@vercel/og@0.6.2:
-    resolution: {integrity: sha512-OTe0KE37F5Y2eTys6eMnfopC+P4qr2ooXUTFyFPTplYSPwowmFk/HLD1FXtbKLjqsIH0SgekcJWad+C5uX4nkg==}
+  /@vercel/og@0.6.3:
+    resolution: {integrity: sha512-aoCrC9FqkeA+WEEb9CwSmjD0rGlFeNqbUsI41JPmKWR9Hx6FFn86tvH96O5HZMF6VAXTGHxa3nPH3BokROpdgA==}
     engines: {node: '>=16'}
     dependencies:
       '@resvg/resvg-wasm': 2.4.0

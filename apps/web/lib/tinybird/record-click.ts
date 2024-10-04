@@ -38,7 +38,7 @@ export async function recordClick({
   webhookIds?: string[];
   skipRatelimit?: boolean;
 }) {
-  const searchParams = new URLSearchParams(req.url);
+  const searchParams = new URL(req.url).searchParams;
 
   // only track the click when there is no `dub-no-track` header or query param
   if (

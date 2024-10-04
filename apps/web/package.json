@@ -39,7 +39,7 @@
     "@upstash/redis": "^1.25.1",
     "@vercel/edge-config": "^0.4.1",
     "@vercel/functions": "^1.4.1",
-    "@vercel/og": "^0.6.2",
+    "@vercel/og": "^0.6.3",
     "@visx/axis": "^2.14.0",
     "@visx/curve": "^3.3.0",
     "@visx/event": "^2.6.0",
