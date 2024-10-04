@@ -1,15 +1,16 @@
 model Link {
-  id         String    @id @default(cuid())
-  domain     String // domain of the link (e.g. dub.sh) – also stored on Redis
-  key        String // key of the link (e.g. /github) – also stored on Redis
-  url        String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
-  archived   Boolean   @default(false) // whether the link is archived or not
-  expiresAt  DateTime? // when the link expires – stored on Redis via ttl
-  expiredUrl String?   @db.LongText // URL to redirect the user to when the link is expired
-  password   String? // password to access the link
-  externalId String?
-
-  trackConversion Boolean @default(false) // whether to track conversions or not
+  id              String    @id @default(cuid())
+  domain          String // domain of the link (e.g. dub.sh) – also stored on Redis
+  key             String // key of the link (e.g. /github) – also stored on Redis
+  url             String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
+  shortLink       String?   @unique @db.VarChar(400) // new column for the full short link
+  archived        Boolean   @default(false) // whether the link is archived or not
+  expiresAt       DateTime? // when the link expires – stored on Redis via ttl
+  expiredUrl      String?   @db.LongText // URL to redirect the user to when the link is expired
+  password        String? // password to access the link
+  externalId      String?
+  identifier      String?
+  trackConversion Boolean   @default(false) // whether to track conversions or not
 
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
@@ -64,6 +65,7 @@ model Link {
 
   @@unique([domain, key])
   @@unique([projectId, externalId])
+  @@unique([projectId, identifier])
   @@index(projectId)
   @@index(domain)
   @@index(trackConversion)

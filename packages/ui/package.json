@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.1.48",
+  "version": "0.1.52",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -48,6 +48,7 @@
     "@radix-ui/react-slot": "1.0.1",
     "@radix-ui/react-switch": "^1.0.1",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "@radix-ui/react-visually-hidden": "^1.1.0",
     "@react-aria/datepicker": "^3.10.0",
     "@react-stately/datepicker": "^3.9.3",
     "@tanstack/react-table": "^8.17.3",
@@ -58,6 +59,7 @@
     "embla-carousel-react": "^8.1.7",
     "framer-motion": "^10.16.16",
     "js-cookie": "^3.0.5",
+    "js-sha256": "^0.11.0",
     "linkify-react": "^4.1.3",
     "linkifyjs": "^4.1.3",
     "lucide-react": "^0.367.0",
@@ -65,7 +67,7 @@
     "sonner": "^1.4.41",
     "swr": "^2.1.5",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.9.0"
+    "vaul": "^0.9.6"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

@@ -92,7 +92,7 @@ function AddEditLinkModal({
         title: "Password Required",
         description:
           "This link is password protected. Please enter the password to view it.",
-        image: "/_static/password-protected.png",
+        image: "https://assets.dub.co/misc/password-protected.png",
       }));
       return;
     }
@@ -542,13 +542,13 @@ export function useAddEditLinkModal({
         homepageDemo={homepageDemo}
       />
     );
-  }, [showAddEditLinkModal, setShowAddEditLinkModal]);
+  }, [showAddEditLinkModal]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
     return (
       <AddEditLinkButton setShowAddEditLinkModal={setShowAddEditLinkModal} />
     );
-  }, [setShowAddEditLinkModal]);
+  }, []);
 
   return useMemo(
     () => ({
@@ -557,11 +557,6 @@ export function useAddEditLinkModal({
       AddEditLinkModal: AddEditLinkModalCallback,
       AddEditLinkButton: AddEditLinkButtonCallback,
     }),
-    [
-      showAddEditLinkModal,
-      setShowAddEditLinkModal,
-      AddEditLinkModalCallback,
-      AddEditLinkButtonCallback,
-    ],
+    [showAddEditLinkModal, AddEditLinkModalCallback, AddEditLinkButtonCallback],
   );
 }

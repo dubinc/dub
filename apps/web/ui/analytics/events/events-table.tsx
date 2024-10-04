@@ -1,12 +1,15 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import { generateRandomName } from "@/lib/names";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import EmptyState from "@/ui/shared/empty-state";
 import {
+  Avatar,
+  CopyButton,
   LinkLogo,
   Table,
   Tooltip,
@@ -14,6 +17,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
+import { CopyText } from "@dub/ui/src";
 import {
   CursorRays,
   FilterBars,
@@ -28,6 +32,7 @@ import {
   capitalize,
   fetcher,
   getApexDomain,
+  getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
@@ -147,27 +152,22 @@ export default function EventsTable() {
               key: getValue().key,
             }),
           },
-          cell: ({ getValue }) => {
-            const path = getValue().key === "_root" ? "" : `/${getValue().key}`;
-
-            return (
-              <div className="flex items-center gap-3">
-                <LinkLogo
-                  apexDomain={getApexDomain(getValue().url)}
-                  className="size-4 shrink-0 sm:size-4"
-                />
-                <span
-                  className="truncate"
-                  title={`${getValue().domain}${path}`}
-                >
-                  <span className="font-medium text-gray-950">
-                    {getValue().domain}
-                  </span>
-                  {path}
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(getValue().url)}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={getValue().shortLink}
+                successMessage="Copied link to clipboard!"
+              >
+                <span className="truncate" title={getValue().shortLink}>
+                  {getPrettyUrl(getValue().shortLink)}
                 </span>
-              </div>
-            );
-          },
+              </CopyText>
+            </div>
+          ),
         },
         {
           id: "customer",
@@ -175,16 +175,44 @@ export default function EventsTable() {
           accessorKey: "customer",
           cell: ({ getValue }) => {
             const customer = getValue();
-            const display = customer.name || customer.email || "Unknown";
+            const display =
+              customer.name || customer.email || generateRandomName();
             return (
-              <div className="flex items-center gap-3" title={display}>
-                <img
-                  alt={display}
-                  src={customer.avatar}
-                  className="size-4 shrink-0 rounded-full border border-gray-200"
-                />
-                <span className="truncate">{display}</span>
-              </div>
+              <Tooltip
+                content={
+                  <div className="w-full p-3">
+                    <Avatar
+                      user={{
+                        name: customer.name,
+                        email: customer.email,
+                        image: customer.avatar,
+                      }}
+                      className="h-8 w-8"
+                    />
+                    <p className="mt-2 text-sm font-semibold text-gray-700">
+                      {display}
+                    </p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <p>{customer.email}</p>
+                      <CopyButton
+                        value={customer.email}
+                        variant="neutral"
+                        className="p-1 [&>*]:h-3 [&>*]:w-3"
+                        successMessage="Copied email to clipboard!"
+                      />
+                    </div>
+                  </div>
+                }
+              >
+                <div className="flex items-center gap-3" title={display}>
+                  <img
+                    alt={display}
+                    src={customer.avatar}
+                    className="size-4 shrink-0 rounded-full border border-gray-200"
+                  />
+                  <span className="truncate">{display}</span>
+                </div>
+              </Tooltip>
             );
           },
         },
@@ -306,6 +334,9 @@ export default function EventsTable() {
           id: "referer",
           header: "Referer",
           accessorKey: "click.referer",
+          meta: {
+            filterParams: ({ getValue }) => ({ referer: getValue() }),
+          },
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3" title={getValue()}>
               {getValue() === "(direct)" ? (
@@ -317,6 +348,34 @@ export default function EventsTable() {
                 />
               )}
               <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "refererUrl",
+          header: "Referer URL",
+          accessorKey: "click.refererUrl",
+          meta: {
+            filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue())}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referer URL to clipboard!"
+              >
+                <span className="truncate" title={getValue()}>
+                  {getPrettyUrl(getValue())}
+                </span>
+              </CopyText>
             </div>
           ),
         },

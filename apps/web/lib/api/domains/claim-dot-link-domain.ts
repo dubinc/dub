@@ -14,7 +14,6 @@ import { sendEmail } from "emails";
 import DomainClaimed from "emails/domain-claimed";
 import { addDomainToVercel } from "./add-domain-vercel";
 import { deleteDomainAndLinks } from "./delete-domain-links";
-import { getRegisteredDotlinkDomain } from "./get-registered-dotlink-domain";
 
 export async function claimDotLinkDomain({
   domain,
@@ -32,11 +31,7 @@ export async function claimDotLinkDomain({
     });
 
   if (workspace.id !== ACME_WORKSPACE_ID) {
-    const registeredDotLinkDomain = await getRegisteredDotlinkDomain(
-      workspace.id,
-    );
-
-    if (registeredDotLinkDomain) {
+    if (workspace.dotLinkClaimed) {
       throw new DubApiError({
         code: "forbidden",
         message: "Workspace is limited to one free .link domain.",

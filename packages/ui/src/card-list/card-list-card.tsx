@@ -88,7 +88,9 @@ export function CardListCard({
                   if (
                     ["button", "a", "input", "textarea"].includes(
                       target.tagName.toLowerCase(),
-                    )
+                    ) ||
+                    target.getAttribute("data-radix-popper-content-wrapper") !==
+                      null
                   )
                     return;
                 }

@@ -1,4 +1,4 @@
-import AuthLayout from "@/ui/layout/auth-layout";
+import { AuthLayout } from "@/ui/layout/auth-layout";
 import { constructMetadata } from "@dub/utils";
 import LoginForm from "./form";
 
@@ -8,7 +8,7 @@ export const metadata = constructMetadata({
 
 export default function LoginPage() {
   return (
-    <AuthLayout variant="login">
+    <AuthLayout>
       <LoginForm />
     </AuthLayout>
   );

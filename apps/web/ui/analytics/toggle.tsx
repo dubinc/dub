@@ -26,6 +26,7 @@ import {
   FlagWavy,
   Globe2,
   Hyperlink,
+  LinkBroken,
   Magic,
   MapPosition,
   MobilePhone,
@@ -110,6 +111,8 @@ export default function Toggle({
       browser,
       os,
       referer,
+      refererUrl,
+      url,
       root,
     } = searchParamsObj;
     return [
@@ -131,6 +134,8 @@ export default function Toggle({
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
       ...(referer ? [{ key: "referer", value: referer }] : []),
+      ...(refererUrl ? [{ key: "refererUrl", value: refererUrl }] : []),
+      ...(url ? [{ key: "url", value: url }] : []),
       ...(root ? [{ key: "root", value: root === "true" }] : []),
     ];
   }, [searchParamsObj]);
@@ -165,6 +170,12 @@ export default function Toggle({
   });
   const referers = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
+  });
+  const refererUrls = useAnalyticsFilterOption("referer_urls", {
+    cacheOnly: !isRequested("refererUrl"),
+  });
+  const urls = useAnalyticsFilterOption("top_urls", {
+    cacheOnly: !isRequested("url"),
   });
 
   // Some suggestions will only appear if previously requested (see isRequested above)
@@ -445,6 +456,41 @@ export default function Toggle({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
+      {
+        key: "refererUrl",
+        icon: ReferredVia,
+        label: "Referer URL",
+        getOptionIcon: (value, props) => (
+          <RefererIcon display={value} className="h-4 w-4" />
+        ),
+        options:
+          refererUrls?.map(({ refererUrl, count }) => ({
+            value: refererUrl,
+            label: refererUrl,
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+      },
+      ...(key && domain
+        ? [
+            {
+              key: "url",
+              icon: LinkBroken,
+              label: "Destination URL",
+              getOptionIcon: (_, props) => (
+                <LinkLogo
+                  apexDomain={getApexDomain(props.option?.data?.url)}
+                  className="size-4 sm:size-4"
+                />
+              ),
+              options:
+                urls?.map(({ url, count }) => ({
+                  value: url,
+                  label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
+                  right: nFormatter(count, { full: true }),
+                })) ?? null,
+            },
+          ]
+        : []),
     ],
     [
       isPublicStatsPage,
@@ -457,6 +503,8 @@ export default function Toggle({
       browsers,
       os,
       referers,
+      refererUrls,
+      urls,
     ],
   );
 
@@ -465,8 +513,7 @@ export default function Toggle({
       <div
         className={cn("sticky top-11 z-10 bg-gray-50 py-3 md:py-3", {
           "top-14": isPublicStatsPage,
-          "top-0": adminPage,
-          "top-16": demoPage,
+          "top-16": adminPage || demoPage,
           "shadow-md": scrolled,
         })}
       >
@@ -678,7 +725,7 @@ export default function Toggle({
           ]}
           onRemove={(key) =>
             queryParams({
-              del: key === "link" ? ["domain", "key"] : key,
+              del: key === "link" ? ["domain", "key", "url"] : key,
             })
           }
           onRemoveAll={() =>

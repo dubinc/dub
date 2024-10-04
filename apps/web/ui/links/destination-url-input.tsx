@@ -11,6 +11,7 @@ type DestinationUrlInputProps = {
   domain?: string;
   domains: DomainProps[];
   error?: string;
+  showEnterToSubmit?: boolean;
 } & HTMLProps<HTMLInputElement>;
 
 export const DestinationUrlInput = forwardRef<
@@ -23,6 +24,7 @@ export const DestinationUrlInput = forwardRef<
       domain,
       domains,
       error,
+      showEnterToSubmit = true,
       ...inputProps
     }: DestinationUrlInputProps,
     ref,
@@ -62,9 +64,11 @@ export const DestinationUrlInput = forwardRef<
               />
             )}
           </div>
-          <div className="animate-text-appear text-xs font-normal text-gray-500">
-            press <strong>Enter</strong> ↵ to submit
-          </div>
+          {showEnterToSubmit && (
+            <div className="animate-text-appear text-xs font-normal text-gray-500">
+              press <strong>Enter</strong> ↵ to submit
+            </div>
+          )}
         </div>
         <div className="relative mt-2 flex rounded-md shadow-sm">
           <input

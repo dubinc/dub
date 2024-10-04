@@ -108,7 +108,7 @@ export default function AnalyticsProvider({
     start || end ? undefined : searchParams?.get("interval") ?? "24h";
 
   const selectedTab: EventType = useMemo(() => {
-    if (!demoPage && !conversionEnabled) return "clicks";
+    if (!!adminPage && !!demoPage && !conversionEnabled) return "clicks";
 
     const event = searchParams.get("event");
 
@@ -116,7 +116,7 @@ export default function AnalyticsProvider({
   }, [searchParams.get("event")]);
 
   const view: AnalyticsView = useMemo(() => {
-    if (!demoPage && !conversionEnabled) return "default";
+    if (!adminPage && !demoPage && !conversionEnabled) return "default";
 
     const view = searchParams.get("view");
 
@@ -196,7 +196,8 @@ export default function AnalyticsProvider({
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: demoPage || conversionEnabled ? "composite" : "clicks",
+      event:
+        adminPage || demoPage || conversionEnabled ? "composite" : "clicks",
     })}`,
     fetcher,
     {

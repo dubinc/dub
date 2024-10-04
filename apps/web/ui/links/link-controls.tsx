@@ -1,7 +1,5 @@
-import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
-import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
 import {
   Button,
   CardList,
@@ -18,6 +16,8 @@ import { useParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useLinkBuilder } from "../modals/link-builder";
+import { useLinkQRModal } from "../modals/link-qr-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";
 import { LinksListContext, ResponseLink } from "./links-container";
@@ -54,7 +54,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props: link,
   });
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
+  const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
     props: link,
   });
 
@@ -67,9 +67,9 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     ...propsToDuplicate
   } = link;
   const {
-    setShowAddEditLinkModal: setShowDuplicateLinkModal,
-    AddEditLinkModal: DuplicateLinkModal,
-  } = useAddEditLinkModal({
+    setShowLinkBuilder: setShowDuplicateLinkModal,
+    LinkBuilder: DuplicateLinkModal,
+  } = useLinkBuilder({
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
@@ -84,7 +84,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       setOpenPopover(false);
       switch (e.key) {
         case "e":
-          setShowAddEditLinkModal(true);
+          setShowLinkBuilder(true);
           break;
         case "d":
           setShowDuplicateLinkModal(true);
@@ -114,7 +114,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   return (
     <div className="flex justify-end">
       <LinkQRModal />
-      <AddEditLinkModal />
+      <LinkBuilder />
       <DuplicateLinkModal />
       <ArchiveLinkModal />
       <TransferLinkModal />
@@ -128,7 +128,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowAddEditLinkModal(true);
+                  setShowLinkBuilder(true);
                 }}
                 icon={<PenWriting className="h-4 w-4" />}
                 shortcut="E"

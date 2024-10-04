@@ -103,12 +103,14 @@ export function useLinkFilters() {
         set: {
           tagIds: selectedTagIds.concat(value).join(","),
         },
+        del: "page",
       });
     } else {
       queryParams({
         set: {
           [key]: value,
         },
+        del: "page",
       });
     }
   };
@@ -122,10 +124,11 @@ export function useLinkFilters() {
         set: {
           tagIds: selectedTagIds.filter((id) => id !== value).join(","),
         },
+        del: "page",
       });
     } else {
       queryParams({
-        del: key,
+        del: [key, "page"],
       });
     }
   };

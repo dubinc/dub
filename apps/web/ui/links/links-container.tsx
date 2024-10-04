@@ -32,9 +32,9 @@ export type ResponseLink = LinkWithTagsProps & {
 };
 
 export default function LinksContainer({
-  AddEditLinkButton,
+  CreateLinkButton,
 }: {
-  AddEditLinkButton: () => JSX.Element;
+  CreateLinkButton: () => JSX.Element;
 }) {
   const { viewMode, sort, showArchived } = useContext(LinksDisplayContext);
 
@@ -44,7 +44,7 @@ export default function LinksContainer({
   return (
     <MaxWidthWrapper className="grid gap-y-2">
       <LinksList
-        AddEditLinkButton={AddEditLinkButton}
+        CreateLinkButton={CreateLinkButton}
         links={links}
         count={count}
         loading={isValidating}
@@ -65,13 +65,13 @@ export const LinksListContext = createContext<{
 });
 
 function LinksList({
-  AddEditLinkButton,
+  CreateLinkButton,
   links,
   count,
   loading,
   compact,
 }: {
-  AddEditLinkButton: () => JSX.Element;
+  CreateLinkButton: () => JSX.Element;
   links?: ResponseLink[];
   count?: number;
   loading?: boolean;
@@ -118,7 +118,7 @@ function LinksList({
       ) : isFiltered ? (
         <LinkNotFound />
       ) : (
-        <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
+        <NoLinksPlaceholder CreateLinkButton={CreateLinkButton} />
       )}
 
       {/* Pagination */}

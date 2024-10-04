@@ -5,7 +5,6 @@ SCHEMA >
     `link_id` String `json:$.link_id`,
     `alias_link_id` String `json:$.alias_link_id`,
     `url` String `json:$.url`,
-    `continent` LowCardinality(String) `json:$.continent`,
     `country` LowCardinality(String) `json:$.country`,
     `city` String `json:$.city`,
     `region` String `json:$.region`,
@@ -28,7 +27,8 @@ SCHEMA >
     `user_id` Nullable(Int64) `json:$.user_id`,
     `identity_hash` Nullable(String) `json:$.identity_hash`,
     `ip` String `json:$.ip`,
-    `qr` UInt8 `json:$.qr`
+    `qr` UInt8 `json:$.qr`,
+    `continent` LowCardinality(String) `json:$.continent`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

@@ -8,6 +8,7 @@ export const expectedLink: Partial<Link> & {
   id: expect.any(String),
   key: expect.any(String),
   domain: "dub.sh",
+  shortLink: expect.any(String),
   trackConversion: false,
   archived: false,
   expiresAt: null,
@@ -40,6 +41,7 @@ export const expectedLink: Partial<Link> & {
   updatedAt: expect.any(String),
   expiredUrl: null,
   externalId: null,
+  identifier: null,
 };
 
 export const expectedTag: Partial<Tag> = {
@@ -58,6 +60,7 @@ export const expectedWorkspace: Partial<Project> = {
   stripeId: expect.any(String),
   billingCycleStart: expect.any(Number),
   inviteCode: expect.any(String),
+  publishableKey: expect.any(String),
 
   usage: expect.any(Number),
   usageLimit: expect.any(Number),

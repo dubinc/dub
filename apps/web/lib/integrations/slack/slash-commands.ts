@@ -163,6 +163,6 @@ const createShortLink = async ({
   const { shortLink } = await createLink(link);
 
   return {
-    text: shortLink,
+    text: shortLink as string, // TODO: Once shortLink is not nullable, we can remove the type assertion
   };
 };

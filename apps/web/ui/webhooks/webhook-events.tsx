@@ -95,7 +95,9 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
           <div className="group flex items-center gap-2">
             <p className="font-mono text-sm text-gray-500">{event.event_id}</p>
             <ButtonTooltip
-              tooltipContent="Copy event ID"
+              tooltipProps={{
+                content: "Copy event ID",
+              }}
               onClick={() => {
                 navigator.clipboard.writeText(event.event_id);
                 toast.success("Copied to clipboard");

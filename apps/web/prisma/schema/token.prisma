@@ -39,7 +39,26 @@ model RestrictedToken {
   @@index([installationId])
 }
 
+// Login tokens
 model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Email verification OTPs
+model EmailVerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Password reset tokens
+model PasswordResetToken {
   identifier String
   token      String   @unique
   expires    DateTime

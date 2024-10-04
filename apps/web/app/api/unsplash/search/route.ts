@@ -1,5 +1,5 @@
 import { ratelimit } from "@/lib/upstash";
-import { ipAddress } from "@vercel/edge";
+import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { unsplash } from "../utils";
 

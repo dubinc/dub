@@ -28,7 +28,7 @@ function CompleteSetupModal({
   const { data: linksCount } = useLinksCount({ ignoreParams: true });
   const { users } = useUsers();
   const { users: invites } = useUsers({ invites: true });
-  const { setShowAddEditLinkModal } = useContext(ModalContext);
+  const { setShowLinkBuilder } = useContext(ModalContext);
 
   const tasks = useMemo(() => {
     return [
@@ -88,7 +88,7 @@ function CompleteSetupModal({
                 onClick={() => {
                   setShowCompleteSetupModal(false);
                   display === "Create or import your links" &&
-                    setShowAddEditLinkModal(true);
+                    setShowLinkBuilder(true);
                 }}
               >
                 {contents}

@@ -1,21 +1,28 @@
+# Data Source created from Pipe 'dub_lead_events_pipe'
+
 SCHEMA >
     `timestamp` DateTime64(3),
     `event_id` String,
+    `event_name` String,
     `click_id` String,
     `link_id` String,
     `customer_id` String,
-    `event_name` LowCardinality(String),
     `url` String,
     `continent` LowCardinality(String),
     `country` LowCardinality(String),
     `city` String,
+    `region` String,
+    `latitude` String,
+    `longitude` String,
     `device` LowCardinality(String),
     `browser` LowCardinality(String),
     `os` LowCardinality(String),
+    `engine` LowCardinality(String),
+    `ua` String,
     `referer` String,
+    `referer_url` String,
     `qr` UInt8,
-    `ip` String,
-    `metadata` String
+    `ip` String
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

@@ -83,7 +83,7 @@ export const saleEventSchemaTB = clickEventSchemaTB
   );
 
 // response from tinybird endpoint
-export const saleEventEnrichedSchema = z.object({
+export const saleEventSchemaTBEndpoint = z.object({
   event: z.literal("sale"),
   timestamp: z.string(),
   event_id: z.string(),
@@ -102,6 +102,8 @@ export const saleEventEnrichedSchema = z.object({
   browser: z.string().nullable(),
   os: z.string().nullable(),
   referer: z.string().nullable(),
+  referer_url: z.string().nullable(),
+  referer_url_processed: z.string().nullable(),
   qr: z.number().nullable(),
   ip: z.string().nullable(),
 });

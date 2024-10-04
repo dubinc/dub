@@ -1,6 +1,5 @@
 "use client";
 
-import { Fathom } from "@/ui/layout/fathom";
 import { PosthogPageview } from "@/ui/layout/posthog-pageview";
 import { ModalProvider } from "@/ui/modals/modal-provider";
 import { SessionProvider } from "next-auth/react";
@@ -33,7 +32,6 @@ export default function Providers({ children }: { children: ReactNode }) {
       />
       <SessionProvider>
         <ModalProvider>
-          <Fathom />
           <PosthogPageview />
           {children}
         </ModalProvider>

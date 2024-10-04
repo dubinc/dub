@@ -12,8 +12,7 @@ const copyButtonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-gray-100 hover:scale-105 hover:bg-blue-100 active:scale-95 text-gray-700 hover:text-blue-800",
+        default: "bg-transparent hover:bg-gray-100 active:bg-gray-200",
         neutral: "bg-transparent hover:bg-gray-100 active:bg-gray-200",
       },
     },
@@ -28,10 +27,12 @@ export function CopyButton({
   value,
   className,
   icon,
+  successMessage,
 }: {
   value: string;
   className?: string;
   icon?: LucideIcon;
+  successMessage?: string;
 } & VariantProps<typeof copyButtonVariants>) {
   const [copied, setCopied] = useState(false);
   const Comp = icon || Copy;
@@ -41,7 +42,7 @@ export function CopyButton({
         e.stopPropagation();
         setCopied(true);
         navigator.clipboard.writeText(value).then(() => {
-          toast.success("Copied to clipboard!");
+          toast.success(successMessage || "Copied to clipboard!");
         });
         setTimeout(() => setCopied(false), 3000);
       }}

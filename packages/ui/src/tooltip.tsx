@@ -11,7 +11,7 @@ import { Button, ButtonProps, buttonVariants } from "./button";
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
-    <TooltipPrimitive.Provider delayDuration={100}>
+    <TooltipPrimitive.Provider delayDuration={150}>
       {children}
     </TooltipPrimitive.Provider>
   );
@@ -23,13 +23,25 @@ export interface TooltipProps
     | ReactNode
     | string
     | ((props: { setOpen: (open: boolean) => void }) => ReactNode);
+  disableHoverableContent?: TooltipPrimitive.TooltipProps["disableHoverableContent"];
 }
 
-export function Tooltip({ children, content, side = "top" }: TooltipProps) {
+export function Tooltip({
+  children,
+  content,
+  side = "top",
+  disableHoverableContent,
+  ...rest
+}: TooltipProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <TooltipPrimitive.Root open={open} onOpenChange={setOpen} delayDuration={0}>
+    <TooltipPrimitive.Root
+      open={open}
+      onOpenChange={setOpen}
+      delayDuration={0}
+      disableHoverableContent={disableHoverableContent}
+    >
       <TooltipPrimitive.Trigger
         asChild
         onClick={() => {
@@ -47,6 +59,7 @@ export function Tooltip({ children, content, side = "top" }: TooltipProps) {
           side={side}
           className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
           collisionPadding={0}
+          {...rest}
         >
           {typeof content === "string" ? (
             <span className="block max-w-xs text-pretty px-4 py-2 text-center text-sm text-gray-700">
@@ -207,20 +220,25 @@ export function BadgeTooltip({ children, content, ...props }: TooltipProps) {
 }
 
 export function ButtonTooltip({
-  tooltipContent,
   children,
+  tooltipProps,
   ...props
 }: {
-  tooltipContent: ReactNode | string;
   children: ReactNode;
+  tooltipProps: TooltipProps;
 } & ButtonProps) {
   return (
-    <Tooltip content={tooltipContent}>
-      <div className="flex cursor-pointer items-center">
-        <button type="button" {...props}>
-          {children}
-        </button>
-      </div>
+    <Tooltip {...tooltipProps}>
+      <button
+        type="button"
+        {...props}
+        className={cn(
+          "flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:hover:bg-transparent",
+          props.className,
+        )}
+      >
+        {children}
+      </button>
     </Tooltip>
   );
 }

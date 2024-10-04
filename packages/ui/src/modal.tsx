@@ -2,8 +2,9 @@
 
 import { cn } from "@dub/utils";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction } from "react";
+import { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
@@ -15,6 +16,7 @@ export function Modal({
   onClose,
   desktopOnly,
   preventDefaultClose,
+  drawerRootProps,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -23,6 +25,7 @@ export function Modal({
   onClose?: () => void;
   desktopOnly?: boolean;
   preventDefaultClose?: boolean;
+  drawerRootProps?: ComponentProps<typeof Drawer.Root>;
 }) {
   const router = useRouter();
 
@@ -52,15 +55,20 @@ export function Modal({
             closeModal({ dragged: true });
           }
         }}
+        {...drawerRootProps}
       >
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 z-50 bg-gray-100 bg-opacity-10 backdrop-blur" />
           <Drawer.Content
             className={cn(
               "fixed bottom-0 left-0 right-0 z-50 rounded-t-[10px] border-t border-gray-200 bg-white",
               className,
             )}
           >
+            <VisuallyHidden.Root>
+              <Drawer.Title>Modal</Drawer.Title>
+              <Drawer.Description>This is a modal</Drawer.Description>
+            </VisuallyHidden.Root>
             <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
               <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
             </div>
@@ -95,6 +103,10 @@ export function Modal({
             className,
           )}
         >
+          <VisuallyHidden.Root>
+            <Dialog.Title>Modal</Dialog.Title>
+            <Dialog.Description>This is a modal</Dialog.Description>
+          </VisuallyHidden.Root>
           {children}
         </Dialog.Content>
       </Dialog.Portal>

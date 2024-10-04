@@ -25,12 +25,16 @@ export async function processLink<T extends Record<string, any>>({
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
+  skipIdentifierChecks = false, // only skip when identifier doesn't change (e.g. when editing a link)
+  skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
 }: {
   payload: NewLinkProps & T;
   workspace?: Pick<WorkspaceProps, "id" | "plan" | "conversionEnabled">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
+  skipIdentifierChecks?: boolean;
+  skipExternalIdChecks?: boolean;
 }): Promise<
   | {
       link: NewLinkProps & T;
@@ -60,6 +64,8 @@ export async function processLink<T extends Record<string, any>>({
     geo,
     doIndex,
     tagNames,
+    externalId,
+    identifier,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
@@ -182,11 +188,11 @@ export async function processLink<T extends Record<string, any>>({
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-    const urlDomain = getDomainWithoutWWW(url) || "";
+    const urlDomain = getApexDomain(url) || "";
     if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
       return {
         link: payload,
-        error: `Invalid URL. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+        error: `Invalid destination URL. You can only create ${domain} short links for URLs with the domain${allowedHostnames.length > 1 ? "s" : ""} ${allowedHostnames
           .map((d) => `"${d}"`)
           .join(", ")}.`,
         code: "unprocessable_entity",
@@ -253,6 +259,44 @@ export async function processLink<T extends Record<string, any>>({
         link: payload,
         error: "Conversion tracking is not enabled for this workspace.",
         code: "forbidden",
+      };
+    }
+  }
+
+  if (externalId && workspace && !skipExternalIdChecks) {
+    const link = await prisma.link.findUnique({
+      where: {
+        projectId_externalId: {
+          projectId: workspace.id,
+          externalId,
+        },
+      },
+    });
+
+    if (link) {
+      return {
+        link: payload,
+        error: "A link with this externalId already exists in this workspace.",
+        code: "conflict",
+      };
+    }
+  }
+
+  if (identifier && workspace && !skipIdentifierChecks) {
+    const link = await prisma.link.findUnique({
+      where: {
+        projectId_identifier: {
+          projectId: workspace.id,
+          identifier,
+        },
+      },
+    });
+
+    if (link) {
+      return {
+        link: payload,
+        error: "A link with this identifier already exists in this workspace.",
+        code: "conflict",
       };
     }
   }

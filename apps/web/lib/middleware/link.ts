@@ -8,7 +8,6 @@ import {
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
-  DUB_DEMO_LINKS,
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
@@ -23,7 +22,6 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
-import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
 import { RedisLinkProps } from "../types";
 
@@ -40,19 +38,6 @@ export default async function LinkMiddleware(
   // encode the key to ascii
   // links on Dub are case insensitive by default
   let key = punyEncode(originalKey.toLowerCase());
-
-  const demoLink = DUB_DEMO_LINKS.find(
-    (l) => l.domain === domain && l.key === key,
-  );
-
-  // if it's a demo link, block bad referrers in production
-  if (
-    process.env.NODE_ENV !== "development" &&
-    demoLink &&
-    (await isBlacklistedReferrer(req.headers.get("referer")))
-  ) {
-    return new Response("Don't DDoS me pls 🥺", { status: 429 });
-  }
 
   const inspectMode = key.endsWith("+");
   // if inspect mode is enabled, remove the trailing `+` from the key

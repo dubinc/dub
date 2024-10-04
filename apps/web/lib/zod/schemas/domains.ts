@@ -46,6 +46,8 @@ export const DomainSchema = z.object({
     .describe("The registered domain record."),
 });
 
+export const DOMAINS_MAX_PAGE_SIZE = 50;
+
 export const getDomainsQuerySchema = z
   .object({
     archived: booleanQuerySchema
@@ -59,16 +61,21 @@ export const getDomainsQuerySchema = z
       .optional()
       .describe("The search term to filter the domains by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 50 }));
+  .merge(getPaginationQuerySchema({ pageSize: DOMAINS_MAX_PAGE_SIZE }));
 
 export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
   page: true,
+});
+
+export const getDefaultDomainsQuerySchema = getDomainsQuerySchema.pick({
+  search: true,
 });
 
 export const createDomainBodySchema = z.object({
   slug: z
     .string({ required_error: "slug is required" })
     .min(1, "slug cannot be empty.")
+    .max(190, "slug cannot be longer than 190 characters.")
     .describe("Name of the domain.")
     .openapi({ example: "acme.com" }),
   expiredUrl: parseUrlSchemaAllowEmpty
