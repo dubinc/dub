@@ -1,0 +1,26 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    open-pull-requests-limit: 2
+    schedule:
+      interval: "daily"
+    groups:
+      typescript-eslint:
+        patterns:
+          - "@typescript-eslint/*"
+      react-email:
+        patterns:
+          - "@react-email/*"
+          - "react-email"
+      prisma:
+        patterns:
+          - "@prisma/*"
+          - "prisma"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    open-pull-requests-limit: 2
+    schedule:
+      interval: "daily"
