@@ -207,7 +207,7 @@ export async function POST(req: Request) {
 
           addedDomains.push(...domainsNotInWorkspace);
 
-          // Process all links, including domain links
+          // Process all links
           const processedLinks = await Promise.all(
             linksToCreate.map(({ createdAt, tags, ...link }) =>
               processLink({
