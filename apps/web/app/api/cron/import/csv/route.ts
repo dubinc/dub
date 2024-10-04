@@ -1,6 +1,6 @@
 import { addDomainToVercel, getDefaultDomains } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { bulkCreateLinks, processLink } from "@/lib/api/links";
+import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -9,7 +9,12 @@ import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
-import { getPrettyUrl, log, parseDateTime } from "@dub/utils";
+import {
+  DEFAULT_LINK_PROPS,
+  getPrettyUrl,
+  log,
+  parseDateTime,
+} from "@dub/utils";
 import { NextResponse } from "next/server";
 import Papa from "papaparse";
 import { Readable } from "stream";
@@ -174,6 +179,7 @@ export async function POST(req: Request) {
           // Add missing domains to the workspace
           if (domainsNotInWorkspace.length > 0) {
             await Promise.allSettled([
+              // create domains in DB
               prisma.domain.createMany({
                 data: domainsNotInWorkspace.map((domain) => ({
                   slug: domain,
@@ -182,8 +188,19 @@ export async function POST(req: Request) {
                 })),
                 skipDuplicates: true,
               }),
-              domainsNotInWorkspace.flatMap((domain) =>
-                addDomainToVercel(domain),
+              // create domains in Vercel
+              domainsNotInWorkspace.map((domain) => addDomainToVercel(domain)),
+              // create links for domains
+              domainsNotInWorkspace.map((domain) =>
+                createLink({
+                  ...DEFAULT_LINK_PROPS,
+                  domain,
+                  key: "_root",
+                  url: "",
+                  tags: undefined,
+                  userId,
+                  projectId: workspace.id,
+                }),
               ),
             ]);
           }
@@ -191,20 +208,8 @@ export async function POST(req: Request) {
           addedDomains.push(...domainsNotInWorkspace);
 
           // Process all links, including domain links
-          const processedLinks = await Promise.all([
-            ...domainsNotInWorkspace.map((domain) =>
-              processLink({
-                payload: createLinkBodySchema.parse({
-                  domain,
-                  key: "_root",
-                  url: "",
-                }),
-                workspace: workspace as WorkspaceProps,
-                userId,
-                bulk: true,
-              }),
-            ),
-            ...linksToCreate.map(({ createdAt, tags, ...link }) =>
+          const processedLinks = await Promise.all(
+            linksToCreate.map(({ createdAt, tags, ...link }) =>
               processLink({
                 payload: {
                   ...createLinkBodySchema.parse({
@@ -219,7 +224,7 @@ export async function POST(req: Request) {
                 bulk: true,
               }),
             ),
-          ]);
+          );
 
           let validLinks = processedLinks
             .filter(({ error }) => error == null)
