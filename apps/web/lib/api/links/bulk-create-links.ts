@@ -98,16 +98,12 @@ export async function bulkCreateLinks({
     // if there are no tags, we can use createMany to create the links
     await prisma.link.createMany({
       data: links.map((link) => {
-        const shortLink = linkConstructor({
-          domain: link.domain,
-          key: link.key,
-        });
         const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
           getParamsFromURL(link.url);
 
         return {
           ...link,
-          shortLink,
+          shortLink: `https://${link.domain}/${link.key}`,
           title: truncate(link.title, 120),
           description: truncate(link.description, 240),
           utm_source,
@@ -124,12 +120,7 @@ export async function bulkCreateLinks({
     createdLinks = await prisma.link.findMany({
       where: {
         shortLink: {
-          in: links.map((link) =>
-            linkConstructor({
-              domain: link.domain,
-              key: link.key,
-            }),
-          ),
+          in: links.map((link) => `https://${link.domain}/${link.key}`),
         },
       },
     });

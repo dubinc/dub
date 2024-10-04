@@ -10,6 +10,13 @@ import { parseUrlSchema } from "./utils";
 
 export const getQRCodeQuerySchema = z.object({
   url: parseUrlSchema.describe("The URL to generate a QR code for."),
+  logo: z
+    .string()
+    .optional()
+    .default("https://assets.dub.co/logo.png")
+    .describe(
+      "The logo to include in the QR code. Defaults to `https://assets.dub.co/logo.png` if not provided.",
+    ),
   size: z.coerce
     .number()
     .optional()

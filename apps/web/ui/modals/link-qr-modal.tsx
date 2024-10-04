@@ -25,7 +25,7 @@ import {
   Hyperlink,
   Photo,
 } from "@dub/ui/src/icons";
-import { cn, linkConstructor } from "@dub/utils";
+import { API_DOMAIN, cn, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Dispatch,
@@ -489,13 +489,13 @@ function CopyPopover({
             type="button"
             onClick={() => {
               navigator.clipboard.writeText(
-                `https://api.dub.co/qr?url=${linkConstructor({
+                `${API_DOMAIN}/qr?url=${linkConstructor({
                   key: props.key,
                   domain: props.domain,
                   searchParams: {
                     qr: "1",
                   },
-                })}`,
+                })}${qrData.imageSettings?.src ? `&logo=${qrData.imageSettings.src}` : ""}`,
               );
               toast.success("Copied QR code URL to clipboard!");
               setCopiedURL(true);

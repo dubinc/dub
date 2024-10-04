@@ -3,13 +3,7 @@ import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import {
-  R2_URL,
-  getParamsFromURL,
-  linkConstructor,
-  nanoid,
-  truncate,
-} from "@dub/utils";
+import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { combineTagIds, transformLink } from "./utils";
@@ -56,11 +50,6 @@ export async function updateLink({
 
   const imageUrlNonce = nanoid(7);
 
-  const shortLink = linkConstructor({
-    domain: updatedLink.domain,
-    key: updatedLink.key,
-  });
-
   const response = await prisma.link.update({
     where: {
       id,
@@ -68,7 +57,7 @@ export async function updateLink({
     data: {
       ...rest,
       key,
-      shortLink,
+      shortLink: `https://${updatedLink.domain}/${updatedLink.key}`,
       title: truncate(title, 120),
       description: truncate(description, 240),
       image:

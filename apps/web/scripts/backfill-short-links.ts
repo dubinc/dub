@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
-  const batchSize = 1000;
+  const batchSize = 500;
   let processedCount = 0;
 
   while (true) {
@@ -23,18 +22,18 @@ async function main() {
       break;
     }
 
-    await prisma.$transaction(
+    const results = await Promise.allSettled(
       links.map((link) =>
         prisma.link.update({
           where: { id: link.id },
           data: {
-            shortLink: linkConstructor({ domain: link.domain, key: link.key }),
+            shortLink: `https://${link.domain}/${link.key}`,
           },
         }),
       ),
     );
 
-    processedCount += links.length;
+    processedCount += results.filter((r) => r.status === "fulfilled").length;
     console.log(`Processed ${processedCount} links`);
   }
 
