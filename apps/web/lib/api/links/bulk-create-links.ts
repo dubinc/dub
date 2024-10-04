@@ -81,7 +81,6 @@ export async function bulkCreateLinks({
           include: {
             tags: {
               select: {
-                tagId: true,
                 tag: {
                   select: {
                     id: true,

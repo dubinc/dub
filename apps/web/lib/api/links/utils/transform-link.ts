@@ -1,7 +1,7 @@
 import { Link, Tag } from "@prisma/client";
 
 export type LinkWithTags = Link & {
-  tags?: { tagId: string; tag: Pick<Tag, "id" | "name" | "color"> }[];
+  tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
 };
 
 // Transform link with additional properties
