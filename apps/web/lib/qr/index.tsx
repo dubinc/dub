@@ -355,7 +355,7 @@ export function getQRData({
   scale?: number;
 }) {
   return {
-    value: url,
+    value: `${url}?qr=1`,
     bgColor: "#ffffff",
     fgColor,
     size: 1024,

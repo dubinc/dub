@@ -3,7 +3,7 @@ model Link {
   domain          String // domain of the link (e.g. dub.sh) – also stored on Redis
   key             String // key of the link (e.g. /github) – also stored on Redis
   url             String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
-  shortLink       String?   @unique @db.VarChar(400) // new column for the full short link
+  shortLink       String    @unique @db.VarChar(400) // new column for the full short link
   archived        Boolean   @default(false) // whether the link is archived or not
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
   expiredUrl      String?   @db.LongText // URL to redirect the user to when the link is expired

@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
-import { getParamsFromURL, linkConstructor, truncate } from "@dub/utils";
+import {
+  getParamsFromURL,
+  linkConstructor,
+  linkConstructorSimple,
+  truncate,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
@@ -98,16 +103,15 @@ export async function bulkCreateLinks({
     // if there are no tags, we can use createMany to create the links
     await prisma.link.createMany({
       data: links.map((link) => {
-        const shortLink = linkConstructor({
-          domain: link.domain,
-          key: link.key,
-        });
         const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
           getParamsFromURL(link.url);
 
         return {
           ...link,
-          shortLink,
+          shortLink: linkConstructorSimple({
+            domain: link.domain,
+            key: link.key,
+          }),
           title: truncate(link.title, 120),
           description: truncate(link.description, 240),
           utm_source,
@@ -125,7 +129,7 @@ export async function bulkCreateLinks({
       where: {
         shortLink: {
           in: links.map((link) =>
-            linkConstructor({
+            linkConstructorSimple({
               domain: link.domain,
               key: link.key,
             }),

@@ -6,7 +6,7 @@ import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   R2_URL,
   getParamsFromURL,
-  linkConstructor,
+  linkConstructorSimple,
   nanoid,
   truncate,
 } from "@dub/utils";
@@ -56,11 +56,6 @@ export async function updateLink({
 
   const imageUrlNonce = nanoid(7);
 
-  const shortLink = linkConstructor({
-    domain: updatedLink.domain,
-    key: updatedLink.key,
-  });
-
   const response = await prisma.link.update({
     where: {
       id,
@@ -68,7 +63,10 @@ export async function updateLink({
     data: {
       ...rest,
       key,
-      shortLink,
+      shortLink: linkConstructorSimple({
+        domain: updatedLink.domain,
+        key: updatedLink.key,
+      }),
       title: truncate(title, 120),
       description: truncate(description, 240),
       image:
