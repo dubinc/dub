@@ -161,23 +161,18 @@ function LinkBuilderInner({
       Disable save if:
       - modal is not open
       - saving is in progress
-      - key is invalid
-      - url is invalid
       - for an existing link, there's no changes
     */
     return Boolean(
       !showLinkBuilder ||
         isSubmitting ||
         isSubmitSuccessful ||
-        errors.key ||
-        errors.url ||
         (props && !isDirty),
     );
   }, [
     showLinkBuilder,
     isSubmitting,
     isSubmitSuccessful,
-    errors,
     props,
     isDirty,
   ]);
