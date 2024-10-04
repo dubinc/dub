@@ -1,5 +1,6 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
@@ -17,9 +18,9 @@ export const GET = withWorkspace(
       parsedParams;
     let link: Link | null = null;
 
-    // if (domain) {
-    //   await getDomainOrThrow({ workspace, domain });
-    // }
+    if (domain) {
+      await getDomainOrThrow({ workspace, domain });
+    }
 
     if (linkId || externalId || (domain && key)) {
       link = await getLinkOrThrow({
