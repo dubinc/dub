@@ -38,7 +38,7 @@ export async function recordClick({
   webhookIds?: string[];
   skipRatelimit?: boolean;
 }) {
-  const searchParams = new URLSearchParams(req.url);
+  const searchParams = new URL(req.url).searchParams;
 
   // only track the click when there is no `dub-no-track` header or query param
   if (
@@ -62,11 +62,8 @@ export async function recordClick({
   if (!skipRatelimit) {
     // by default, we deduplicate clicks from the same IP address + link ID – only record 1 click per hour
     // here, we check if the clickId is cached in Redis within the last hour
-    // if it is, and it's the same as the one that's passed in, then we skip recording the click
-    // we need to do this to make it work with both server-side and client-side click tracking
-    // @see: https://dub.co/docs/conversions/clicks/introduction
     const cachedClickId = await redis.get<string>(cacheKey);
-    if (cachedClickId && cachedClickId === clickId) {
+    if (cachedClickId) {
       return null;
     }
   }

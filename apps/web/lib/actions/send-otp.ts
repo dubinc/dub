@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { sendEmail } from "emails";
 import VerifyEmail from "emails/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
@@ -31,6 +31,18 @@ export const sendOtpAction = actionClient
 
     if (!success) {
       throw new Error("Too many requests. Please try again later.");
+    }
+
+    const domain = email.split("@")[1];
+    const isDisposable = await redis.sismember(
+      "disposableEmailDomains",
+      domain,
+    );
+
+    if (isDisposable) {
+      throw new Error(
+        "Disposable email addresses are not allowed. If you think this is a mistake, please contact us at support@dub.co",
+      );
     }
 
     const code = generateOTP();
