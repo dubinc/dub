@@ -26,8 +26,8 @@ import { FolderAccessIcon } from "./folder-access-icon";
 type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 
 const allLinksOverview: FolderSummary = {
-  id: "all-links",
-  name: "All links",
+  id: "links-unsorted",
+  name: "Links",
   accessLevel: "edit",
 };
 
@@ -43,7 +43,7 @@ export const FolderSwitcher = () => {
   );
 
   const folderId = searchParams.get("folderId");
-  const isAllLinksFolderSelected = selectedFolder?.id === "all-links";
+  const isAllLinksFolderSelected = selectedFolder?.id === "links-unsorted";
 
   // set the selected folder if the folderId is in the search params
   useEffect(() => {
@@ -62,7 +62,7 @@ export const FolderSwitcher = () => {
   const onFolderSelect = useCallback((folder: FolderSummary) => {
     setSelectedFolder(folder);
 
-    if (folder.id === "all-links") {
+    if (folder.id === "links-unsorted") {
       return queryParams({
         del: "folderId",
       });
@@ -174,11 +174,17 @@ const FolderList = ({
           >
             <FolderAccessIcon folder={folder} withBorder={false} />
             <span
-              className={`block truncate text-sm sm:max-w-[140px] ${
+              className={`inline-flex items-center justify-start gap-1.5 truncate text-sm sm:max-w-[140px] ${
                 selectedFolder?.id === folder.id ? "font-medium" : "font-normal"
               }`}
             >
               {folder.name}
+
+              {folder.id === "links-unsorted" && (
+                <div className="rounded bg-gray-100 p-1">
+                  <div className="text-xs font-normal text-black">Unsorted</div>
+                </div>
+              )}
             </span>
 
             {selectedFolder?.id === folder.id && (

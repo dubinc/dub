@@ -7,7 +7,7 @@ import {
 } from "@dub/ui/src/icons";
 
 const iconMap = {
-  "all-links": {
+  "links-unsorted": {
     borderColor: "border-green-200",
     bgColor: "bg-green-100",
     IconComponent: FolderBookmark,
@@ -38,10 +38,10 @@ export const FolderAccessIcon = ({
   circlePadding?: string;
   withBorder?: boolean;
 }) => {
-  if (folder.id === "all-links") {
+  if (folder.id === "links-unsorted") {
     return (
       <FolderIcon
-        type="all-links"
+        type="links-unsorted"
         circlePadding={circlePadding}
         withBorder={withBorder}
       />
@@ -86,7 +86,7 @@ const FolderIcon = ({
   circlePadding = "p-2.5",
   withBorder = true,
 }: {
-  type: "all-links" | "private" | "restricted" | "open";
+  type: "links-unsorted" | "private" | "restricted" | "open";
   circlePadding?: string;
   withBorder?: boolean;
 }) => {
