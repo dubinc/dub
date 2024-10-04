@@ -1,5 +1,5 @@
-import type { CreateLinkProps, GetLink } from "@/types";
-import { getConfig } from "@/utils/get-config";
+import type { CreateLinkProps, Link } from "@/types";
+import { getConfig } from "@/utils/config";
 import { parseApiResponse } from "@/utils/parser";
 import fetch from "node-fetch";
 
@@ -20,7 +20,8 @@ export async function createLink({ url, key }: CreateLinkProps) {
   };
 
   const response = await fetch("https://api.dub.co/links", options);
-  return await parseApiResponse<GetLink>(response);
+
+  return await parseApiResponse<Link>(response);
 }
 
 export async function getLinks() {
@@ -35,12 +36,6 @@ export async function getLinks() {
   };
 
   const response = await fetch("https://api.dub.co/links", options);
-  const parsedData = await parseApiResponse<GetLink[]>(response);
 
-  const links = parsedData.map((link) => ({
-    url: `https://${link.domain}/${link.key}`,
-    clicks: link.clicks,
-  }));
-
-  return links;
+  return await parseApiResponse<Link[]>(response);
 }

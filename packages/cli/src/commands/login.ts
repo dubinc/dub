@@ -24,7 +24,7 @@ export const login = new Command()
         credentials = await prompts(
           [
             {
-              type: "text",
+              type: "password",
               name: "key",
               message: "Enter your workspace API key:",
               validate: (value) => {

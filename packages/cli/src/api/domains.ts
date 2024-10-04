@@ -1,7 +1,12 @@
-import type { GetDomain } from "@/types";
-import { getConfig } from "@/utils/get-config";
+import type { Domain } from "@/types";
+import { getConfig } from "@/utils/config";
 import { parseApiResponse } from "@/utils/parser";
 import fetch from "node-fetch";
+
+interface UpdateDomainProps {
+  oldSlug: string;
+  newSlug: string;
+}
 
 export async function getDomains() {
   const config = await getConfig();
@@ -20,7 +25,7 @@ export async function getDomains() {
   ]);
 
   const [domains, defaultDomains] = await Promise.all([
-    parseApiResponse<GetDomain[]>(domainsResponse),
+    parseApiResponse<Domain[]>(domainsResponse),
     parseApiResponse<string[]>(defaultDomainsResponse),
   ]);
 
@@ -44,12 +49,8 @@ export async function createDomain(slug: string) {
   };
 
   const response = await fetch("https://api.dub.co/domains", options);
-  return await parseApiResponse<GetDomain[]>(response);
-}
 
-interface UpdateDomainProps {
-  oldSlug: string;
-  newSlug: string;
+  return await parseApiResponse<Domain[]>(response);
 }
 
 export async function updateDomain({ newSlug, oldSlug }: UpdateDomainProps) {
@@ -71,9 +72,7 @@ export async function updateDomain({ newSlug, oldSlug }: UpdateDomainProps) {
     options,
   );
 
-  const parsedResponse = await parseApiResponse<GetDomain[]>(response);
-
-  return parsedResponse;
+  return await parseApiResponse<Domain[]>(response);
 }
 
 export async function deleteDomain(slug: string) {
@@ -87,5 +86,6 @@ export async function deleteDomain(slug: string) {
   };
 
   const response = await fetch(`https://api.dub.co/domains/${slug}`, options);
-  return await parseApiResponse<GetDomain["id"]>(response);
+
+  return await parseApiResponse<Domain["id"]>(response);
 }

@@ -1,4 +1,4 @@
-import { getDomains } from "@/utils/get-domains";
+import { getDomains } from "@/api/domains";
 import { handleError } from "@/utils/handle-error";
 import { logger } from "@/utils/logger";
 import chalk from "chalk";
