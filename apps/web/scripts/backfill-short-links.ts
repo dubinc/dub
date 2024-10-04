@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
@@ -28,7 +27,7 @@ async function main() {
         prisma.link.update({
           where: { id: link.id },
           data: {
-            shortLink: linkConstructor({ domain: link.domain, key: link.key }),
+            shortLink: `https://${link.domain}/${link.key}`,
           },
         }),
       ),

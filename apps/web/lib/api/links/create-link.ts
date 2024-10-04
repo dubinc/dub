@@ -8,7 +8,6 @@ import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
   getParamsFromURL,
-  linkConstructor,
   truncate,
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
@@ -26,13 +25,11 @@ export async function createLink(link: ProcessedLinkProps) {
 
   const { tagId, tagIds, tagNames, ...rest } = link;
 
-  const shortLink = linkConstructor({ domain: link.domain, key: link.key });
-
   const response = await prisma.link.create({
     data: {
       ...rest,
       key,
-      shortLink,
+      shortLink: `https://${link.domain}/${link.key}`,
       title: truncate(title, 120),
       description: truncate(description, 240),
       // if it's an uploaded image, make this null first because we'll update it later
