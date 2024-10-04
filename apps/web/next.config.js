@@ -94,6 +94,15 @@ module.exports = withAxiom({
           },
         ],
       },
+      {
+        source: "/embed",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "ALLOW",
+          },
+        ],
+      },
     ];
   },
   async redirects() {

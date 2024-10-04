@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ReferralLinkSkeleton } from "./referral-link";
-import { Referrals } from "./referrals";
+import { ReferralsEmbed } from "./referrals";
 
 // TODO:
 // event and page should be part of iframe
@@ -51,14 +51,5 @@ export default function ReferralsPageClient({
     return <ReferralLinkSkeleton />;
   }
 
-  return (
-    <>
-      <Referrals
-        slug={slug!}
-        event={event}
-        page={page}
-        publicToken={publicToken}
-      />
-    </>
-  );
+  return <ReferralsEmbed publicToken={publicToken} />;
 }
