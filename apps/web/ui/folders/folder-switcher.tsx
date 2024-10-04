@@ -26,7 +26,7 @@ import { FolderAccessIcon } from "./folder-access-icon";
 type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 
 const allLinksOverview: FolderSummary = {
-  id: "links-unsorted",
+  id: "unsorted",
   name: "Links",
   accessLevel: "edit",
 };
@@ -43,7 +43,7 @@ export const FolderSwitcher = () => {
   );
 
   const folderId = searchParams.get("folderId");
-  const isAllLinksFolderSelected = selectedFolder?.id === "links-unsorted";
+  const isAllLinksFolderSelected = selectedFolder?.id === "unsorted";
 
   // set the selected folder if the folderId is in the search params
   useEffect(() => {
@@ -62,7 +62,7 @@ export const FolderSwitcher = () => {
   const onFolderSelect = useCallback((folder: FolderSummary) => {
     setSelectedFolder(folder);
 
-    if (folder.id === "links-unsorted") {
+    if (folder.id === "unsorted") {
       return queryParams({
         del: "folderId",
       });
@@ -180,7 +180,7 @@ const FolderList = ({
             >
               {folder.name}
 
-              {folder.id === "links-unsorted" && (
+              {folder.id === "unsorted" && (
                 <div className="rounded bg-gray-100 p-1">
                   <div className="text-xs font-normal text-black">Unsorted</div>
                 </div>

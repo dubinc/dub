@@ -42,7 +42,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   const { DeleteFolderModal, setShowDeleteFolderModal } =
     useDeleteFolderModal(folder);
 
-  const isAllLinksFolder = folder.id === "links-unsorted";
+  const isAllLinksFolder = folder.id === "unsorted";
 
   useKeyboardShortcut(
     ["r", "m", "x", "a"],
@@ -172,7 +172,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           <span className="inline-flex items-center justify-start gap-1.5 truncate text-sm font-medium text-gray-900">
             {folder.name}
 
-            {folder.id === "links-unsorted" && (
+            {folder.id === "unsorted" && (
               <div className="rounded bg-gray-100 p-1">
                 <div className="text-xs font-normal text-black">Unsorted</div>
               </div>

@@ -13,7 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 const allLinkFolder: Folder = {
-  id: "links-unsorted",
+  id: "unsorted",
   name: "Links",
   accessLevel: null,
   linkCount: 0,
