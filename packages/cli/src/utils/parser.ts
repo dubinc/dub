@@ -12,8 +12,11 @@ export async function parseApiResponse<T>(response: AnyResponse): Promise<T> {
     if ("error" in parsedData) {
       throw new Error((parsedData as APIError).error.message);
     }
+
     return parsedData as T;
   }
+
   const textData = await response.text();
+
   throw new Error(textData);
 }

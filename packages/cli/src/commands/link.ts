@@ -1,5 +1,5 @@
-import { getConfig } from "@/utils/get-config";
-import { createLink, getLinks } from "@/utils/get-links";
+import { createLink, getLinks } from "@/api/links";
+import { getConfig } from "@/utils/config";
 import { getNanoid } from "@/utils/get-nanoid";
 import { handleError } from "@/utils/handle-error";
 import { logger } from "@/utils/logger";
@@ -16,7 +16,7 @@ const addOptionsSchema = z.object({
 
 export const link = new Command()
   .name("link")
-  .description("Configure domain for your workspace")
+  .description("Create a short link")
   .argument("[url]", "Destination URL")
   .argument("[key]", "Short key", getNanoid())
   .action(async (url, key) => {
@@ -96,7 +96,7 @@ link
       const links = await getLinks();
       spinner.stop();
 
-      console.table(links, ["url", "clicks"]);
+      console.table(links, ["shortLink", "clicks"]);
     } catch (error) {
       handleError(error);
     }
