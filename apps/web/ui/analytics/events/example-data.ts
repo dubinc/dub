@@ -11,6 +11,7 @@ const dubLink = {
   id: "1",
   domain: "dub.link",
   key: "uxUrVCz",
+  shortLink: "https://dub.co/uxUrVCz",
   url: "https://dub.co/",
 };
 
@@ -18,6 +19,7 @@ const githubLink = {
   id: "3",
   domain: "git.new",
   key: "9XyzIho",
+  shortLink: "https://git.new/9XyzIho",
   url: "https://github.com/dubinc/dub",
 };
 

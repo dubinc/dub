@@ -23,7 +23,10 @@ export default function LinkSort() {
               onClick={() => {
                 setSort(slug);
                 queryParams({
-                  del: "sort", // Remove legacy query param
+                  del: [
+                    "sort", // Remove legacy query param
+                    "page", // Reset pagination
+                  ],
                 });
                 setOpenPopover(false);
               }}

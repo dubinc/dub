@@ -38,7 +38,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { Mail } from "lucide-react";
 import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
 import useSWR from "swr";
-import { useAddEditLinkModal } from "../modals/add-edit-link-modal";
+import { useLinkBuilder } from "../modals/link-builder";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 
@@ -181,7 +181,7 @@ function UnverifiedTooltip({
 function SettingsBadge({ link }: { link: ResponseLink }) {
   const settings = quickViewSettings.filter(({ key }) => link?.[key]);
 
-  const { AddEditLinkModal, setShowAddEditLinkModal } = useAddEditLinkModal({
+  const { LinkBuilder, setShowLinkBuilder } = useLinkBuilder({
     props: link,
   });
 
@@ -189,7 +189,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
 
   return (
     <div className="hidden sm:block">
-      <AddEditLinkModal />
+      <LinkBuilder />
       <HoverCard.Root open={open} onOpenChange={setOpen} openDelay={0}>
         <HoverCard.Portal>
           <HoverCard.Content
@@ -204,7 +204,7 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
                   type="button"
                   onClick={() => {
                     setOpen(false);
-                    setShowAddEditLinkModal(true);
+                    setShowLinkBuilder(true);
                   }}
                   className="flex items-center justify-between gap-4 rounded-lg p-3 transition-colors hover:bg-gray-100"
                 >

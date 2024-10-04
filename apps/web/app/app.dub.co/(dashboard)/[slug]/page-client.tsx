@@ -9,9 +9,9 @@ import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
-import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
+import { useLinkBuilder } from "@/ui/modals/link-builder";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -59,7 +59,7 @@ function WorkspaceLinks() {
   const { id: workspaceId } = useWorkspace();
   const searchParams = useSearchParams();
 
-  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
+  const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
 
   const { slug } = useWorkspace();
@@ -78,7 +78,7 @@ function WorkspaceLinks() {
 
   return (
     <>
-      <AddEditLinkModal />
+      <LinkBuilder />
       <AddEditTagModal />
       <div className="mt-10 flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
@@ -153,7 +153,7 @@ function WorkspaceLinks() {
               {canCreateLinks ? (
                 <>
                   <div className="grow-0">
-                    <AddEditLinkButton />
+                    <CreateLinkButton />
                   </div>
                   <MoreLinkOptions />
                 </>
@@ -174,11 +174,12 @@ function WorkspaceLinks() {
           />
         </MaxWidthWrapper>
       </div>
-      <div className="mt-3">
-        <LinksContainer
-          AddEditLinkButton={canCreateLinks ? AddEditLinkButton : undefined}
-        />
-      </div>
+
+      {canCreateLinks && (
+        <div className="mt-3">
+          <LinksContainer AddEditLinkButton={CreateLinkButton} />
+        </div>
+      )}
     </>
   );
 }
