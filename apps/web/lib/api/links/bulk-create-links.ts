@@ -4,7 +4,7 @@ import { getParamsFromURL, linkConstructor, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
-import { combineTagIds, transformLink } from "./utils";
+import { combineTagIds, LinkWithTags, transformLink } from "./utils";
 
 export async function bulkCreateLinks({
   links,
@@ -13,21 +13,102 @@ export async function bulkCreateLinks({
 }) {
   if (links.length === 0) return [];
 
-  // create links via Promise.all (because createMany doesn't return the created links)
-  // @see https://github.com/prisma/prisma/issues/8131#issuecomment-997667070
-  // there is createManyAndReturn but it's not available for MySQL :(
-  // @see https://www.prisma.io/docs/orm/reference/prisma-client-reference#createmanyandreturn
-  const createdLinks = await Promise.all(
-    links.map(({ tagId, tagIds, tagNames, ...link }) => {
-      const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
-        getParamsFromURL(link.url);
+  const hasTags = links.some(
+    (link) => link.tagNames?.length || link.tagIds?.length || link.tagId,
+  );
 
-      const combinedTagIds = combineTagIds({ tagId, tagIds });
+  let createdLinks: LinkWithTags[] = [];
 
-      const shortLink = linkConstructor({ domain: link.domain, key: link.key });
+  if (hasTags) {
+    // create links via Promise.all (because createMany doesn't return the created links)
+    // @see https://github.com/prisma/prisma/issues/8131#issuecomment-997667070
+    // there is createManyAndReturn but it's not available for MySQL :(
+    // @see https://www.prisma.io/docs/orm/reference/prisma-client-reference#createmanyandreturn
+    createdLinks = await Promise.all(
+      links.map(({ tagId, tagIds, tagNames, ...link }) => {
+        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+          getParamsFromURL(link.url);
 
-      return prisma.link.create({
-        data: {
+        const combinedTagIds = combineTagIds({ tagId, tagIds });
+
+        const shortLink = linkConstructor({
+          domain: link.domain,
+          key: link.key,
+        });
+
+        return prisma.link.create({
+          data: {
+            ...link,
+            shortLink,
+            title: truncate(link.title, 120),
+            description: truncate(link.description, 240),
+            utm_source,
+            utm_medium,
+            utm_campaign,
+            utm_term,
+            utm_content,
+            expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+            geo: link.geo || undefined,
+
+            // Associate tags by tagNames
+            ...(tagNames?.length &&
+              link.projectId && {
+                tags: {
+                  create: tagNames.filter(Boolean).map((tagName) => ({
+                    tag: {
+                      connect: {
+                        name_projectId: {
+                          name: tagName,
+                          projectId: link.projectId as string,
+                        },
+                      },
+                    },
+                  })),
+                },
+              }),
+
+            // Associate tags by IDs (takes priority over tagNames)
+            ...(combinedTagIds &&
+              combinedTagIds.length > 0 && {
+                tags: {
+                  createMany: {
+                    data: combinedTagIds
+                      .filter(Boolean)
+                      .map((tagId) => ({ tagId })),
+                  },
+                },
+              }),
+          },
+          include: {
+            tags: {
+              select: {
+                tagId: true,
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    color: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }),
+    );
+  } else {
+    // if there are no tags, we can use createMany to create the links
+    console.time("createMany");
+    const res = await prisma.link.createMany({
+      data: links.map((link) => {
+        const shortLink = linkConstructor({
+          domain: link.domain,
+          key: link.key,
+        });
+        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+          getParamsFromURL(link.url);
+
+        return {
           ...link,
           shortLink,
           title: truncate(link.title, 120),
@@ -39,53 +120,25 @@ export async function bulkCreateLinks({
           utm_content,
           expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
           geo: link.geo || undefined,
+        };
+      }),
+    });
 
-          // Associate tags by tagNames
-          ...(tagNames?.length &&
-            link.projectId && {
-              tags: {
-                create: tagNames.filter(Boolean).map((tagName) => ({
-                  tag: {
-                    connect: {
-                      name_projectId: {
-                        name: tagName,
-                        projectId: link.projectId as string,
-                      },
-                    },
-                  },
-                })),
-              },
-            }),
+    console.timeEnd("createMany");
 
-          // Associate tags by IDs (takes priority over tagNames)
-          ...(combinedTagIds &&
-            combinedTagIds.length > 0 && {
-              tags: {
-                createMany: {
-                  data: combinedTagIds
-                    .filter(Boolean)
-                    .map((tagId) => ({ tagId })),
-                },
-              },
+    createdLinks = await prisma.link.findMany({
+      where: {
+        shortLink: {
+          in: links.map((link) =>
+            linkConstructor({
+              domain: link.domain,
+              key: link.key,
             }),
+          ),
         },
-        include: {
-          tags: {
-            select: {
-              tagId: true,
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  color: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    }),
-  );
+      },
+    });
+  }
 
   waitUntil(
     Promise.all([

@@ -1,10 +1,9 @@
 import { recordLink } from "@/lib/tinybird";
-import { LinkProps, RedisLinkProps } from "@/lib/types";
+import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { LinkWithTags } from "./utils";
 
-export async function propagateBulkLinkChanges(
-  links: (LinkProps & { tags: { tagId: string }[] })[],
-) {
+export async function propagateBulkLinkChanges(links: LinkWithTags[]) {
   const pipeline = redis.pipeline();
 
   // split links into domains for better write effeciency in Redis
@@ -37,7 +36,7 @@ export async function propagateBulkLinkChanges(
         domain: link.domain,
         key: link.key,
         url: link.url,
-        tag_ids: link.tags.map((tag) => tag.tagId),
+        tag_ids: link.tags?.map((tag) => tag.tagId) ?? [],
         workspace_id: link.projectId,
         created_at: link.createdAt,
       })),
