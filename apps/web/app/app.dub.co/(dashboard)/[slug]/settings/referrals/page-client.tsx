@@ -3,8 +3,9 @@
 import { EventType } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ReferralLinkSkeleton } from "./referral-link";
 import { Referrals } from "./referrals";
 
 // TODO:
@@ -22,7 +23,7 @@ export default function ReferralsPageClient({
   const [publicToken, setPublicToken] = useState<string | null>(null);
 
   // Get publicToken from server when component mounts
-  const createPublicToken = async () => {
+  const createPublicToken = useCallback(async () => {
     const response = await fetch(`/api/workspaces/${slug}/referrals-token`, {
       method: "POST",
     });
@@ -36,7 +37,7 @@ export default function ReferralsPageClient({
     };
 
     setPublicToken(publicToken);
-  };
+  }, [slug]);
 
   useEffect(() => {
     createPublicToken();
@@ -47,7 +48,7 @@ export default function ReferralsPageClient({
   }
 
   if (!publicToken) {
-    return null;
+    return <ReferralLinkSkeleton />;
   }
 
   return (

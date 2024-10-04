@@ -169,13 +169,7 @@ function LinkBuilderInner({
         isSubmitSuccessful ||
         (props && !isDirty),
     );
-  }, [
-    showLinkBuilder,
-    isSubmitting,
-    isSubmitSuccessful,
-    props,
-    isDirty,
-  ]);
+  }, [showLinkBuilder, isSubmitting, isSubmitSuccessful, props, isDirty]);
 
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
