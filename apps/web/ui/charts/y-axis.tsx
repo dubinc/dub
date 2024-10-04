@@ -58,7 +58,7 @@ export default function YAxis({
   const tickValues = useMemo(() => {
     if (tickValuesProp) return tickValuesProp;
 
-    const numTicks = numTicksProp ?? height < 350 ? 3 : 4;
+    const numTicks = (numTicksProp ?? height < 350) ? 3 : 4;
 
     return yScale.ticks(numTicks).filter((value) =>
       // Both of these reduce the number of ticks farther below numTicks, but this should only affect small ranges

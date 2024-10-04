@@ -41,10 +41,10 @@ const AnimatedSizeContainer = forwardRef<
         className={cn("overflow-hidden", className)}
         animate={{
           width: width
-            ? resizeObserverEntry?.contentRect?.width ?? "auto"
+            ? (resizeObserverEntry?.contentRect?.width ?? "auto")
             : "auto",
           height: height
-            ? resizeObserverEntry?.contentRect?.height ?? "auto"
+            ? (resizeObserverEntry?.contentRect?.height ?? "auto")
             : "auto",
         }}
         transition={transition ?? { type: "spring", duration: 0.3 }}

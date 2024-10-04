@@ -105,7 +105,7 @@ export default function AnalyticsProvider({
 
   // Only set interval if start and end are not provided
   const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? "24h";
+    start || end ? undefined : (searchParams?.get("interval") ?? "24h");
 
   const selectedTab: EventType = useMemo(() => {
     if (!!adminPage && !!demoPage && !conversionEnabled) return "clicks";

@@ -1,4 +1,5 @@
-import { createLink, getLinks } from "@/utils/get-links";
+import { createLink, getLinks } from "@/api/links";
+import { getConfig } from "@/utils/config";
 import { getNanoid } from "@/utils/get-nanoid";
 import { handleError } from "@/utils/handle-error";
 import { logger } from "@/utils/logger";
@@ -13,13 +14,15 @@ const addOptionsSchema = z.object({
   key: z.string().min(4, "Key must be at least 4 characters long"),
 });
 
-export const link = new Command()
-  .name("link")
-  .description("Configure domain for your workspace")
+export const shorten = new Command()
+  .name("shorten")
+  .description("Create a short link")
   .argument("[url]", "Destination URL")
   .argument("[key]", "Short key", getNanoid())
   .action(async (url, key) => {
     try {
+      await getConfig();
+
       let linkData = { url, key };
 
       if (!url) {
@@ -82,16 +85,18 @@ export const link = new Command()
     }
   });
 
-link
+shorten
   .command("list")
   .description("View the list of the last 100 links")
   .action(async () => {
     try {
+      await getConfig();
+
       const spinner = ora("Fetching links").start();
       const links = await getLinks();
       spinner.stop();
 
-      console.table(links, ["url", "clicks"]);
+      console.table(links, ["shortLink", "clicks"]);
     } catch (error) {
       handleError(error);
     }

@@ -1,4 +1,4 @@
-import { getConfig } from "@/utils/get-config";
+import { getConfig } from "@/utils/config";
 import { handleError } from "@/utils/handle-error";
 import { logger } from "@/utils/logger";
 import { Command } from "commander";
@@ -7,7 +7,7 @@ import ora from "ora";
 
 export const config = new Command()
   .name("config")
-  .description("see your configured workspace credentails")
+  .description("see your configured workspace credentials")
   .action(async () => {
     const spinner = ora("Getting config file").start();
 

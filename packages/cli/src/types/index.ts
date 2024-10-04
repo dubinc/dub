@@ -3,7 +3,7 @@ export interface DubConfig {
   domain?: string;
 }
 
-export type GetDomain = {
+export type Domain = {
   id: string;
   slug: string;
   verified: boolean;
@@ -35,7 +35,7 @@ type Geo<T = string> = {
   [key: string]: T;
 };
 
-export type GetLink = {
+export type Link = {
   id: string;
   domain: string;
   key: string;

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { config } from "@/commands/config";
-import { domain } from "@/commands/domain";
-import { link } from "@/commands/link";
+import { domains } from "@/commands/domains";
 import { login } from "@/commands/login";
+import { shorten } from "@/commands/shorten";
 import { getPackageInfo } from "@/utils/get-package-info";
 import { Command } from "commander";
 
@@ -25,8 +25,8 @@ async function main() {
   program
     .addCommand(login)
     .addCommand(config)
-    .addCommand(domain)
-    .addCommand(link);
+    .addCommand(domains)
+    .addCommand(shorten);
 
   program.parse();
 }
