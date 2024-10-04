@@ -76,10 +76,18 @@ export function MainNav({
         {/* Side nav */}
         <nav
           className={cn(
-            "h-full w-[240px] max-w-full bg-neutral-100 transition-transform sm:translate-x-0",
+            "relative h-full w-[240px] max-w-full bg-neutral-100 transition-transform sm:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >
+          <div className="absolute inset-0 overflow-hidden">
+            <div
+              className={cn(
+                "pointer-events-none absolute -left-2/3 bottom-0 aspect-square w-[140%] translate-y-1/4 rounded-full opacity-15 blur-[75px]",
+                "bg-[conic-gradient(from_32deg_at_center,#855AFC_0deg,#3A8BFD_72deg,#00FFF9_144deg,#5CFF80_198deg,#EAB308_261deg,#f00_360deg)]",
+              )}
+            />
+          </div>
           <SidebarNav toolContent={toolContent} />
         </nav>
       </div>
