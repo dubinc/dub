@@ -1,6 +1,5 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
 import {
   MaxWidthWrapper,
   NavLogo,
@@ -37,8 +36,10 @@ const SideNavContext = createContext<SideNavContext>({
   setIsOpen: () => {},
 });
 
-export function MainNav({ children }: PropsWithChildren) {
-  const { flags } = useWorkspace();
+export function MainNav({
+  sidenav,
+  children,
+}: PropsWithChildren<{ sidenav: boolean }>) {
   const { slug } = useParams() as { slug?: string };
   const scrolled = useScroll(80);
 
@@ -53,7 +54,7 @@ export function MainNav({ children }: PropsWithChildren) {
   // TODO: Remove this once nav toggle button is added in page header
   useKeyboardShortcut("n", () => setIsOpen((o) => !o));
 
-  return flags?.sidenav ? (
+  return sidenav ? (
     <div className="grid min-h-screen sm:grid-cols-[240px_1fr]">
       {/* Side nav backdrop */}
       <div
