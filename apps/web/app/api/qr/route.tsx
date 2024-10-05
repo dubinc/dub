@@ -21,11 +21,20 @@ export async function GET(req: NextRequest) {
     const shortLink = await getShortLinkViaEdge(url.split("?")[0]);
     if (shortLink) {
       const workspace = await getWorkspaceViaEdge(shortLink.projectId);
+      // Free workspaces should always use the default logo.
       if (!workspace || workspace.plan === "free") {
         logo = DUB_QR_LOGO;
-      } else if (workspace.logo && !hideLogo) {
+        /*
+          If:
+          - no logo is passed
+          - the workspace has a logo
+          - the hideLogo flag is not set
+          then we should use the workspace logo.
+        */
+      } else if (!logo && workspace.logo && !hideLogo) {
         logo = workspace.logo;
       }
+      // if the link is not on Dub, use the default logo.
     } else {
       logo = DUB_QR_LOGO;
     }
