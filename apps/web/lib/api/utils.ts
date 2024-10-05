@@ -61,7 +61,7 @@ export const extractPublishableKey = (req: Request) => {
       throw new DubApiError({
         code: "bad_request",
         message:
-          "Missing publishable key. Please pass it either as a Authorization Bearer token or as a `token` query parameter.",
+          "Missing publishable key. Please pass it either as a Authorization Bearer token or as a `token` query parameter. Learn more: https://d.to/pk",
       });
     }
     return token;
