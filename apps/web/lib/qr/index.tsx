@@ -3,6 +3,7 @@
  * Copyright (c) Paul O'Shannessy
  * SPDX-License-Identifier: ISC
  */
+import { DUB_QR_LOGO } from "@dub/utils/src/constants";
 import { useEffect, useRef, useState } from "react";
 import qrcodegen from "./codegen";
 import {
@@ -363,7 +364,7 @@ export function getQRData({
     includeMargin: false,
     ...(showLogo && {
       imageSettings: {
-        src: logo || "https://assets.dub.co/logo.png",
+        src: logo || DUB_QR_LOGO,
         height: 256,
         width: 256,
         excavate: true,
