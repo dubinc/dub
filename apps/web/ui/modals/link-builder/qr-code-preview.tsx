@@ -8,6 +8,7 @@ import {
 } from "@dub/ui";
 import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/src/icons";
 import { linkConstructor } from "@dub/utils";
+import { DUB_QR_LOGO } from "@dub/utils/src/constants";
 import { AnimatePresence, motion } from "framer-motion";
 import { useContext, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
@@ -40,9 +41,7 @@ export function QRCodePreview() {
   const showLogo = data.showLogo || workspacePlan === "free";
 
   const logo =
-    workspaceLogo && workspacePlan !== "free"
-      ? workspaceLogo
-      : "https://assets.dub.co/logo.png";
+    workspaceLogo && workspacePlan !== "free" ? workspaceLogo : DUB_QR_LOGO;
 
   const { LinkQRModal, setShowLinkQRModal } = useLinkQRModal({
     props: {

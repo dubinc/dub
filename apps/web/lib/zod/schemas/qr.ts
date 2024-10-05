@@ -5,6 +5,7 @@ import {
   QR_LEVELS,
 } from "@/lib/qr/constants";
 import z from "@/lib/zod";
+import { DUB_QR_LOGO } from "@dub/utils/src/constants";
 import { booleanQuerySchema } from "./misc";
 import { parseUrlSchema } from "./utils";
 
@@ -13,9 +14,9 @@ export const getQRCodeQuerySchema = z.object({
   logo: z
     .string()
     .optional()
-    .default("https://assets.dub.co/logo.png")
+    .default(DUB_QR_LOGO)
     .describe(
-      "The logo to include in the QR code. Defaults to `https://assets.dub.co/logo.png` if not provided.",
+      "The logo to include in the QR code. Can only be used with a paid plan – please authenticate via a publishable key. Learn more: https://d.to/pk",
     ),
   size: z.coerce
     .number()

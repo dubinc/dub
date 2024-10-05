@@ -26,6 +26,7 @@ import {
   Photo,
 } from "@dub/ui/src/icons";
 import { API_DOMAIN, cn, linkConstructor } from "@dub/utils";
+import { DUB_QR_LOGO } from "@dub/utils/src/constants";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Dispatch,
@@ -106,10 +107,7 @@ function LinkQRModalInner({
   );
   const [data, setData] = useState(dataPersisted);
 
-  const logo =
-    workspaceLogo && plan !== "free"
-      ? workspaceLogo
-      : "https://assets.dub.co/logo.png";
+  const logo = workspaceLogo && plan !== "free" ? workspaceLogo : DUB_QR_LOGO;
 
   const showLogo = data.showLogo || plan === "free";
 
