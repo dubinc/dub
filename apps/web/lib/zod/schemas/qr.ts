@@ -5,7 +5,6 @@ import {
   QR_LEVELS,
 } from "@/lib/qr/constants";
 import z from "@/lib/zod";
-import { DUB_QR_LOGO } from "@dub/utils/src/constants";
 import { booleanQuerySchema } from "./misc";
 import { parseUrlSchema } from "./utils";
 
@@ -14,9 +13,8 @@ export const getQRCodeQuerySchema = z.object({
   logo: z
     .string()
     .optional()
-    .default(DUB_QR_LOGO)
     .describe(
-      "The logo to include in the QR code. Can only be used with a paid plan – please authenticate via a publishable key. Learn more: https://d.to/pk",
+      "The logo to include in the QR code. Can only be used with a paid plan on Dub.co.",
     ),
   size: z.coerce
     .number()
@@ -45,6 +43,12 @@ export const getQRCodeQuerySchema = z.object({
     .default(DEFAULT_BGCOLOR)
     .describe(
       "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided.",
+    ),
+  hideLogo: booleanQuerySchema
+    .optional()
+    .default("false")
+    .describe(
+      "Whether to hide the logo in the QR code. Can only be used with a paid plan on Dub.co.",
     ),
   includeMargin: booleanQuerySchema
     .optional()

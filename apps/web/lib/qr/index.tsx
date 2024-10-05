@@ -346,12 +346,12 @@ export async function getQRAsCanvas(
 export function getQRData({
   url,
   fgColor,
-  showLogo,
+  hideLogo,
   logo,
 }: {
   url: string;
   fgColor?: string;
-  showLogo?: boolean;
+  hideLogo?: boolean;
   logo?: string;
   scale?: number;
 }) {
@@ -361,8 +361,9 @@ export function getQRData({
     fgColor,
     size: 1024,
     level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
+    hideLogo,
     includeMargin: false,
-    ...(showLogo && {
+    ...(!hideLogo && {
       imageSettings: {
         src: logo || DUB_QR_LOGO,
         height: 256,

@@ -30,7 +30,7 @@ export function QRCodePreview() {
     `qr-code-design-${workspaceId}`,
     {
       fgColor: "#000000",
-      showLogo: true,
+      hideLogo: true,
     },
   );
 
@@ -38,7 +38,7 @@ export function QRCodePreview() {
     return key && domain ? linkConstructor({ key, domain }) : undefined;
   }, [key, domain]);
 
-  const showLogo = data.showLogo || workspacePlan === "free";
+  const hideLogo = data.hideLogo && workspacePlan !== "free";
 
   const logo =
     workspaceLogo && workspacePlan !== "free" ? workspaceLogo : DUB_QR_LOGO;
@@ -89,7 +89,7 @@ export function QRCodePreview() {
               <QRCode
                 url={shortLinkUrl}
                 fgColor={data.fgColor}
-                showLogo={showLogo}
+                hideLogo={hideLogo}
                 logo={logo}
                 scale={0.5}
               />

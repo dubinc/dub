@@ -46,6 +46,28 @@ export const checkIfUserExists = async (userId: string) => {
   return rows && Array.isArray(rows) && rows.length > 0;
 };
 
+interface EdgeLinkProps {
+  id: string;
+  domain: string;
+  key: string;
+  url: string;
+  proxy: number;
+  title: string;
+  description: string;
+  image: string;
+  video: string;
+  rewrite: number;
+  password: string | null;
+  expiresAt: string | null;
+  ios: string | null;
+  android: string | null;
+  geo: object | null;
+  projectId: string;
+  publicStats: number;
+  expiredUrl: string | null;
+  createdAt: string;
+}
+
 export const getLinkViaEdge = async (domain: string, key: string) => {
   if (!DATABASE_URL) return null;
 
@@ -56,27 +78,20 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
     )) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as {
-        id: string;
-        domain: string;
-        key: string;
-        url: string;
-        proxy: number;
-        title: string;
-        description: string;
-        image: string;
-        video: string;
-        rewrite: number;
-        password: string | null;
-        expiresAt: string | null;
-        ios: string | null;
-        android: string | null;
-        geo: object | null;
-        projectId: string;
-        publicStats: number;
-        expiredUrl: string | null;
-        createdAt: string;
-      })
+    ? (rows[0] as EdgeLinkProps)
+    : null;
+};
+
+export const getShortLinkViaEdge = async (shortLink: string) => {
+  if (!DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute("SELECT * FROM Link WHERE shortLink = ?", [
+      shortLink,
+    ])) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as EdgeLinkProps)
     : null;
 };
 
