@@ -44,6 +44,7 @@
     "chalk": "^5.3.0",
     "commander": "^11.1.0",
     "configstore": "^6.0.0",
+    "dub": "^0.43.0",
     "fs-extra": "^11.2.0",
     "json-colorizer": "^2.2.2",
     "nanoid": "^5.0.7",

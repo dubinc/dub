@@ -7,12 +7,6 @@ import chalk from "chalk";
 import { Command } from "commander";
 import ora from "ora";
 import prompts from "prompts";
-import { z } from "zod";
-
-const addOptionsSchema = z.object({
-  url: z.string().url("Please enter a valid URL"),
-  key: z.string().min(4, "Key must be at least 4 characters long"),
-});
 
 export const shorten = new Command()
   .name("shorten")
@@ -32,20 +26,12 @@ export const shorten = new Command()
               type: "text",
               name: "url",
               message: "Enter your Destination URL:",
-              validate: (value) => {
-                const result = addOptionsSchema.shape.url.safeParse(value);
-                return result.success || result.error.errors[0].message;
-              },
             },
             {
               type: "text",
               name: "key",
               message: "Enter your Short link:",
               initial: getNanoid(),
-              validate: (value) => {
-                const result = addOptionsSchema.shape.key.safeParse(value);
-                return result.success || result.error.errors[0].message;
-              },
             },
           ],
           {
@@ -59,20 +45,15 @@ export const shorten = new Command()
         );
       }
 
-      const validatedData = addOptionsSchema.parse(linkData);
       const spinner = ora("Creating new short link").start();
 
       try {
-        const generatedShortLink = await createLink(validatedData);
+        const generatedShortLink = await createLink(linkData);
 
         spinner.succeed("New short link created!");
 
         logger.info("");
-        logger.info(
-          chalk.green(
-            `https://${generatedShortLink.domain}/${generatedShortLink.key}`,
-          ),
-        );
+        logger.info(chalk.green(generatedShortLink.shortLink));
         logger.info("");
       } catch (error) {
         spinner.fail("Failed to create link");

@@ -1,41 +1,26 @@
-import type { CreateLinkProps, Link } from "@/types";
 import { getConfig } from "@/utils/config";
-import { parseApiResponse } from "@/utils/parser";
-import fetch from "node-fetch";
+import { Dub } from "dub";
 
-export async function createLink({ url, key }: CreateLinkProps) {
+export async function createLink({ url, key }: { url: string; key?: string }) {
   const config = await getConfig();
 
-  const options = {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      domain: config.domain,
-      url: url,
-      key: key,
-    }),
-  };
+  const dub = new Dub({
+    token: config.key,
+  });
 
-  const response = await fetch("https://api.dub.co/links", options);
-
-  return await parseApiResponse<Link>(response);
+  return await dub.links.create({
+    domain: config.domain,
+    url: url,
+    key: key,
+  });
 }
 
 export async function getLinks() {
   const config = await getConfig();
 
-  const options = {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${config.key}`,
-      "Content-Type": "application/json",
-    },
-  };
+  const dub = new Dub({
+    token: config.key,
+  });
 
-  const response = await fetch("https://api.dub.co/links", options);
-
-  return await parseApiResponse<Link[]>(response);
+  return await dub.links.list();
 }
