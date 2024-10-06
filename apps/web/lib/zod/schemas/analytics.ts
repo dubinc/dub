@@ -30,20 +30,26 @@ const analyticsEvents = z
   })
   .default("clicks")
   .describe(
-    "The type of event to retrieve analytics for. Defaults to 'clicks'.",
+    "The type of event to retrieve analytics for. Defaults to `clicks`.",
   );
 
 const analyticsGroupBy = z
   .enum(VALID_ANALYTICS_ENDPOINTS, {
     errorMap: (_issue, _ctx) => {
       return {
-        message: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
+        message: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.filter((v) => v !== "trigger").join(", ")}.`,
       };
     },
   })
   .default("count")
+  .transform((v) => {
+    if (v === "trigger") {
+      return "triggers";
+    }
+    return v;
+  })
   .describe(
-    "The parameter to group the analytics data points by. Defaults to 'count' if undefined.",
+    "The parameter to group the analytics data points by. Defaults to `count` if undefined. Note that `trigger` is deprecated (use `triggers` instead), but kept for backwards compatibility.",
   );
 
 const oldAnalyticsEndpoints = z
@@ -142,9 +148,7 @@ export const analyticsQuerySchema = z.object({
     .enum(TRIGGER_TYPES)
     .optional()
     .describe(
-      `The trigger to retrieve analytics for. Available options are: ${TRIGGER_TYPES.join(
-        ", ",
-      )}. If undefined, return both QR and link clicks.`,
+      "The trigger to retrieve analytics for. If undefined, return both QR and link clicks.",
     ),
   referer: z
     .string()

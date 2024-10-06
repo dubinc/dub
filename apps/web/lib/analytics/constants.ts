@@ -106,6 +106,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "devices",
   "browsers",
   "os",
+  "trigger", // deprecated, but keeping for now for backwards compatibility
   "triggers",
   "referers",
   "referer_urls",
