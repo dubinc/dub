@@ -2,6 +2,7 @@ import {
   EVENT_TYPES,
   OLD_ANALYTICS_ENDPOINTS,
   OLD_TO_NEW_ANALYTICS_ENDPOINTS,
+  TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
   eventIntervals,
   intervals,
@@ -137,6 +138,10 @@ export const analyticsQuerySchema = z.object({
     .transform((v) => capitalize(v) as string | undefined)
     .describe("The OS to retrieve analytics for.")
     .openapi({ example: "Windows" }),
+  trigger: z
+    .enum(TRIGGER_TYPES)
+    .optional()
+    .describe("The trigger to retrieve analytics for."),
   referer: z
     .string()
     .optional()
