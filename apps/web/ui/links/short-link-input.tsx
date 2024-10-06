@@ -1,15 +1,18 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps, LinkProps } from "@/lib/types";
+import { LinkProps } from "@/lib/types";
+import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { Lock, Random } from "@/ui/shared/icons";
 import {
   ButtonTooltip,
+  Combobox,
   LinkedIn,
   LoadingCircle,
   Magic,
   Tooltip,
   Twitter,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/src/icons";
 import {
@@ -34,8 +37,10 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useDebounce } from "use-debounce";
 import { AlertCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+import { useAvailableDomains } from "./use-available-domains";
 
 type ShortLinkInputProps = {
   domain?: string;
@@ -45,7 +50,6 @@ type ShortLinkInputProps = {
   onChange: (data: { domain?: string; key?: string }) => void;
   data: Pick<LinkProps, "url" | "title" | "description">;
   saving: boolean;
-  domains: DomainProps[];
   loading: boolean;
 } & Omit<HTMLProps<HTMLInputElement>, "onChange" | "data">;
 
@@ -59,7 +63,6 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       onChange,
       data,
       saving,
-      domains,
       loading,
       ...inputProps
     }: ShortLinkInputProps,
@@ -231,27 +234,15 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
           )}
         </div>
         <div className="relative mt-1 flex rounded-md shadow-sm">
-          <div>
-            <select
-              tabIndex={-1}
-              disabled={lockKey}
-              value={domain}
-              onChange={(e) => {
+          <div className="z-[1]">
+            <DomainCombobox
+              domain={domain}
+              setDomain={(domain) => {
                 setKeyError(null);
-                onChange?.({ domain: e.target.value });
+                onChange?.({ domain });
               }}
-              className={cn(
-                "max-w-[12rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0 sm:text-sm",
-                lockKey && "cursor-not-allowed",
-                loading && "w-[6rem] text-transparent",
-              )}
-            >
-              {domains?.map(({ slug }) => (
-                <option key={slug} value={slug}>
-                  {punycode(slug)}
-                </option>
-              ))}
-            </select>
+              loading={loading}
+            />
           </div>
           <input
             ref={ref}
@@ -283,6 +274,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             autoCapitalize="none"
             className={cn(
               "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              "z-0 focus:z-[1]",
               {
                 "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                   error,
@@ -407,5 +399,89 @@ function DefaultDomainPrompt({
         instead?
       </p>
     </button>
+  );
+}
+
+function DomainCombobox({
+  domain,
+  setDomain,
+  loading,
+}: {
+  domain?: string;
+  setDomain: (domain: string) => void;
+  loading: boolean;
+}) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  // Whether to fetch search results from the backend
+  const [useAsync, setUseAsync] = useState(false);
+
+  const {
+    domains,
+    allWorkspaceDomains,
+    loading: loadingDomains,
+  } = useAvailableDomains({
+    search: useAsync ? debouncedSearch : undefined,
+  });
+
+  useEffect(() => {
+    if (
+      allWorkspaceDomains &&
+      !useAsync &&
+      allWorkspaceDomains.length >= DOMAINS_MAX_PAGE_SIZE
+    )
+      setUseAsync(true);
+  }, [allWorkspaceDomains, useAsync]);
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  useKeyboardShortcut("d", () => setIsOpen(true), { modal: true });
+
+  const options = useMemo(
+    () =>
+      loadingDomains
+        ? undefined
+        : domains?.map(({ slug }) => ({
+            value: slug,
+            label: punycode(slug),
+          })),
+    [loadingDomains, domains],
+  );
+
+  return (
+    <Combobox
+      selected={
+        domain && !loading
+          ? {
+              value: domain,
+              label: punycode(domain),
+            }
+          : null
+      }
+      setSelected={(option) => {
+        if (!option) return;
+        setDomain(option.value);
+      }}
+      options={options}
+      caret={true}
+      placeholder={
+        <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+      }
+      searchPlaceholder="Search domains..."
+      shortcutHint="D"
+      buttonProps={{
+        className: cn(
+          "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
+          "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
+          "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
+        ),
+      }}
+      optionClassName="sm:max-w-[225px]"
+      shouldFilter={!useAsync}
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      onSearchChange={setSearch}
+    />
   );
 }
