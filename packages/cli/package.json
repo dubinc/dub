@@ -1,7 +1,7 @@
 {
   "name": "dub-cli",
-  "version": "0.0.1",
-  "description": "A CLI for easily shortening URLs.",
+  "version": "0.0.6",
+  "description": "A CLI for easily shortening URLs with the Dub.co API.",
   "publishConfig": {
     "access": "public"
   },
@@ -37,8 +37,7 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
-    "start": "node dist/index.js ",
-    "pub:release": "pnpm build && pnpm publish --access public"
+    "start": "node dist/index.js "
   },
   "dependencies": {
     "chalk": "^5.3.0",
