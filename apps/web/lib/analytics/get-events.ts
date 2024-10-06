@@ -72,6 +72,7 @@ export const getEvents = async (params: EventsFilters) => {
     ...params,
     eventType,
     workspaceId,
+    qr,
     offset: (params.page - 1) * params.limit,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
