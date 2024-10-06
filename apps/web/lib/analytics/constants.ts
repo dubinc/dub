@@ -125,11 +125,6 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   triggers: "trigger",
 };
 
-export const TRIGGER_DISPLAY = {
-  qr: "QR Scan",
-  link: "Link Click",
-};
-
 export const VALID_ANALYTICS_FILTERS = [
   "domain",
   "key",
@@ -151,7 +146,12 @@ export const VALID_ANALYTICS_FILTERS = [
   "root",
 ];
 
+export const TRIGGER_DISPLAY = {
+  qr: "QR Scan",
+  link: "Link Click",
+};
 export const TRIGGER_TYPES = ["qr", "link"] as const;
+
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
 
 export const ANALYTICS_VIEWS = ["default", "funnel"] as const;

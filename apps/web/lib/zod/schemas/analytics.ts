@@ -2,6 +2,7 @@ import {
   EVENT_TYPES,
   OLD_ANALYTICS_ENDPOINTS,
   OLD_TO_NEW_ANALYTICS_ENDPOINTS,
+  TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
   eventIntervals,
   intervals,
@@ -137,6 +138,14 @@ export const analyticsQuerySchema = z.object({
     .transform((v) => capitalize(v) as string | undefined)
     .describe("The OS to retrieve analytics for.")
     .openapi({ example: "Windows" }),
+  trigger: z
+    .enum(TRIGGER_TYPES)
+    .optional()
+    .describe(
+      `The trigger to retrieve analytics for. Available options are: ${TRIGGER_TYPES.join(
+        ", ",
+      )}. If undefined, return both QR and link clicks.`,
+    ),
   referer: z
     .string()
     .optional()
@@ -155,8 +164,9 @@ export const analyticsQuerySchema = z.object({
   qr: booleanQuerySchema
     .optional()
     .describe(
-      "Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
-    ),
+      "Deprecated. Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+    )
+    .openapi({ deprecated: true }),
   root: booleanQuerySchema
     .optional()
     .describe(

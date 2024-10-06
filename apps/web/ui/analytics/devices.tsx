@@ -55,12 +55,7 @@ export default function Devices() {
                         ? TRIGGER_DISPLAY[d.trigger]
                         : d[singularTabName],
                     href: queryParams({
-                      set:
-                        tab === "triggers"
-                          ? {
-                              qr: d.trigger === "link" ? "false" : "true",
-                            }
-                          : { [singularTabName]: d[singularTabName] },
+                      set: { [singularTabName]: d[singularTabName] },
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,
