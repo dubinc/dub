@@ -239,10 +239,13 @@ function LinkBuilderInner({
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, ...rest } = data;
+              const folderId = searchParams.get("folderId");
               const bodyData = {
                 ...rest,
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
+                // if folderId is available, add it to the body data
+                ...(folderId ? { folderId } : {}),
 
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
