@@ -308,30 +308,4 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsTopUrls" }),
-
-  trigger: z
-    .object({
-      trigger: z
-        .enum(["link", "qr"])
-        .describe("The type of trigger method: link click or QR scan"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this trigger method")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this trigger method")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this trigger method")
-        .default(0),
-      saleAmount: z
-        .number()
-        .describe(
-          "The total amount of sales from this trigger method, in cents",
-        )
-        .default(0),
-    })
-    .openapi({ ref: "AnalyticsTrigger" }),
 } as const;
