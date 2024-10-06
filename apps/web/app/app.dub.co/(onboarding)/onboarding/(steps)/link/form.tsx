@@ -153,6 +153,7 @@ export function Form() {
               data={{ url, title: "", description: "" }}
               saving={isSubmitting}
               loading={loading}
+              onboarding
             />
           )}
         />

@@ -5,6 +5,7 @@ import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { Lock, Random } from "@/ui/shared/icons";
 import {
+  AnimatedSizeContainer,
   ButtonTooltip,
   Combobox,
   LinkedIn,
@@ -38,6 +39,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
+import { FreeDotLinkBanner } from "../domains/free-dot-link-banner";
 import { AlertCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { useAvailableDomains } from "./use-available-domains";
@@ -51,6 +53,7 @@ type ShortLinkInputProps = {
   data: Pick<LinkProps, "url" | "title" | "description">;
   saving: boolean;
   loading: boolean;
+  onboarding?: boolean;
 } & Omit<HTMLProps<HTMLInputElement>, "onChange" | "data">;
 
 export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
@@ -64,6 +67,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       data,
       saving,
       loading,
+      onboarding,
       ...inputProps
     }: ShortLinkInputProps,
     ref,
@@ -79,6 +83,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       mutate: mutateWorkspace,
       exceededAI,
       nextPlan,
+      dotLinkClaimed,
     } = useWorkspace();
 
     const [lockKey, setLockKey] = useState(existingLink);
@@ -362,6 +367,15 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             url={data.url}
             onChange={(domain) => onChange({ domain })}
           />
+        )}
+        {!onboarding && !dotLinkClaimed && (
+          <AnimatedSizeContainer
+            height
+            transition={{ ease: "linear", duration: 0.1 }}
+            className="mt-2"
+          >
+            <FreeDotLinkBanner />
+          </AnimatedSizeContainer>
         )}
       </div>
     );

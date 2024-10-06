@@ -2,6 +2,30 @@ import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
 
+const analyticsTriggersResponse = z
+  .object({
+    trigger: z
+      .enum(TRIGGER_TYPES)
+      .describe("The type of trigger method: link click or QR scan"),
+    clicks: z
+      .number()
+      .describe("The number of clicks from this trigger method")
+      .default(0),
+    leads: z
+      .number()
+      .describe("The number of leads from this trigger method")
+      .default(0),
+    sales: z
+      .number()
+      .describe("The number of sales from this trigger method")
+      .default(0),
+    saleAmount: z
+      .number()
+      .describe("The total amount of sales from this trigger method, in cents")
+      .default(0),
+  })
+  .openapi({ ref: "AnalyticsTriggers" });
+
 export const analyticsResponse = {
   count: z
     .object({
@@ -174,31 +198,8 @@ export const analyticsResponse = {
     })
     .openapi({ ref: "AnalyticsOS" }),
 
-  triggers: z
-    .object({
-      trigger: z
-        .enum(TRIGGER_TYPES)
-        .describe("The type of trigger method: link click or QR scan"),
-      clicks: z
-        .number()
-        .describe("The number of clicks from this trigger method")
-        .default(0),
-      leads: z
-        .number()
-        .describe("The number of leads from this trigger method")
-        .default(0),
-      sales: z
-        .number()
-        .describe("The number of sales from this trigger method")
-        .default(0),
-      saleAmount: z
-        .number()
-        .describe(
-          "The total amount of sales from this trigger method, in cents",
-        )
-        .default(0),
-    })
-    .openapi({ ref: "AnalyticsTriggers" }),
+  triggers: analyticsTriggersResponse,
+  trigger: analyticsTriggersResponse, // backwards compatibility
 
   referers: z
     .object({
