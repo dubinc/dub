@@ -56,7 +56,7 @@ export const domains = new Command()
         },
       );
 
-      const getconfig = new Configstore("dubcli");
+      const getconfig = new Configstore("dub-cli");
       getconfig.set("domain", options.domain);
 
       spinner.succeed("Done");

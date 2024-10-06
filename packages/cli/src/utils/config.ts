@@ -2,7 +2,7 @@ import type { DubConfig } from "@/types";
 import Configstore from "configstore";
 
 export async function getConfig(): Promise<DubConfig> {
-  const getConfig = new Configstore("dubcli");
+  const getConfig = new Configstore("dub-cli");
 
   if (!getConfig.size) {
     throw new Error(

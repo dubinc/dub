@@ -53,7 +53,7 @@ export const login = new Command()
         domain: "dub.sh",
       };
 
-      const config = new Configstore("dubcli");
+      const config = new Configstore("dub-cli");
       config.set(configInfo);
 
       if (!config.path) {

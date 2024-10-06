@@ -7,7 +7,7 @@ import ora from "ora";
 
 export const config = new Command()
   .name("config")
-  .description("see your configured workspace credentials")
+  .description("See your configured workspace credentials")
   .action(async () => {
     const spinner = ora("Getting config file").start();
 

@@ -1,4 +1,4 @@
-import { createLink, getLinks } from "@/api/links";
+import { createLink } from "@/api/links";
 import { getConfig } from "@/utils/config";
 import { getNanoid } from "@/utils/get-nanoid";
 import { handleError } from "@/utils/handle-error";
@@ -61,23 +61,6 @@ export const shorten = new Command()
         logger.info("");
         throw error;
       }
-    } catch (error) {
-      handleError(error);
-    }
-  });
-
-shorten
-  .command("list")
-  .description("View the list of the last 100 links")
-  .action(async () => {
-    try {
-      await getConfig();
-
-      const spinner = ora("Fetching links").start();
-      const links = await getLinks();
-      spinner.stop();
-
-      console.table(links, ["shortLink", "clicks"]);
     } catch (error) {
       handleError(error);
     }

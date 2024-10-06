@@ -1,26 +1,29 @@
-import type { Domain } from "@/types";
 import { getConfig } from "@/utils/config";
 import { parseApiResponse } from "@/utils/parser";
+import { Dub } from "dub";
 import fetch from "node-fetch";
 
 export async function getDomains() {
   const config = await getConfig();
 
-  const options = {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${config.key}`,
-      "Content-Type": "application/json",
-    },
-  };
+  const dub = new Dub({
+    token: config.key,
+  });
 
-  const [domainsResponse, defaultDomainsResponse] = await Promise.all([
-    fetch("https://api.dub.co/domains", options),
-    fetch("https://api.dub.co/domains/default", options),
-  ]);
+  const [{ result: domainsResponse }, defaultDomainsResponse] =
+    await Promise.all([
+      dub.domains.list(),
+      fetch("https://api.dub.co/domains/default", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${config.key}`,
+          "Content-Type": "application/json",
+        },
+      }),
+    ]);
 
   const [domains, defaultDomains] = await Promise.all([
-    parseApiResponse<Domain[]>(domainsResponse),
+    domainsResponse,
     parseApiResponse<string[]>(defaultDomainsResponse),
   ]);
 
