@@ -42,12 +42,6 @@ const analyticsGroupBy = z
     },
   })
   .default("count")
-  .transform((v) => {
-    if (v === "trigger") {
-      return "triggers";
-    }
-    return v;
-  })
   .describe(
     "The parameter to group the analytics data points by. Defaults to `count` if undefined. Note that `trigger` is deprecated (use `triggers` instead), but kept for backwards compatibility.",
   );

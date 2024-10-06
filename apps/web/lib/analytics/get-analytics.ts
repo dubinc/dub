@@ -49,6 +49,10 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
+  if (groupBy === "trigger") {
+    groupBy = "triggers";
+  }
+
   if (start) {
     start = new Date(start);
     end = end ? new Date(end) : new Date(Date.now());
