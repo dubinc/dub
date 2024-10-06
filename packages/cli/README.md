@@ -2,6 +2,9 @@
 
 A CLI for easily shortening URLs with the [Dub.co API](https://dub.co/api).
 
+https://github.com/user-attachments/assets/2ce9fe51-68ab-4e6d-b08d-4da09c17f90e
+
+
 ## Available Commands
 
 | Command                   | Description                                                                                                                                                                                              |
