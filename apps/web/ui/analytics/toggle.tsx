@@ -169,8 +169,8 @@ export default function Toggle({
   const os = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
   });
-  const trigger = useAnalyticsFilterOption("trigger", {
-    cacheOnly: !isRequested("trigger"),
+  const triggers = useAnalyticsFilterOption("triggers", {
+    cacheOnly: !isRequested("triggers"),
   });
   const referers = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
@@ -335,7 +335,7 @@ export default function Toggle({
         icon: CursorRays,
         label: "Trigger",
         options:
-          trigger?.map(({ trigger, count }) => ({
+          triggers?.map(({ trigger, count }) => ({
             value: trigger,
             label: TRIGGER_DISPLAY[trigger],
             icon: trigger === "qr" ? QRCode : CursorRays,
