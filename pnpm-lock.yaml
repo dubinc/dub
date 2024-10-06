@@ -183,8 +183,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.43.0
-        version: 0.43.0(zod@3.22.4)
+        specifier: ^0.43.4
+        version: 0.43.4(zod@3.22.4)
       framer-motion:
         specifier: ^10.16.16
         version: 10.18.0(react-dom@18.2.0)(react@18.2.0)
@@ -12438,20 +12438,20 @@ packages:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
 
-  /dub@0.43.0(zod@3.22.4):
-    resolution: {integrity: sha512-PxS0165fQqeMNDYdSbAAxc69WphtonAyVWh3IVbM0isdGfOeTNIX9gqqZ8ZZORr5/L4CVnipnip3+PRIlVu5Rg==}
-    peerDependencies:
-      zod: '>= 3'
-    dependencies:
-      zod: 3.22.4
-    dev: false
-
   /dub@0.43.0(zod@3.23.8):
     resolution: {integrity: sha512-PxS0165fQqeMNDYdSbAAxc69WphtonAyVWh3IVbM0isdGfOeTNIX9gqqZ8ZZORr5/L4CVnipnip3+PRIlVu5Rg==}
     peerDependencies:
       zod: '>= 3'
     dependencies:
       zod: 3.23.8
+    dev: false
+
+  /dub@0.43.4(zod@3.22.4):
+    resolution: {integrity: sha512-HqNnCFgWy9PWvYUrLGDvjba4mqGpjkc+x74yaHhVG5Cm2gTQiIF7kmfUDmz6GOog/Gc9S3C0PicjmqgbMBgbaw==}
+    peerDependencies:
+      zod: '>= 3'
+    dependencies:
+      zod: 3.22.4
     dev: false
 
   /eastasianwidth@0.2.0:

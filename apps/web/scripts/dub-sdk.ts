@@ -3,9 +3,9 @@ import "dotenv-flow/config";
 
 async function main() {
   const data = await dub.analytics.retrieve({
-    domain: "dub.link",
     event: "clicks",
-    groupBy: "trigger",
+    groupBy: "triggers",
+    interval: "30d",
   });
   console.log({ data });
 }
