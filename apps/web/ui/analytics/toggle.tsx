@@ -170,7 +170,7 @@ export default function Toggle({
     cacheOnly: !isRequested("os"),
   });
   const triggers = useAnalyticsFilterOption("triggers", {
-    cacheOnly: !isRequested("triggers"),
+    cacheOnly: !isRequested("trigger"),
   });
   const referers = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
