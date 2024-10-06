@@ -78,7 +78,7 @@ export default function DeviceIcon({
         />
       );
     }
-  } else if (tab === "trigger") {
+  } else if (tab === "triggers") {
     if (display === "qr") {
       return <QRCode className={className} />;
     } else {

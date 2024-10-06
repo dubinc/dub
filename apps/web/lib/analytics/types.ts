@@ -27,7 +27,7 @@ export type AnalyticsView = (typeof ANALYTICS_VIEWS)[number];
 
 export type LocationTabs = "countries" | "cities";
 export type TopLinksTabs = "link" | "url";
-export type DeviceTabs = "devices" | "browsers" | "os" | "trigger";
+export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 export type RefererTabs = "referers" | "referer_urls";
 
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {

@@ -104,13 +104,13 @@ export default function Toggle({
       domain,
       key,
       tagId,
-      qr,
       continent,
       country,
       city,
       device,
       browser,
       os,
+      trigger,
       referer,
       refererUrl,
       url,
@@ -127,13 +127,13 @@ export default function Toggle({
           ]
         : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
-      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
+      ...(trigger ? [{ key: "trigger", value: trigger }] : []),
       ...(referer ? [{ key: "referer", value: referer }] : []),
       ...(refererUrl ? [{ key: "refererUrl", value: refererUrl }] : []),
       ...(url ? [{ key: "url", value: url }] : []),
@@ -169,7 +169,7 @@ export default function Toggle({
   const os = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
   });
-  const trigger = useAnalyticsFilterOption("trigger", {
+  const triggers = useAnalyticsFilterOption("triggers", {
     cacheOnly: !isRequested("trigger"),
   });
   const referers = useAnalyticsFilterOption("referers", {
@@ -331,11 +331,11 @@ export default function Toggle({
             },
           ]),
       {
-        key: "qr",
+        key: "trigger",
         icon: CursorRays,
         label: "Trigger",
         options:
-          trigger?.map(({ trigger, count }) => ({
+          triggers?.map(({ trigger, count }) => ({
             value: trigger,
             label: TRIGGER_DISPLAY[trigger],
             icon: trigger === "qr" ? QRCode : CursorRays,

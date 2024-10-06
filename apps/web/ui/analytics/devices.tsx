@@ -28,7 +28,7 @@ export default function Devices() {
         { id: "devices", label: "Devices" },
         { id: "browsers", label: "Browsers" },
         { id: "os", label: "OS" },
-        { id: "trigger", label: "Trigger" },
+        { id: "triggers", label: "Triggers" },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
@@ -51,16 +51,11 @@ export default function Devices() {
                       />
                     ),
                     title:
-                      tab === "trigger"
+                      tab === "triggers"
                         ? TRIGGER_DISPLAY[d.trigger]
                         : d[singularTabName],
                     href: queryParams({
-                      set:
-                        tab === "trigger"
-                          ? {
-                              qr: d.trigger === "link" ? "false" : "true",
-                            }
-                          : { [singularTabName]: d[singularTabName] },
+                      set: { [singularTabName]: d[singularTabName] },
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,
