@@ -12,7 +12,6 @@ export async function generateFilters(prompt: string) {
   (async () => {
     const { partialObjectStream } = await streamObject({
       model: anthropic("claude-3-sonnet-20240229"),
-      // @ts-expect-error
       schema: analyticsQuerySchema.pick({
         ...(VALID_ANALYTICS_FILTERS.reduce((acc, filter) => {
           acc[filter] = true;

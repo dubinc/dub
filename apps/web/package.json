@@ -12,8 +12,7 @@
     "generate-openapi": "tsx ./scripts/generate-openapi.ts"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^0.0.17",
-    "@anthropic-ai/sdk": "^0.20.4",
+    "@ai-sdk/anthropic": "^0.0.51",
     "@boxyhq/saml-jackson": "1.23.9",
     "@chronark/zod-bird": "^0.3.9",
     "@dub/analytics": "^0.0.21",
@@ -40,7 +39,7 @@
     "@upstash/redis": "^1.25.1",
     "@vercel/edge-config": "^0.4.1",
     "@vercel/functions": "^1.4.1",
-    "@vercel/og": "^0.6.2",
+    "@vercel/og": "^0.6.3",
     "@visx/axis": "^2.14.0",
     "@visx/curve": "^3.3.0",
     "@visx/event": "^2.6.0",
@@ -53,7 +52,7 @@
     "@visx/shape": "^2.12.2",
     "@visx/text": "^3.3.0",
     "@visx/tooltip": "^2.16.0",
-    "ai": "^3.2.38",
+    "ai": "^3.4.8",
     "aws4fetch": "^1.0.19",
     "bcryptjs": "^2.4.3",
     "bottleneck": "^2.19.5",

@@ -49,39 +49,60 @@ export const webhookPayloadSchema = z.object({
   data: z.any().describe("The data associated with the event."),
 });
 
+// Exported for the OpenAPI spec
 export const webhookEventSchema = z
   .union([
-    z.object({
-      id: z.string(),
-      event: z.union([
-        z.literal("link.created"),
-        z.literal("link.updated"),
-        z.literal("link.deleted"),
-      ]),
-      createdAt: z.string(),
-      data: linkEventSchema,
-    }),
+    z
+      .object({
+        id: z.string(),
+        event: z.union([
+          z.literal("link.created"),
+          z.literal("link.updated"),
+          z.literal("link.deleted"),
+        ]),
+        createdAt: z.string(),
+        data: linkEventSchema,
+      })
+      .openapi({
+        ref: "LinkWebhookEvent",
+        description: "Triggered when a link is created, updated, or deleted.",
+      }),
 
-    z.object({
-      id: z.string(),
-      event: z.literal("link.clicked"),
-      createdAt: z.string(),
-      data: clickWebhookEventSchema,
-    }),
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("link.clicked"),
+        createdAt: z.string(),
+        data: clickWebhookEventSchema,
+      })
+      .openapi({
+        ref: "LinkClickedEvent",
+        description: "Triggered when a link is clicked.",
+      }),
 
-    z.object({
-      id: z.string(),
-      event: z.literal("lead.created"),
-      createdAt: z.string(),
-      data: leadWebhookEventSchema,
-    }),
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("lead.created"),
+        createdAt: z.string(),
+        data: leadWebhookEventSchema,
+      })
+      .openapi({
+        ref: "LeadCreatedEvent",
+        description: "Triggered when a lead is created.",
+      }),
 
-    z.object({
-      id: z.string(),
-      event: z.literal("sale.created"),
-      createdAt: z.string(),
-      data: saleWebhookEventSchema,
-    }),
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("sale.created"),
+        createdAt: z.string(),
+        data: saleWebhookEventSchema,
+      })
+      .openapi({
+        ref: "SaleCreatedEvent",
+        description: "Triggered when a sale is created.",
+      }),
   ])
   .openapi({
     ref: "WebhookEvent",
