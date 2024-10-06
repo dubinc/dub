@@ -30,14 +30,10 @@ export const getEvents = async (params: EventsFilters) => {
     interval,
     start,
     end,
+    qr,
+    trigger,
     isDemo,
-    folderId,
-    allowedFolderIds,
   } = params;
-
-  if (folderId) {
-    allowedFolderIds = [folderId];
-  }
 
   if (start) {
     start = new Date(start);
@@ -51,6 +47,14 @@ export const getEvents = async (params: EventsFilters) => {
     interval = interval ?? "24h";
     start = INTERVAL_DATA[interval].startDate;
     end = new Date(Date.now());
+  }
+
+  if (trigger) {
+    if (trigger === "qr") {
+      qr = true;
+    } else if (trigger === "link") {
+      qr = false;
+    }
   }
 
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
@@ -68,10 +72,10 @@ export const getEvents = async (params: EventsFilters) => {
     ...params,
     eventType,
     workspaceId,
+    qr,
     offset: (params.page - 1) * params.limit,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
-    folderIds: allowedFolderIds,
   });
 
   const [linksMap, customersMap] = await Promise.all([

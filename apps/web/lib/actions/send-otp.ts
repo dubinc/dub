@@ -47,13 +47,13 @@ export const sendOtpAction = actionClient
 
     const code = generateOTP();
 
-    await Promise.all([
-      prisma.emailVerificationToken.deleteMany({
-        where: {
-          identifier: email,
-        },
-      }),
+    await prisma.emailVerificationToken.deleteMany({
+      where: {
+        identifier: email,
+      },
+    });
 
+    await Promise.all([
       prisma.emailVerificationToken.create({
         data: {
           identifier: email,
@@ -61,16 +61,15 @@ export const sendOtpAction = actionClient
           expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000),
         },
       }),
-    ]);
-
-    await sendEmail({
-      subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
-      email,
-      react: VerifyEmail({
+      sendEmail({
+        subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
         email,
-        code,
+        react: VerifyEmail({
+          email,
+          code,
+        }),
       }),
-    });
+    ]);
 
     return { ok: true };
   });
