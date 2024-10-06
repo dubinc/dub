@@ -122,6 +122,12 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   referers: "referer",
   referer_urls: "refererUrl",
   os: "os",
+  trigger: "qr",
+};
+
+export const TRIGGER_DISPLAY = {
+  qr: "QR Scan",
+  link: "Link Click",
 };
 
 export const VALID_ANALYTICS_FILTERS = [

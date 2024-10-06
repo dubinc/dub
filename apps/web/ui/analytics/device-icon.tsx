@@ -2,9 +2,11 @@ import { DeviceTabs } from "@/lib/analytics/types";
 import { Apple, Chrome, Safari } from "@/ui/shared/icons/devices";
 import { BlurImage } from "@dub/ui";
 import {
+  CursorRays,
   Desktop,
   GamingConsole,
   MobilePhone,
+  QRCode,
   TV,
   Tablet,
   Watch,
@@ -75,6 +77,12 @@ export default function DeviceIcon({
           className="h-4 w-5"
         />
       );
+    }
+  } else if (tab === "trigger") {
+    if (display === "qr") {
+      return <QRCode className={className} />;
+    } else {
+      return <CursorRays className={className} />;
     }
   } else {
     return (

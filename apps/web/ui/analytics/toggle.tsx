@@ -2,6 +2,7 @@ import { generateFilters } from "@/lib/ai/generate-filters";
 import {
   INTERVAL_DATA,
   INTERVAL_DISPLAYS,
+  TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
@@ -168,6 +169,9 @@ export default function Toggle({
   const os = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
   });
+  const trigger = useAnalyticsFilterOption("trigger", {
+    cacheOnly: !isRequested("trigger"),
+  });
   const referers = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
   });
@@ -330,18 +334,13 @@ export default function Toggle({
         key: "qr",
         icon: CursorRays,
         label: "Trigger",
-        options: [
-          {
-            value: false,
-            label: "Link click",
-            icon: CursorRays,
-          },
-          {
-            value: true,
-            label: "QR Scan",
-            icon: QRCode,
-          },
-        ],
+        options:
+          trigger?.map(({ trigger, count }) => ({
+            value: trigger,
+            label: TRIGGER_DISPLAY[trigger],
+            icon: trigger === "qr" ? QRCode : CursorRays,
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
         separatorAfter: !isPublicStatsPage,
       },
       {
