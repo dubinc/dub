@@ -54,7 +54,7 @@ const DEFAULT_COLORS = [
 
 export type QRCodeDesign = {
   fgColor: string;
-  showLogo: boolean;
+  hideLogo: boolean;
 };
 
 type LinkQRModalProps = {
@@ -102,14 +102,14 @@ function LinkQRModalInner({
     `qr-code-design-${workspaceId}`,
     {
       fgColor: "#000000",
-      showLogo: true,
+      hideLogo: false,
     },
   );
   const [data, setData] = useState(dataPersisted);
 
   const logo = workspaceLogo && plan !== "free" ? workspaceLogo : DUB_QR_LOGO;
 
-  const showLogo = data.showLogo || plan === "free";
+  const hideLogo = data.hideLogo && plan !== "free";
 
   const qrData = useMemo(
     () =>
@@ -117,11 +117,11 @@ function LinkQRModalInner({
         ? getQRData({
             url,
             fgColor: data.fgColor,
-            showLogo,
+            hideLogo,
             logo,
           })
         : null,
-    [url, data, logo],
+    [url, data, hideLogo, logo],
   );
 
   return (
@@ -205,7 +205,7 @@ function LinkQRModalInner({
           {url && (
             <AnimatePresence mode="wait">
               <motion.div
-                key={data.fgColor + data.showLogo}
+                key={data.fgColor + data.hideLogo}
                 initial={{ filter: "blur(2px)", opacity: 0.4 }}
                 animate={{ filter: "blur(0px)", opacity: 1 }}
                 exit={{ filter: "blur(2px)", opacity: 0.4 }}
@@ -215,7 +215,7 @@ function LinkQRModalInner({
                 <QRCode
                   url={url}
                   fgColor={data.fgColor}
-                  showLogo={data.showLogo}
+                  hideLogo={data.hideLogo}
                   logo={logo}
                   scale={1}
                 />
@@ -245,10 +245,10 @@ function LinkQRModalInner({
           />
         </div>
         <Switch
-          id={`${id}-show-logo`}
-          checked={data.showLogo}
-          fn={(checked) => {
-            setData((d) => ({ ...d, showLogo: checked }));
+          id={`${id}-hide-logo`}
+          checked={!data.hideLogo}
+          fn={() => {
+            setData((d) => ({ ...d, hideLogo: !d.hideLogo }));
           }}
           disabledTooltip={
             plan === "free" ? (
@@ -493,7 +493,7 @@ function CopyPopover({
                   searchParams: {
                     qr: "1",
                   },
-                })}${qrData.imageSettings?.src ? `&logo=${qrData.imageSettings.src}` : ""}`,
+                })}${qrData.hideLogo ? "&hideLogo=true" : ""}`,
               );
               toast.success("Copied QR code URL to clipboard!");
               setCopiedURL(true);
