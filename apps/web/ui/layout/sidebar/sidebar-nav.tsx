@@ -1,9 +1,11 @@
 import { Wordmark } from "@dub/ui";
-import { CursorRays, Hyperlink, LinesY } from "@dub/ui/src";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, Suspense, useMemo } from "react";
+import { CursorRays } from "./icons/cursor-rays";
+import { Hyperlink } from "./icons/hyperlink";
+import { LinesY } from "./icons/lines-y";
 import UserDropdown from "./user-dropdown";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
@@ -43,12 +45,17 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
             <Link
               key={href}
               href={href}
+              data-active={isActive}
               className={cn(
-                "flex items-center gap-2.5 rounded-md p-2 text-sm text-neutral-600 transition-colors duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                isActive && "bg-neutral-200/50",
+                "group flex items-center gap-2.5 rounded-md p-2 text-sm text-neutral-600 transition-[color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                isActive &&
+                  "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
               )}
             >
-              <Icon className="size-4 text-gray-500" />
+              <Icon
+                className="size-4 text-neutral-500 transition-colors duration-75 group-data-[active=true]:text-blue-600"
+                isActive={isActive}
+              />
               {name}
             </Link>
           );
