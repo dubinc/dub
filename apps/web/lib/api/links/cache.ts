@@ -1,4 +1,4 @@
-import { LinkProps } from "@/lib/types";
+import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 
 const CACHE_EXPIRATION = 60 * 60 * 24 * 7;
@@ -45,6 +45,32 @@ class LinkCache {
     }
 
     return response;
+  }
+
+  async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    const cacheKey = `${domain}:${key}`.toLowerCase();
+
+    return await redis.get<RedisLinkProps>(cacheKey);
+  }
+
+  async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    const cacheKey = `${domain}:${key}`.toLowerCase();
+
+    return await redis.del(cacheKey);
+  }
+
+  async deleteMany(links: Pick<LinkProps, "domain" | "key">[]) {
+    if (links.length === 0) {
+      return;
+    }
+
+    const pipeline = redis.pipeline();
+
+    links.forEach(({ domain, key }) => {
+      pipeline.del(`${domain}:${key}`.toLowerCase());
+    });
+
+    return await pipeline.exec();
   }
 }
 

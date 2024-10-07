@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
 import {
   R2_URL,
   getParamsFromURL,
@@ -145,9 +144,10 @@ export async function updateLink({
         workspace_id: response.projectId,
         created_at: response.createdAt,
       }),
+
       // if key is changed: delete the old key in Redis
-      (changedDomain || changedKey) &&
-        redis.hdel(oldLink.domain.toLowerCase(), oldLink.key.toLowerCase()),
+      (changedDomain || changedKey) && linkCache.delete(oldLink),
+
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&

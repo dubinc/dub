@@ -6,7 +6,7 @@ import {
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink } from "@/lib/upstash";
 import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
@@ -24,7 +24,6 @@ import {
 } from "next/server";
 import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
-import { RedisLinkProps } from "../types";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -51,7 +50,7 @@ export default async function LinkMiddleware(
     key = "_root";
   }
 
-  let link = await redis.hget<RedisLinkProps>(domain, key);
+  let link = await linkCache.get({ domain, key });
 
   if (!link) {
     const linkData = await getLinkViaEdge(domain, key);
