@@ -1,10 +1,11 @@
+import { getReferralLink } from "@/lib/actions/get-referral-link";
 import { CopyButton } from "@dub/ui";
 import { getPrettyUrl } from "@dub/utils";
 import { GenerateButton } from "./generate-button";
 import { InviteButton } from "./invite-button";
 
 export default async function ReferralLink({ slug }: { slug: string }) {
-  const shortLink = "demo";
+  const { shortLink } = (await getReferralLink(slug)) || {};
 
   return (
     <div className="mt-8">
