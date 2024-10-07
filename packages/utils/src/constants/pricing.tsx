@@ -243,7 +243,7 @@ export const PLANS = [
     clicks: 400000,
     domains: 100,
     tags: 300,
-    users: 25,
+    users: 30,
     ids: [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
       "price_1OnWu0AlJJEpqkPVkDWVriAB", // yearly (test)
