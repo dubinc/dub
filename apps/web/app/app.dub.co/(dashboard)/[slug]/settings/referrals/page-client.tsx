@@ -13,7 +13,7 @@ import { redirect } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { HeroBackground } from "./hero-background";
-import { ReferralLinkSkeleton } from "./referral-link";
+import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
 
 export default function ReferralsPageClient() {
   const { slug, flags } = useWorkspace();
@@ -91,7 +91,7 @@ export default function ReferralsPageClient() {
 
             {/* Referral link + invite button or empty/error states */}
             <Suspense fallback={<ReferralLinkSkeleton />}>
-              {/* <ReferralLink slug={slug!} /> */}
+              <ReferralLink slug={slug!} />
             </Suspense>
           </div>
         </div>
@@ -108,7 +108,8 @@ export default function ReferralsPageClient() {
           </p>
         </a>
       </div>
-      <ReferralsEmbed publicToken={publicToken} />;
+      {/* Embed Dub */}
+      <ReferralsEmbed publicToken={publicToken} />
     </div>
   );
 }
