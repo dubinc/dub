@@ -45,6 +45,12 @@ export const sendOtpAction = actionClient
       );
     }
 
+    if (email.includes("+") && email.endsWith("@gmail.com")) {
+      throw new Error(
+        "Email addresses with + are not allowed. Please use your work email instead.",
+      );
+    }
+
     const code = generateOTP();
 
     await prisma.emailVerificationToken.deleteMany({
