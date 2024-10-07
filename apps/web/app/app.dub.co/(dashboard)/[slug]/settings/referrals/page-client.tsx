@@ -13,7 +13,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { HeroBackground } from "./hero-background";
 import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
-import { ReferralsEmbed } from "./referrals";
+import { ReferralsEmbed } from "../../../../embed/referrals";
 
 export default function ReferralsPageClient() {
   const { slug, flags } = useWorkspace();

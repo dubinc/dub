@@ -1,5 +1,5 @@
 import { EventType } from "@/lib/analytics/types";
-import { Referrals } from "../(dashboard)/[slug]/settings/referrals/referrals";
+import { Referrals } from "./referrals";
 
 export default async function EmbedPage({
   searchParams,
