@@ -49,7 +49,7 @@ export function MainNav({
   useKeyboardShortcut("n", () => setIsOpen((o) => !o));
 
   return (
-    <div className="grid min-h-screen sm:grid-cols-[240px_1fr]">
+    <div className="min-h-screen sm:grid sm:grid-cols-[240px_minmax(0,1fr)]">
       {/* Side nav backdrop */}
       <div
         className={cn(

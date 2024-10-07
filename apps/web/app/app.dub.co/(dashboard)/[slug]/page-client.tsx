@@ -69,7 +69,7 @@ function WorkspaceLinks() {
     <>
       <LinkBuilder />
       <AddEditTagModal />
-      <div className="flex w-full items-center pt-6">
+      <div className="flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap">
             <div className="flex w-full grow gap-2 md:w-auto">

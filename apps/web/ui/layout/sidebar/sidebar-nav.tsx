@@ -24,7 +24,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
     <div className="relative p-3 text-gray-500">
       <div className="flex items-start justify-between gap-1">
         <Wordmark className="ml-1 h-6" />
-        <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-3 sm:flex">
           <Suspense fallback={null}>{toolContent}</Suspense>
           <UserDropdown />
         </div>
