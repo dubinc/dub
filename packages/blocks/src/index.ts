@@ -9,4 +9,5 @@ export * from "./hooks/use-analytics";
 export * from "./hooks/use-events";
 export * from "./mini-area-chart";
 export * from "./pagination-controls";
+export * from "./referrals-embed";
 export * from "./stats-card";

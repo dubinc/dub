@@ -6,6 +6,7 @@ import {
   REFERRAL_REVENUE_SHARE,
 } from "@/lib/referrals/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ReferralsEmbed } from "@dub/blocks";
 import { Check, Wordmark } from "@dub/ui";
 import { nFormatter } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -13,7 +14,6 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { HeroBackground } from "./hero-background";
 import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
-import { ReferralsEmbed } from "../../../../embed/referrals";
 
 export default function ReferralsPageClient() {
   const { slug, flags } = useWorkspace();
@@ -91,7 +91,7 @@ export default function ReferralsPageClient() {
 
             {/* Referral link + invite button or empty/error states */}
             <Suspense fallback={<ReferralLinkSkeleton />}>
-              <ReferralLink slug={slug!} />
+              {/* <ReferralLink slug={slug!} /> */}
             </Suspense>
           </div>
         </div>
