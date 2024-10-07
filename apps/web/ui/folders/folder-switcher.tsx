@@ -109,7 +109,7 @@ export const FolderSwitcher = () => {
         align="start"
       >
         <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-100">
-          <h1 className="text-xl font-semibold tracking-tight text-black">
+          <h1 className="order-1 text-2xl font-semibold tracking-tight text-black">
             {selectedFolder?.name}
           </h1>
           <ChevronsUpDown

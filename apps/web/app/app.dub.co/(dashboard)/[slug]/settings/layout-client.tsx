@@ -41,11 +41,17 @@ export default function WorkspaceSettingsLayoutClient({
             icon: Globe,
             segment: "domains",
           },
-          {
-            name: "Folders",
-            icon: Folder,
-            segment: "folders",
-          },
+
+          ...(flags?.linkFolders
+            ? [
+                {
+                  name: "Folders",
+                  icon: Folder,
+                  segment: "folders",
+                },
+              ]
+            : []),
+
           {
             name: "Tags",
             icon: Tag,

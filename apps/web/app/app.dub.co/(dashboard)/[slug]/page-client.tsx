@@ -56,18 +56,14 @@ export default function WorkspaceLinksClient() {
 
 function WorkspaceLinks() {
   const router = useRouter();
-  const { id: workspaceId } = useWorkspace();
+  const { isValidating } = useLinks();
   const searchParams = useSearchParams();
-
+  const { id: workspaceId, slug, flags } = useWorkspace();
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
 
-  const { slug } = useWorkspace();
-
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     useLinkFilters();
-
-  const { isValidating } = useLinks();
 
   const folderId = searchParams.get("folderId");
 
@@ -83,7 +79,14 @@ function WorkspaceLinks() {
       <div className="mt-10 flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap">
-            <FolderSwitcher />
+            {flags?.linkFolders ? (
+              <FolderSwitcher />
+            ) : (
+              <h1 className="order-1 text-2xl font-semibold tracking-tight text-black">
+                Links
+              </h1>
+            )}
+
             <div className="order-4 flex w-full grow flex-wrap justify-end gap-2 md:order-2 md:w-auto">
               <div className="w-full md:w-56 lg:w-64">
                 <SearchBoxPersisted

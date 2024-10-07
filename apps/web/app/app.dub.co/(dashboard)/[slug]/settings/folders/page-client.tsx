@@ -3,13 +3,14 @@
 import { Folder } from "@/lib/folder/types";
 import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { TooltipContent, useRouterStuff } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 const allLinkFolder: Folder = {
@@ -22,6 +23,8 @@ const allLinkFolder: Folder = {
 };
 
 export const FoldersPageClient = () => {
+  const router = useRouter();
+  const { flags } = useWorkspace();
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
 
@@ -43,6 +46,10 @@ export const FoldersPageClient = () => {
 
   const showAllLinkFolder =
     !searchParams.get("search") || folders?.length === 0;
+
+  if (flags && !flags.linkFolders) {
+    router.push("/settings");
+  }
 
   return (
     <>
