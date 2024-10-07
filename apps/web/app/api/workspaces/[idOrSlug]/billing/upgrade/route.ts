@@ -58,7 +58,18 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
   } else {
     // For both new users and users with canceled subscriptions
     const stripeSession = await stripe.checkout.sessions.create({
-      ...(workspace.stripeId ? { customer: workspace.stripeId } : { customer_email: session.user.email }),
+      ...(workspace.stripeId
+        ? {
+          customer: workspace.stripeId,
+          customer_update: {
+            name: 'auto',
+            address: 'auto',
+          },
+        }
+        : {
+          customer_email: session.user.email
+        }
+      ),
       billing_address_collection: "required",
       success_url: `${APP_DOMAIN}/${workspace.slug}?${onboarding ? "onboarded" : "upgraded"}=true&plan=${plan}&period=${period}`,
       cancel_url: baseUrl,
