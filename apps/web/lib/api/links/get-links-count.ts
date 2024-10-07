@@ -31,7 +31,7 @@ export async function getLinksCount({
     ...(search && {
       OR: [
         {
-          key: { contains: search },
+          shortLink: { contains: search },
         },
         {
           url: { contains: search },

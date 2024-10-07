@@ -19,6 +19,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     interval,
     start,
     end,
+    qr,
+    trigger,
     timezone = "UTC",
     isDemo,
     isDeprecatedClicksEndpoint = false,
@@ -47,6 +49,10 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
+  if (groupBy === "trigger") {
+    groupBy = "triggers";
+  }
+
   if (start) {
     start = new Date(start);
     end = end ? new Date(end) : new Date(Date.now());
@@ -70,6 +76,14 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     granularity = INTERVAL_DATA[interval].granularity;
   }
 
+  if (trigger) {
+    if (trigger === "qr") {
+      qr = true;
+    } else if (trigger === "link") {
+      qr = false;
+    }
+  }
+
   // Create a Tinybird pipe
   const pipe = (isDemo ? tbDemo : tb).buildPipe({
     pipe: `v1_${groupBy}`,
@@ -81,6 +95,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     ...params,
     eventType: event,
     workspaceId,
+    qr,
     start: start.toISOString().replace("T", " ").replace("Z", ""),
     end: end.toISOString().replace("T", " ").replace("Z", ""),
     granularity,

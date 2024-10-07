@@ -8,7 +8,7 @@ import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksCountQuerySchema.partial();
 
-export default function useLinksCount(
+export default function useLinksCount<T = any>(
   opts: z.infer<typeof partialQuerySchema> & { ignoreParams?: boolean } = {},
 ) {
   const { id: workspaceId } = useWorkspace();
@@ -49,7 +49,7 @@ export default function useLinksCount(
   );
 
   return {
-    data,
+    data: data as T,
     loading: !error && data === undefined,
     error,
   };

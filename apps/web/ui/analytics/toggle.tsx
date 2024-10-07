@@ -2,6 +2,7 @@ import { generateFilters } from "@/lib/ai/generate-filters";
 import {
   INTERVAL_DATA,
   INTERVAL_DISPLAYS,
+  TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
@@ -103,13 +104,13 @@ export default function Toggle({
       domain,
       key,
       tagId,
-      qr,
       continent,
       country,
       city,
       device,
       browser,
       os,
+      trigger,
       referer,
       refererUrl,
       url,
@@ -126,13 +127,13 @@ export default function Toggle({
           ]
         : []),
       ...(tagId ? [{ key: "tagId", value: tagId }] : []),
-      ...(qr ? [{ key: "qr", value: qr === "true" }] : []),
       ...(continent ? [{ key: "continent", value: continent }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
       ...(city ? [{ key: "city", value: city }] : []),
       ...(device ? [{ key: "device", value: device }] : []),
       ...(browser ? [{ key: "browser", value: browser }] : []),
       ...(os ? [{ key: "os", value: os }] : []),
+      ...(trigger ? [{ key: "trigger", value: trigger }] : []),
       ...(referer ? [{ key: "referer", value: referer }] : []),
       ...(refererUrl ? [{ key: "refererUrl", value: refererUrl }] : []),
       ...(url ? [{ key: "url", value: url }] : []),
@@ -167,6 +168,9 @@ export default function Toggle({
   });
   const os = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
+  });
+  const triggers = useAnalyticsFilterOption("triggers", {
+    cacheOnly: !isRequested("trigger"),
   });
   const referers = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
@@ -327,21 +331,16 @@ export default function Toggle({
             },
           ]),
       {
-        key: "qr",
+        key: "trigger",
         icon: CursorRays,
         label: "Trigger",
-        options: [
-          {
-            value: false,
-            label: "Link click",
-            icon: CursorRays,
-          },
-          {
-            value: true,
-            label: "QR Scan",
-            icon: QRCode,
-          },
-        ],
+        options:
+          triggers?.map(({ trigger, count }) => ({
+            value: trigger,
+            label: TRIGGER_DISPLAY[trigger],
+            icon: trigger === "qr" ? QRCode : CursorRays,
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
         separatorAfter: !isPublicStatsPage,
       },
       {

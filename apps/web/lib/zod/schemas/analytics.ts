@@ -2,6 +2,7 @@ import {
   EVENT_TYPES,
   OLD_ANALYTICS_ENDPOINTS,
   OLD_TO_NEW_ANALYTICS_ENDPOINTS,
+  TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
   eventIntervals,
   intervals,
@@ -29,20 +30,20 @@ const analyticsEvents = z
   })
   .default("clicks")
   .describe(
-    "The type of event to retrieve analytics for. Defaults to 'clicks'.",
+    "The type of event to retrieve analytics for. Defaults to `clicks`.",
   );
 
 const analyticsGroupBy = z
   .enum(VALID_ANALYTICS_ENDPOINTS, {
     errorMap: (_issue, _ctx) => {
       return {
-        message: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.join(", ")}`,
+        message: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.filter((v) => v !== "trigger").join(", ")}.`,
       };
     },
   })
   .default("count")
   .describe(
-    "The parameter to group the analytics data points by. Defaults to 'count' if undefined.",
+    "The parameter to group the analytics data points by. Defaults to `count` if undefined. Note that `trigger` is deprecated (use `triggers` instead), but kept for backwards compatibility.",
   );
 
 const oldAnalyticsEndpoints = z
@@ -137,6 +138,12 @@ export const analyticsQuerySchema = z.object({
     .transform((v) => capitalize(v) as string | undefined)
     .describe("The OS to retrieve analytics for.")
     .openapi({ example: "Windows" }),
+  trigger: z
+    .enum(TRIGGER_TYPES)
+    .optional()
+    .describe(
+      "The trigger to retrieve analytics for. If undefined, return both QR and link clicks.",
+    ),
   referer: z
     .string()
     .optional()
@@ -155,8 +162,9 @@ export const analyticsQuerySchema = z.object({
   qr: booleanQuerySchema
     .optional()
     .describe(
-      "Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
-    ),
+      "Deprecated. Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+    )
+    .openapi({ deprecated: true }),
   root: booleanQuerySchema
     .optional()
     .describe(

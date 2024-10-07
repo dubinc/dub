@@ -1,4 +1,4 @@
-// capitalie first character of each word in a string
+// capitalize first character of each word in a string
 export function capitalize(str?: string | null) {
   if (!str || typeof str !== "string") return str;
   return str

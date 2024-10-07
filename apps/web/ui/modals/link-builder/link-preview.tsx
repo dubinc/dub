@@ -1,8 +1,8 @@
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
   FileUpload,
   Icon,
-  InfoTooltip,
   ShimmerDots,
   SimpleTooltipContent,
   useKeyboardShortcut,
@@ -96,7 +96,7 @@ export function LinkPreview() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-medium text-gray-700">Link Preview</h2>
-          <InfoTooltip
+          <ProBadgeTooltip
             content={
               <SimpleTooltipContent
                 title="Customize how your links look when shared on social media to improve click-through rates."

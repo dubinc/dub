@@ -15,8 +15,8 @@ export default function ArchivedLinksHint() {
 }
 
 function ArchivedLinksHintHelper() {
-  const { data: count } = useLinksCount();
-  const { data: totalCount } = useLinksCount({ showArchived: true });
+  const { data: count } = useLinksCount<number>();
+  const { data: totalCount } = useLinksCount<number>({ showArchived: true });
   const archivedCount = totalCount - count;
 
   const { setShowArchived } = useContext(LinksDisplayContext);
