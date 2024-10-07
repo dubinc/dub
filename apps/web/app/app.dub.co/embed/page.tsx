@@ -10,7 +10,7 @@ export default async function EmbedPage({
 
   return (
     <>
-      <Referrals slug="demo" event={event} page={page} publicToken={token} />
+      <Referrals event={event} page={page} publicToken={token} />
     </>
   );
 }

@@ -7,7 +7,6 @@ import { Events } from "./events";
 import { Stats } from "./stats";
 
 interface ReferralsProps {
-  slug: string;
   event: EventType | undefined;
   page: string | undefined;
   publicToken: string | undefined | null;
