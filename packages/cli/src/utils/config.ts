@@ -6,7 +6,7 @@ export async function getConfig(): Promise<DubConfig> {
 
   if (!getConfig.size) {
     throw new Error(
-      "Workspace API key not found. Run `dub login` to configure your API key.",
+      "Access token not found. Please run `dub login` to log into the Dub platform.",
     );
   }
 

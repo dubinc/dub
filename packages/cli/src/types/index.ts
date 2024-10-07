@@ -1,5 +1,5 @@
 export interface DubConfig {
-  key: string;
+  token: string;
   domain?: string;
 }
 

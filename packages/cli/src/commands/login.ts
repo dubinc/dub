@@ -1,72 +1,41 @@
-import type { DubConfig } from "@/types";
+import { oauthCallbackServer } from "@/api/callback";
 import { handleError } from "@/utils/handle-error";
-import { logger } from "@/utils/logger";
-import chalk from "chalk";
+import { OAuth2Client } from "@badgateway/oauth2-client";
 import { Command } from "commander";
-import Configstore from "configstore";
+import * as dotenv from "dotenv";
+import open from "open";
 import ora from "ora";
-import prompts from "prompts";
-import { z } from "zod";
 
-const loginOptionsSchema = z.object({
-  key: z.string().min(8, { message: "Please use a valid workspace API key" }),
+dotenv.config();
+
+const oauth2Client = new OAuth2Client({
+  clientId: `${process.env.DUB_CLIENT_ID}`,
+  clientSecret: `${process.env.DUB_CLIENT_SECRET}`,
+  authorizationEndpoint: "https://app.dub.co/oauth/authorize",
+  tokenEndpoint: "https://api.dub.co/oauth/token",
 });
 
 export const login = new Command()
   .name("login")
-  .description("Configure your workspace key")
-  .argument("[key]", "Workspace API key for authentication")
-  .action(async (key) => {
+  .description("Log into the Dub platform")
+  .action(async () => {
     try {
-      let credentials = { key };
+      const authUrl = await oauth2Client.authorizationCode.getAuthorizeUri({
+        redirectUri: `${process.env.DUB_CALLBACK_URL}/callback`,
+        scope: ["links.read", "links.write", "domains.read"],
+      });
 
-      if (!credentials.key) {
-        credentials = await prompts(
-          [
-            {
-              type: "password",
-              name: "key",
-              message: "Enter your workspace API key:",
-              validate: (value) => {
-                const result = loginOptionsSchema.shape.key.safeParse(value);
-                return result.success || result.error.errors[0].message;
-              },
-            },
-          ],
-          {
-            onCancel: () => {
-              logger.info("");
-              logger.warn("You cancelled the prompt.");
-              logger.info("");
-              process.exit(0);
-            },
-          },
-        );
-      }
+      const spinner = ora("Opening browser for authentication").start();
 
-      const validatedData = loginOptionsSchema.parse(credentials);
+      await open(authUrl);
 
-      const spinner = ora("configuring workspace key").start();
+      spinner.text = "Waiting for authentication";
 
-      const configInfo: DubConfig = {
-        key: validatedData.key.trim(),
-        domain: "dub.sh",
-      };
-
-      const config = new Configstore("dub-cli");
-      config.set(configInfo);
-
-      if (!config.path) {
-        handleError(new Error("Failed to create config file"));
-      }
-
-      spinner.succeed("Done");
-
-      logger.info("");
-      logger.info(
-        `${chalk.green("Success!")} Workspace API key configured successfully.`,
-      );
-      logger.info("");
+      oauthCallbackServer({
+        oauth2Client,
+        callbackUrl: process.env.DUB_CALLBACK_URL as string,
+        spinner,
+      });
     } catch (error) {
       handleError(error);
     }
