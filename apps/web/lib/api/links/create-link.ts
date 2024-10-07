@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
+import { formatRedisLink } from "@/lib/upstash";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
@@ -90,7 +91,11 @@ export async function createLink(link: ProcessedLinkProps) {
   waitUntil(
     Promise.all([
       // record link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        link: await formatRedisLink(response),
+        domain: response.domain,
+        key: response.key,
+      }),
 
       // record link in Tinybird
       recordLink({

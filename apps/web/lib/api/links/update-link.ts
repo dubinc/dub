@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
+import { formatRedisLink } from "@/lib/upstash";
 import {
   R2_URL,
   getParamsFromURL,
@@ -133,8 +134,12 @@ export async function updateLink({
     Promise.all([
       // record link in Redis
       linkCache.set({
-        ...response,
-        webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
+        link: await formatRedisLink({
+          ...response,
+          webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
+        }),
+        domain: response.domain,
+        key: response.key,
       }),
 
       // record link in Tinybird

@@ -29,22 +29,21 @@ class LinkCache {
     await pipeline.exec();
   }
 
-  // TODO:
-  // Fix the type
-  async set(link: any) {
-    const redisLink = await formatRedisLink(link);
-    const cacheKey = `${link.domain}:${link.key}`.toLowerCase();
+  async set({
+    link,
+    domain,
+    key,
+  }: {
+    link: RedisLinkProps;
+    domain: string;
+    key: string;
+  }) {
+    const cacheKey = `${domain}:${key}`.toLowerCase();
 
-    const response = await redis.set(cacheKey, JSON.stringify(redisLink), {
+    return await redis.set(cacheKey, JSON.stringify(link), {
       ex: CACHE_EXPIRATION,
       nx: true,
     });
-
-    if (!response) {
-      console.error("Failed to set link in cache", cacheKey);
-    }
-
-    return response;
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
