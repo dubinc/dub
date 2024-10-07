@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
 import {
   R2_URL,
   getParamsFromURL,
@@ -12,6 +12,7 @@ import {
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { linkCache } from "./cache";
 import { combineTagIds, transformLink } from "./utils";
 
 export async function updateLink({
@@ -132,14 +133,8 @@ export async function updateLink({
   waitUntil(
     Promise.all([
       // record link in Redis
-      redis.hset(updatedLink.domain.toLowerCase(), {
-        [updatedLink.key.toLowerCase()]: await formatRedisLink({
-          ...response,
-          ...(response.webhooks.length > 0 && {
-            webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
-          }),
-        }),
-      }),
+      linkCache.set(response),
+
       // record link in Tinybird
       recordLink({
         link_id: response.id,

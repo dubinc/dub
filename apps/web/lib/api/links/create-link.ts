@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
@@ -13,6 +12,7 @@ import {
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { linkCache } from "./cache";
 import { updateLinksUsage } from "./update-links-usage";
 import { combineTagIds, transformLink } from "./utils";
 
@@ -90,9 +90,8 @@ export async function createLink(link: ProcessedLinkProps) {
   waitUntil(
     Promise.all([
       // record link in Redis
-      redis.hset(link.domain.toLowerCase(), {
-        [link.key.toLowerCase()]: await formatRedisLink(response),
-      }),
+      linkCache.set(response),
+
       // record link in Tinybird
       recordLink({
         link_id: response.id,

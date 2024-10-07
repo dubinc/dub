@@ -1,6 +1,8 @@
 import { LinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 
+const CACHE_EXPIRATION = 60 * 60 * 24 * 7;
+
 class LinkCache {
   async mset(links: (LinkProps & { webhookIds?: string[] })[]) {
     if (links.length === 0) {
@@ -18,12 +20,31 @@ class LinkCache {
     );
 
     redisLinks.map(({ key, domain, ...redisLink }) => {
-      pipeline.hset(domain, {
-        [key]: redisLink,
+      pipeline.set(`${domain}:${key}`, JSON.stringify(redisLink), {
+        ex: CACHE_EXPIRATION,
+        nx: true,
       });
     });
 
     await pipeline.exec();
+  }
+
+  // TODO:
+  // Fix the type
+  async set(link: any) {
+    const redisLink = await formatRedisLink(link);
+    const cacheKey = `${link.domain}:${link.key}`.toLowerCase();
+
+    const response = await redis.set(cacheKey, JSON.stringify(redisLink), {
+      ex: CACHE_EXPIRATION,
+      nx: true,
+    });
+
+    if (!response) {
+      console.error("Failed to set link in cache", cacheKey);
+    }
+
+    return response;
   }
 }
 

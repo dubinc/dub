@@ -5,7 +5,7 @@ import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
 import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
@@ -13,6 +13,7 @@ import {
   R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { linkCache } from "./links/cache";
 
 export async function deleteWorkspace(
   workspace: Pick<
@@ -164,16 +165,12 @@ export async function deleteWorkspaceAdmin(
     }),
   ]);
 
-  const updateLinkRedisResponse = await Promise.allSettled(
-    defaultDomainLinks.map(async (link) => {
-      return redis.hset(link.domain.toLowerCase(), {
-        [link.key.toLowerCase()]: {
-          ...(await formatRedisLink(link)),
-          projectId: LEGAL_WORKSPACE_ID,
-        },
-      });
-    }),
-  );
+  const redisLinks = defaultDomainLinks.map((link) => ({
+    ...link,
+    projectId: LEGAL_WORKSPACE_ID,
+  }));
+
+  const updateLinkRedisResponse = await linkCache.mset(redisLinks);
 
   // update all default domain links to the legal workspace
   const updateLinkPrismaResponse = await prisma.link.updateMany({
@@ -188,8 +185,6 @@ export async function deleteWorkspaceAdmin(
       projectId: LEGAL_WORKSPACE_ID,
     },
   });
-
-  console.log({ updateLinkRedisResponse, updateLinkPrismaResponse });
 
   // delete all domains, links, and uploaded images associated with the workspace
   const deleteDomainsLinksResponse = await Promise.allSettled([

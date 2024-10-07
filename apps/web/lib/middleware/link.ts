@@ -22,6 +22,7 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
+import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { RedisLinkProps } from "../types";
 
@@ -69,11 +70,7 @@ export default async function LinkMiddleware(
     // format link to fit the RedisLinkProps interface
     link = await formatRedisLink(linkData as any);
 
-    ev.waitUntil(
-      redis.hset(domain, {
-        [key]: link,
-      }),
-    );
+    ev.waitUntil(linkCache.set(linkData as any));
   }
 
   const {
