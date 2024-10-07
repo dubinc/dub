@@ -13,7 +13,7 @@ import { redirect } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { HeroBackground } from "./hero-background";
-import ReferralLink, { ReferralLinkSkeleton } from "./referral-link";
+import { ReferralLinkSkeleton } from "./referral-link";
 
 export default function ReferralsPageClient() {
   const { slug, flags } = useWorkspace();
