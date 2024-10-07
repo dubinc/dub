@@ -69,7 +69,7 @@ export default async function LinkMiddleware(
     // format link to fit the RedisLinkProps interface
     link = await formatRedisLink(linkData as any);
 
-    ev.waitUntil(linkCache.set(linkData as any));
+    ev.waitUntil(linkCache.set(linkData));
   }
 
   const {

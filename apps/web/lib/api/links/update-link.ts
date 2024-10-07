@@ -132,7 +132,10 @@ export async function updateLink({
   waitUntil(
     Promise.all([
       // record link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        ...response,
+        webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
+      }),
 
       // record link in Tinybird
       recordLink({
