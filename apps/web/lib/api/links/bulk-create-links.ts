@@ -102,7 +102,7 @@ export async function bulkCreateLinks({
   } else {
     // if there are no tags, we can use createMany to create the links
     await prisma.link.createMany({
-      data: links.map((link) => {
+      data: links.map(({ tagId, tagIds, tagNames, ...link }) => {
         const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
           getParamsFromURL(link.url);
 
