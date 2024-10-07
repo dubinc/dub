@@ -26,7 +26,12 @@ export default function WorkspaceTagsClient() {
   const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
 
   const { tags, loading } = useTags();
-  const { data: tagsCount } = useLinksCount({
+  const { data: tagsCount } = useLinksCount<
+    {
+      tagId: string;
+      _count: number;
+    }[]
+  >({
     groupBy: "tagId",
     showArchived: true,
   });
