@@ -4,19 +4,19 @@ import { useMemo } from "react";
 export function QRCode({
   url,
   fgColor,
-  showLogo,
+  hideLogo,
   logo,
   scale = 1,
 }: {
   url: string;
   fgColor?: string;
-  showLogo?: boolean;
+  hideLogo?: boolean;
   logo?: string;
   scale?: number;
 }) {
   const qrData = useMemo(
-    () => getQRData({ url, fgColor, showLogo, logo }),
-    [url, fgColor, showLogo, logo],
+    () => getQRData({ url, fgColor, hideLogo, logo }),
+    [url, fgColor, hideLogo, logo],
   );
 
   return (

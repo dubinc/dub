@@ -1,10 +1,8 @@
-import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
-import { DUB_WORKSPACE_ID, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
+import { GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import { useContext, useMemo } from "react";
 import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
@@ -143,50 +141,40 @@ export function useLinkFilters() {
 }
 
 function useDomainFilterOptions() {
-  const { id: workspaceId } = useWorkspace();
   const { showArchived } = useContext(LinksDisplayContext);
 
-  const { data: domainsCount } = useLinksCount({
+  const { data: domainsCount } = useLinksCount<
+    {
+      domain: string;
+      _count: number;
+    }[]
+  >({
     groupBy: "domain",
     showArchived,
   });
-  const { activeWorkspaceDomains, activeDefaultDomains } = useDomains();
 
   return useMemo(() => {
-    if (domainsCount?.length === 0) return [];
+    if (!domainsCount || domainsCount.length === 0) return [];
 
-    const workspaceDomains = activeWorkspaceDomains?.map((domain) => ({
-      ...domain,
-      count:
-        domainsCount?.find(({ domain: d }) => d === domain.slug)?._count || 0,
-    }));
-
-    const defaultDomains =
-      workspaceId === `ws_${DUB_WORKSPACE_ID}`
-        ? []
-        : activeDefaultDomains
-            ?.map((domain) => ({
-              ...domain,
-              count:
-                domainsCount?.find(({ domain: d }) => d === domain.slug)
-                  ?._count || 0,
-            }))
-            .filter((d) => d.count > 0);
-
-    const finalOptions = [
-      ...(workspaceDomains || []),
-      ...(defaultDomains || []),
-    ].sort((a, b) => b.count - a.count);
-
-    return finalOptions;
-  }, [activeWorkspaceDomains, activeDefaultDomains, domainsCount, workspaceId]);
+    return domainsCount
+      .map(({ domain, _count }) => ({
+        slug: domain,
+        count: _count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [domainsCount]);
 }
 
 function useTagFilterOptions() {
   const { tags } = useTags();
   const { showArchived } = useContext(LinksDisplayContext);
 
-  const { data: tagsCount } = useLinksCount({ groupBy: "tagId", showArchived });
+  const { data: tagsCount } = useLinksCount<
+    {
+      tagId: string;
+      _count: number;
+    }[]
+  >({ groupBy: "tagId", showArchived });
 
   return useMemo(
     () =>
@@ -204,7 +192,12 @@ function useUserFilterOptions() {
   const { users } = useUsers();
   const { showArchived } = useContext(LinksDisplayContext);
 
-  const { data: usersCount } = useLinksCount({
+  const { data: usersCount } = useLinksCount<
+    {
+      userId: string;
+      _count: number;
+    }[]
+  >({
     groupBy: "userId",
     showArchived,
   });

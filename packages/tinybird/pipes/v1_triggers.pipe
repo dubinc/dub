@@ -1,5 +1,5 @@
 DESCRIPTION >
-	Top countries
+	Top triggers
 
 
 NODE workspace_links
@@ -27,7 +27,7 @@ SQL >
 
 
 
-NODE trigger_clicks
+NODE triggers_clicks
 SQL >
 
     %
@@ -57,7 +57,7 @@ SQL >
 
 
 
-NODE trigger_leads
+NODE triggers_leads
 SQL >
 
     %
@@ -87,7 +87,7 @@ SQL >
 
 
 
-NODE trigger_sales
+NODE triggers_sales
 SQL >
 
     %
@@ -127,13 +127,13 @@ SQL >
 
 
 
-NODE trigger_composite
+NODE triggers_composite
 SQL >
 
     SELECT dce.trigger AS trigger, clicks, leads, sales, amount, saleAmount
-    FROM (SELECT * FROM trigger_clicks) AS dce
-    LEFT JOIN (SELECT * FROM trigger_leads) AS dle ON dce.trigger = dle.trigger
-    LEFT JOIN (SELECT * FROM trigger_sales) AS dse ON dce.trigger = dse.trigger
+    FROM (SELECT * FROM triggers_clicks) AS dce
+    LEFT JOIN (SELECT * FROM triggers_leads) AS dle ON dce.trigger = dle.trigger
+    LEFT JOIN (SELECT * FROM triggers_sales) AS dse ON dce.trigger = dse.trigger
     ORDER BY clicks DESC
 
 
@@ -144,10 +144,10 @@ SQL >
     %
     SELECT *
     FROM
-        {% if eventType == 'clicks' %} trigger_clicks
-        {% elif eventType == 'leads' %} trigger_leads
-        {% elif eventType == 'sales' %} trigger_sales
-        {% else %} trigger_composite
+        {% if eventType == 'clicks' %} triggers_clicks
+        {% elif eventType == 'leads' %} triggers_leads
+        {% elif eventType == 'sales' %} triggers_sales
+        {% else %} triggers_composite
         {% end %}
 
 

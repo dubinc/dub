@@ -1,4 +1,7 @@
-import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import {
+  SINGULAR_ANALYTICS_ENDPOINTS,
+  TRIGGER_DISPLAY,
+} from "@/lib/analytics/constants";
 import { DeviceTabs } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
 import { useContext, useState } from "react";
@@ -25,6 +28,7 @@ export default function Devices() {
         { id: "devices", label: "Devices" },
         { id: "browsers", label: "Browsers" },
         { id: "os", label: "OS" },
+        { id: "triggers", label: "Triggers" },
       ]}
       selectedTabId={tab}
       onSelectTab={setTab}
@@ -46,11 +50,12 @@ export default function Devices() {
                         className="h-4 w-4"
                       />
                     ),
-                    title: d[singularTabName],
+                    title:
+                      tab === "triggers"
+                        ? TRIGGER_DISPLAY[d.trigger]
+                        : d[singularTabName],
                     href: queryParams({
-                      set: {
-                        [singularTabName]: d[singularTabName],
-                      },
+                      set: { [singularTabName]: d[singularTabName] },
                       getNewPath: true,
                     }) as string,
                     value: d[dataKey] || 0,

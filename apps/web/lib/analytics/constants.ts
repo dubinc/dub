@@ -106,11 +106,12 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "devices",
   "browsers",
   "os",
+  "trigger", // deprecated, but keeping for now for backwards compatibility
+  "triggers",
   "referers",
   "referer_urls",
   "top_links",
   "top_urls",
-  "trigger",
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
@@ -122,6 +123,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   referers: "referer",
   referer_urls: "refererUrl",
   os: "os",
+  triggers: "trigger",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
@@ -136,6 +138,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "device",
   "browser",
   "os",
+  "trigger",
   "referer",
   "refererUrl",
   "url",
@@ -143,6 +146,12 @@ export const VALID_ANALYTICS_FILTERS = [
   "qr",
   "root",
 ];
+
+export const TRIGGER_DISPLAY = {
+  qr: "QR Scan",
+  link: "Link Click",
+};
+export const TRIGGER_TYPES = ["qr", "link"] as const;
 
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
 
@@ -161,6 +170,8 @@ export const OLD_ANALYTICS_ENDPOINTS = [
   "browsers",
   "browser",
   "os",
+  "triggers",
+  "trigger",
   "referers",
   "referer",
   "top_links",
@@ -175,6 +186,7 @@ export const OLD_TO_NEW_ANALYTICS_ENDPOINTS = {
   device: "devices",
   browser: "browsers",
   os: "os",
+  trigger: "triggers",
   referer: "referers",
   top_links: "top_links",
   top_urls: "top_urls",

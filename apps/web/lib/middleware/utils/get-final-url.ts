@@ -50,7 +50,7 @@ export const getFinalUrlForRecordClick = ({
   req: Request;
   url: string;
 }) => {
-  const searchParams = new URLSearchParams(req.url);
+  const searchParams = new URL(req.url).searchParams;
   const urlObj = new URL(url);
 
   // Filter out query params that are not in the allowed list

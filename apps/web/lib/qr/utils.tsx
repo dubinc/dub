@@ -116,6 +116,31 @@ export function getImageSettings(
   return { x, y, h, w, excavation };
 }
 
+export function convertImageSettingsToPixels(
+  calculatedImageSettings: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    excavation: Excavation | null;
+  },
+  size: number,
+  numCells: number,
+): {
+  imgWidth: number;
+  imgHeight: number;
+  imgLeft: number;
+  imgTop: number;
+} {
+  const pixelRatio = size / numCells;
+  const imgWidth = calculatedImageSettings.w * pixelRatio;
+  const imgHeight = calculatedImageSettings.h * pixelRatio;
+  const imgLeft = calculatedImageSettings.x * pixelRatio;
+  const imgTop = calculatedImageSettings.y * pixelRatio;
+
+  return { imgWidth, imgHeight, imgLeft, imgTop };
+}
+
 export function QRCodeSVG(props: QRPropsSVG) {
   const {
     value,
@@ -124,13 +149,21 @@ export function QRCodeSVG(props: QRPropsSVG) {
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
     includeMargin = DEFAULT_INCLUDEMARGIN,
+    isOGContext = false,
     imageSettings,
     ...otherProps
   } = props;
 
+  const shouldUseHigherErrorLevel =
+    isOGContext && imageSettings?.excavate && (level === "L" || level === "M");
+
+  // Use a higher error correction level 'Q' when excavation is enabled
+  // to ensure the QR code remains scannable despite the removed modules.
+  const effectiveLevel = shouldUseHigherErrorLevel ? "Q" : level;
+
   let cells = qrcodegen.QrCode.encodeText(
     value,
-    ERROR_LEVEL_MAP[level],
+    ERROR_LEVEL_MAP[effectiveLevel],
   ).getModules();
 
   const margin = includeMargin ? MARGIN_SIZE : 0;
@@ -148,16 +181,35 @@ export function QRCodeSVG(props: QRPropsSVG) {
       cells = excavateModules(cells, calculatedImageSettings.excavation);
     }
 
-    image = (
-      <image
-        href={imageSettings.src}
-        height={calculatedImageSettings.h}
-        width={calculatedImageSettings.w}
-        x={calculatedImageSettings.x + margin}
-        y={calculatedImageSettings.y + margin}
-        preserveAspectRatio="none"
-      />
-    );
+    if (isOGContext) {
+      const { imgWidth, imgHeight, imgLeft, imgTop } =
+        convertImageSettingsToPixels(calculatedImageSettings, size, numCells);
+
+      image = (
+        <img
+          src={imageSettings.src}
+          alt="Logo"
+          style={{
+            position: "absolute",
+            left: `${imgLeft}px`,
+            top: `${imgTop}px`,
+            width: `${imgWidth}px`,
+            height: `${imgHeight}px`,
+          }}
+        />
+      );
+    } else {
+      image = (
+        <image
+          href={imageSettings.src}
+          height={calculatedImageSettings.h}
+          width={calculatedImageSettings.w}
+          x={calculatedImageSettings.x + margin}
+          y={calculatedImageSettings.y + margin}
+          preserveAspectRatio="none"
+        />
+      );
+    }
   }
 
   // Drawing strategy: instead of a rect per module, we're going to create a
