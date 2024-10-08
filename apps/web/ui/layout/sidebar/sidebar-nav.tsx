@@ -5,8 +5,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, Suspense, useMemo } from "react";
-import { ITEMS } from "./items";
+import { ReactNode, Suspense, useMemo, useState } from "react";
+import { ITEMS, type NavItem } from "./items";
 import UserDropdown from "./user-dropdown";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
@@ -85,32 +85,9 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
                       {name}
                     </div>
                   )}
-                  {items({ slug: slug || "", flags }).map(
-                    ({ name, icon: Icon, href, exact }) => {
-                      const isActive = exact
-                        ? pathname === href
-                        : pathname.startsWith(href);
-
-                      return (
-                        <Link
-                          key={href}
-                          href={href}
-                          data-active={isActive}
-                          className={cn(
-                            "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                            isActive &&
-                              "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
-                          )}
-                        >
-                          <Icon
-                            className="size-4 text-neutral-500 transition-colors duration-75 group-data-[active=true]:text-blue-600"
-                            isActive={isActive}
-                          />
-                          {name}
-                        </Link>
-                      );
-                    },
-                  )}
+                  {items({ slug: slug || "", flags }).map((item) => (
+                    <NavItem key={item.name} pathname={pathname} item={item} />
+                  ))}
                 </div>
               ))}
             </div>
@@ -118,5 +95,34 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+function NavItem({ pathname, item }: { pathname: string; item: NavItem }) {
+  const { name, icon: Icon, href, exact } = item;
+
+  const isActive = exact ? pathname === href : pathname.startsWith(href);
+
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <Link
+      key={href}
+      href={href}
+      data-active={isActive}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      className={cn(
+        "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+        isActive &&
+          "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
+      )}
+    >
+      <Icon
+        className="size-4 text-neutral-500 transition-colors duration-75 group-data-[active=true]:text-blue-600"
+        data-hovered={hovered}
+      />
+      {name}
+    </Link>
   );
 }

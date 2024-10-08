@@ -1,9 +1,9 @@
 import { BetaFeatures } from "@/lib/types";
+import { Icon } from "@dub/ui";
 import {
   CircleInfo,
   ConnectedDots,
   CubeSettings,
-  Gear,
   Gear2,
   Gift,
   Globe,
@@ -14,14 +14,14 @@ import {
   Users6,
 } from "@dub/ui/src/icons";
 import { Webhook } from "lucide-react";
-import { ComponentType, SVGProps } from "react";
 import { CursorRays } from "./icons/cursor-rays";
+import { Gear } from "./icons/gear";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 
-type NavItem = {
+export type NavItem = {
   name: string;
-  icon: ComponentType<SVGProps<SVGSVGElement> & { isActive?: boolean }>;
+  icon: Icon;
   href: string;
   exact?: boolean;
 };

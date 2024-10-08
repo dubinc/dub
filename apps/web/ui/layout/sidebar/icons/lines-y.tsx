@@ -4,17 +4,17 @@ import { SVGProps, useEffect, useRef } from "react";
 const SCALES = [0.3, 1.5, 1.75, 0.75];
 
 export function LinesY({
-  isActive,
+  "data-hovered": hovered,
   className,
   ...rest
-}: { isActive?: boolean } & SVGProps<SVGSVGElement>) {
+}: { "data-hovered"?: boolean } & SVGProps<SVGSVGElement>) {
   const line1Ref = useRef<SVGLineElement>(null);
   const line2Ref = useRef<SVGLineElement>(null);
   const line3Ref = useRef<SVGLineElement>(null);
   const line4Ref = useRef<SVGLineElement>(null);
 
   useEffect(() => {
-    if (!isActive) return;
+    if (!hovered) return;
 
     [line1Ref, line2Ref, line3Ref, line4Ref].forEach((ref, idx) => {
       if (!ref.current) return;
@@ -31,7 +31,7 @@ export function LinesY({
         },
       );
     });
-  }, [isActive]);
+  }, [hovered]);
 
   return (
     <svg

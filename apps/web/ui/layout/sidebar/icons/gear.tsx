@@ -1,23 +1,23 @@
 import { SVGProps, useEffect, useRef } from "react";
 
 export function Gear({
-  isActive,
+  "data-hovered": hovered,
   ...rest
-}: { isActive?: boolean } & SVGProps<SVGSVGElement>) {
+}: { "data-hovered"?: boolean } & SVGProps<SVGSVGElement>) {
   const ref = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     if (!ref.current) return;
 
-    if (isActive) {
+    if (hovered) {
       ref.current.animate(
-        [{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }],
+        [{ transform: "rotate(0)" }, { transform: "rotate(180deg)" }],
         {
           duration: 300,
         },
       );
     }
-  }, [isActive]);
+  }, [hovered]);
 
   return (
     <svg

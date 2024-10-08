@@ -1,15 +1,15 @@
 import { SVGProps, useEffect, useRef } from "react";
 
 export function Hyperlink({
-  isActive,
+  "data-hovered": hovered,
   ...rest
-}: { isActive?: boolean } & SVGProps<SVGSVGElement>) {
+}: { "data-hovered"?: boolean } & SVGProps<SVGSVGElement>) {
   const ref = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     if (!ref.current) return;
 
-    if (isActive) {
+    if (hovered) {
       ref.current.animate(
         [
           { transform: "rotate(0deg)" },
@@ -22,7 +22,7 @@ export function Hyperlink({
         },
       );
     }
-  }, [isActive]);
+  }, [hovered]);
 
   return (
     <svg

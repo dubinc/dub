@@ -2,17 +2,17 @@ import { cn } from "@dub/utils";
 import { SVGProps, useEffect, useRef } from "react";
 
 export function CursorRays({
-  isActive,
+  "data-hovered": hovered,
   className,
   ...rest
-}: { isActive?: boolean } & SVGProps<SVGSVGElement>) {
+}: { "data-hovered"?: boolean } & SVGProps<SVGSVGElement>) {
   const cursorRef = useRef<SVGGElement>(null);
   const raysRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
     if (!raysRef.current || !cursorRef.current) return;
 
-    if (isActive) {
+    if (hovered) {
       raysRef.current.animate(
         [
           { transform: "scale(1)", opacity: 1 },
@@ -22,7 +22,7 @@ export function CursorRays({
           { transform: "scale(1)", opacity: 1 },
         ],
         {
-          duration: 500,
+          duration: 300,
         },
       );
 
@@ -33,11 +33,11 @@ export function CursorRays({
           { transform: "translate(0, 0)" },
         ],
         {
-          duration: 500,
+          duration: 300,
         },
       );
     }
-  }, [isActive]);
+  }, [hovered]);
 
   return (
     <svg
