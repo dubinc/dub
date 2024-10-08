@@ -60,6 +60,7 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
+import { WebhookSelect } from "./webhook-select";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -69,7 +70,9 @@ export const LinkModalContext = createContext<{
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
-export type LinkFormData = LinkWithTagsProps;
+export type LinkFormData = LinkWithTagsProps & {
+  webhookIds?: string[];
+};
 
 type LinkBuilderProps = {
   showLinkBuilder: boolean;
@@ -463,6 +466,7 @@ function LinkBuilderInner({
             </div>
             <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 p-4">
               <div className="flex min-w-0 items-center gap-2">
+                <WebhookSelect />
                 <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
                   <ExpirationButton />
