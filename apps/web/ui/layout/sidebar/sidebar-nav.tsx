@@ -10,7 +10,6 @@ import {
   Suspense,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { ITEMS, type NavItem } from "./items";
@@ -139,11 +138,8 @@ export function Area({
   direction,
   children,
 }: PropsWithChildren<{ visible: boolean; direction: "left" | "right" }>) {
-  const ref = useRef<HTMLDivElement>(null);
-
   return (
     <div
-      ref={ref}
       className={cn(
         "left-0 top-0 w-full transition-[opacity,transform] duration-300",
         visible
