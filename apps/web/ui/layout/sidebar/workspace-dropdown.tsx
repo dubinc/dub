@@ -215,15 +215,6 @@ function WorkspaceList({
             <p className="px-1 text-xs font-medium text-neutral-500">
               Workspaces
             </p>
-            {workspaces.length > 0 && (
-              <Link
-                href="/workspaces"
-                onClick={() => setOpenPopover(false)}
-                className="rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors duration-75 hover:bg-neutral-200/50 hover:text-neutral-700 active:bg-neutral-200/80"
-              >
-                View All
-              </Link>
-            )}
           </div>
           <div className="flex flex-col gap-0.5">
             {workspaces.map(({ id, name, slug, logo, plan }) => {

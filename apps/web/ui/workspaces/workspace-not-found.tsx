@@ -1,6 +1,5 @@
 import { MaxWidthWrapper } from "@dub/ui";
 import { FileX2 } from "lucide-react";
-import Link from "next/link";
 
 export default function WorkspaceNotFound() {
   return (
@@ -22,12 +21,6 @@ export default function WorkspaceNotFound() {
           width={400}
           height={400}
         />
-        <Link
-          href="/workspaces"
-          className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
-        >
-          Back to my workspaces
-        </Link>
       </div>
     </MaxWidthWrapper>
   );
