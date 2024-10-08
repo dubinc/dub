@@ -243,7 +243,7 @@ export const PLANS = [
     clicks: 400000,
     domains: 100,
     tags: 300,
-    users: 40,
+    users: 30,
     ids: [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
       "price_1OnWu0AlJJEpqkPVkDWVriAB", // yearly (test)
@@ -259,7 +259,7 @@ export const PLANS = [
     clicks: 1000000,
     domains: 250,
     tags: 500,
-    users: 100,
+    users: 50,
     ids: [
       "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
       "price_1OnWvCAlJJEpqkPVHhCCvIOq", // yearly (test)
@@ -275,7 +275,7 @@ export const PLANS = [
     clicks: 2500000,
     domains: 500,
     tags: 1000,
-    users: 250,
+    users: 100,
     ids: [
       "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
       "price_1OnWwLAlJJEpqkPV4eMbOkNh", // yearly (test)
