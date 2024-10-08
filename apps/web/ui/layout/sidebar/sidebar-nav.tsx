@@ -97,7 +97,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
                           href={href}
                           data-active={isActive}
                           className={cn(
-                            "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                            "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
                             isActive &&
                               "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
                           )}
