@@ -317,6 +317,12 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
     ),
+  webhookIds: z
+    .array(z.string())
+    .nullish()
+    .describe(
+      "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
+    ),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial().optional();

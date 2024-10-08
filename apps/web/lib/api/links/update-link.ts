@@ -49,6 +49,7 @@ export async function updateLink({
     tagId,
     tagIds,
     tagNames,
+    webhookIds,
     ...rest
   } = updatedLink;
 
@@ -106,6 +107,18 @@ export async function updateLink({
           create: combinedTagIds.map((tagId) => ({
             tagId,
           })),
+        },
+      }),
+
+      // Webhooks
+      ...(webhookIds && {
+        webhooks: {
+          deleteMany: {},
+          createMany: {
+            data: webhookIds.map((webhookId) => ({
+              webhookId,
+            })),
+          },
         },
       }),
     },
