@@ -31,7 +31,7 @@ export const shorten = new Command()
               type: "text",
               name: "key",
               message: "Enter your Short link:",
-              initial: getNanoid(),
+              initial: getNanoid(7),
             },
           ],
           {

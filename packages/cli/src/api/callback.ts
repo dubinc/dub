@@ -9,13 +9,13 @@ import * as url from "url";
 
 interface OAuthCallbackServerProps {
   oauth2Client: OAuth2Client;
-  callbackUrl: string;
+  redirectUri: string;
   spinner: Ora;
 }
 
 export function oauthCallbackServer({
   oauth2Client,
-  callbackUrl,
+  redirectUri,
   spinner,
 }: OAuthCallbackServerProps) {
   const server = http.createServer(async (req, res) => {
@@ -41,9 +41,13 @@ export function oauthCallbackServer({
     try {
       spinner.text = "Verifying";
 
+      const config = new Configstore("dub-cli");
+      const codeVerifier = config.get("code_verifier");
+
       const { accessToken } = await oauth2Client.authorizationCode.getToken({
         code,
-        redirectUri: `${callbackUrl}/callback`,
+        redirectUri,
+        codeVerifier,
       });
 
       spinner.text = "Configuring";
@@ -53,7 +57,6 @@ export function oauthCallbackServer({
         domain: "dub.sh",
       };
 
-      const config = new Configstore("dub-cli");
       config.set(configInfo);
 
       if (!config.path) {

@@ -1,6 +1,7 @@
 export interface DubConfig {
   token: string;
   domain?: string;
+  code_verifier?: string;
 }
 
 export type Domain = {
