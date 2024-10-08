@@ -12,6 +12,7 @@ import {
   parseUrlSchema,
   parseUrlSchemaAllowEmpty,
 } from "./utils";
+import { webhookSchema } from "./webhooks";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
@@ -490,6 +491,11 @@ export const LinkSchema = z
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
+    webhooks: webhookSchema
+      .pick({ id: true, name: true, url: true })
+      .array()
+      .nullable()
+      .describe("The webhooks assigned to the short link."),
     comments: z
       .string()
       .nullable()
