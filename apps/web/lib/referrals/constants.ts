@@ -3,6 +3,7 @@ export const REFERRAL_CLICKS_QUOTA_BONUS = 500;
 export const REFERRAL_CLICKS_QUOTA_BONUS_MAX = 16000;
 export const REFERRAL_REVENUE_SHARE = 0.2;
 
-// Referral public token
-export const REFERRAL_PUBLIC_TOKEN_LENGTH = 36;
-export const REFERRAL_PUBLIC_TOKEN_EXPIRY = 1000 * 60 * 60 * 2; // 2 hours
+// Embed public token
+export const EMBED_PUBLIC_TOKEN_LENGTH = 36;
+export const EMBED_PUBLIC_TOKEN_EXPIRY = 1000 * 60 * 60 * 2; // 2 hours
+export const EMBED_PUBLIC_TOKEN_COOKIE_NAME = "embed_public_token";

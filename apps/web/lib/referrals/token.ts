@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { DubApiError } from "../api/errors";
 import {
-  REFERRAL_PUBLIC_TOKEN_EXPIRY,
-  REFERRAL_PUBLIC_TOKEN_LENGTH,
+  EMBED_PUBLIC_TOKEN_EXPIRY,
+  EMBED_PUBLIC_TOKEN_LENGTH,
 } from "./constants";
 
 export const createPublicToken = async ({
@@ -27,11 +27,11 @@ export const createPublicToken = async ({
     });
   }
 
-  return await prisma.referralPublicToken.create({
+  return await prisma.embedPublicToken.create({
     data: {
       linkId,
-      expires: new Date(Date.now() + REFERRAL_PUBLIC_TOKEN_EXPIRY),
-      publicToken: nanoid(REFERRAL_PUBLIC_TOKEN_LENGTH),
+      expires: new Date(Date.now() + EMBED_PUBLIC_TOKEN_EXPIRY),
+      publicToken: nanoid(EMBED_PUBLIC_TOKEN_LENGTH),
     },
   });
 };

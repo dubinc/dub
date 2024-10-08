@@ -63,7 +63,7 @@ model Link {
   // Comments on the particular shortlink
   comments String? @db.LongText
 
-  referralPublicTokens ReferralPublicToken[]
+  embedPublicTokens EmbedPublicToken[]
 
   @@unique([domain, key])
   @@unique([projectId, externalId])

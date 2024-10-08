@@ -5,6 +5,7 @@ import { getSearchParams } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
+import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "./constants";
 
 interface WithAuthHandler {
   ({
@@ -32,58 +33,23 @@ export const withAuth = (handler: WithAuthHandler) => {
 
       try {
         let link: Link | undefined = undefined;
-        let tokenFromHeader: string | undefined = undefined;
 
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
 
-        // const authorizationHeader = req.headers.get("Authorization");
-
-        // if (!authorizationHeader) {
-        //   throw new DubApiError({
-        //     code: "unauthorized",
-        //     message: "Missing Authorization header.",
-        //   });
-        // }
-
-        // if (!authorizationHeader.includes("Bearer ")) {
-        //   throw new DubApiError({
-        //     code: "bad_request",
-        //     message:
-        //       "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth",
-        //   });
-        // }
-
-        // tokenFromHeader = authorizationHeader.replace("Bearer ", "");
-
-        // if (!tokenFromHeader) {
-        //   throw new DubApiError({
-        //     code: "unauthorized",
-        //     message: "Missing Authorization header.",
-        //   });
-        // }
-
-        // Read token from query params
-        // const tokenFromQuery = searchParams["publicToken"];
-
-        // if (!tokenFromQuery) {
-        //   throw new DubApiError({
-        //     code: "unauthorized",
-        //     message: "Missing public token.",
-        //   });
-        // }
-
         const cookieStore = cookies();
-        const tokenFromCookie = cookieStore.get("token")?.value;
+        const tokenFromCookie = cookieStore.get(
+          EMBED_PUBLIC_TOKEN_COOKIE_NAME,
+        )?.value;
 
         if (!tokenFromCookie) {
           throw new DubApiError({
             code: "unauthorized",
-            message: "Missing public token.",
+            message: "Embed public token not found in the request.",
           });
         }
 
-        const publicToken = await prisma.referralPublicToken.findUnique({
+        const publicToken = await prisma.embedPublicToken.findUnique({
           where: {
             publicToken: tokenFromCookie,
           },

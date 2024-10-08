@@ -1,5 +1,6 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
+import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../referrals/constants";
 import NewLinkMiddleware from "./new-link";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
@@ -13,11 +14,11 @@ export default async function AppMiddleware(req: NextRequest) {
   const isWorkspaceInvite = req.nextUrl.searchParams.get("invite");
 
   if (path.startsWith("/embed")) {
+    const token = req.nextUrl.searchParams.get("token");
+
     return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
       headers: {
-        // TODO: Need better cookie name
-        // Maybe move this to a API route level?
-        "Set-Cookie": `token=${req.nextUrl.searchParams.get("token")}; HttpOnly; Path=/`,
+        "Set-Cookie": `${EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Path=/`,
       },
     });
   }
