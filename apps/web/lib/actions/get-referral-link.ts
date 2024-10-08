@@ -9,9 +9,11 @@ export const getReferralLink = async (slug: string) => {
       slug,
     },
   });
+
   if (!workspace || !workspace.referralLinkId) {
     return null;
   }
+
   return await dub.links.get({
     linkId: workspace.referralLinkId,
   });

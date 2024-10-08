@@ -5,6 +5,7 @@ import { ToggleGroup } from "@dub/ui/src/toggle-group";
 
 export function EventTabs() {
   const { queryParams, searchParams } = useRouterStuff();
+
   return (
     <ToggleGroup
       options={[

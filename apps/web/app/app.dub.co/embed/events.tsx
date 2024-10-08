@@ -1,9 +1,8 @@
 "use client";
 
-import { ConversionEvent } from "@/lib/actions/get-conversion-events";
 import { EventType } from "@/lib/analytics/types";
 import { REFERRAL_REVENUE_SHARE } from "@/lib/referrals/constants";
-import { EventList } from "@dub/blocks";
+import { EventList, EventListSkeleton, useEvents } from "@dub/blocks";
 import {
   CaretUpFill,
   ChartActivity2,
@@ -18,36 +17,51 @@ import {
   LeadEvent,
   SaleEvent,
 } from "dub/dist/commonjs/models/components";
-import { useSearchParams } from "next/navigation";
 
-export function ActivityList({
-  events,
-  totalEvents,
-  demo,
-}: {
-  events: ConversionEvent[];
-  totalEvents: number;
-  demo?: boolean;
-}) {
-  const searchParams = useSearchParams();
-  const event = (searchParams.get("event") || "clicks") as EventType;
+interface EventsProps {
+  event: EventType;
+  page: string;
+}
+
+const iconMap: Record<EventType, React.ElementType> = {
+  clicks: CursorRays,
+  leads: UserCheck,
+  sales: InvoiceDollar,
+};
+
+const saleText = {
+  "Subscription creation": "upgraded their account",
+  "Subscription paid": "paid their subscription",
+  "Plan upgraded": "upgraded their plan",
+  default: "made a payment",
+};
+
+export const Events = ({ event, page }: EventsProps) => {
+  const { events, isLoading } = useEvents({
+    event,
+    interval: "all",
+    page,
+  });
+
+  if (isLoading || !events) {
+    return <EventListSkeleton />;
+  }
+
+  const Icon = iconMap[event];
 
   return (
     <div className="relative">
       <EventList
-        events={events.map((e) => {
-          const Icon = {
-            clicks: CursorRays,
-            leads: UserCheck,
-            sales: InvoiceDollar,
+        events={events.map((e: any) => {
+          const content = {
+            clicks: <ClickDescription event={e as ClickEvent} />,
+            leads: <LeadDescription event={e as LeadEvent} />,
+            sales: <SaleDescription event={e as SaleEvent} />,
           }[event];
+
           return {
             icon: <Icon className="size-4.5" />,
-            content: {
-              clicks: <ClickDescription event={e as ClickEvent} />,
-              leads: <LeadDescription event={e as LeadEvent} />,
-              sales: <SaleDescription event={e as SaleEvent} />,
-            }[event],
+            content,
             right: e.timestamp ? (
               <div className="whitespace-nowrap">
                 {timeAgo(new Date(e.timestamp), { withAgo: true })}
@@ -55,7 +69,7 @@ export function ActivityList({
             ) : null,
           };
         })}
-        totalEvents={totalEvents}
+        totalEvents={events?.length || 0}
         emptyState={{
           icon: ChartActivity2,
           title: `${capitalize(event)} Activity`,
@@ -63,14 +77,15 @@ export function ActivityList({
           learnMore: "https://d.to/conversions",
         }}
       />
-      {demo && (
+
+      {/* {demo && (
         <div className="absolute inset-0 bg-gradient-to-b from-[#fff3] to-white"></div>
-      )}
+      )} */}
     </div>
   );
-}
+};
 
-function ClickDescription({ event }: { event: ClickEvent }) {
+const ClickDescription = ({ event }: { event: ClickEvent }) => {
   return (
     <>
       Someone from{" "}
@@ -91,9 +106,9 @@ function ClickDescription({ event }: { event: ClickEvent }) {
       clicked on your link
     </>
   );
-}
+};
 
-function LeadDescription({ event }: { event: LeadEvent }) {
+const LeadDescription = ({ event }: { event: LeadEvent }) => {
   return (
     <>
       Someone from{" "}
@@ -114,16 +129,9 @@ function LeadDescription({ event }: { event: LeadEvent }) {
       signed up for an account
     </>
   );
-}
-
-const saleText = {
-  "Subscription creation": "upgraded their account",
-  "Subscription paid": "paid their subscription",
-  "Plan upgraded": "upgraded their plan",
-  default: "made a payment",
 };
 
-function SaleDescription({ event }: { event: SaleEvent }) {
+const SaleDescription = ({ event }: { event: SaleEvent }) => {
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
@@ -160,4 +168,4 @@ function SaleDescription({ event }: { event: SaleEvent }) {
       )}
     </div>
   );
-}
+};

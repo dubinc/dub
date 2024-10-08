@@ -65,3 +65,16 @@ model PasswordResetToken {
 
   @@unique([identifier, token])
 }
+
+model EmbedPublicToken {
+  id          String   @id @default(cuid())
+  linkId      String
+  publicToken String   @unique
+  expires     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId])
+}

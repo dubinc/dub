@@ -444,6 +444,9 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+      swr:
+        specifier: ^2.1.5
+        version: 2.1.5(react@18.2.0)
     devDependencies:
       '@dub/tailwind-config':
         specifier: workspace:*
