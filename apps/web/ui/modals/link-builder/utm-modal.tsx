@@ -7,15 +7,7 @@ import {
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import {
-  DiamondTurnRight,
-  Flag6,
-  Gift,
-  GlobePointer,
-  InputSearch,
-  Page2,
-  SatelliteDish,
-} from "@dub/ui/src";
+import { DiamondTurnRight } from "@dub/ui/src";
 import {
   cn,
   constructURLFromUTMParams,
@@ -34,51 +26,7 @@ import {
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
-
-const UTM_PARAMETERS = [
-  {
-    key: "utm_source",
-    icon: GlobePointer,
-    label: "Source",
-    placeholder: "google",
-    description: "Where the traffic is coming from",
-  },
-  {
-    key: "utm_medium",
-    icon: SatelliteDish,
-    label: "Medium",
-    placeholder: "cpc",
-    description: "How the traffic is coming",
-  },
-  {
-    key: "utm_campaign",
-    icon: Flag6,
-    label: "Campaign",
-    placeholder: "summer_sale",
-    description: "The name of the campaign",
-  },
-  {
-    key: "utm_term",
-    icon: InputSearch,
-    label: "Term",
-    placeholder: "running shoes",
-    description: "The term of the campaign",
-  },
-  {
-    key: "utm_content",
-    icon: Page2,
-    label: "Content",
-    placeholder: "logolink",
-    description: "The content of the campaign",
-  },
-  {
-    key: "ref",
-    icon: Gift,
-    label: "Referral",
-    placeholder: "yoursite.com",
-    description: "The referral of the campaign",
-  },
-] as const;
+import { UTM_PARAMETERS } from "./constants";
 
 type UTMModalProps = {
   showUTMModal: boolean;
@@ -148,17 +96,90 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
   // Whether to display actual URL parameters instead of labels
   const [showParams, setShowParams] = useState(false);
 
+  // Update targeting URL params if they previously matched the same params of the destination URL
+  const updateTargeting = useCallback(
+    (
+      data: Pick<
+        LinkFormData,
+        | "url"
+        | "utm_source"
+        | "utm_medium"
+        | "utm_campaign"
+        | "utm_term"
+        | "utm_content"
+      >,
+    ) => {
+      const [parentUrl, ios, android, geo] = getValuesParent([
+        "url",
+        "ios",
+        "android",
+        "geo",
+      ]);
+
+      const getNewParams = (targetURL: string) => {
+        const parentParams = getParamsFromURL(parentUrl);
+        const targetParams = getParamsFromURL(targetURL);
+
+        const newParams = UTM_PARAMETERS.filter(
+          ({ key }) => parentParams?.[key] === targetParams?.[key],
+        ).map(({ key }) => [key, data[key] ?? ""]);
+
+        return newParams.length ? Object.fromEntries(newParams) : null;
+      };
+
+      // Update iOS and Android URLs
+      Object.entries({ ios, android }).forEach(([target, targetUrl]) => {
+        if (!targetUrl) return;
+        const newParams = getNewParams(targetUrl);
+        if (newParams)
+          setValueParent(
+            target as "ios" | "android",
+            constructURLFromUTMParams(targetUrl, newParams),
+            {
+              shouldDirty: true,
+            },
+          );
+      });
+
+      // Update geo targeting URLs
+      if (geo && Object.keys(geo).length > 0) {
+        const newGeo = Object.entries(geo).reduce((acc, [key, value]) => {
+          if (!key?.trim() || !value?.trim()) return acc;
+
+          const newParams = getNewParams(value);
+          if (!newParams) return acc;
+
+          return {
+            ...acc,
+            [key]: constructURLFromUTMParams(value, newParams),
+          };
+        }, {});
+
+        if (Object.keys(newGeo).length > 0)
+          setValueParent(
+            "geo",
+            { ...(geo as Record<string, string>), ...newGeo },
+            { shouldDirty: true },
+          );
+      }
+    },
+    [],
+  );
+
   return (
     <form
       onSubmit={(e) => {
         e.stopPropagation();
         handleSubmit((data) => {
+          updateTargeting(data);
+
           setValueParent("url", data.url);
           UTM_PARAMETERS.filter((p) => p.key !== "ref").forEach((p) =>
             setValueParent(p.key as any, data[p.key], {
               shouldDirty: true,
             }),
           );
+
           setShowUTMModal(false);
         })(e);
       }}
