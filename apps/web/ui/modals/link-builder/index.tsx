@@ -239,11 +239,14 @@ function LinkBuilderInner({
             ref={formRef}
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
-              const { user, tags, tagId, ...rest } = data;
+              const { user, tags, tagId, webhooks, ...rest } = data;
               const bodyData = {
                 ...rest,
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
+
+                // Map webhooks to webhookIds
+                webhookIds: webhooks.map(({ id }) => id),
 
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,

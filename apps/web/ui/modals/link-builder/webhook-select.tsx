@@ -7,14 +7,14 @@ import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
 
 export function WebhookSelect() {
-  const { webhooks } = useWebhooks();
   const [isOpen, setIsOpen] = useState(false);
+  const { webhooks: availableWebhooks } = useWebhooks();
   const { watch, setValue } = useFormContext<LinkFormData>();
+
   useKeyboardShortcut("w", () => setIsOpen(true), { modal: true });
+  const webhooks = watch("webhooks") || [];
 
-  const webhookIds = watch("webhookIds");
-
-  const linkLevelWebhooks = webhooks?.filter((webhook) =>
+  const linkLevelWebhooks = availableWebhooks?.filter((webhook) =>
     webhook.triggers.includes("link.clicked"),
   );
 
@@ -25,20 +25,16 @@ export function WebhookSelect() {
         value: webhook.id,
         icon: <Webhook className="size-4" />,
       })),
-    [webhooks],
+    [availableWebhooks],
   );
 
   const selectedWebhooks = useMemo(
     () =>
       webhooks
-        ?.filter((webhook) => webhookIds?.includes(webhook.id))
-        .map((webhook) => ({
-          label: webhook.name,
-          value: webhook.id,
-          icon: <Webhook className="size-4" />,
-        })) || [],
+        .map(({ id }) => options?.find(({ value }) => value === id)!)
+        .filter(Boolean),
 
-    [webhookIds, webhooks],
+    [webhooks, options],
   );
 
   const hasSelectedWebhooks = selectedWebhooks.length > 0;
@@ -49,7 +45,12 @@ export function WebhookSelect() {
       selected={selectedWebhooks || []}
       setSelected={(webhooks) => {
         const selectedIds = webhooks.map(({ value }) => value);
-        setValue("webhookIds", selectedIds, { shouldDirty: true });
+
+        setValue(
+          "webhooks",
+          selectedIds.map((id) => availableWebhooks?.find((t) => t.id === id)),
+          { shouldDirty: true },
+        );
       }}
       options={options}
       icon={
