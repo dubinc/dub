@@ -38,6 +38,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
               position: "absolute",
             }}
             transition={{ duration: 0.15, ease: "easeInOut" }}
+            className="left-0 top-0"
           >
             {area === "default" ? (
               <Wordmark className="ml-1 h-6" />

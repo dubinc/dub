@@ -3,7 +3,7 @@
 import { Avatar, Badge, Popover } from "@dub/ui";
 import { Gear, Icon } from "@dub/ui/src";
 import Cookies from "js-cookie";
-import { Edit3, HelpCircle, LogOut } from "lucide-react";
+import { Edit3, LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -46,15 +46,7 @@ export default function UserDropdown() {
           )}
           <UserOption
             as={Link}
-            label="Help Center"
-            icon={HelpCircle}
-            href="https://dub.co/help"
-            target="_blank"
-            onClick={() => setOpenPopover(false)}
-          />
-          <UserOption
-            as={Link}
-            label="User Settings"
+            label="Account Settings"
             icon={Gear}
             href="/account/settings"
             onClick={() => setOpenPopover(false)}
