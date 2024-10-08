@@ -9,9 +9,9 @@ import {
   Popover,
   useScrollProgress,
 } from "@dub/ui";
-import { Book2, Check2, Gear, Plus } from "@dub/ui/src/icons";
+import { Book2, Check2, Plus } from "@dub/ui/src/icons";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, HelpCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -137,6 +137,21 @@ function WorkspaceSwitcherPlaceholder() {
   );
 }
 
+const LINKS = [
+  {
+    name: "Help Center",
+    icon: HelpCircle,
+    href: "https://dub.co/help",
+    target: "_blank",
+  },
+  {
+    name: "Documentation",
+    icon: Book2,
+    href: "https://dub.co/docs",
+    target: "_blank",
+  },
+];
+
 function WorkspaceList({
   selected,
   workspaces,
@@ -152,8 +167,7 @@ function WorkspaceList({
   setOpenPopover: (open: boolean) => void;
 }) {
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
-  const { slug, domain, key } = useParams() as {
-    slug?: string;
+  const { domain, key } = useParams() as {
     domain?: string;
     key?: string;
   };
@@ -161,19 +175,6 @@ function WorkspaceList({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-
-  const links = useMemo(
-    () => [
-      { name: "Settings", icon: Gear, href: `/${slug}/settings` },
-      {
-        name: "Documentation",
-        icon: Book2,
-        href: "https://dub.co/docs",
-        target: "_blank",
-      },
-    ],
-    [slug],
-  );
 
   const href = useCallback(
     (slug: string) => {
@@ -196,7 +197,7 @@ function WorkspaceList({
         className="relative max-h-80 w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
       >
         <div className="flex flex-col gap-0.5 border-b border-neutral-200 p-2">
-          {links.map(({ name, icon: Icon, href, target }) => (
+          {LINKS.map(({ name, icon: Icon, href, target }) => (
             <Link
               key={name}
               href={href}

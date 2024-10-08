@@ -1,8 +1,8 @@
 "use client";
 
-import { useKeyboardShortcut, useMediaQuery, useScroll } from "@dub/ui";
+import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   Dispatch,
@@ -28,9 +28,7 @@ export function MainNav({
   children,
   toolContent,
 }: PropsWithChildren<{ toolContent?: ReactNode }>) {
-  const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const scrolled = useScroll(80);
 
   const { isMobile } = useMediaQuery();
   const [isOpen, setIsOpen] = useState(false);

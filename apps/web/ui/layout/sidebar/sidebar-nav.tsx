@@ -38,6 +38,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
               position: "absolute",
             }}
             transition={{ duration: 0.15, ease: "easeInOut" }}
+            className="left-0 top-0"
           >
             <Link href={slug ? `/${slug}` : "/"}>
               {area === "default" ? (
