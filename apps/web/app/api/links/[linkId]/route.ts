@@ -24,25 +24,45 @@ export const GET = withWorkspace(
       linkId: params.linkId,
     });
 
-    const tags = await prisma.tag.findMany({
-      where: {
-        links: {
-          some: {
-            linkId: link.id,
+    const [tags, webhooks] = await Promise.all([
+      prisma.tag.findMany({
+        where: {
+          links: {
+            some: {
+              linkId: link.id,
+            },
           },
         },
-      },
-      select: {
-        id: true,
-        name: true,
-        color: true,
-      },
-    });
+        select: {
+          id: true,
+          name: true,
+          color: true,
+        },
+      }),
+
+      prisma.webhook.findMany({
+        where: {
+          links: {
+            some: {
+              linkId: link.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          url: true,
+        },
+      }),
+    ]);
 
     const response = transformLink({
       ...link,
       tags: tags.map((tag) => {
         return { tag };
+      }),
+      webhooks: webhooks.map((webhook) => {
+        return { webhook };
       }),
     });
 

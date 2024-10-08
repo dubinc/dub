@@ -70,9 +70,7 @@ export const LinkModalContext = createContext<{
   generatingMetatags: boolean;
 }>({ generatingMetatags: false });
 
-export type LinkFormData = LinkWithTagsProps & {
-  webhookIds?: string[];
-};
+export type LinkFormData = LinkWithTagsProps;
 
 type LinkBuilderProps = {
   showLinkBuilder: boolean;
@@ -466,8 +464,8 @@ function LinkBuilderInner({
             </div>
             <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 p-4">
               <div className="flex min-w-0 items-center gap-2">
-                <WebhookSelect />
                 <UTMButton />
+                <WebhookSelect />
                 <div className="flex items-center gap-2 max-sm:hidden">
                   <ExpirationButton />
                   <TargetingButton />

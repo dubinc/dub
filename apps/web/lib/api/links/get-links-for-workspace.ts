@@ -76,6 +76,17 @@ export async function getLinksForWorkspace({
           },
         },
       },
+      webhooks: {
+        select: {
+          webhook: {
+            select: {
+              id: true,
+              name: true,
+              url: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       [sort]: "desc",
