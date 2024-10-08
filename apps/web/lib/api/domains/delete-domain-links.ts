@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { storage } from "../../storage";
 import { recordLink } from "../../tinybird";
+import { linkCache } from "../links/cache";
 import { removeDomainFromVercel } from "./remove-domain-vercel";
 
 /* Delete a domain and all links & images associated with it */
@@ -50,7 +50,8 @@ export async function deleteDomainAndLinks(domain: string) {
     (async () => {
       await Promise.allSettled([
         // delete all links from redis
-        redis.del(domain.toLowerCase()),
+        linkCache.deleteMany(allLinks),
+
         // record deletes in tinybird for domain & links
         recordLink([
           ...allLinks.map((link) => ({

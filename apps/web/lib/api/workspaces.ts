@@ -5,7 +5,6 @@ import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
 import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
@@ -55,35 +54,15 @@ export async function deleteWorkspace(
     }),
   ]);
 
-  const response = await prisma.projectUsers.deleteMany({
-    where: {
-      projectId: workspace.id,
-    },
-  });
-
   waitUntil(
     (async () => {
-      const linksByDomain: Record<string, string[]> = {};
-      defaultDomainLinks.forEach(async (link) => {
-        const { domain, key } = link;
-
-        if (!linksByDomain[domain]) {
-          linksByDomain[domain] = [];
-        }
-        linksByDomain[domain].push(key.toLowerCase());
-      });
-
-      const pipeline = redis.pipeline();
-
-      Object.entries(linksByDomain).forEach(([domain, links]) => {
-        pipeline.hdel(domain.toLowerCase(), ...links);
-      });
-
-      // delete all domains, links, and uploaded images associated with the workspace
       await Promise.allSettled([
+        // remove default domain links from redis
+        linkCache.deleteMany(defaultDomainLinks),
+
+        // delete all domains
         ...customDomains.map(({ slug }) => deleteDomainAndLinks(slug)),
-        // delete all default domain links from redis
-        pipeline.exec(),
+
         // record deletes in Tinybird for default domain links
         recordLink(
           defaultDomainLinks.map((link) => ({
@@ -97,6 +76,7 @@ export async function deleteWorkspace(
             deleted: true,
           })),
         ),
+
         // remove all images from R2
         ...defaultDomainLinks.map(({ id, image }) =>
           image && image.startsWith(`${R2_URL}/images/${id}`)
@@ -136,8 +116,6 @@ export async function deleteWorkspace(
       ]);
     })(),
   );
-
-  return response;
 }
 
 export async function deleteWorkspaceAdmin(

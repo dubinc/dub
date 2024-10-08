@@ -1,41 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { formatRedisLink, redis } from "@/lib/upstash";
-import { Link } from "@prisma/client";
 import { sendEmail } from "emails";
 import DomainTransferred from "emails/domain-transferred";
-
-// Update links in redis
-export const updateLinksInRedis = async ({
-  newWorkspaceId,
-  domain,
-  links,
-}: {
-  newWorkspaceId: string;
-  domain: string;
-  links: Link[];
-}) => {
-  const pipeline = redis.pipeline();
-
-  const formatedLinks = await Promise.all(
-    links.map(async (link) => {
-      return {
-        ...(await formatRedisLink(link)),
-        projectId: newWorkspaceId,
-        key: link.key.toLowerCase(),
-      };
-    }),
-  );
-
-  formatedLinks.map((formatedLink) => {
-    const { key, ...rest } = formatedLink;
-
-    pipeline.hset(domain.toLowerCase(), {
-      [formatedLink.key]: rest,
-    });
-  });
-
-  await pipeline.exec();
-};
 
 // Send email to the owner after the domain transfer is completed
 export const sendDomainTransferredEmail = async ({

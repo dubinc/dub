@@ -19,14 +19,13 @@ class LinkCache {
       })),
     );
 
-    redisLinks.map(({ key, domain, ...redisLink }) => {
+    redisLinks.map(({ domain, key, ...redisLink }) =>
       pipeline.set(`${domain}:${key}`, JSON.stringify(redisLink), {
         ex: CACHE_EXPIRATION,
-        nx: true,
-      });
-    });
+      }),
+    );
 
-    await pipeline.exec();
+    return await pipeline.exec();
   }
 
   async set({
@@ -42,7 +41,6 @@ class LinkCache {
 
     return await redis.set(cacheKey, JSON.stringify(link), {
       ex: CACHE_EXPIRATION,
-      nx: true,
     });
   }
 
@@ -67,6 +65,25 @@ class LinkCache {
 
     links.forEach(({ domain, key }) => {
       pipeline.del(`${domain}:${key}`.toLowerCase());
+    });
+
+    return await pipeline.exec();
+  }
+
+  async rename({
+    oldDomain,
+    links,
+  }: {
+    oldDomain: string;
+    links: Pick<LinkProps, "domain" | "key">[];
+  }) {
+    const pipeline = redis.pipeline();
+
+    links.forEach(({ domain, key }) => {
+      const oldCacheKey = `${oldDomain}:${key}`.toLowerCase();
+      const newCacheKey = `${domain}:${key}`.toLowerCase();
+
+      pipeline.rename(oldCacheKey, newCacheKey);
     });
 
     return await pipeline.exec();
