@@ -111,8 +111,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       '@vercel/functions':
-        specifier: ^1.4.1
-        version: 1.4.1
+        specifier: ^1.4.2
+        version: 1.4.2
       '@vercel/og':
         specifier: ^0.6.3
         version: 0.6.3
@@ -9977,8 +9977,8 @@ packages:
       '@vercel/edge-config-fs': 0.1.0
     dev: false
 
-  /@vercel/functions@1.4.1:
-    resolution: {integrity: sha512-987mKpoDCI18x2rDjrDbiuGOtxDMK/UhfhDZoN3A2SAt40BMaj8HEKwVqL6fOian5j/3RZcOuJnMOpatQGgpjw==}
+  /@vercel/functions@1.4.2:
+    resolution: {integrity: sha512-WLY3g6NT1SVJDAoAqz5pJfJ8uyOmEejZkatZn0q57Dn6qXNrh/pjbeffolQy9npWRYJPcfwjgqw8tUqolTEyuw==}
     engines: {node: '>= 16'}
     peerDependencies:
       '@aws-sdk/credential-provider-web-identity': '*'

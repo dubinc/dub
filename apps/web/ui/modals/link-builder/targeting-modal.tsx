@@ -8,7 +8,13 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { Crosshairs3, Trash } from "@dub/ui/src/icons";
-import { cn, COUNTRIES } from "@dub/utils";
+import {
+  cn,
+  constructURLFromUTMParams,
+  COUNTRIES,
+  getParamsFromURL,
+  isValidUrl,
+} from "@dub/utils";
 import {
   Dispatch,
   Fragment,
@@ -20,6 +26,7 @@ import {
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
+import { UTM_PARAMETERS } from "./constants";
 
 function TargetingModal({
   showTargetingModal,
@@ -61,6 +68,24 @@ function TargetingModal({
 
   const parentEnabled = Boolean(
     iosParent || androidParent || Object.keys(geoParent || {}).length > 0,
+  );
+
+  // Get UTM parameters from the parent URL that need to be added on blur
+  const getNewParams = useCallback(
+    (targetURL: string) => {
+      if (!targetURL?.trim() || !isValidUrl(targetURL)) return;
+
+      const parentUrl = getValuesParent("url");
+      const parentParams = getParamsFromURL(parentUrl);
+      const targetParams = getParamsFromURL(targetURL);
+
+      const newParams = UTM_PARAMETERS.filter(
+        ({ key }) => parentParams?.[key] && !targetParams?.[key],
+      ).map(({ key }) => [key, parentParams[key]]);
+
+      return newParams.length ? Object.fromEntries(newParams) : null;
+    },
+    [getValuesParent],
   );
 
   return (
@@ -136,7 +161,9 @@ function TargetingModal({
                       <Fragment key={key}>
                         <div className="z-[1]">
                           <Combobox
-                            selected={{ value: key, label: COUNTRIES[key] }}
+                            selected={
+                              key ? { value: key, label: COUNTRIES[key] } : null
+                            }
                             setSelected={(option) => {
                               if (!option) return;
                               const newGeo = {};
@@ -200,6 +227,22 @@ function TargetingModal({
                               { shouldDirty: true },
                             );
                           }}
+                          onBlur={(e) => {
+                            const newParams = getNewParams(e.target.value);
+
+                            if (newParams)
+                              setValue(
+                                `geo`,
+                                {
+                                  ...((geo as object) || {}),
+                                  [key]: constructURLFromUTMParams(
+                                    value,
+                                    newParams,
+                                  ),
+                                },
+                                { shouldDirty: true },
+                              );
+                          }}
                         />
                         <div className="pl-1.5">
                           <Button
@@ -258,7 +301,18 @@ function TargetingModal({
                   id={`${id}-ios-url`}
                   placeholder="https://apps.apple.com/app/1611158928"
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  {...register("ios")}
+                  {...register("ios", {
+                    onBlur: (e) => {
+                      const newParams = getNewParams(e.target.value);
+
+                      if (newParams)
+                        setValue(
+                          "ios",
+                          constructURLFromUTMParams(e.target.value, newParams),
+                          { shouldDirty: true },
+                        );
+                    },
+                  })}
                 />
               </div>
             </div>
@@ -287,7 +341,18 @@ function TargetingModal({
                   id={`${id}-android-url`}
                   placeholder="https://play.google.com/store/apps/details?id=com.disney.disneyplus"
                   className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                  {...register("android")}
+                  {...register("android", {
+                    onBlur: (e) => {
+                      const newParams = getNewParams(e.target.value);
+
+                      if (newParams)
+                        setValue(
+                          "android",
+                          constructURLFromUTMParams(e.target.value, newParams),
+                          { shouldDirty: true },
+                        );
+                    },
+                  })}
                 />
               </div>
             </div>
