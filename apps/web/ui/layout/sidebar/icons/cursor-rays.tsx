@@ -5,7 +5,7 @@ export function CursorRays({
   isActive,
   className,
   ...rest
-}: { isActive: boolean } & SVGProps<SVGSVGElement>) {
+}: { isActive?: boolean } & SVGProps<SVGSVGElement>) {
   const cursorRef = useRef<SVGGElement>(null);
   const raysRef = useRef<SVGGElement>(null);
 

@@ -49,14 +49,14 @@ export function MainNav({
   useKeyboardShortcut("n", () => setIsOpen((o) => !o));
 
   return (
-    <div className="min-h-screen sm:grid sm:grid-cols-[240px_minmax(0,1fr)]">
+    <div className="min-h-screen md:grid md:grid-cols-[240px_minmax(0,1fr)]">
       {/* Side nav backdrop */}
       <div
         className={cn(
-          "scrollbar-hide fixed left-0 top-0 z-50 h-screen w-full overflow-y-auto transition-[background-color,backdrop-filter] sm:sticky sm:z-auto sm:bg-transparent",
+          "scrollbar-hide fixed left-0 top-0 z-50 h-screen w-full overflow-y-auto transition-[background-color,backdrop-filter] md:sticky md:z-auto md:bg-transparent",
           isOpen
             ? "bg-black/20 backdrop-blur-sm"
-            : "bg-transparent max-sm:pointer-events-none",
+            : "bg-transparent max-md:pointer-events-none",
         )}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -68,7 +68,7 @@ export function MainNav({
         {/* Side nav */}
         <nav
           className={cn(
-            "relative h-full w-[240px] max-w-full bg-neutral-100 transition-transform sm:translate-x-0",
+            "relative h-full w-[240px] max-w-full bg-neutral-100 transition-transform md:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >
@@ -84,7 +84,7 @@ export function MainNav({
         </nav>
       </div>
       <div className="bg-neutral-100">
-        <div className="relative min-h-full bg-neutral-100 pt-px sm:rounded-tl-[16px] sm:bg-white">
+        <div className="relative min-h-full bg-neutral-100 pt-px md:rounded-tl-[16px] md:bg-white">
           <SideNavContext.Provider value={{ isOpen, setIsOpen }}>
             {children}
           </SideNavContext.Provider>

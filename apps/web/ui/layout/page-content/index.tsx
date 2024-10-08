@@ -9,22 +9,22 @@ export function PageContent({
   children,
 }: PropsWithChildren<{ title: ReactNode }>) {
   return (
-    <div className="bg-neutral-100 sm:bg-white">
-      <MaxWidthWrapper className="mt-3 sm:mt-6 sm:py-3">
+    <div className="bg-neutral-100 md:bg-white">
+      <MaxWidthWrapper className="mt-3 md:mt-6 md:py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <NavButton />
-            <h1 className="text-xl font-semibold leading-7 text-neutral-900 sm:text-2xl">
+            <h1 className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
               {title}
             </h1>
           </div>
-          <div className="flex items-center gap-4 sm:hidden">
+          <div className="flex items-center gap-4 md:hidden">
             <HelpButtonRSC />
             <UserDropdown />
           </div>
         </div>
       </MaxWidthWrapper>
-      <div className="bg-white pt-2.5 max-sm:mt-3 max-sm:rounded-t-[16px]">
+      <div className="bg-white pt-2.5 max-md:mt-3 max-md:rounded-t-[16px]">
         {children}
       </div>
     </div>

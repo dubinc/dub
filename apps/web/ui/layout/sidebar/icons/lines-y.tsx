@@ -7,7 +7,7 @@ export function LinesY({
   isActive,
   className,
   ...rest
-}: { isActive: boolean } & SVGProps<SVGSVGElement>) {
+}: { isActive?: boolean } & SVGProps<SVGSVGElement>) {
   const line1Ref = useRef<SVGLineElement>(null);
   const line2Ref = useRef<SVGLineElement>(null);
   const line3Ref = useRef<SVGLineElement>(null);

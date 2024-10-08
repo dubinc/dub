@@ -14,7 +14,7 @@ export function NavButton() {
       variant="outline"
       onClick={() => setIsOpen((o) => !o)}
       icon={<LayoutSidebar className="size-4" />}
-      className="h-auto w-fit p-1 sm:hidden"
+      className="h-auto w-fit p-1 md:hidden"
     />
   );
 }

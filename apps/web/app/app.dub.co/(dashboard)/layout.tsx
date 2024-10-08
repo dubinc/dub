@@ -12,7 +12,7 @@ export const metadata = constructMetadata();
 export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <Providers>
-      <div className="min-h-screen w-full bg-gray-50/80">
+      <div className="min-h-screen w-full bg-white">
         <MainNav toolContent={<HelpButtonRSC />}>{children}</MainNav>
       </div>
       {/* <UserSurveyPopup /> */}

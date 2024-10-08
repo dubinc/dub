@@ -3,7 +3,7 @@ import { SVGProps, useEffect, useRef } from "react";
 export function Hyperlink({
   isActive,
   ...rest
-}: { isActive: boolean } & SVGProps<SVGSVGElement>) {
+}: { isActive?: boolean } & SVGProps<SVGSVGElement>) {
   const ref = useRef<SVGSVGElement>(null);
 
   useEffect(() => {

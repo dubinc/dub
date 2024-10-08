@@ -15,15 +15,28 @@ import { ChevronsUpDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useCallback, useContext, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 export function WorkspaceDropdown() {
   const { workspaces } = useWorkspaces();
   const { data: session, status } = useSession();
-  const { slug, key } = useParams() as {
+  const { slug: currentSlug, key } = useParams() as {
     slug?: string;
     key?: string;
   };
+
+  // Prevent slug from changing to empty to avoid UI switching during nav animation
+  const [slug, setSlug] = useState(currentSlug);
+  useEffect(() => {
+    if (currentSlug) setSlug(currentSlug);
+  }, [currentSlug]);
 
   const selected = useMemo(() => {
     const selectedWorkspace = workspaces?.find(
@@ -174,8 +187,6 @@ function WorkspaceList({
     },
     [domain, key, pathname, selected.slug],
   );
-
-  console.log(scrollProgress);
 
   return (
     <div className="relative w-full">
