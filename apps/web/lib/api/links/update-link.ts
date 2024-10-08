@@ -136,7 +136,13 @@ export async function updateLink({
       },
       webhooks: {
         select: {
-          webhookId: true,
+          webhook: {
+            select: {
+              id: true,
+              name: true,
+              url: true,
+            },
+          },
         },
       },
     },
@@ -149,7 +155,7 @@ export async function updateLink({
         [updatedLink.key.toLowerCase()]: await formatRedisLink({
           ...response,
           ...(response.webhooks.length > 0 && {
-            webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
+            webhookIds: response.webhooks.map(({ webhook }) => webhook.id),
           }),
         }),
       }),
