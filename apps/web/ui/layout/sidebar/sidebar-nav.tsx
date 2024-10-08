@@ -39,17 +39,16 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
             }}
             transition={{ duration: 0.15, ease: "easeInOut" }}
           >
-            {area === "default" ? (
-              <Wordmark className="ml-1 h-6" />
-            ) : (
-              <Link
-                href={slug ? `/${slug}` : "/"}
-                className="group -my-1 flex items-center gap-2 py-2 text-sm font-medium text-neutral-900"
-              >
-                <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />
-                Settings
-              </Link>
-            )}
+            <Link href={slug ? `/${slug}` : "/"}>
+              {area === "default" ? (
+                <Wordmark className="ml-1 h-6" />
+              ) : (
+                <div className="group -my-1 flex items-center gap-2 py-2 text-sm font-medium text-neutral-900">
+                  <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />
+                  Settings
+                </div>
+              )}
+            </Link>
           </motion.div>
         </AnimatePresence>
         <div className="hidden items-center gap-3 md:flex">
