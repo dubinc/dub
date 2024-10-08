@@ -46,7 +46,7 @@ export default function UserDropdown() {
           )}
           <UserOption
             as={Link}
-            label="Account Settings"
+            label="Account"
             icon={Gear}
             href="/account/settings"
             onClick={() => setOpenPopover(false)}
