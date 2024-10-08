@@ -143,12 +143,12 @@ export async function deleteWorkspaceAdmin(
     }),
   ]);
 
-  const redisLinks = defaultDomainLinks.map((link) => ({
-    ...link,
-    projectId: LEGAL_WORKSPACE_ID,
-  }));
-
-  const updateLinkRedisResponse = await linkCache.mset(redisLinks);
+  const updateLinkRedisResponse = await linkCache.mset(
+    defaultDomainLinks.map((link) => ({
+      ...link,
+      projectId: LEGAL_WORKSPACE_ID,
+    })),
+  );
 
   // update all default domain links to the legal workspace
   const updateLinkPrismaResponse = await prisma.link.updateMany({
