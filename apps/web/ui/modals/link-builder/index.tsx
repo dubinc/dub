@@ -267,6 +267,7 @@ function LinkBuilderInner({
                       undefined,
                       { revalidate: true },
                     ),
+                    // Mutate workspace to update usage stats
                     mutate(`/api/workspaces/${slug}`),
                   ]);
                   const data = await res.json();
