@@ -4,6 +4,7 @@ import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSwitcher } from "@/ui/folders/folder-switcher";
+import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
@@ -151,10 +152,23 @@ function WorkspaceLinks() {
                   inputClassName="h-10"
                 />
               </div>
-              <div className="grow-0">
-                <CreateLinkButton />
-              </div>
-              <MoreLinkOptions />
+
+              {canCreateLinks ? (
+                <>
+                  <div className="grow-0">
+                    <CreateLinkButton />
+                  </div>
+                  <MoreLinkOptions />
+                </>
+              ) : (
+                <div className="w-fit">
+                  <FolderEditAccessRequestButton
+                    folderId={folderId!}
+                    workspaceId={workspaceId!}
+                    variant="primary"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <Filter.List

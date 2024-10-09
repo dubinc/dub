@@ -1,5 +1,5 @@
 import { BetaFeatures } from "@/lib/types";
-import { Icon } from "@dub/ui";
+import { Folder, Icon } from "@dub/ui";
 import {
   CircleInfo,
   ConnectedDots,
@@ -86,6 +86,15 @@ export const ITEMS: Record<
           icon: Tag,
           href: `/${slug}/settings/tags`,
         },
+        ...(flags?.linkFolders
+          ? [
+              {
+                name: "Folders",
+                icon: Folder,
+                href: `/${slug}/settings/folders`,
+              },
+            ]
+          : []),
         {
           name: "Billing",
           icon: Receipt2,

@@ -88,7 +88,7 @@ export const FolderSwitcher = () => {
           onClick={() => {
             onFolderSelect(allLinksOverview);
           }}
-          className="rounded-md px-2 py-2 hover:bg-gray-100"
+          className="rounded-md px-1.5 py-2.5 hover:bg-gray-100"
         >
           <ChevronLeft className="h-5 w-5 text-gray-400" aria-hidden="true" />
         </button>
@@ -213,8 +213,6 @@ const FolderList = ({
   );
 };
 
-// TODO:
-// Can we share this in links page and folder card
 const FolderActions = ({
   folder,
   onDelete,
@@ -326,7 +324,7 @@ const FolderActions = ({
         <Button
           variant="secondary"
           className={cn(
-            "w-fit bg-transparent px-2 outline-none transition-all duration-200 hover:bg-gray-100",
+            "w-fit bg-transparent px-1.5 outline-none transition-all duration-200 hover:bg-gray-100",
             "border-transparent data-[state=open]:border-gray-500 sm:group-hover/card:data-[state=closed]:border-gray-200",
           )}
           onClick={() => setOpenPopover(true)}
