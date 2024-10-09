@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { SaleCreatedEvent } from "dub/dist/commonjs/models/components";
+import { SaleCreatedEvent } from "dub/models/components";
 import { sendEmail } from "emails";
 import NewReferralSale from "emails/new-referral-sale";
 

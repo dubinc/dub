@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { REFERRAL_SIGNUPS_MAX } from "@/lib/referrals/constants";
-import { LeadCreatedEvent } from "dub/dist/commonjs/models/components";
+import { LeadCreatedEvent } from "dub/models/components";
 import { sendEmail } from "emails";
 import NewReferralSignup from "emails/new-referral-signup";
 
