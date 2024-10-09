@@ -8,7 +8,6 @@ import {
   PropsWithChildren,
   ReactNode,
   Suspense,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -30,14 +29,6 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
         ? "workspaceSettings"
         : "default";
   }, [slug, pathname]);
-
-  const [previousArea, setPreviousArea] = useState<
-    (typeof AREAS)[number] | null
-  >(currentArea);
-
-  useEffect(() => {
-    setPreviousArea(currentArea);
-  }, [currentArea]);
 
   return (
     <div className="relative p-3 text-gray-500">
@@ -85,7 +76,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
 
             <div className="flex flex-col gap-4 pt-4">
               {ITEMS[area].map(({ name, items }, idx) => (
-                <div key={`${name}-${idx}`} className="flex flex-col gap-0.5">
+                <div key={idx} className="flex flex-col gap-0.5">
                   {name && (
                     <div className="mb-2 pl-1 text-sm text-neutral-500">
                       {name}
@@ -115,7 +106,6 @@ function NavItem({ pathname, item }: { pathname: string; item: NavItem }) {
 
   return (
     <Link
-      key={href}
       href={href}
       data-active={isActive}
       onPointerEnter={() => setHovered(true)}
