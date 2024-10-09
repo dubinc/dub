@@ -100,11 +100,7 @@ function NavItem({ item }: { item: NavItemType }) {
   const { name, icon: Icon, href, exact } = item;
 
   const pathname = usePathname();
-
-  const isActive = useMemo(
-    () => (exact ? pathname === href : pathname.startsWith(href)),
-    [exact, pathname, href],
-  );
+  const isActive = exact ? pathname === href : pathname.startsWith(href);
 
   const [hovered, setHovered] = useState(false);
 
