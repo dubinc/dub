@@ -51,7 +51,7 @@ export function MainNav({
       {/* Side nav backdrop */}
       <div
         className={cn(
-          "scrollbar-hide fixed left-0 top-0 z-50 h-screen w-full overflow-y-auto transition-[background-color,backdrop-filter] md:sticky md:z-auto md:bg-transparent",
+          "scrollbar-hide fixed left-0 top-0 z-50 h-dvh w-screen overflow-y-auto overflow-x-hidden transition-[background-color,backdrop-filter] md:sticky md:z-auto md:w-full md:bg-transparent",
           isOpen
             ? "bg-black/20 backdrop-blur-sm"
             : "bg-transparent max-md:pointer-events-none",

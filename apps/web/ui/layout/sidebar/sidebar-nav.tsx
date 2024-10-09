@@ -147,7 +147,7 @@ export function Area({
   return (
     <div
       className={cn(
-        "left-0 top-0 w-full transition-[opacity,transform] duration-300",
+        "left-0 top-0 w-full md:transition-[opacity,transform] md:duration-300",
         visible
           ? "opacity-1 relative"
           : cn(
