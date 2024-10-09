@@ -8,6 +8,7 @@ import {
   PropsWithChildren,
   ReactNode,
   Suspense,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -99,10 +100,14 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
 function NavItem({ item }: { item: NavItemType }) {
   const { name, icon: Icon, href, exact } = item;
 
-  const pathname = usePathname();
-  const isActive = exact ? pathname === href : pathname.startsWith(href);
-
   const [hovered, setHovered] = useState(false);
+  const [isActive, setIsActive] = useState(false);
+
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setIsActive(exact ? pathname === href : pathname.startsWith(href));
+  }, [exact, pathname, href]);
 
   return (
     <Link
