@@ -8,10 +8,11 @@ import {
   PropsWithChildren,
   ReactNode,
   Suspense,
+  useEffect,
   useMemo,
   useState,
 } from "react";
-import { ITEMS, type NavItem } from "./items";
+import { ITEMS, type NavItem as NavItemType } from "./items";
 import UserDropdown from "./user-dropdown";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
@@ -96,12 +97,17 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
   );
 }
 
-function NavItem({ pathname, item }: { pathname: string; item: NavItem }) {
+function NavItem({ pathname, item }: { pathname: string; item: NavItemType }) {
   const { name, icon: Icon, href, exact } = item;
 
-  const isActive = exact ? pathname === href : pathname.startsWith(href);
+  const isActive = useMemo(
+    () => (exact ? pathname === href : pathname.startsWith(href)),
+    [exact, pathname, href],
+  );
 
-  console.log("NavItem active check", { pathname, href, exact, isActive });
+  useEffect(() => {
+    console.log("isActive", isActive, { item });
+  }, [isActive]);
 
   const [hovered, setHovered] = useState(false);
 
