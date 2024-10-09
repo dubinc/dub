@@ -139,15 +139,6 @@ function WorkspaceList({
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
       <div className="flex items-center justify-between px-2 pb-1">
         <p className="text-xs text-gray-500">My Workspaces</p>
-        {workspaces.length > 0 && (
-          <Link
-            href="/workspaces"
-            onClick={() => setOpenPopover(false)}
-            className="rounded-md border border-gray-200 px-2 py-1 text-xs transition-colors hover:bg-gray-100"
-          >
-            View All
-          </Link>
-        )}
       </div>
       {workspaces.map(({ id, name, slug, logo }) => {
         return (

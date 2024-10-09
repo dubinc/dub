@@ -4,12 +4,7 @@ import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { LinkWithTagsProps, UserProps } from "@/lib/types";
 import { PaginationControls } from "@dub/blocks/src/pagination-controls";
-import {
-  CardList,
-  MaxWidthWrapper,
-  useInputFocused,
-  usePagination,
-} from "@dub/ui";
+import { CardList, MaxWidthWrapper, usePagination } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
@@ -57,11 +52,9 @@ export default function LinksContainer({
 export const LinksListContext = createContext<{
   openMenuLinkId: string | null;
   setOpenMenuLinkId: Dispatch<SetStateAction<string | null>>;
-  showHoverStates: boolean;
 }>({
   openMenuLinkId: null,
   setOpenMenuLinkId: () => {},
-  showHoverStates: true,
 });
 
 function LinksList({
@@ -78,7 +71,6 @@ function LinksList({
   compact: boolean;
 }) {
   const searchParams = useSearchParams();
-  const showHoverStates = !useInputFocused();
 
   const { pagination, setPagination } = usePagination();
 
@@ -96,7 +88,7 @@ function LinksList({
     <>
       {!links || links.length ? (
         <LinksListContext.Provider
-          value={{ openMenuLinkId, setOpenMenuLinkId, showHoverStates }}
+          value={{ openMenuLinkId, setOpenMenuLinkId }}
         >
           {/* Cards */}
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>

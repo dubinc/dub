@@ -4,8 +4,6 @@ import { parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 
-const topLevelSettingRedirects = ["/integrations", "/webhooks", "/domains"];
-
 export default async function WorkspacesMiddleware(
   req: NextRequest,
   user: UserProps,
@@ -16,7 +14,7 @@ export default async function WorkspacesMiddleware(
 
   if (defaultWorkspace) {
     let redirectPath = path;
-    if (["/", "/login", "/register"].includes(path)) {
+    if (["/", "/login", "/register", "/workspaces"].includes(path)) {
       redirectPath = "";
     } else if (isTopLevelSettingsRedirect(path)) {
       redirectPath = `/settings/${path}`;
@@ -28,6 +26,6 @@ export default async function WorkspacesMiddleware(
       ),
     );
   } else {
-    return NextResponse.redirect(new URL("/workspaces", req.url));
+    return NextResponse.redirect(new URL("/onboarding/workspace", req.url));
   }
 }

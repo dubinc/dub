@@ -68,6 +68,7 @@ export * from "./input-password";
 export * from "./input-search";
 export * from "./invoice-dollar";
 export * from "./key";
+export * from "./layout-sidebar";
 export * from "./lines-y";
 export * from "./link-broken";
 export * from "./magnifier";

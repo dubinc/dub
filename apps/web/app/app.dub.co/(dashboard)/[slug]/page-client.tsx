@@ -4,7 +4,6 @@ import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSwitcher } from "@/ui/folders/folder-switcher";
-import { FolderEditAccessRequestButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
@@ -76,9 +75,9 @@ function WorkspaceLinks() {
     <>
       <LinkBuilder />
       <AddEditTagModal />
-      <div className="mt-10 flex w-full items-center pt-3">
+      <div className="flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap">
+          <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
             {flags?.linkFolders ? (
               <FolderSwitcher />
             ) : (
@@ -87,12 +86,9 @@ function WorkspaceLinks() {
               </h1>
             )}
 
-            <div className="order-4 flex w-full grow flex-wrap justify-end gap-2 md:order-2 md:w-auto">
-              <div className="w-full md:w-56 lg:w-64">
-                <SearchBoxPersisted
-                  loading={isValidating}
-                  inputClassName="h-10"
-                />
+            <div className="flex w-full grow gap-2 md:w-auto">
+              <div className="grow basis-0 md:grow-0">
+                <LinkDisplay />
               </div>
               <div className="grow basis-0 md:grow-0">
                 <Filter.Select
@@ -147,26 +143,18 @@ function WorkspaceLinks() {
                   }}
                 />
               </div>
-              <div className="grow basis-0 md:grow-0">
-                <LinkDisplay />
-              </div>
             </div>
-
-            <div className="order-3 flex gap-x-2">
-              {canCreateLinks ? (
-                <>
-                  <div className="grow-0">
-                    <CreateLinkButton />
-                  </div>
-                  <MoreLinkOptions />
-                </>
-              ) : (
-                <FolderEditAccessRequestButton
-                  folderId={folderId!}
-                  workspaceId={workspaceId!}
-                  variant="primary"
+            <div className="flex gap-x-2 max-md:w-full">
+              <div className="w-full md:w-56 lg:w-64">
+                <SearchBoxPersisted
+                  loading={isValidating}
+                  inputClassName="h-10"
                 />
-              )}
+              </div>
+              <div className="grow-0">
+                <CreateLinkButton />
+              </div>
+              <MoreLinkOptions />
             </div>
           </div>
           <Filter.List
