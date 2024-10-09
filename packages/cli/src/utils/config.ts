@@ -7,27 +7,26 @@ export async function getConfig(): Promise<DubConfig> {
 
   if (!configStore.size) {
     throw new Error(
-      "Access token not found. Please run `dub login` to log into the Dub platform.",
+      "Access token not found. Please run `dub login` to authenticate with Dub.",
     );
   }
 
   const config = configStore.all as DubConfig;
 
   if (config.expires_at && Date.now() >= config.expires_at) {
-    const { accessToken, refreshToken, expiresAt } =
-      await oauthClient.refreshToken({
-        accessToken: config.access_token,
-        refreshToken: config.refresh_token,
-        expiresAt: config.expires_at,
-      });
-
-    const updatedConfig = await setConfig({
-      access_token: accessToken.trim(),
-      refresh_token: refreshToken,
-      expires_at: expiresAt ? Date.now() + expiresAt * 1000 : null,
+    const response = await oauthClient.refreshToken({
+      accessToken: config.access_token,
+      refreshToken: config.refresh_token,
+      expiresAt: config.expires_at,
     });
 
-    return updatedConfig;
+    const { accessToken, refreshToken, expiresAt } = response;
+
+    return await setConfig({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      expires_at: expiresAt,
+    });
   }
 
   return await configStore.all;
