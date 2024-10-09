@@ -59,46 +59,46 @@ function UsageInner() {
   const warning = warnings.some((w) => w);
 
   return loading || usage !== undefined ? (
-    <div className="border-t border-neutral-300/80 p-3">
-      <Link
-        className="group flex items-center gap-0.5 text-sm font-normal text-neutral-500 transition-colors hover:text-neutral-700"
-        href={`/${slug}/settings/billing`}
-      >
-        Usage
-        <ChevronRight className="size-3 text-neutral-400 transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-neutral-500" />
-      </Link>
+    <AnimatedSizeContainer height>
+      <div className="border-t border-neutral-300/80 p-3">
+        <Link
+          className="group flex items-center gap-0.5 text-sm font-normal text-neutral-500 transition-colors hover:text-neutral-700"
+          href={`/${slug}/settings/billing`}
+        >
+          Usage
+          <ChevronRight className="size-3 text-neutral-400 transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-neutral-500" />
+        </Link>
 
-      <div className="mt-4 flex flex-col gap-4">
-        <UsageRow
-          icon={Hyperlink}
-          label="Links"
-          usage={linksUsage}
-          limit={linksLimit}
-          warning={warnings[1]}
-        />
-        <UsageRow
-          icon={CursorRays}
-          label="Events"
-          usage={usage}
-          limit={usageLimit}
-          warning={warnings[0]}
-        />
-      </div>
+        <div className="mt-4 flex flex-col gap-4">
+          <UsageRow
+            icon={Hyperlink}
+            label="Links"
+            usage={linksUsage}
+            limit={linksLimit}
+            warning={warnings[1]}
+          />
+          <UsageRow
+            icon={CursorRays}
+            label="Events"
+            usage={usage}
+            limit={usageLimit}
+            warning={warnings[0]}
+          />
+        </div>
 
-      <div className="mt-3">
-        {billingEnd ? (
-          <p className="text-xs text-neutral-900/40">
-            Usage will reset {billingEnd}
-          </p>
-        ) : loading ? (
-          <div className="h-4 w-2/3 animate-pulse rounded-md bg-neutral-500/10" />
-        ) : (
-          <div className="h-4" />
-        )}
-      </div>
+        <div className="mt-3">
+          {billingEnd ? (
+            <p className="text-xs text-neutral-900/40">
+              Usage will reset {billingEnd}
+            </p>
+          ) : loading ? (
+            <div className="h-4 w-2/3 animate-pulse rounded-md bg-neutral-500/10" />
+          ) : (
+            <div className="h-4" />
+          )}
+        </div>
 
-      <AnimatedSizeContainer height>
-        {warning && (
+        {(warning || plan === "free") && (
           <div className="pt-4">
             <Link
               href={`/${slug}/upgrade`}
@@ -111,8 +111,8 @@ function UsageInner() {
             </Link>
           </div>
         )}
-      </AnimatedSizeContainer>
-    </div>
+      </div>
+    </AnimatedSizeContainer>
   ) : null;
 }
 
@@ -130,6 +130,7 @@ function UsageRow({
   warning: boolean;
 }) {
   const loading = usage === undefined || limit === undefined;
+  const unlimited = limit !== undefined && limit >= 1000000000;
 
   return (
     <div>
@@ -146,36 +147,38 @@ function UsageRow({
           <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-500/10" />
         )}
       </div>
-      <div className="mt-1.5">
-        <div
-          className={cn(
-            "h-0.5 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
-            loading && "bg-neutral-900/5",
-          )}
-        >
-          {!loading && (
-            <div
-              className="animate-slide-right-fade size-full"
-              style={{ "--offset": "-100%" } as CSSProperties}
-            >
+      {!unlimited && (
+        <div className="mt-1.5">
+          <div
+            className={cn(
+              "h-0.5 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
+              loading && "bg-neutral-900/5",
+            )}
+          >
+            {!loading && (
               <div
-                className={cn(
-                  "size-full rounded-full bg-gradient-to-r from-transparent to-blue-600",
-                  warning && "to-rose-500",
-                )}
-                style={{
-                  transform: `translateX(-${100 - (usage / Math.max(0, usage, limit)) * 100}%)`,
-                }}
-              />
-            </div>
-          )}
+                className="animate-slide-right-fade size-full"
+                style={{ "--offset": "-100%" } as CSSProperties}
+              >
+                <div
+                  className={cn(
+                    "size-full rounded-full bg-gradient-to-r from-transparent to-blue-600",
+                    warning && "to-rose-500",
+                  )}
+                  style={{
+                    transform: `translateX(-${100 - Math.floor((usage / Math.max(0, usage, limit)) * 100)}%)`,
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
 const formatNumber = (value: number) =>
-  isFinite(value)
-    ? nFormatter(value, { full: value !== undefined && value < 9999 })
-    : "∞";
+  value >= 1000000000
+    ? "∞"
+    : nFormatter(value, { full: value !== undefined && value < 9999 });
