@@ -66,7 +66,7 @@ export function MainNav({
         {/* Side nav */}
         <nav
           className={cn(
-            "relative h-full w-[240px] max-w-full bg-neutral-100 transition-transform md:translate-x-0",
+            "relative min-h-full w-[240px] max-w-full bg-neutral-100 transition-transform md:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >
