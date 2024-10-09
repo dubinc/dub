@@ -5,7 +5,7 @@ import { AnimatedSizeContainer, ClientOnly, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import Cookies from "js-cookie";
-import { CircleHelp, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { createContext, useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ export const UserSurveyContext = createContext<{ status: UserSurveyStatus }>({
   status: "idle",
 });
 
+// Used to be a popup, now maintaining the same cookie ID
 const HIDDEN_COOKIE_ID = "hideUserSurveyPopup";
 
 export default function UserSurveyButton() {
@@ -52,7 +53,6 @@ export default function UserSurveyButton() {
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                   )}
                 >
-                  <CircleHelp className="mr-1 mt-0.5 size-3" />
                   Where did you hear about Dub?
                 </button>
               </Popover>
