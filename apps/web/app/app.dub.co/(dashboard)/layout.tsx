@@ -15,10 +15,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
       <div className="min-h-screen w-full bg-white">
         <MainNav toolContent={<HelpButtonRSC />}>{children}</MainNav>
       </div>
-      <Toolbar show={["onboarding"]} />
       <UserSurveyPopup />
       {/* <ChangelogPopup /> */}
-      <Toolbar />
+      <Toolbar show={["onboarding"]} />
     </Providers>
   );
 }
