@@ -1,9 +1,9 @@
+import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { R2_URL } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { storage } from "../../storage";
 import { recordLink } from "../../tinybird";
-import { linkCache } from "../links/cache";
 import { removeDomainFromVercel } from "./remove-domain-vercel";
 
 /* Delete a domain and all links & images associated with it */
@@ -50,7 +50,12 @@ export async function deleteDomainAndLinks(domain: string) {
     (async () => {
       await Promise.allSettled([
         // delete all links from redis
-        linkCache.deleteMany(allLinks),
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/delete`,
+          body: {
+            domain,
+          },
+        }),
 
         // record deletes in tinybird for domain & links
         recordLink([
