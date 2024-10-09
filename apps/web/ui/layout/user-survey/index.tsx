@@ -106,7 +106,7 @@ export function UserSurveyPopupInner({ hide }: { hide: () => void }) {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center space-y-3 bg-white text-sm"
+                className="absolute inset-0 flex flex-col items-center justify-center space-y-3 rounded-lg bg-white text-sm"
               >
                 <CheckCircleFill className="h-8 w-8 text-green-500" />
                 <p className="text-gray-500">Thank you for your response!</p>
