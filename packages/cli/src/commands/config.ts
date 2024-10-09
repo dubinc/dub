@@ -9,11 +9,10 @@ export const config = new Command()
   .name("config")
   .description("See your configured credentials")
   .action(async () => {
-    const spinner = ora("Getting config file").start();
+    const spinner = ora("Getting config").start();
 
     try {
       const configInfo = await getConfig();
-
       spinner.succeed("Configuration file successfully retrieved");
 
       logger.info("");

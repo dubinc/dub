@@ -16,13 +16,14 @@ export const links = new Command()
       const spinner = ora("Fetching links").start();
 
       const dub = new Dub({
-        token: config.token,
+        token: config.access_token,
       });
 
       const links = await dub.links.list({
         search,
         pageSize: limit ? parseInt(limit) : 10,
       });
+
       spinner.stop();
 
       const formattedLinks = links.result.map((link) => ({

@@ -1,7 +1,8 @@
 export interface DubConfig {
-  token: string;
+  access_token: string;
+  refresh_token: string | null;
+  expires_at: number | null;
   domain?: string;
-  code_verifier?: string;
 }
 
 export type Domain = {
