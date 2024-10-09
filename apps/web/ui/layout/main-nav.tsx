@@ -51,7 +51,7 @@ export function MainNav({
       {/* Side nav backdrop */}
       <div
         className={cn(
-          "scrollbar-hide fixed left-0 top-0 z-50 h-dvh w-screen overflow-y-auto overflow-x-hidden transition-[background-color,backdrop-filter] md:sticky md:z-auto md:w-full md:bg-transparent",
+          "fixed left-0 top-0 z-50 h-dvh w-screen transition-[background-color,backdrop-filter] md:sticky md:z-auto md:w-full md:bg-transparent",
           isOpen
             ? "bg-black/20 backdrop-blur-sm"
             : "bg-transparent max-md:pointer-events-none",
@@ -66,7 +66,7 @@ export function MainNav({
         {/* Side nav */}
         <div
           className={cn(
-            "relative flex min-h-full w-[240px] max-w-full flex-col bg-neutral-100 transition-transform md:translate-x-0",
+            "relative h-full w-[240px] max-w-full bg-neutral-100 transition-transform md:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >
@@ -78,7 +78,9 @@ export function MainNav({
               )}
             />
           </div>
-          <SidebarNav toolContent={toolContent} />
+          <div className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
+            <SidebarNav toolContent={toolContent} />
+          </div>
         </div>
       </div>
       <div className="bg-neutral-100 md:pt-1.5">
