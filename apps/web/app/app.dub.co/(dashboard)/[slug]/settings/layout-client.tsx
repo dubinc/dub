@@ -14,8 +14,8 @@ import {
   ShieldCheck,
   Tag,
   Users6,
+  Webhook,
 } from "@dub/ui/src/icons";
-import { Webhook } from "lucide-react";
 import { ReactNode, useMemo } from "react";
 
 export default function WorkspaceSettingsLayoutClient({

@@ -112,6 +112,7 @@ function LinkBuilderInner({
     plan,
     nextPlan,
     logo,
+    flags,
     conversionEnabled,
   } = useWorkspace();
 
@@ -468,12 +469,12 @@ function LinkBuilderInner({
             <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 p-4">
               <div className="flex min-w-0 items-center gap-2">
                 <UTMButton />
-                <WebhookSelect />
                 <div className="flex items-center gap-2 max-sm:hidden">
                   <ExpirationButton />
                   <TargetingButton />
                   <PasswordButton />
                 </div>
+                {flags?.webhooks && <WebhookSelect />}
                 <MoreDropdown />
               </div>
               {homepageDemo ? (
@@ -570,7 +571,6 @@ export function useLinkBuilder({
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
-  const { flags } = useWorkspace();
   const [showLinkBuilder, setShowLinkBuilder] = useState(false);
 
   const LinkBuilderCallback = useCallback(() => {

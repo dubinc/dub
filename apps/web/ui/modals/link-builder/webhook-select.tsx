@@ -1,7 +1,6 @@
 import useWebhooks from "@/lib/swr/use-webhooks";
-import { Combobox, useKeyboardShortcut } from "@dub/ui";
+import { Combobox, useKeyboardShortcut, Webhook } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Webhook } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
@@ -23,7 +22,7 @@ export function WebhookSelect() {
       linkLevelWebhooks?.map((webhook) => ({
         label: webhook.name,
         value: webhook.id,
-        icon: <Webhook className="size-4" />,
+        icon: <Webhook className="size-3.5" />,
       })),
     [availableWebhooks],
   );
@@ -55,10 +54,13 @@ export function WebhookSelect() {
       options={options}
       icon={
         <Webhook
-          className={cn("size-4", hasSelectedWebhooks && "text-blue-500")}
+          className={cn(
+            "size-3.5 flex-none",
+            hasSelectedWebhooks && "text-blue-500",
+          )}
         />
       }
-      side="bottom"
+      side="top"
       placeholder="Webhooks"
       searchPlaceholder="Search webhooks..."
       shortcutHint="W"
