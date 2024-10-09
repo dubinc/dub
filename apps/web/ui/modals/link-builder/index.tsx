@@ -260,12 +260,15 @@ function LinkBuilderInner({
                 });
 
                 if (res.status === 200) {
-                  await mutate(
-                    (key) =>
-                      typeof key === "string" && key.startsWith("/api/links"),
-                    undefined,
-                    { revalidate: true },
-                  );
+                  await Promise.all([
+                    mutate(
+                      (key) =>
+                        typeof key === "string" && key.startsWith("/api/links"),
+                      undefined,
+                      { revalidate: true },
+                    ),
+                    mutate(`/api/workspaces/${slug}`),
+                  ]);
                   const data = await res.json();
                   posthog.capture(
                     props ? "link_updated" : "link_created",

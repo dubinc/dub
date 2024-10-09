@@ -64,9 +64,9 @@ export function MainNav({
         }}
       >
         {/* Side nav */}
-        <nav
+        <div
           className={cn(
-            "relative min-h-full w-[240px] max-w-full bg-neutral-100 transition-transform md:translate-x-0",
+            "relative flex min-h-full w-[240px] max-w-full flex-col bg-neutral-100 transition-transform md:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >
@@ -79,7 +79,7 @@ export function MainNav({
             />
           </div>
           <SidebarNav toolContent={toolContent} />
-        </nav>
+        </div>
       </div>
       <div className="bg-neutral-100 md:pt-1.5">
         <div className="relative min-h-full bg-neutral-100 pt-px md:rounded-tl-2xl md:border md:border-b-0 md:border-r-0 md:border-neutral-200/80 md:bg-white">

@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import { ITEMS, type NavItem as NavItemType } from "./items";
+import { Usage } from "./usage";
 import UserDropdown from "./user-dropdown";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
@@ -32,68 +33,73 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
   }, [slug, pathname]);
 
   return (
-    <div className="relative p-3 text-gray-500">
-      <div className="relative flex items-start justify-between gap-1 pb-3">
-        {AREAS.map((area) => (
-          <Link
-            key={area}
-            href={slug ? `/${slug}` : "/"}
-            className={cn(
-              "rounded-md px-1 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50",
-              area === currentArea
-                ? "relative opacity-100"
-                : "pointer-events-none absolute opacity-0",
-              area === "default" && "mb-1",
-            )}
-            aria-hidden={area !== currentArea ? true : undefined}
-            {...{ inert: area !== currentArea ? "" : undefined }}
-          >
-            {area === "default" ? (
-              <Wordmark className="h-6" />
-            ) : (
-              <div className="py group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium text-neutral-900">
-                <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />
-                Settings
-              </div>
-            )}
-          </Link>
-        ))}
-        <div className="hidden items-center gap-3 md:flex">
-          <Suspense fallback={null}>{toolContent}</Suspense>
-          <UserDropdown />
-        </div>
-      </div>
-      <div className="relative w-full">
-        {AREAS.map((area) => (
-          <Area
-            key={area}
-            visible={area === currentArea}
-            direction={area === "default" ? "left" : "right"}
-          >
-            {area === "default" && (
-              <div className="pt-2">
-                <WorkspaceDropdown />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-4 pt-4">
-              {ITEMS[area].map(({ name, items }, idx) => (
-                <div key={idx} className="flex flex-col gap-0.5">
-                  {name && (
-                    <div className="mb-2 pl-1 text-sm text-neutral-500">
-                      {name}
-                    </div>
-                  )}
-                  {items({ slug: slug || "", flags }).map((item) => (
-                    <NavItem key={item.name} item={item} />
-                  ))}
+    <>
+      <nav className="relative p-3 text-gray-500">
+        <div className="relative flex items-start justify-between gap-1 pb-3">
+          {AREAS.map((area) => (
+            <Link
+              key={area}
+              href={slug ? `/${slug}` : "/"}
+              className={cn(
+                "rounded-md px-1 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50",
+                area === currentArea
+                  ? "relative opacity-100"
+                  : "pointer-events-none absolute opacity-0",
+                area === "default" && "mb-1",
+              )}
+              aria-hidden={area !== currentArea ? true : undefined}
+              {...{ inert: area !== currentArea ? "" : undefined }}
+            >
+              {area === "default" ? (
+                <Wordmark className="h-6" />
+              ) : (
+                <div className="py group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium text-neutral-900">
+                  <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />
+                  Settings
                 </div>
-              ))}
-            </div>
-          </Area>
-        ))}
+              )}
+            </Link>
+          ))}
+          <div className="hidden items-center gap-3 md:flex">
+            <Suspense fallback={null}>{toolContent}</Suspense>
+            <UserDropdown />
+          </div>
+        </div>
+        <div className="relative w-full">
+          {AREAS.map((area) => (
+            <Area
+              key={area}
+              visible={area === currentArea}
+              direction={area === "default" ? "left" : "right"}
+            >
+              {area === "default" && (
+                <div className="pt-2">
+                  <WorkspaceDropdown />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4 pt-4">
+                {ITEMS[area].map(({ name, items }, idx) => (
+                  <div key={idx} className="flex flex-col gap-0.5">
+                    {name && (
+                      <div className="mb-2 pl-1 text-sm text-neutral-500">
+                        {name}
+                      </div>
+                    )}
+                    {items({ slug: slug || "", flags }).map((item) => (
+                      <NavItem key={item.name} item={item} />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </Area>
+          ))}
+        </div>
+      </nav>
+      <div className="relative mt-6 flex grow flex-col justify-end">
+        <Usage />
       </div>
-    </div>
+    </>
   );
 }
 
