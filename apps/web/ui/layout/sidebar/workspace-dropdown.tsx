@@ -71,7 +71,7 @@ export function WorkspaceDropdown() {
   const [openPopover, setOpenPopover] = useState(false);
 
   if (!workspaces || status === "loading") {
-    return <WorkspaceSwitcherPlaceholder />;
+    return <WorkspaceDropdownPlaceholder />;
   }
 
   return (
@@ -127,7 +127,7 @@ export function WorkspaceDropdown() {
   );
 }
 
-function WorkspaceSwitcherPlaceholder() {
+function WorkspaceDropdownPlaceholder() {
   return (
     <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
       <div className="size-7 animate-pulse rounded-full bg-gray-200" />
