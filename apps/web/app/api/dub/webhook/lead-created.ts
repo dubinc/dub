@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { REFERRAL_SIGNUPS_MAX } from "@/lib/referrals/constants";
+import { LeadCreatedEvent } from "dub/models/components";
 import { sendEmail } from "emails";
 import NewReferralSignup from "emails/new-referral-signup";
 
-export async function leadCreated(data: any) {
+export async function leadCreated(data: LeadCreatedEvent["data"]) {
   const { customer: referredUser, link: referralLink } = data;
 
   if (!referralLink) {
@@ -60,11 +61,12 @@ export async function leadCreated(data: any) {
         },
         // If the referral link has less than the max number of signups,
         // update the referrer's workspace usage
-        ...(referralLink.leads < REFERRAL_SIGNUPS_MAX && {
-          usageLimit: {
-            increment: 500,
-          },
-        }),
+        ...(referralLink.leads &&
+          referralLink.leads < REFERRAL_SIGNUPS_MAX && {
+            usageLimit: {
+              increment: 500,
+            },
+          }),
       },
     }),
     // send notification email to workspace owners
