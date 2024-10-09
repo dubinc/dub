@@ -1,8 +1,22 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
-import { InfoTooltip, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
-import { forwardRef, HTMLProps, useId } from "react";
+import {
+  AnimatedSizeContainer,
+  InfoTooltip,
+  SimpleTooltipContent,
+  useMediaQuery,
+} from "@dub/ui";
+import {
+  forwardRef,
+  HTMLProps,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
+import { useDebounce } from "use-debounce";
 import { AlertCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
@@ -31,6 +45,31 @@ export const DestinationUrlInput = forwardRef<
   ) => {
     const inputId = useId();
     const { isMobile } = useMediaQuery();
+    const [debouncedUrl] = useDebounce(inputProps.value, 500);
+    const [duplicateLinks, setDuplicateLinks] = useState<string[]>([]);
+    const { id: workspaceId } = useWorkspace();
+    const [prevUrl, setPrevUrl] = useState<string | undefined>();
+    const isInitialMount = useRef(true);
+
+    useEffect(() => {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+
+      if (debouncedUrl && debouncedUrl !== prevUrl) {
+        setPrevUrl(debouncedUrl.toString());
+        fetch(
+          `/api/links/verify/destination-url?url=${encodeURIComponent(debouncedUrl.toString())}&workspaceId=${workspaceId}`,
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            setDuplicateLinks(data.exists ? [data.link] : []);
+          });
+      } else if (!debouncedUrl) {
+        setDuplicateLinks([]);
+      }
+    }, [debouncedUrl, workspaceId]);
 
     return (
       <div>
@@ -98,6 +137,11 @@ export const DestinationUrlInput = forwardRef<
             </div>
           )}
         </div>
+        <AnimatedSizeContainer>
+          {duplicateLinks.length > 0 && (
+            <DuplicateLinksWarning links={duplicateLinks} />
+          )}
+        </AnimatedSizeContainer>
         {error && (
           <p className="mt-2 text-sm text-red-600" id="key-error">
             {error}
@@ -106,4 +150,22 @@ export const DestinationUrlInput = forwardRef<
       </div>
     );
   },
+);
+
+const DuplicateLinksWarning = ({ links }) => (
+  <div className="mt-2 rounded-md bg-yellow-50 p-3">
+    <div className="flex">
+      <div className="flex-shrink-0">
+        <AlertCircleFill
+          className="h-5 w-5 text-yellow-400"
+          aria-hidden="true"
+        />
+      </div>
+      <div className="ml-3">
+        <h3 className="text-sm font-medium text-yellow-800">
+          Duplicate links found
+        </h3>
+      </div>
+    </div>
+  </div>
 );
