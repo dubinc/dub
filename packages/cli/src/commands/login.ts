@@ -3,7 +3,6 @@ import { getNanoid } from "@/utils/get-nanoid";
 import { handleError } from "@/utils/handle-error";
 import { OAuth2Client } from "@badgateway/oauth2-client";
 import { Command } from "commander";
-import Configstore from "configstore";
 import open from "open";
 import ora from "ora";
 
@@ -20,10 +19,7 @@ export const login = new Command()
   .action(async () => {
     try {
       const codeVerifier = getNanoid(64);
-      const redirectUri = "http://localhost:4040/callback";
-
-      const config = new Configstore("dub-cli");
-      config.set("code_verifier", codeVerifier);
+      const redirectUri = "http://localhost:4587/callback";
 
       const authUrl = await oauth2Client.authorizationCode.getAuthorizeUri({
         redirectUri,
@@ -40,6 +36,7 @@ export const login = new Command()
       oauthCallbackServer({
         oauth2Client,
         redirectUri,
+        codeVerifier,
         spinner,
       });
     } catch (error) {

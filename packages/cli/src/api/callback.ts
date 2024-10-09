@@ -11,11 +11,13 @@ interface OAuthCallbackServerProps {
   oauth2Client: OAuth2Client;
   redirectUri: string;
   spinner: Ora;
+  codeVerifier: string;
 }
 
 export function oauthCallbackServer({
   oauth2Client,
   redirectUri,
+  codeVerifier,
   spinner,
 }: OAuthCallbackServerProps) {
   const server = http.createServer(async (req, res) => {
@@ -41,9 +43,6 @@ export function oauthCallbackServer({
     try {
       spinner.text = "Verifying";
 
-      const config = new Configstore("dub-cli");
-      const codeVerifier = config.get("code_verifier");
-
       const { accessToken } = await oauth2Client.authorizationCode.getToken({
         code,
         redirectUri,
@@ -57,6 +56,7 @@ export function oauthCallbackServer({
         domain: "dub.sh",
       };
 
+      const config = new Configstore("dub-cli");
       config.set(configInfo);
 
       if (!config.path) {
@@ -75,8 +75,9 @@ export function oauthCallbackServer({
       res.writeHead(500, { "Content-Type": "text/html" });
       res.end("An error occurred during authentication. Please try again.");
     } finally {
-      server.close();
-      process.exit(0);
+      server.close(() => {
+        process.exit(0);
+      });
     }
   });
 
@@ -85,5 +86,5 @@ export function oauthCallbackServer({
     process.exit(0);
   }, 300000);
 
-  server.listen(4040);
+  server.listen(4587);
 }
