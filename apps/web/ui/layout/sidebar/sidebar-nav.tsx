@@ -109,6 +109,8 @@ function NavItem({ pathname, item }: { pathname: string; item: NavItem }) {
 
   const isActive = exact ? pathname === href : pathname.startsWith(href);
 
+  console.log("NavItem active check", { pathname, href, exact, isActive });
+
   const [hovered, setHovered] = useState(false);
 
   return (
