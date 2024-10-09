@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import { SaleCreatedEvent } from "dub/dist/commonjs/models/components";
 import { sendEmail } from "emails";
 import NewReferralSale from "emails/new-referral-sale";
 
-export async function saleCreated(data: any) {
+export async function saleCreated(data: SaleCreatedEvent["data"]) {
   const { link: referralLink } = data;
 
   if (!referralLink) {
