@@ -2,27 +2,15 @@
   "extends": "tsconfig/nextjs.json",
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/pages/*": [
-        "pages/*"
-      ],
-      "@/styles/*": [
-        "styles/*"
-      ],
-      "@/ui/*": [
-        "ui/*"
-      ],
-      "@/lib/*": [
-        "lib/*"
-      ]
+      "@/pages/*": ["pages/*"],
+      "@/styles/*": ["styles/*"],
+      "@/ui/*": ["ui/*"],
+      "@/lib/*": ["lib/*"]
     },
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
@@ -50,7 +38,5 @@
     "../../packages/blocks/src/event-list.tsx",
     "../../packages/ui/src/hooks/use-pagination.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
