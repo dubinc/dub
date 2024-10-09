@@ -84,7 +84,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
                     </div>
                   )}
                   {items({ slug: slug || "", flags }).map((item) => (
-                    <NavItem key={item.name} pathname={pathname} item={item} />
+                    <NavItem key={item.name} item={item} />
                   ))}
                 </div>
               ))}
