@@ -12,6 +12,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import UserSurveyButton from "../user-survey";
 import { ITEMS, type NavItem as NavItemType } from "./items";
 import { Usage } from "./usage";
 import UserDropdown from "./user-dropdown";
@@ -97,6 +98,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
         </div>
       </nav>
       <div className="relative mt-6 flex grow flex-col justify-end">
+        <UserSurveyButton />
         <Usage />
       </div>
     </>
