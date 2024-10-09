@@ -180,11 +180,11 @@ function WorkspaceLinks() {
         </MaxWidthWrapper>
       </div>
 
-      {canCreateLinks && (
-        <div className="mt-3">
-          <LinksContainer CreateLinkButton={CreateLinkButton} />
-        </div>
-      )}
+      <div className="mt-3">
+        <LinksContainer
+          CreateLinkButton={canCreateLinks ? CreateLinkButton : () => <></>}
+        />
+      </div>
     </>
   );
 }
