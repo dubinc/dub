@@ -35,6 +35,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
       <div className="relative flex items-start justify-between gap-1 pb-3">
         {AREAS.map((area) => (
           <Link
+            key={area}
             href={slug ? `/${slug}` : "/"}
             className={cn(
               "transition-opacity",
@@ -42,7 +43,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
                 ? "relative opacity-100"
                 : "pointer-events-none absolute opacity-0",
             )}
-            aria-hidden={area !== currentArea}
+            aria-hidden={area !== currentArea ? true : undefined}
           >
             {area === "default" ? (
               <div className="pb-1">
@@ -141,7 +142,7 @@ export function Area({
               direction === "left" ? "-translate-x-full" : "translate-x-full",
             ),
       )}
-      area-hidden={!visible}
+      aria-hidden={!visible ? "true" : undefined}
     >
       {children}
     </div>
