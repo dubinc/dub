@@ -36,7 +36,7 @@ function DeleteWorkspaceModal({
       }).then(async (res) => {
         if (res.ok) {
           await mutate("/api/workspaces");
-          router.push("/workspaces");
+          router.push("/");
           resolve(null);
         } else {
           setDeleting(false);
