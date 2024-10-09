@@ -39,19 +39,19 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
             key={area}
             href={slug ? `/${slug}` : "/"}
             className={cn(
-              "transition-opacity",
+              "rounded-md px-1 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50",
               area === currentArea
                 ? "relative opacity-100"
                 : "pointer-events-none absolute opacity-0",
+              area === "default" && "mb-1",
             )}
             aria-hidden={area !== currentArea ? true : undefined}
+            {...{ inert: area !== currentArea ? "" : undefined }}
           >
             {area === "default" ? (
-              <div className="pb-1">
-                <Wordmark className="ml-1 h-6" />
-              </div>
+              <Wordmark className="h-6" />
             ) : (
-              <div className="py group -my-1 flex items-center gap-2 py-2 text-sm font-medium text-neutral-900">
+              <div className="py group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium text-neutral-900">
                 <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />
                 Settings
               </div>
@@ -117,6 +117,7 @@ function NavItem({ item }: { item: NavItemType }) {
       onPointerLeave={() => setHovered(false)}
       className={cn(
         "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+        "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
         isActive &&
           "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
       )}
@@ -147,6 +148,7 @@ export function Area({
             ),
       )}
       aria-hidden={!visible ? "true" : undefined}
+      {...{ inert: !visible ? "" : undefined }}
     >
       {children}
     </div>
