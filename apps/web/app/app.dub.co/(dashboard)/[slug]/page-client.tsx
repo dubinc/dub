@@ -1,6 +1,9 @@
 "use client";
 
-import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
+import {
+  useCheckFolderPermission,
+  useFolderPermissions,
+} from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSwitcher } from "@/ui/folders/folder-switcher";
@@ -67,6 +70,7 @@ function WorkspaceLinks() {
 
   const folderId = searchParams.get("folderId");
 
+  const { isLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
     folderId,
     "folders.links.write",
@@ -79,13 +83,7 @@ function WorkspaceLinks() {
       <div className="flex w-full items-center pt-3">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
-            {flags?.linkFolders ? (
-              <FolderSwitcher />
-            ) : (
-              <h1 className="order-1 text-2xl font-semibold tracking-tight text-black">
-                Links
-              </h1>
-            )}
+            {flags?.linkFolders && <FolderSwitcher />}
 
             <div className="flex w-full grow gap-2 md:w-auto">
               <div className="grow basis-0 md:grow-0">
@@ -153,7 +151,12 @@ function WorkspaceLinks() {
                 />
               </div>
 
-              {canCreateLinks ? (
+              {isLoading ? (
+                <div className="flex grow-0 animate-pulse items-center space-x-2">
+                  <div className="h-10 w-24 rounded-md bg-gray-200" />
+                  <div className="h-10 w-10 rounded-md bg-gray-200" />
+                </div>
+              ) : canCreateLinks ? (
                 <>
                   <div className="grow-0">
                     <CreateLinkButton />
