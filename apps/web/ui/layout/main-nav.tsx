@@ -78,9 +78,7 @@ export function MainNav({
               )}
             />
           </div>
-          <div className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
-            <SidebarNav toolContent={toolContent} />
-          </div>
+          <SidebarNav toolContent={toolContent} />
         </div>
       </div>
       <div className="bg-neutral-100 md:pt-1.5">

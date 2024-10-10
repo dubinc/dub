@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Wordmark } from "@dub/ui";
+import { ClientOnly, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -33,7 +33,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
   }, [slug, pathname]);
 
   return (
-    <>
+    <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
       <nav className="relative p-3 text-gray-500">
         <div className="relative flex items-start justify-between gap-1 pb-3">
           {AREAS.map((area) => (
@@ -100,7 +100,7 @@ export function SidebarNav({ toolContent }: { toolContent?: ReactNode }) {
         <UserSurveyButton />
         <Usage />
       </div>
-    </>
+    </ClientOnly>
   );
 }
 
