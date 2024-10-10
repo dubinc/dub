@@ -15,7 +15,7 @@ export const POST = async (req: Request) => {
 
   await verifyQstashSignature(req, rawBody);
 
-  const { url, status, body, sourceBody, sourceMessageId, retried } =
+  const { url, status, body, sourceBody, sourceMessageId } =
     webhookCallbackSchema.parse(rawBody);
 
   const { webhookId } = getSearchParams(req.url);
