@@ -4,7 +4,7 @@ import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, useMediaQuery } from "@dub/ui";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useFormStatus } from "react-dom";
 import { verifyPassword } from "./action";
 
 const initialState = {
@@ -17,7 +17,7 @@ export default function PasswordForm() {
     domain: string;
     key: string;
   };
-  const [state, formAction] = useFormState(verifyPassword, initialState);
+  const [state, formAction] = useActionState(verifyPassword, initialState);
 
   const router = useRouter();
 
