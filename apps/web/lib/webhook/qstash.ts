@@ -14,7 +14,7 @@ export const sendWebhooks = async ({
   trigger,
   data,
 }: {
-  webhooks: Pick<Webhook, "id" | "url" | "secret" | "disabled">[];
+  webhooks: Pick<Webhook, "id" | "url" | "secret">[];
   trigger: WebhookTrigger;
   data: EventDataProps;
 }) => {
@@ -22,16 +22,10 @@ export const sendWebhooks = async ({
     return;
   }
 
-  const activeWebhooks = webhooks.filter((webhook) => !webhook?.disabled);
-
-  if (activeWebhooks.length === 0) {
-    return;
-  }
-
   const payload = prepareWebhookPayload(trigger, data);
 
   return await Promise.all(
-    activeWebhooks.map((webhook) =>
+    webhooks.map((webhook) =>
       publishWebhookEventToQStash({ webhook, payload }),
     ),
   );
