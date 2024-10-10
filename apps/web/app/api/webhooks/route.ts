@@ -27,6 +27,7 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
+        disabled: true,
         links: true,
       },
       orderBy: {

@@ -1,3 +1,4 @@
+import { WEBHOOK_FAILURE_NOTIFY_THRESHOLD } from "@/lib/webhook/constants";
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
@@ -54,8 +55,13 @@ export default function WebhookDisabled({
               Webhook has been disabled
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              The webhook <strong>{webhook.url}</strong> has been disabled due
-              to several failed delivery attempts.
+              Your webhook <strong>{webhook.url}</strong> has failed to deliver
+              successfully {WEBHOOK_FAILURE_NOTIFY_THRESHOLD} times in a row and
+              has been deactivated to prevent further issues.
+            </Text>
+            <Text className="text-sm leading-6 text-black">
+              Please review the webhook details and update the URL if necessary
+              to restore functionality.
             </Text>
             <Section className="mb-8 mt-4 text-center">
               <Link

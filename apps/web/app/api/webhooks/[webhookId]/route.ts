@@ -26,6 +26,7 @@ export const GET = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
+        disabled: true,
         links: true,
       },
     });
@@ -50,25 +51,26 @@ export const PATCH = withWorkspace(
   async ({ workspace, params, req }) => {
     const { webhookId } = params;
 
-    const { name, url, triggers, linkIds } = updateWebhookSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { name, url, triggers, linkIds, disabled } =
+      updateWebhookSchema.parse(await parseRequestBody(req));
 
-    const webhookUrlExists = await prisma.webhook.findFirst({
-      where: {
-        projectId: workspace.id,
-        url,
-        id: {
-          not: webhookId,
+    if (url) {
+      const webhookUrlExists = await prisma.webhook.findFirst({
+        where: {
+          projectId: workspace.id,
+          url,
+          id: {
+            not: webhookId,
+          },
         },
-      },
-    });
-
-    if (webhookUrlExists) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "A Webhook with this URL already exists.",
       });
+
+      if (webhookUrlExists) {
+        throw new DubApiError({
+          code: "conflict",
+          message: "A Webhook with this URL already exists.",
+        });
+      }
     }
 
     if (linkIds && linkIds.length > 0) {
@@ -109,6 +111,7 @@ export const PATCH = withWorkspace(
         ...(name && { name }),
         ...(url && { url }),
         ...(triggers && { triggers }),
+        disabled,
         ...(linkIds && {
           links: {
             deleteMany: {},
@@ -194,6 +197,7 @@ export const PATCH = withWorkspace(
 
         // No changes in the links
         if (!linksAdded.length && !linksRemoved.length) {
+          console.log("No changes in the links");
           return;
         }
 
