@@ -9,11 +9,13 @@ const partialQuerySchema = getTagsQuerySchema.partial();
 
 export default function useTags({
   query,
-}: { query?: z.infer<typeof partialQuerySchema> } = {}) {
+  enabled = true,
+}: { query?: z.infer<typeof partialQuerySchema>; enabled?: boolean } = {}) {
   const { id } = useWorkspace();
 
   const { data: tags, isValidating } = useSWR<TagProps[]>(
     id &&
+      enabled &&
       `/api/tags?${new URLSearchParams({ workspaceId: id, ...query } as Record<string, any>).toString()}`,
     fetcher,
     {

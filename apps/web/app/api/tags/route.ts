@@ -14,7 +14,8 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ req, workspace, headers }) => {
     const searchParams = getSearchParams(req.url);
-    const { search, page, pageSize } = getTagsQuerySchema.parse(searchParams);
+    const { search, ids, page, pageSize } =
+      getTagsQuerySchema.parse(searchParams);
 
     const tags = await prisma.tag.findMany({
       where: {
@@ -22,6 +23,11 @@ export const GET = withWorkspace(
         ...(search && {
           name: {
             contains: search,
+          },
+        }),
+        ...(ids && {
+          id: {
+            in: ids,
           },
         }),
       },
