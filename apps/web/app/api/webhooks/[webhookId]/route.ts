@@ -124,6 +124,7 @@ export const PATCH = withWorkspace(
         url: true,
         secret: true,
         triggers: true,
+        disabled: true,
         links: {
           select: {
             linkId: true,

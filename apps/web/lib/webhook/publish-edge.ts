@@ -28,6 +28,7 @@ export const sendWorkspaceWebhookOnEdge = async ({
       id: true,
       url: true,
       secret: true,
+      disabled: true,
     },
   });
 

@@ -115,6 +115,7 @@ export const POST = withWorkspace(
         secret: true,
         triggers: true,
         links: true,
+        disabled: true,
       },
     });
 

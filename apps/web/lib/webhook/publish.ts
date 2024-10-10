@@ -32,6 +32,7 @@ export const sendWorkspaceWebhook = async ({
       id: true,
       url: true,
       secret: true,
+      disabled: true,
     },
   });
 
