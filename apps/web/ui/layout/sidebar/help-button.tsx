@@ -1,6 +1,7 @@
 "use client";
 
 import { Popover } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { CircleHelp, XIcon } from "lucide-react";
 import posthog from "posthog-js";
@@ -33,7 +34,10 @@ export function HelpButton({
             }
             setIsOpen((o) => !o);
           }}
-          className="font-lg relative size-4 shrink-0 overflow-hidden rounded-full active:bg-gray-50"
+          className={cn(
+            "font-lg relative size-4 shrink-0 overflow-hidden rounded-full active:bg-gray-50",
+            "outline-none ring-offset-2 ring-offset-neutral-100 focus-visible:ring-2 focus-visible:ring-black/50",
+          )}
         >
           <AnimatePresence>
             <motion.div
