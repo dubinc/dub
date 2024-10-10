@@ -127,7 +127,7 @@ export function Nav({ theme = "light" }: { theme?: NavTheme }) {
             >
               <NavigationMenuPrimitive.List className="relative flex flex-row gap-2 px-2 py-0.5">
                 {/* Desktop background */}
-                <div className="absolute inset-0 -z-[1]">
+                <div className="absolute inset-0 -z-[1] w-[96%]">
                   <div
                     className={cn(
                       "absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-200 drop-shadow-sm transition-all dark:border-white/10",
