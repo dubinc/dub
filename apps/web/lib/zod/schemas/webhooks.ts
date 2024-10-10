@@ -1,7 +1,4 @@
-import {
-  WEBHOOK_SECRET_PREFIX,
-  WEBHOOK_TRIGGERS,
-} from "@/lib/webhook/constants";
+import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { z } from "zod";
 
 export const webhookSchema = z.object({
@@ -10,18 +7,21 @@ export const webhookSchema = z.object({
   url: z.string(),
   secret: z.string(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
+  disabled: z.boolean().optional(),
   linkIds: z.array(z.string()).optional(),
 });
 
 export const createWebhookSchema = z.object({
   name: z.string().min(1).max(30),
   url: z.string().url().max(190),
-  secret: z.string().startsWith(WEBHOOK_SECRET_PREFIX),
+  secret: z.string().optional(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
   linkIds: z.array(z.string()).optional(),
 });
 
-export const updateWebhookSchema = createWebhookSchema.partial();
+export const updateWebhookSchema = createWebhookSchema.partial().extend({
+  disabled: z.boolean().optional(),
+});
 
 // Schema of response sent to the webhook callback URL by QStash
 export const webhookCallbackSchema = z.object({

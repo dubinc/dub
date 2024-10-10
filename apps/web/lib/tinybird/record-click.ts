@@ -158,6 +158,7 @@ export async function recordClick({
     const linkWebhooks = webhooks.filter(
       (webhook) =>
         webhook.triggers &&
+        !webhook.disabled &&
         Array.isArray(webhook.triggers) &&
         webhook.triggers.includes("link.clicked"),
     );

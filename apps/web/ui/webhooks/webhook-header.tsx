@@ -12,13 +12,15 @@ import {
   TokenAvatar,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ChevronLeft, Send, Trash } from "lucide-react";
+import { ChevronLeft, CircleCheck, CircleX, Send, Trash } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
 import { useSendTestWebhookModal } from "../modals/send-test-webhook-modal";
+import { WebhookDeliveryStatus } from "./webhook-delivery-status";
 
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   const router = useRouter();
@@ -29,7 +31,11 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { data: webhook, isLoading } = useSWR<WebhookProps>(
+  const {
+    data: webhook,
+    isLoading,
+    mutate,
+  } = useSWR<WebhookProps>(
     `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -51,6 +57,25 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   if (!isLoading && !webhook) {
     return notFound();
   }
+
+  const toggleWebhookStatus = async (disabled: boolean) => {
+    const response = await fetch(
+      `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ disabled }),
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      toast.error(error.message);
+      return;
+    }
+
+    await mutate();
+    toast.success("Webhook updated.");
+  };
 
   return (
     <>
@@ -82,7 +107,12 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                 <TokenAvatar id={webhook.id} className="size-8" />
               </div>
               <div>
-                <p className="font-semibold text-gray-700">{webhook.name}</p>
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-gray-700">
+                    {webhook.name}
+                  </span>
+                  <WebhookDeliveryStatus disabled={webhook.disabled} />
+                </div>
                 <a
                   href={webhook.url}
                   target="_blank"
@@ -106,6 +136,27 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
                     setOpenPopover(false);
                     setShowSendTestWebhookModal(true);
                   }}
+                />
+
+                <Button
+                  text={
+                    webhook?.disabled ? "Enable webhook" : "Disable webhook"
+                  }
+                  variant="outline"
+                  icon={
+                    webhook?.disabled ? (
+                      <CircleX className="size-4" />
+                    ) : (
+                      <CircleCheck className="size-4" />
+                    )
+                  }
+                  className="h-9 justify-start px-2"
+                  onClick={async () => {
+                    toggleWebhookStatus(!webhook?.disabled);
+                    setOpenPopover(false);
+                  }}
+                  disabled={!!permissionsError}
+                  disabledTooltip={permissionsError}
                 />
 
                 <Button
