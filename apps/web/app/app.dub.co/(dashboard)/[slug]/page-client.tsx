@@ -60,8 +60,15 @@ function WorkspaceLinks() {
 
   const { slug } = useWorkspace();
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    useLinkFilters();
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useLinkFilters();
 
   const { isValidating } = useLinks();
 
@@ -82,6 +89,8 @@ function WorkspaceLinks() {
                   activeFilters={activeFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
+                  onSearchChange={setSearch}
+                  onSelectedFilterChange={setSelectedFilter}
                   className="w-full"
                   emptyState={{
                     tagId: (

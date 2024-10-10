@@ -7,9 +7,13 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import useDomains from "@/lib/swr/use-domains";
+import useDomainsCount from "@/lib/swr/use-domains-count";
 import useTags from "@/lib/swr/use-tags";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps } from "@/lib/types";
+import { LinkProps, TagProps } from "@/lib/types";
+import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
+import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
   DateRangePicker,
@@ -62,6 +66,7 @@ import {
   useState,
 } from "react";
 import useSWR from "swr";
+import { useDebounce } from "use-debounce";
 import { COLORS_LIST } from "../links/tag-badge";
 import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
@@ -94,8 +99,37 @@ export default function Toggle({
 
   const scrolled = useScroll(120);
 
-  const { tags } = useTags();
-  const { allDomains: domains, primaryDomain } = useDomains();
+  // Determine whether tags and domains should be fetched async
+  const { data: tagsCount } = useTagsCount();
+  const { data: domainsCount } = useDomainsCount({ includeParams: false });
+  const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
+  const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { tags, loading: loadingTags } = useTags({
+    query: {
+      search: tagsAsync && selectedFilter === "tagId" ? debouncedSearch : "",
+    },
+  });
+  const {
+    allDomains: domains,
+    primaryDomain,
+    loading: loadingDomains,
+  } = useDomains({
+    includeParams: false,
+    query: {
+      search:
+        domainsAsync && selectedFilter === "domain" ? debouncedSearch : "",
+    },
+  });
+
+  const { tags: selectedTags } = useTags({
+    query: { ids: searchParamsObj.tagId ? [searchParamsObj.tagId] : [] },
+    enabled: tagsAsync,
+  });
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -236,6 +270,7 @@ export default function Toggle({
               key: "domain",
               icon: Globe2,
               label: "Domain",
+              shouldFilter: !domainsAsync,
               getOptionIcon: (value) => (
                 <BlurImage
                   src={`${GOOGLE_FAVICON_URL}${value}`}
@@ -245,10 +280,25 @@ export default function Toggle({
                   height={16}
                 />
               ),
-              options: domains.map((domain) => ({
-                value: domain.slug,
-                label: domain.slug,
-              })),
+              options: loadingDomains
+                ? null
+                : [
+                    ...domains.map((domain) => ({
+                      value: domain.slug,
+                      label: domain.slug,
+                    })),
+                    // Add currently filtered domain if not already in the list
+                    ...(!searchParamsObj.domain ||
+                    domains.some((d) => d.slug === searchParamsObj.domain)
+                      ? []
+                      : [
+                          {
+                            value: searchParamsObj.domain,
+                            label: searchParamsObj.domain,
+                            hideDuringSearch: true,
+                          },
+                        ]),
+                  ],
             },
             {
               key: "link",
@@ -296,6 +346,7 @@ export default function Toggle({
               key: "tagId",
               icon: Tag,
               label: "Tag",
+              shouldFilter: !tagsAsync,
               getOptionIcon: (value, props) => {
                 const tagColor =
                   props.option?.data?.color ??
@@ -312,22 +363,39 @@ export default function Toggle({
                 ) : null;
               },
               options:
-                tags?.map((tag) => ({
-                  value: tag.id,
-                  icon: (
-                    <div
-                      className={cn(
-                        "rounded-md p-1.5",
-                        COLORS_LIST.find(({ color }) => color === tag.color)
-                          ?.css,
-                      )}
-                    >
-                      <Tag className="h-2.5 w-2.5" />
-                    </div>
-                  ),
-                  label: tag.name,
-                  data: { color: tag.color },
-                })) ?? null,
+                loadingTags ||
+                // Consider tags loading if we can't find the currently filtered tag
+                (searchParamsObj.tagId &&
+                  ![...(selectedTags ?? []), ...(tags ?? [])].some(
+                    (t) => t.id === searchParamsObj.tagId,
+                  ))
+                  ? null
+                  : [
+                      // Add selected tag to list if not already in tags
+                      ...(tags ?? []),
+                      ...(selectedTags
+                        ?.filter((st) => !tags?.some((t) => t.id === st.id))
+                        ?.map((st) => ({ ...st, hideDuringSearch: true })) ??
+                        []),
+                    ].map((tag) => ({
+                      value: tag.id,
+                      icon: (
+                        <div
+                          className={cn(
+                            "rounded-md p-1.5",
+                            COLORS_LIST.find(({ color }) => color === tag.color)
+                              ?.css,
+                          )}
+                        >
+                          <Tag className="h-2.5 w-2.5" />
+                        </div>
+                      ),
+                      label: tag.name,
+                      data: { color: tag.color },
+                      hideDuringSearch: (
+                        tag as TagProps & { hideDuringSearch?: boolean }
+                      ).hideDuringSearch,
+                    })) ?? null,
             },
           ]),
       {
@@ -496,6 +564,7 @@ export default function Toggle({
       domains,
       links,
       tags,
+      selectedTags,
       countries,
       cities,
       devices,
@@ -504,6 +573,12 @@ export default function Toggle({
       referers,
       refererUrls,
       urls,
+      tagsAsync,
+      domainsAsync,
+      loadingTags,
+      loadingDomains,
+      searchParamsObj.tagId,
+      searchParamsObj.domain,
     ],
   );
 
@@ -572,6 +647,8 @@ export default function Toggle({
                 className="w-full md:w-fit"
                 filters={filters}
                 activeFilters={activeFilters}
+                onSearchChange={setSearch}
+                onSelectedFilterChange={setSelectedFilter}
                 onSelect={async (key, value) => {
                   if (key === "ai") {
                     setStreaming(true);
