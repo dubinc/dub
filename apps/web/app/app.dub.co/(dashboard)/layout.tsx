@@ -5,7 +5,6 @@ import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 import Providers from "../../providers";
 
-export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {

@@ -4,7 +4,6 @@ import Providers from "app/providers";
 import Link from "next/link";
 import { ReactNode } from "react";
 
-export const dynamic = "force-static";
 export const metadata = constructMetadata({ noIndex: true });
 
 const tabs = [

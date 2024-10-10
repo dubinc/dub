@@ -8,7 +8,6 @@ import {
   PropsWithChildren,
   ReactNode,
   Suspense,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -109,13 +108,12 @@ function NavItem({ item }: { item: NavItemType }) {
   const { name, icon: Icon, href, exact } = item;
 
   const [hovered, setHovered] = useState(false);
-  const [isActive, setIsActive] = useState(false);
 
   const pathname = usePathname();
 
-  useEffect(() => {
-    setIsActive(exact ? pathname === href : pathname.startsWith(href));
-  }, [exact, pathname, href]);
+  const isActive = useMemo(() => {
+    return pathname === href || (exact && pathname.startsWith(href));
+  }, [pathname, href, exact]);
 
   return (
     <Link
