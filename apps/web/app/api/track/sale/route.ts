@@ -112,10 +112,12 @@ export const POST = withWorkspaceEdge(
           invoiceId,
           amount,
           currency,
-          customerId: customer.externalId,
+          customerId: customer.id,
+          customerExternalId: customer.externalId,
           customerName: customer.name,
           customerEmail: customer.email,
           customerAvatar: customer.avatar,
+          customerCreatedAt: customer.createdAt,
         });
 
         await sendWorkspaceWebhookOnEdge({
