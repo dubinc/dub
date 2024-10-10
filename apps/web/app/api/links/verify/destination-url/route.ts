@@ -16,7 +16,7 @@ export const GET = withWorkspace(
     }
 
     try {
-      const existingLink = await prisma.link.findFirst({
+      const existingLinks = await prisma.link.findMany({
         where: {
           url,
           projectId: workspace.id,
@@ -25,12 +25,13 @@ export const GET = withWorkspace(
           id: true,
           domain: true,
           key: true,
+          url: true,
         },
       });
 
       return NextResponse.json({
-        exists: !!existingLink,
-        link: existingLink,
+        exists: existingLinks.length > 0,
+        links: existingLinks,
       });
     } catch (error) {
       console.error(error);

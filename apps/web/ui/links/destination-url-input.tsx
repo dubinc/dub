@@ -8,6 +8,7 @@ import {
   SimpleTooltipContent,
   useMediaQuery,
 } from "@dub/ui";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   forwardRef,
   HTMLProps,
@@ -64,7 +65,7 @@ export const DestinationUrlInput = forwardRef<
         )
           .then((res) => res.json())
           .then((data) => {
-            setDuplicateLinks(data.exists ? [data.link] : []);
+            setDuplicateLinks(data.exists ? data.links : []);
           });
       } else if (!debouncedUrl) {
         setDuplicateLinks([]);
@@ -152,20 +153,50 @@ export const DestinationUrlInput = forwardRef<
   },
 );
 
-const DuplicateLinksWarning = ({ links }) => (
-  <div className="mt-2 rounded-md bg-yellow-50 p-3">
-    <div className="flex">
-      <div className="flex-shrink-0">
-        <AlertCircleFill
-          className="h-5 w-5 text-yellow-400"
-          aria-hidden="true"
-        />
+const DuplicateLinksWarning = ({ links }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  return (
+    <div className="mt-2 rounded-md border border-gray-200 bg-gray-50">
+      <div
+        className="flex cursor-pointer items-center justify-between p-3 transition-colors hover:bg-gray-100"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center space-x-3">
+          <AlertCircleFill
+            className="h-4 w-4 text-gray-500"
+            aria-hidden="true"
+          />
+          <h3 className="text-sm font-medium text-gray-700">
+            Possible duplicates ({links.length})
+          </h3>
+        </div>
+        {isExpanded ? (
+          <ChevronUp className="h-4 w-4 text-gray-500" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-gray-500" />
+        )}
       </div>
-      <div className="ml-3">
-        <h3 className="text-sm font-medium text-yellow-800">
-          Duplicate links found
-        </h3>
-      </div>
+      {isExpanded && (
+        <ul className="max-h-[100px] overflow-y-auto border-t border-gray-200">
+          {links.map((link) => (
+            <li
+              key={link.id}
+              className="p-3 text-sm text-gray-700 transition-colors hover:bg-gray-100"
+            >
+              <a
+                href={`https://${link.domain}/${link.key}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2"
+              >
+                <span className="text-blue-500 hover:underline">{`${link.domain}/${link.key}`}</span>
+                <span className="text-gray-400">→</span>
+                <span className="truncate text-gray-600">{link.url}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
-  </div>
-);
+  );
+};
