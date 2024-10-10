@@ -52,6 +52,7 @@ type UseTableProps<T> = {
   resourceName?: (plural: boolean) => string;
 
   className?: string;
+  scrollWrapperClassName?: string;
   thClassName?: string;
   tdClassName?: string;
 } & (
@@ -141,6 +142,7 @@ export function Table<T>({
   onSortChange,
   sortableColumns = [],
   className,
+  scrollWrapperClassName,
   thClassName,
   tdClassName,
   table,
@@ -152,7 +154,12 @@ export function Table<T>({
   return (
     <div className="relative border border-gray-200 bg-white sm:rounded-xl">
       {(!error && !!data?.length) || loading ? (
-        <div className="relative min-h-[400px] overflow-x-auto rounded-[inherit]">
+        <div
+          className={cn(
+            "relative min-h-[400px] overflow-x-auto rounded-[inherit]",
+            scrollWrapperClassName,
+          )}
+        >
           <table
             className={cn(
               [

@@ -11,7 +11,7 @@ import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import * as React from "react";
 import { buttonVariants } from "./button";
 
-const AUTOPLAY_DEFAULT_DELAY = 2000;
+export const AUTOPLAY_DEFAULT_DELAY = 2000;
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -46,6 +46,27 @@ export function useCarousel() {
   }
 
   return context;
+}
+
+export function useCarouselActiveIndex() {
+  const { api } = useCarousel();
+
+  const [activeIndex, setActiveIndex] = React.useState(0);
+
+  const onSelect = React.useCallback(
+    (api: CarouselApi) => setActiveIndex(api?.selectedScrollSnap() ?? 0),
+    [],
+  );
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    onSelect(api);
+    api.on("reInit", onSelect);
+    api.on("select", onSelect);
+  }, [api, onSelect]);
+
+  return activeIndex;
 }
 
 const Carousel = React.forwardRef<
@@ -296,12 +317,12 @@ const CarouselNavBar = ({
 
   const [isPlaying, setIsPlaying] = React.useState(false);
 
-  const onSelect = React.useCallback((api: any) => {
-    setSelectedIndex(api.selectedScrollSnap());
+  const onSelect = React.useCallback((api: CarouselApi) => {
+    setSelectedIndex(api?.selectedScrollSnap() ?? 0);
   }, []);
 
   const stopAutoplayAnd = React.useCallback(
-    (fn: any) => () => {
+    (fn: () => void) => () => {
       if (autoplay && autoplay.isPlaying()) autoplay.stop();
       fn();
     },
