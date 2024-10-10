@@ -1,5 +1,22 @@
 import { tagColors } from "@/lib/types";
 import z from "@/lib/zod";
+import { getPaginationQuerySchema } from "./misc";
+
+export const TAGS_MAX_PAGE_SIZE = 100;
+
+export const getTagsQuerySchema = z
+  .object({
+    search: z
+      .string()
+      .optional()
+      .describe("The search term to filter the tags by."),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
+
+export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
+  page: true,
+  pageSize: true,
+});
 
 export const tagColorSchema = z
   .enum(tagColors, {
