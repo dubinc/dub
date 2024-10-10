@@ -1,7 +1,4 @@
-import {
-  WEBHOOK_SECRET_PREFIX,
-  WEBHOOK_TRIGGERS,
-} from "@/lib/webhook/constants";
+import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { z } from "zod";
 
 export const webhookSchema = z.object({
@@ -17,7 +14,7 @@ export const webhookSchema = z.object({
 export const createWebhookSchema = z.object({
   name: z.string().min(1).max(30),
   url: z.string().url().max(190),
-  secret: z.string().startsWith(WEBHOOK_SECRET_PREFIX),
+  secret: z.string().optional(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
   linkIds: z.array(z.string()).optional(),
 });

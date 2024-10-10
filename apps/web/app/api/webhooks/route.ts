@@ -5,6 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
+import { createWebhookSecret } from "@/lib/webhook/secret";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
@@ -53,9 +54,14 @@ export const GET = withWorkspace(
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, url, secret, triggers, linkIds } = createWebhookSchema.parse(
-      await parseRequestBody(req),
-    );
+    const body = createWebhookSchema.parse(await parseRequestBody(req));
+
+    let { secret } = body;
+    const { name, url, triggers, linkIds } = body;
+
+    if (!secret) {
+      secret = createWebhookSecret();
+    }
 
     const existingWebhook = await prisma.webhook.findFirst({
       where: {
