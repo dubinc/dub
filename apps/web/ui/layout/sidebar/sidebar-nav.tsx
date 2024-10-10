@@ -112,7 +112,7 @@ function NavItem({ item }: { item: NavItemType }) {
   const pathname = usePathname();
 
   const isActive = useMemo(() => {
-    return pathname === href || (exact && pathname.startsWith(href));
+    return exact ? pathname === href : pathname.startsWith(href);
   }, [pathname, href, exact]);
 
   return (
