@@ -5,19 +5,20 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-export function Background() {
+export function Background(props: { showAnimation?: boolean }) {
   const pathname = usePathname();
   const [isGridLoaded, setIsGridLoaded] = useState(false);
   const [isBackgroundLoaded, setIsBackgroundLoaded] = useState(false);
   const isLoaded = isGridLoaded && isBackgroundLoaded;
 
-  const isWelcome = pathname === "/onboarding/welcome";
+  const showAnimation =
+    props.showAnimation || pathname === "/onboarding/welcome";
 
   return (
     <div
       className={cn(
         "absolute inset-0 overflow-hidden bg-white transition-opacity duration-300",
-        isWelcome ? (isLoaded ? "opacity-100" : "opacity-0") : "opacity-40",
+        showAnimation ? (isLoaded ? "opacity-100" : "opacity-0") : "opacity-40",
       )}
     >
       <BackgroundGradient className="opacity-15" />
@@ -38,7 +39,7 @@ export function Background() {
           height={1046}
           className={cn(
             "relative min-w-[1000px] max-w-screen-2xl transition-opacity duration-300",
-            isWelcome ? "opacity-100" : "opacity-0",
+            showAnimation ? "opacity-100" : "opacity-0",
           )}
         />
       </div>
