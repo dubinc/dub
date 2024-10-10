@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { HelpButton } from "./help/help-button";
+import { HelpButton } from "./help-button";
 import { OnboardingButton } from "./onboarding/onboarding-button";
 
 const toolbarItems = ["onboarding", "help"] as const;

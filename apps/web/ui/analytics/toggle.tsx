@@ -510,15 +510,15 @@ export default function Toggle({
   return (
     <>
       <div
-        className={cn("sticky top-11 z-10 bg-gray-50 py-3 md:py-3", {
-          "top-14": isPublicStatsPage,
-          "top-16": adminPage || demoPage,
-          "shadow-md": scrolled,
+        className={cn("py-3 md:py-3", {
+          "sticky top-14 z-10 bg-gray-50": isPublicStatsPage,
+          "sticky top-16 z-10 bg-gray-50": adminPage || demoPage,
+          "shadow-md": scrolled && isPublicStatsPage,
         })}
       >
         <div
           className={cn(
-            "mx-auto flex w-full max-w-screen-xl flex-col gap-2 px-2.5 lg:px-20",
+            "mx-auto flex w-full max-w-screen-xl flex-col gap-2 px-3 lg:px-10",
             {
               "md:h-10": key,
             },
@@ -533,7 +533,7 @@ export default function Toggle({
               },
             )}
           >
-            {isPublicStatsPage ? (
+            {isPublicStatsPage && (
               <a
                 className="group flex items-center text-lg font-semibold text-gray-800"
                 href={linkConstructor({ domain, key })}
@@ -560,19 +560,16 @@ export default function Toggle({
                 </p>
                 <ExpandingArrow className="h-5 w-5" />
               </a>
-            ) : (
-              <h1 className="text-2xl font-semibold tracking-tight text-black">
-                {page === "analytics" ? "Analytics" : "Events"}
-              </h1>
             )}
             <div
-              className={cn("flex items-center gap-2", {
-                "w-full flex-col min-[550px]:flex-row md:w-auto": !key,
-                "w-full md:w-auto": key,
-              })}
+              className={cn(
+                "flex w-full items-center gap-2",
+                isPublicStatsPage && "md:w-auto",
+                !key && "flex-col min-[550px]:flex-row",
+              )}
             >
               <Filter.Select
-                className="w-full"
+                className="w-full md:w-fit"
                 filters={filters}
                 activeFilters={activeFilters}
                 onSelect={async (key, value) => {
@@ -626,14 +623,15 @@ export default function Toggle({
                 askAI
               />
               <div
-                className={cn("flex w-full items-center gap-2", {
+                className={cn("flex w-full grow items-center gap-2 md:w-auto", {
                   "min-[550px]:w-auto": !key,
                   "justify-end": key,
+                  "grow-0": isPublicStatsPage,
                 })}
               >
                 <DateRangePicker
-                  className="w-full sm:min-w-[200px]"
-                  align="end"
+                  className="w-full sm:min-w-[200px] md:w-fit"
+                  align="start"
                   value={
                     start && end
                       ? {
@@ -700,17 +698,19 @@ export default function Toggle({
                     },
                   )}
                 />
-                {!isPublicStatsPage && page === "analytics" && (
-                  <AnalyticsOptions />
+                {!isPublicStatsPage && (
+                  <div className="flex grow justify-end">
+                    {page === "analytics" && <AnalyticsOptions />}
+                    {page === "events" && <EventsOptions />}
+                  </div>
                 )}
-                {page === "events" && <EventsOptions />}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-screen-xl px-2.5 lg:px-20">
+      <div className="mx-auto w-full max-w-screen-xl px-3 lg:px-10">
         <Filter.List
           filters={filters}
           activeFilters={[
@@ -739,7 +739,7 @@ export default function Toggle({
         <div
           className={cn(
             "transition-[height] duration-[300ms]",
-            streaming || activeFilters.length ? "h-6" : "h-0",
+            streaming || activeFilters.length ? "h-3" : "h-0",
           )}
         />
       </div>
