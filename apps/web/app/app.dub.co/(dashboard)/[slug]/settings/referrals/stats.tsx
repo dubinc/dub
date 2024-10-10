@@ -16,7 +16,7 @@ import { CountingNumbers } from "@dub/ui";
 import { User } from "@dub/ui/src/icons";
 import { nFormatter, randomValue } from "@dub/utils";
 import { subDays } from "date-fns";
-import { AnalyticsTimeseries } from "dub/dist/commonjs/models/components";
+import { AnalyticsTimeseries } from "dub/models/components";
 import { Suspense } from "react";
 
 export function Stats({ slug }: { slug: string }) {

@@ -1,5 +1,5 @@
 import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/src/icons";
-import { cn, getPrettyUrl, isValidUrl, punycode } from "@dub/utils";
+import { cn, getPrettyUrl, punycode } from "@dub/utils";
 import { Star } from "lucide-react";
 
 export function DomainCardTitleColumn({
@@ -17,7 +17,6 @@ export function DomainCardTitleColumn({
   primary?: boolean;
   defaultDomain?: boolean;
 }) {
-  const isDomainUrl = isValidUrl(`http://${domain}`);
   return (
     <div className="flex min-w-0 items-center gap-4">
       <div className="hidden rounded-full border border-gray-200 sm:block">
@@ -33,20 +32,15 @@ export function DomainCardTitleColumn({
       </div>
       <div className="overflow-hidden">
         <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {isDomainUrl ? (
-            <a
-              href={`http://${domain}`}
-              target="_blank"
-              rel="noreferrer"
-              className="truncate text-sm font-medium"
-              title={punycode(domain)}
-            >
-              {punycode(domain)}
-            </a>
-          ) : (
-            <div className="truncate text-sm font-medium">{domain}</div>
-          )}
-
+          <a
+            href={`http://${domain}`}
+            target="_blank"
+            rel="noreferrer"
+            className="truncate text-sm font-medium"
+            title={punycode(domain)}
+          >
+            {punycode(domain)}
+          </a>
           {primary ? (
             <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-sky-400/[.15] px-1.5 py-0.5 text-xs font-medium text-sky-600">
               <Flag2 className="hidden h-3 w-3 sm:block" />

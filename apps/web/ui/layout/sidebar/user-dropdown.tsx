@@ -2,6 +2,7 @@
 
 import { Avatar, Badge, Popover } from "@dub/ui";
 import { Gear, Icon } from "@dub/ui/src";
+import { cn } from "@dub/utils";
 import Cookies from "js-cookie";
 import { Edit3, LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -87,7 +88,10 @@ export default function UserDropdown() {
     >
       <button
         onClick={() => setOpenPopover(!openPopover)}
-        className="group relative rounded-full outline-none ring-offset-1 ring-offset-neutral-100 transition-all hover:ring-2 hover:ring-black/10 focus:outline-none active:ring-black/15 data-[focus-visible=true]:ring-2 data-[state='open']:ring-black/15"
+        className={cn(
+          "group relative rounded-full ring-offset-1 ring-offset-neutral-100 transition-all hover:ring-2 hover:ring-black/10 active:ring-black/15 data-[state='open']:ring-black/15",
+          "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+        )}
       >
         {session?.user ? (
           <Avatar

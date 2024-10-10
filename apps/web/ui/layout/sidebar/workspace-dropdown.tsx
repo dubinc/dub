@@ -71,7 +71,7 @@ export function WorkspaceDropdown() {
   const [openPopover, setOpenPopover] = useState(false);
 
   if (!workspaces || status === "loading") {
-    return <WorkspaceSwitcherPlaceholder />;
+    return <WorkspaceDropdownPlaceholder />;
   }
 
   return (
@@ -90,7 +90,10 @@ export function WorkspaceDropdown() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm outline-none transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80"
+          className={cn(
+            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
+            "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+          )}
         >
           <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
             <BlurImage
@@ -127,7 +130,7 @@ export function WorkspaceDropdown() {
   );
 }
 
-function WorkspaceSwitcherPlaceholder() {
+function WorkspaceDropdownPlaceholder() {
   return (
     <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
       <div className="size-7 animate-pulse rounded-full bg-gray-200" />
@@ -202,7 +205,10 @@ function WorkspaceList({
               key={name}
               href={href}
               target={target}
-              className="flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
+              className={cn(
+                "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+              )}
               onClick={() => setOpenPopover(false)}
             >
               <Icon className="size-4 text-neutral-500" />
@@ -225,6 +231,7 @@ function WorkspaceList({
                   className={cn(
                     "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
                     "hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                     isActive && "bg-neutral-200/50",
                   )}
                   href={href(slug)}
