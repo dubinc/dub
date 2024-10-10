@@ -4,10 +4,11 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
-import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
+import { WEBHOOK_ID_PREFIX, WEBHOOK_RECEIVER } from "@/lib/webhook/constants";
 import { createWebhookSecret } from "@/lib/webhook/secret";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import z from "@/lib/zod";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -15,12 +16,17 @@ import { sendEmail } from "emails";
 import WebhookAdded from "emails/webhook-added";
 import { NextResponse } from "next/server";
 
+const createWebhookBodySchema = createWebhookSchema.extend({
+  receiver: z.enum(WEBHOOK_RECEIVER).default("user"),
+});
+
 // GET /api/webhooks - get all webhooks for the given workspace
 export const GET = withWorkspace(
   async ({ workspace }) => {
     const webhooks = await prisma.webhook.findMany({
       where: {
         projectId: workspace.id,
+        receiver: "user",
       },
       select: {
         id: true,
@@ -54,10 +60,10 @@ export const GET = withWorkspace(
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const body = createWebhookSchema.parse(await parseRequestBody(req));
+    const body = createWebhookBodySchema.parse(await parseRequestBody(req));
 
     let { secret } = body;
-    const { name, url, triggers, linkIds } = body;
+    const { name, url, triggers, linkIds, receiver } = body;
 
     if (!secret) {
       secret = createWebhookSecret();
@@ -105,7 +111,7 @@ export const POST = withWorkspace(
         secret,
         triggers,
         projectId: workspace.id,
-        receiver: "user",
+        receiver,
         links: {
           ...(linkIds &&
             linkIds.length > 0 && {
