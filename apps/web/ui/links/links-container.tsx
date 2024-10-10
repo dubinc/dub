@@ -8,13 +8,7 @@ import { CardList, MaxWidthWrapper, usePagination } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/src/icons";
 import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
-import {
-  Dispatch,
-  SetStateAction,
-  createContext,
-  useContext,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, createContext, useContext, useState, type JSX } from "react";
 import ArchivedLinksHint from "./archived-links-hint";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";

@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { ComponentProps, ReactNode, SVGProps } from "react";
+import { ComponentProps, ReactNode, SVGProps, type JSX } from "react";
 import { ExpandingArrow } from "../../icons";
 
 export const contentHeadingClassName =

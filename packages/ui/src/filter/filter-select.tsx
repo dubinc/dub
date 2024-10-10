@@ -53,7 +53,7 @@ export function FilterSelect({
   const mainListDimensions = useRef<{
     width: number;
     height: number;
-  }>();
+  }>(undefined);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -129,7 +129,7 @@ export function FilterSelect({
   );
 
   return (
-    <Popover
+    (<Popover
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       onEscapeKeyDown={(e) => {
@@ -223,14 +223,14 @@ export function FilterSelect({
                       );
                     }) ?? (
                       // Filter options loading state
-                      <Command.Loading>
+                      (<Command.Loading>
                         <div
                           className="-m-1 flex items-center justify-center"
                           style={mainListDimensions.current}
                         >
                           <LoadingSpinner />
                         </div>
-                      </Command.Loading>
+                      </Command.Loading>)
                     )}
 
                 {/* Only render CommandEmpty if not loading */}
@@ -273,7 +273,7 @@ export function FilterSelect({
           />
         )}
       </button>
-    </Popover>
+    </Popover>)
   );
 }
 

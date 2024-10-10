@@ -14,6 +14,8 @@ import {
 } from "@react-email/components";
 import Footer from "./components/footer";
 
+import type { JSX } from "react";
+
 export default function InvalidDomain({
   email = "panic@thedis.co",
   domain = "dub.sh",
