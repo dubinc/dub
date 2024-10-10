@@ -60,6 +60,7 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
+import { WebhookSelect } from "./webhook-select";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -111,6 +112,7 @@ function LinkBuilderInner({
     plan,
     nextPlan,
     logo,
+    flags,
     conversionEnabled,
   } = useWorkspace();
 
@@ -238,11 +240,14 @@ function LinkBuilderInner({
             ref={formRef}
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
-              const { user, tags, tagId, ...rest } = data;
+              const { user, tags, tagId, webhooks, ...rest } = data;
               const bodyData = {
                 ...rest,
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
+
+                // Map webhooks to webhookIds
+                webhookIds: webhooks.map(({ id }) => id),
 
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
@@ -473,6 +478,7 @@ function LinkBuilderInner({
                   <TargetingButton />
                   <PasswordButton />
                 </div>
+                {flags?.webhooks && <WebhookSelect />}
                 <MoreDropdown />
               </div>
               {homepageDemo ? (
@@ -569,7 +575,6 @@ export function useLinkBuilder({
   duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
-  const { flags } = useWorkspace();
   const [showLinkBuilder, setShowLinkBuilder] = useState(false);
 
   const LinkBuilderCallback = useCallback(() => {

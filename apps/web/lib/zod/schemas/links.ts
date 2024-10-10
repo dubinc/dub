@@ -12,6 +12,7 @@ import {
   parseUrlSchema,
   parseUrlSchemaAllowEmpty,
 } from "./utils";
+import { webhookSchema } from "./webhooks";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
@@ -317,6 +318,12 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
     ),
+  webhookIds: z
+    .array(z.string())
+    .nullish()
+    .describe(
+      "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
+    ),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial().optional();
@@ -484,6 +491,11 @@ export const LinkSchema = z
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
+    webhooks: webhookSchema
+      .pick({ id: true, name: true, url: true })
+      .array()
+      .nullable()
+      .describe("The webhooks assigned to the short link."),
     comments: z
       .string()
       .nullable()

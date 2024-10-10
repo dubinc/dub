@@ -49,6 +49,7 @@ export async function updateLink({
     tagId,
     tagIds,
     tagNames,
+    webhookIds,
     ...rest
   } = updatedLink;
 
@@ -108,6 +109,18 @@ export async function updateLink({
           })),
         },
       }),
+
+      // Webhooks
+      ...(webhookIds && {
+        webhooks: {
+          deleteMany: {},
+          createMany: {
+            data: webhookIds.map((webhookId) => ({
+              webhookId,
+            })),
+          },
+        },
+      }),
     },
     include: {
       tags: {
@@ -123,7 +136,13 @@ export async function updateLink({
       },
       webhooks: {
         select: {
-          webhookId: true,
+          webhook: {
+            select: {
+              id: true,
+              name: true,
+              url: true,
+            },
+          },
         },
       },
     },
@@ -136,7 +155,7 @@ export async function updateLink({
         [updatedLink.key.toLowerCase()]: await formatRedisLink({
           ...response,
           ...(response.webhooks.length > 0 && {
-            webhookIds: response.webhooks.map(({ webhookId }) => webhookId),
+            webhookIds: response.webhooks.map(({ webhook }) => webhook.id),
           }),
         }),
       }),

@@ -66,6 +66,7 @@ export async function processLink<T extends Record<string, any>>({
     tagNames,
     externalId,
     identifier,
+    webhookIds,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
@@ -400,6 +401,31 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
+  // Validate the webhooks
+  if (webhookIds && webhookIds.length > 0) {
+    webhookIds = [...new Set(webhookIds)];
+
+    const webhooks = await prisma.webhook.findMany({
+      select: {
+        id: true,
+      },
+      where: { projectId: workspace?.id, id: { in: webhookIds } },
+    });
+
+    if (webhooks.length !== webhookIds.length) {
+      const invalidWebhookIds = webhookIds.filter(
+        (webhookId) =>
+          webhooks.find(({ id }) => webhookId === id) === undefined,
+      );
+
+      return {
+        link: payload,
+        error: "Invalid webhookIds detected: " + invalidWebhookIds.join(", "),
+        code: "unprocessable_entity",
+      };
+    }
+  }
+
   // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
@@ -422,6 +448,9 @@ export async function processLink<T extends Record<string, any>>({
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
       ...(userId && {
         userId,
+      }),
+      ...(webhookIds && {
+        webhookIds,
       }),
     },
     error: null,

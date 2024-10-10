@@ -1,37 +1,25 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WebhookProps } from "@/lib/types";
 import EmptyState from "@/ui/shared/empty-state";
 import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
 import { Button, TooltipContent } from "@dub/ui";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
-import { fetcher } from "@dub/utils";
 import { Webhook } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
-import useSWR from "swr";
 
 export default function WebhooksPageClient() {
   const router = useRouter();
-  const {
-    id: workspaceId,
-    slug,
-    plan,
-    role,
-    conversionEnabled,
-    flags,
-  } = useWorkspace();
+  const { slug, plan, role, conversionEnabled, flags } = useWorkspace();
 
   if (!flags?.webhooks) {
     redirect(`/${slug}/settings`);
   }
 
-  const { data: webhooks, isLoading } = useSWR<WebhookProps[]>(
-    `/api/webhooks?workspaceId=${workspaceId}`,
-    fetcher,
-  );
+  const { webhooks, isLoading } = useWebhooks();
 
   const { error: permissionsError } = clientAccessCheck({
     action: "webhooks.write",
