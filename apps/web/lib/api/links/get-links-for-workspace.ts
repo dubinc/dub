@@ -17,6 +17,7 @@ export async function getLinksForWorkspace({
   showArchived,
   withTags,
   includeUser,
+  folderId,
   linkIds,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
@@ -62,6 +63,7 @@ export async function getLinksForWorkspace({
           : {}),
       ...(userId && { userId }),
       ...(linkIds && { id: { in: linkIds } }),
+      folderId: folderId ?? null,
     },
     include: {
       user: includeUser,
