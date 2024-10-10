@@ -1,9 +1,9 @@
 import { getDomains } from "@/api/domains";
+import { setConfig } from "@/utils/config";
 import { handleError } from "@/utils/handle-error";
 import { logger } from "@/utils/logger";
 import chalk from "chalk";
 import { Command } from "commander";
-import Configstore from "configstore";
 import ora from "ora";
 import prompts from "prompts";
 import { z } from "zod";
@@ -56,10 +56,9 @@ export const domains = new Command()
         },
       );
 
-      const getconfig = new Configstore("dub-cli");
-      getconfig.set("domain", options.domain);
-
+      setConfig({ domain: options.domain });
       spinner.succeed("Done");
+
       logger.info("");
       logger.info(`${chalk.green("Success!")} Configuration updated.`);
       logger.info("");

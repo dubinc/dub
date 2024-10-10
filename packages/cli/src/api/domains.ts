@@ -7,7 +7,7 @@ export async function getDomains() {
   const config = await getConfig();
 
   const dub = new Dub({
-    token: config.key,
+    token: config.access_token,
   });
 
   const [{ result: domainsResponse }, defaultDomainsResponse] =
@@ -16,7 +16,7 @@ export async function getDomains() {
       fetch("https://api.dub.co/domains/default", {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${config.key}`,
+          Authorization: `Bearer ${config.access_token}`,
           "Content-Type": "application/json",
         },
       }),
