@@ -13,11 +13,7 @@ import {
   UserCheck,
 } from "@dub/ui/src/icons";
 import { capitalize, COUNTRIES, currencyFormatter, timeAgo } from "@dub/utils";
-import {
-  ClickEvent,
-  LeadEvent,
-  SaleEvent,
-} from "dub/dist/commonjs/models/components";
+import { ClickEvent, LeadEvent, SaleEvent } from "dub/models/components";
 import { useSearchParams } from "next/navigation";
 
 export function ActivityList({

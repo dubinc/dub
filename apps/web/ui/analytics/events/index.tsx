@@ -22,9 +22,9 @@ export default function AnalyticsEvents({
 
   return (
     <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage, demoPage }}>
-      <div className="py-10">
+      <div className="pb-10">
         <Toggle page="events" />
-        <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-2.5 lg:px-20">
+        <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-3 lg:px-10">
           <EventsTabs />
           <EventsTable key={event} />
         </div>
