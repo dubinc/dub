@@ -14,6 +14,7 @@ module.exports = withAxiom({
   reactStrictMode: false,
   transpilePackages: ["shiki"],
   experimental: {
+    ppr: true,
     serverComponentsExternalPackages: [
       "@react-email/components",
       "@react-email/render",
