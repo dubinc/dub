@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
@@ -6,7 +7,7 @@ import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { sendDomainTransferredEmail, updateLinksInRedis } from "./utils";
+import { sendDomainTransferredEmail } from "./utils";
 
 const schema = z.object({
   currentWorkspaceId: z.string(),
@@ -60,7 +61,10 @@ export async function POST(req: Request) {
           where: { linkId: { in: linkIds } },
         }),
 
-        updateLinksInRedis({ links, newWorkspaceId, domain }),
+        // Update links in redis
+        linkCache.mset(
+          links.map((link) => ({ ...link, projectId: newWorkspaceId })),
+        ),
 
         // Remove the webhooks associated with the links
         prisma.linkWebhook.deleteMany({
