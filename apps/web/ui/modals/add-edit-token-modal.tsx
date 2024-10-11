@@ -135,9 +135,9 @@ function AddEditTokenModal({
 
   const scopesByResources = useMemo(
     () =>
-      transformScopesForUI(getScopesByResourceForRole(role)).filter(
-        ({ key }) => key !== "conversions" || conversionEnabled,
-      ),
+      transformScopesForUI(getScopesByResourceForRole(role))
+        .filter(({ key }) => key !== "conversions" || conversionEnabled)
+        .filter(({ name }) => name),
     [role, conversionEnabled],
   );
 
