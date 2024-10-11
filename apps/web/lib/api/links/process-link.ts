@@ -229,7 +229,7 @@ export async function processLink<T extends Record<string, any>>({
       if (parentLink?.userId !== userId) {
         return {
           link: payload,
-          error: "You do not have access to this subdirectory.",
+          error: `You do not have access to create links in the ${domain}/${parentKey}/ subdirectory.`,
           code: "forbidden",
         };
       }
