@@ -105,7 +105,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
 
     const runKeyChecks = async (value: string) => {
       const res = await fetch(
-        `/api/links/verify?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
+        `/api/links/exists?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
       );
       const { error } = await res.json();
       if (error) {
