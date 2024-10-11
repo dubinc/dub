@@ -51,7 +51,6 @@ export const PUT = withWorkspace(
         amznid: defaultDomains.includes("amzn.id"),
         ggllink: defaultDomains.includes("ggl.link"),
         figpage: defaultDomains.includes("fig.page"),
-        loooooooong: defaultDomains.includes("loooooooo.ng"),
       },
     });
 
