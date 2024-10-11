@@ -156,7 +156,11 @@ function SaveUTMTemplateForm({ onSuccess }: { onSuccess: () => void }) {
               }),
             },
           );
-          if (!res.ok) throw new Error("UTM template save request failed");
+          if (!res.ok) {
+            const { error } = await res.json();
+            toast.error(error.message);
+            return;
+          }
 
           mutate(`/api/utm-templates?workspaceId=${workspaceId}`);
           toast.success("Template saved successfully");
