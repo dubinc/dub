@@ -7,13 +7,11 @@ import {
   getTagsQuerySchema,
 } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
-import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/tags - get all tags for a workspace
 export const GET = withWorkspace(
-  async ({ req, workspace, headers }) => {
-    const searchParams = getSearchParams(req.url);
+  async ({ req, workspace, headers, searchParams }) => {
     const { search, ids, page, pageSize } =
       getTagsQuerySchema.parse(searchParams);
 

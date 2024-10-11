@@ -4,13 +4,12 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import z from "@/lib/zod";
 import { getDefaultDomainsQuerySchema } from "@/lib/zod/schemas/domains";
-import { DUB_DOMAINS_ARRAY, getSearchParams } from "@dub/utils";
+import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/default - get default domains
 export const GET = withWorkspace(
-  async ({ req, workspace }) => {
-    const searchParams = getSearchParams(req.url);
+  async ({ req, workspace, searchParams }) => {
     const { search } = getDefaultDomainsQuerySchema.parse(searchParams);
     return NextResponse.json(await getDefaultDomains(workspace.id, { search }));
   },
