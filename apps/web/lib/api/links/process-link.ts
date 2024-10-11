@@ -1,4 +1,8 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import {
+  getFeatureFlags,
+  isBlacklistedDomain,
+  updateConfig,
+} from "@/lib/edge-config";
 import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -202,13 +206,33 @@ export async function processLink<T extends Record<string, any>>({
       };
     }
 
-    if (domain === "cal.link" && !workspace?.flags?.callink) {
-      return {
-        link: payload,
-        error:
-          "You can only use the cal.link domain if you have beta access to it. Contact support@dub.co to get access.",
-        code: "forbidden",
-      };
+    if (domain === "cal.link") {
+      const flags = await getFeatureFlags({
+        workspaceId: workspace?.id,
+      });
+      if (!flags?.callink) {
+        return {
+          link: payload,
+          error:
+            "You can only use the cal.link domain if you have beta access to it. Contact support@dub.co to get access.",
+          code: "forbidden",
+        };
+      }
+    }
+
+    if (key?.includes("/")) {
+      // check if the user has access to the parent link
+      const parentKey = key.split("/")[0];
+      const parentLink = await prisma.link.findUnique({
+        where: { domain_key: { domain, key: parentKey } },
+      });
+      if (parentLink?.userId !== userId) {
+        return {
+          link: payload,
+          error: "You do not have access to this subdirectory.",
+          code: "forbidden",
+        };
+      }
     }
 
     // else, check if the domain belongs to the workspace
