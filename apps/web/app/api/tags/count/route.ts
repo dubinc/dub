@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/tags - get all tags for a workspace
 export const GET = withWorkspace(
-  async ({ req, workspace, headers, searchParams }) => {
+  async ({ workspace, headers, searchParams }) => {
     const { search } = getTagsCountQuerySchema.parse(searchParams);
 
     const count = await prisma.tag.count({

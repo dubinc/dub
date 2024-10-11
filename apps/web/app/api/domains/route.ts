@@ -15,7 +15,7 @@ import { z } from "zod";
 
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(
-  async ({ req, workspace, searchParams }) => {
+  async ({ workspace, searchParams }) => {
     const { search, archived, page, pageSize } =
       getDomainsQuerySchema.parse(searchParams);
 

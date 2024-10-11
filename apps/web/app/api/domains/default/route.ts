@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/domains/default - get default domains
 export const GET = withWorkspace(
-  async ({ req, workspace, searchParams }) => {
+  async ({ workspace, searchParams }) => {
     const { search } = getDefaultDomainsQuerySchema.parse(searchParams);
     return NextResponse.json(await getDefaultDomains(workspace.id, { search }));
   },
