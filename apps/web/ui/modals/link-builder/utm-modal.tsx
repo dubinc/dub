@@ -24,9 +24,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { useForm, useFormContext } from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
 import { UTM_PARAMETERS } from "./constants";
+import { UTMTemplatesButton } from "./utm-templates-button";
 
 type UTMModalProps = {
   showUTMModal: boolean;
@@ -52,13 +53,7 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
   const { getValues: getValuesParent, setValue: setValueParent } =
     useFormContext<LinkFormData>();
 
-  const {
-    watch,
-    setValue,
-    reset,
-    formState: { isDirty },
-    handleSubmit,
-  } = useForm<
+  const form = useForm<
     Pick<
       LinkFormData,
       | "url"
@@ -78,6 +73,14 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
       utm_content: getValuesParent("utm_content"),
     },
   });
+
+  const {
+    watch,
+    setValue,
+    reset,
+    formState: { isDirty },
+    handleSubmit,
+  } = form;
 
   const url = watch("url");
   const enabledParams = useMemo(() => getParamsFromURL(url), [url]);
@@ -290,24 +293,39 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
         </div>
       )}
 
-      <div className="mt-6 flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          text="Cancel"
-          className="h-9 w-fit"
-          onClick={() => {
-            reset();
-            setShowUTMModal(false);
-          }}
-        />
-        <Button
-          type="submit"
-          variant="primary"
-          text="Save"
-          className="h-9 w-fit"
-          disabled={!isDirty}
-        />
+      <div className="mt-6 flex items-center justify-between gap-2">
+        {isValidUrl(url) ? (
+          <FormProvider {...form}>
+            <UTMTemplatesButton
+              onLoad={(params) => {
+                setValue("url", constructURLFromUTMParams(url, params), {
+                  shouldDirty: true,
+                });
+              }}
+            />
+          </FormProvider>
+        ) : (
+          <div />
+        )}
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Cancel"
+            className="h-9 w-fit"
+            onClick={() => {
+              reset();
+              setShowUTMModal(false);
+            }}
+          />
+          <Button
+            type="submit"
+            variant="primary"
+            text="Save"
+            className="h-9 w-fit"
+            disabled={!isDirty}
+          />
+        </div>
       </div>
     </form>
   );

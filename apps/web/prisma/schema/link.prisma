@@ -78,3 +78,32 @@ model Link {
   @@index(userId)
   @@fulltext([key, url])
 }
+
+model UtmTemplate {
+  id    String @id @default(cuid())
+  name  String
+
+  // Parameters
+  utm_source   String?
+  utm_medium   String?
+  utm_campaign String?
+  utm_term     String?
+  utm_content  String?
+  ref          String?
+
+  // User who created the template
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  // Project that the template belongs to
+  project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index(userId)
+  @@index(projectId)
+  @@unique([projectId, name])
+  @@index(updatedAt(sort: Desc))
+}
