@@ -16,16 +16,16 @@
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "next": "14.2.0-canary.47",
-    "react": "^18.2.0"
+    "next": "14.3.0-canary.81",
+    "react": "19.0.0-rc-77f43893-20241010"
   },
   "devDependencies": {
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
     "@types/punycode": "^2.1.4",
-    "@types/react": "^18.2.5",
-    "next": "14.2.0-canary.67",
-    "react": "^18.2.0",
+    "@types/react": "npm:types-react@rc",
+    "next": "14.3.0-canary.81",
+    "react": "19.0.0-rc-77f43893-20241010",
     "tsconfig": "workspace:*",
     "tsup": "^6.1.3",
     "typescript": "^5.1.6"
@@ -38,6 +38,9 @@
     "nanoid": "^5.0.1",
     "punycode": "^2.3.0",
     "tailwind-merge": "^2.4.0"
+  },
+  "overrides": {
+    "@types/react": "npm:types-react@rc"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

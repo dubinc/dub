@@ -21,7 +21,7 @@
     "test": "jest"
   },
   "resolutions": {
-    "@types/react": "^17.0.2"
+    "@types/react": "npm:types-react@rc"
   },
   "devDependencies": {
     "@stripe/ui-extension-tools": "^0.0.1"
