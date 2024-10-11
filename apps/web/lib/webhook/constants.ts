@@ -33,5 +33,3 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
 } as const;
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLD = 20;
-
-export const WEBHOOK_RECEIVER = ["user", "zapier", "make"] as const;

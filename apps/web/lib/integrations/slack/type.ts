@@ -6,4 +6,9 @@ export type SlackCredential = {
   tokenType: string;
   authUser: { id: string };
   team: { id: string; name: string };
+  incomingWebhook: {
+    channel: string;
+    channelId: string;
+    url: string;
+  };
 };
