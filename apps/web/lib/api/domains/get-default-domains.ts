@@ -18,7 +18,6 @@ export async function getDefaultDomains(
       amznid: true,
       ggllink: true,
       figpage: true,
-      loooooooong: true,
     },
   });
 
