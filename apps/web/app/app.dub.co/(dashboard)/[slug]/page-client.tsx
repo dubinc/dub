@@ -81,9 +81,6 @@ function WorkspaceLinks() {
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
             <div className="flex w-full grow gap-2 md:w-auto">
               <div className="grow basis-0 md:grow-0">
-                <LinkDisplay />
-              </div>
-              <div className="grow basis-0 md:grow-0">
                 <Filter.Select
                   filters={filters}
                   activeFilters={activeFilters}
@@ -137,6 +134,9 @@ function WorkspaceLinks() {
                     ),
                   }}
                 />
+              </div>
+              <div className="grow basis-0 md:grow-0">
+                <LinkDisplay />
               </div>
             </div>
             <div className="flex gap-x-2 max-md:w-full">
